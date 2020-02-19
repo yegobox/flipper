@@ -1,0 +1,13 @@
+name: Greetings
+
+on: [pull_request, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: 'Hello I am Richard, CEO of yegobox and flipper, I am happy that you are contributing to our project please feel free to DM me so we get you up and running'' first issue'
+        pr-message: 'Hello I am Richard, CEO of yegobox and flipper, I am happy that you are contributing to our project please feel free to DM me so we get you up and running'' first pr'
