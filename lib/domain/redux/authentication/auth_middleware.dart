@@ -389,20 +389,8 @@ void _cleanApp(Store<AppState> store) async {
       .getItemByName(name: 'tmp', branchId: store.state.branch.id);
 
   if (item == null) return;
-  List<StockTableData> stocks = await store.state.database.stockDao
-      .getItemFromStockByItemId(
-          branchId: store.state.branch.id, itemId: item.id);
 
-  store.state.database.itemDao.deleteItem(item);
-
-  for (var i = 0; i < stocks.length; i++) {
-    VariationTableData variant = await store.state.database.variationDao
-        .getVariationById(stocks[i].variantId);
-
-    store.state.database.variationDao.deleteVariation(variant);
-
-    store.state.database.stockDao.deleteStock(stocks[i]);
-  }
+  Util.deleteItem(store, item.name,item.id);
 }
 
 void Function(

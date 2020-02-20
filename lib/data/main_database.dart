@@ -56,17 +56,17 @@ LazyDatabase _openConnection() {
 
 @UseMoor(tables: [
   UserTable,
+  BusinessTable,
+  BranchTable,
   UnitTable,
+  CategoryTable,
+  ItemTable,
   TokenTable,
   BusinessUserTable,
   TabsTable,
-  BusinessTable,
-  CategoryTable,
-  BranchTable,
+  VariationTable,
   StockTable,
   PriceTable,
-  ItemTable,
-  VariationTable,
   StockHistoryTable,
   CartTable,
   OrderTable,
@@ -94,7 +94,7 @@ LazyDatabase _openConnection() {
 class Database extends _$Database {
   Database() : super(_openConnection());
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 1;
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -102,9 +102,9 @@ class Database extends _$Database {
         customStatement('PRAGMA foreign_keys = ON');
       },
       onUpgrade: (Migrator migrator, from, to) async {
-        if (from == 2) {
-          await migrator.createTable(actionsTable);
-        }
+//        if (from == 2) {
+//          await migrator.createTable(actionsTable);
+//        }
       },
       onCreate: (Migrator m) {
         return m.createAllTables();

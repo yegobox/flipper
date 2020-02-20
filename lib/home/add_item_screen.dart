@@ -6,6 +6,7 @@ import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -33,26 +34,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   _onClose(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
-
     ItemTableData item = await store.state.database.itemDao
         .getItemByName(name: 'tmp', branchId: store.state.branch.id);
-
-    if (item == null) return;
-    List<StockTableData> stocks = await store.state.database.stockDao
-        .getItemFromStockByItemId(
-            branchId: store.state.branch.id, itemId: item.id);
-
-    print(item);
-    store.state.database.itemDao.deleteItem(item);
-
-    for (var i = 0; i < stocks.length; i++) {
-      VariationTableData variant = await store.state.database.variationDao
-          .getVariationById(stocks[i].variantId);
-      print(variant);
-      //store.state.database.variationDao.deleteVariation(variant);
-
-      // store.state.database.stockDao.deleteStock(stocks[i]);
-    }
+    Util.deleteItem(store, item.name, item.id);
     Router.navigator.pop(true);
   }
 
@@ -275,7 +259,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         if (snapshot.data == null) {
                           return Text("");
                         }
-                        return snapshot.data == null
+                        return snapshot.data != null
                             ? buildRetailPriceWidget(vm, context)
                             : Text("");
                       },
@@ -290,7 +274,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         if (snapshot.data == null) {
                           return Text("");
                         }
-                        return snapshot.data == null
+                        return snapshot.data != null
                             ? buildCostPriceWidget(vm, context)
                             : Text("");
                       },
@@ -347,7 +331,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               vm.database.actionsDao.updateAction(
                                   _actions.copyWith(isLocked: true));
 
-                              //pass to the screen the variant needed for creating and or saving regular
+                              //todo: test this: pass to the screen the variant needed for creating and or saving regular
                               Router.navigator.pushNamed(
                                   Router.addVariationScreen,
                                   arguments: AddVariationScreenArguments(
@@ -397,22 +381,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
           style: TextStyle(color: Colors.black),
           onChanged: (retailPrice) async {
             tForm.retailPrice = retailPrice;
-            ItemTableData item = await vm.database.itemDao.getItemBy(
-                name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
-
-            VariationTableData variation = await vm.database.variationDao
-                .getVariationBy('tmp', vm.branch.id);
-
-            StoreProvider.of<AppState>(context).dispatch(
-              SaveRegular(
-                retailPrice: double.parse(retailPrice),
-                costPrice: 0,
-                itemId: item.id,
-                variantId: variation.id,
-                name: variation.name,
-              ),
-            );
-            //on typing here should save Regular Item variation
           },
           decoration: InputDecoration(
               hintText: S.of(context).retailPrice, focusColor: Colors.blue),
@@ -429,22 +397,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.black),
           onChanged: (costPrice) async {
-            ItemTableData item = await vm.database.itemDao.getItemBy(
-                name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
-
-            VariationTableData variation = await vm.database.variationDao
-                .getVariationBy('tmp', vm.branch.id);
             tForm.costPrice = costPrice;
-            StoreProvider.of<AppState>(context).dispatch(
-              SaveRegular(
-                costPrice: double.parse(costPrice),
-                retailPrice: 0,
-                itemId: item.id,
-                variantId: variation.id,
-                name: variation.name,
-              ),
-            );
-            //on typing here should save Regular Item variation
           },
           decoration: InputDecoration(
               hintText: S.of(context).costPrice, focusColor: Colors.blue),
@@ -462,7 +415,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _getSaveStatus(CommonViewModel vm) async {
     var result = await vm.database.actionsDao.getActionBy('save');
-
     setState(() {
       _actions = result;
     });
@@ -512,6 +464,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         unitId: vm.currentUnit.id,
         updatedAt: DateTime.now(),
         color: vm.currentColor == null ? item.color : vm.currentColor.hexCode,
+        deletedAt: null,
       ),
     );
     Router.navigator.maybePop();

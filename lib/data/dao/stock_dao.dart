@@ -61,6 +61,11 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
         .get();
   }
 
+  Future softDelete(StockTableData entry) {
+    return update(db.stockTable)
+        .replace(entry.copyWith(deletedAt: DateTime.now()));
+  }
+
   Future<List<StockTableData>> getReasons() => select(db.stockTable).get();
 
   Future deleteStock(Insertable<StockTableData> stock) =>

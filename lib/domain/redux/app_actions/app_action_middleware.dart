@@ -3,7 +3,6 @@ import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
@@ -38,27 +37,32 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     StockTableData c;
+    int variationId;
     if (action.variantId == null) {
-      int variantId = await generalRepository.insertVariant(
+      variationId = await generalRepository.insertVariant(
         store,
         //ignore:missing_required_param
         VariationTableData(
           branchId: store.state.branch.id,
-          id: action.variantId,
           itemId: action.itemId,
           name: action.name,
         ),
       );
       c = await store.state.database.stockDao.getStockByVariantId(
-          branchId: store.state.branch.id, variantId: variantId);
+          branchId: store.state.branch.id, variantId: variationId);
     } else {
+      variationId = action.variantId;
       c = await store.state.database.stockDao.getStockByVariantId(
           branchId: store.state.branch.id, variantId: action.variantId);
     }
 
-    //insert or update stock.
-
     if (c == null) {
+      final vaa =
+          await store.state.database.variationDao.getVariationById(variationId);
+
+      await store.state.database.variationDao
+          .updateVariation(vaa.copyWith(name: 'Regular'));
+
       store.state.database.stockDao.insert(
           //ignore:missing_required_param
           StockTableData(
@@ -69,6 +73,12 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
               isActive: false,
               retailPrice: action.retailPrice));
     } else {
+      final vaa =
+          await store.state.database.variationDao.getVariationById(variationId);
+
+      await store.state.database.variationDao
+          .updateVariation(vaa.copyWith(name: 'Regular'));
+
       store.state.database.stockDao.updateStock(
         c.copyWith(
           retailPrice: action.retailPrice,

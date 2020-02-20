@@ -46,6 +46,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     if (snapshot.data == null) {
                       return Text("");
                     }
+
                     return ItemsView(
                       context: context,
                       data: snapshot.data,

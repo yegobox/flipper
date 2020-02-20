@@ -4,9 +4,31 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/item.dart';
+import 'package:random_string/random_string.dart';
 import 'package:redux/redux.dart';
 
 class Util {
+  static deleteItem(Store<AppState> store, String itemName, int itemId) async {
+    ItemTableData item = await store.state.database.itemDao.getItemBy(
+        name: itemName, branchId: store.state.branch.id, itemId: itemId);
+
+    if (item == null) return;
+    List<StockTableData> stocks = await store.state.database.stockDao
+        .getItemFromStockByItemId(
+            branchId: store.state.branch.id, itemId: item.id);
+
+    for (var i = 0; i < stocks.length; i++) {
+      VariationTableData variant = await store.state.database.variationDao
+          .getVariationById(stocks[i].variantId);
+
+      await store.state.database.variationDao.softDelete(variant);
+
+      await store.state.database.stockDao.softDelete(stocks[i]);
+    }
+
+    store.state.database.itemDao.softDelete(item);
+  }
+
   static Future getActiveBranch(Store<AppState> store, int branchId) async {
     BranchTableData branche =
         await store.state.database.branchDao.getBranchById(branchId: branchId);
@@ -30,43 +52,61 @@ class Util {
     UnitTableData unit = await store.state.database.unitDao
         .getExistingUnit("custom", store.state.branch.id);
 
-    int itemId = await store.state.database.itemDao.insert(
-      //ignore: missing_required_param
-      ItemTableData(
-        name: itemName,
-        branchId: store.state.branch.id,
-        categoryId: category.id, //this will be updated ,
-        color: "#955be9",
-        description: itemName,
-        unitId: unit.id,
-        createdAt: DateTime.now(),
-      ),
-    );
-    //insert tmp variant
-    int variantId = await store.state.database.variationDao.insert(
-      //ignore: missing_required_param
-      VariationTableData(
+    ItemTableData item = await store.state.database.itemDao
+        .getItemByName(name: itemName, branchId: store.state.branch.id);
+    if (item == null) {
+      int itemId = await store.state.database.itemDao.insert(
+        //ignore: missing_required_param
+        ItemTableData(
           name: itemName,
-          itemId: itemId,
-          sku: DateTime.now().year.toString(),
           branchId: store.state.branch.id,
-          isActive: false,
-          createdAt: DateTime.now()),
-    );
+          categoryId: category.id, //this will be updated ,
+          color: "#955be9",
+          description: itemName,
+          unitId: unit.id,
+          createdAt: DateTime.now(),
+        ),
+      );
+      //insert tmp variant
+      int variantId;
+      VariationTableData variant = await store.state.database.variationDao
+          .getVariationBy(itemName, store.state.branch.id);
+      if (variant == null) {
+        variantId = await store.state.database.variationDao.insert(
+          //ignore: missing_required_param
+          VariationTableData(
+              name: itemName,
+              itemId: itemId,
+              sku: DateTime.now().year.toString() + randomAlpha(5),
+              branchId: store.state.branch.id,
+              isActive: false,
+              createdAt: DateTime.now()),
+        );
+      } else {
+        variantId = variant.id;
+      }
 
-    store.state.database.stockDao.insert(
-      //ignore: missing_required_param
-      StockTableData(
-        currentStock: 0,
-        canTrackStock: false,
-        retailPrice: 0,
-        itemId: itemId,
-        variantId: variantId,
-        branchId: store.state.branch.id,
-        createdAt: DateTime.now(),
-      ),
-    );
-    store.dispatch(
+      store.state.database.stockDao.insert(
+        //ignore: missing_required_param
+        StockTableData(
+          currentStock: 0,
+          canTrackStock: false,
+          retailPrice: 0,
+          costPrice: 0,
+          itemId: itemId,
+          variantId: variantId,
+          branchId: store.state.branch.id,
+          createdAt: DateTime.now(),
+        ),
+      );
+      dispatchCurrentTmpItem(store, itemId);
+    } else {
+      dispatchCurrentTmpItem(store, item.id);
+    }
+  }
+
+  static void dispatchCurrentTmpItem(Store<AppState> store, int itemId) {
+    return store.dispatch(
       TempItem(
         item: Item(
           (i) => i

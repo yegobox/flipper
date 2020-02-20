@@ -12,17 +12,17 @@ class StockTable extends Table {
 
   RealColumn get retailPrice =>
       real().customConstraint('DECIMAL(6,2)').withDefault(Constant(0))();
-  IntColumn get itemId => integer()
-      .nullable()
-      .customConstraint('NULL REFERENCES item_table(id) ON DELETE SET NULL')();
 
-  IntColumn get variantId => integer().nullable().customConstraint(
-      'NULL REFERENCES variation_table(id) ON DELETE SET NULL')();
+  IntColumn get itemId => integer().nullable()();
 
-  IntColumn get branchId => integer().nullable().customConstraint(
-      'NULL REFERENCES branch_table(id) ON DELETE SET NULL')();
+  IntColumn get variantId =>
+      integer().customConstraint('NULL REFERENCES variation_table(id)')();
+
+  IntColumn get branchId =>
+      integer().customConstraint('NULL REFERENCES branch_table(id) ')();
 
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 }

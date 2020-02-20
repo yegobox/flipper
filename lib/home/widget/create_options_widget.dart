@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -84,14 +82,5 @@ class CreateOptionsWidget extends StatelessWidget {
 
   Future _createTemporalItem(CommonViewModel vm, BuildContext context) async {
     Util.createCustomItem(StoreProvider.of<AppState>(context), "tmp");
-  }
-
-  String _randomString(int length) {
-    var rand = new Random();
-    var codeUnits = new List.generate(length, (index) {
-      return rand.nextInt(33) + 89;
-    });
-
-    return new String.fromCharCodes(codeUnits);
   }
 }

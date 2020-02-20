@@ -45,9 +45,10 @@ class _ItemsViewState extends State<ItemsView> {
       itemRow(list, context);
     }
     ;
+    print(itemList);
 
     for (var i = 0; i < itemList.length; i++) {
-      if (itemList[i].name != "custom") {
+      if (itemList[i].name != "custom" && itemList[i].name != 'tmp') {
         list.add(
           GestureDetector(
             onTap: () {

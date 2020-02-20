@@ -14,11 +14,6 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
       into(db.variationTable).insert(variation);
 
   Future updateVariation(VariationTableData entry) {
-    // using replace will update all fields from the entry that are not marked as a primary key.
-    // it will also make sure that only the entry with the same primary key will be updated.
-    // Here, this means that the row that has the same id as entry will be updated to reflect
-    // the entry's title, content and category. As it set's its where clause automatically, it
-    // can not be used together with where.
     return update(db.variationTable).replace(entry);
   }
 
@@ -76,6 +71,11 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
   Stream<List<VariationTableData>> getVariantByItemIdStream(int itemId) {
     return (select(db.variationTable)..where((t) => t.id.equals(itemId)))
         .watch();
+  }
+
+  Future softDelete(VariationTableData entry) {
+    return update(db.variationTable)
+        .replace(entry.copyWith(deletedAt: DateTime.now()));
   }
 
   Future deleteVariation(Insertable<VariationTableData> item) =>

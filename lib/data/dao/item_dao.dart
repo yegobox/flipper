@@ -18,12 +18,13 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
   Future deleteItem(Insertable<ItemTableData> item) =>
       delete(db.itemTable).delete(item);
 
+  //only updated deletedAt column
+  Future softDelete(ItemTableData entry) {
+    return update(db.itemTable)
+        .replace(entry.copyWith(deletedAt: DateTime.now()));
+  }
+
   Future updateItem(ItemTableData entry) {
-    // using replace will update all fields from the entry that are not marked as a primary key.
-    // it will also make sure that only the entry with the same primary key will be updated.
-    // Here, this means that the row that has the same id as entry will be updated to reflect
-    // the entry's title, content and category. As it set's its where clause automatically, it
-    // can not be used together with where.
     return update(db.itemTable).replace(entry);
   }
 
@@ -71,7 +72,10 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
 
   Future<List<ItemTableData>> getItems() => select(db.itemTable).get();
 
-  Stream<List<ItemTableData>> getItemsStream() => select(db.itemTable).watch();
+  Stream<List<ItemTableData>> getItemsStream() {
+//    ..where((t) => t.deletedAt.equals(null))
+    return (select(db.itemTable)).watch();
+  }
 
   Stream<List<ItemTableData>> getItemByIdStream(int itemId) {
     return (select(db.itemTable)..where((t) => t.id.equals(itemId))).watch();
