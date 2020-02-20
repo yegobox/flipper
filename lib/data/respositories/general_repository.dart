@@ -4,9 +4,9 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/model/category.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
+import 'package:flipper/util/util.dart';
 import 'package:redux/redux.dart';
 
 class GeneralRepository {
@@ -64,34 +64,12 @@ class GeneralRepository {
   }
 
   Future<int> insertItem(Store<AppState> store, ItemTableData data) async {
-    ItemTableData itemData = await store.state.database.itemDao
-        .getItemByBranch(name: data.name, branchId: data.branchId);
-
-    if (itemData == null) {
-      await store.state.database.itemDao
-          .insert(data.copyWith(createdAt: DateTime.now()));
-    }
-    itemData = await store.state.database.itemDao
-        .getItemByBranch(name: data.name, branchId: data.branchId);
-
-    store.dispatch(
-      CustomItem(
-        item: Item((i) => i
-          ..id = itemData.id
-          ..isActive = false
-          ..name = itemData.name
-          ..branchId = itemData.branchId
-          ..categoryId = itemData.categoryId
-          ..unitId = itemData.unitId
-          ..description = itemData.description),
-      ),
-    );
-    return itemData.id;
+    return Util.insertItem(store, data);
   }
 
   Future<int> insertUnit(Store<AppState> store, Unit unit) async {
-    UnitTableData unitData =
-        await store.state.database.unitDao.getExistingUnit(unit.name);
+    UnitTableData unitData = await store.state.database.unitDao
+        .getExistingUnit(unit.name, store.state.branch.id);
     if (unitData == null) {
       //ignore:missing_required_param
       var values = new UnitTableData(
@@ -101,7 +79,8 @@ class GeneralRepository {
           focused: unit.focused);
       store.state.database.unitDao.insert(values);
     }
-    unitData = await store.state.database.unitDao.getExistingUnit(unit.name);
+    unitData = await store.state.database.unitDao
+        .getExistingUnit(unit.name, store.state.branch.id);
     store.dispatch(
       CustomUnit(
         unit: Unit(

@@ -62,4 +62,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   }
 
   Future<List<StockTableData>> getReasons() => select(db.stockTable).get();
+
+  Future deleteStock(Insertable<StockTableData> stock) =>
+      delete(db.stockTable).delete(stock);
 }

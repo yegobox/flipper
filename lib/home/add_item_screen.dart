@@ -32,34 +32,26 @@ class _AddItemScreenState extends State<AddItemScreen> {
   ActionsTableData _actionsSaveItem;
 
   _onClose(BuildContext context) async {
-    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
-    int itemId = StoreProvider.of<AppState>(context).state.tmpItem.id;
-    ItemTableData item = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .itemDao
-        .getItemBy(name: 'tmp', branchId: branchId, itemId: itemId);
+    final store = StoreProvider.of<AppState>(context);
 
-    //delete this item add look trough all variation and delete related variation.
-    if (item != null) {
-      List<VariationTableData> variations =
-          await StoreProvider.of<AppState>(context)
-              .state
-              .database
-              .variationDao
-              .getVariantByItemId(item.id);
-      for (var i = 0; i < variations.length; i++) {
-        await StoreProvider.of<AppState>(context)
-            .state
-            .database
-            .variationDao
-            .deleteVariation(variations[i]);
-      }
-      StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .itemDao
-          .deleteItem(item);
+    ItemTableData item = await store.state.database.itemDao
+        .getItemByName(name: 'tmp', branchId: store.state.branch.id);
+
+    if (item == null) return;
+    List<StockTableData> stocks = await store.state.database.stockDao
+        .getItemFromStockByItemId(
+            branchId: store.state.branch.id, itemId: item.id);
+
+    print(item);
+    store.state.database.itemDao.deleteItem(item);
+
+    for (var i = 0; i < stocks.length; i++) {
+      VariationTableData variant = await store.state.database.variationDao
+          .getVariationById(stocks[i].variantId);
+      print(variant);
+      //store.state.database.variationDao.deleteVariation(variant);
+
+      // store.state.database.stockDao.deleteStock(stocks[i]);
     }
     Router.navigator.pop(true);
   }
@@ -96,8 +88,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 child: new Text('No'),
               ),
               new FlatButton(
-                // Navigator.of(context).pop(true)
-                //todo: go and cleam the tmp item and variation created recently.
                 onPressed: () {
                   _onClose(context);
                 },

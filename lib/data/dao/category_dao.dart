@@ -32,6 +32,14 @@ class CategoryDao extends DatabaseAccessor<Database> with _$CategoryDaoMixin {
         .getSingle();
   }
 
+  Future<CategoryTableData> getCategoryNameAndBranch(
+      String name, int branchId) {
+    return (select(db.categoryTable)
+          ..where((t) => t.name.equals(name))
+          ..where((t) => t.branchId.equals(branchId)))
+        .getSingle();
+  }
+
   Future<List<CategoryTableData>> getCategories() =>
       select(db.categoryTable).get();
   Stream<List<CategoryTableData>> getCategoriesStream() =>

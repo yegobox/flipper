@@ -17,6 +17,7 @@ import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
+import 'package:flipper/util/util.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:redux/redux.dart";
@@ -303,15 +304,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         CategoryTableData(
             branchId: store.state.branch.id, focused: false, name: 'custom'),
       );
-      //crate custom unit if does not exist
-      await generalRepository.insertUnit(
-        store,
-        Unit((u) => u
-          ..name = "custom"
-          ..businessId = store.state.currentActiveBusiness.id
-          ..branchId = store.state.branch.id
-          ..focused = false),
-      );
 
       //if no reason found then create app defaults reasons
       List<ReasonTableData> reasons =
@@ -349,18 +341,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
             .insert(ReasonTableData(name: 'Canceled', action: 'Canceled'));
       }
       //create custom item if does not exist
-      await generalRepository.insertItem(
-        store,
-        //ignore: missing_required_param
-        ItemTableData(
-          name: "custom",
-          branchId: store.state.branch.id,
-          categoryId: store.state.customCategory.id,
-          color: "#cccc",
-          description: "custom item",
-          unitId: store.state.customUnit.id,
-        ),
-      );
+      await Util.createCustomItem(store, "custom");
       List<String> colors = [
         "#d63031",
         "#0984e3",
@@ -379,6 +360,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
             //ignore: missing_required_param
             ColorTableData(isActive: false, name: colors[i]));
       }
+
+      _createCustomCategory(store);
       _cleanApp(store);
       //branch
       if (businesses.length == 0) {
@@ -390,22 +373,35 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   };
 }
 
-void _cleanApp(Store<AppState> store) async {
-  //todo: use the tmp id find the stock related to the item
-  //todo: delete all of them by looping through them then find the variant before deleting
-  //todo: then delete all variants related to that stock too.
-  //todo: update addItem onClose method and check if it still work onWillPop.
-  //todo: update all table to have isOnline boolean to mark data that need to be synced.
+void _createCustomCategory(Store<AppState> store) async {
+  CategoryTableData category = await store.state.database.categoryDao
+      .getCategoryNameAndBranch("custom", store.state.branch.id);
+  if (category == null) {
+    await store.state.database.categoryDao.insert(
+        //ignore:missing_required_param
+        CategoryTableData(
+            name: "custom", branchId: store.state.branch.id, focused: true));
+  }
+}
 
+void _cleanApp(Store<AppState> store) async {
   ItemTableData item = await store.state.database.itemDao
       .getItemByName(name: 'tmp', branchId: store.state.branch.id);
+
+  if (item == null) return;
+  List<StockTableData> stocks = await store.state.database.stockDao
+      .getItemFromStockByItemId(
+          branchId: store.state.branch.id, itemId: item.id);
+
   store.state.database.itemDao.deleteItem(item);
-  if (item != null) {
-    List<VariationTableData> variations =
-        await store.state.database.variationDao.getVariantByItemId(item.id);
-    for (var i = 0; i < variations.length; i++) {
-      await store.state.database.variationDao.deleteVariation(variations[i]);
-    }
+
+  for (var i = 0; i < stocks.length; i++) {
+    VariationTableData variant = await store.state.database.variationDao
+        .getVariationById(stocks[i].variantId);
+
+    store.state.database.variationDao.deleteVariation(variant);
+
+    store.state.database.stockDao.deleteStock(stocks[i]);
   }
 }
 

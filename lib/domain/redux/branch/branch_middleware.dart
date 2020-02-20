@@ -9,6 +9,7 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/unit.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 
@@ -51,6 +52,13 @@ void setUnits(store, branchId, GeneralRepository generalRepository) async {
     ..id = 1
     ..focused = true);
 
+  final custom = Unit((u) => u
+    ..name = "custom"
+    ..businessId = store.state.businessId
+    ..branchId = branchId
+    ..id = 1
+    ..focused = true);
+
   await generalRepository.insertUnit(store, item);
 
   //toto: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
@@ -59,6 +67,7 @@ void setUnits(store, branchId, GeneralRepository generalRepository) async {
   await generalRepository.insertUnit(store, ounce);
   //todo: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
   await generalRepository.insertUnit(store, pound);
+  await generalRepository.insertUnit(store, custom);
   //todo: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
 }
 
@@ -73,7 +82,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
           ..isActive = true,
       );
       final branchId = await branchRepo.insert(store, branch);
-      //todo: use the setUnits emitted progress on settingUpProgress screen.
+
+      await Util.getActiveBranch(store, branchId);
       //getting up the default units
       setUnits(store, branchId, generalRepository);
       //update store will all the thing we need and set all default values we want here
@@ -88,9 +98,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       );
 
       final branchId = await branchRepo.insert(store, branch);
+      await Util.getActiveBranch(store, branchId);
       setUnits(store, branchId, generalRepository);
-      //update store will all the thing we need and set all default values we want here
-      // store.state.clear();
       store.dispatch(VerifyAuthenticationState());
     }
   };

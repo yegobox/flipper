@@ -13,4 +13,9 @@ class BranchDao extends DatabaseAccessor<Database> with _$BranchDaoMixin {
   Future insert(Insertable<BranchTableData> branch) =>
       into(db.branchTable).insert(branch);
   Future<List<BranchTableData>> getBranches() => select(db.branchTable).get();
+
+  Future<BranchTableData> getBranchById({int branchId}) {
+    return (select(db.branchTable)..where((t) => t.id.equals(branchId)))
+        .getSingle();
+  }
 }

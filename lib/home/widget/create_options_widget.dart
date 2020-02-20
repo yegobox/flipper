@@ -1,14 +1,12 @@
 import 'dart:math';
 
-import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/flitter_color.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -85,51 +83,7 @@ class CreateOptionsWidget extends StatelessWidget {
   }
 
   Future _createTemporalItem(CommonViewModel vm, BuildContext context) async {
-    int itemId = await vm.database.itemDao.insert(
-      //ignore: missing_required_param
-      ItemTableData(
-        name: 'tmp',
-        branchId: StoreProvider.of<AppState>(context).state.branch.id,
-        categoryId: 1, //this will be updated ,
-        color: "#955be9",
-        description: "desc",
-        unitId: 1,
-        createdAt: DateTime.now(),
-      ),
-    );
-    //insert tmp variant
-    int variantId = await vm.database.variationDao.insert(
-      //ignore: missing_required_param
-      VariationTableData(
-          name: "tmp",
-          itemId: itemId,
-          sku: DateTime.now().year.toString() + _randomString(4),
-          branchId: vm.branch.id,
-          isActive: false,
-          createdAt: DateTime.now()),
-    );
-
-    vm.database.stockDao.insert(
-      //ignore: missing_required_param
-      StockTableData(
-        currentStock: 0,
-        canTrackStock: false,
-        retailPrice: 0,
-        itemId: itemId,
-        variantId: variantId,
-        branchId: StoreProvider.of<AppState>(context).state.branch.id,
-        createdAt: DateTime.now(),
-      ),
-    );
-    StoreProvider.of<AppState>(context).dispatch(
-      TempItem(
-        item: Item(
-          (i) => i
-            ..id = itemId
-            ..branchId = vm.branch.id,
-        ),
-      ),
-    );
+    Util.createCustomItem(StoreProvider.of<AppState>(context), "tmp");
   }
 
   String _randomString(int length) {
