@@ -22,6 +22,8 @@ class _PayableWidgetState extends State<PayableWidget> {
         leftSymbol: '\RWF ', decimalSeparator: ".", thousandSeparator: ",");
     payable.updateValue(0);
 
+    _getOrderCart();
+
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
@@ -30,11 +32,10 @@ class _PayableWidgetState extends State<PayableWidget> {
           height: 66,
           color: HexColor(FlipperColors.blue),
           child: StreamBuilder(
-            stream: vm.database.cartDao.getCarts(vm.order.id),
+            stream: vm.database.cartDao.getCartsStream(vm.order.id),
             builder: (context, AsyncSnapshot<List<CartTableData>> snapshot) {
               int cashReceived = 0;
               if (snapshot.data != null) {
-                _getPayable(snapshot, context);
                 cashReceived = _total;
                 payable.updateValue(_total.toDouble());
               } else {
@@ -86,18 +87,26 @@ class _PayableWidgetState extends State<PayableWidget> {
     );
   }
 
-  void _getPayable(AsyncSnapshot<List<CartTableData>> carts, context) async {
+  void _getPayable(List<CartTableData> carts, context) async {
     final store = StoreProvider.of<AppState>(context);
     int total = 0;
-    for (var i = 0; i < carts.data.length; i++) {
+    for (var i = 0; i < carts.length; i++) {
       final data = await store.state.database.stockDao.getStockByVariantId(
-          variantId: carts.data[i].variationId,
-          branchId: store.state.branch.id);
+          variantId: carts[i].variationId, branchId: store.state.branch.id);
 
-      total += (data.retailPrice.toInt() * carts.data[i].count).toInt();
+      total += (data.retailPrice.toInt() * carts[i].count).toInt();
     }
-    setState(() {
-      _total = total;
-    });
+    _total = total;
+  }
+
+  void _getOrderCart() async {
+    final orderId = StoreProvider.of<AppState>(context).state.order.id;
+    List<CartTableData> carts = await StoreProvider.of<AppState>(context)
+        .state
+        .database
+        .cartDao
+        .getCarts(orderId);
+
+    _getPayable(carts, context);
   }
 }

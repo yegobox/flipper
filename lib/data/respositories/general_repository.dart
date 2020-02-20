@@ -184,7 +184,7 @@ class GeneralRepository {
   }
 
   Stream<List<CartTableData>> getCarts(Store<AppState> store) {
-    return store.state.database.cartDao.getCarts(store.state.order.id);
+    return store.state.database.cartDao.getCartsStream(store.state.order.id);
   }
 
   Future insertOrUpdateColor(Store<AppState> store, ColorTableData data) async {

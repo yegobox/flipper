@@ -13,12 +13,20 @@ class CartDao extends DatabaseAccessor<Database> with _$CartDaoMixin {
   Future insert(Insertable<CartTableData> cart) =>
       into(db.cartTable).insert(cart);
 
-  Stream<List<CartTableData>> getCarts(int orderId) {
+  Stream<List<CartTableData>> getCartsStream(int orderId) {
     return (select(db.cartTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
           ..where((t) => t.orderId.equals(orderId)))
         .watch();
+  }
+
+  Future<List<CartTableData>> getCarts(int orderId) {
+    return (select(db.cartTable)
+          ..orderBy(
+              [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
+          ..where((t) => t.orderId.equals(orderId)))
+        .get();
   }
 
   Future<CartTableData> getExistingCartItem(int variationId) {
