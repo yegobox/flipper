@@ -14,6 +14,7 @@ void main() {
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light
   //     .copyWith(systemNavigationBarColor: Colors.white));
   // SystemChrome.
+  // snapshot.data.fold(0, (a, b) => a + (b.count * b.price));
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

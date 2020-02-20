@@ -8,7 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class PayableWidget extends StatelessWidget {
+class PayableWidget extends StatefulWidget {
+  @override
+  _PayableWidgetState createState() => _PayableWidgetState();
+}
+
+class _PayableWidgetState extends State<PayableWidget> {
+  int _total = 0;
+
   @override
   Widget build(BuildContext context) {
     var payable = new MoneyMaskedTextController(
@@ -25,13 +32,14 @@ class PayableWidget extends StatelessWidget {
           child: StreamBuilder(
             stream: vm.database.cartDao.getCarts(vm.order.id),
             builder: (context, AsyncSnapshot<List<CartTableData>> snapshot) {
-              // print(snapshot.data);
-              // print(vm.order.id);
-              int cashReceived = snapshot.data == null ? 0 : 0;
-              //todo: get price from stock
-              // snapshot.data.fold(0, (a, b) => a + (b.count * b.price));
-
-              payable.updateValue(cashReceived.toDouble());
+              int cashReceived = 0;
+              if (snapshot.data != null) {
+                _getPayable(snapshot, context);
+                cashReceived = _total;
+                payable.updateValue(_total.toDouble());
+              } else {
+                payable.updateValue(0);
+              }
               return Row(
                 children: <Widget>[
                   FlatButton(
@@ -76,5 +84,20 @@ class PayableWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _getPayable(AsyncSnapshot<List<CartTableData>> carts, context) async {
+    final store = StoreProvider.of<AppState>(context);
+    int total = 0;
+    for (var i = 0; i < carts.data.length; i++) {
+      final data = await store.state.database.stockDao.getStockByVariantId(
+          variantId: carts.data[i].variationId,
+          branchId: store.state.branch.id);
+
+      total += (data.retailPrice.toInt() * carts.data[i].count).toInt();
+    }
+    setState(() {
+      _total = total;
+    });
   }
 }
