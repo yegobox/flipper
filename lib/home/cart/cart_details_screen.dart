@@ -83,12 +83,14 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
 
   void _getTotal(List<CartTableData> carts, BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
+    var total = 0;
     for (var i = 0; i < carts.length; i++) {
       final data = await store.state.database.stockDao.getStockByVariantId(
           variantId: carts[i].variationId, branchId: store.state.branch.id);
-      setState(() {
-        _total = (data.retailPrice.toInt() * carts[i].count).toInt();
-      });
+      total += (data.retailPrice.toInt() * carts[i].count).toInt();
     }
+    setState(() {
+      _total = total;
+    });
   }
 }
