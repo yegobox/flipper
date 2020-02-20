@@ -1,7 +1,10 @@
 import 'package:flipper/data/main_database.dart';
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/common/common_app_bar.dart';
+import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 class CartDetailsScreen extends StatefulWidget {
   final List<CartTableData> carts;
@@ -12,27 +15,32 @@ class CartDetailsScreen extends StatefulWidget {
 }
 
 class _CartDetailsScreenState extends State<CartDetailsScreen> {
+  int _total = 0;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonAppBar(
-        //todo: get price of a variant from a stock.
-        title: "Total RWF",
-        // + widget.carts.fold(0, (a, b) => a + (b.price * b.count)).toString(),
-        disableButton: false,
-        showActionButton: true,
-        actionButtonName: S.of(context).add,
-        onPressedCallback: () {
-          print("wegot");
-        },
-      ),
-      body: ListView(
-        children: renderCart(widget.carts),
-      ),
+    _getTotal(widget.carts, context);
+    return StoreConnector(
+      distinct: true,
+      converter: CommonViewModel.fromStore,
+      builder: (context, vm) {
+        return Scaffold(
+          appBar: CommonAppBar(
+            title: "Total RWF " + _total.toString(),
+            disableButton: false,
+            showActionButton: true,
+            actionButtonName: S.of(context).add,
+            onPressedCallback: () {},
+          ),
+          body: ListView(
+            children: renderCart(widget.carts, vm),
+          ),
+        );
+      },
     );
   }
 
-  List<Widget> renderCart(List<CartTableData> carts) {
+  List<Widget> renderCart(List<CartTableData> carts, CommonViewModel vm) {
     List<Widget> list = List<Widget>();
     for (var i = 0; i < carts.length; i++) {
       list.add(ListTile(
@@ -46,9 +54,17 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
         ),
         trailing: Padding(
           padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-          child: Text("RWF "
-              // + (carts[i].price * carts[i].count).toString()
-              ),
+          child: StreamBuilder(
+              stream: vm.database.stockDao.getStockByVariantIdStream(
+                  branchId: vm.branch.id, variantId: carts[i].variationId),
+              builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+                if (snapshot.data == null) {
+                  return Text("");
+                }
+                return Text(
+                    (snapshot.data[0].retailPrice * carts[i].count).toString() +
+                        " RWF");
+              }),
         ),
       ));
     }
@@ -59,11 +75,20 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
       ),
       trailing: Padding(
         padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-        child: Text("RWF "
-            // "RWF " + carts.fold(0, (a, b) => a + (b.price * b.count)).toString(),
-            ),
+        child: Text("RWF " + _total.toString()),
       ),
     ));
     return list;
+  }
+
+  void _getTotal(List<CartTableData> carts, BuildContext context) async {
+    final store = StoreProvider.of<AppState>(context);
+    for (var i = 0; i < carts.length; i++) {
+      final data = await store.state.database.stockDao.getStockByVariantId(
+          variantId: carts[i].variationId, branchId: store.state.branch.id);
+      setState(() {
+        _total = (data.retailPrice.toInt() * carts[i].count).toInt();
+      });
+    }
   }
 }

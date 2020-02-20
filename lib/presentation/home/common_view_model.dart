@@ -7,7 +7,6 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
-import 'package:flipper/model/disable.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/item.dart';
@@ -15,7 +14,6 @@ import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
-import 'package:flipper/model/variation.dart';
 import 'package:redux/redux.dart';
 
 part 'common_view_model.g.dart';

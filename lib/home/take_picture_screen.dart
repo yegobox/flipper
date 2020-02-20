@@ -1,9 +1,8 @@
-
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+
 class TakePictureScreen extends StatefulWidget {
   @override
   _TakePictureScreenState createState() {
@@ -21,7 +20,6 @@ class _TakePictureScreenState extends State {
   void initState() {
     super.initState();
     availableCameras().then((availableCameras) {
-
       cameras = availableCameras;
 
       if (cameras.length > 0) {
@@ -30,11 +28,11 @@ class _TakePictureScreenState extends State {
         });
 
         _initCameraController(cameras[selectedCameraIdx]).then((void v) {});
-      }else{
-        print("No camera available");
+      } else {
+        //print("No camera available");
       }
     }).catchError((err) {
-      print('Error: $err.code\nError Message: $err.message');
+      //print('Error: $err.code\nError Message: $err.message');
     });
   }
 
@@ -52,7 +50,7 @@ class _TakePictureScreenState extends State {
       }
 
       if (controller.value.hasError) {
-        print('Camera error ${controller.value.errorDescription}');
+        //print('Camera error ${controller.value.errorDescription}');
       }
     });
 
@@ -174,7 +172,7 @@ class _TakePictureScreenState extends State {
 
   void _onSwitchCamera() {
     selectedCameraIdx =
-    selectedCameraIdx < cameras.length - 1 ? selectedCameraIdx + 1 : 0;
+        selectedCameraIdx < cameras.length - 1 ? selectedCameraIdx + 1 : 0;
     CameraDescription selectedCamera = cameras[selectedCameraIdx];
     _initCameraController(selectedCamera);
   }
@@ -190,7 +188,7 @@ class _TakePictureScreenState extends State {
         (await getTemporaryDirectory()).path,
         '${DateTime.now()}.png',
       );
-      print(path);
+      //print(path);
       await controller.takePicture(path);
 
       // If the picture was taken, display it on a new screen
@@ -202,14 +200,14 @@ class _TakePictureScreenState extends State {
       // );
     } catch (e) {
       // If an error occurs, log the error to the console.
-      print(e);
+      //print(e);
     }
   }
 
   void _showCameraException(CameraException e) {
     String errorText = 'Error: ${e.code}\nError Message: ${e.description}';
-    print(errorText);
+    //print(errorText);
 
-    print('Error: ${e.code}\n${e.description}');
+    //print('Error: ${e.code}\n${e.description}');
   }
 }

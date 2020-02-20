@@ -418,7 +418,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     setState(() {
       _actions = result;
     });
-    print(_actions);
+
   }
 
   Text categorySelector(List<CategoryTableData> categories) {

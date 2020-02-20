@@ -171,8 +171,6 @@ void Function(Store<AppState> store, SaveCartCustom action, NextDispatcher next)
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     next(action);
-    print(store.state.cartItem.parentName);
-    print(store.state.cartItem.name);
 
     await generalRepository.insertOrUpdateCart(
       store,

@@ -45,7 +45,6 @@ class _ItemsViewState extends State<ItemsView> {
       itemRow(list, context);
     }
     ;
-    print(itemList);
 
     for (var i = 0; i < itemList.length; i++) {
       if (itemList[i].name != "custom" && itemList[i].name != 'tmp') {
@@ -148,6 +147,7 @@ class _ItemsViewState extends State<ItemsView> {
         item: Item(
           (b) => b
             ..name = itemList[i].name
+            ..retailPrice = 0
             ..branchId = itemList[i].branchId
             ..id = itemList[i].id,
         ),

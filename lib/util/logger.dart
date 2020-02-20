@@ -1,8 +1,8 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:redux/redux.dart";
 import "package:intl/intl.dart";
+import 'package:redux/redux.dart';
 
 /// Run this before starting app
 configureLogger() {
@@ -109,9 +109,8 @@ class DebugLoggerClient implements LoggerClient {
   }) {
     switch (level) {
       case LogLevel.debug:
-        debugPrint("${_timestamp()} [DEBUG]  $message");
         if (e != null) {
-          debugPrint(e.toString());
+          // debugPrint(e.toString());
           debugPrint(s.toString() ?? StackTrace.current);
         }
         break;

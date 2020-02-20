@@ -268,3 +268,12 @@ class TempItem {
 
   TempItem({this.item});
 }
+
+@immutable
+class Total {
+  final int total;
+
+  Total({this.total});
+}
+
+class CleanTotal {}
