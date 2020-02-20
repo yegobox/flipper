@@ -75,7 +75,8 @@ class ControlSaleWidget extends StatelessWidget {
         onPressed: () {
           if (vm.itemVariations.length > 0) {
             for (var i = 0; i < vm.itemVariations.length; i++) {
-              if (vm.currentActiveSaleItem.id == vm.itemVariations[i].id) {
+              if (vm.currentActiveSaleItem.variantId ==
+                  vm.itemVariations[i].variantId) {
                 if (vm.currentIncrement == null) {
                   return;
                 }
@@ -102,7 +103,8 @@ class ControlSaleWidget extends StatelessWidget {
         icon: Icon(Icons.add),
         onPressed: () {
           for (var i = 0; i < vm.itemVariations.length; i++) {
-            if (vm.currentActiveSaleItem.id == vm.itemVariations[i].id) {
+            if (vm.currentActiveSaleItem.variantId ==
+                vm.itemVariations[i].variantId) {
               var increment =
                   vm.currentIncrement == null ? 1 : vm.currentIncrement + 1;
 
@@ -155,7 +157,7 @@ class SellMultipleItems extends StatelessWidget {
             ? null
             : vm.currentActiveSaleItem.name +
                 " RWF " +
-                (stocks[0].retailPrice *
+                (vm.currentActiveSaleItem.retailPrice *
                         (vm.currentIncrement == null || vm.currentIncrement == 0
                             ? 1
                             : vm.currentIncrement))
@@ -241,6 +243,7 @@ class SellMultipleItems extends StatelessWidget {
             ..name = vm.currentActiveSaleItem.name
             ..variantId = stocks[i].variantId
             ..branchId = stocks[i].branchId
+            ..retailPrice = stocks[i].retailPrice.toInt().toDouble()
             ..price = stocks[i].retailPrice.toInt()),
         ),
       );
