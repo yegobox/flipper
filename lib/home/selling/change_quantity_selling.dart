@@ -209,6 +209,7 @@ class SellMultipleItems extends StatelessWidget {
     );
     for (var i = 0; i < stocks.length; i++) {
       isItemActive(stocks, i, context);
+
       list.add(
         itemRow(context, stocks, i),
       );
@@ -263,11 +264,11 @@ class SellMultipleItems extends StatelessWidget {
       BuildContext context, List<StockTableData> stocks, int i) {
     return GestureDetector(
       onTap: () {
-        StoreProvider.of<AppState>(context).state.database.stockDao.updateStock(
-              stocks[i].copyWith(
-                isActive: !stocks[i].isActive,
-              ),
-            );
+        for (var y = 0; y < stocks.length; y++) {
+          vm.database.stockDao.updateStock(stocks[y].copyWith(isActive: false));
+        }
+        vm.database.stockDao
+            .updateStock(stocks[i].copyWith(isActive: !stocks[i].isActive));
         StoreProvider.of<AppState>(context).dispatch(
           CurrentActiveSaleItem(
             item: Item(
