@@ -97,7 +97,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
               disableButton: _actions == null ? true : _actions.isLocked,
               showActionButton: true,
               onPressedCallback: () async {
-                _handleFormSubmit(vm);
+                _handleCreateItem(vm);
               },
               actionButtonName: S.of(context).save,
               icon: Icons.close,
@@ -463,7 +463,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
     return text;
   }
 
-  _handleFormSubmit(CommonViewModel vm) async {
+  _handleCreateItem(CommonViewModel vm) async {
+    final store = StoreProvider.of<AppState>(context);
     ItemTableData item = await vm.database.itemDao
         .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
 
@@ -471,7 +472,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
 
     if (variation != null) {
-      StoreProvider.of<AppState>(context).dispatch(
+      store.dispatch(
         SaveRegular(
           itemId: item.id,
           name: "Regular",
@@ -481,7 +482,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
         ),
       );
     }
-
     vm.database.actionsDao
         .updateAction(_actionsSaveItem.copyWith(isLocked: true));
 
@@ -493,9 +493,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
         unitId: vm.currentUnit.id,
         updatedAt: DateTime.now(),
         color: vm.currentColor == null ? item.color : vm.currentColor.hexCode,
-        deletedAt: null,
+        deletedAt: 'null',
       ),
     );
+    Util.removeItemFromTrash(store, item.id);
     Router.navigator.maybePop();
   }
 

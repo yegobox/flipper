@@ -534,7 +534,7 @@ class BusinessTableData extends DataClass
   final double latitude;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime deletedAt;
+  final String deletedAt;
   BusinessTableData(
       {@required this.id,
       @required this.name,
@@ -569,7 +569,7 @@ class BusinessTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
-      deletedAt: dateTimeType
+      deletedAt: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
@@ -584,7 +584,7 @@ class BusinessTableData extends DataClass
       latitude: serializer.fromJson<double>(json['latitude']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -599,7 +599,7 @@ class BusinessTableData extends DataClass
       'latitude': serializer.toJson<double>(latitude),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -641,7 +641,7 @@ class BusinessTableData extends DataClass
           double latitude,
           DateTime createdAt,
           DateTime updatedAt,
-          DateTime deletedAt}) =>
+          String deletedAt}) =>
       BusinessTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -710,7 +710,7 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
   final Value<double> latitude;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime> deletedAt;
+  final Value<String> deletedAt;
   const BusinessTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -742,7 +742,7 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
       Value<double> latitude,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime> deletedAt}) {
+      Value<String> deletedAt}) {
     return BusinessTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -852,15 +852,12 @@ class $BusinessTableTable extends BusinessTable
   }
 
   final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
-  GeneratedDateTimeColumn _deletedAt;
+  GeneratedTextColumn _deletedAt;
   @override
-  GeneratedDateTimeColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
-  GeneratedDateTimeColumn _constructDeletedAt() {
-    return GeneratedDateTimeColumn(
-      'deleted_at',
-      $tableName,
-      true,
-    );
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
   }
 
   @override
@@ -979,7 +976,7 @@ class $BusinessTableTable extends BusinessTable
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<DateTime, DateTimeType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }
@@ -996,7 +993,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime deletedAt;
+  final String deletedAt;
   BranchTableData(
       {@required this.id,
       @required this.name,
@@ -1021,7 +1018,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
-      deletedAt: dateTimeType
+      deletedAt: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
@@ -1033,7 +1030,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -1045,7 +1042,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -1075,7 +1072,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           bool isActive,
           DateTime createdAt,
           DateTime updatedAt,
-          DateTime deletedAt}) =>
+          String deletedAt}) =>
       BranchTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -1124,7 +1121,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime> deletedAt;
+  final Value<String> deletedAt;
   const BranchTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -1147,7 +1144,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
       Value<bool> isActive,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime> deletedAt}) {
+      Value<String> deletedAt}) {
     return BranchTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -1216,15 +1213,12 @@ class $BranchTableTable extends BranchTable
   }
 
   final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
-  GeneratedDateTimeColumn _deletedAt;
+  GeneratedTextColumn _deletedAt;
   @override
-  GeneratedDateTimeColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
-  GeneratedDateTimeColumn _constructDeletedAt() {
-    return GeneratedDateTimeColumn(
-      'deleted_at',
-      $tableName,
-      true,
-    );
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
   }
 
   @override
@@ -1305,7 +1299,7 @@ class $BranchTableTable extends BranchTable
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<DateTime, DateTimeType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }
@@ -1693,13 +1687,15 @@ class CategoryTableData extends DataClass
   final int branchId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String deletedAt;
   CategoryTableData(
       {@required this.id,
       @required this.focused,
       @required this.name,
       @required this.branchId,
       this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      this.deletedAt});
   factory CategoryTableData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
@@ -1719,6 +1715,8 @@ class CategoryTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
+      deletedAt: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
   factory CategoryTableData.fromJson(Map<String, dynamic> json,
@@ -1730,6 +1728,7 @@ class CategoryTableData extends DataClass
       branchId: serializer.fromJson<int>(json['branchId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -1742,6 +1741,7 @@ class CategoryTableData extends DataClass
       'branchId': serializer.toJson<int>(branchId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -1762,6 +1762,9 @@ class CategoryTableData extends DataClass
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -1771,7 +1774,8 @@ class CategoryTableData extends DataClass
           String name,
           int branchId,
           DateTime createdAt,
-          DateTime updatedAt}) =>
+          DateTime updatedAt,
+          String deletedAt}) =>
       CategoryTableData(
         id: id ?? this.id,
         focused: focused ?? this.focused,
@@ -1779,6 +1783,7 @@ class CategoryTableData extends DataClass
         branchId: branchId ?? this.branchId,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt ?? this.deletedAt,
       );
   @override
   String toString() {
@@ -1788,7 +1793,8 @@ class CategoryTableData extends DataClass
           ..write('name: $name, ')
           ..write('branchId: $branchId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -1800,8 +1806,10 @@ class CategoryTableData extends DataClass
           focused.hashCode,
           $mrjc(
               name.hashCode,
-              $mrjc(branchId.hashCode,
-                  $mrjc(createdAt.hashCode, updatedAt.hashCode))))));
+              $mrjc(
+                  branchId.hashCode,
+                  $mrjc(createdAt.hashCode,
+                      $mrjc(updatedAt.hashCode, deletedAt.hashCode)))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1811,7 +1819,8 @@ class CategoryTableData extends DataClass
           other.name == this.name &&
           other.branchId == this.branchId &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
@@ -1821,6 +1830,7 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
   final Value<int> branchId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<String> deletedAt;
   const CategoryTableCompanion({
     this.id = const Value.absent(),
     this.focused = const Value.absent(),
@@ -1828,6 +1838,7 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
     this.branchId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
   });
   CategoryTableCompanion.insert({
     this.id = const Value.absent(),
@@ -1836,6 +1847,7 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
     @required int branchId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
   })  : focused = Value(focused),
         name = Value(name),
         branchId = Value(branchId);
@@ -1845,7 +1857,8 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
       Value<String> name,
       Value<int> branchId,
       Value<DateTime> createdAt,
-      Value<DateTime> updatedAt}) {
+      Value<DateTime> updatedAt,
+      Value<String> deletedAt}) {
     return CategoryTableCompanion(
       id: id ?? this.id,
       focused: focused ?? this.focused,
@@ -1853,6 +1866,7 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
       branchId: branchId ?? this.branchId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }
@@ -1926,9 +1940,18 @@ class $CategoryTableTable extends CategoryTable
     );
   }
 
+  final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
+  GeneratedTextColumn _deletedAt;
+  @override
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
+  }
+
   @override
   List<GeneratedColumn> get $columns =>
-      [id, focused, name, branchId, createdAt, updatedAt];
+      [id, focused, name, branchId, createdAt, updatedAt, deletedAt];
   @override
   $CategoryTableTable get asDslTable => this;
   @override
@@ -1974,6 +1997,12 @@ class $CategoryTableTable extends CategoryTable
     } else if (updatedAt.isRequired && isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (d.deletedAt.present) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+    } else if (deletedAt.isRequired && isInserting) {
+      context.missing(_deletedAtMeta);
+    }
     return context;
   }
 
@@ -2006,6 +2035,9 @@ class $CategoryTableTable extends CategoryTable
     if (d.updatedAt.present) {
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
     }
+    if (d.deletedAt.present) {
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+    }
     return map;
   }
 
@@ -2025,7 +2057,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
   final int unitId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime deletedAt;
+  final String deletedAt;
   ItemTableData(
       {@required this.id,
       @required this.name,
@@ -2061,7 +2093,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
-      deletedAt: dateTimeType
+      deletedAt: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
@@ -2077,7 +2109,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
       unitId: serializer.fromJson<int>(json['unitId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -2093,7 +2125,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
       'unitId': serializer.toJson<int>(unitId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -2137,7 +2169,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
           int unitId,
           DateTime createdAt,
           DateTime updatedAt,
-          DateTime deletedAt}) =>
+          String deletedAt}) =>
       ItemTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -2212,7 +2244,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
   final Value<int> unitId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime> deletedAt;
+  final Value<String> deletedAt;
   const ItemTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -2251,7 +2283,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
       Value<int> unitId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime> deletedAt}) {
+      Value<String> deletedAt}) {
     return ItemTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -2371,15 +2403,12 @@ class $ItemTableTable extends ItemTable
   }
 
   final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
-  GeneratedDateTimeColumn _deletedAt;
+  GeneratedTextColumn _deletedAt;
   @override
-  GeneratedDateTimeColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
-  GeneratedDateTimeColumn _constructDeletedAt() {
-    return GeneratedDateTimeColumn(
-      'deleted_at',
-      $tableName,
-      true,
-    );
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
   }
 
   @override
@@ -2506,7 +2535,7 @@ class $ItemTableTable extends ItemTable
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<DateTime, DateTimeType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }
@@ -3288,7 +3317,7 @@ class VariationTableData extends DataClass
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime deletedAt;
+  final String deletedAt;
   VariationTableData(
       {@required this.id,
       @required this.name,
@@ -3321,7 +3350,7 @@ class VariationTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
-      deletedAt: dateTimeType
+      deletedAt: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
@@ -3336,7 +3365,7 @@ class VariationTableData extends DataClass
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -3351,7 +3380,7 @@ class VariationTableData extends DataClass
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -3390,7 +3419,7 @@ class VariationTableData extends DataClass
           bool isActive,
           DateTime createdAt,
           DateTime updatedAt,
-          DateTime deletedAt}) =>
+          String deletedAt}) =>
       VariationTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -3459,7 +3488,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime> deletedAt;
+  final Value<String> deletedAt;
   const VariationTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -3493,7 +3522,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
       Value<bool> isActive,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime> deletedAt}) {
+      Value<String> deletedAt}) {
     return VariationTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -3595,15 +3624,12 @@ class $VariationTableTable extends VariationTable
   }
 
   final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
-  GeneratedDateTimeColumn _deletedAt;
+  GeneratedTextColumn _deletedAt;
   @override
-  GeneratedDateTimeColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
-  GeneratedDateTimeColumn _constructDeletedAt() {
-    return GeneratedDateTimeColumn(
-      'deleted_at',
-      $tableName,
-      true,
-    );
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
   }
 
   @override
@@ -3719,7 +3745,7 @@ class $VariationTableTable extends VariationTable
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<DateTime, DateTimeType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }
@@ -3742,7 +3768,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
   final int branchId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime deletedAt;
+  final String deletedAt;
   StockTableData(
       {@required this.id,
       @required this.currentStock,
@@ -3764,6 +3790,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
     final boolType = db.typeSystem.forDartType<bool>();
     final doubleType = db.typeSystem.forDartType<double>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    final stringType = db.typeSystem.forDartType<String>();
     return StockTableData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       currentStock: intType
@@ -3786,7 +3813,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
-      deletedAt: dateTimeType
+      deletedAt: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
@@ -3804,7 +3831,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       branchId: serializer.fromJson<int>(json['branchId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -3822,7 +3849,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       'branchId': serializer.toJson<int>(branchId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -3877,7 +3904,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           int branchId,
           DateTime createdAt,
           DateTime updatedAt,
-          DateTime deletedAt}) =>
+          String deletedAt}) =>
       StockTableData(
         id: id ?? this.id,
         currentStock: currentStock ?? this.currentStock,
@@ -3964,7 +3991,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
   final Value<int> branchId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime> deletedAt;
+  final Value<String> deletedAt;
   const StockTableCompanion({
     this.id = const Value.absent(),
     this.currentStock = const Value.absent(),
@@ -4007,7 +4034,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
       Value<int> branchId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime> deletedAt}) {
+      Value<String> deletedAt}) {
     return StockTableCompanion(
       id: id ?? this.id,
       currentStock: currentStock ?? this.currentStock,
@@ -4145,15 +4172,12 @@ class $StockTableTable extends StockTable
   }
 
   final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
-  GeneratedDateTimeColumn _deletedAt;
+  GeneratedTextColumn _deletedAt;
   @override
-  GeneratedDateTimeColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
-  GeneratedDateTimeColumn _constructDeletedAt() {
-    return GeneratedDateTimeColumn(
-      'deleted_at',
-      $tableName,
-      true,
-    );
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
   }
 
   @override
@@ -4304,7 +4328,7 @@ class $StockTableTable extends StockTable
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<DateTime, DateTimeType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }
@@ -4613,6 +4637,7 @@ class StockHistoryTableData extends DataClass
   final int variantId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String deletedAt;
   StockHistoryTableData(
       {@required this.id,
       @required this.quantity,
@@ -4622,7 +4647,8 @@ class StockHistoryTableData extends DataClass
       @required this.reasonId,
       @required this.variantId,
       this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      this.deletedAt});
   factory StockHistoryTableData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
@@ -4647,6 +4673,8 @@ class StockHistoryTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
+      deletedAt: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
   factory StockHistoryTableData.fromJson(Map<String, dynamic> json,
@@ -4661,6 +4689,7 @@ class StockHistoryTableData extends DataClass
       variantId: serializer.fromJson<int>(json['variantId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -4676,6 +4705,7 @@ class StockHistoryTableData extends DataClass
       'variantId': serializer.toJson<int>(variantId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -4705,6 +4735,9 @@ class StockHistoryTableData extends DataClass
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -4717,7 +4750,8 @@ class StockHistoryTableData extends DataClass
           int reasonId,
           int variantId,
           DateTime createdAt,
-          DateTime updatedAt}) =>
+          DateTime updatedAt,
+          String deletedAt}) =>
       StockHistoryTableData(
         id: id ?? this.id,
         quantity: quantity ?? this.quantity,
@@ -4728,6 +4762,7 @@ class StockHistoryTableData extends DataClass
         variantId: variantId ?? this.variantId,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt ?? this.deletedAt,
       );
   @override
   String toString() {
@@ -4740,7 +4775,8 @@ class StockHistoryTableData extends DataClass
           ..write('reasonId: $reasonId, ')
           ..write('variantId: $variantId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -4760,8 +4796,10 @@ class StockHistoryTableData extends DataClass
                           reasonId.hashCode,
                           $mrjc(
                               variantId.hashCode,
-                              $mrjc(createdAt.hashCode,
-                                  updatedAt.hashCode)))))))));
+                              $mrjc(
+                                  createdAt.hashCode,
+                                  $mrjc(updatedAt.hashCode,
+                                      deletedAt.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -4774,7 +4812,8 @@ class StockHistoryTableData extends DataClass
           other.reasonId == this.reasonId &&
           other.variantId == this.variantId &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class StockHistoryTableCompanion
@@ -4788,6 +4827,7 @@ class StockHistoryTableCompanion
   final Value<int> variantId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<String> deletedAt;
   const StockHistoryTableCompanion({
     this.id = const Value.absent(),
     this.quantity = const Value.absent(),
@@ -4798,6 +4838,7 @@ class StockHistoryTableCompanion
     this.variantId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
   });
   StockHistoryTableCompanion.insert({
     this.id = const Value.absent(),
@@ -4809,6 +4850,7 @@ class StockHistoryTableCompanion
     @required int variantId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
   })  : quantity = Value(quantity),
         note = Value(note),
         stockId = Value(stockId),
@@ -4823,7 +4865,8 @@ class StockHistoryTableCompanion
       Value<int> reasonId,
       Value<int> variantId,
       Value<DateTime> createdAt,
-      Value<DateTime> updatedAt}) {
+      Value<DateTime> updatedAt,
+      Value<String> deletedAt}) {
     return StockHistoryTableCompanion(
       id: id ?? this.id,
       quantity: quantity ?? this.quantity,
@@ -4834,6 +4877,7 @@ class StockHistoryTableCompanion
       variantId: variantId ?? this.variantId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }
@@ -4936,6 +4980,15 @@ class $StockHistoryTableTable extends StockHistoryTable
     );
   }
 
+  final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
+  GeneratedTextColumn _deletedAt;
+  @override
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
+  }
+
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4946,7 +4999,8 @@ class $StockHistoryTableTable extends StockHistoryTable
         reasonId,
         variantId,
         createdAt,
-        updatedAt
+        updatedAt,
+        deletedAt
       ];
   @override
   $StockHistoryTableTable get asDslTable => this;
@@ -5011,6 +5065,12 @@ class $StockHistoryTableTable extends StockHistoryTable
     } else if (updatedAt.isRequired && isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (d.deletedAt.present) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+    } else if (deletedAt.isRequired && isInserting) {
+      context.missing(_deletedAtMeta);
+    }
     return context;
   }
 
@@ -5051,6 +5111,9 @@ class $StockHistoryTableTable extends StockHistoryTable
     }
     if (d.updatedAt.present) {
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+    }
+    if (d.deletedAt.present) {
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }
@@ -6851,12 +6914,14 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
   final String action;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String deletedAt;
   ReasonTableData(
       {@required this.id,
       @required this.name,
       @required this.action,
       this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      this.deletedAt});
   factory ReasonTableData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
@@ -6873,6 +6938,8 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
+      deletedAt: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
   factory ReasonTableData.fromJson(Map<String, dynamic> json,
@@ -6883,6 +6950,7 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
       action: serializer.fromJson<String>(json['action']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
     );
   }
   @override
@@ -6894,6 +6962,7 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
       'action': serializer.toJson<String>(action),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
     };
   }
 
@@ -6910,6 +6979,9 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -6918,13 +6990,15 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
           String name,
           String action,
           DateTime createdAt,
-          DateTime updatedAt}) =>
+          DateTime updatedAt,
+          String deletedAt}) =>
       ReasonTableData(
         id: id ?? this.id,
         name: name ?? this.name,
         action: action ?? this.action,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt ?? this.deletedAt,
       );
   @override
   String toString() {
@@ -6933,7 +7007,8 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
           ..write('name: $name, ')
           ..write('action: $action, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
@@ -6943,8 +7018,10 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
       id.hashCode,
       $mrjc(
           name.hashCode,
-          $mrjc(action.hashCode,
-              $mrjc(createdAt.hashCode, updatedAt.hashCode)))));
+          $mrjc(
+              action.hashCode,
+              $mrjc(createdAt.hashCode,
+                  $mrjc(updatedAt.hashCode, deletedAt.hashCode))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -6953,7 +7030,8 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
           other.name == this.name &&
           other.action == this.action &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
@@ -6962,12 +7040,14 @@ class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
   final Value<String> action;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<String> deletedAt;
   const ReasonTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.action = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
   });
   ReasonTableCompanion.insert({
     this.id = const Value.absent(),
@@ -6975,6 +7055,7 @@ class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
     @required String action,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
   })  : name = Value(name),
         action = Value(action);
   ReasonTableCompanion copyWith(
@@ -6982,13 +7063,15 @@ class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
       Value<String> name,
       Value<String> action,
       Value<DateTime> createdAt,
-      Value<DateTime> updatedAt}) {
+      Value<DateTime> updatedAt,
+      Value<String> deletedAt}) {
     return ReasonTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       action: action ?? this.action,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }
@@ -7052,9 +7135,18 @@ class $ReasonTableTable extends ReasonTable
     );
   }
 
+  final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
+  GeneratedTextColumn _deletedAt;
+  @override
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
+  }
+
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, action, createdAt, updatedAt];
+      [id, name, action, createdAt, updatedAt, deletedAt];
   @override
   $ReasonTableTable get asDslTable => this;
   @override
@@ -7094,6 +7186,12 @@ class $ReasonTableTable extends ReasonTable
     } else if (updatedAt.isRequired && isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (d.deletedAt.present) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+    } else if (deletedAt.isRequired && isInserting) {
+      context.missing(_deletedAtMeta);
+    }
     return context;
   }
 
@@ -7122,6 +7220,9 @@ class $ReasonTableTable extends ReasonTable
     }
     if (d.updatedAt.present) {
       map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+    }
+    if (d.deletedAt.present) {
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
     }
     return map;
   }

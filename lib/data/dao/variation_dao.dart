@@ -75,7 +75,7 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
 
   Future softDelete(VariationTableData entry) {
     return update(db.variationTable)
-        .replace(entry.copyWith(deletedAt: DateTime.now()));
+        .replace(entry.copyWith(deletedAt: DateTime.now().toString()));
   }
 
   Future deleteVariation(Insertable<VariationTableData> item) =>

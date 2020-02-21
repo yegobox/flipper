@@ -8,6 +8,27 @@ import 'package:random_string/random_string.dart';
 import 'package:redux/redux.dart';
 
 class Util {
+  static removeItemFromTrash(Store<AppState> store, int itemId) async {
+    ItemTableData item = await store.state.database.itemDao
+        .getItemByIdBranch(branchId: store.state.branch.id, itemId: itemId);
+
+    if (item == null) return;
+    List<StockTableData> stocks = await store.state.database.stockDao
+        .getItemFromStockByItemId(
+            branchId: store.state.branch.id, itemId: item.id);
+    for (var i = 0; i < stocks.length; i++) {
+      VariationTableData variant = await store.state.database.variationDao
+          .getVariationById(stocks[i].variantId);
+
+      await store.state.database.variationDao
+          .updateVariation(variant.copyWith(deletedAt: 'null'));
+
+      await store.state.database.stockDao
+          .updateStock(stocks[i].copyWith(deletedAt: 'null'));
+    }
+    store.state.database.itemDao.updateItem(item.copyWith(deletedAt: 'null'));
+  }
+
   static deleteItem(Store<AppState> store, String itemName, int itemId) async {
     ItemTableData item = await store.state.database.itemDao.getItemBy(
         name: itemName, branchId: store.state.branch.id, itemId: itemId);

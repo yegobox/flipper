@@ -56,7 +56,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     size: 30,
                   ),
                   onPressed: () {
-                    Router.navigator.maybePop();
+                    Router.navigator.pop(true);
                   },
                 ),
                 title: _title == null

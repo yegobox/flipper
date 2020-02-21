@@ -21,7 +21,7 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
   //only updated deletedAt column
   Future softDelete(ItemTableData entry) {
     return update(db.itemTable)
-        .replace(entry.copyWith(deletedAt: DateTime.now()));
+        .replace(entry.copyWith(deletedAt: DateTime.now().toString()));
   }
 
   Future updateItem(ItemTableData entry) {
@@ -68,6 +68,13 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
         .getSingle();
   }
 
+  Future<ItemTableData> getItemByIdBranch({int itemId, int branchId}) {
+    return (select(db.itemTable)
+          ..where((t) => t.id.equals(itemId))
+          ..where((t) => t.branchId.equals(branchId)))
+        .getSingle();
+  }
+
   Future<ItemTableData> getItemByName({String name, int branchId}) {
     return (select(db.itemTable)
           ..where((t) => t.name.equals(name))
@@ -79,6 +86,7 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
 
   Stream<List<ItemTableData>> getItemsStream() {
     return (select(db.itemTable)
+          ..where((t) => t.deletedAt.equals('null'))
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)]))
         .watch();

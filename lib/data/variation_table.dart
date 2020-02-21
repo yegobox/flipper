@@ -15,5 +15,5 @@ class VariationTable extends Table {
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();
-  DateTimeColumn get deletedAt => dateTime().nullable()();
+  TextColumn get deletedAt => text().withDefault(Constant("null")).nullable()();
 }

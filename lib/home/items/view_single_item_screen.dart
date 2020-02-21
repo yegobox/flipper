@@ -7,6 +7,7 @@ import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -42,7 +43,11 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
 
   int _deleteCount;
 
-  _closeAndDelete(BuildContext context) async {}
+  _closeAndDelete(BuildContext context) async {
+    final store = StoreProvider.of<AppState>(context);
+    Util.deleteItem(store, widget.itemName, widget.itemId);
+    Router.navigator.pop(true);
+  }
 
   Future<bool> _onWillPop() async {}
 
@@ -333,9 +338,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   _deleteCount += 1;
                                 });
                                 if (_deleteCount == 2) {
-                                  //get item id's variatoon delete each after then delete the item and pop
                                   _closeAndDelete(context);
-                                  Router.navigator.maybePop();
                                 }
                               },
                               child: Text("Delete Item",
