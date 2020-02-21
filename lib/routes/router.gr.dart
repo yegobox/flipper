@@ -30,6 +30,8 @@ import 'package:flipper/home/items/view_items_screen.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
 import 'package:flipper/home/items/view_single_item_screen.dart';
 import 'package:flipper/home/items/edit_variation_screen.dart';
+import 'package:flipper/home/widget/category/edit_category_screen.dart';
+import 'package:flipper/home/unit/edit_unit_screen.dart';
 
 class Router {
   static const splashScreen = '/';
@@ -54,6 +56,8 @@ class Router {
   static const login = '/login';
   static const viewSingleItem = '/viewSingleItem';
   static const editVariationScreen = '/editVariationScreen';
+  static const editCategoryScreen = '/editCategoryScreen';
+  static const editUnitType = '/editUnitType';
   static GlobalKey<NavigatorState> get navigatorKey =>
       getNavigatorKey<Router>();
   static NavigatorState get navigator => navigatorKey.currentState;
@@ -259,7 +263,6 @@ class Router {
           builder: (_) => ViewSingleItemScreen(
               key: typedArgs.key,
               itemId: typedArgs.itemId,
-              unitId: typedArgs.unitId,
               itemName: typedArgs.itemName,
               itemColor: typedArgs.itemColor),
           settings: settings,
@@ -276,6 +279,28 @@ class Router {
               key: typedArgs.key,
               variationId: typedArgs.variationId,
               unitId: typedArgs.unitId),
+          settings: settings,
+        );
+      case Router.editCategoryScreen:
+        if (hasInvalidArgs<EditCategoryScreenArguments>(args)) {
+          return misTypedArgsRoute<EditCategoryScreenArguments>(args);
+        }
+        final typedArgs = args as EditCategoryScreenArguments ??
+            EditCategoryScreenArguments();
+        return MaterialPageRoute(
+          builder: (_) =>
+              EditCategoryScreen(key: typedArgs.key, ItemId: typedArgs.ItemId),
+          settings: settings,
+        );
+      case Router.editUnitType:
+        if (hasInvalidArgs<EditUnitTypeArguments>(args)) {
+          return misTypedArgsRoute<EditUnitTypeArguments>(args);
+        }
+        final typedArgs =
+            args as EditUnitTypeArguments ?? EditUnitTypeArguments();
+        return MaterialPageRoute(
+          builder: (_) =>
+              EditUnitType(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
         );
       default:
@@ -315,11 +340,10 @@ class CartDetailsScreenArguments {
 class ViewSingleItemScreenArguments {
   final Key key;
   final int itemId;
-  final int unitId;
   final String itemName;
   final String itemColor;
   ViewSingleItemScreenArguments(
-      {this.key, this.itemId, this.unitId, this.itemName, this.itemColor});
+      {this.key, this.itemId, this.itemName, this.itemColor});
 }
 
 //EditVariationScreen arguments holder class
@@ -328,4 +352,18 @@ class EditVariationScreenArguments {
   final int variationId;
   final int unitId;
   EditVariationScreenArguments({this.key, this.variationId, this.unitId});
+}
+
+//EditCategoryScreen arguments holder class
+class EditCategoryScreenArguments {
+  final Key key;
+  final int ItemId;
+  EditCategoryScreenArguments({this.key, this.ItemId});
+}
+
+//EditUnitType arguments holder class
+class EditUnitTypeArguments {
+  final Key key;
+  final int itemId;
+  EditUnitTypeArguments({this.key, this.itemId});
 }

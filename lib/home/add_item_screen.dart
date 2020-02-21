@@ -260,7 +260,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           return Text("");
                         }
                         return snapshot.data != null
-                            ? buildRetailPriceWidget(vm, context)
+                            ? StreamBuilder(
+                                stream: vm.database.stockDao
+                                    .getStockByVariantIdStream(
+                                        branchId: vm.branch.id,
+                                        variantId: vm.tmpItem.variantId),
+                                builder: (context,
+                                    AsyncSnapshot<List<StockTableData>>
+                                        snapshot) {
+                                  if (snapshot.data == null) {
+                                    return Text("");
+                                  }
+                                  if (snapshot.data[0].retailPrice == 0) {
+                                    return buildRetailPriceWidget(vm, context);
+                                  }
+                                  return Text("");
+                                })
                             : Text("");
                       },
                     ),
@@ -275,7 +290,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           return Text("");
                         }
                         return snapshot.data != null
-                            ? buildCostPriceWidget(vm, context)
+                            ? StreamBuilder(
+                                stream: vm.database.stockDao
+                                    .getStockByVariantIdStream(
+                                        branchId: vm.branch.id,
+                                        variantId: vm.tmpItem.variantId),
+                                builder: (context,
+                                    AsyncSnapshot<List<StockTableData>>
+                                        snapshot) {
+                                  if (snapshot.data == null) {
+                                    return Text("");
+                                  }
+                                  if (snapshot.data[0].costPrice == 0) {
+                                    return buildCostPriceWidget(vm, context);
+                                  }
+                                  return Text("");
+                                })
                             : Text("");
                       },
                     ),
@@ -418,7 +448,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
     setState(() {
       _actions = result;
     });
-
   }
 
   Text categorySelector(List<CategoryTableData> categories) {

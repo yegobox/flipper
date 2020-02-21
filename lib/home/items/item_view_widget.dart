@@ -159,10 +159,16 @@ class _ItemsViewState extends State<ItemsView> {
 
   void shouldSeeItemOnly(
       BuildContext context, List<ItemTableData> itemList, int i) {
-    StoreProvider.of<AppState>(context).dispatch(CurrentActiveSaleItem(
-        item: Item((b) => b
-          ..name = itemList[i].name
-          ..id = itemList[i].id)));
+    StoreProvider.of<AppState>(context).dispatch(
+      CurrentActiveSaleItem(
+        item: Item(
+          (b) => b
+            ..name = itemList[i].name
+            ..branchId = itemList[i].branchId
+            ..id = itemList[i].id,
+        ),
+      ),
+    );
     Router.navigator.pushNamed(
       Router.viewSingleItem,
       arguments: ViewSingleItemScreenArguments(

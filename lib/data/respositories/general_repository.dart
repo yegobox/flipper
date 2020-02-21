@@ -52,7 +52,7 @@ class GeneralRepository {
       businessId: unit.businessId,
       branchId: unit.branchId,
     );
-    return store.state.database.unitDao.updateTab(b);
+    return store.state.database.unitDao.updateUnit(b);
   }
 
   Future<TabsTableData> getTab(Store<AppState> store) {

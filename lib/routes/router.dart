@@ -16,6 +16,8 @@ import 'package:flipper/home/receive_stock.dart';
 import 'package:flipper/home/selling/change_quantity_selling.dart';
 import 'package:flipper/home/setting_up_application_screen.dart';
 import 'package:flipper/home/take_picture_screen.dart';
+import 'package:flipper/home/unit/edit_unit_screen.dart';
+import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/presentation/business/create_business_screen.dart';
 import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/home/dash_board.dart';
@@ -87,4 +89,8 @@ class $Router {
   ViewSingleItemScreen viewSingleItem;
 
   EditVariationScreen editVariationScreen;
+
+  EditCategoryScreen editCategoryScreen;
+
+  EditUnitType editUnitType;
 }

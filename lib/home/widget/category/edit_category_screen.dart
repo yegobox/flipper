@@ -10,18 +10,22 @@ import 'package:flutter_redux/flutter_redux.dart';
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 
-class AddCategoryScreen extends StatefulWidget {
-  AddCategoryScreen({Key key}) : super(key: key);
+class EditCategoryScreen extends StatefulWidget {
+  EditCategoryScreen({Key key, @required this.ItemId}) : super(key: key);
+  final int ItemId;
 
   @override
-  _AddCategoryScreenState createState() => _AddCategoryScreenState();
+  _EditCategoryScreenState createState() => _EditCategoryScreenState();
 }
 
-class _AddCategoryScreenState extends State<AddCategoryScreen> {
+class _EditCategoryScreenState extends State<EditCategoryScreen> {
   _getCategoriesWidgets(
       List<CategoryTableData> categories, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
     for (var i = 0; i < categories.length; i++) {
+      if (categories[i].focused) {
+        updateItemWithActiveCategory(vm, categories, i);
+      }
       if (categories[i].name != "custom") {
         list.add(
           GestureDetector(
@@ -30,6 +34,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                 vm.database.categoryDao
                     .updateCategory(categories[y].copyWith(focused: false));
               }
+              //
               vm.database.categoryDao.updateCategory(
                   categories[i].copyWith(focused: !categories[i].focused));
             },
@@ -59,6 +64,15 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     return Wrap(children: list);
   }
 
+  Future updateItemWithActiveCategory(
+      CommonViewModel vm, List<CategoryTableData> categories, int i) async {
+    final item = await vm.database.itemDao.getItemById(itemId: widget.ItemId);
+    if (item != null) {
+      vm.database.itemDao
+          .updateItem(item.copyWith(categoryId: categories[i].id));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -68,7 +82,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             showActionButton: false,
-            title: S.of(context).category,
+            title: S.of(context).editCategory,
             icon: Icons.close,
             multi: 3,
             bottomSpacer: 52,

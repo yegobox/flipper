@@ -183,28 +183,16 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
   //there might be a case when a user came here without saving a regular so save it here.
   void createOrUpdateRegularVariant(
       VariationTableData variation, BuildContext context, ItemTableData item) {
-    if (variation == null) {
-      StoreProvider.of<AppState>(context).dispatch(
-        SaveRegular(
-          retailPrice: widget.regularRetailPrice,
-          costPrice: widget.regularCostPrice,
-          itemId: item.id,
-          count: 1,
-          name: 'Regular',
-        ),
-      );
-    } else {
-      StoreProvider.of<AppState>(context).dispatch(
-        SaveRegular(
-          retailPrice: widget.regularRetailPrice,
-          costPrice: widget.regularCostPrice,
-          count: 1,
-          itemId: item.id,
-          name: 'Regular',
-          variantId: variation.id,
-        ),
-      );
-    }
+    StoreProvider.of<AppState>(context).dispatch(
+      SaveRegular(
+        retailPrice: widget.regularRetailPrice,
+        costPrice: widget.regularCostPrice,
+        count: 1,
+        itemId: item.id,
+        name: 'Regular',
+        variantId: variation.id,
+      ),
+    );
   }
 
   Container buildCostPriceWidget(BuildContext context) {

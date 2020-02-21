@@ -63,6 +63,11 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
         .getSingle();
   }
 
+  Future<ItemTableData> getItemById({int itemId}) {
+    return (select(db.itemTable)..where((t) => t.id.equals(itemId)))
+        .getSingle();
+  }
+
   Future<ItemTableData> getItemByName({String name, int branchId}) {
     return (select(db.itemTable)
           ..where((t) => t.name.equals(name))
@@ -73,8 +78,10 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
   Future<List<ItemTableData>> getItems() => select(db.itemTable).get();
 
   Stream<List<ItemTableData>> getItemsStream() {
-//    ..where((t) => t.deletedAt.equals(null))
-    return (select(db.itemTable)).watch();
+    return (select(db.itemTable)
+          ..orderBy(
+              [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)]))
+        .watch();
   }
 
   Stream<List<ItemTableData>> getItemByIdStream(int itemId) {

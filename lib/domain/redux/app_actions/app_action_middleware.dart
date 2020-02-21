@@ -36,56 +36,22 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
     _saveRegular(GlobalKey<NavigatorState> navigatorKey,
         GeneralRepository generalRepository) {
   return (store, action, next) async {
-    StockTableData c;
+    StockTableData stock;
     int variationId;
-    if (action.variantId == null) {
-      variationId = await generalRepository.insertVariant(
-        store,
-        //ignore:missing_required_param
-        VariationTableData(
-          branchId: store.state.branch.id,
-          itemId: action.itemId,
-          name: action.name,
-        ),
-      );
-      c = await store.state.database.stockDao.getStockByVariantId(
-          branchId: store.state.branch.id, variantId: variationId);
-    } else {
-      variationId = action.variantId;
-      c = await store.state.database.stockDao.getStockByVariantId(
-          branchId: store.state.branch.id, variantId: action.variantId);
-    }
+    variationId = action.variantId;
+    stock = await store.state.database.stockDao.getStockByVariantId(
+        branchId: store.state.branch.id, variantId: action.variantId);
+    final variant =
+        await store.state.database.variationDao.getVariationById(variationId);
+    await store.state.database.variationDao
+        .updateVariation(variant.copyWith(name: 'Regular'));
 
-    if (c == null) {
-      final vaa =
-          await store.state.database.variationDao.getVariationById(variationId);
-
-      await store.state.database.variationDao
-          .updateVariation(vaa.copyWith(name: 'Regular'));
-
-      store.state.database.stockDao.insert(
-          //ignore:missing_required_param
-          StockTableData(
-              branchId: store.state.branch.id,
-              canTrackStock: false,
-              costPrice: action.costPrice,
-              currentStock: 0,
-              isActive: false,
-              retailPrice: action.retailPrice));
-    } else {
-      final vaa =
-          await store.state.database.variationDao.getVariationById(variationId);
-
-      await store.state.database.variationDao
-          .updateVariation(vaa.copyWith(name: 'Regular'));
-
-      store.state.database.stockDao.updateStock(
-        c.copyWith(
-          retailPrice: action.retailPrice,
-          costPrice: action.costPrice,
-        ),
-      );
-    }
+    store.state.database.stockDao.updateStock(
+      stock.copyWith(
+        retailPrice: action.retailPrice,
+        costPrice: action.costPrice,
+      ),
+    );
   };
 }
 

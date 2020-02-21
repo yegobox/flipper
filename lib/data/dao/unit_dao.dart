@@ -10,12 +10,7 @@ class UnitDao extends DatabaseAccessor<Database> with _$UnitDaoMixin {
 
   UnitDao(this.db) : super(db);
 
-  Future updateTab(UnitTableData entry) {
-    // using replace will update all fields from the entry that are not marked as a primary key.
-    // it will also make sure that only the entry with the same primary key will be updated.
-    // Here, this means that the row that has the same id as entry will be updated to reflect
-    // the entry's title, content and category. As it set's its where clause automatically, it
-    // can not be used together with where.
+  Future updateUnit(UnitTableData entry) {
     return update(db.unitTable).replace(entry);
   }
 
@@ -34,4 +29,6 @@ class UnitDao extends DatabaseAccessor<Database> with _$UnitDaoMixin {
       into(db.unitTable).insert(units);
 
   Future<List<UnitTableData>> getUnits() => select(db.unitTable).get();
+
+  Stream<List<UnitTableData>> getUnitsStream() => select(db.unitTable).watch();
 }

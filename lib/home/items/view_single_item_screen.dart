@@ -22,12 +22,10 @@ class ViewSingleItemScreen extends StatefulWidget {
   ViewSingleItemScreen({
     Key key,
     @required this.itemId,
-    @required this.unitId,
     @required this.itemName,
     @required this.itemColor,
   }) : super(key: key);
   final int itemId;
-  final int unitId;
   final String itemName;
   final String itemColor;
 
@@ -44,83 +42,9 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
 
   int _deleteCount;
 
-  _closeAndDelete(BuildContext context) async {
-    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
-    ItemTableData item = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .itemDao
-        .getItemBy(
-            name: widget.itemName, branchId: branchId, itemId: widget.itemId);
+  _closeAndDelete(BuildContext context) async {}
 
-    //delete this item add look trough all variation and delete related variation.
-    if (item != null) {
-      List<VariationTableData> variations =
-          await StoreProvider.of<AppState>(context)
-              .state
-              .database
-              .variationDao
-              .getVariantByItemId(item.id);
-      for (var i = 0; i < variations.length; i++) {
-        await StoreProvider.of<AppState>(context)
-            .state
-            .database
-            .variationDao
-            .deleteVariation(variations[i]);
-      }
-      StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .itemDao
-          .deleteItem(item);
-    }
-    Router.navigator.pop(true);
-  }
-
-  Future<bool> _onWillPop() async {
-    //if we have dirty db then show the alert or if is clean go back without alert
-    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
-
-    ItemTableData item = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .itemDao
-        .getItemBy(
-            name: widget.itemName, branchId: branchId, itemId: widget.itemId);
-    if (item == null) {
-      Router.navigator.pop(false);
-      return false;
-    }
-    //delete this item add look trough all variation and delete related variation.
-    return (await showDialog(
-          context: context,
-          builder: (context) => new AlertDialog(
-            title: new Text(
-              'Are you sure?',
-              style: TextStyle(color: Colors.black),
-            ),
-            content: new Text(
-              'Do you want to exit an App',
-              style: TextStyle(color: Colors.black),
-            ),
-            actions: <Widget>[
-              new FlatButton(
-                onPressed: () => Router.navigator.pop(false),
-                child: new Text('No'),
-              ),
-              new FlatButton(
-                // Navigator.of(context).pop(true)
-                //todo: go and clean the tmp item and variation created recently.
-                onPressed: () {
-                  // _closeAndDelete(context);
-                },
-                child: new Text('Yes'),
-              ),
-            ],
-          ),
-        )) ??
-        false;
-  }
+  Future<bool> _onWillPop() async {}
 
   @override
   void didChangeDependencies() {
@@ -151,11 +75,11 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                 onWillPop: _onWillPop,
                 child: Scaffold(
                   appBar: CommonAppBar(
-                    title: S.of(context).createItem,
+                    title: S.of(context).editItem,
                     disableButton: _actions == null ? true : _actions.isLocked,
                     showActionButton: true,
                     onPressedCallback: () async {
-                      _handleFormSubmit(vm);
+                      _handleEditItem(vm);
                     },
                     actionButtonName: S.of(context).save,
                     icon: Icons.close,
@@ -216,8 +140,12 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: GestureDetector(
                                 onTap: () {
-                                  Router.navigator
-                                      .pushNamed(Router.addCategoryScreen);
+                                  Router.navigator.pushNamed(
+                                    Router.editCategoryScreen,
+                                    arguments: EditCategoryScreenArguments(
+                                      ItemId: widget.itemId,
+                                    ),
+                                  );
                                 },
                                 child: ListTile(
                                   contentPadding:
@@ -226,20 +154,20 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   trailing: Wrap(
                                     children: <Widget>[
                                       StreamBuilder(
-                                        stream: vm.database.categoryDao
-                                            .getCategoriesStream(),
+                                        stream: vm.database.itemDao
+                                            .getItemByIdStream(widget.itemId),
                                         builder: (context,
-                                            AsyncSnapshot<
-                                                    List<CategoryTableData>>
+                                            AsyncSnapshot<List<ItemTableData>>
                                                 snapshot) {
                                           if (snapshot.data == null) {
                                             return Text(
                                                 S.of(context).selectCategory);
                                           }
-                                          return snapshot.data.length == 0
+                                          return snapshot.data == null
                                               ? Text(
                                                   S.of(context).selectCategory)
-                                              : categorySelector(snapshot.data);
+                                              : categorySelector(
+                                                  snapshot.data, vm);
                                         },
                                       ),
                                       Icon(Icons.arrow_forward_ios)
@@ -279,8 +207,10 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: GestureDetector(
                                 onTap: () {
-                                  Router.navigator
-                                      .pushNamed(Router.addUnitType);
+                                  Router.navigator.pushNamed(
+                                      Router.editUnitType,
+                                      arguments: EditUnitTypeArguments(
+                                          itemId: widget.itemId));
                                 },
                                 child: ListTile(
                                   contentPadding:
@@ -289,15 +219,28 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   trailing: Wrap(
                                     children: <Widget>[
                                       StreamBuilder(
-                                          stream: vm.database.unitDao
-                                              .getUnitStream(widget.unitId),
+                                          stream: vm.database.itemDao
+                                              .getItemByIdStream(widget.itemId),
                                           builder: (context,
-                                              AsyncSnapshot<List<UnitTableData>>
-                                                  snapshot) {
-                                            if (snapshot.data.length == 0) {
+                                              AsyncSnapshot<List<ItemTableData>>
+                                                  item) {
+                                            if (item.data == null) {
                                               return Text("");
                                             }
-                                            return Text(snapshot.data[0].name);
+                                            return StreamBuilder(
+                                                stream: vm.database.unitDao
+                                                    .getUnitStream(
+                                                        item.data[0].unitId),
+                                                builder: (context,
+                                                    AsyncSnapshot<
+                                                            List<UnitTableData>>
+                                                        unit) {
+                                                  if (unit.data == null) {
+                                                    return Text("");
+                                                  }
+                                                  return Text(
+                                                      unit.data[0].name);
+                                                });
                                           }),
                                       Icon(Icons.arrow_forward_ios)
                                     ],
@@ -446,28 +389,24 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
     });
   }
 
-  Text categorySelector(List<CategoryTableData> categories) {
-    Text text;
-    for (var i = 0; i < categories.length; i++) {
-      if (categories[i].focused) {
-        text = Text(categories[i].name);
-        return text;
-      } else {
-        text = Text(S.of(context).selectCategory);
-      }
-    }
-    return text;
+  Widget categorySelector(List<ItemTableData> item, CommonViewModel vm) {
+    return StreamBuilder(
+        stream:
+            vm.database.categoryDao.getCategoryByIdStream(item[0].categoryId),
+        builder: (context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
+          if (snapshot.data == null) {
+            return Text("");
+          }
+          return Text(snapshot.data[0].name);
+        });
   }
 
-  _handleFormSubmit(CommonViewModel vm) async {
+  _handleEditItem(CommonViewModel vm) async {
     ItemTableData item = await vm.database.itemDao.getItemBy(
         itemId: widget.itemId, name: widget.itemName, branchId: vm.branch.id);
 
-    //reset current  color.
-
     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
 
-    //todo: also update unit Id of choosen item.
     vm.database.itemDao.updateItem(
       item.copyWith(
         name: _name,
@@ -475,7 +414,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
         color: vm.currentColor == null ? item.color : vm.currentColor.hexCode,
       ),
     );
-    Router.navigator.maybePop();
+    Router.navigator.pop();
   }
 
   _buildVariationsList(

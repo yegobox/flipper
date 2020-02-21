@@ -33,33 +33,42 @@ class _VariationWidgetState extends State<VariationWidget> {
           );
         },
         child: StreamBuilder(
-            stream: widget.vm.database.stockDao.getStockByItemIdStream(
-                branchId: widget.vm.branch.id, itemId: widget.variation.id),
+            stream: widget.vm.database.stockDao.getStockByVariantIdStream(
+                branchId: widget.vm.branch.id, variantId: widget.variation.id),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return Text("");
               }
-              return ListTile(
-                leading: Icon(
-                  Icons.dehaze,
-                ),
-                subtitle: Text("${snapshot.data[0].retailPrice} \nRWF"),
-                trailing:
-                    Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                  FlatButton(
-                    child: Text(
-                      snapshot.data.length == 0
-                          ? S.of(context).receiveStock
-                          : snapshot.data[0].currentStock.toString() +
-                              S.of(context).inStock,
-                    ),
-                    onPressed: () {},
-                  )
-                ]),
-                dense: true,
+              return Column(
+                children: buildVariantRow(snapshot, context),
               );
             }),
       )
     ]);
+  }
+
+  List<Widget> buildVariantRow(
+      AsyncSnapshot<List<StockTableData>> snapshot, BuildContext context) {
+    List<Widget> list = [];
+    for (var i = 0; i < snapshot.data.length; i++) {
+      list.add(ListTile(
+        leading: Icon(
+          Icons.dehaze,
+        ),
+        subtitle: Text("${snapshot.data[i].retailPrice} \nRWF"),
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          FlatButton(
+            child: Text(
+              snapshot.data == null
+                  ? S.of(context).receiveStock
+                  : "${snapshot.data[i].currentStock}" + S.of(context).inStock,
+            ),
+            onPressed: () {},
+          )
+        ]),
+        dense: true,
+      ));
+    }
+    return list;
   }
 }

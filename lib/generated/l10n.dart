@@ -397,6 +397,33 @@ class S {
       args: [],
     );
   }
+
+  String get editItem {
+    return Intl.message(
+      'Edit Item',
+      name: 'editItem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  String get editCategory {
+    return Intl.message(
+      'Edit Category',
+      name: 'editCategory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  String get editUnitType {
+    return Intl.message(
+      'Edit Unit',
+      name: 'editUnitType',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

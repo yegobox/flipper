@@ -54,6 +54,10 @@ class Util {
 
     ItemTableData item = await store.state.database.itemDao
         .getItemByName(name: itemName, branchId: store.state.branch.id);
+
+    int variantId;
+    VariationTableData variant = await store.state.database.variationDao
+        .getVariationBy(itemName, store.state.branch.id);
     if (item == null) {
       int itemId = await store.state.database.itemDao.insert(
         //ignore: missing_required_param
@@ -67,10 +71,7 @@ class Util {
           createdAt: DateTime.now(),
         ),
       );
-      //insert tmp variant
-      int variantId;
-      VariationTableData variant = await store.state.database.variationDao
-          .getVariationBy(itemName, store.state.branch.id);
+
       if (variant == null) {
         variantId = await store.state.database.variationDao.insert(
           //ignore: missing_required_param
@@ -99,20 +100,20 @@ class Util {
           createdAt: DateTime.now(),
         ),
       );
-      dispatchCurrentTmpItem(store, itemId);
+      dispatchCurrentTmpItem(store, itemId, variantId);
     } else {
-      dispatchCurrentTmpItem(store, item.id);
+      dispatchCurrentTmpItem(store, item.id, variant.id);
     }
   }
 
-  static void dispatchCurrentTmpItem(Store<AppState> store, int itemId) {
+  static void dispatchCurrentTmpItem(
+      Store<AppState> store, int itemId, variantId) {
     return store.dispatch(
       TempItem(
-        item: Item(
-          (i) => i
-            ..id = itemId
-            ..branchId = store.state.branch.id,
-        ),
+        item: Item((i) => i
+          ..id = itemId
+          ..branchId = store.state.branch.id
+          ..variantId = variantId),
       ),
     );
   }
