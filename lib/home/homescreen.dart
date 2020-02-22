@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    _nextPage(widget.vm.tab);
     return Scaffold(
       extendBody: true,
       key: _scaffoldKey,
@@ -69,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen>
         selectedItemColor: Colors.amber[800],
         currentIndex: widget.vm.tab,
         onTap: (num) {
-
           _nextPage(num == 0 ? -1 : 1);
           StoreProvider.of<AppState>(context).dispatch(CurrentTab(tab: num));
           StoreProvider.of<AppState>(context).dispatch(OnSetTab());
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen>
               color: HexColor("#95cbe8"),
               // child: ProductScreen(),
               child: DefaultTabController(
-                initialIndex: 1,
+                initialIndex: widget.vm.tab,
                 length: 2,
                 child: TabBarView(
                   controller: _tabController,
