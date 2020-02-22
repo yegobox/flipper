@@ -8,14 +8,14 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class EditUnitType extends StatefulWidget {
-  EditUnitType({Key key, @required this.itemId}) : super(key: key);
+class EditUnitTypeScreen extends StatefulWidget {
+  EditUnitTypeScreen({Key key, @required this.itemId}) : super(key: key);
   final int itemId;
   @override
-  _EditUnitTypeState createState() => _EditUnitTypeState();
+  _EditUnitTypeScreenState createState() => _EditUnitTypeScreenState();
 }
 
-class _EditUnitTypeState extends State<EditUnitType> {
+class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
   Widget _getUnitsWidgets(
       AsyncSnapshot<List<UnitTableData>> snapshot, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
@@ -81,7 +81,7 @@ class _EditUnitTypeState extends State<EditUnitType> {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: Column(
+          body: Wrap(
             children: <Widget>[
               Center(
                 child: Container(

@@ -42,5 +42,6 @@
     "branchError": "Branch from which you operate in should be set, try to logout and log in again.",
     "editItem": "Edit Item",
     "editCategory": "Edit Category",
-    "editUnitType": "Edit Unit"
+    "editUnitType": "Edit Unit",
+    "editVariation": "Edit Variation"
 }

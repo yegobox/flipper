@@ -1,21 +1,21 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class EditVariationScreen extends StatefulWidget {
   EditVariationScreen(
-      {Key key, @required this.variationId, @required this.unitId})
+      {Key key, @required this.variationId, @required this.itemId})
       : super(key: key);
   final int variationId;
-  final int unitId;
+  final int itemId;
 
   @override
   _EditVariationScreenState createState() => _EditVariationScreenState();
@@ -25,9 +25,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
   String sku;
 
   ActionsTableData _actions;
+  // ignore: unused_field
   double _costPrice;
   String _name;
 
+  // ignore: unused_field
   double _retailPrice;
 
   @override
@@ -40,13 +42,13 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
           stream: vm.database.variationDao
               .getVariantByItemIdStream(widget.variationId),
           builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-            if (snapshot.data.length == 0) {
+            if (snapshot.data == null) {
               return Text("");
             }
 
             return Scaffold(
               appBar: new CommonAppBar(
-                title: S.of(context).addVariation,
+                title: S.of(context).editVariation,
                 showActionButton: true,
                 disableButton: _actions == null ? true : _actions.isLocked,
                 actionButtonName: S.of(context).save,
@@ -151,16 +153,19 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
     );
   }
 
-  void updateVariation(VariationTableData variation, BuildContext context) {
-    if (variation == null) {
-      StoreProvider.of<AppState>(context).dispatch(
-        SaveRegular(
-          itemId: variation.itemId,
-          count: 0,
-          name: 'Regular',
-        ),
-      );
-    }
+  Future<void> updateVariation(
+      VariationTableData variation, BuildContext context) async {
+    final store = StoreProvider.of<AppState>(context);
+    double retailPrice = _retailPrice ?? null;
+    double costPrice = _costPrice ?? null;
+    String variantName = _name ?? variation.name;
+    await Util.updateVariation(
+      costPrice: costPrice,
+      retailPrice: retailPrice,
+      variation: variation,
+      variantName: variantName,
+      store: store,
+    );
   }
 
   Center buildCostPriceWidget(BuildContext context) {

@@ -278,7 +278,7 @@ class Router {
           builder: (_) => EditVariationScreen(
               key: typedArgs.key,
               variationId: typedArgs.variationId,
-              unitId: typedArgs.unitId),
+              itemId: typedArgs.itemId),
           settings: settings,
         );
       case Router.editCategoryScreen:
@@ -293,14 +293,14 @@ class Router {
           settings: settings,
         );
       case Router.editUnitType:
-        if (hasInvalidArgs<EditUnitTypeArguments>(args)) {
-          return misTypedArgsRoute<EditUnitTypeArguments>(args);
+        if (hasInvalidArgs<EditUnitTypeScreenArguments>(args)) {
+          return misTypedArgsRoute<EditUnitTypeScreenArguments>(args);
         }
-        final typedArgs =
-            args as EditUnitTypeArguments ?? EditUnitTypeArguments();
+        final typedArgs = args as EditUnitTypeScreenArguments ??
+            EditUnitTypeScreenArguments();
         return MaterialPageRoute(
           builder: (_) =>
-              EditUnitType(key: typedArgs.key, itemId: typedArgs.itemId),
+              EditUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
         );
       default:
@@ -350,8 +350,8 @@ class ViewSingleItemScreenArguments {
 class EditVariationScreenArguments {
   final Key key;
   final int variationId;
-  final int unitId;
-  EditVariationScreenArguments({this.key, this.variationId, this.unitId});
+  final int itemId;
+  EditVariationScreenArguments({this.key, this.variationId, this.itemId});
 }
 
 //EditCategoryScreen arguments holder class
@@ -361,9 +361,9 @@ class EditCategoryScreenArguments {
   EditCategoryScreenArguments({this.key, this.ItemId});
 }
 
-//EditUnitType arguments holder class
-class EditUnitTypeArguments {
+//EditUnitTypeScreen arguments holder class
+class EditUnitTypeScreenArguments {
   final Key key;
   final int itemId;
-  EditUnitTypeArguments({this.key, this.itemId});
+  EditUnitTypeScreenArguments({this.key, this.itemId});
 }

@@ -73,10 +73,11 @@ class GeneralRepository {
     if (unitData == null) {
       //ignore:missing_required_param
       var values = new UnitTableData(
-          name: unit.name,
-          branchId: unit.branchId,
-          businessId: unit.businessId,
-          focused: unit.focused);
+        name: unit.name,
+        branchId: unit.branchId,
+        businessId: unit.businessId,
+        focused: unit.focused,
+      );
       store.state.database.unitDao.insert(values);
     }
     unitData = await store.state.database.unitDao

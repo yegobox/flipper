@@ -424,6 +424,15 @@ class S {
       args: [],
     );
   }
+
+  String get editVariation {
+    return Intl.message(
+      'Edit Variation',
+      name: 'editVariation',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

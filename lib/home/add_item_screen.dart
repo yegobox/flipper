@@ -345,7 +345,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     ),
                     StreamBuilder(
                       stream: vm.database.variationDao
-                          .getItemVariations2(vm.tmpItem.id),
+                          .getItemVariationsByItemId(vm.tmpItem.id),
                       builder: (context,
                           AsyncSnapshot<List<VariationTableData>> snapshot) {
                         if (snapshot.data == null) {

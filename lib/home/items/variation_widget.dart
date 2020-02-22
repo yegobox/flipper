@@ -29,7 +29,9 @@ class _VariationWidgetState extends State<VariationWidget> {
           Router.navigator.pushNamed(
             Router.editVariationScreen,
             arguments: EditVariationScreenArguments(
-                variationId: widget.variation.id, unitId: 1),
+              variationId: widget.variation.id,
+              itemId: widget.variation.itemId,
+            ),
           );
         },
         child: StreamBuilder(

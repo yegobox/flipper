@@ -92,5 +92,5 @@ class $Router {
 
   EditCategoryScreen editCategoryScreen;
 
-  EditUnitType editUnitType;
+  EditUnitTypeScreen editUnitType;
 }

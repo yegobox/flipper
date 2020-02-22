@@ -25,7 +25,7 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
         .get();
   }
 
-  Stream<List<VariationTableData>> getItemVariations2(int itemId) {
+  Stream<List<VariationTableData>> getItemVariationsByItemId(int itemId) {
     return (select(db.variationTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.asc)])

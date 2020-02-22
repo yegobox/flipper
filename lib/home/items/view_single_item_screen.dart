@@ -49,7 +49,10 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
     Router.navigator.pop(true);
   }
 
-  Future<bool> _onWillPop() async {}
+  Future<bool> _onWillPop() async {
+    Router.navigator.pop(true);
+    return true;
+  }
 
   @override
   void didChangeDependencies() {
@@ -214,7 +217,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                 onTap: () {
                                   Router.navigator.pushNamed(
                                       Router.editUnitType,
-                                      arguments: EditUnitTypeArguments(
+                                      arguments: EditUnitTypeScreenArguments(
                                           itemId: widget.itemId));
                                 },
                                 child: ListTile(
@@ -254,26 +257,17 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               ),
                             ),
                           ),
-                          Center(
-                            child: Container(
-                              width: 300,
-                              child: Divider(
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
+                          CustomDivider(),
                           StreamBuilder(
                             stream: vm.database.variationDao
-                                .getItemVariations2(widget.itemId),
+                                .getItemVariationsByItemId(widget.itemId),
                             builder: (context,
                                 AsyncSnapshot<List<VariationTableData>>
                                     snapshot) {
                               if (snapshot.data == null) {
                                 return Text("");
                               }
-                              return snapshot.data != 0
-                                  ? _buildVariationsList(snapshot.data, vm)
-                                  : Text("");
+                              return _buildVariationsList(snapshot.data, vm);
                             },
                           ),
                           Center(
@@ -441,5 +435,23 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
       return Container();
     }
     return Column(children: list);
+  }
+}
+
+class CustomDivider extends StatelessWidget {
+  const CustomDivider({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 300,
+        child: Divider(
+          color: Colors.black,
+        ),
+      ),
+    );
   }
 }

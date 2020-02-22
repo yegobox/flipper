@@ -8,24 +8,25 @@ import 'package:random_string/random_string.dart';
 import 'package:redux/redux.dart';
 
 class Util {
-  static Future updateVariation(
-      {VariationTableData variation,
-      Store<AppState> store,
-      double retailPrice,
-      double costPrice,
-      String variantName}) async {
+  static Future updateVariation({
+    VariationTableData variation,
+    Store<AppState> store,
+    double retailPrice,
+    double costPrice,
+    String variantName,
+  }) async {
     if (variation != null) {
       final stock = await store.state.database.stockDao.getStockByVariantId(
           branchId: store.state.branch.id, variantId: variation.id);
       final variant = await store.state.database.variationDao
           .getVariationById(variation.id);
       await store.state.database.variationDao
-          .updateVariation(variant.copyWith(name: 'Regular'));
+          .updateVariation(variant.copyWith(name: variantName));
 
       await store.state.database.stockDao.updateStock(
         stock.copyWith(
-          retailPrice: retailPrice,
-          costPrice: costPrice,
+          retailPrice: retailPrice ?? stock.retailPrice,
+          costPrice: costPrice ?? stock.costPrice,
         ),
       );
       final stocks = await store.state.database.stockDao.getStockByVariantId(

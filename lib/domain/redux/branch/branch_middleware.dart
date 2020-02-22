@@ -57,7 +57,7 @@ void setUnits(store, branchId, GeneralRepository generalRepository) async {
     ..businessId = store.state.businessId
     ..branchId = branchId
     ..id = 1
-    ..focused = true);
+    ..focused = false);
 
   await generalRepository.insertUnit(store, item);
 
