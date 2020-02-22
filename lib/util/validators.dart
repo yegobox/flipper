@@ -18,6 +18,14 @@ class Validators {
     }
   }
 
+  static String isEmpty(String value) {
+    if (value.isEmpty) {
+      return 'can not be empty';
+    } else {
+      return null;
+    }
+  }
+
   static String validatePassword(String value) {
     if (value.length < 4) {
       return 'Password should be greater than 4 characters.';

@@ -29,9 +29,6 @@ class Util {
           costPrice: costPrice ?? stock.costPrice,
         ),
       );
-      final stocks = await store.state.database.stockDao.getStockByVariantId(
-          branchId: store.state.branch.id, variantId: variation.id);
-      print(stocks);
     }
   }
 

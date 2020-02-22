@@ -51,14 +51,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
               appBar: new CommonAppBar(
                 title: S.of(context).editVariation,
                 showActionButton: true,
-                disableButton: _actions == null ? true : _actions.isLocked,
+                disableButton: snapshot.data[0].name == '' ? true : false,
                 actionButtonName: S.of(context).save,
                 onPressedCallback: () async {
                   updateVariation(snapshot.data[0], context);
-
-                  vm.database.actionsDao
-                      .updateAction(_actions.copyWith(isLocked: true));
-                  Router.navigator.maybePop();
+                  Router.navigator.pop(true);
                 },
                 icon: Icons.close,
                 multi: 3,
@@ -82,12 +79,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           width: 300,
                           child: GestureDetector(
                             onTap: () {
-                              //todo: go with item id to persist current unit to item
                               Router.navigator.pushNamed(
                                 Router.addUnitType,
                                 arguments: AddUnitTypeScreenArguments(
-                                  itemId: widget.itemId
-                                )
+                                  itemId: widget.itemId,
+                                ),
                               );
                             },
                             child: ListTile(
@@ -131,19 +127,12 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           child: TextFormField(
                             initialValue: snapshot.data[0].name,
                             style: TextStyle(color: Colors.black),
-                            validator: Validators.isStringHasMoreChars,
+                            validator: Validators.isEmpty,
                             onChanged: (name) {
-                              if (name == '') {
-                                setState(() {
-                                  _name = null;
-                                });
-                                _getSaveStatus();
-                                return;
-                              }
-                              setState(() {
+                              if (name != '') {
                                 _name = name;
-                              });
-                              _getSaveStatus();
+                                updateVariation(snapshot.data[0], context);
+                              }
                             },
                             decoration: InputDecoration(
                                 hintText: S.of(context).name,
@@ -187,6 +176,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
     double retailPrice = _retailPrice ?? null;
     double costPrice = _costPrice ?? null;
     String variantName = _name ?? variation.name;
+
     await Util.updateVariation(
       costPrice: costPrice,
       retailPrice: retailPrice,
@@ -271,9 +261,9 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                     initialValue: snapshot.data[0].retailPrice.toString(),
                     style: TextStyle(color: HexColor("#2d3436")),
                     validator: Validators.isStringHasMoreChars,
-                    onChanged: (_sku) {
-                      if (_sku != '') {
-                        sku = _sku;
+                    onChanged: (price) {
+                      if (price != '') {
+                        _retailPrice = double.parse(price);
                       }
                     },
                     decoration: InputDecoration(
@@ -285,35 +275,5 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
             }),
       ),
     );
-  }
-
-  void _getSaveStatus() async {
-    var result = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .actionsDao
-        .getActionBy('save');
-
-    if (_name == null) {
-      await StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .actionsDao
-          .updateAction(result.copyWith(isLocked: true));
-    } else {
-      await StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .actionsDao
-          .updateAction(result.copyWith(isLocked: false));
-    }
-    var res = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .actionsDao
-        .getActionBy('save');
-    setState(() {
-      _actions = res;
-    });
   }
 }

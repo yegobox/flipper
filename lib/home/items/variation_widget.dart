@@ -41,22 +41,23 @@ class _VariationWidgetState extends State<VariationWidget> {
                 return Text("");
               }
               return Column(
-                children: buildVariantRow(snapshot, context),
+                children:
+                    buildVariantRow(snapshot, context, widget.variation.name),
               );
             }),
       )
     ]);
   }
 
-  List<Widget> buildVariantRow(
-      AsyncSnapshot<List<StockTableData>> snapshot, BuildContext context) {
+  List<Widget> buildVariantRow(AsyncSnapshot<List<StockTableData>> snapshot,
+      BuildContext context, String name) {
     List<Widget> list = [];
     for (var i = 0; i < snapshot.data.length; i++) {
       list.add(ListTile(
         leading: Icon(
           Icons.dehaze,
         ),
-        subtitle: Text("${snapshot.data[i].retailPrice} \nRWF"),
+        subtitle: Text("${name}\nRWF${snapshot.data[i].retailPrice}"),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
           FlatButton(
             child: Text(
