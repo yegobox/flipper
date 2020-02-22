@@ -1,6 +1,5 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/home/receive_stock.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';

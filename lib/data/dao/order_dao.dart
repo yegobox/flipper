@@ -1,4 +1,4 @@
-import 'package:flipper/data/cart.dart';
+import 'package:flipper/data/cart_table.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:moor/moor.dart';
 

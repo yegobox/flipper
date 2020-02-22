@@ -122,8 +122,8 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                 focusColor: Colors.blue),
                           ),
                         ),
-                        buildRetailPriceWidget(context, snapshot),
-                        buildCostPriceWidget(context),
+                        buildRetailPriceWidget(context, snapshot, vm),
+                        buildCostPriceWidget(context, vm),
                         Container(
                           width: 300,
                           child: TextFormField(
@@ -168,43 +168,93 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
     );
   }
 
-  Center buildCostPriceWidget(BuildContext context) {
+  Center buildCostPriceWidget(BuildContext context, CommonViewModel vm) {
     return Center(
       child: Container(
         width: 300,
-        child: TextFormField(
-          keyboardType: TextInputType.number,
-          style: TextStyle(color: Colors.black),
-          validator: Validators.isStringHasMoreChars,
-          onChanged: (cost) {
-            if (cost != '') {
-              _costPrice = double.parse(cost);
-            }
-          },
-          decoration: InputDecoration(
-              hintText: S.of(context).costPrice, focusColor: Colors.blue),
-        ),
+        child: StreamBuilder(
+            stream: vm.database.stockDao.getStockByVariantIdStream(
+                branchId: vm.branch.id, variantId: widget.variationId),
+            builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+              if (snapshot.data == null) {
+                return TextFormField(
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: Colors.black),
+                  validator: Validators.isStringHasMoreChars,
+                  onChanged: (cost) {
+                    if (cost != '') {
+                      _costPrice = double.parse(cost);
+                    }
+                  },
+                  decoration: InputDecoration(
+                      hintText: S.of(context).costPrice,
+                      focusColor: Colors.blue),
+                );
+              } else {
+                return Container(
+                  width: 300,
+                  child: TextFormField(
+                    initialValue: snapshot.data[0].costPrice.toString(),
+                    style: TextStyle(color: HexColor("#2d3436")),
+                    validator: Validators.isStringHasMoreChars,
+                    onChanged: (cost) {
+                      if (cost != '') {
+                        _costPrice = double.parse(cost);
+                      }
+                    },
+                    decoration: InputDecoration(
+                        hintText: S.of(context).sKU,
+                        focusColor: HexColor("#0984e3")),
+                  ),
+                );
+              }
+            }),
       ),
     );
   }
 
-  Center buildRetailPriceWidget(
-      BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+  Center buildRetailPriceWidget(BuildContext context,
+      AsyncSnapshot<List<VariationTableData>> snapshot, CommonViewModel vm) {
     return Center(
       child: Container(
         width: 300,
-        child: TextFormField(
-          keyboardType: TextInputType.number,
-          style: TextStyle(color: Colors.black),
-          validator: Validators.isStringHasMoreChars,
-          onChanged: (price) {
-            if (price != '') {
-              _retailPrice = double.parse(price);
-            }
-          },
-          decoration: InputDecoration(
-              hintText: S.of(context).retailPrice, focusColor: Colors.blue),
-        ),
+        child: StreamBuilder(
+            stream: vm.database.stockDao.getStockByVariantIdStream(
+                branchId: vm.branch.id, variantId: widget.variationId),
+            builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+              if (snapshot.data == null) {
+                return TextFormField(
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: Colors.black),
+                  validator: Validators.isStringHasMoreChars,
+                  onChanged: (price) {
+                    if (price != '') {
+                      _retailPrice = double.parse(price);
+                    }
+                  },
+                  decoration: InputDecoration(
+                      hintText: S.of(context).retailPrice,
+                      focusColor: Colors.blue),
+                );
+              } else {
+                return Container(
+                  width: 300,
+                  child: TextFormField(
+                    initialValue: snapshot.data[0].retailPrice.toString(),
+                    style: TextStyle(color: HexColor("#2d3436")),
+                    validator: Validators.isStringHasMoreChars,
+                    onChanged: (_sku) {
+                      if (_sku != '') {
+                        sku = _sku;
+                      }
+                    },
+                    decoration: InputDecoration(
+                        hintText: S.of(context).sKU,
+                        focusColor: HexColor("#0984e3")),
+                  ),
+                );
+              }
+            }),
       ),
     );
   }

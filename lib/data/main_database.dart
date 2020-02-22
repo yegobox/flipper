@@ -4,7 +4,8 @@ import 'package:flipper/data/actions_table.dart';
 import 'package:flipper/data/branch.dart';
 import 'package:flipper/data/business.dart';
 import 'package:flipper/data/business_user.dart';
-import 'package:flipper/data/cart.dart';
+import 'package:flipper/data/cart_table.dart';
+
 import 'package:flipper/data/category_table.dart';
 import 'package:flipper/data/color_table.dart';
 import 'package:flipper/data/dao/actions_dao.dart';
