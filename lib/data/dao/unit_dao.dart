@@ -21,6 +21,10 @@ class UnitDao extends DatabaseAccessor<Database> with _$UnitDaoMixin {
         .getSingle();
   }
 
+  Stream<List<UnitTableData>> getUnitByIdStream(int unitId) {
+    return (select(db.unitTable)..where((t) => t.id.equals(unitId))).watch();
+  }
+
   Stream<List<UnitTableData>> getUnitStream(int unitId) {
     return (select(db.unitTable)..where((t) => t.id.equals(unitId))).watch();
   }

@@ -27,6 +27,7 @@ class ViewSingleItemScreen extends StatefulWidget {
     @required this.itemColor,
   }) : super(key: key);
   final int itemId;
+
   final String itemName;
   final String itemColor;
 

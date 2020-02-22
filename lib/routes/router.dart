@@ -62,7 +62,7 @@ class $Router {
   AddVariationScreen addVariationScreen;
 
   @MaterialRoute(fullscreenDialog: true)
-  AddUnitType addUnitType;
+  AddUnitTypeScreen addUnitType;
 
   @MaterialRoute(fullscreenDialog: true)
   AddCategoryScreen addCategoryScreen;

@@ -167,12 +167,14 @@ class Router {
           fullscreenDialog: true,
         );
       case Router.addUnitType:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
+        if (hasInvalidArgs<AddUnitTypeScreenArguments>(args)) {
+          return misTypedArgsRoute<AddUnitTypeScreenArguments>(args);
         }
-        final typedArgs = args as Key;
+        final typedArgs =
+            args as AddUnitTypeScreenArguments ?? AddUnitTypeScreenArguments();
         return MaterialPageRoute(
-          builder: (_) => AddUnitType(key: typedArgs),
+          builder: (_) =>
+              AddUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -280,7 +282,8 @@ class Router {
           builder: (_) => EditVariationScreen(
               key: typedArgs.key,
               variationId: typedArgs.variationId,
-              itemId: typedArgs.itemId),
+              itemId: typedArgs.itemId,
+              unitId: typedArgs.unitId),
           settings: settings,
         );
       case Router.editCategoryScreen:
@@ -324,6 +327,13 @@ class AddVariationScreenArguments {
       {this.key, this.regularRetailPrice, this.regularCostPrice});
 }
 
+//AddUnitTypeScreen arguments holder class
+class AddUnitTypeScreenArguments {
+  final Key key;
+  final int itemId;
+  AddUnitTypeScreenArguments({this.key, this.itemId});
+}
+
 //ReceiveStockScreen arguments holder class
 class ReceiveStockScreenArguments {
   final Key key;
@@ -360,7 +370,9 @@ class EditVariationScreenArguments {
   final Key key;
   final int variationId;
   final int itemId;
-  EditVariationScreenArguments({this.key, this.variationId, this.itemId});
+  final int unitId;
+  EditVariationScreenArguments(
+      {this.key, this.variationId, this.itemId, this.unitId});
 }
 
 //EditCategoryScreen arguments holder class

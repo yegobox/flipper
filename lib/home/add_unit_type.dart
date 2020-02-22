@@ -8,18 +8,21 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class AddUnitType extends StatefulWidget {
-  AddUnitType({Key key}) : super(key: key);
-
+class AddUnitTypeScreen extends StatefulWidget {
+  AddUnitTypeScreen({Key key, this.itemId}) : super(key: key);
+  final int itemId;
   @override
-  _AddUnitTypeState createState() => _AddUnitTypeState();
+  _AddUnitTypeScreenState createState() => _AddUnitTypeScreenState();
 }
 
-class _AddUnitTypeState extends State<AddUnitType> {
+class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
   Widget _getUnitsWidgets(
       AsyncSnapshot<List<UnitTableData>> snapshot, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
     for (var i = 0; i < snapshot.data.length; i++) {
+      if (snapshot.data[i].focused && widget.itemId != null) {
+        updatedItemWithCurrentUnit(vm, snapshot.data[i]);
+      }
       list.add(
         GestureDetector(
           onTap: () {
@@ -53,6 +56,13 @@ class _AddUnitTypeState extends State<AddUnitType> {
       ));
     }
     return Wrap(children: list);
+  }
+
+  Future updatedItemWithCurrentUnit(
+      CommonViewModel vm, UnitTableData unit) async {
+    ItemTableData item =
+        await vm.database.itemDao.getItemById(itemId: widget.itemId);
+    vm.database.itemDao.updateItem(item.copyWith(unitId: unit.id));
   }
 
   @override

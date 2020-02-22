@@ -12,9 +12,10 @@ import 'package:flutter_redux/flutter_redux.dart';
 
 class EditVariationScreen extends StatefulWidget {
   EditVariationScreen(
-      {Key key, @required this.variationId, @required this.itemId})
+      {Key key, @required this.variationId, @required this.itemId, this.unitId})
       : super(key: key);
   final int variationId;
+  final int unitId;
   final int itemId;
 
   @override
@@ -81,7 +82,13 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           width: 300,
                           child: GestureDetector(
                             onTap: () {
-                              Router.navigator.pushNamed(Router.addUnitType);
+                              //todo: go with item id to persist current unit to item
+                              Router.navigator.pushNamed(
+                                Router.addUnitType,
+                                arguments: AddUnitTypeScreenArguments(
+                                  itemId: widget.itemId
+                                )
+                              );
                             },
                             child: ListTile(
                               contentPadding:
@@ -89,9 +96,30 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                               leading: Text(S.of(context).unityType),
                               trailing: Wrap(
                                 children: <Widget>[
-                                  Text(vm.currentUnit != null
-                                      ? vm.currentUnit.name
-                                      : S.of(context).unityType),
+                                  StreamBuilder(
+                                      stream: vm.database.itemDao
+                                          .getItemByIdStream(widget.itemId),
+                                      builder: (context,
+                                          AsyncSnapshot<List<ItemTableData>>
+                                              snapshot) {
+                                        if (snapshot.data == null) {
+                                          return Text("None");
+                                        }
+                                        return StreamBuilder(
+                                            stream: vm.database.unitDao
+                                                .getUnitByIdStream(
+                                                    snapshot.data[0].unitId),
+                                            builder: (context,
+                                                AsyncSnapshot<
+                                                        List<UnitTableData>>
+                                                    snapshot) {
+                                              if (snapshot.data == null) {
+                                                return Text("");
+                                              }
+                                              return Text(
+                                                  snapshot.data[0].name);
+                                            });
+                                      }),
                                   Icon(Icons.arrow_forward_ios)
                                 ],
                               ),
