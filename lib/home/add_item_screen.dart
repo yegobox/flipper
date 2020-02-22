@@ -1,5 +1,4 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/common/common_app_bar.dart';
@@ -271,7 +270,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   if (snapshot.data == null) {
                                     return Text("");
                                   }
-                                  if (snapshot.data[0].retailPrice == 0) {
+                                  if (snapshot.data[0].retailPrice == null) {
                                     return buildRetailPriceWidget(vm, context);
                                   }
                                   return Text("");
@@ -301,7 +300,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   if (snapshot.data == null) {
                                     return Text("");
                                   }
-                                  if (snapshot.data[0].costPrice == 0) {
+                                  if (snapshot.data[0].costPrice == null) {
                                     return buildCostPriceWidget(vm, context);
                                   }
                                   return Text("");
@@ -467,27 +466,23 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final store = StoreProvider.of<AppState>(context);
     ItemTableData item = await vm.database.itemDao
         .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
-
     VariationTableData variation =
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
+    //save regular.
+    await Util.updateVariation(
+        variation: variation,
+        costPrice: double.parse(tForm.costPrice),
+        store: store,
+        variantName: 'Regular',
+        retailPrice: double.parse(tForm.retailPrice));
+    resetSaveButtonStatus(vm);
+    updateItem(vm, item);
+    Util.removeItemFromTrash(store, item.id);
+    Router.navigator.maybePop();
+  }
 
-    if (variation != null) {
-      store.dispatch(
-        SaveRegular(
-          itemId: item.id,
-          name: "Regular",
-          retailPrice: double.parse(tForm.retailPrice),
-          costPrice: double.parse(tForm.costPrice),
-          variantId: variation.id,
-        ),
-      );
-    }
-    vm.database.actionsDao
-        .updateAction(_actionsSaveItem.copyWith(isLocked: true));
-
-    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-
-    vm.database.itemDao.updateItem(
+  Future updateItem(CommonViewModel vm, ItemTableData item) {
+    return vm.database.itemDao.updateItem(
       item.copyWith(
         name: tForm.name,
         unitId: vm.currentUnit.id,
@@ -496,8 +491,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
         deletedAt: 'null',
       ),
     );
-    Util.removeItemFromTrash(store, item.id);
-    Router.navigator.maybePop();
+  }
+
+  void resetSaveButtonStatus(CommonViewModel vm) {
+    vm.database.actionsDao
+        .updateAction(_actionsSaveItem.copyWith(isLocked: true));
+
+    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
   }
 
   _buildVariationsList(

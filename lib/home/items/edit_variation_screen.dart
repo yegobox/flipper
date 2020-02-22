@@ -155,8 +155,6 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
     if (variation == null) {
       StoreProvider.of<AppState>(context).dispatch(
         SaveRegular(
-          retailPrice: 0,
-          costPrice: 0.0,
           itemId: variation.itemId,
           count: 0,
           name: 'Regular',

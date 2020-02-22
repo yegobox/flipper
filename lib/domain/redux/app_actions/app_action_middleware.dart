@@ -46,12 +46,14 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
     await store.state.database.variationDao
         .updateVariation(variant.copyWith(name: 'Regular'));
 
-    store.state.database.stockDao.updateStock(
+    await store.state.database.stockDao.updateStock(
       stock.copyWith(
         retailPrice: action.retailPrice,
         costPrice: action.costPrice,
       ),
     );
+    stock = await store.state.database.stockDao.getStockByVariantId(
+        branchId: store.state.branch.id, variantId: action.variantId);
   };
 }
 

@@ -3771,12 +3771,12 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
   final String deletedAt;
   StockTableData(
       {@required this.id,
-      @required this.currentStock,
+      this.currentStock,
       @required this.canTrackStock,
       @required this.isActive,
-      @required this.costPrice,
-      @required this.retailPrice,
-      this.itemId,
+      this.costPrice,
+      this.retailPrice,
+      @required this.itemId,
       @required this.variantId,
       @required this.branchId,
       this.createdAt,
@@ -4008,18 +4008,18 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
   });
   StockTableCompanion.insert({
     this.id = const Value.absent(),
-    @required int currentStock,
+    this.currentStock = const Value.absent(),
     this.canTrackStock = const Value.absent(),
     this.isActive = const Value.absent(),
     this.costPrice = const Value.absent(),
     this.retailPrice = const Value.absent(),
-    this.itemId = const Value.absent(),
+    @required int itemId,
     @required int variantId,
     @required int branchId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
-  })  : currentStock = Value(currentStock),
+  })  : itemId = Value(itemId),
         variantId = Value(variantId),
         branchId = Value(branchId);
   StockTableCompanion copyWith(
@@ -4073,11 +4073,8 @@ class $StockTableTable extends StockTable
   GeneratedIntColumn get currentStock =>
       _currentStock ??= _constructCurrentStock();
   GeneratedIntColumn _constructCurrentStock() {
-    return GeneratedIntColumn(
-      'current_stock',
-      $tableName,
-      false,
-    );
+    return GeneratedIntColumn('current_stock', $tableName, true,
+        defaultValue: Constant(0));
   }
 
   final VerificationMeta _canTrackStockMeta =
@@ -4105,7 +4102,7 @@ class $StockTableTable extends StockTable
   @override
   GeneratedRealColumn get costPrice => _costPrice ??= _constructCostPrice();
   GeneratedRealColumn _constructCostPrice() {
-    return GeneratedRealColumn('cost_price', $tableName, false,
+    return GeneratedRealColumn('cost_price', $tableName, true,
         $customConstraints: 'DECIMAL(6,2)', defaultValue: Constant(0));
   }
 
@@ -4116,7 +4113,7 @@ class $StockTableTable extends StockTable
   GeneratedRealColumn get retailPrice =>
       _retailPrice ??= _constructRetailPrice();
   GeneratedRealColumn _constructRetailPrice() {
-    return GeneratedRealColumn('retail_price', $tableName, false,
+    return GeneratedRealColumn('retail_price', $tableName, true,
         $customConstraints: 'DECIMAL(6,2)', defaultValue: Constant(0));
   }
 
@@ -4128,7 +4125,7 @@ class $StockTableTable extends StockTable
     return GeneratedIntColumn(
       'item_id',
       $tableName,
-      true,
+      false,
     );
   }
 

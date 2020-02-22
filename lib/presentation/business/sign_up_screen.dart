@@ -124,8 +124,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: TextFormField(
                           obscureText: true,
                           style: TextStyle(color: Colors.black),
-                          validator: Validators
-                              .validatePassword, //todo: use password validation,
                           onChanged: (password) {
                             tBusiness.password = password;
                           },

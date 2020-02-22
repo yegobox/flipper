@@ -1,11 +1,11 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -150,9 +150,15 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
     VariationTableData variation =
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
+    final store = StoreProvider.of<AppState>(context);
 
-    createOrUpdateRegularVariant(variation, context, item);
-
+    await Util.updateVariation(
+      variation: variation,
+      costPrice: widget.regularCostPrice,
+      store: store,
+      variantName: 'Regular',
+      retailPrice: widget.regularRetailPrice,
+    );
     int variantId = await vm.database.variationDao.insert(
       //ignore:missing_required_param
       VariationTableData(
@@ -167,7 +173,6 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
     vm.database.stockDao.insert(
       //ignore: missing_required_param
       StockTableData(
-        currentStock: 0,
         canTrackStock: false,
         retailPrice: double.parse(retailPrice),
         itemId: item.id,
@@ -178,21 +183,6 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
       ),
     );
     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-  }
-
-  //there might be a case when a user came here without saving a regular so save it here.
-  void createOrUpdateRegularVariant(
-      VariationTableData variation, BuildContext context, ItemTableData item) {
-    StoreProvider.of<AppState>(context).dispatch(
-      SaveRegular(
-        retailPrice: widget.regularRetailPrice,
-        costPrice: widget.regularCostPrice,
-        count: 1,
-        itemId: item.id,
-        name: 'Regular',
-        variantId: variation.id,
-      ),
-    );
   }
 
   Container buildCostPriceWidget(BuildContext context) {

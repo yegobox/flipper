@@ -93,6 +93,7 @@ class _ItemsViewState extends State<ItemsView> {
                   if (snapshot.data == null) {
                     return Text("");
                   }
+
                   return snapshot.data.length == 1
                       ? Text(
                           "RWF " + snapshot.data[0].retailPrice.toString(),

@@ -8,6 +8,32 @@ import 'package:random_string/random_string.dart';
 import 'package:redux/redux.dart';
 
 class Util {
+  static Future updateVariation(
+      {VariationTableData variation,
+      Store<AppState> store,
+      double retailPrice,
+      double costPrice,
+      String variantName}) async {
+    if (variation != null) {
+      final stock = await store.state.database.stockDao.getStockByVariantId(
+          branchId: store.state.branch.id, variantId: variation.id);
+      final variant = await store.state.database.variationDao
+          .getVariationById(variation.id);
+      await store.state.database.variationDao
+          .updateVariation(variant.copyWith(name: 'Regular'));
+
+      await store.state.database.stockDao.updateStock(
+        stock.copyWith(
+          retailPrice: retailPrice,
+          costPrice: costPrice,
+        ),
+      );
+      final stocks = await store.state.database.stockDao.getStockByVariantId(
+          branchId: store.state.branch.id, variantId: variation.id);
+      print(stocks);
+    }
+  }
+
   static removeItemFromTrash(Store<AppState> store, int itemId) async {
     ItemTableData item = await store.state.database.itemDao
         .getItemByIdBranch(branchId: store.state.branch.id, itemId: itemId);
@@ -111,10 +137,7 @@ class Util {
       store.state.database.stockDao.insert(
         //ignore: missing_required_param
         StockTableData(
-          currentStock: 0,
           canTrackStock: false,
-          retailPrice: 0,
-          costPrice: 0,
           itemId: itemId,
           variantId: variantId,
           branchId: store.state.branch.id,

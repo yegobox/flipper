@@ -20,13 +20,4 @@ void main() {
     DeviceOrientation.portraitDown,
   ]);
   runApp(FlipperApp());
-
-  //todo: to be cleaned
-// StoreProvider.of<AppState>(context)
-//               .dispatch(WithUnitId(unitId: unitsList[i].id));
-//           StoreProvider.of<AppState>(context)
-//               .dispatch(UpdateUnitAction(unitId: unitsList[i].id));
-//           //todo:clean this dups store
-//           StoreProvider.of<AppState>(context)
-//               .dispatch(CurrentUnit(unit: unitsList[i]));
 }
