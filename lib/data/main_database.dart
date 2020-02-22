@@ -20,6 +20,7 @@ import 'package:flipper/data/dao/order_dao.dart';
 import 'package:flipper/data/dao/reason_dao.dart';
 import 'package:flipper/data/dao/stock_dao.dart';
 import 'package:flipper/data/dao/tab_dao.dart';
+import 'package:flipper/data/dao/tax_dao.dart';
 import 'package:flipper/data/dao/unit_dao.dart';
 import 'package:flipper/data/dao/variation_dao.dart';
 import 'package:flipper/data/item_table.dart';
@@ -29,6 +30,7 @@ import 'package:flipper/data/reason_table.dart';
 import 'package:flipper/data/stock_history_table.dart';
 import 'package:flipper/data/stock_tabble.dart';
 import 'package:flipper/data/tabs.dart';
+import 'package:flipper/data/tax_table.dart';
 import 'package:flipper/data/token.dart';
 import 'package:flipper/data/unit_table.dart';
 import 'package:flipper/data/user.dart';
@@ -73,7 +75,8 @@ LazyDatabase _openConnection() {
   OrderTable,
   ColorTable,
   ActionsTable,
-  ReasonTable
+  ReasonTable,
+  TaxTable
 ], daos: [
   UserDao,
   TokenDao,
@@ -90,6 +93,7 @@ LazyDatabase _openConnection() {
   OrderDao,
   ColorDao,
   ActionsDao,
+  TaxDao,
   ReasonDao
 ])
 class Database extends _$Database {

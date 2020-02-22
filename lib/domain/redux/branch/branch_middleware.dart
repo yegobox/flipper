@@ -75,34 +75,23 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _onBusinessCreated(GlobalKey<NavigatorState> navigatorKey,
         BranchRepository branchRepo, GeneralRepository generalRepository) {
   return (store, action, next) async {
-    if (store.state.branch != null) {
-      final branch = Branch(
-        (b) => b
-          ..name = store.state.branch.name
-          ..isActive = true,
-      );
-      final branchId = await branchRepo.insertBranch(store, branch);
-      //create tax for this branch
-
-      await Util.getActiveBranch(store, branchId);
-      //getting up the default units
-      setUnits(store, branchId, generalRepository);
-      //update store will all the thing we need and set all default values we want here
-      store.dispatch(VerifyAuthenticationState());
-    } else {
-      //we are creating a branch from signup make is be like the same as business name.
-      store.dispatch(ResetAppAction());
-      final branch = Branch(
-        (b) => b
-          ..name = store.state.business.name
-          ..isActive = true,
-      );
-
-      final branchId = await branchRepo.insertBranch(store, branch);
-      await Util.getActiveBranch(store, branchId);
-      setUnits(store, branchId, generalRepository);
-      store.dispatch(VerifyAuthenticationState());
-    }
+    store.dispatch(ResetAppAction());
+    final branch = Branch(
+      (b) => b
+        ..name = store.state.business.name
+        ..isActive = true,
+    );
+    final branchId = await branchRepo.insertBranch(store, branch);
+    //create tax for this branch
+    await store.state.database.taxDao.insert(
+        // ignore: missing_required_param
+        TaxTableData(branchId: branchId, name: 'vat', value: 18.0));
+    await store.state.database.taxDao.insert(
+        // ignore: missing_required_param
+        TaxTableData(branchId: branchId, name: 'none', value: 0.0));
+    await Util.getActiveBranch(store, branchId);
+    setUnits(store, branchId, generalRepository);
+    store.dispatch(VerifyAuthenticationState());
   };
 }
 

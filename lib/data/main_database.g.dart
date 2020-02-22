@@ -2132,6 +2132,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
   final String description;
   final int categoryId;
   final int branchId;
+  final int taxId;
   final int unitId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -2143,6 +2144,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
       this.description,
       @required this.categoryId,
       @required this.branchId,
+      @required this.taxId,
       @required this.unitId,
       this.createdAt,
       this.updatedAt,
@@ -2165,6 +2167,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}category_id']),
       branchId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      taxId: intType.mapFromDatabaseResponse(data['${effectivePrefix}tax_id']),
       unitId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}unit_id']),
       createdAt: dateTimeType
@@ -2184,6 +2187,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
       description: serializer.fromJson<String>(json['description']),
       categoryId: serializer.fromJson<int>(json['categoryId']),
       branchId: serializer.fromJson<int>(json['branchId']),
+      taxId: serializer.fromJson<int>(json['taxId']),
       unitId: serializer.fromJson<int>(json['unitId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -2200,6 +2204,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
       'description': serializer.toJson<String>(description),
       'categoryId': serializer.toJson<int>(categoryId),
       'branchId': serializer.toJson<int>(branchId),
+      'taxId': serializer.toJson<int>(taxId),
       'unitId': serializer.toJson<int>(unitId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -2223,6 +2228,8 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
       branchId: branchId == null && nullToAbsent
           ? const Value.absent()
           : Value(branchId),
+      taxId:
+          taxId == null && nullToAbsent ? const Value.absent() : Value(taxId),
       unitId:
           unitId == null && nullToAbsent ? const Value.absent() : Value(unitId),
       createdAt: createdAt == null && nullToAbsent
@@ -2244,6 +2251,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
           String description,
           int categoryId,
           int branchId,
+          int taxId,
           int unitId,
           DateTime createdAt,
           DateTime updatedAt,
@@ -2255,6 +2263,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
         description: description ?? this.description,
         categoryId: categoryId ?? this.categoryId,
         branchId: branchId ?? this.branchId,
+        taxId: taxId ?? this.taxId,
         unitId: unitId ?? this.unitId,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -2269,6 +2278,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
           ..write('description: $description, ')
           ..write('categoryId: $categoryId, ')
           ..write('branchId: $branchId, ')
+          ..write('taxId: $taxId, ')
           ..write('unitId: $unitId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -2291,11 +2301,13 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
                       $mrjc(
                           branchId.hashCode,
                           $mrjc(
-                              unitId.hashCode,
+                              taxId.hashCode,
                               $mrjc(
-                                  createdAt.hashCode,
-                                  $mrjc(updatedAt.hashCode,
-                                      deletedAt.hashCode))))))))));
+                                  unitId.hashCode,
+                                  $mrjc(
+                                      createdAt.hashCode,
+                                      $mrjc(updatedAt.hashCode,
+                                          deletedAt.hashCode)))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -2306,6 +2318,7 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
           other.description == this.description &&
           other.categoryId == this.categoryId &&
           other.branchId == this.branchId &&
+          other.taxId == this.taxId &&
           other.unitId == this.unitId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -2319,6 +2332,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
   final Value<String> description;
   final Value<int> categoryId;
   final Value<int> branchId;
+  final Value<int> taxId;
   final Value<int> unitId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -2330,6 +2344,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
     this.description = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.branchId = const Value.absent(),
+    this.taxId = const Value.absent(),
     this.unitId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -2342,6 +2357,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
     this.description = const Value.absent(),
     @required int categoryId,
     @required int branchId,
+    @required int taxId,
     @required int unitId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -2350,6 +2366,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
         color = Value(color),
         categoryId = Value(categoryId),
         branchId = Value(branchId),
+        taxId = Value(taxId),
         unitId = Value(unitId);
   ItemTableCompanion copyWith(
       {Value<int> id,
@@ -2358,6 +2375,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
       Value<String> description,
       Value<int> categoryId,
       Value<int> branchId,
+      Value<int> taxId,
       Value<int> unitId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -2369,6 +2387,7 @@ class ItemTableCompanion extends UpdateCompanion<ItemTableData> {
       description: description ?? this.description,
       categoryId: categoryId ?? this.categoryId,
       branchId: branchId ?? this.branchId,
+      taxId: taxId ?? this.taxId,
       unitId: unitId ?? this.unitId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -2450,6 +2469,15 @@ class $ItemTableTable extends ItemTable
     );
   }
 
+  final VerificationMeta _taxIdMeta = const VerificationMeta('taxId');
+  GeneratedIntColumn _taxId;
+  @override
+  GeneratedIntColumn get taxId => _taxId ??= _constructTaxId();
+  GeneratedIntColumn _constructTaxId() {
+    return GeneratedIntColumn('tax_id', $tableName, false,
+        $customConstraints: 'NULL REFERENCES tax_table(id)');
+  }
+
   final VerificationMeta _unitIdMeta = const VerificationMeta('unitId');
   GeneratedIntColumn _unitId;
   @override
@@ -2497,6 +2525,7 @@ class $ItemTableTable extends ItemTable
         description,
         categoryId,
         branchId,
+        taxId,
         unitId,
         createdAt,
         updatedAt,
@@ -2546,6 +2575,12 @@ class $ItemTableTable extends ItemTable
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
     } else if (branchId.isRequired && isInserting) {
       context.missing(_branchIdMeta);
+    }
+    if (d.taxId.present) {
+      context.handle(
+          _taxIdMeta, taxId.isAcceptableValue(d.taxId.value, _taxIdMeta));
+    } else if (taxId.isRequired && isInserting) {
+      context.missing(_taxIdMeta);
     }
     if (d.unitId.present) {
       context.handle(
@@ -2602,6 +2637,9 @@ class $ItemTableTable extends ItemTable
     }
     if (d.branchId.present) {
       map['branch_id'] = Variable<int, IntType>(d.branchId.value);
+    }
+    if (d.taxId.present) {
+      map['tax_id'] = Variable<int, IntType>(d.taxId.value);
     }
     if (d.unitId.present) {
       map['unit_id'] = Variable<int, IntType>(d.unitId.value);
@@ -7308,6 +7346,366 @@ class $ReasonTableTable extends ReasonTable
   }
 }
 
+class TaxTableData extends DataClass implements Insertable<TaxTableData> {
+  final int id;
+  final String name;
+  final int branchId;
+  final double value;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String deletedAt;
+  TaxTableData(
+      {@required this.id,
+      @required this.name,
+      @required this.branchId,
+      @required this.value,
+      this.createdAt,
+      this.updatedAt,
+      this.deletedAt});
+  factory TaxTableData.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
+    final doubleType = db.typeSystem.forDartType<double>();
+    final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    return TaxTableData(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
+      branchId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      value:
+          doubleType.mapFromDatabaseResponse(data['${effectivePrefix}value']),
+      createdAt: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
+      updatedAt: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
+      deletedAt: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
+    );
+  }
+  factory TaxTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+    return TaxTableData(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      branchId: serializer.fromJson<int>(json['branchId']),
+      value: serializer.fromJson<double>(json['value']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<String>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson(
+      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'branchId': serializer.toJson<int>(branchId),
+      'value': serializer.toJson<double>(value),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<String>(deletedAt),
+    };
+  }
+
+  @override
+  TaxTableCompanion createCompanion(bool nullToAbsent) {
+    return TaxTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      branchId: branchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchId),
+      value:
+          value == null && nullToAbsent ? const Value.absent() : Value(value),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  TaxTableData copyWith(
+          {int id,
+          String name,
+          int branchId,
+          double value,
+          DateTime createdAt,
+          DateTime updatedAt,
+          String deletedAt}) =>
+      TaxTableData(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        branchId: branchId ?? this.branchId,
+        value: value ?? this.value,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt ?? this.deletedAt,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('TaxTableData(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('branchId: $branchId, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(
+          name.hashCode,
+          $mrjc(
+              branchId.hashCode,
+              $mrjc(
+                  value.hashCode,
+                  $mrjc(createdAt.hashCode,
+                      $mrjc(updatedAt.hashCode, deletedAt.hashCode)))))));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is TaxTableData &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.branchId == this.branchId &&
+          other.value == this.value &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class TaxTableCompanion extends UpdateCompanion<TaxTableData> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> branchId;
+  final Value<double> value;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String> deletedAt;
+  const TaxTableCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.branchId = const Value.absent(),
+    this.value = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  TaxTableCompanion.insert({
+    this.id = const Value.absent(),
+    @required String name,
+    @required int branchId,
+    this.value = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  })  : name = Value(name),
+        branchId = Value(branchId);
+  TaxTableCompanion copyWith(
+      {Value<int> id,
+      Value<String> name,
+      Value<int> branchId,
+      Value<double> value,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String> deletedAt}) {
+    return TaxTableCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      branchId: branchId ?? this.branchId,
+      value: value ?? this.value,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+}
+
+class $TaxTableTable extends TaxTable
+    with TableInfo<$TaxTableTable, TaxTableData> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $TaxTableTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _nameMeta = const VerificationMeta('name');
+  GeneratedTextColumn _name;
+  @override
+  GeneratedTextColumn get name => _name ??= _constructName();
+  GeneratedTextColumn _constructName() {
+    return GeneratedTextColumn(
+      'name',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
+  GeneratedIntColumn _branchId;
+  @override
+  GeneratedIntColumn get branchId => _branchId ??= _constructBranchId();
+  GeneratedIntColumn _constructBranchId() {
+    return GeneratedIntColumn('branch_id', $tableName, false,
+        $customConstraints: 'NULL REFERENCES branch_table(id)');
+  }
+
+  final VerificationMeta _valueMeta = const VerificationMeta('value');
+  GeneratedRealColumn _value;
+  @override
+  GeneratedRealColumn get value => _value ??= _constructValue();
+  GeneratedRealColumn _constructValue() {
+    return GeneratedRealColumn('value', $tableName, false,
+        defaultValue: Constant(18.0.toDouble()));
+  }
+
+  final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  GeneratedDateTimeColumn _createdAt;
+  @override
+  GeneratedDateTimeColumn get createdAt => _createdAt ??= _constructCreatedAt();
+  GeneratedDateTimeColumn _constructCreatedAt() {
+    return GeneratedDateTimeColumn('created_at', $tableName, true,
+        defaultValue: currentDateAndTime);
+  }
+
+  final VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  GeneratedDateTimeColumn _updatedAt;
+  @override
+  GeneratedDateTimeColumn get updatedAt => _updatedAt ??= _constructUpdatedAt();
+  GeneratedDateTimeColumn _constructUpdatedAt() {
+    return GeneratedDateTimeColumn(
+      'updated_at',
+      $tableName,
+      true,
+    );
+  }
+
+  final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
+  GeneratedTextColumn _deletedAt;
+  @override
+  GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
+  GeneratedTextColumn _constructDeletedAt() {
+    return GeneratedTextColumn('deleted_at', $tableName, true,
+        defaultValue: Constant("null"));
+  }
+
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, name, branchId, value, createdAt, updatedAt, deletedAt];
+  @override
+  $TaxTableTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'tax_table';
+  @override
+  final String actualTableName = 'tax_table';
+  @override
+  VerificationContext validateIntegrity(TaxTableCompanion d,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    if (d.id.present) {
+      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    } else if (id.isRequired && isInserting) {
+      context.missing(_idMeta);
+    }
+    if (d.name.present) {
+      context.handle(
+          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+    } else if (name.isRequired && isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (d.branchId.present) {
+      context.handle(_branchIdMeta,
+          branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
+    } else if (branchId.isRequired && isInserting) {
+      context.missing(_branchIdMeta);
+    }
+    if (d.value.present) {
+      context.handle(
+          _valueMeta, value.isAcceptableValue(d.value.value, _valueMeta));
+    } else if (value.isRequired && isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (d.createdAt.present) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+    } else if (createdAt.isRequired && isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (d.updatedAt.present) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+    } else if (updatedAt.isRequired && isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (d.deletedAt.present) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+    } else if (deletedAt.isRequired && isInserting) {
+      context.missing(_deletedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TaxTableData map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return TaxTableData.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  Map<String, Variable> entityToSql(TaxTableCompanion d) {
+    final map = <String, Variable>{};
+    if (d.id.present) {
+      map['id'] = Variable<int, IntType>(d.id.value);
+    }
+    if (d.name.present) {
+      map['name'] = Variable<String, StringType>(d.name.value);
+    }
+    if (d.branchId.present) {
+      map['branch_id'] = Variable<int, IntType>(d.branchId.value);
+    }
+    if (d.value.present) {
+      map['value'] = Variable<double, RealType>(d.value.value);
+    }
+    if (d.createdAt.present) {
+      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+    }
+    if (d.updatedAt.present) {
+      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+    }
+    if (d.deletedAt.present) {
+      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  $TaxTableTable createAlias(String alias) {
+    return $TaxTableTable(_db, alias);
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $UserTableTable _userTable;
@@ -7352,6 +7750,8 @@ abstract class _$Database extends GeneratedDatabase {
       _actionsTable ??= $ActionsTableTable(this);
   $ReasonTableTable _reasonTable;
   $ReasonTableTable get reasonTable => _reasonTable ??= $ReasonTableTable(this);
+  $TaxTableTable _taxTable;
+  $TaxTableTable get taxTable => _taxTable ??= $TaxTableTable(this);
   UserDao _userDao;
   UserDao get userDao => _userDao ??= UserDao(this as Database);
   TokenDao _tokenDao;
@@ -7384,6 +7784,8 @@ abstract class _$Database extends GeneratedDatabase {
   ColorDao get colorDao => _colorDao ??= ColorDao(this as Database);
   ActionsDao _actionsDao;
   ActionsDao get actionsDao => _actionsDao ??= ActionsDao(this as Database);
+  TaxDao _taxDao;
+  TaxDao get taxDao => _taxDao ??= TaxDao(this as Database);
   ReasonDao _reasonDao;
   ReasonDao get reasonDao => _reasonDao ??= ReasonDao(this as Database);
   @override
@@ -7405,6 +7807,7 @@ abstract class _$Database extends GeneratedDatabase {
         orderTable,
         colorTable,
         actionsTable,
-        reasonTable
+        reasonTable,
+        taxTable
       ];
 }

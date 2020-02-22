@@ -103,11 +103,14 @@ class Util {
     int variantId;
     VariationTableData variant = await store.state.database.variationDao
         .getVariationBy(itemName, store.state.branch.id);
+    TaxTableData tax = await store.state.database.taxDao
+        .getTaxByName('vat', store.state.branch.id);
     if (item == null) {
       int itemId = await store.state.database.itemDao.insert(
         //ignore: missing_required_param
         ItemTableData(
           name: itemName,
+          taxId: tax.id,
           branchId: store.state.branch.id,
           categoryId: category.id, //this will be updated ,
           color: "#955be9",

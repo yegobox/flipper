@@ -28,10 +28,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 ) {
   return (store, action, next) async {
     next(action);
-
     //todo: get yegobox id and other users information from yegobox and use them while creating flipper account
     if (store.state.business != null && store.state.userId != null) {
-      print(store.state.userId);
+
       int businessId =
           await businessRepository.insertBusiness(store, store.state.business);
 

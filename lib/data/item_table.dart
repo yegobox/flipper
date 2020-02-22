@@ -10,6 +10,9 @@ class ItemTable extends Table {
       integer().customConstraint('NULL REFERENCES category_table(id)')();
   IntColumn get branchId => integer()();
 
+  IntColumn get taxId =>
+      integer().customConstraint('NULL REFERENCES tax_table(id)')();
+
   IntColumn get unitId =>
       integer().customConstraint('NULL REFERENCES unit_table(id)')();
 
