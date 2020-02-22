@@ -29,7 +29,8 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
     return (select(db.variationTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.asc)])
-          ..where((t) => t.itemId.equals(itemId)))
+          ..where((t) => t.itemId.equals(itemId))
+          ..where((t) => t.deletedAt.equals('null')))
         .watch();
   }
 
@@ -59,7 +60,9 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
   }
 
   Stream<List<VariationTableData>> getVariationByIdStream(int variantId) {
-    return (select(db.variationTable)..where((t) => t.id.equals(variantId)))
+    return (select(db.variationTable)
+          ..where((t) => t.id.equals(variantId))
+          ..where((t) => t.deletedAt.equals('null')))
         .watch();
   }
 
@@ -90,7 +93,9 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
   }
 
   Stream<List<VariationTableData>> getVariationByItemIdStream(int itemId) {
-    return (select(db.variationTable)..where((t) => t.itemId.equals(itemId)))
+    return (select(db.variationTable)
+          ..where((t) => t.itemId.equals(itemId))
+          ..where((t) => t.deletedAt.equals('null')))
         .watch();
   }
 

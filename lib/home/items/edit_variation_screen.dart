@@ -32,6 +32,15 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
 
   // ignore: unused_field
   double _retailPrice;
+  int _deleteCount;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    setState(() {
+      _deleteCount = 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +166,29 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                 focusColor: HexColor("#0984e3")),
                           ),
                         ),
-                        Text(S.of(context).leavePriceBlank)
+                        Text(S.of(context).leavePriceBlank),
+                        Container(
+                          height: 50,
+                          color: _deleteCount == 1
+                              ? Colors.redAccent[700]
+                              : Colors.white,
+                          width: 340,
+                          child: OutlineButton(
+                            onPressed: () {
+                              setState(() {
+                                _deleteCount += 1;
+                              });
+                              if (_deleteCount == 2) {
+                                _closeAndDelete(context);
+                              }
+                            },
+                            child: Text("Delete Item",
+                                style: TextStyle(
+                                    color: _deleteCount == 1
+                                        ? Colors.white
+                                        : Colors.black)),
+                          ),
+                        )
                       ],
                     )
                   ],
@@ -275,5 +306,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
             }),
       ),
     );
+  }
+
+  void _closeAndDelete(BuildContext context) async {
+    final store = StoreProvider.of<AppState>(context);
+    Util.deleteVariant(store, widget.variationId);
+    Router.navigator.pop(true);
   }
 }

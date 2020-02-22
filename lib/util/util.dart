@@ -74,6 +74,13 @@ class Util {
     store.state.database.itemDao.softDelete(item);
   }
 
+  static deleteVariant(Store<AppState> store, int variantId) async {
+    VariationTableData variationTableData =
+        await store.state.database.variationDao.getVariationById(variantId);
+    store.state.database.variationDao.updateVariation(variationTableData
+        .copyWith(deletedAt: DateTime.now().toIso8601String()));
+  }
+
   static Future getActiveBranch(Store<AppState> store, int branchId) async {
     BranchTableData branche =
         await store.state.database.branchDao.getBranchById(branchId: branchId);

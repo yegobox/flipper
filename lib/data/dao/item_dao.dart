@@ -21,7 +21,7 @@ class ItemDao extends DatabaseAccessor<Database> with _$ItemDaoMixin {
   //only updated deletedAt column
   Future softDelete(ItemTableData entry) {
     return update(db.itemTable)
-        .replace(entry.copyWith(deletedAt: DateTime.now().toString()));
+        .replace(entry.copyWith(deletedAt: DateTime.now().toIso8601String()));
   }
 
   Future updateItem(ItemTableData entry) {
