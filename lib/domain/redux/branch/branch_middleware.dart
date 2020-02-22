@@ -81,7 +81,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
           ..name = store.state.branch.name
           ..isActive = true,
       );
-      final branchId = await branchRepo.insert(store, branch);
+      final branchId = await branchRepo.insertBranch(store, branch);
+      //create tax for this branch
 
       await Util.getActiveBranch(store, branchId);
       //getting up the default units
@@ -97,7 +98,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
           ..isActive = true,
       );
 
-      final branchId = await branchRepo.insert(store, branch);
+      final branchId = await branchRepo.insertBranch(store, branch);
       await Util.getActiveBranch(store, branchId);
       setUnits(store, branchId, generalRepository);
       store.dispatch(VerifyAuthenticationState());

@@ -4,10 +4,13 @@ import 'package:flipper/model/branch.dart';
 import 'package:redux/redux.dart';
 
 class BranchRepository {
-  Future<int> insert(Store<AppState> store, Branch b) {
-    //insert in cloudant the on localstorage
+  Future<int> insertBranch(Store<AppState> store, Branch b) {
     // ignore: missing_required_param
-    var branch = new BranchTableData(name: b.name, isActive: b.isActive);
+    var branch = new BranchTableData(
+      name: b.name,
+      isActive: b.isActive,
+      businessId: store.state.businessId,
+    );
     return store.state.database.branchDao.insert(branch);
   }
 

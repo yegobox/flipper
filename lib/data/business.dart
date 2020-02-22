@@ -5,7 +5,10 @@ class BusinessTable extends Table {
   TextColumn get name => text()();
   TextColumn get abbreviation => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(Constant(false))();
-  //todo: add user as foreign key here
+
+  IntColumn get userId =>
+      integer().customConstraint('NULL REFERENCES user_table(id)')();
+
   RealColumn get longitude => real().nullable()();
   RealColumn get latitude => real().nullable()();
   DateTimeColumn get createdAt =>

@@ -530,6 +530,7 @@ class BusinessTableData extends DataClass
   final String name;
   final String abbreviation;
   final bool isActive;
+  final int userId;
   final double longitude;
   final double latitude;
   final DateTime createdAt;
@@ -540,6 +541,7 @@ class BusinessTableData extends DataClass
       @required this.name,
       this.abbreviation,
       @required this.isActive,
+      @required this.userId,
       this.longitude,
       this.latitude,
       this.createdAt,
@@ -561,6 +563,8 @@ class BusinessTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}abbreviation']),
       isActive:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
+      userId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
       longitude: doubleType
           .mapFromDatabaseResponse(data['${effectivePrefix}longitude']),
       latitude: doubleType
@@ -580,6 +584,7 @@ class BusinessTableData extends DataClass
       name: serializer.fromJson<String>(json['name']),
       abbreviation: serializer.fromJson<String>(json['abbreviation']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      userId: serializer.fromJson<int>(json['userId']),
       longitude: serializer.fromJson<double>(json['longitude']),
       latitude: serializer.fromJson<double>(json['latitude']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -595,6 +600,7 @@ class BusinessTableData extends DataClass
       'name': serializer.toJson<String>(name),
       'abbreviation': serializer.toJson<String>(abbreviation),
       'isActive': serializer.toJson<bool>(isActive),
+      'userId': serializer.toJson<int>(userId),
       'longitude': serializer.toJson<double>(longitude),
       'latitude': serializer.toJson<double>(latitude),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -614,6 +620,8 @@ class BusinessTableData extends DataClass
       isActive: isActive == null && nullToAbsent
           ? const Value.absent()
           : Value(isActive),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
       longitude: longitude == null && nullToAbsent
           ? const Value.absent()
           : Value(longitude),
@@ -637,6 +645,7 @@ class BusinessTableData extends DataClass
           String name,
           String abbreviation,
           bool isActive,
+          int userId,
           double longitude,
           double latitude,
           DateTime createdAt,
@@ -647,6 +656,7 @@ class BusinessTableData extends DataClass
         name: name ?? this.name,
         abbreviation: abbreviation ?? this.abbreviation,
         isActive: isActive ?? this.isActive,
+        userId: userId ?? this.userId,
         longitude: longitude ?? this.longitude,
         latitude: latitude ?? this.latitude,
         createdAt: createdAt ?? this.createdAt,
@@ -660,6 +670,7 @@ class BusinessTableData extends DataClass
           ..write('name: $name, ')
           ..write('abbreviation: $abbreviation, ')
           ..write('isActive: $isActive, ')
+          ..write('userId: $userId, ')
           ..write('longitude: $longitude, ')
           ..write('latitude: $latitude, ')
           ..write('createdAt: $createdAt, ')
@@ -679,13 +690,15 @@ class BusinessTableData extends DataClass
               $mrjc(
                   isActive.hashCode,
                   $mrjc(
-                      longitude.hashCode,
+                      userId.hashCode,
                       $mrjc(
-                          latitude.hashCode,
+                          longitude.hashCode,
                           $mrjc(
-                              createdAt.hashCode,
-                              $mrjc(updatedAt.hashCode,
-                                  deletedAt.hashCode)))))))));
+                              latitude.hashCode,
+                              $mrjc(
+                                  createdAt.hashCode,
+                                  $mrjc(updatedAt.hashCode,
+                                      deletedAt.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -694,6 +707,7 @@ class BusinessTableData extends DataClass
           other.name == this.name &&
           other.abbreviation == this.abbreviation &&
           other.isActive == this.isActive &&
+          other.userId == this.userId &&
           other.longitude == this.longitude &&
           other.latitude == this.latitude &&
           other.createdAt == this.createdAt &&
@@ -706,6 +720,7 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
   final Value<String> name;
   final Value<String> abbreviation;
   final Value<bool> isActive;
+  final Value<int> userId;
   final Value<double> longitude;
   final Value<double> latitude;
   final Value<DateTime> createdAt;
@@ -716,6 +731,7 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
     this.name = const Value.absent(),
     this.abbreviation = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.userId = const Value.absent(),
     this.longitude = const Value.absent(),
     this.latitude = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -727,17 +743,20 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
     @required String name,
     this.abbreviation = const Value.absent(),
     this.isActive = const Value.absent(),
+    @required int userId,
     this.longitude = const Value.absent(),
     this.latitude = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
-  }) : name = Value(name);
+  })  : name = Value(name),
+        userId = Value(userId);
   BusinessTableCompanion copyWith(
       {Value<int> id,
       Value<String> name,
       Value<String> abbreviation,
       Value<bool> isActive,
+      Value<int> userId,
       Value<double> longitude,
       Value<double> latitude,
       Value<DateTime> createdAt,
@@ -748,6 +767,7 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
       name: name ?? this.name,
       abbreviation: abbreviation ?? this.abbreviation,
       isActive: isActive ?? this.isActive,
+      userId: userId ?? this.userId,
       longitude: longitude ?? this.longitude,
       latitude: latitude ?? this.latitude,
       createdAt: createdAt ?? this.createdAt,
@@ -804,6 +824,15 @@ class $BusinessTableTable extends BusinessTable
   GeneratedBoolColumn _constructIsActive() {
     return GeneratedBoolColumn('is_active', $tableName, false,
         defaultValue: Constant(false));
+  }
+
+  final VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  GeneratedIntColumn _userId;
+  @override
+  GeneratedIntColumn get userId => _userId ??= _constructUserId();
+  GeneratedIntColumn _constructUserId() {
+    return GeneratedIntColumn('user_id', $tableName, false,
+        $customConstraints: 'NULL REFERENCES user_table(id)');
   }
 
   final VerificationMeta _longitudeMeta = const VerificationMeta('longitude');
@@ -866,6 +895,7 @@ class $BusinessTableTable extends BusinessTable
         name,
         abbreviation,
         isActive,
+        userId,
         longitude,
         latitude,
         createdAt,
@@ -906,6 +936,12 @@ class $BusinessTableTable extends BusinessTable
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
     } else if (isActive.isRequired && isInserting) {
       context.missing(_isActiveMeta);
+    }
+    if (d.userId.present) {
+      context.handle(
+          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
+    } else if (userId.isRequired && isInserting) {
+      context.missing(_userIdMeta);
     }
     if (d.longitude.present) {
       context.handle(_longitudeMeta,
@@ -963,6 +999,9 @@ class $BusinessTableTable extends BusinessTable
     if (d.isActive.present) {
       map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
     }
+    if (d.userId.present) {
+      map['user_id'] = Variable<int, IntType>(d.userId.value);
+    }
     if (d.longitude.present) {
       map['longitude'] = Variable<double, RealType>(d.longitude.value);
     }
@@ -991,6 +1030,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   final int id;
   final String name;
   final bool isActive;
+  final int businessId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String deletedAt;
@@ -998,6 +1038,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       {@required this.id,
       @required this.name,
       @required this.isActive,
+      @required this.businessId,
       this.createdAt,
       this.updatedAt,
       this.deletedAt});
@@ -1014,6 +1055,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       isActive:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
+      businessId: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}business_id']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
@@ -1028,6 +1071,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      businessId: serializer.fromJson<int>(json['businessId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<String>(json['deletedAt']),
@@ -1040,6 +1084,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'isActive': serializer.toJson<bool>(isActive),
+      'businessId': serializer.toJson<int>(businessId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
@@ -1054,6 +1099,9 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       isActive: isActive == null && nullToAbsent
           ? const Value.absent()
           : Value(isActive),
+      businessId: businessId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(businessId),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -1070,6 +1118,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           {int id,
           String name,
           bool isActive,
+          int businessId,
           DateTime createdAt,
           DateTime updatedAt,
           String deletedAt}) =>
@@ -1077,6 +1126,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
         id: id ?? this.id,
         name: name ?? this.name,
         isActive: isActive ?? this.isActive,
+        businessId: businessId ?? this.businessId,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt ?? this.deletedAt,
@@ -1087,6 +1137,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('isActive: $isActive, ')
+          ..write('businessId: $businessId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -1101,8 +1152,10 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           name.hashCode,
           $mrjc(
               isActive.hashCode,
-              $mrjc(createdAt.hashCode,
-                  $mrjc(updatedAt.hashCode, deletedAt.hashCode))))));
+              $mrjc(
+                  businessId.hashCode,
+                  $mrjc(createdAt.hashCode,
+                      $mrjc(updatedAt.hashCode, deletedAt.hashCode)))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1110,6 +1163,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           other.id == this.id &&
           other.name == this.name &&
           other.isActive == this.isActive &&
+          other.businessId == this.businessId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -1119,6 +1173,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
   final Value<int> id;
   final Value<String> name;
   final Value<bool> isActive;
+  final Value<int> businessId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> deletedAt;
@@ -1126,6 +1181,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.businessId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -1134,14 +1190,17 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
     this.id = const Value.absent(),
     @required String name,
     this.isActive = const Value.absent(),
+    @required int businessId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
-  }) : name = Value(name);
+  })  : name = Value(name),
+        businessId = Value(businessId);
   BranchTableCompanion copyWith(
       {Value<int> id,
       Value<String> name,
       Value<bool> isActive,
+      Value<int> businessId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> deletedAt}) {
@@ -1149,6 +1208,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
       id: id ?? this.id,
       name: name ?? this.name,
       isActive: isActive ?? this.isActive,
+      businessId: businessId ?? this.businessId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -1191,6 +1251,15 @@ class $BranchTableTable extends BranchTable
         defaultValue: Constant(false));
   }
 
+  final VerificationMeta _businessIdMeta = const VerificationMeta('businessId');
+  GeneratedIntColumn _businessId;
+  @override
+  GeneratedIntColumn get businessId => _businessId ??= _constructBusinessId();
+  GeneratedIntColumn _constructBusinessId() {
+    return GeneratedIntColumn('business_id', $tableName, false,
+        $customConstraints: 'NULL REFERENCES business_table(id)');
+  }
+
   final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
   GeneratedDateTimeColumn _createdAt;
   @override
@@ -1223,7 +1292,7 @@ class $BranchTableTable extends BranchTable
 
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, isActive, createdAt, updatedAt, deletedAt];
+      [id, name, isActive, businessId, createdAt, updatedAt, deletedAt];
   @override
   $BranchTableTable get asDslTable => this;
   @override
@@ -1250,6 +1319,12 @@ class $BranchTableTable extends BranchTable
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
     } else if (isActive.isRequired && isInserting) {
       context.missing(_isActiveMeta);
+    }
+    if (d.businessId.present) {
+      context.handle(_businessIdMeta,
+          businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
+    } else if (businessId.isRequired && isInserting) {
+      context.missing(_businessIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
@@ -1291,6 +1366,9 @@ class $BranchTableTable extends BranchTable
     }
     if (d.isActive.present) {
       map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
+    }
+    if (d.businessId.present) {
+      map['business_id'] = Variable<int, IntType>(d.businessId.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);

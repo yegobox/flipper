@@ -30,9 +30,10 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     //todo: get yegobox id and other users information from yegobox and use them while creating flipper account
-    if (store.state.business != null || store.state.userId != null) {
+    if (store.state.business != null && store.state.userId != null) {
+      print(store.state.userId);
       int businessId =
-          await businessRepository.insert(store, store.state.business);
+          await businessRepository.insertBusiness(store, store.state.business);
 
       await businessRepository.assignBusinessToUser(
           store, businessId, store.state.userId);

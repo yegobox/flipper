@@ -4,10 +4,11 @@ import 'package:flipper/model/business.dart';
 import 'package:redux/redux.dart';
 
 class BusinessRepository {
-  Future<int> insert(Store<AppState> store, Business business) {
+  Future<int> insertBusiness(Store<AppState> store, Business business) {
     //ignore:missing_required_param
     var bussiness = new BusinessTableData(
         name: business.name,
+        userId: store.state.userId,
         isActive: business.isActive,
         abbreviation: business.abbreviation);
     return store.state.database.businessDao.insert(bussiness);
