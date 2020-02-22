@@ -1,13 +1,14 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class CartDetailsScreen extends StatefulWidget {
-  final List<CartTableData> carts;
+  final List<Cart> carts;
   CartDetailsScreen({Key key, this.carts}) : super(key: key);
 
   @override
@@ -40,7 +41,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
     );
   }
 
-  List<Widget> renderCart(List<CartTableData> carts, CommonViewModel vm) {
+  List<Widget> renderCart(List<Cart> carts, CommonViewModel vm) {
     List<Widget> list = List<Widget>();
     for (var i = 0; i < carts.length; i++) {
       list.add(ListTile(
@@ -81,7 +82,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
     return list;
   }
 
-  void _getTotal(List<CartTableData> carts, BuildContext context) async {
+  void _getTotal(List<Cart> carts, BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
     var total = 0;
     for (var i = 0; i < carts.length; i++) {

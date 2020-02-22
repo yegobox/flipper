@@ -1,6 +1,7 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import "package:flutter/material.dart";
@@ -42,10 +43,23 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                             : snapshot.data.fold(0, (a, b) => a + b.count);
                         return FlatButton(
                           onPressed: () {
+                            List<Cart> cart = [];
+                            for (var i = 0; i < snapshot.data.length; i++) {
+                              cart.add(
+                                Cart(
+                                  (c) => c
+                                    ..count = snapshot.data[i].count
+                                    ..variationName =
+                                        snapshot.data[i].variationName
+                                    ..variationId = snapshot.data[i].variationId
+                                    ..parentName = snapshot.data[i].parentName,
+                                ),
+                              );
+                            }
                             Router.navigator.pushNamed(
                               Router.cartDetailsScreen,
                               arguments: CartDetailsScreenArguments(
-                                carts: snapshot.data,
+                                carts: cart,
                               ),
                             );
                           },

@@ -70,8 +70,8 @@ class $Router {
   @MaterialRoute(fullscreenDialog: true)
   CreateCategoryInputScreen createCategoryInputScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  ReceiveStock receiveStock;
+  // @MaterialRoute(fullscreenDialog: true)
+  ReceiveStockScreen receiveStock;
 
   @MaterialRoute(fullscreenDialog: true)
   ChangeQuantityForSelling editQuantityItemScreen;

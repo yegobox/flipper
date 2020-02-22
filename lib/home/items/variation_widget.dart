@@ -1,5 +1,6 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/home/receive_stock.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,14 @@ class _VariationWidgetState extends State<VariationWidget> {
                   ? S.of(context).receiveStock
                   : "${snapshot.data[i].currentStock}" + S.of(context).inStock,
             ),
-            onPressed: () {},
+            onPressed: () {
+              Router.navigator.pushNamed(
+                Router.receiveStock,
+                arguments: ReceiveStockScreenArguments(
+                  variationId: snapshot.data[i].variantId,
+                ),
+              );
+            },
           )
         ]),
         dense: true,

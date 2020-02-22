@@ -25,6 +25,7 @@ import 'package:flipper/home/category/create_category_input_screen.dart';
 import 'package:flipper/home/receive_stock.dart';
 import 'package:flipper/home/selling/change_quantity_selling.dart';
 import 'package:flipper/home/cart/cart_details_screen.dart';
+import 'package:flipper/model/cart.dart';
 import 'package:flipper/home/items/all_item_screen.dart';
 import 'package:flipper/home/items/view_items_screen.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
@@ -196,14 +197,15 @@ class Router {
           fullscreenDialog: true,
         );
       case Router.receiveStock:
-        if (hasInvalidArgs<int>(args)) {
-          return misTypedArgsRoute<int>(args);
+        if (hasInvalidArgs<ReceiveStockScreenArguments>(args)) {
+          return misTypedArgsRoute<ReceiveStockScreenArguments>(args);
         }
-        final typedArgs = args as int;
+        final typedArgs = args as ReceiveStockScreenArguments ??
+            ReceiveStockScreenArguments();
         return MaterialPageRoute(
-          builder: (_) => ReceiveStock(variationId: typedArgs),
+          builder: (_) => ReceiveStockScreen(
+              key: typedArgs.key, variationId: typedArgs.variationId),
           settings: settings,
-          fullscreenDialog: true,
         );
       case Router.editQuantityItemScreen:
         if (hasInvalidArgs<ChangeQuantityForSellingArguments>(args)) {
@@ -322,6 +324,13 @@ class AddVariationScreenArguments {
       {this.key, this.regularRetailPrice, this.regularCostPrice});
 }
 
+//ReceiveStockScreen arguments holder class
+class ReceiveStockScreenArguments {
+  final Key key;
+  final int variationId;
+  ReceiveStockScreenArguments({this.key, this.variationId});
+}
+
 //ChangeQuantityForSelling arguments holder class
 class ChangeQuantityForSellingArguments {
   final Key key;
@@ -332,7 +341,7 @@ class ChangeQuantityForSellingArguments {
 //CartDetailsScreen arguments holder class
 class CartDetailsScreenArguments {
   final Key key;
-  final List<dynamic> carts;
+  final List<Cart> carts;
   CartDetailsScreenArguments({this.key, this.carts});
 }
 
