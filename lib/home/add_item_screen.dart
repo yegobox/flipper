@@ -127,9 +127,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       child: Container(
                         width: 300,
                         child: TextFormField(
-                          style: TextStyle(
-                              color:
-                                  Colors.black), //todo: move this to app theme
+                          style: TextStyle(color: Colors.black),
                           validator: Validators.isStringHasMoreChars,
                           onChanged: (name) async {
                             if (name == '') {
@@ -230,9 +228,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             leading: Text(S.of(context).unityType),
                             trailing: Wrap(
                               children: <Widget>[
-                                Text(vm.currentUnit != null
-                                    ? vm.currentUnit.name
-                                    : S.of(context).perItem),
+                                StreamBuilder(
+                                    stream:
+                                        vm.database.unitDao.getUnitsStream(),
+                                    builder: (context,
+                                        AsyncSnapshot<List<UnitTableData>>
+                                            snapshot) {
+                                      if (snapshot.data == null) {
+                                        return Text(
+                                            S.of(context).selectCategory);
+                                      }
+                                      return snapshot.data == null
+                                          ? Text(S.of(context).selectCategory)
+                                          : unitSelector(snapshot.data);
+                                    }),
                                 Icon(Icons.arrow_forward_ios)
                               ],
                             ),
@@ -360,7 +369,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               vm.database.actionsDao.updateAction(
                                   _actions.copyWith(isLocked: true));
 
-                              //todo: test this: pass to the screen the variant needed for creating and or saving regular
                               Router.navigator.pushNamed(
                                   Router.addVariationScreen,
                                   arguments: AddVariationScreenArguments(
@@ -447,6 +455,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
     setState(() {
       _actions = result;
     });
+  }
+
+  Text unitSelector(List<UnitTableData> units) {
+    Text text;
+    for (var i = 0; i < units.length; i++) {
+      if (units[i].focused) {
+        text = Text(units[i].name);
+        return text;
+      } else {
+        text = Text(S.of(context).selectCategory);
+      }
+    }
+    return text;
   }
 
   Text categorySelector(List<CategoryTableData> categories) {
