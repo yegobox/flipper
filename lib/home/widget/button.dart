@@ -1,6 +1,5 @@
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
@@ -82,27 +81,24 @@ class SingleKey extends StatelessWidget {
             return;
           }
           if (keypadValue == "+") {
-            Item cartItem = Item(
-              (b) => b
-                ..id = vm.customItem.id
-                ..name = vm.customItem.name
-                ..branchId = vm.customItem.branchId
-                ..unitId = vm.customItem.unitId
-                ..price = 200 //todo: change this
-                ..parentName = vm.customItem.name
-                ..categoryId = vm.customItem.categoryId
-                ..color = vm.customItem.color
-                ..count = 1,
-            );
-
-            StoreProvider.of<AppState>(context).dispatch(
-              AddItemToCartAction(cartItem: cartItem),
-            );
-            StoreProvider.of<AppState>(context).dispatch(SaveCartCustom());
-            //push into cart items and dispatch SaveCart
-            //save carts
-            //add to sale and clear the keypad
-            StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
+//            Item cartItem = Item(
+//              (b) => b
+//                ..id = vm.tmpItem.id
+//                ..name = vm.tmpItem.name
+//                ..branchId = vm.tmpItem.branchId
+//                ..unitId = vm.tmpItem.unitId
+//                ..price = 200 //todo: change this
+//                ..parentName = vm.tmpItem.name
+//                ..categoryId = vm.tmpItem.categoryId
+//                ..color = vm.tmpItem.color
+//                ..count = 1,
+//            );
+//
+//            StoreProvider.of<AppState>(context).dispatch(
+//              AddItemToCartAction(cartItem: cartItem),
+//            );
+//            StoreProvider.of<AppState>(context).dispatch(SaveCartCustom());
+//            StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
           } else {
             StoreProvider.of<AppState>(context).dispatch(
               KayPadAction(

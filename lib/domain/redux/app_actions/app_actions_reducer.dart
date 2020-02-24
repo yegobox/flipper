@@ -148,6 +148,7 @@ AppState _onCustomCategory(AppState state, CustomCategory action) {
   return state.rebuild((a) => a..customCategory = action.category.toBuilder());
 }
 
+//fixme: delete this when no longer in use keep _onTempItem
 AppState _onCustomItem(AppState state, CustomItem action) {
   return state.rebuild((a) => a..customItem = action.item.toBuilder());
 }

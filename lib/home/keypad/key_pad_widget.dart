@@ -1,8 +1,6 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/widget/button.dart';
-
 import 'package:flipper/presentation/home/common_view_model.dart';
-
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
@@ -57,8 +55,7 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                   ),
                 ),
               ),
-
-              KeyPadButtons() //todo: rename it better.
+              KeyPadButtons()
             ],
           ),
         );

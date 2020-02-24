@@ -152,20 +152,32 @@ class Util {
           createdAt: DateTime.now(),
         ),
       );
-      dispatchCurrentTmpItem(store, itemId, variantId);
+
+      ItemTableData item = await store.state.database.itemDao
+          .getItemByName(name: itemName, branchId: store.state.branch.id);
+
+      dispatchCurrentTmpItem(store, item, variantId);
     } else {
-      dispatchCurrentTmpItem(store, item.id, variant.id);
+      dispatchCurrentTmpItem(store, item, variant.id);
     }
   }
 
   static void dispatchCurrentTmpItem(
-      Store<AppState> store, int itemId, variantId) {
+      Store<AppState> store, ItemTableData item, variantId) {
     return store.dispatch(
       TempItem(
-        item: Item((i) => i
-          ..id = itemId
-          ..branchId = store.state.branch.id
-          ..variantId = variantId),
+        item: Item(
+          (i) => i
+            ..id = item.id
+            ..unitId = item.unitId
+            ..name = item.name
+            ..branchId = item.branchId
+            ..color = item.color
+            ..parentName = item.name
+            ..categoryId = item.categoryId
+            ..branchId = store.state.branch.id
+            ..variantId = variantId,
+        ),
       ),
     );
   }
