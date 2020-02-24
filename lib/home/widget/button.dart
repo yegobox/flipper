@@ -1,5 +1,6 @@
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/model/item.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
@@ -81,24 +82,25 @@ class SingleKey extends StatelessWidget {
             return;
           }
           if (keypadValue == "+") {
-//            Item cartItem = Item(
-//              (b) => b
-//                ..id = vm.tmpItem.id
-//                ..name = vm.tmpItem.name
-//                ..branchId = vm.tmpItem.branchId
-//                ..unitId = vm.tmpItem.unitId
-//                ..price = 200 //todo: change this
-//                ..parentName = vm.tmpItem.name
-//                ..categoryId = vm.tmpItem.categoryId
-//                ..color = vm.tmpItem.color
-//                ..count = 1,
-//            );
-//
-//            StoreProvider.of<AppState>(context).dispatch(
-//              AddItemToCartAction(cartItem: cartItem),
-//            );
-//            StoreProvider.of<AppState>(context).dispatch(SaveCartCustom());
-//            StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
+            await updateStockPriceForCustomItem();
+            Item cartItem = Item(
+              (b) => b
+                ..id = vm.tmpItem.id
+                ..name = vm.tmpItem.name
+                ..branchId = vm.tmpItem.branchId
+                ..unitId = vm.tmpItem.unitId
+                ..price = vm.keypad.amount
+                ..parentName = vm.tmpItem.name
+                ..categoryId = vm.tmpItem.categoryId
+                ..color = vm.tmpItem.color
+                ..count = 1, //default.
+            );
+
+            StoreProvider.of<AppState>(context).dispatch(
+              AddItemToCartAction(cartItem: cartItem),
+            );
+            StoreProvider.of<AppState>(context).dispatch(SaveCartCustom());
+            StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
           } else {
             StoreProvider.of<AppState>(context).dispatch(
               KayPadAction(
@@ -124,5 +126,13 @@ class SingleKey extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future updateStockPriceForCustomItem() async {
+    final stock = await vm.database.stockDao.getStockByVariantId(
+        variantId: vm.tmpItem.variantId, branchId: vm.tmpItem.branchId);
+    vm.database.stockDao.updateStock(stock.copyWith(
+        retailPrice: vm.keypad.amount.toDouble(),
+        costPrice: vm.keypad.amount.toDouble()));
   }
 }

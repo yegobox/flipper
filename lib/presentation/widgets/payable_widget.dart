@@ -93,8 +93,8 @@ class _PayableWidgetState extends State<PayableWidget> {
     for (var i = 0; i < carts.length; i++) {
       final stock = await store.state.database.stockDao.getStockByVariantId(
           variantId: carts[i].variationId, branchId: store.state.branch.id);
-      print(stock);
-//      total += (stock.retailPrice.toInt() * carts[i].count).toInt();
+
+      total += (stock.retailPrice.toInt() * carts[i].count).toInt();
     }
     _total = total;
   }
