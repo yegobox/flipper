@@ -48,6 +48,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                               cart.add(
                                 Cart(
                                   (c) => c
+                                    ..id = snapshot.data[i].id
+                                    ..branchId = snapshot.data[i].branchId
                                     ..count = snapshot.data[i].count
                                     ..variationName =
                                         snapshot.data[i].variationName
