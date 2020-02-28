@@ -103,14 +103,17 @@ class CouchBase extends Model with Fluttercouch {
 
   initPlatformState() async {
     try {
-      _databaseName = await initDatabaseWithName("lagrace");
+      await initDatabaseWithName("lagrace");
 
       //todo: enable this sync replication when user has paid.
-      setReplicatorEndpoint("ws://enexus.rw:4984/lagrace");
+      setReplicatorEndpoint(
+          "ws://enexus.rw:4984/lagrace"); //todo: move this to credential file to avoid security breach
       setReplicatorType("PUSH_AND_PULL");
       setReplicatorBasicAuthentication(<String, String>{
-        "username": "Administrator",
-        "password": "password"
+        "username":
+            "Administrator", //todo: move this to credential file to avoid security breach
+        "password":
+            "password" //todo: move this to credential file to avoid security breach
       });
       setReplicatorContinuous(true);
       initReplicator();
