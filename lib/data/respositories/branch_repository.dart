@@ -8,7 +8,7 @@ class BranchRepository {
     // ignore: missing_required_param
     var branch = new BranchTableData(
       name: b.name,
-      isActive: b.isActive,
+      isActive: b.active,
       businessId: store.state.businessId,
     );
     return store.state.database.branchDao.insert(branch);

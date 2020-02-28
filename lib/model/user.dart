@@ -1,4 +1,3 @@
-import "package:built_collection/built_collection.dart";
 import "package:built_value/built_value.dart";
 
 part 'user.g.dart';
@@ -10,24 +9,19 @@ abstract class User implements Built<User, UserBuilder> {
   @nullable
   String get email;
 
-  @nullable
-  String get username;
+  bool get active;
+
+  String get name;
 
   @nullable
   String get status;
+  String get role;
+  String get permissions;
+  String get createdAt;
+  String get updatedAt;
 
   @nullable
-  String get bearerToken;
-
-  @nullable
-  bool get isCurrentAuthenticated;
-
-  @nullable
-  String get refreshToken;
-
-  // Keeps groupId : [channelId], marking the unread channels.
-  @nullable
-  BuiltMap<String, BuiltList> get unreadUpdates;
+  String get token;
 
   @nullable
   String get avatar;

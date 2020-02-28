@@ -28,6 +28,7 @@ dependencies:
       url: https://github.com/yegobox/fluttercouch.git
       ref: master
   scoped_model: ^1.0.1
+
   auto_route: ^0.2.1
   # Firebase dependencies
   firebase_core: ^0.4.0

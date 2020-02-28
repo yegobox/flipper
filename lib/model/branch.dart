@@ -5,14 +5,19 @@ part 'branch.g.dart';
 abstract class Branch implements Built<Branch, BranchBuilder> {
   @nullable
   int get id;
+  int get businessId;
+
+  String get createdAt;
 
   String get name;
-
+  String get mapLatitude;
+  String get mapLongitude;
+  String get updatedAt;
   @nullable
   String get description;
 
   @nullable
-  bool get isActive;
+  bool get active;
 
   @nullable
   String get location;

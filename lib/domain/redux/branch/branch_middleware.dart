@@ -79,7 +79,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     final branch = Branch(
       (b) => b
         ..name = store.state.business.name
-        ..isActive = true,
+        ..active = true,
     );
     final branchId = await branchRepo.insertBranch(store, branch);
     //create tax for this branch

@@ -23,11 +23,11 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   @nullable
   int get taxRate;
   @nullable
-  DateTime get timeZone;
+  String get timeZone;
   @nullable
-  DateTime get createdAt;
+  String get createdAt;
   @nullable
-  DateTime get updatedAt;
+  String get updatedAt;
   @nullable
   String get country;
   @nullable

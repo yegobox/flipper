@@ -95,7 +95,7 @@ class Util {
           (b) => b
             ..id = branche.id
             ..name = branche.name
-            ..isActive = branche.isActive,
+            ..active = branche.isActive,
         ),
       ),
     );

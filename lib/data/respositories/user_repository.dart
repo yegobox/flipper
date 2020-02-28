@@ -9,11 +9,10 @@ class UserRepository {
     var u = new UserTableData(
         email: user.email,
         status: user.status,
-        isCurrentAuthenticated: user.isCurrentAuthenticated,
         avatar: user.avatar,
-        username: user.username,
-        bearerToken: user.bearerToken,
-        refreshToken: user.refreshToken);
+        username: user.name,
+        bearerToken: user.token,
+        refreshToken: user.token);
     return store.state.database.userDao.insertUser(u);
   }
 

@@ -12,17 +12,21 @@ class _$User extends User {
   @override
   final String email;
   @override
-  final String username;
+  final bool active;
+  @override
+  final String name;
   @override
   final String status;
   @override
-  final String bearerToken;
+  final String role;
   @override
-  final bool isCurrentAuthenticated;
+  final String permissions;
   @override
-  final String refreshToken;
+  final String createdAt;
   @override
-  final BuiltMap<String, BuiltList> unreadUpdates;
+  final String updatedAt;
+  @override
+  final String token;
   @override
   final String avatar;
 
@@ -32,14 +36,35 @@ class _$User extends User {
   _$User._(
       {this.id,
       this.email,
-      this.username,
+      this.active,
+      this.name,
       this.status,
-      this.bearerToken,
-      this.isCurrentAuthenticated,
-      this.refreshToken,
-      this.unreadUpdates,
+      this.role,
+      this.permissions,
+      this.createdAt,
+      this.updatedAt,
+      this.token,
       this.avatar})
-      : super._();
+      : super._() {
+    if (active == null) {
+      throw new BuiltValueNullFieldError('User', 'active');
+    }
+    if (name == null) {
+      throw new BuiltValueNullFieldError('User', 'name');
+    }
+    if (role == null) {
+      throw new BuiltValueNullFieldError('User', 'role');
+    }
+    if (permissions == null) {
+      throw new BuiltValueNullFieldError('User', 'permissions');
+    }
+    if (createdAt == null) {
+      throw new BuiltValueNullFieldError('User', 'createdAt');
+    }
+    if (updatedAt == null) {
+      throw new BuiltValueNullFieldError('User', 'updatedAt');
+    }
+  }
 
   @override
   User rebuild(void Function(UserBuilder) updates) =>
@@ -54,12 +79,14 @@ class _$User extends User {
     return other is User &&
         id == other.id &&
         email == other.email &&
-        username == other.username &&
+        active == other.active &&
+        name == other.name &&
         status == other.status &&
-        bearerToken == other.bearerToken &&
-        isCurrentAuthenticated == other.isCurrentAuthenticated &&
-        refreshToken == other.refreshToken &&
-        unreadUpdates == other.unreadUpdates &&
+        role == other.role &&
+        permissions == other.permissions &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt &&
+        token == other.token &&
         avatar == other.avatar;
   }
 
@@ -71,13 +98,19 @@ class _$User extends User {
                 $jc(
                     $jc(
                         $jc(
-                            $jc($jc($jc(0, id.hashCode), email.hashCode),
-                                username.hashCode),
-                            status.hashCode),
-                        bearerToken.hashCode),
-                    isCurrentAuthenticated.hashCode),
-                refreshToken.hashCode),
-            unreadUpdates.hashCode),
+                            $jc(
+                                $jc(
+                                    $jc(
+                                        $jc($jc(0, id.hashCode),
+                                            email.hashCode),
+                                        active.hashCode),
+                                    name.hashCode),
+                                status.hashCode),
+                            role.hashCode),
+                        permissions.hashCode),
+                    createdAt.hashCode),
+                updatedAt.hashCode),
+            token.hashCode),
         avatar.hashCode));
   }
 
@@ -86,12 +119,14 @@ class _$User extends User {
     return (newBuiltValueToStringHelper('User')
           ..add('id', id)
           ..add('email', email)
-          ..add('username', username)
+          ..add('active', active)
+          ..add('name', name)
           ..add('status', status)
-          ..add('bearerToken', bearerToken)
-          ..add('isCurrentAuthenticated', isCurrentAuthenticated)
-          ..add('refreshToken', refreshToken)
-          ..add('unreadUpdates', unreadUpdates)
+          ..add('role', role)
+          ..add('permissions', permissions)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt)
+          ..add('token', token)
           ..add('avatar', avatar))
         .toString();
   }
@@ -108,32 +143,37 @@ class UserBuilder implements Builder<User, UserBuilder> {
   String get email => _$this._email;
   set email(String email) => _$this._email = email;
 
-  String _username;
-  String get username => _$this._username;
-  set username(String username) => _$this._username = username;
+  bool _active;
+  bool get active => _$this._active;
+  set active(bool active) => _$this._active = active;
+
+  String _name;
+  String get name => _$this._name;
+  set name(String name) => _$this._name = name;
 
   String _status;
   String get status => _$this._status;
   set status(String status) => _$this._status = status;
 
-  String _bearerToken;
-  String get bearerToken => _$this._bearerToken;
-  set bearerToken(String bearerToken) => _$this._bearerToken = bearerToken;
+  String _role;
+  String get role => _$this._role;
+  set role(String role) => _$this._role = role;
 
-  bool _isCurrentAuthenticated;
-  bool get isCurrentAuthenticated => _$this._isCurrentAuthenticated;
-  set isCurrentAuthenticated(bool isCurrentAuthenticated) =>
-      _$this._isCurrentAuthenticated = isCurrentAuthenticated;
+  String _permissions;
+  String get permissions => _$this._permissions;
+  set permissions(String permissions) => _$this._permissions = permissions;
 
-  String _refreshToken;
-  String get refreshToken => _$this._refreshToken;
-  set refreshToken(String refreshToken) => _$this._refreshToken = refreshToken;
+  String _createdAt;
+  String get createdAt => _$this._createdAt;
+  set createdAt(String createdAt) => _$this._createdAt = createdAt;
 
-  MapBuilder<String, BuiltList> _unreadUpdates;
-  MapBuilder<String, BuiltList> get unreadUpdates =>
-      _$this._unreadUpdates ??= new MapBuilder<String, BuiltList>();
-  set unreadUpdates(MapBuilder<String, BuiltList> unreadUpdates) =>
-      _$this._unreadUpdates = unreadUpdates;
+  String _updatedAt;
+  String get updatedAt => _$this._updatedAt;
+  set updatedAt(String updatedAt) => _$this._updatedAt = updatedAt;
+
+  String _token;
+  String get token => _$this._token;
+  set token(String token) => _$this._token = token;
 
   String _avatar;
   String get avatar => _$this._avatar;
@@ -145,12 +185,14 @@ class UserBuilder implements Builder<User, UserBuilder> {
     if (_$v != null) {
       _id = _$v.id;
       _email = _$v.email;
-      _username = _$v.username;
+      _active = _$v.active;
+      _name = _$v.name;
       _status = _$v.status;
-      _bearerToken = _$v.bearerToken;
-      _isCurrentAuthenticated = _$v.isCurrentAuthenticated;
-      _refreshToken = _$v.refreshToken;
-      _unreadUpdates = _$v.unreadUpdates?.toBuilder();
+      _role = _$v.role;
+      _permissions = _$v.permissions;
+      _createdAt = _$v.createdAt;
+      _updatedAt = _$v.updatedAt;
+      _token = _$v.token;
       _avatar = _$v.avatar;
       _$v = null;
     }
@@ -172,30 +214,19 @@ class UserBuilder implements Builder<User, UserBuilder> {
 
   @override
   _$User build() {
-    _$User _$result;
-    try {
-      _$result = _$v ??
-          new _$User._(
-              id: id,
-              email: email,
-              username: username,
-              status: status,
-              bearerToken: bearerToken,
-              isCurrentAuthenticated: isCurrentAuthenticated,
-              refreshToken: refreshToken,
-              unreadUpdates: _unreadUpdates?.build(),
-              avatar: avatar);
-    } catch (_) {
-      String _$failedField;
-      try {
-        _$failedField = 'unreadUpdates';
-        _unreadUpdates?.build();
-      } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'User', _$failedField, e.toString());
-      }
-      rethrow;
-    }
+    final _$result = _$v ??
+        new _$User._(
+            id: id,
+            email: email,
+            active: active,
+            name: name,
+            status: status,
+            role: role,
+            permissions: permissions,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            token: token,
+            avatar: avatar);
     replace(_$result);
     return _$result;
   }

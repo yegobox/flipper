@@ -198,11 +198,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         (user) => user
           ..email = tBusiness.email
           ..status = "online"
-          ..bearerToken = "none"
-          ..refreshToken = "none"
-          ..isCurrentAuthenticated = true
+          ..token = "none"
           ..avatar = tBusiness.name
-          ..username = tBusiness.name,
+          ..name = tBusiness.name,
       );
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(WithUser(user));

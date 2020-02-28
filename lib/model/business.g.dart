@@ -24,11 +24,11 @@ class _$Business extends Business {
   @override
   final int taxRate;
   @override
-  final DateTime timeZone;
+  final String timeZone;
   @override
-  final DateTime createdAt;
+  final String createdAt;
   @override
-  final DateTime updatedAt;
+  final String updatedAt;
   @override
   final String country;
   @override
@@ -193,17 +193,17 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   int get taxRate => _$this._taxRate;
   set taxRate(int taxRate) => _$this._taxRate = taxRate;
 
-  DateTime _timeZone;
-  DateTime get timeZone => _$this._timeZone;
-  set timeZone(DateTime timeZone) => _$this._timeZone = timeZone;
+  String _timeZone;
+  String get timeZone => _$this._timeZone;
+  set timeZone(String timeZone) => _$this._timeZone = timeZone;
 
-  DateTime _createdAt;
-  DateTime get createdAt => _$this._createdAt;
-  set createdAt(DateTime createdAt) => _$this._createdAt = createdAt;
+  String _createdAt;
+  String get createdAt => _$this._createdAt;
+  set createdAt(String createdAt) => _$this._createdAt = createdAt;
 
-  DateTime _updatedAt;
-  DateTime get updatedAt => _$this._updatedAt;
-  set updatedAt(DateTime updatedAt) => _$this._updatedAt = updatedAt;
+  String _updatedAt;
+  String get updatedAt => _$this._updatedAt;
+  set updatedAt(String updatedAt) => _$this._updatedAt = updatedAt;
 
   String _country;
   String get country => _$this._country;

@@ -30,9 +30,9 @@ class _BusinessListState extends State<BusinessList> {
               child: Row(children: <Widget>[
                 // ..._buildSelectionHighlight(_businessSelected, Colors.white),
                 _selectableListItem(
-                    userIcon: Text(widget.vm.user.username.length > 2
-                        ? widget.vm.user.username.substring(0, 1).toUpperCase()
-                        : widget.vm.user.username.toUpperCase()),
+                    userIcon: Text(widget.vm.user.name.length > 2
+                        ? widget.vm.user.name.substring(0, 1).toUpperCase()
+                        : widget.vm.user.name.toUpperCase()),
                     isSquareShape: _businessSelected,
                     action: () {
                       setState(() {
@@ -183,7 +183,7 @@ class _GroupButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final _circleColor =
         HexColor("#f5a623"); //todo: make this color comes from setting in v.2
-    final _groupText = business.name.substring(0, 2).toUpperCase();
+    final _groupText = business.name.substring(0, 1).toUpperCase();
 
     if (business.active) {
       StoreProvider.of<AppState>(context)

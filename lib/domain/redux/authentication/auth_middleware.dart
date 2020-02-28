@@ -7,6 +7,7 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
+import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
@@ -68,10 +69,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       store.dispatch(Unauthenticated);
       return;
     }
-
     loadClientDb(store);
-    //end of streaming new order to part of apps's store
-    UserTableData user = await userRepository.checkAuth(store);
 
     TabsTableData tab = await generalRepository.getTab(store);
 
@@ -83,17 +81,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         await generalRepository.getCategories(store);
 
     List<BranchTableData> branch = await branchRepository.getBranches(store);
-
-    final _user = User(
-      (u) => u
-        ..id = user.id
-        ..bearerToken = user.bearerToken
-        ..username = user.username
-        ..refreshToken = user.refreshToken
-        ..status = user.status
-        ..avatar = user.avatar
-        ..email = user.email,
-    );
 
     dispatchCurrentBranchHint(branch, store);
 
@@ -107,32 +94,24 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     //set focused Unit
     store.dispatch(UnitR(units));
-
     store.dispatch(CategoryAction(categories));
-
     store.dispatch(OnBranchLoaded(branches: branches));
-
+    User _user = await getActiveUser(store);
     store.dispatch(OnAuthenticated(user: _user));
-
     //setActive branch.
     dispatchCurrentBranch(branch, store);
-
     //create app actions for saving state,or create.
     await createAppActions(store);
     //start by creating a draft order it it does not exist
-    await createTemporalOrder(generalRepository, store, user);
-
+    await createTemporalOrder(generalRepository, store, _user);
     //set current active business to be used throughout the entire app transaction
-    getBusinesses(store, user);
+    getBusinesses(store, _user);
     //end of setting current active business.
     // Logger.d("Successfully loaded the app");
-
     dispatchFocusedTab(tab, store);
-
     //end setting active branch.
     //create custom category if does not exist
     await createSystemCustomCategory(generalRepository, store);
-
     //if no reason found then create app defaults reasons
     await createSystemStockReasons(store);
     //create custom item if does not exist
@@ -141,8 +120,20 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     _createCustomCategory(store);
     _cleanApp(store);
-    //branch
   };
+}
+
+Future<User> getActiveUser(Store<AppState> store) async {
+  List<User> users = await CouchBase(shouldInitDb: false)
+      .getDocumentByDocId(docId: 'users', T: User);
+  User user;
+  for (var i = 0; i < users.length; i++) {
+    if (users[i].active) {
+      user = users[i];
+    }
+  }
+  store.dispatch(WithUsers(users: users));
+  return user;
 }
 
 void dispatchCurrentBranchHint(
@@ -207,7 +198,7 @@ void dispatchCurrentBranch(
             (b) => b
               ..id = branch[i].id
               ..name = branch[i].name
-              ..isActive = branch[i].isActive
+              ..active = branch[i].isActive
               ..description = "desc",
           ),
         ),
@@ -348,7 +339,7 @@ Future createAppActions(Store<AppState> store) async {
 }
 
 Future createTemporalOrder(GeneralRepository generalRepository,
-    Store<AppState> store, UserTableData user) async {
+    Store<AppState> store, User user) async {
   OrderTableData order =
       await generalRepository.createDraftOrderOrReturnExistingOne(store);
   //broadcast order to be used later when creating a sale

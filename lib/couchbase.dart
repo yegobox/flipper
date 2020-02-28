@@ -133,46 +133,57 @@ class CouchBase extends Model with Fluttercouch {
     yield results.allResults();
   }
 
+  List<User> buildUserModel(Document doc) {
+    List<User> users = [];
+    for (var i = 0; i < doc.getList('users').length; i++) {
+      users.add(User(
+        (u) => u
+          ..email = doc.getList('users')[i]['email']
+          ..name = doc.getList('users')[i]['name']
+          ..role = doc.getList('users')[i]['role']
+          ..permissions = doc.getList('users')[i]['permissions']
+          ..createdAt = doc.getList('users')[i]['createdAt']
+          ..updatedAt = doc.getList('users')[i]['updatedAt']
+          ..active = doc.getList('users')[i]['active']
+          ..token = doc.getList('users')[i]['token'],
+      ));
+    }
+    return users;
+  }
+
   List<Business> buildBusinessModel(Document doc) {
     List<Business> business = [];
 
     for (var i = 0; i < doc.getList('businesses').length; i++) {
-      business.add(
-          //todo: check if we can parse time from web and here android
-          Business((b) => b
-                ..name = doc.getList('businesses')[i]['name']
-                ..country = doc.getList('businesses')[i]['country']
-                ..taxRate = doc.getList('businesses')[i]['taxRate']
-                ..userId = doc.getList('businesses')[i]['userId']
-                ..active = doc.getList('businesses')[i]['active']
-                ..businessTypeId =
-                    doc.getList('businesses')[i]['businessTypeId']
-                ..userId = doc.getList('businesses')[i]['userId']
-//            ..timeZone = doc.getList('businesses')[i]['timeZone']
-                ..businessUrl = doc.getList('businesses')[i]['businessUrl']
-//            ..createdAt = doc.getList('businesses')[i]['country']
-              ));
+      business.add(Business((b) => b
+        ..name = doc.getList('businesses')[i]['name']
+        ..country = doc.getList('businesses')[i]['country']
+        ..taxRate = doc.getList('businesses')[i]['taxRate']
+        ..userId = doc.getList('businesses')[i]['userId']
+        ..active = doc.getList('businesses')[i]['active']
+        ..businessTypeId = doc.getList('businesses')[i]['businessTypeId']
+        ..userId = doc.getList('businesses')[i]['userId']
+        ..timeZone = doc.getList('businesses')[i]['timeZone']
+        ..businessUrl = doc.getList('businesses')[i]['businessUrl']
+        ..createdAt = doc.getList('businesses')[i]['country']));
     }
     return business;
   }
 
-  User buildUserModel(Document doc) {
-    return User(
-      (u) => u
-        ..avatar = doc.getString('avatar')
-        ..email = doc.getString('email')
-        ..username = doc.getString('name')
-        ..bearerToken = doc.getString('personalToken'),
-    );
-  }
-
   List<Branch> buildBranchModel(Document doc) {
     List<Branch> branch = [];
-
     for (var i = 0; i < doc.getList('businesses').length; i++) {
       branch.add(
           //todo: update a branch full.
-          Branch((b) => b..name = doc.getList('name')[i]['name']));
+          Branch((b) => b
+            ..name = doc.getList('branches')[i]['name']
+            ..active = doc.getList('branches')[i]['active']
+            ..businessId = doc.getList('branches')[i]['businessId']
+            ..createdAt = doc.getList('branches')[i]['createdAt']
+            ..mapLatitude = doc.getList('branches')[i]['mapLatitude']
+            ..mapLongitude = doc.getList('branches')[i]['mapLongitude']
+            ..mapLongitude = doc.getList('branches')[i]['mapLongitude']
+            ..updatedAt = doc.getList('branches')[i]['updatedAt']));
     }
     return branch;
   }

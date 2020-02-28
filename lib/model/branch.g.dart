@@ -10,11 +10,21 @@ class _$Branch extends Branch {
   @override
   final int id;
   @override
+  final int businessId;
+  @override
+  final String createdAt;
+  @override
   final String name;
+  @override
+  final String mapLatitude;
+  @override
+  final String mapLongitude;
+  @override
+  final String updatedAt;
   @override
   final String description;
   @override
-  final bool isActive;
+  final bool active;
   @override
   final String location;
 
@@ -22,10 +32,34 @@ class _$Branch extends Branch {
       (new BranchBuilder()..update(updates)).build();
 
   _$Branch._(
-      {this.id, this.name, this.description, this.isActive, this.location})
+      {this.id,
+      this.businessId,
+      this.createdAt,
+      this.name,
+      this.mapLatitude,
+      this.mapLongitude,
+      this.updatedAt,
+      this.description,
+      this.active,
+      this.location})
       : super._() {
+    if (businessId == null) {
+      throw new BuiltValueNullFieldError('Branch', 'businessId');
+    }
+    if (createdAt == null) {
+      throw new BuiltValueNullFieldError('Branch', 'createdAt');
+    }
     if (name == null) {
       throw new BuiltValueNullFieldError('Branch', 'name');
+    }
+    if (mapLatitude == null) {
+      throw new BuiltValueNullFieldError('Branch', 'mapLatitude');
+    }
+    if (mapLongitude == null) {
+      throw new BuiltValueNullFieldError('Branch', 'mapLongitude');
+    }
+    if (updatedAt == null) {
+      throw new BuiltValueNullFieldError('Branch', 'updatedAt');
     }
   }
 
@@ -41,17 +75,36 @@ class _$Branch extends Branch {
     if (identical(other, this)) return true;
     return other is Branch &&
         id == other.id &&
+        businessId == other.businessId &&
+        createdAt == other.createdAt &&
         name == other.name &&
+        mapLatitude == other.mapLatitude &&
+        mapLongitude == other.mapLongitude &&
+        updatedAt == other.updatedAt &&
         description == other.description &&
-        isActive == other.isActive &&
+        active == other.active &&
         location == other.location;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc($jc(0, id.hashCode), name.hashCode), description.hashCode),
-            isActive.hashCode),
+        $jc(
+            $jc(
+                $jc(
+                    $jc(
+                        $jc(
+                            $jc(
+                                $jc(
+                                    $jc($jc(0, id.hashCode),
+                                        businessId.hashCode),
+                                    createdAt.hashCode),
+                                name.hashCode),
+                            mapLatitude.hashCode),
+                        mapLongitude.hashCode),
+                    updatedAt.hashCode),
+                description.hashCode),
+            active.hashCode),
         location.hashCode));
   }
 
@@ -59,9 +112,14 @@ class _$Branch extends Branch {
   String toString() {
     return (newBuiltValueToStringHelper('Branch')
           ..add('id', id)
+          ..add('businessId', businessId)
+          ..add('createdAt', createdAt)
           ..add('name', name)
+          ..add('mapLatitude', mapLatitude)
+          ..add('mapLongitude', mapLongitude)
+          ..add('updatedAt', updatedAt)
           ..add('description', description)
-          ..add('isActive', isActive)
+          ..add('active', active)
           ..add('location', location))
         .toString();
   }
@@ -74,17 +132,37 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
   int get id => _$this._id;
   set id(int id) => _$this._id = id;
 
+  int _businessId;
+  int get businessId => _$this._businessId;
+  set businessId(int businessId) => _$this._businessId = businessId;
+
+  String _createdAt;
+  String get createdAt => _$this._createdAt;
+  set createdAt(String createdAt) => _$this._createdAt = createdAt;
+
   String _name;
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
+
+  String _mapLatitude;
+  String get mapLatitude => _$this._mapLatitude;
+  set mapLatitude(String mapLatitude) => _$this._mapLatitude = mapLatitude;
+
+  String _mapLongitude;
+  String get mapLongitude => _$this._mapLongitude;
+  set mapLongitude(String mapLongitude) => _$this._mapLongitude = mapLongitude;
+
+  String _updatedAt;
+  String get updatedAt => _$this._updatedAt;
+  set updatedAt(String updatedAt) => _$this._updatedAt = updatedAt;
 
   String _description;
   String get description => _$this._description;
   set description(String description) => _$this._description = description;
 
-  bool _isActive;
-  bool get isActive => _$this._isActive;
-  set isActive(bool isActive) => _$this._isActive = isActive;
+  bool _active;
+  bool get active => _$this._active;
+  set active(bool active) => _$this._active = active;
 
   String _location;
   String get location => _$this._location;
@@ -95,9 +173,14 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
   BranchBuilder get _$this {
     if (_$v != null) {
       _id = _$v.id;
+      _businessId = _$v.businessId;
+      _createdAt = _$v.createdAt;
       _name = _$v.name;
+      _mapLatitude = _$v.mapLatitude;
+      _mapLongitude = _$v.mapLongitude;
+      _updatedAt = _$v.updatedAt;
       _description = _$v.description;
-      _isActive = _$v.isActive;
+      _active = _$v.active;
       _location = _$v.location;
       _$v = null;
     }
@@ -122,9 +205,14 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
     final _$result = _$v ??
         new _$Branch._(
             id: id,
+            businessId: businessId,
+            createdAt: createdAt,
             name: name,
+            mapLatitude: mapLatitude,
+            mapLongitude: mapLongitude,
+            updatedAt: updatedAt,
             description: description,
-            isActive: isActive,
+            active: active,
             location: location);
     replace(_$result);
     return _$result;
