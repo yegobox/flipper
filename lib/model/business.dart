@@ -9,11 +9,29 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   String get name;
 
   @nullable
-  bool get isActive;
+  bool get active;
+
   @nullable
   double get latitude;
   @nullable
   double get longitude;
+
+  @nullable
+  int get userId;
+  @nullable
+  int get businessTypeId;
+  @nullable
+  int get taxRate;
+  @nullable
+  DateTime get timeZone;
+  @nullable
+  DateTime get createdAt;
+  @nullable
+  DateTime get updatedAt;
+  @nullable
+  String get country;
+  @nullable
+  String get businessUrl;
 
   @nullable
   String get hexColor;

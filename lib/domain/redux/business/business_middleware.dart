@@ -30,7 +30,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
     //todo: get yegobox id and other users information from yegobox and use them while creating flipper account
     if (store.state.business != null && store.state.userId != null) {
-
       int businessId =
           await businessRepository.insertBusiness(store, store.state.business);
 
@@ -91,7 +90,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         ..longitude = b.longitude
         ..latitude = b.latitude
         ..hexColor = store.state.nextActiveBusiness.hexColor
-        ..isActive = true);
+        ..active = true);
       store.dispatch(RefreshBusinessList(updated));
     }
   };

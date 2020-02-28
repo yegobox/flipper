@@ -11,7 +11,7 @@ description: A new Flutter project.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.4.15
+version: 1.4.29
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
@@ -23,6 +23,11 @@ dependencies:
   flutter_svg: ^0.15.0
   #for sending emails, sync etc...
   cron: ^0.2.2
+  fluttercouch:
+    git:
+      url: https://github.com/yegobox/fluttercouch.git
+      ref: master
+  scoped_model: ^1.0.1
   auto_route: ^0.2.1
   # Firebase dependencies
   firebase_core: ^0.4.0
@@ -139,4 +144,4 @@ flutter_intl:
 
 #  flutter packages pub run build_runner watch --delete-conflicting-outputs
 #  rw.flipper
-# flutter build appbundle  --build-number 1.4.15
+# flutter build appbundle  --build-number 1.4.29

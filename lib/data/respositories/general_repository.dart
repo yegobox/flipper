@@ -128,7 +128,6 @@ class GeneralRepository {
     );
 
     return categoryData.id;
-    //broadcast custom unit
   }
 
   Future<int> insertCategory(
@@ -211,7 +210,6 @@ class GeneralRepository {
 
   Future<bool> insertOrUpdateCart(
       Store<AppState> store, CartTableData data) async {
-    //if item with the same variationId exist update content
     CartTableData existingCart = await store.state.database.cartDao
         .getExistingCartItem(data.variationId);
     if (existingCart == null) {
@@ -250,90 +248,72 @@ class GeneralRepository {
     OrderTableData order =
         await store.state.database.orderDao.getExistingDraftOrder();
     if (order != null) {
-      store.dispatch(OrderCreated(
-        order: Order(
-          (o) => o
-            ..status = order.status
-            ..id = order.id
-            ..userId = order.id
-            ..branchId = order.branchId
-            ..orderNote = order.orderNote
-            ..orderNUmber = order.orderNUmber
-            ..supplierId = order.supplierId
-            ..subTotal = order.subTotal
-            ..supplierInvoiceNumber = order.supplierInvoiceNumber
-            ..deliverDate = order.deliverDate
-            ..taxRate = order.taxRate
-            ..discountAmount = order.discountAmount
-            ..taxAmount = order.taxAmount
-            ..cashReceived = order.cashReceived
-            ..discountRate = order.discountRate
-            ..saleTotal = order.saleTotal
-            ..userId = order.userId
-            ..customerSaving = order.customerSaving
-            ..paymentId = order.paymentId
-            ..orderNote = order.orderNote
-            ..status = order.status
-            ..customerChangeDue = order.customerChangeDue,
-        ),
-      ));
+      dispatchOrder(store, order);
       return order;
     } else {
-      await store.state.database.orderDao.insert(
-        //ignore: missing_required_param
-        OrderTableData(
-          status: "draft",
-          branchId: store.state.branch.id,
-          cashReceived: 0,
-          customerChangeDue: 0,
-          customerSaving: 0,
-          deliverDate: DateTime.now(),
-          discountAmount: 0,
-          discountRate: 0,
-          orderNote: "draft",
-          orderNUmber: 0,
-          paymentId: 0,
-          saleTotal: 0,
-          subTotal: 0,
-          supplierId: 0,
-          supplierInvoiceNumber: 0,
-          taxAmount: 0,
-          taxRate: 0,
-          userId: store.state.user.id,
-        ),
-      );
-
+      await insertNewDraftOrder(store);
       OrderTableData order =
           await store.state.database.orderDao.getExistingDraftOrder();
-
-      store.dispatch(OrderCreated(
-        order: Order(
-          (o) => o
-            ..status = order.status
-            ..id = order.id
-            ..userId = order.id
-            ..branchId = order.branchId
-            ..orderNote = order.orderNote
-            ..orderNUmber = order.orderNUmber
-            ..supplierId = order.supplierId
-            ..subTotal = order.subTotal
-            ..discountAmount = order.discountAmount
-            ..supplierInvoiceNumber = order.supplierInvoiceNumber
-            ..deliverDate = order.deliverDate
-            ..taxRate = order.taxRate
-            ..taxAmount = order.taxAmount
-            ..discountRate = order.discountRate
-            ..cashReceived = order.cashReceived
-            ..saleTotal = order.saleTotal
-            ..userId = order.userId
-            ..customerSaving = order.customerSaving
-            ..paymentId = order.paymentId
-            ..orderNote = order.orderNote
-            ..status = order.status
-            ..customerChangeDue = order.customerChangeDue,
-        ),
-      ));
+      dispatchOrder(store, order);
       return order;
     }
+  }
+
+  Future insertNewDraftOrder(Store<AppState> store) async {
+    return await store.state.database.orderDao.insert(
+      //ignore: missing_required_param
+      OrderTableData(
+        status: "draft",
+        branchId: store.state.branch.id,
+        cashReceived: 0,
+        customerChangeDue: 0,
+        customerSaving: 0,
+        deliverDate: DateTime.now(),
+        discountAmount: 0,
+        discountRate: 0,
+        orderNote: "draft",
+        variantName: "custom",
+        count: 1,
+        orderNUmber: 0,
+        paymentId: 0,
+        saleTotal: 0,
+        subTotal: 0,
+        supplierId: 0,
+        supplierInvoiceNumber: 0,
+        taxAmount: 0,
+        taxRate: 0,
+        userId: store.state.user.id,
+      ),
+    );
+  }
+
+  void dispatchOrder(Store<AppState> store, OrderTableData order) {
+    return store.dispatch(OrderCreated(
+      order: Order(
+        (o) => o
+          ..status = order.status
+          ..id = order.id
+          ..userId = order.id
+          ..branchId = order.branchId
+          ..orderNote = order.orderNote
+          ..orderNUmber = order.orderNUmber
+          ..supplierId = order.supplierId
+          ..subTotal = order.subTotal
+          ..supplierInvoiceNumber = order.supplierInvoiceNumber
+          ..deliverDate = order.deliverDate
+          ..taxRate = order.taxRate
+          ..discountAmount = order.discountAmount
+          ..taxAmount = order.taxAmount
+          ..cashReceived = order.cashReceived
+          ..discountRate = order.discountRate
+          ..saleTotal = order.saleTotal
+          ..userId = order.userId
+          ..customerSaving = order.customerSaving
+          ..paymentId = order.paymentId
+          ..orderNote = order.orderNote
+          ..status = order.status
+          ..customerChangeDue = order.customerChangeDue,
+      ),
+    ));
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
@@ -96,7 +97,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
               disableButton: _actions == null ? true : _actions.isLocked,
               showActionButton: true,
               onPressedCallback: () async {
-                _handleCreateItem(vm);
+                await _handleCreateItem(vm);
+                Router.navigator.pop(true);
               },
               actionButtonName: S.of(context).save,
               icon: Icons.close,
@@ -483,27 +485,35 @@ class _AddItemScreenState extends State<AddItemScreen> {
     return text;
   }
 
-  _handleCreateItem(CommonViewModel vm) async {
+  Future<bool> _handleCreateItem(CommonViewModel vm) async {
     final store = StoreProvider.of<AppState>(context);
     ItemTableData item = await vm.database.itemDao
         .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
+
     VariationTableData variation =
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
-    //save regular.
+
     await Util.updateVariation(
-        variation: variation,
-        costPrice: double.parse(tForm.costPrice),
-        store: store,
-        variantName: 'Regular',
-        retailPrice: double.parse(tForm.retailPrice));
-    resetSaveButtonStatus(vm);
-    updateItem(vm, item);
-    Util.removeItemFromTrash(store, item.id);
-    Router.navigator.maybePop();
+      variation: variation,
+      costPrice: double.parse(tForm.costPrice),
+      store: store,
+      variantName: 'Regular',
+      retailPrice: double.parse(tForm.retailPrice),
+    );
+
+//    new CouchBase().createUser();
+
+    await resetSaveButtonStatus(vm);
+
+    await updateItem(vm, item);
+
+    await Util.removeItemFromTrash(store, item.id);
+
+    return true;
   }
 
-  Future updateItem(CommonViewModel vm, ItemTableData item) {
-    return vm.database.itemDao.updateItem(
+  Future<bool> updateItem(CommonViewModel vm, ItemTableData item) async {
+    await vm.database.itemDao.updateItem(
       item.copyWith(
         name: tForm.name,
         unitId: vm.currentUnit.id,
@@ -512,13 +522,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
         deletedAt: 'null',
       ),
     );
+    return true;
   }
 
-  void resetSaveButtonStatus(CommonViewModel vm) {
-    vm.database.actionsDao
+  Future<bool> resetSaveButtonStatus(CommonViewModel vm) async {
+    await vm.database.actionsDao
         .updateAction(_actionsSaveItem.copyWith(isLocked: true));
 
-    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+    await vm.database.actionsDao
+        .updateAction(_actions.copyWith(isLocked: true));
+    return true;
   }
 
   _buildVariationsList(

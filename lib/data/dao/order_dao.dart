@@ -23,12 +23,12 @@ class OrderDao extends DatabaseAccessor<Database> with _$OrderDaoMixin {
         .getSingle();
   }
 
+  Stream<List<OrderTableData>> getOrdersStream() {
+    return (select(db.orderTable)..where((t) => t.status.equals('completed')))
+        .watch();
+  }
+
   Future updateOrder(OrderTableData entry) {
-    // using replace will update all fields from the entry that are not marked as a primary key.
-    // it will also make sure that only the entry with the same primary key will be updated.
-    // Here, this means that the row that has the same id as entry will be updated to reflect
-    // the entry's title, content and category. As it set's its where clause automatically, it
-    // can not be used together with where.
     return update(db.orderTable).replace(entry);
   }
 }

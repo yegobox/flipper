@@ -7,6 +7,7 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
+import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/item.dart';
@@ -101,6 +102,9 @@ abstract class CommonViewModel
   @nullable
   Item get tmpItem;
 
+  @nullable
+  CouchDbClient get couchDbClient;
+
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
@@ -167,6 +171,9 @@ abstract class CommonViewModel
       ..customItem = store.state.customItem == null
           ? null
           : store.state.customItem.toBuilder()
+      ..couchDbClient = store.state.couchDbClient == null
+          ? null
+          : store.state.couchDbClient.toBuilder()
       ..branches = store.state.branches
       ..tmpItem =
           store.state.tmpItem == null ? null : store.state.tmpItem.toBuilder()

@@ -69,6 +69,8 @@ class _$CommonViewModel extends CommonViewModel {
   final int tempCategoryId;
   @override
   final Item tmpItem;
+  @override
+  final CouchDbClient couchDbClient;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
       (new CommonViewModelBuilder()..update(updates)).build();
@@ -104,7 +106,8 @@ class _$CommonViewModel extends CommonViewModel {
       this.customCategory,
       this.customItem,
       this.tempCategoryId,
-      this.tmpItem})
+      this.tmpItem,
+      this.couchDbClient})
       : super._() {
     if (hasUser == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'hasUser');
@@ -177,7 +180,8 @@ class _$CommonViewModel extends CommonViewModel {
         customCategory == other.customCategory &&
         customItem == other.customItem &&
         tempCategoryId == other.tempCategoryId &&
-        tmpItem == other.tmpItem;
+        tmpItem == other.tmpItem &&
+        couchDbClient == other.couchDbClient;
   }
 
   @override
@@ -200,26 +204,26 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode),
-                                                                                currentUnit.hashCode),
-                                                                            currentColor.hashCode),
-                                                                        branch.hashCode),
-                                                                    cartItem.hashCode),
-                                                                itemVariations.hashCode),
-                                                            items.hashCode),
-                                                        currentIncrement.hashCode),
-                                                    currentActiveSaleItem.hashCode),
-                                                database.hashCode),
-                                            carts.hashCode),
-                                        cartQuantities.hashCode),
-                                    order.hashCode),
-                                user.hashCode),
-                            keypad.hashCode),
-                        customUnit.hashCode),
-                    customCategory.hashCode),
-                customItem.hashCode),
-            tempCategoryId.hashCode),
-        tmpItem.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode),
+                                                                                currentColor.hashCode),
+                                                                            branch.hashCode),
+                                                                        cartItem.hashCode),
+                                                                    itemVariations.hashCode),
+                                                                items.hashCode),
+                                                            currentIncrement.hashCode),
+                                                        currentActiveSaleItem.hashCode),
+                                                    database.hashCode),
+                                                carts.hashCode),
+                                            cartQuantities.hashCode),
+                                        order.hashCode),
+                                    user.hashCode),
+                                keypad.hashCode),
+                            customUnit.hashCode),
+                        customCategory.hashCode),
+                    customItem.hashCode),
+                tempCategoryId.hashCode),
+            tmpItem.hashCode),
+        couchDbClient.hashCode));
   }
 
   @override
@@ -255,7 +259,8 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('customCategory', customCategory)
           ..add('customItem', customItem)
           ..add('tempCategoryId', tempCategoryId)
-          ..add('tmpItem', tmpItem))
+          ..add('tmpItem', tmpItem)
+          ..add('couchDbClient', couchDbClient))
         .toString();
   }
 }
@@ -402,6 +407,12 @@ class CommonViewModelBuilder
   ItemBuilder get tmpItem => _$this._tmpItem ??= new ItemBuilder();
   set tmpItem(ItemBuilder tmpItem) => _$this._tmpItem = tmpItem;
 
+  CouchDbClientBuilder _couchDbClient;
+  CouchDbClientBuilder get couchDbClient =>
+      _$this._couchDbClient ??= new CouchDbClientBuilder();
+  set couchDbClient(CouchDbClientBuilder couchDbClient) =>
+      _$this._couchDbClient = couchDbClient;
+
   CommonViewModelBuilder();
 
   CommonViewModelBuilder get _$this {
@@ -437,6 +448,7 @@ class CommonViewModelBuilder
       _customItem = _$v.customItem?.toBuilder();
       _tempCategoryId = _$v.tempCategoryId;
       _tmpItem = _$v.tmpItem?.toBuilder();
+      _couchDbClient = _$v.couchDbClient?.toBuilder();
       _$v = null;
     }
     return this;
@@ -491,7 +503,8 @@ class CommonViewModelBuilder
               customCategory: _customCategory?.build(),
               customItem: _customItem?.build(),
               tempCategoryId: tempCategoryId,
-              tmpItem: _tmpItem?.build());
+              tmpItem: _tmpItem?.build(),
+              couchDbClient: _couchDbClient?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -541,6 +554,8 @@ class CommonViewModelBuilder
 
         _$failedField = 'tmpItem';
         _tmpItem?.build();
+        _$failedField = 'couchDbClient';
+        _couchDbClient?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'CommonViewModel', _$failedField, e.toString());

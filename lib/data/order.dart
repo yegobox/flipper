@@ -4,6 +4,7 @@ class OrderTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get userId => integer()
       .customConstraint('NULL REFERENCES user_table(id) ON DELETE SET NULL')();
+
   IntColumn get branchId => integer().customConstraint(
       'NULL REFERENCES branch_table(id) ON DELETE SET NULL')();
   IntColumn get orderNUmber => integer().nullable()();
@@ -13,6 +14,10 @@ class OrderTable extends Table {
   DateTimeColumn get deliverDate => dateTime().nullable()();
   IntColumn get taxRate => integer().nullable()();
   IntColumn get taxAmount => integer().nullable()();
+
+  IntColumn get count => integer().withDefault(Constant(1))();
+  TextColumn get variantName => text().nullable()();
+
   IntColumn get discountRate => integer().nullable()();
   IntColumn get discountAmount => integer().nullable()();
   IntColumn get cashReceived => integer().nullable()();

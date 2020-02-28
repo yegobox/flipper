@@ -69,3 +69,10 @@ class OrderCreated {
 
   OrderCreated({this.order});
 }
+
+@immutable
+class OnDbLoaded {
+  final String name;
+
+  OnDbLoaded({this.name});
+}

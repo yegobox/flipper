@@ -60,7 +60,7 @@ class _BranchListState extends State<BranchList> {
     return Container(
         width: 237,
         child: Center(
-          child: Column(
+          child: Wrap(
             children: <Widget>[
               Container(
                 height: 46,
@@ -97,6 +97,18 @@ class _BranchListState extends State<BranchList> {
                   },
                   child: Text(
                     "Items",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                dense: true,
+              ),
+              ListTile(
+                leading: FlatButton(
+                  onPressed: () {
+                    Router.navigator.pushNamed(Router.transactionScreen);
+                  },
+                  child: Text(
+                    "Transactions",
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

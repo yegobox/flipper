@@ -7,6 +7,7 @@ final authReducers = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, OnAuthenticated>(_onAuthenticated),
   TypedReducer<AppState, OnLogoutSuccess>(_onLogout),
   TypedReducer<AppState, OrderCreated>(_onOrderCreated),
+  TypedReducer<AppState, OnDbLoaded>(_onDbLoaded),
 ];
 
 AppState _onAuthenticated(AppState state, OnAuthenticated action) {
@@ -19,4 +20,8 @@ AppState _onLogout(AppState state, OnLogoutSuccess action) {
 
 AppState _onOrderCreated(AppState state, OrderCreated action) {
   return state.rebuild((a) => a.order = action.order.toBuilder());
+}
+
+AppState _onDbLoaded(AppState state, OnDbLoaded action) {
+  return state.rebuild((a) => a.couchDbClient.name = action.name);
 }

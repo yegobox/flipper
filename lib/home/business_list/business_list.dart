@@ -183,16 +183,16 @@ class _GroupButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final _circleColor =
         HexColor("#f5a623"); //todo: make this color comes from setting in v.2
-    final _groupText = business.abbreviation.substring(0, 2).toUpperCase();
+    final _groupText = business.name.substring(0, 2).toUpperCase();
 
-    if (business.isActive) {
+    if (business.active) {
       StoreProvider.of<AppState>(context)
           .dispatch(ActiveBusinessAction(business));
     }
     return Container(
       child: Row(
         children: <Widget>[
-          ..._buildSelectionHighlight(business.isActive, _circleColor),
+          ..._buildSelectionHighlight(business.active, _circleColor),
           _selectableListItem(
             color: _circleColor,
             text: _groupText,

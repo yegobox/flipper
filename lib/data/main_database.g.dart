@@ -60,7 +60,8 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
     );
   }
   factory UserTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return UserTableData(
       id: serializer.fromJson<int>(json['id']),
       username: serializer.fromJson<String>(json['username']),
@@ -76,8 +77,8 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'username': serializer.toJson<String>(username),
@@ -409,66 +410,50 @@ class $UserTableTable extends UserTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.username.present) {
       context.handle(_usernameMeta,
           username.isAcceptableValue(d.username.value, _usernameMeta));
-    } else if (username.isRequired && isInserting) {
-      context.missing(_usernameMeta);
     }
     if (d.isCurrentAuthenticated.present) {
       context.handle(
           _isCurrentAuthenticatedMeta,
           isCurrentAuthenticated.isAcceptableValue(
               d.isCurrentAuthenticated.value, _isCurrentAuthenticatedMeta));
-    } else if (isCurrentAuthenticated.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_isCurrentAuthenticatedMeta);
     }
     if (d.status.present) {
       context.handle(
           _statusMeta, status.isAcceptableValue(d.status.value, _statusMeta));
-    } else if (status.isRequired && isInserting) {
-      context.missing(_statusMeta);
     }
     if (d.bearerToken.present) {
       context.handle(_bearerTokenMeta,
           bearerToken.isAcceptableValue(d.bearerToken.value, _bearerTokenMeta));
-    } else if (bearerToken.isRequired && isInserting) {
-      context.missing(_bearerTokenMeta);
     }
     if (d.refreshToken.present) {
       context.handle(
           _refreshTokenMeta,
           refreshToken.isAcceptableValue(
               d.refreshToken.value, _refreshTokenMeta));
-    } else if (refreshToken.isRequired && isInserting) {
-      context.missing(_refreshTokenMeta);
     }
     if (d.email.present) {
       context.handle(
           _emailMeta, email.isAcceptableValue(d.email.value, _emailMeta));
-    } else if (email.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_emailMeta);
     }
     if (d.avatar.present) {
       context.handle(
           _avatarMeta, avatar.isAcceptableValue(d.avatar.value, _avatarMeta));
-    } else if (avatar.isRequired && isInserting) {
-      context.missing(_avatarMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -578,7 +563,8 @@ class BusinessTableData extends DataClass
     );
   }
   factory BusinessTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return BusinessTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -593,8 +579,8 @@ class BusinessTableData extends DataClass
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -914,13 +900,11 @@ class $BusinessTableTable extends BusinessTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.abbreviation.present) {
@@ -928,50 +912,36 @@ class $BusinessTableTable extends BusinessTable
           _abbreviationMeta,
           abbreviation.isAcceptableValue(
               d.abbreviation.value, _abbreviationMeta));
-    } else if (abbreviation.isRequired && isInserting) {
-      context.missing(_abbreviationMeta);
     }
     if (d.isActive.present) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
-    } else if (isActive.isRequired && isInserting) {
-      context.missing(_isActiveMeta);
     }
     if (d.userId.present) {
       context.handle(
           _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
-    } else if (userId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (d.longitude.present) {
       context.handle(_longitudeMeta,
           longitude.isAcceptableValue(d.longitude.value, _longitudeMeta));
-    } else if (longitude.isRequired && isInserting) {
-      context.missing(_longitudeMeta);
     }
     if (d.latitude.present) {
       context.handle(_latitudeMeta,
           latitude.isAcceptableValue(d.latitude.value, _latitudeMeta));
-    } else if (latitude.isRequired && isInserting) {
-      context.missing(_latitudeMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -1066,7 +1036,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
     );
   }
   factory BranchTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return BranchTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -1078,8 +1049,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -1305,44 +1276,34 @@ class $BranchTableTable extends BranchTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.isActive.present) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
-    } else if (isActive.isRequired && isInserting) {
-      context.missing(_isActiveMeta);
     }
     if (d.businessId.present) {
       context.handle(_businessIdMeta,
           businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
-    } else if (businessId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_businessIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -1428,7 +1389,8 @@ class UnitTableData extends DataClass implements Insertable<UnitTableData> {
     );
   }
   factory UnitTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return UnitTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -1440,8 +1402,8 @@ class UnitTableData extends DataClass implements Insertable<UnitTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -1674,44 +1636,38 @@ class $UnitTableTable extends UnitTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.focused.present) {
       context.handle(_focusedMeta,
           focused.isAcceptableValue(d.focused.value, _focusedMeta));
-    } else if (focused.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_focusedMeta);
     }
     if (d.businessId.present) {
       context.handle(_businessIdMeta,
           businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
-    } else if (businessId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_businessIdMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -1798,7 +1754,8 @@ class CategoryTableData extends DataClass
     );
   }
   factory CategoryTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return CategoryTableData(
       id: serializer.fromJson<int>(json['id']),
       focused: serializer.fromJson<bool>(json['focused']),
@@ -1810,8 +1767,8 @@ class CategoryTableData extends DataClass
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'focused': serializer.toJson<bool>(focused),
@@ -2042,44 +1999,36 @@ class $CategoryTableTable extends CategoryTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.focused.present) {
       context.handle(_focusedMeta,
           focused.isAcceptableValue(d.focused.value, _focusedMeta));
-    } else if (focused.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_focusedMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -2179,7 +2128,8 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
     );
   }
   factory ItemTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return ItemTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -2195,8 +2145,8 @@ class ItemTableData extends DataClass implements Insertable<ItemTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -2543,68 +2493,58 @@ class $ItemTableTable extends ItemTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.color.present) {
       context.handle(
           _colorMeta, color.isAcceptableValue(d.color.value, _colorMeta));
-    } else if (color.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_colorMeta);
     }
     if (d.description.present) {
       context.handle(_descriptionMeta,
           description.isAcceptableValue(d.description.value, _descriptionMeta));
-    } else if (description.isRequired && isInserting) {
-      context.missing(_descriptionMeta);
     }
     if (d.categoryId.present) {
       context.handle(_categoryIdMeta,
           categoryId.isAcceptableValue(d.categoryId.value, _categoryIdMeta));
-    } else if (categoryId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_categoryIdMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.taxId.present) {
       context.handle(
           _taxIdMeta, taxId.isAcceptableValue(d.taxId.value, _taxIdMeta));
-    } else if (taxId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_taxIdMeta);
     }
     if (d.unitId.present) {
       context.handle(
           _unitIdMeta, unitId.isAcceptableValue(d.unitId.value, _unitIdMeta));
-    } else if (unitId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_unitIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -2690,7 +2630,8 @@ class TokenTableData extends DataClass implements Insertable<TokenTableData> {
     );
   }
   factory TokenTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return TokenTableData(
       id: serializer.fromJson<int>(json['id']),
       token: serializer.fromJson<String>(json['token']),
@@ -2699,8 +2640,8 @@ class TokenTableData extends DataClass implements Insertable<TokenTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'token': serializer.toJson<String>(token),
@@ -2848,26 +2789,20 @@ class $TokenTableTable extends TokenTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.token.present) {
       context.handle(
           _tokenMeta, token.isAcceptableValue(d.token.value, _tokenMeta));
-    } else if (token.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_tokenMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -2936,7 +2871,8 @@ class BusinessUserTableData extends DataClass
     );
   }
   factory BusinessUserTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return BusinessUserTableData(
       id: serializer.fromJson<int>(json['id']),
       userId: serializer.fromJson<int>(json['userId']),
@@ -2946,8 +2882,8 @@ class BusinessUserTableData extends DataClass
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'userId': serializer.toJson<int>(userId),
@@ -3124,32 +3060,22 @@ class $BusinessUserTableTable extends BusinessUserTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.userId.present) {
       context.handle(
           _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
-    } else if (userId.isRequired && isInserting) {
-      context.missing(_userIdMeta);
     }
     if (d.businessId.present) {
       context.handle(_businessIdMeta,
           businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
-    } else if (businessId.isRequired && isInserting) {
-      context.missing(_businessIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -3211,7 +3137,8 @@ class TabsTableData extends DataClass implements Insertable<TabsTableData> {
     );
   }
   factory TabsTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return TabsTableData(
       id: serializer.fromJson<int>(json['id']),
       tab: serializer.fromJson<int>(json['tab']),
@@ -3220,8 +3147,8 @@ class TabsTableData extends DataClass implements Insertable<TabsTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'tab': serializer.toJson<int>(tab),
@@ -3368,25 +3295,17 @@ class $TabsTableTable extends TabsTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.tab.present) {
       context.handle(_tabMeta, tab.isAcceptableValue(d.tab.value, _tabMeta));
-    } else if (tab.isRequired && isInserting) {
-      context.missing(_tabMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -3471,7 +3390,8 @@ class VariationTableData extends DataClass
     );
   }
   factory VariationTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return VariationTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -3485,8 +3405,8 @@ class VariationTableData extends DataClass
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -3772,55 +3692,43 @@ class $VariationTableTable extends VariationTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.sku.present) {
       context.handle(_skuMeta, sku.isAcceptableValue(d.sku.value, _skuMeta));
-    } else if (sku.isRequired && isInserting) {
-      context.missing(_skuMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.itemId.present) {
       context.handle(
           _itemIdMeta, itemId.isAcceptableValue(d.itemId.value, _itemIdMeta));
-    } else if (itemId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_itemIdMeta);
     }
     if (d.isActive.present) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
-    } else if (isActive.isRequired && isInserting) {
-      context.missing(_isActiveMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -3934,7 +3842,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
     );
   }
   factory StockTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return StockTableData(
       id: serializer.fromJson<int>(json['id']),
       currentStock: serializer.fromJson<int>(json['currentStock']),
@@ -3951,8 +3860,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'currentStock': serializer.toJson<int>(currentStock),
@@ -4320,78 +4229,60 @@ class $StockTableTable extends StockTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.currentStock.present) {
       context.handle(
           _currentStockMeta,
           currentStock.isAcceptableValue(
               d.currentStock.value, _currentStockMeta));
-    } else if (currentStock.isRequired && isInserting) {
-      context.missing(_currentStockMeta);
     }
     if (d.canTrackStock.present) {
       context.handle(
           _canTrackStockMeta,
           canTrackStock.isAcceptableValue(
               d.canTrackStock.value, _canTrackStockMeta));
-    } else if (canTrackStock.isRequired && isInserting) {
-      context.missing(_canTrackStockMeta);
     }
     if (d.isActive.present) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
-    } else if (isActive.isRequired && isInserting) {
-      context.missing(_isActiveMeta);
     }
     if (d.costPrice.present) {
       context.handle(_costPriceMeta,
           costPrice.isAcceptableValue(d.costPrice.value, _costPriceMeta));
-    } else if (costPrice.isRequired && isInserting) {
-      context.missing(_costPriceMeta);
     }
     if (d.retailPrice.present) {
       context.handle(_retailPriceMeta,
           retailPrice.isAcceptableValue(d.retailPrice.value, _retailPriceMeta));
-    } else if (retailPrice.isRequired && isInserting) {
-      context.missing(_retailPriceMeta);
     }
     if (d.itemId.present) {
       context.handle(
           _itemIdMeta, itemId.isAcceptableValue(d.itemId.value, _itemIdMeta));
-    } else if (itemId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_itemIdMeta);
     }
     if (d.variantId.present) {
       context.handle(_variantIdMeta,
           variantId.isAcceptableValue(d.variantId.value, _variantIdMeta));
-    } else if (variantId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_variantIdMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -4484,7 +4375,8 @@ class PriceTableData extends DataClass implements Insertable<PriceTableData> {
     );
   }
   factory PriceTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return PriceTableData(
       id: serializer.fromJson<int>(json['id']),
       value: serializer.fromJson<String>(json['value']),
@@ -4494,8 +4386,8 @@ class PriceTableData extends DataClass implements Insertable<PriceTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'value': serializer.toJson<String>(value),
@@ -4674,32 +4566,24 @@ class $PriceTableTable extends PriceTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.value.present) {
       context.handle(
           _valueMeta, value.isAcceptableValue(d.value.value, _valueMeta));
-    } else if (value.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_valueMeta);
     }
     if (d.categoryId.present) {
       context.handle(_categoryIdMeta,
           categoryId.isAcceptableValue(d.categoryId.value, _categoryIdMeta));
-    } else if (categoryId.isRequired && isInserting) {
-      context.missing(_categoryIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -4791,7 +4675,8 @@ class StockHistoryTableData extends DataClass
     );
   }
   factory StockHistoryTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return StockHistoryTableData(
       id: serializer.fromJson<int>(json['id']),
       quantity: serializer.fromJson<int>(json['quantity']),
@@ -4806,8 +4691,8 @@ class StockHistoryTableData extends DataClass
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'quantity': serializer.toJson<int>(quantity),
@@ -5127,62 +5012,52 @@ class $StockHistoryTableTable extends StockHistoryTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.quantity.present) {
       context.handle(_quantityMeta,
           quantity.isAcceptableValue(d.quantity.value, _quantityMeta));
-    } else if (quantity.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_quantityMeta);
     }
     if (d.note.present) {
       context.handle(
           _noteMeta, note.isAcceptableValue(d.note.value, _noteMeta));
-    } else if (note.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_noteMeta);
     }
     if (d.stockId.present) {
       context.handle(_stockIdMeta,
           stockId.isAcceptableValue(d.stockId.value, _stockIdMeta));
-    } else if (stockId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_stockIdMeta);
     }
     if (d.orderId.present) {
       context.handle(_orderIdMeta,
           orderId.isAcceptableValue(d.orderId.value, _orderIdMeta));
-    } else if (orderId.isRequired && isInserting) {
-      context.missing(_orderIdMeta);
     }
     if (d.reasonId.present) {
       context.handle(_reasonIdMeta,
           reasonId.isAcceptableValue(d.reasonId.value, _reasonIdMeta));
-    } else if (reasonId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_reasonIdMeta);
     }
     if (d.variantId.present) {
       context.handle(_variantIdMeta,
           variantId.isAcceptableValue(d.variantId.value, _variantIdMeta));
-    } else if (variantId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_variantIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -5284,7 +5159,8 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
     );
   }
   factory CartTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return CartTableData(
       id: serializer.fromJson<int>(json['id']),
       branchId: serializer.fromJson<int>(json['branchId']),
@@ -5298,8 +5174,8 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'branchId': serializer.toJson<int>(branchId),
@@ -5602,37 +5478,35 @@ class $CartTableTable extends CartTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.count.present) {
       context.handle(
           _countMeta, count.isAcceptableValue(d.count.value, _countMeta));
-    } else if (count.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_countMeta);
     }
     if (d.orderId.present) {
       context.handle(_orderIdMeta,
           orderId.isAcceptableValue(d.orderId.value, _orderIdMeta));
-    } else if (orderId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_orderIdMeta);
     }
     if (d.variationId.present) {
       context.handle(_variationIdMeta,
           variationId.isAcceptableValue(d.variationId.value, _variationIdMeta));
-    } else if (variationId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_variationIdMeta);
     }
     if (d.parentName.present) {
       context.handle(_parentNameMeta,
           parentName.isAcceptableValue(d.parentName.value, _parentNameMeta));
-    } else if (parentName.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_parentNameMeta);
     }
     if (d.variationName.present) {
@@ -5640,20 +5514,16 @@ class $CartTableTable extends CartTable
           _variationNameMeta,
           variationName.isAcceptableValue(
               d.variationName.value, _variationNameMeta));
-    } else if (variationName.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_variationNameMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -5717,6 +5587,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   final DateTime deliverDate;
   final int taxRate;
   final int taxAmount;
+  final int count;
+  final String variantName;
   final int discountRate;
   final int discountAmount;
   final int cashReceived;
@@ -5737,6 +5609,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       this.deliverDate,
       this.taxRate,
       this.taxAmount,
+      @required this.count,
+      this.variantName,
       this.discountRate,
       this.discountAmount,
       this.cashReceived,
@@ -5773,6 +5647,9 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           intType.mapFromDatabaseResponse(data['${effectivePrefix}tax_rate']),
       taxAmount:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}tax_amount']),
+      count: intType.mapFromDatabaseResponse(data['${effectivePrefix}count']),
+      variantName: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}variant_name']),
       discountRate: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}discount_rate']),
       discountAmount: intType
@@ -5794,7 +5671,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
     );
   }
   factory OrderTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return OrderTableData(
       id: serializer.fromJson<int>(json['id']),
       userId: serializer.fromJson<int>(json['userId']),
@@ -5807,6 +5685,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       deliverDate: serializer.fromJson<DateTime>(json['deliverDate']),
       taxRate: serializer.fromJson<int>(json['taxRate']),
       taxAmount: serializer.fromJson<int>(json['taxAmount']),
+      count: serializer.fromJson<int>(json['count']),
+      variantName: serializer.fromJson<String>(json['variantName']),
       discountRate: serializer.fromJson<int>(json['discountRate']),
       discountAmount: serializer.fromJson<int>(json['discountAmount']),
       cashReceived: serializer.fromJson<int>(json['cashReceived']),
@@ -5819,8 +5699,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'userId': serializer.toJson<int>(userId),
@@ -5832,6 +5712,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       'deliverDate': serializer.toJson<DateTime>(deliverDate),
       'taxRate': serializer.toJson<int>(taxRate),
       'taxAmount': serializer.toJson<int>(taxAmount),
+      'count': serializer.toJson<int>(count),
+      'variantName': serializer.toJson<String>(variantName),
       'discountRate': serializer.toJson<int>(discountRate),
       'discountAmount': serializer.toJson<int>(discountAmount),
       'cashReceived': serializer.toJson<int>(cashReceived),
@@ -5874,6 +5756,11 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       taxAmount: taxAmount == null && nullToAbsent
           ? const Value.absent()
           : Value(taxAmount),
+      count:
+          count == null && nullToAbsent ? const Value.absent() : Value(count),
+      variantName: variantName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variantName),
       discountRate: discountRate == null && nullToAbsent
           ? const Value.absent()
           : Value(discountRate),
@@ -5914,6 +5801,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           DateTime deliverDate,
           int taxRate,
           int taxAmount,
+          int count,
+          String variantName,
           int discountRate,
           int discountAmount,
           int cashReceived,
@@ -5935,6 +5824,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
         deliverDate: deliverDate ?? this.deliverDate,
         taxRate: taxRate ?? this.taxRate,
         taxAmount: taxAmount ?? this.taxAmount,
+        count: count ?? this.count,
+        variantName: variantName ?? this.variantName,
         discountRate: discountRate ?? this.discountRate,
         discountAmount: discountAmount ?? this.discountAmount,
         cashReceived: cashReceived ?? this.cashReceived,
@@ -5958,6 +5849,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           ..write('deliverDate: $deliverDate, ')
           ..write('taxRate: $taxRate, ')
           ..write('taxAmount: $taxAmount, ')
+          ..write('count: $count, ')
+          ..write('variantName: $variantName, ')
           ..write('discountRate: $discountRate, ')
           ..write('discountAmount: $discountAmount, ')
           ..write('cashReceived: $cashReceived, ')
@@ -5993,27 +5886,29 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
                                       $mrjc(
                                           taxAmount.hashCode,
                                           $mrjc(
-                                              discountRate.hashCode,
+                                              count.hashCode,
                                               $mrjc(
-                                                  discountAmount.hashCode,
+                                                  variantName.hashCode,
                                                   $mrjc(
-                                                      cashReceived.hashCode,
+                                                      discountRate.hashCode,
                                                       $mrjc(
-                                                          saleTotal.hashCode,
+                                                          discountAmount
+                                                              .hashCode,
                                                           $mrjc(
-                                                              customerSaving
+                                                              cashReceived
                                                                   .hashCode,
                                                               $mrjc(
-                                                                  paymentId
+                                                                  saleTotal
                                                                       .hashCode,
                                                                   $mrjc(
-                                                                      orderNote
+                                                                      customerSaving
                                                                           .hashCode,
                                                                       $mrjc(
-                                                                          status
+                                                                          paymentId
                                                                               .hashCode,
-                                                                          customerChangeDue
-                                                                              .hashCode)))))))))))))))))));
+                                                                          $mrjc(
+                                                                              orderNote.hashCode,
+                                                                              $mrjc(status.hashCode, customerChangeDue.hashCode)))))))))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -6028,6 +5923,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           other.deliverDate == this.deliverDate &&
           other.taxRate == this.taxRate &&
           other.taxAmount == this.taxAmount &&
+          other.count == this.count &&
+          other.variantName == this.variantName &&
           other.discountRate == this.discountRate &&
           other.discountAmount == this.discountAmount &&
           other.cashReceived == this.cashReceived &&
@@ -6050,6 +5947,8 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
   final Value<DateTime> deliverDate;
   final Value<int> taxRate;
   final Value<int> taxAmount;
+  final Value<int> count;
+  final Value<String> variantName;
   final Value<int> discountRate;
   final Value<int> discountAmount;
   final Value<int> cashReceived;
@@ -6070,6 +5969,8 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
     this.deliverDate = const Value.absent(),
     this.taxRate = const Value.absent(),
     this.taxAmount = const Value.absent(),
+    this.count = const Value.absent(),
+    this.variantName = const Value.absent(),
     this.discountRate = const Value.absent(),
     this.discountAmount = const Value.absent(),
     this.cashReceived = const Value.absent(),
@@ -6091,6 +5992,8 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
     this.deliverDate = const Value.absent(),
     this.taxRate = const Value.absent(),
     this.taxAmount = const Value.absent(),
+    this.count = const Value.absent(),
+    this.variantName = const Value.absent(),
     this.discountRate = const Value.absent(),
     this.discountAmount = const Value.absent(),
     this.cashReceived = const Value.absent(),
@@ -6113,6 +6016,8 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
       Value<DateTime> deliverDate,
       Value<int> taxRate,
       Value<int> taxAmount,
+      Value<int> count,
+      Value<String> variantName,
       Value<int> discountRate,
       Value<int> discountAmount,
       Value<int> cashReceived,
@@ -6134,6 +6039,8 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
       deliverDate: deliverDate ?? this.deliverDate,
       taxRate: taxRate ?? this.taxRate,
       taxAmount: taxAmount ?? this.taxAmount,
+      count: count ?? this.count,
+      variantName: variantName ?? this.variantName,
       discountRate: discountRate ?? this.discountRate,
       discountAmount: discountAmount ?? this.discountAmount,
       cashReceived: cashReceived ?? this.cashReceived,
@@ -6271,6 +6178,29 @@ class $OrderTableTable extends OrderTable
     );
   }
 
+  final VerificationMeta _countMeta = const VerificationMeta('count');
+  GeneratedIntColumn _count;
+  @override
+  GeneratedIntColumn get count => _count ??= _constructCount();
+  GeneratedIntColumn _constructCount() {
+    return GeneratedIntColumn('count', $tableName, false,
+        defaultValue: Constant(1));
+  }
+
+  final VerificationMeta _variantNameMeta =
+      const VerificationMeta('variantName');
+  GeneratedTextColumn _variantName;
+  @override
+  GeneratedTextColumn get variantName =>
+      _variantName ??= _constructVariantName();
+  GeneratedTextColumn _constructVariantName() {
+    return GeneratedTextColumn(
+      'variant_name',
+      $tableName,
+      true,
+    );
+  }
+
   final VerificationMeta _discountRateMeta =
       const VerificationMeta('discountRate');
   GeneratedIntColumn _discountRate;
@@ -6398,6 +6328,8 @@ class $OrderTableTable extends OrderTable
         deliverDate,
         taxRate,
         taxAmount,
+        count,
+        variantName,
         discountRate,
         discountAmount,
         cashReceived,
@@ -6420,128 +6352,102 @@ class $OrderTableTable extends OrderTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.userId.present) {
       context.handle(
           _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
-    } else if (userId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.orderNUmber.present) {
       context.handle(_orderNUmberMeta,
           orderNUmber.isAcceptableValue(d.orderNUmber.value, _orderNUmberMeta));
-    } else if (orderNUmber.isRequired && isInserting) {
-      context.missing(_orderNUmberMeta);
     }
     if (d.supplierId.present) {
       context.handle(_supplierIdMeta,
           supplierId.isAcceptableValue(d.supplierId.value, _supplierIdMeta));
-    } else if (supplierId.isRequired && isInserting) {
-      context.missing(_supplierIdMeta);
     }
     if (d.subTotal.present) {
       context.handle(_subTotalMeta,
           subTotal.isAcceptableValue(d.subTotal.value, _subTotalMeta));
-    } else if (subTotal.isRequired && isInserting) {
-      context.missing(_subTotalMeta);
     }
     if (d.supplierInvoiceNumber.present) {
       context.handle(
           _supplierInvoiceNumberMeta,
           supplierInvoiceNumber.isAcceptableValue(
               d.supplierInvoiceNumber.value, _supplierInvoiceNumberMeta));
-    } else if (supplierInvoiceNumber.isRequired && isInserting) {
-      context.missing(_supplierInvoiceNumberMeta);
     }
     if (d.deliverDate.present) {
       context.handle(_deliverDateMeta,
           deliverDate.isAcceptableValue(d.deliverDate.value, _deliverDateMeta));
-    } else if (deliverDate.isRequired && isInserting) {
-      context.missing(_deliverDateMeta);
     }
     if (d.taxRate.present) {
       context.handle(_taxRateMeta,
           taxRate.isAcceptableValue(d.taxRate.value, _taxRateMeta));
-    } else if (taxRate.isRequired && isInserting) {
-      context.missing(_taxRateMeta);
     }
     if (d.taxAmount.present) {
       context.handle(_taxAmountMeta,
           taxAmount.isAcceptableValue(d.taxAmount.value, _taxAmountMeta));
-    } else if (taxAmount.isRequired && isInserting) {
-      context.missing(_taxAmountMeta);
+    }
+    if (d.count.present) {
+      context.handle(
+          _countMeta, count.isAcceptableValue(d.count.value, _countMeta));
+    }
+    if (d.variantName.present) {
+      context.handle(_variantNameMeta,
+          variantName.isAcceptableValue(d.variantName.value, _variantNameMeta));
     }
     if (d.discountRate.present) {
       context.handle(
           _discountRateMeta,
           discountRate.isAcceptableValue(
               d.discountRate.value, _discountRateMeta));
-    } else if (discountRate.isRequired && isInserting) {
-      context.missing(_discountRateMeta);
     }
     if (d.discountAmount.present) {
       context.handle(
           _discountAmountMeta,
           discountAmount.isAcceptableValue(
               d.discountAmount.value, _discountAmountMeta));
-    } else if (discountAmount.isRequired && isInserting) {
-      context.missing(_discountAmountMeta);
     }
     if (d.cashReceived.present) {
       context.handle(
           _cashReceivedMeta,
           cashReceived.isAcceptableValue(
               d.cashReceived.value, _cashReceivedMeta));
-    } else if (cashReceived.isRequired && isInserting) {
-      context.missing(_cashReceivedMeta);
     }
     if (d.saleTotal.present) {
       context.handle(_saleTotalMeta,
           saleTotal.isAcceptableValue(d.saleTotal.value, _saleTotalMeta));
-    } else if (saleTotal.isRequired && isInserting) {
-      context.missing(_saleTotalMeta);
     }
     if (d.customerSaving.present) {
       context.handle(
           _customerSavingMeta,
           customerSaving.isAcceptableValue(
               d.customerSaving.value, _customerSavingMeta));
-    } else if (customerSaving.isRequired && isInserting) {
-      context.missing(_customerSavingMeta);
     }
     if (d.paymentId.present) {
       context.handle(_paymentIdMeta,
           paymentId.isAcceptableValue(d.paymentId.value, _paymentIdMeta));
-    } else if (paymentId.isRequired && isInserting) {
-      context.missing(_paymentIdMeta);
     }
     if (d.orderNote.present) {
       context.handle(_orderNoteMeta,
           orderNote.isAcceptableValue(d.orderNote.value, _orderNoteMeta));
-    } else if (orderNote.isRequired && isInserting) {
-      context.missing(_orderNoteMeta);
     }
     if (d.status.present) {
       context.handle(
           _statusMeta, status.isAcceptableValue(d.status.value, _statusMeta));
-    } else if (status.isRequired && isInserting) {
-      context.missing(_statusMeta);
     }
     if (d.customerChangeDue.present) {
       context.handle(
           _customerChangeDueMeta,
           customerChangeDue.isAcceptableValue(
               d.customerChangeDue.value, _customerChangeDueMeta));
-    } else if (customerChangeDue.isRequired && isInserting) {
-      context.missing(_customerChangeDueMeta);
     }
     return context;
   }
@@ -6588,6 +6494,12 @@ class $OrderTableTable extends OrderTable
     }
     if (d.taxAmount.present) {
       map['tax_amount'] = Variable<int, IntType>(d.taxAmount.value);
+    }
+    if (d.count.present) {
+      map['count'] = Variable<int, IntType>(d.count.value);
+    }
+    if (d.variantName.present) {
+      map['variant_name'] = Variable<String, StringType>(d.variantName.value);
     }
     if (d.discountRate.present) {
       map['discount_rate'] = Variable<int, IntType>(d.discountRate.value);
@@ -6647,7 +6559,8 @@ class ColorTableData extends DataClass implements Insertable<ColorTableData> {
     );
   }
   factory ColorTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return ColorTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -6655,8 +6568,8 @@ class ColorTableData extends DataClass implements Insertable<ColorTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -6776,20 +6689,16 @@ class $ColorTableTable extends ColorTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.isActive.present) {
       context.handle(_isActiveMeta,
           isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
-    } else if (isActive.isRequired && isInserting) {
-      context.missing(_isActiveMeta);
     }
     return context;
   }
@@ -6845,7 +6754,8 @@ class ActionsTableData extends DataClass
     );
   }
   factory ActionsTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return ActionsTableData(
       id: serializer.fromJson<int>(json['id']),
       isLocked: serializer.fromJson<bool>(json['isLocked']),
@@ -6853,8 +6763,8 @@ class ActionsTableData extends DataClass
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'isLocked': serializer.toJson<bool>(isLocked),
@@ -6974,19 +6884,15 @@ class $ActionsTableTable extends ActionsTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.isLocked.present) {
       context.handle(_isLockedMeta,
           isLocked.isAcceptableValue(d.isLocked.value, _isLockedMeta));
-    } else if (isLocked.isRequired && isInserting) {
-      context.missing(_isLockedMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     return context;
@@ -7056,7 +6962,8 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
     );
   }
   factory ReasonTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return ReasonTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -7067,8 +6974,8 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -7272,38 +7179,30 @@ class $ReasonTableTable extends ReasonTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.action.present) {
       context.handle(
           _actionMeta, action.isAcceptableValue(d.action.value, _actionMeta));
-    } else if (action.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_actionMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -7385,7 +7284,8 @@ class TaxTableData extends DataClass implements Insertable<TaxTableData> {
     );
   }
   factory TaxTableData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return TaxTableData(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -7397,8 +7297,8 @@ class TaxTableData extends DataClass implements Insertable<TaxTableData> {
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -7623,44 +7523,34 @@ class $TaxTableTable extends TaxTable
     final context = VerificationContext();
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
-      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
           _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
-    } else if (branchId.isRequired && isInserting) {
+    } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
     if (d.value.present) {
       context.handle(
           _valueMeta, value.isAcceptableValue(d.value.value, _valueMeta));
-    } else if (value.isRequired && isInserting) {
-      context.missing(_valueMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
-    } else if (createdAt.isRequired && isInserting) {
-      context.missing(_createdAtMeta);
     }
     if (d.updatedAt.present) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
-    } else if (updatedAt.isRequired && isInserting) {
-      context.missing(_updatedAtMeta);
     }
     if (d.deletedAt.present) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
-    } else if (deletedAt.isRequired && isInserting) {
-      context.missing(_deletedAtMeta);
     }
     return context;
   }
@@ -7789,7 +7679,9 @@ abstract class _$Database extends GeneratedDatabase {
   ReasonDao _reasonDao;
   ReasonDao get reasonDao => _reasonDao ??= ReasonDao(this as Database);
   @override
-  List<TableInfo> get allTables => [
+  Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
+  @override
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
         userTable,
         businessTable,
         branchTable,

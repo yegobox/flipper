@@ -32,6 +32,10 @@ class Util {
     }
   }
 
+  static updateOrder(Store<AppState> store, OrderTableData order) {
+    store.state.database.orderDao.updateOrder(order);
+  }
+
   static removeItemFromTrash(Store<AppState> store, int itemId) async {
     ItemTableData item = await store.state.database.itemDao
         .getItemByIdBranch(branchId: store.state.branch.id, itemId: itemId);
@@ -126,7 +130,6 @@ class Util {
           createdAt: DateTime.now(),
         ),
       );
-
       if (variant == null) {
         variantId = await store.state.database.variationDao.insert(
           //ignore: missing_required_param
@@ -141,7 +144,6 @@ class Util {
       } else {
         variantId = variant.id;
       }
-
       store.state.database.stockDao.insert(
         //ignore: missing_required_param
         StockTableData(
@@ -152,7 +154,6 @@ class Util {
           createdAt: DateTime.now(),
         ),
       );
-
       ItemTableData item = await store.state.database.itemDao
           .getItemByName(name: itemName, branchId: store.state.branch.id);
 

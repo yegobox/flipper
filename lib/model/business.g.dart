@@ -12,11 +12,27 @@ class _$Business extends Business {
   @override
   final String name;
   @override
-  final bool isActive;
+  final bool active;
   @override
   final double latitude;
   @override
   final double longitude;
+  @override
+  final int userId;
+  @override
+  final int businessTypeId;
+  @override
+  final int taxRate;
+  @override
+  final DateTime timeZone;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  final String country;
+  @override
+  final String businessUrl;
   @override
   final String hexColor;
   @override
@@ -32,9 +48,17 @@ class _$Business extends Business {
   _$Business._(
       {this.id,
       this.name,
-      this.isActive,
+      this.active,
       this.latitude,
       this.longitude,
+      this.userId,
+      this.businessTypeId,
+      this.taxRate,
+      this.timeZone,
+      this.createdAt,
+      this.updatedAt,
+      this.country,
+      this.businessUrl,
       this.hexColor,
       this.image,
       this.type,
@@ -54,9 +78,17 @@ class _$Business extends Business {
     return other is Business &&
         id == other.id &&
         name == other.name &&
-        isActive == other.isActive &&
+        active == other.active &&
         latitude == other.latitude &&
         longitude == other.longitude &&
+        userId == other.userId &&
+        businessTypeId == other.businessTypeId &&
+        taxRate == other.taxRate &&
+        timeZone == other.timeZone &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt &&
+        country == other.country &&
+        businessUrl == other.businessUrl &&
         hexColor == other.hexColor &&
         image == other.image &&
         type == other.type &&
@@ -71,10 +103,30 @@ class _$Business extends Business {
                 $jc(
                     $jc(
                         $jc(
-                            $jc($jc($jc(0, id.hashCode), name.hashCode),
-                                isActive.hashCode),
-                            latitude.hashCode),
-                        longitude.hashCode),
+                            $jc(
+                                $jc(
+                                    $jc(
+                                        $jc(
+                                            $jc(
+                                                $jc(
+                                                    $jc(
+                                                        $jc(
+                                                            $jc(
+                                                                $jc(
+                                                                    $jc(0,
+                                                                        id.hashCode),
+                                                                    name.hashCode),
+                                                                active.hashCode),
+                                                            latitude.hashCode),
+                                                        longitude.hashCode),
+                                                    userId.hashCode),
+                                                businessTypeId.hashCode),
+                                            taxRate.hashCode),
+                                        timeZone.hashCode),
+                                    createdAt.hashCode),
+                                updatedAt.hashCode),
+                            country.hashCode),
+                        businessUrl.hashCode),
                     hexColor.hashCode),
                 image.hashCode),
             type.hashCode),
@@ -86,9 +138,17 @@ class _$Business extends Business {
     return (newBuiltValueToStringHelper('Business')
           ..add('id', id)
           ..add('name', name)
-          ..add('isActive', isActive)
+          ..add('active', active)
           ..add('latitude', latitude)
           ..add('longitude', longitude)
+          ..add('userId', userId)
+          ..add('businessTypeId', businessTypeId)
+          ..add('taxRate', taxRate)
+          ..add('timeZone', timeZone)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt)
+          ..add('country', country)
+          ..add('businessUrl', businessUrl)
           ..add('hexColor', hexColor)
           ..add('image', image)
           ..add('type', type)
@@ -108,9 +168,9 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
-  bool _isActive;
-  bool get isActive => _$this._isActive;
-  set isActive(bool isActive) => _$this._isActive = isActive;
+  bool _active;
+  bool get active => _$this._active;
+  set active(bool active) => _$this._active = active;
 
   double _latitude;
   double get latitude => _$this._latitude;
@@ -119,6 +179,39 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   double _longitude;
   double get longitude => _$this._longitude;
   set longitude(double longitude) => _$this._longitude = longitude;
+
+  int _userId;
+  int get userId => _$this._userId;
+  set userId(int userId) => _$this._userId = userId;
+
+  int _businessTypeId;
+  int get businessTypeId => _$this._businessTypeId;
+  set businessTypeId(int businessTypeId) =>
+      _$this._businessTypeId = businessTypeId;
+
+  int _taxRate;
+  int get taxRate => _$this._taxRate;
+  set taxRate(int taxRate) => _$this._taxRate = taxRate;
+
+  DateTime _timeZone;
+  DateTime get timeZone => _$this._timeZone;
+  set timeZone(DateTime timeZone) => _$this._timeZone = timeZone;
+
+  DateTime _createdAt;
+  DateTime get createdAt => _$this._createdAt;
+  set createdAt(DateTime createdAt) => _$this._createdAt = createdAt;
+
+  DateTime _updatedAt;
+  DateTime get updatedAt => _$this._updatedAt;
+  set updatedAt(DateTime updatedAt) => _$this._updatedAt = updatedAt;
+
+  String _country;
+  String get country => _$this._country;
+  set country(String country) => _$this._country = country;
+
+  String _businessUrl;
+  String get businessUrl => _$this._businessUrl;
+  set businessUrl(String businessUrl) => _$this._businessUrl = businessUrl;
 
   String _hexColor;
   String get hexColor => _$this._hexColor;
@@ -142,9 +235,17 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
     if (_$v != null) {
       _id = _$v.id;
       _name = _$v.name;
-      _isActive = _$v.isActive;
+      _active = _$v.active;
       _latitude = _$v.latitude;
       _longitude = _$v.longitude;
+      _userId = _$v.userId;
+      _businessTypeId = _$v.businessTypeId;
+      _taxRate = _$v.taxRate;
+      _timeZone = _$v.timeZone;
+      _createdAt = _$v.createdAt;
+      _updatedAt = _$v.updatedAt;
+      _country = _$v.country;
+      _businessUrl = _$v.businessUrl;
       _hexColor = _$v.hexColor;
       _image = _$v.image;
       _type = _$v.type;
@@ -173,9 +274,17 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
         new _$Business._(
             id: id,
             name: name,
-            isActive: isActive,
+            active: active,
             latitude: latitude,
             longitude: longitude,
+            userId: userId,
+            businessTypeId: businessTypeId,
+            taxRate: taxRate,
+            timeZone: timeZone,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            country: country,
+            businessUrl: businessUrl,
             hexColor: hexColor,
             image: image,
             type: type,

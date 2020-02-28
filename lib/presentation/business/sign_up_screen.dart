@@ -189,7 +189,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..latitude = lat ?? 0
           ..longitude = long ?? 0
           ..abbreviation = tBusiness.name.substring(0, 2).toLowerCase()
-          ..isActive = true
+          ..active = true
           ..type = BusinessType.NORMAL,
       );
 

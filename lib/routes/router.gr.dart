@@ -33,6 +33,7 @@ import 'package:flipper/home/items/view_single_item_screen.dart';
 import 'package:flipper/home/items/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
+import 'package:flipper/home/transactions/transaction_screen.dart';
 
 class Router {
   static const splashScreen = '/';
@@ -59,6 +60,7 @@ class Router {
   static const editVariationScreen = '/editVariationScreen';
   static const editCategoryScreen = '/editCategoryScreen';
   static const editUnitType = '/editUnitType';
+  static const transactionScreen = '/transactionScreen';
   static GlobalKey<NavigatorState> get navigatorKey =>
       getNavigatorKey<Router>();
   static NavigatorState get navigator => navigatorKey.currentState;
@@ -306,6 +308,15 @@ class Router {
         return MaterialPageRoute(
           builder: (_) =>
               EditUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
+          settings: settings,
+        );
+      case Router.transactionScreen:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute(
+          builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
       default:

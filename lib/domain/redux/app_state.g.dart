@@ -79,6 +79,8 @@ class _$AppState extends AppState {
   final KeyPad keypad;
   @override
   final Item tmpItem;
+  @override
+  final CouchDbClient couchDbClient;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
       (new AppStateBuilder()..update(updates)).build();
@@ -119,7 +121,8 @@ class _$AppState extends AppState {
       this.cartQuantities,
       this.order,
       this.keypad,
-      this.tmpItem})
+      this.tmpItem,
+      this.couchDbClient})
       : super._() {
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
@@ -181,7 +184,8 @@ class _$AppState extends AppState {
         cartQuantities == other.cartQuantities &&
         order == other.order &&
         keypad == other.keypad &&
-        tmpItem == other.tmpItem;
+        tmpItem == other.tmpItem &&
+        couchDbClient == other.couchDbClient;
   }
 
   @override
@@ -204,26 +208,26 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), customCategory.hashCode), units.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode),
-                                                                                branches.hashCode),
-                                                                            businesses.hashCode),
-                                                                        branch.hashCode),
-                                                                    business.hashCode),
-                                                                hint.hashCode),
-                                                            database.hashCode),
-                                                        tempCategoryId.hashCode),
-                                                    currentUnit.hashCode),
-                                                currentColor.hashCode),
-                                            itemVariations.hashCode),
-                                        currentActiveSaleItem.hashCode),
-                                    cartItem.hashCode),
-                                items.hashCode),
-                            currentIncrement.hashCode),
-                        carts.hashCode),
-                    cartQuantities.hashCode),
-                order.hashCode),
-            keypad.hashCode),
-        tmpItem.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), customCategory.hashCode), units.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode),
+                                                                                businesses.hashCode),
+                                                                            branch.hashCode),
+                                                                        business.hashCode),
+                                                                    hint.hashCode),
+                                                                database.hashCode),
+                                                            tempCategoryId.hashCode),
+                                                        currentUnit.hashCode),
+                                                    currentColor.hashCode),
+                                                itemVariations.hashCode),
+                                            currentActiveSaleItem.hashCode),
+                                        cartItem.hashCode),
+                                    items.hashCode),
+                                currentIncrement.hashCode),
+                            carts.hashCode),
+                        cartQuantities.hashCode),
+                    order.hashCode),
+                keypad.hashCode),
+            tmpItem.hashCode),
+        couchDbClient.hashCode));
   }
 
   @override
@@ -264,7 +268,8 @@ class _$AppState extends AppState {
           ..add('cartQuantities', cartQuantities)
           ..add('order', order)
           ..add('keypad', keypad)
-          ..add('tmpItem', tmpItem))
+          ..add('tmpItem', tmpItem)
+          ..add('couchDbClient', couchDbClient))
         .toString();
   }
 }
@@ -433,6 +438,12 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ItemBuilder get tmpItem => _$this._tmpItem ??= new ItemBuilder();
   set tmpItem(ItemBuilder tmpItem) => _$this._tmpItem = tmpItem;
 
+  CouchDbClientBuilder _couchDbClient;
+  CouchDbClientBuilder get couchDbClient =>
+      _$this._couchDbClient ??= new CouchDbClientBuilder();
+  set couchDbClient(CouchDbClientBuilder couchDbClient) =>
+      _$this._couchDbClient = couchDbClient;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -473,6 +484,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _order = _$v.order?.toBuilder();
       _keypad = _$v.keypad?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
+      _couchDbClient = _$v.couchDbClient?.toBuilder();
       _$v = null;
     }
     return this;
@@ -532,7 +544,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               cartQuantities: cartQuantities,
               order: _order?.build(),
               keypad: _keypad?.build(),
-              tmpItem: _tmpItem?.build());
+              tmpItem: _tmpItem?.build(),
+              couchDbClient: _couchDbClient?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -596,6 +609,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _keypad?.build();
         _$failedField = 'tmpItem';
         _tmpItem?.build();
+        _$failedField = 'couchDbClient';
+        _couchDbClient?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'AppState', _$failedField, e.toString());

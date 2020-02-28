@@ -5,6 +5,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/util/util.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 
@@ -188,31 +189,8 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
 
-    // complete order set order to completed
-    generalRepository.updateOrder(
-      store,
-      OrderTableData(
-        branchId: store.state.order.branchId,
-        id: store.state.order.id,
-        status: "completed",
-        userId: store.state.order.userId,
-        cashReceived: action.cashReceived,
-        customerChangeDue: 0,
-        customerSaving: 0,
-        deliverDate: DateTime.now(),
-        discountAmount: 0,
-        discountRate: 0,
-        orderNote: action.note,
-        orderNUmber: 0,
-        paymentId: 0,
-        saleTotal: 0,
-        subTotal: 0,
-        supplierId: 0,
-        supplierInvoiceNumber: 0,
-        taxAmount: 0,
-        taxRate: 0,
-      ),
-    );
+    final order = await store.state.database.orderDao.getOrderById(store.state.order.id);
+    Util.updateOrder(store,order.copyWith(orderNote: action.note,cashReceived: action.cashReceived));
 
     //this will clear all state and create new order if needed.
     store.dispatch(VerifyAuthenticationState());

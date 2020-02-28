@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/branch_repository.dart';
 import 'package:flipper/data/respositories/business_repository.dart';
@@ -68,6 +69,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       return;
     }
 
+    loadClientDb(store);
     //end of streaming new order to part of apps's store
     UserTableData user = await userRepository.checkAuth(store);
 
@@ -82,295 +84,341 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     List<BranchTableData> branch = await branchRepository.getBranches(store);
 
-    List<BusinessTableData> businesses =
-        await businessRepository.getBusinesses(store);
+    final _user = User(
+      (u) => u
+        ..id = user.id
+        ..bearerToken = user.bearerToken
+        ..username = user.username
+        ..refreshToken = user.refreshToken
+        ..status = user.status
+        ..avatar = user.avatar
+        ..email = user.email,
+    );
 
-    if (businesses.length == 0 || user == null) {
-      Router.navigator.pushNamed(Router.afterSplash);
-      return;
-    } else {
-      final _user = User(
-        (u) => u
-          ..id = user.id
-          ..bearerToken = user.bearerToken
-          ..username = user.username
-          ..refreshToken = user.refreshToken
-          ..status = user.status
-          ..avatar = user.avatar
-          ..email = user.email,
-      );
+    dispatchCurrentBranchHint(branch, store);
 
-      Hint hint = Hint((b) => b
-        ..type = HintType.Branch
-        ..name = branch[0].name);
+    List<Branch> branches = buildBranchList(branch);
 
-      store.dispatch(OnHintLoaded(hint: hint));
+    List<Unit> units = buildUnitList(unitsList);
 
-      List<Branch> branches = [];
-      branch.forEach((b) => {
-            branches.add(
-              Branch(
-                (bu) => bu
-                  ..name = b.name
-                  ..id = b.id,
-              ),
-            )
-          });
+    loadProducts(items, store, unitsList);
 
-      List<Unit> units = [];
+    List<Category> categories = loadSystemCategories(categoryList);
 
-      unitsList.forEach((b) => {
-            units.add(Unit((u) => u
+    //set focused Unit
+    store.dispatch(UnitR(units));
+
+    store.dispatch(CategoryAction(categories));
+
+    store.dispatch(OnBranchLoaded(branches: branches));
+
+    store.dispatch(OnAuthenticated(user: _user));
+
+    //setActive branch.
+    dispatchCurrentBranch(branch, store);
+
+    //create app actions for saving state,or create.
+    await createAppActions(store);
+    //start by creating a draft order it it does not exist
+    await createTemporalOrder(generalRepository, store, user);
+
+    //set current active business to be used throughout the entire app transaction
+    getBusinesses(store, user);
+    //end of setting current active business.
+    // Logger.d("Successfully loaded the app");
+
+    dispatchFocusedTab(tab, store);
+
+    //end setting active branch.
+    //create custom category if does not exist
+    await createSystemCustomCategory(generalRepository, store);
+
+    //if no reason found then create app defaults reasons
+    await createSystemStockReasons(store);
+    //create custom item if does not exist
+    await Util.createCustomItem(store, "custom");
+    await generateAppColors(generalRepository, store);
+
+    _createCustomCategory(store);
+    _cleanApp(store);
+    //branch
+  };
+}
+
+void dispatchCurrentBranchHint(
+    List<BranchTableData> branch, Store<AppState> store) {
+  Hint hint = Hint((b) => b
+    ..type = HintType.Branch
+    ..name = branch[0].name);
+
+  store.dispatch(OnHintLoaded(hint: hint));
+}
+
+List<Branch> buildBranchList(List<BranchTableData> branch) {
+  List<Branch> branches = [];
+  branch.forEach((b) => {
+        branches.add(
+          Branch(
+            (bu) => bu
               ..name = b.name
-              ..branchId = b.businessId
-              ..businessId = b.businessId
-              ..focused = b.focused
-              ..id = b.id))
-          });
+              ..id = b.id,
+          ),
+        )
+      });
+  return branches;
+}
 
-      List<Category> categories = [];
-      List<Item> itemList = [];
+List<Unit> buildUnitList(List<UnitTableData> unitsList) {
+  List<Unit> units = [];
+  unitsList.forEach((b) => {
+        units.add(Unit((u) => u
+          ..name = b.name
+          ..branchId = b.businessId
+          ..businessId = b.businessId
+          ..focused = b.focused
+          ..id = b.id))
+      });
+  return units;
+}
 
-      items.forEach(
-        (i) => itemList.add(
-          Item(
-            (v) => v
-              ..name = i.name
-              ..branchId = i.branchId
-              ..unitId = i.unitId
-              ..id = i.id
-              ..color = i.color
-              ..price = 0
-              ..categoryId = i.categoryId,
+List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
+  List<Category> categories = [];
+  categoryList.forEach((c) => {
+        categories.add(
+          Category(
+            (u) => u
+              ..name = c.name
+              ..focused = c.focused
+              ..branchId = u.branchId ?? 0
+              ..id = c.id,
+          ),
+        )
+      });
+  return categories;
+}
+
+void dispatchCurrentBranch(
+    List<BranchTableData> branch, Store<AppState> store) {
+  for (var i = 0; i < branch.length; i++) {
+    if (branch[i].isActive) {
+      store.dispatch(
+        OnCurrentBranchAction(
+          branch: Branch(
+            (b) => b
+              ..id = branch[i].id
+              ..name = branch[i].name
+              ..isActive = branch[i].isActive
+              ..description = "desc",
           ),
         ),
       );
+    }
+  }
+}
 
-      store.dispatch(ItemLoaded(items: itemList));
-      unitsList.forEach((c) => {
-            if (c.focused)
-              {
-                store.dispatch(
-                  CurrentUnit(
-                    unit: Unit(
-                      (u) => u
-                        ..id = c.id
-                        ..name = c.name
-                        ..focused = c.focused
-                        ..businessId = c.businessId ?? 0
-                        ..branchId = c.branchId ?? 0,
-                    ),
-                  ),
-                )
-              }
-          });
+Future createSystemCustomCategory(
+    GeneralRepository generalRepository, Store<AppState> store) async {
+  await generalRepository.insertCustomCategory(
+    store,
+    //ignore: missing_required_param
+    CategoryTableData(
+        branchId: store.state.branch.id, focused: false, name: 'custom'),
+  );
+}
 
-      categoryList.forEach((c) => {
-            categories.add(
-              Category(
-                (u) => u
-                  ..name = c.name
-                  ..focused = c.focused
-                  ..branchId = u.branchId ?? 0
-                  ..id = c.id,
-              ),
-            )
-          });
+void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
+  final currentTab = tab == null ? 0 : tab.tab;
+  store.dispatch(
+    CurrentTab(tab: currentTab),
+  );
+}
 
-      //set focused Unit
-      store.dispatch(UnitR(units));
-
-      store.dispatch(CategoryAction(categories));
-
-      store.dispatch(OnBranchLoaded(branches: branches));
-
-      store.dispatch(OnAuthenticated(user: _user));
-
-      List<Business> businessList = [];
-      businesses.forEach((b) => {
-            businessList.add(
-              Business(
-                (bu) => bu
-                  ..id = b.id
-                  ..abbreviation = b.name
-                  ..isActive = b.isActive
-                  ..name = b.name,
-              ),
-            )
-          });
-
-      //setActive branch.
-      for (var i = 0; i < branch.length; i++) {
-        if (branch[i].isActive) {
-          store.dispatch(
-            OnCurrentBranchAction(
-              branch: Branch(
-                (b) => b
-                  ..id = branch[i].id
-                  ..name = branch[i].name
-                  ..isActive = branch[i].isActive
-                  ..description = "desc",
-              ),
-            ),
-          );
-        }
-      }
-
-      //create app actions
-      ActionsTableData action =
-          await store.state.database.actionsDao.getActionBy('save');
-
-      ActionsTableData saveItem =
-          await store.state.database.actionsDao.getActionBy('saveItem');
-      if (saveItem == null) {
-        await store.state.database.actionsDao.insert(
-            //ignore:missing_required_param
-            ActionsTableData(name: 'saveItem', isLocked: true));
-      }
-      if (action == null) {
-        await store.state.database.actionsDao.insert(
-            //ignore:missing_required_param
-            ActionsTableData(name: 'save', isLocked: true));
-      }
-      //start by creating a draft order it it does not exist
-      OrderTableData order =
-          await generalRepository.createDraftOrderOrReturnExistingOne(store);
-      //broadcast order to be used later when creating a sale
-      if (order != null) {
-        store.dispatch(
-          OrderCreated(
-            order: Order(
-              (o) => o
-                ..status = order.status
-                ..id = order.id
-                ..userId = user.id
-                ..branchId = order.branchId
-                ..orderNote = order.orderNote
-                ..orderNUmber = order.orderNUmber
-                ..supplierId = order.supplierId
-                ..subTotal = order.subTotal
-                ..discountAmount = order.discountAmount
-                ..supplierInvoiceNumber = order.supplierInvoiceNumber
-                ..deliverDate = order.deliverDate
-                ..discountRate = order.discountRate
-                ..taxRate = order.taxRate
-                ..taxAmount = order.taxAmount
-                ..cashReceived = order.cashReceived
-                ..saleTotal = order.saleTotal
-                ..userId = order.userId
-                ..customerSaving = order.customerSaving
-                ..paymentId = order.paymentId
-                ..orderNote = order.orderNote
-                ..status = order.status
-                ..customerChangeDue = order.customerChangeDue,
-            ),
-          ),
-        );
-      }
-      //set current active business to be used throughout the entire app transaction
-      for (var i = 0; i < businesses.length; i++) {
-        if (businesses[i].isActive) {
-          store.dispatch(
-            ActiveBusinessAction(
-              Business(
-                (b) => b
-                  ..id = businesses[i].id
-                  ..isActive = businesses[i].isActive
-                  ..name = businesses[i].name
-                  ..type = BusinessType.NORMAL
-                  ..hexColor = FlipperColors.defaultBusinessColor
-                  ..abbreviation = businesses[i].abbreviation
-                  ..image = "image_null",
-              ),
-            ),
-          );
-        }
-      }
-      //end of setting current active business.
-      // Logger.d("Successfully loaded the app");
-      store.dispatch(
-        OnBusinessLoaded(business: businessList),
-      );
-      final currentTab = tab == null ? 0 : tab.tab;
-      store.dispatch(
-        CurrentTab(tab: currentTab),
-      );
-
-      //end setting active branch.
-      //create custom category if does not exist
-      await generalRepository.insertCustomCategory(
+Future generateAppColors(
+    GeneralRepository generalRepository, Store<AppState> store) async {
+  List<String> colors = [
+    "#d63031",
+    "#0984e3",
+    "#e84393",
+    "#2d3436",
+    "#6c5ce7",
+    "#74b9ff",
+    "#ff7675",
+    "#a29bfe"
+  ];
+  //insert default colors for the app
+  for (var i = 0; i < 8; i++) {
+    //create default color items if does not exist
+    await generalRepository.insertOrUpdateColor(
         store,
         //ignore: missing_required_param
-        CategoryTableData(
-            branchId: store.state.branch.id, focused: false, name: 'custom'),
+        ColorTableData(isActive: false, name: colors[i]));
+  }
+}
+
+Future createSystemStockReasons(Store<AppState> store) async {
+  List<ReasonTableData> reasons =
+      await store.state.database.reasonDao.getReasons();
+  if (reasons.length == 0) {
+    await store.state.database.reasonDao.insert(
+        //ignore:missing_required_param
+        ReasonTableData(name: 'Stock Received', action: 'Received'));
+    await store.state.database.reasonDao
+        //ignore:missing_required_param
+        .insert(ReasonTableData(name: 'Lost', action: 'Lost'));
+    await store.state.database.reasonDao
+        //ignore:missing_required_param
+        .insert(ReasonTableData(name: 'Thief', action: 'Thief'));
+    await store.state.database.reasonDao
+        //ignore:missing_required_param
+        .insert(ReasonTableData(name: 'Damaged', action: 'Damaged'));
+    await store.state.database.reasonDao.insert(
+        //ignore:missing_required_param
+        ReasonTableData(name: 'Inventory Re-counted', action: 'Re-counted'));
+    await store.state.database.reasonDao.insert(
+        //ignore:missing_required_param
+        ReasonTableData(name: 'Restocked Return', action: 'Restocked Return'));
+    await store.state.database.reasonDao
+        //ignore:missing_required_param
+        .insert(ReasonTableData(name: 'Sold', action: 'Sold'));
+    await store.state.database.reasonDao.insert(
+        //ignore:missing_required_param
+        ReasonTableData(name: 'Transferred', action: 'Transferred'));
+
+    await store.state.database.reasonDao
+        //ignore:missing_required_param
+        .insert(ReasonTableData(name: 'Canceled', action: 'Canceled'));
+  }
+}
+
+void loadProducts(List<ItemTableData> items, Store<AppState> store,
+    List<UnitTableData> unitsList) {
+  List<Item> itemList = [];
+
+  items.forEach(
+    (i) => itemList.add(
+      Item(
+        (v) => v
+          ..name = i.name
+          ..branchId = i.branchId
+          ..unitId = i.unitId
+          ..id = i.id
+          ..color = i.color
+          ..price = 0
+          ..categoryId = i.categoryId,
+      ),
+    ),
+  );
+
+  store.dispatch(ItemLoaded(items: itemList));
+  unitsList.forEach((c) => {
+        if (c.focused)
+          {
+            store.dispatch(
+              CurrentUnit(
+                unit: Unit(
+                  (u) => u
+                    ..id = c.id
+                    ..name = c.name
+                    ..focused = c.focused
+                    ..businessId = c.businessId ?? 0
+                    ..branchId = c.branchId ?? 0,
+                ),
+              ),
+            )
+          }
+      });
+}
+
+Future createAppActions(Store<AppState> store) async {
+  ActionsTableData actionAction =
+      await store.state.database.actionsDao.getActionBy('save');
+
+  ActionsTableData saveItem =
+      await store.state.database.actionsDao.getActionBy('saveItem');
+  if (saveItem == null) {
+    await store.state.database.actionsDao.insert(
+        //ignore:missing_required_param
+        ActionsTableData(name: 'saveItem', isLocked: true));
+  }
+  if (actionAction == null) {
+    await store.state.database.actionsDao.insert(
+        //ignore:missing_required_param
+        ActionsTableData(name: 'save', isLocked: true));
+  }
+}
+
+Future createTemporalOrder(GeneralRepository generalRepository,
+    Store<AppState> store, UserTableData user) async {
+  OrderTableData order =
+      await generalRepository.createDraftOrderOrReturnExistingOne(store);
+  //broadcast order to be used later when creating a sale
+  if (order != null) {
+    store.dispatch(
+      OrderCreated(
+        order: Order(
+          (o) => o
+            ..status = order.status
+            ..id = order.id
+            ..userId = user.id
+            ..branchId = order.branchId
+            ..orderNote = order.orderNote
+            ..orderNUmber = order.orderNUmber
+            ..supplierId = order.supplierId
+            ..subTotal = order.subTotal
+            ..discountAmount = order.discountAmount
+            ..supplierInvoiceNumber = order.supplierInvoiceNumber
+            ..deliverDate = order.deliverDate
+            ..discountRate = order.discountRate
+            ..taxRate = order.taxRate
+            ..taxAmount = order.taxAmount
+            ..cashReceived = order.cashReceived
+            ..saleTotal = order.saleTotal
+            ..userId = order.userId
+            ..customerSaving = order.customerSaving
+            ..paymentId = order.paymentId
+            ..orderNote = order.orderNote
+            ..status = order.status
+            ..customerChangeDue = order.customerChangeDue,
+        ),
+      ),
+    );
+  }
+}
+
+void getBusinesses(Store<AppState> store, user) async {
+  List<Business> businesses = await CouchBase(shouldInitDb: false)
+      .getDocumentByDocId(docId: 'businesses', T: Business);
+
+  for (var i = 0; i < businesses.length; i++) {
+    if (businesses[i].active) {
+      store.dispatch(
+        ActiveBusinessAction(
+          Business(
+            (b) => b
+              ..id = businesses[i].id
+              ..active = businesses[i].active
+              ..name = businesses[i].name
+              ..type = BusinessType.NORMAL
+              ..hexColor = FlipperColors.defaultBusinessColor
+              ..abbreviation = businesses[i].abbreviation
+              ..image = "image_null",
+          ),
+        ),
       );
-
-      //if no reason found then create app defaults reasons
-      List<ReasonTableData> reasons =
-          await store.state.database.reasonDao.getReasons();
-      if (reasons.length == 0) {
-        await store.state.database.reasonDao.insert(
-            //ignore:missing_required_param
-            ReasonTableData(name: 'Stock Received', action: 'Received'));
-        await store.state.database.reasonDao
-            //ignore:missing_required_param
-            .insert(ReasonTableData(name: 'Lost', action: 'Lost'));
-        await store.state.database.reasonDao
-            //ignore:missing_required_param
-            .insert(ReasonTableData(name: 'Thief', action: 'Thief'));
-        await store.state.database.reasonDao
-            //ignore:missing_required_param
-            .insert(ReasonTableData(name: 'Damaged', action: 'Damaged'));
-        await store.state.database.reasonDao.insert(
-            //ignore:missing_required_param
-            ReasonTableData(
-                name: 'Inventory Re-counted', action: 'Re-counted'));
-        await store.state.database.reasonDao.insert(
-            //ignore:missing_required_param
-            ReasonTableData(
-                name: 'Restocked Return', action: 'Restocked Return'));
-        await store.state.database.reasonDao
-            //ignore:missing_required_param
-            .insert(ReasonTableData(name: 'Sold', action: 'Sold'));
-        await store.state.database.reasonDao.insert(
-            //ignore:missing_required_param
-            ReasonTableData(name: 'Transferred', action: 'Transferred'));
-
-        await store.state.database.reasonDao
-            //ignore:missing_required_param
-            .insert(ReasonTableData(name: 'Canceled', action: 'Canceled'));
-      }
-      //create custom item if does not exist
-      await Util.createCustomItem(store, "custom");
-      List<String> colors = [
-        "#d63031",
-        "#0984e3",
-        "#e84393",
-        "#2d3436",
-        "#6c5ce7",
-        "#74b9ff",
-        "#ff7675",
-        "#a29bfe"
-      ];
-      //insert default colors for the app
-      for (var i = 0; i < 8; i++) {
-        //create default color items if does not exist
-        await generalRepository.insertOrUpdateColor(
-            store,
-            //ignore: missing_required_param
-            ColorTableData(isActive: false, name: colors[i]));
-      }
-
-      _createCustomCategory(store);
-      _cleanApp(store);
-      //branch
-      if (businesses.length == 0) {
-        Router.navigator.pushNamed(Router.signUpScreen);
-      } else {
-        Router.navigator.pushNamed(Router.dashboard);
-      }
     }
-  };
+  }
+  store.dispatch(OnBusinessLoaded(business: businesses));
+  if (businesses.length == 0 || user == null) {
+    Router.navigator.pushNamed(Router.signUpScreen);
+    return;
+  } else {
+    Router.navigator.pushNamed(Router.dashboard);
+  }
+}
+
+void loadClientDb(Store<AppState> store) {
+  //todo: load db from sqlite.
+  store.dispatch(OnDbLoaded(name: 'lagrace'));
 }
 
 void _createCustomCategory(Store<AppState> store) async {
@@ -390,7 +438,7 @@ void _cleanApp(Store<AppState> store) async {
 
   if (item == null) return;
 
-  Util.deleteItem(store, item.name,item.id);
+  Util.deleteItem(store, item.name, item.id);
 }
 
 void Function(

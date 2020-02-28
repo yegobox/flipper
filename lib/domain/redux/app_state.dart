@@ -6,6 +6,7 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
+import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/item.dart';
@@ -122,6 +123,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   Item get tmpItem;
 
+  @nullable
+  CouchDbClient get couchDbClient;
   AppState._();
   factory AppState([void Function(AppStateBuilder) updates]) = _$AppState;
 

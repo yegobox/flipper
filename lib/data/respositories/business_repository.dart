@@ -9,7 +9,7 @@ class BusinessRepository {
     var bussiness = new BusinessTableData(
         name: business.name,
         userId: store.state.userId,
-        isActive: business.isActive,
+        isActive: business.active,
         abbreviation: business.abbreviation);
     return store.state.database.businessDao.insert(bussiness);
   }
