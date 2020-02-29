@@ -138,6 +138,7 @@ class CouchBase extends Model with Fluttercouch {
 
   List<User> buildUserModel(Document doc) {
     List<User> users = [];
+    if (doc.getList('users') == null) return users;
     for (var i = 0; i < doc.getList('users').length; i++) {
       users.add(User(
         (u) => u
@@ -156,7 +157,7 @@ class CouchBase extends Model with Fluttercouch {
 
   List<Business> buildBusinessModel(Document doc) {
     List<Business> business = [];
-
+    if (doc.getList('businesses') == null) return business;
     for (var i = 0; i < doc.getList('businesses').length; i++) {
       business.add(Business((b) => b
         ..name = doc.getList('businesses')[i]['name']
@@ -175,18 +176,17 @@ class CouchBase extends Model with Fluttercouch {
 
   List<Branch> buildBranchModel(Document doc) {
     List<Branch> branch = [];
-    for (var i = 0; i < doc.getList('businesses').length; i++) {
-      branch.add(
-          //todo: update a branch full.
-          Branch((b) => b
-            ..name = doc.getList('branches')[i]['name']
-            ..active = doc.getList('branches')[i]['active']
-            ..businessId = doc.getList('branches')[i]['businessId']
-            ..createdAt = doc.getList('branches')[i]['createdAt']
-            ..mapLatitude = doc.getList('branches')[i]['mapLatitude']
-            ..mapLongitude = doc.getList('branches')[i]['mapLongitude']
-            ..mapLongitude = doc.getList('branches')[i]['mapLongitude']
-            ..updatedAt = doc.getList('branches')[i]['updatedAt']));
+    if (doc.getList('branches') == null) return branch;
+    for (var i = 0; i < doc.getList('branches').length; i++) {
+      branch.add(Branch((b) => b
+        ..name = doc.getList('branches')[i]['name']
+        ..active = doc.getList('branches')[i]['active']
+        ..businessId = doc.getList('branches')[i]['businessId']
+        ..createdAt = doc.getList('branches')[i]['createdAt']
+        ..mapLatitude = doc.getList('branches')[i]['mapLatitude']
+        ..mapLongitude = doc.getList('branches')[i]['mapLongitude']
+        ..mapLongitude = doc.getList('branches')[i]['mapLongitude']
+        ..updatedAt = doc.getList('branches')[i]['updatedAt']));
     }
     return branch;
   }

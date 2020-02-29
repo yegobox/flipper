@@ -80,12 +80,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     List<CategoryTableData> categoryList =
         await generalRepository.getCategories(store);
 
-    List<BranchTableData> branch = await branchRepository.getBranches(store);
-
-    dispatchCurrentBranchHint(branch, store);
-
-    List<Branch> branches = buildBranchList(branch);
-
     List<Unit> units = buildUnitList(unitsList);
 
     loadProducts(items, store, unitsList);
@@ -95,11 +89,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     //set focused Unit
     store.dispatch(UnitR(units));
     store.dispatch(CategoryAction(categories));
-    store.dispatch(OnBranchLoaded(branches: branches));
+    await buildBranchList(store);
     User _user = await getActiveUser(store);
     store.dispatch(OnAuthenticated(user: _user));
-    //setActive branch.
-    dispatchCurrentBranch(branch, store);
     //create app actions for saving state,or create.
     await createAppActions(store);
     //start by creating a draft order it it does not exist
@@ -115,12 +107,21 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     //if no reason found then create app defaults reasons
     await createSystemStockReasons(store);
     //create custom item if does not exist
+    await createDefaultTaxes(store);
     await Util.createCustomItem(store, "custom");
     await generateAppColors(generalRepository, store);
 
     _createCustomCategory(store);
     _cleanApp(store);
   };
+}
+
+Future createDefaultTaxes(Store<AppState> store) {
+  if (store.state.branch == null) return null;
+  return store.state.database.taxDao
+      //ignore:missing_required_param
+      .insert(TaxTableData(
+          name: 'vat', value: 18, branchId: store.state.branch.id));
 }
 
 Future<User> getActiveUser(Store<AppState> store) async {
@@ -132,30 +133,39 @@ Future<User> getActiveUser(Store<AppState> store) async {
       user = users[i];
     }
   }
+
   store.dispatch(WithUsers(users: users));
   return user;
 }
 
-void dispatchCurrentBranchHint(
-    List<BranchTableData> branch, Store<AppState> store) {
-  Hint hint = Hint((b) => b
-    ..type = HintType.Branch
-    ..name = branch[0].name);
+Future<List<Branch>> buildBranchList(store) async {
+  List<Branch> branches = await CouchBase(shouldInitDb: false)
+      .getDocumentByDocId(docId: 'branches', T: Branch);
 
-  store.dispatch(OnHintLoaded(hint: hint));
-}
-
-List<Branch> buildBranchList(List<BranchTableData> branch) {
-  List<Branch> branches = [];
-  branch.forEach((b) => {
-        branches.add(
-          Branch(
-            (bu) => bu
-              ..name = b.name
-              ..id = b.id,
-          ),
-        )
-      });
+  for (var i = 0; i < branches.length; i++) {
+    if (branches[i].active) {
+      //set current active branch
+      store.dispatch(
+        OnCurrentBranchAction(
+          branch: Branch((b) => b
+            ..name = branches[i].name
+            ..active = branches[i].active
+            ..businessId = branches[i].businessId
+            ..createdAt = branches[i].createdAt
+            ..mapLatitude = branches[i].mapLatitude
+            ..mapLongitude = branches[i].mapLongitude
+            ..mapLongitude = branches[i].mapLongitude
+            ..updatedAt = branches[i].updatedAt),
+        ),
+      );
+      //set branch hint
+      Hint hint = Hint((b) => b
+        ..type = HintType.Branch
+        ..name = branches[i].name);
+      store.dispatch(OnHintLoaded(hint: hint));
+    }
+  }
+  store.dispatch(OnBranchLoaded(branches: branches));
   return branches;
 }
 
@@ -164,8 +174,9 @@ List<Unit> buildUnitList(List<UnitTableData> unitsList) {
   unitsList.forEach((b) => {
         units.add(Unit((u) => u
           ..name = b.name
-          ..branchId = b.businessId
-          ..businessId = b.businessId
+          ..branchId =
+              1 //todo: put default now, discuss more if we still need referencing as we are now in noSQL
+          ..businessId = 1
           ..focused = b.focused
           ..id = b.id))
       });
@@ -188,27 +199,9 @@ List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
   return categories;
 }
 
-void dispatchCurrentBranch(
-    List<BranchTableData> branch, Store<AppState> store) {
-  for (var i = 0; i < branch.length; i++) {
-    if (branch[i].isActive) {
-      store.dispatch(
-        OnCurrentBranchAction(
-          branch: Branch(
-            (b) => b
-              ..id = branch[i].id
-              ..name = branch[i].name
-              ..active = branch[i].isActive
-              ..description = "desc",
-          ),
-        ),
-      );
-    }
-  }
-}
-
 Future createSystemCustomCategory(
     GeneralRepository generalRepository, Store<AppState> store) async {
+  if (store.state.branch == null) return;
   await generalRepository.insertCustomCategory(
     store,
     //ignore: missing_required_param
@@ -340,6 +333,8 @@ Future createAppActions(Store<AppState> store) async {
 
 Future createTemporalOrder(GeneralRepository generalRepository,
     Store<AppState> store, User user) async {
+  if (store.state.branch == null) return;
+  if (store.state.user == null) return;
   OrderTableData order =
       await generalRepository.createDraftOrderOrReturnExistingOne(store);
   //broadcast order to be used later when creating a sale
@@ -413,6 +408,7 @@ void loadClientDb(Store<AppState> store) {
 }
 
 void _createCustomCategory(Store<AppState> store) async {
+  if (store.state.branch == null) return null;
   CategoryTableData category = await store.state.database.categoryDao
       .getCategoryNameAndBranch("custom", store.state.branch.id);
   if (category == null) {
@@ -424,6 +420,7 @@ void _createCustomCategory(Store<AppState> store) async {
 }
 
 void _cleanApp(Store<AppState> store) async {
+  if (store.state.branch == null) return null;
   ItemTableData item = await store.state.database.itemDao
       .getItemByName(name: 'tmp', branchId: store.state.branch.id);
 

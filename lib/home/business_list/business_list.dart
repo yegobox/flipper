@@ -100,12 +100,17 @@ class _BusinessListState extends State<BusinessList> {
       child: Padding(
         padding:
             const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
-        child: _GroupButton(data, (business) {
-          StoreProvider.of<AppState>(context)
-              .dispatch(NextActiveBussiness(business));
-          StoreProvider.of<AppState>(context)
-              .dispatch(SetActiveBusiness(business));
-        }, onClick, hasNotification),
+        child: _GroupButton(
+          data,
+          (business) {
+            StoreProvider.of<AppState>(context)
+                .dispatch(NextActiveBussiness(business));
+            StoreProvider.of<AppState>(context)
+                .dispatch(SetActiveBusiness(business));
+          },
+          onClick,
+          hasNotification,
+        ),
       ),
     );
   }

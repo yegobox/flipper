@@ -102,6 +102,7 @@ class Util {
   }
 
   static Future createCustomItem(Store<AppState> store, String itemName) async {
+    if (store.state.branch == null) return null;
     CategoryTableData category = await store.state.database.categoryDao
         .getCategoryNameAndBranch("custom", store.state.branch.id);
 
