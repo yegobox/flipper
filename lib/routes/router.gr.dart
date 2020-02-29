@@ -33,6 +33,7 @@ import 'package:flipper/home/items/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/transactions/transaction_screen.dart';
+import 'package:flipper/presentation/login/custom_web_view.dart';
 
 class Router {
   static const splashScreen = '/';
@@ -60,6 +61,7 @@ class Router {
   static const editCategoryScreen = '/edit-category-screen';
   static const editUnitType = '/edit-unit-type';
   static const transactionScreen = '/transaction-screen';
+  static const webView = '/web-view';
   static const _guardedRoutes = const {};
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -106,13 +108,18 @@ class Router {
           fullscreenDialog: true,
         );
       case Router.signUpScreen:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
+        if (hasInvalidArgs<SignUpScreenArguments>(args)) {
+          return misTypedArgsRoute<SignUpScreenArguments>(args);
         }
-        final typedArgs = args as Key;
+        final typedArgs =
+            args as SignUpScreenArguments ?? SignUpScreenArguments();
         return PageRouteBuilder<dynamic>(
-          pageBuilder: (ctx, animation, secondaryAnimation) =>
-              SignUpScreen(key: typedArgs),
+          pageBuilder: (ctx, animation, secondaryAnimation) => SignUpScreen(
+              key: typedArgs.key,
+              token: typedArgs.token,
+              email: typedArgs.email,
+              name: typedArgs.name,
+              avatar: typedArgs.avatar),
           settings: settings,
           transitionsBuilder: TransitionsBuilders.slideLeft,
           transitionDuration: Duration(milliseconds: 200),
@@ -318,6 +325,17 @@ class Router {
           builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
+      case Router.webView:
+        if (hasInvalidArgs<CustomWebViewArguments>(args)) {
+          return misTypedArgsRoute<CustomWebViewArguments>(args);
+        }
+        final typedArgs =
+            args as CustomWebViewArguments ?? CustomWebViewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => CustomWebView(key: typedArgs.key, url: typedArgs.url),
+          settings: settings,
+          fullscreenDialog: true,
+        );
       default:
         return unknownRoutePage(settings.name);
     }
@@ -327,6 +345,17 @@ class Router {
 //**************************************************************************
 // Arguments holder classes
 //***************************************************************************
+
+//SignUpScreen arguments holder class
+class SignUpScreenArguments {
+  final Key key;
+  final String token;
+  final String email;
+  final String name;
+  final String avatar;
+  SignUpScreenArguments(
+      {this.key, this.token, this.email, this.name, this.avatar});
+}
 
 //AddVariationScreen arguments holder class
 class AddVariationScreenArguments {
@@ -405,4 +434,11 @@ class EditUnitTypeScreenArguments {
   final Key key;
   final int itemId;
   EditUnitTypeScreenArguments({this.key, @required this.itemId});
+}
+
+//CustomWebView arguments holder class
+class CustomWebViewArguments {
+  final Key key;
+  final String url;
+  CustomWebViewArguments({this.key, this.url});
 }

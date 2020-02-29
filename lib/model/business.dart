@@ -40,8 +40,6 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   String get image;
   @nullable
   BusinessType get type;
-  @nullable
-  String get abbreviation;
 
   Business._();
 

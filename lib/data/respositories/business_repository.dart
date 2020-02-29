@@ -7,20 +7,17 @@ class BusinessRepository {
   Future<int> insertBusiness(Store<AppState> store, Business business) {
     //ignore:missing_required_param
     var bussiness = new BusinessTableData(
-        name: business.name,
-        userId: store.state.userId,
-        isActive: business.active,
-        abbreviation: business.abbreviation);
+      name: business.name,
+      userId: store.state.userId,
+      isActive: business.active,
+    );
     return store.state.database.businessDao.insert(bussiness);
   }
 
   Future<bool> update(Store<AppState> store, Business business,
       {bool active = false}) {
     final b = BusinessTableData(
-        name: business.name,
-        id: business.id,
-        abbreviation: business.abbreviation,
-        isActive: active);
+        name: business.name, id: business.id, isActive: active);
     return store.state.database.businessDao.updateBusiness(b);
   }
 

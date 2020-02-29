@@ -3,6 +3,8 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import 'package:query_params/query_params.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AfterSplash extends StatelessWidget {
   @override
@@ -53,8 +55,25 @@ class AfterSplash extends StatelessWidget {
                       width: 380,
                       height: 60,
                       child: FlatButton(
-                        onPressed: () {
-                          Router.navigator.pushNamed(Router.signUpScreen);
+                        onPressed: () async {
+                          //todo: build params and got to yegobox server for login set callback to flipper.
+                          URLQueryParams query = new URLQueryParams();
+                          query.append('client_id', "49");
+                          query.append('redirect_uri',
+                              "https://test.flipper.rw/auth/callback");
+                          query.append('response_type', "code");
+                          query.append('scope', "");
+                          query.append('state', "");
+                          var url =
+                              'https://test.yegobox.com/oauth/authorize?' +
+                                  query.toString();
+                          if (await canLaunch(url)) {
+                            //await launch(url);
+                            Router.navigator.pushNamed(Router.webView,
+                                arguments: CustomWebViewArguments(url: url));
+                          } else {
+                            throw 'Could not launch $url';
+                          }
                         },
                         color: Colors.blue,
                         child: Text(
@@ -95,7 +114,14 @@ class AfterSplash extends StatelessWidget {
                           S.of(context).learnaboutFlipper,
                           style: TextStyle(color: Colors.black54, fontSize: 20),
                         ),
-                        onPressed: () {},
+                        onPressed: () async {
+                          var url = 'https://yegobox.com';
+                          if (await canLaunch(url)) {
+                            await launch(url);
+                          } else {
+                            throw 'Could not launch $url';
+                          }
+                        },
                       ),
                     ),
                   )

@@ -386,7 +386,6 @@ void getBusinesses(Store<AppState> store, user) async {
               ..name = businesses[i].name
               ..type = BusinessType.NORMAL
               ..hexColor = FlipperColors.defaultBusinessColor
-              ..abbreviation = businesses[i].abbreviation
               ..image = "image_null",
           ),
         ),

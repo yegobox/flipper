@@ -111,7 +111,6 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
     StoreProvider.of<AppState>(context).dispatch(ResetAppAction());
     final business = Business((b) => b
       ..name = tBusiness.name
-      ..abbreviation = tBusiness.name.substring(1, 2)
       ..hexColor = "#f5a623"
       ..type = BusinessType.NORMAL);
     StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));

@@ -16,8 +16,6 @@ class _$User extends User {
   @override
   final String name;
   @override
-  final String status;
-  @override
   final String role;
   @override
   final String permissions;
@@ -36,7 +34,6 @@ class _$User extends User {
       this.email,
       this.active,
       this.name,
-      this.status,
       this.role,
       this.permissions,
       this.createdAt,
@@ -78,7 +75,6 @@ class _$User extends User {
         email == other.email &&
         active == other.active &&
         name == other.name &&
-        status == other.status &&
         role == other.role &&
         permissions == other.permissions &&
         createdAt == other.createdAt &&
@@ -94,11 +90,9 @@ class _$User extends User {
                 $jc(
                     $jc(
                         $jc(
-                            $jc(
-                                $jc($jc($jc(0, id.hashCode), email.hashCode),
-                                    active.hashCode),
-                                name.hashCode),
-                            status.hashCode),
+                            $jc($jc($jc(0, id.hashCode), email.hashCode),
+                                active.hashCode),
+                            name.hashCode),
                         role.hashCode),
                     permissions.hashCode),
                 createdAt.hashCode),
@@ -113,7 +107,6 @@ class _$User extends User {
           ..add('email', email)
           ..add('active', active)
           ..add('name', name)
-          ..add('status', status)
           ..add('role', role)
           ..add('permissions', permissions)
           ..add('createdAt', createdAt)
@@ -141,10 +134,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
   String _name;
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
-
-  String _status;
-  String get status => _$this._status;
-  set status(String status) => _$this._status = status;
 
   String _role;
   String get role => _$this._role;
@@ -174,7 +163,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
       _email = _$v.email;
       _active = _$v.active;
       _name = _$v.name;
-      _status = _$v.status;
       _role = _$v.role;
       _permissions = _$v.permissions;
       _createdAt = _$v.createdAt;
@@ -206,7 +194,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
             email: email,
             active: active,
             name: name,
-            status: status,
             role: role,
             permissions: permissions,
             createdAt: createdAt,

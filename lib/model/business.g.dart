@@ -39,8 +39,6 @@ class _$Business extends Business {
   final String image;
   @override
   final BusinessType type;
-  @override
-  final String abbreviation;
 
   factory _$Business([void Function(BusinessBuilder) updates]) =>
       (new BusinessBuilder()..update(updates)).build();
@@ -61,8 +59,7 @@ class _$Business extends Business {
       this.businessUrl,
       this.hexColor,
       this.image,
-      this.type,
-      this.abbreviation})
+      this.type})
       : super._();
 
   @override
@@ -91,8 +88,7 @@ class _$Business extends Business {
         businessUrl == other.businessUrl &&
         hexColor == other.hexColor &&
         image == other.image &&
-        type == other.type &&
-        abbreviation == other.abbreviation;
+        type == other.type;
   }
 
   @override
@@ -112,25 +108,23 @@ class _$Business extends Business {
                                                     $jc(
                                                         $jc(
                                                             $jc(
-                                                                $jc(
-                                                                    $jc(0,
-                                                                        id.hashCode),
-                                                                    name.hashCode),
-                                                                active.hashCode),
-                                                            latitude.hashCode),
-                                                        longitude.hashCode),
-                                                    userId.hashCode),
-                                                businessTypeId.hashCode),
-                                            taxRate.hashCode),
-                                        timeZone.hashCode),
-                                    createdAt.hashCode),
-                                updatedAt.hashCode),
-                            country.hashCode),
-                        businessUrl.hashCode),
-                    hexColor.hashCode),
-                image.hashCode),
-            type.hashCode),
-        abbreviation.hashCode));
+                                                                $jc(0,
+                                                                    id.hashCode),
+                                                                name.hashCode),
+                                                            active.hashCode),
+                                                        latitude.hashCode),
+                                                    longitude.hashCode),
+                                                userId.hashCode),
+                                            businessTypeId.hashCode),
+                                        taxRate.hashCode),
+                                    timeZone.hashCode),
+                                createdAt.hashCode),
+                            updatedAt.hashCode),
+                        country.hashCode),
+                    businessUrl.hashCode),
+                hexColor.hashCode),
+            image.hashCode),
+        type.hashCode));
   }
 
   @override
@@ -151,8 +145,7 @@ class _$Business extends Business {
           ..add('businessUrl', businessUrl)
           ..add('hexColor', hexColor)
           ..add('image', image)
-          ..add('type', type)
-          ..add('abbreviation', abbreviation))
+          ..add('type', type))
         .toString();
   }
 }
@@ -225,10 +218,6 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   BusinessType get type => _$this._type;
   set type(BusinessType type) => _$this._type = type;
 
-  String _abbreviation;
-  String get abbreviation => _$this._abbreviation;
-  set abbreviation(String abbreviation) => _$this._abbreviation = abbreviation;
-
   BusinessBuilder();
 
   BusinessBuilder get _$this {
@@ -249,7 +238,6 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
       _hexColor = _$v.hexColor;
       _image = _$v.image;
       _type = _$v.type;
-      _abbreviation = _$v.abbreviation;
       _$v = null;
     }
     return this;
@@ -287,8 +275,7 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
             businessUrl: businessUrl,
             hexColor: hexColor,
             image: image,
-            type: type,
-            abbreviation: abbreviation);
+            type: type);
     replace(_$result);
     return _$result;
   }

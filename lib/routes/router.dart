@@ -22,6 +22,7 @@ import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/presentation/business/create_business_screen.dart';
 import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/home/dash_board.dart';
+import 'package:flipper/presentation/login/custom_web_view.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
@@ -96,4 +97,7 @@ class $Router {
   EditUnitTypeScreen editUnitType;
 
   TransactionScreen transactionScreen;
+
+  @MaterialRoute(fullscreenDialog: true)
+  CustomWebView webView;
 }

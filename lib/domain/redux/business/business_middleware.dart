@@ -82,7 +82,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       }
       final updated = Business((b) => b
         ..id = store.state.nextActiveBusiness.id
-        ..abbreviation = store.state.nextActiveBusiness.abbreviation
         ..name = store.state.nextActiveBusiness.name
         ..longitude = b.longitude
         ..latitude = b.latitude

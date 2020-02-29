@@ -13,8 +13,6 @@ abstract class User implements Built<User, UserBuilder> {
 
   String get name;
 
-  @nullable
-  String get status;
   String get role;
   String get permissions;
   String get createdAt;
@@ -22,7 +20,6 @@ abstract class User implements Built<User, UserBuilder> {
 
   @nullable
   String get token;
-
 
   User._();
 

@@ -23,8 +23,12 @@ class TBusiness {
 }
 
 class SignUpScreen extends StatefulWidget {
-  SignUpScreen({Key key}) : super(key: key);
-
+  SignUpScreen({Key key, this.token, this.email, this.name, this.avatar})
+      : super(key: key);
+  final String token;
+  final String email;
+  final String name;
+  final String avatar;
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
@@ -108,26 +112,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         width: 300,
                         child: TextFormField(
                           keyboardType: TextInputType.emailAddress,
+                          initialValue: widget.email,
+                          enabled: false,
                           style: TextStyle(color: Colors.black),
-                          validator: Validators.isEmailValid,
                           onChanged: (email) {
                             tBusiness.email = email;
                           },
                           decoration: InputDecoration(hintText: "Email"),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                      child: Container(
-                        width: 300,
-                        child: TextFormField(
-                          obscureText: true,
-                          style: TextStyle(color: Colors.black),
-                          onChanged: (password) {
-                            tBusiness.password = password;
-                          },
-                          decoration: InputDecoration(hintText: "Password"),
                         ),
                       ),
                     ),
@@ -188,18 +179,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..name = tBusiness.name
           ..latitude = lat ?? 0
           ..longitude = long ?? 0
-          ..abbreviation = tBusiness.name.substring(0, 2).toLowerCase()
           ..active = true
           ..type = BusinessType.NORMAL,
       );
 
-      //todo: get the info should be filled in form from yegobox i.e we don't have password field here.
       User user = User(
         (user) => user
-          ..email = tBusiness.email
-          ..status = "online"
-          ..token = "none"
-          ..name = tBusiness.name,
+          ..email = widget.email
+          ..token = widget.token
+          ..name = widget.name,
       );
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(WithUser(user));

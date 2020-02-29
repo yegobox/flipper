@@ -8,7 +8,6 @@ class UserRepository {
     //ignore:missing_required_param
     var u = new UserTableData(
         email: user.email,
-        status: user.status,
         username: user.name,
         bearerToken: user.token,
         refreshToken: user.token);
