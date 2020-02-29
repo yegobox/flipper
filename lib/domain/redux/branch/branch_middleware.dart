@@ -6,10 +6,8 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/util/util.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 
@@ -76,21 +74,19 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         BranchRepository branchRepo, GeneralRepository generalRepository) {
   return (store, action, next) async {
     store.dispatch(ResetAppAction());
-    final branch = Branch(
-      (b) => b
-        ..name = store.state.business.name
-        ..active = true,
-    );
-    final branchId = await branchRepo.insertBranch(store, branch);
+
+    //final branchId = await branchRepo.insertBranch(store, branch);
     //create tax for this branch
-    await store.state.database.taxDao.insert(
-        // ignore: missing_required_param
-        TaxTableData(branchId: branchId, name: 'vat', value: 18.0));
-    await store.state.database.taxDao.insert(
-        // ignore: missing_required_param
-        TaxTableData(branchId: branchId, name: 'none', value: 0.0));
-    await Util.getActiveBranch(store, branchId);
-    setUnits(store, branchId, generalRepository);
+    Map map = {
+      'active': true,
+      '_id': 'branches',
+      'businessId': 1,
+      'mapLatitude': '', //todo:get it from a store that is updated regulary
+      'mapLongitude': '',
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+    store.state.couch.createBranch(map);
     store.dispatch(VerifyAuthenticationState());
   };
 }

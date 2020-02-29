@@ -23,8 +23,6 @@ abstract class User implements Built<User, UserBuilder> {
   @nullable
   String get token;
 
-  @nullable
-  String get avatar;
 
   User._();
 

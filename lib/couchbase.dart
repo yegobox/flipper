@@ -27,22 +27,64 @@ class CouchBase extends Model with Fluttercouch {
     }
   }
 
-  //create user
-  createUser(Map map) {
-    assert(map['last_name'] != null);
-    assert(map['daily_target'] != null);
+  //create a branch
+  createBranch(Map map) {
     assert(map['name'] != null);
-    assert(map['last_name'] != null);
-    assert(map['last_name'] != null);
-    assert(map['weekly_target'] != null);
-    assert(map['personalToken'] != null);
-    assert(map['last_active'] != null);
-    assert(map['email'] != null);
+    assert(map['active'] != null);
+    assert(map['businessId'] != null);
+    assert(map['mapLatitude'] != null);
+    assert(map['mapLongitude'] != null);
+    assert(map['id'] != null);
+    assert(map['updatedAt'] != null);
+    assert(map['userId'] != null);
+    assert(map['_id'] != null);
     map.forEach((k, v) {
       _doc.setString(k, v);
     });
     //this can be used for update.
-    saveDocumentWithId(map['email'], _doc);
+    saveDocumentWithId(map['_id'], _doc);
+  }
+
+  //create business.
+  createBusiness(Map map) {
+    assert(map['name'] != null);
+    assert(map['active'] != null);
+    assert(map['businessCategoryId'] != null);
+    assert(map['businessTypeId'] != null);
+    assert(map['businessUrl'] != null);
+    assert(map['country'] != null);
+    assert(map['currency'] != null);
+    assert(map['id'] != null);
+    assert(map['taxRate'] != null);
+    assert(map['timeZone'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['updatedAt'] != null);
+    assert(map['userId'] != null);
+    assert(map['_id'] != null);
+    map.forEach((k, v) {
+      _doc.setString(k, v);
+    });
+    //this can be used for update.
+    saveDocumentWithId(map['_id'], _doc);
+  }
+
+  //create user
+  createUser(Map map) {
+    assert(map['_id'] != null);
+    assert(map['name'] != null);
+    assert(map['role'] != null);
+    assert(map['permissions'] != null);
+    assert(map['token'] != null);
+    assert(map['active'] != null);
+    assert(map['email'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['updatedAt'] != null);
+
+    map.forEach((k, v) {
+      _doc.setString(k, v);
+    });
+    //this can be used for update.
+    saveDocumentWithId(map['_id'], _doc);
   }
 
   //sampleCode
@@ -82,22 +124,6 @@ class CouchBase extends Model with Fluttercouch {
     return true;
   }
 
-  //create business.
-  createOrUpdateBusiness(Map map) {
-    //todo: take existing list of business, then modify the business I want from a list
-    //todo: then re-post it with the same key.
-    //todo: get existing business add another one then save with same doc Id.
-    assert(map['name'] != null);
-    assert(map['userId'] != null);
-    map.forEach((k, v) {
-      _doc.setString(k, v);
-    });
-    //this can be used for update.
-    saveDocumentWithId(map['email'], _doc);
-  }
-
-  //branches
-  static createBranch(String name, int businessId) {}
   //return stream of branches
   static getBranches(int userId) {}
 
@@ -106,21 +132,19 @@ class CouchBase extends Model with Fluttercouch {
       await initDatabaseWithName("lagrace");
 
       //todo: enable this sync replication when user has paid.
-      setReplicatorEndpoint(
-          "ws://enexus.rw:4984/lagrace"); //todo: move this to credential file to avoid security breach
-      setReplicatorType("PUSH_AND_PULL");
-      setReplicatorBasicAuthentication(<String, String>{
-        "username":
-            "Administrator", //todo: move this to credential file to avoid security breach
-        "password":
-            "password" //todo: move this to credential file to avoid security breach
-      });
-      setReplicatorContinuous(true);
-      initReplicator();
-      startReplicator();
+//      setReplicatorEndpoint(
+//          "ws://enexus.rw:4984/lagrace"); //todo: move this to credential file to avoid security breach
+//      setReplicatorType("PUSH_AND_PULL");
+//      setReplicatorBasicAuthentication(<String, String>{
+//        "username":
+//            "Administrator", //todo: move this to credential file to avoid security breach
+//        "password":
+//            "password" //todo: move this to credential file to avoid security breach
+//      });
+//      setReplicatorContinuous(true);
+//      initReplicator();
+//      startReplicator();
 
-      notifyListeners();
-      MutableDocument _doc = MutableDocument();
     } on PlatformException {}
   }
 

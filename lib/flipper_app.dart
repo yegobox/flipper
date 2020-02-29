@@ -1,7 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/respositories/branch_repository.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/app_action_middleware.dart';
@@ -17,7 +16,6 @@ import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
-import 'package:scoped_model/scoped_model.dart';
 
 import 'data/respositories/business_repository.dart';
 import 'data/respositories/user_repository.dart';
@@ -102,19 +100,16 @@ class _FlipperAppState extends State<FlipperApp> {
   Widget build(BuildContext context) {
     return StoreProvider(
       store: store,
-      child: ScopedModel<CouchBase>(
-        model: CouchBase(shouldInitDb: true),
-        child: MaterialApp(
-          navigatorObservers: <NavigatorObserver>[observer],
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: [S.delegate],
-          supportedLocales: S.delegate.supportedLocales,
-          title: "Flipper",
-          theme: AppTheme.theme,
-          navigatorKey: Router.navigatorKey,
-          initialRoute: Router.splashScreen,
-          onGenerateRoute: Router.onGenerateRoute,
-        ),
+      child: MaterialApp(
+        navigatorObservers: <NavigatorObserver>[observer],
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [S.delegate],
+        supportedLocales: S.delegate.supportedLocales,
+        title: "Flipper",
+        theme: AppTheme.theme,
+        navigatorKey: Router.navigator.key,
+        initialRoute: Router.splashScreen,
+        onGenerateRoute: Router.onGenerateRoute,
       ),
     );
   }

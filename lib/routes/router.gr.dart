@@ -6,14 +6,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:auto_route/router_utils.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
 import 'package:flipper/presentation/home/dash_board.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/home/add_note_screen.dart';
 import 'package:flipper/home/setting_up_application_screen.dart';
 import 'package:flipper/presentation/business/sign_up_screen.dart';
-import 'package:auto_route/transitions_builders.dart';
 import 'package:flipper/presentation/business/create_business_screen.dart';
 import 'package:flipper/home/add_item_screen.dart';
 import 'package:flipper/home/edit_item_title.dart';
@@ -38,33 +37,31 @@ import 'package:flipper/home/transactions/transaction_screen.dart';
 class Router {
   static const splashScreen = '/';
   static const dashboard = '/dashboard';
-  static const afterSplash = '/afterSplash';
-  static const addNoteScreen = '/addNoteScreen';
-  static const settingUpApplicationScreen = '/settingUpApplicationScreen';
-  static const signUpScreen = '/signUpScreen';
-  static const createBusiness = '/createBusiness';
-  static const addItemScreen = '/addItemScreen';
-  static const editItemTitle = '/editItemTitle';
-  static const takePictureScreen = '/takePictureScreen';
-  static const addVariationScreen = '/addVariationScreen';
-  static const addUnitType = '/addUnitType';
-  static const addCategoryScreen = '/addCategoryScreen';
-  static const createCategoryInputScreen = '/createCategoryInputScreen';
-  static const receiveStock = '/receiveStock';
-  static const editQuantityItemScreen = '/editQuantityItemScreen';
-  static const cartDetailsScreen = '/cartDetailsScreen';
-  static const allItemScreen = '/allItemScreen';
-  static const viewItemsScreen = '/viewItemsScreen';
+  static const afterSplash = '/after-splash';
+  static const addNoteScreen = '/add-note-screen';
+  static const settingUpApplicationScreen = '/setting-up-application-screen';
+  static const signUpScreen = '/sign-up-screen';
+  static const createBusiness = '/create-business';
+  static const addItemScreen = '/add-item-screen';
+  static const editItemTitle = '/edit-item-title';
+  static const takePictureScreen = '/take-picture-screen';
+  static const addVariationScreen = '/add-variation-screen';
+  static const addUnitType = '/add-unit-type';
+  static const addCategoryScreen = '/add-category-screen';
+  static const createCategoryInputScreen = '/create-category-input-screen';
+  static const receiveStock = '/receive-stock';
+  static const editQuantityItemScreen = '/edit-quantity-item-screen';
+  static const cartDetailsScreen = '/cart-details-screen';
+  static const allItemScreen = '/all-item-screen';
+  static const viewItemsScreen = '/view-items-screen';
   static const login = '/login';
-  static const viewSingleItem = '/viewSingleItem';
-  static const editVariationScreen = '/editVariationScreen';
-  static const editCategoryScreen = '/editCategoryScreen';
-  static const editUnitType = '/editUnitType';
-  static const transactionScreen = '/transactionScreen';
-  static GlobalKey<NavigatorState> get navigatorKey =>
-      getNavigatorKey<Router>();
-  static NavigatorState get navigator => navigatorKey.currentState;
-
+  static const viewSingleItem = '/view-single-item';
+  static const editVariationScreen = '/edit-variation-screen';
+  static const editCategoryScreen = '/edit-category-screen';
+  static const editUnitType = '/edit-unit-type';
+  static const transactionScreen = '/transaction-screen';
+  static const _guardedRoutes = const {};
+  static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
     switch (settings.name) {
@@ -73,7 +70,7 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => SplashScreen(key: typedArgs),
           settings: settings,
         );
@@ -82,12 +79,12 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => DashBoard(key: typedArgs),
           settings: settings,
         );
       case Router.afterSplash:
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => AfterSplash(),
           settings: settings,
           fullscreenDialog: true,
@@ -97,13 +94,13 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => AddNoteScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
       case Router.settingUpApplicationScreen:
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => SettingUpApplicationScreen(),
           settings: settings,
           fullscreenDialog: true,
@@ -113,17 +110,19 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return PageRouteBuilder(
+        return PageRouteBuilder<dynamic>(
           pageBuilder: (ctx, animation, secondaryAnimation) =>
               SignUpScreen(key: typedArgs),
           settings: settings,
+          transitionsBuilder: TransitionsBuilders.slideLeft,
+          transitionDuration: Duration(milliseconds: 200),
         );
       case Router.createBusiness:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => CreateBusinessScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
@@ -133,7 +132,7 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => AddItemScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
@@ -143,24 +142,24 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => EditItemTitle(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
       case Router.takePictureScreen:
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => TakePictureScreen(),
           settings: settings,
           fullscreenDialog: true,
         );
       case Router.addVariationScreen:
-        if (hasInvalidArgs<AddVariationScreenArguments>(args)) {
+        if (hasInvalidArgs<AddVariationScreenArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<AddVariationScreenArguments>(args);
         }
-        final typedArgs = args as AddVariationScreenArguments ??
-            AddVariationScreenArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as AddVariationScreenArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) => AddVariationScreen(
               key: typedArgs.key,
               regularRetailPrice: typedArgs.regularRetailPrice,
@@ -174,7 +173,7 @@ class Router {
         }
         final typedArgs =
             args as AddUnitTypeScreenArguments ?? AddUnitTypeScreenArguments();
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) =>
               AddUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
@@ -185,7 +184,7 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => AddCategoryScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
@@ -195,29 +194,29 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => CreateCategoryInputScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
       case Router.receiveStock:
-        if (hasInvalidArgs<ReceiveStockScreenArguments>(args)) {
+        if (hasInvalidArgs<ReceiveStockScreenArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<ReceiveStockScreenArguments>(args);
         }
-        final typedArgs = args as ReceiveStockScreenArguments ??
-            ReceiveStockScreenArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as ReceiveStockScreenArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) => ReceiveStockScreen(
               key: typedArgs.key, variationId: typedArgs.variationId),
           settings: settings,
         );
       case Router.editQuantityItemScreen:
-        if (hasInvalidArgs<ChangeQuantityForSellingArguments>(args)) {
+        if (hasInvalidArgs<ChangeQuantityForSellingArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<ChangeQuantityForSellingArguments>(args);
         }
-        final typedArgs = args as ChangeQuantityForSellingArguments ??
-            ChangeQuantityForSellingArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as ChangeQuantityForSellingArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) => ChangeQuantityForSelling(
               key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
@@ -229,7 +228,7 @@ class Router {
         }
         final typedArgs =
             args as CartDetailsScreenArguments ?? CartDetailsScreenArguments();
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) =>
               CartDetailsScreen(key: typedArgs.key, carts: typedArgs.carts),
           settings: settings,
@@ -240,7 +239,7 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => AllItemScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
@@ -250,22 +249,22 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => ViewItemsScreen(key: typedArgs),
           settings: settings,
         );
       case Router.login:
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => LoginScreen(),
           settings: settings,
         );
       case Router.viewSingleItem:
-        if (hasInvalidArgs<ViewSingleItemScreenArguments>(args)) {
+        if (hasInvalidArgs<ViewSingleItemScreenArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<ViewSingleItemScreenArguments>(args);
         }
-        final typedArgs = args as ViewSingleItemScreenArguments ??
-            ViewSingleItemScreenArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as ViewSingleItemScreenArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) => ViewSingleItemScreen(
               key: typedArgs.key,
               itemId: typedArgs.itemId,
@@ -275,12 +274,12 @@ class Router {
           fullscreenDialog: true,
         );
       case Router.editVariationScreen:
-        if (hasInvalidArgs<EditVariationScreenArguments>(args)) {
+        if (hasInvalidArgs<EditVariationScreenArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<EditVariationScreenArguments>(args);
         }
-        final typedArgs = args as EditVariationScreenArguments ??
-            EditVariationScreenArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as EditVariationScreenArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) => EditVariationScreen(
               key: typedArgs.key,
               variationId: typedArgs.variationId,
@@ -289,23 +288,23 @@ class Router {
           settings: settings,
         );
       case Router.editCategoryScreen:
-        if (hasInvalidArgs<EditCategoryScreenArguments>(args)) {
+        if (hasInvalidArgs<EditCategoryScreenArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<EditCategoryScreenArguments>(args);
         }
-        final typedArgs = args as EditCategoryScreenArguments ??
-            EditCategoryScreenArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as EditCategoryScreenArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) =>
               EditCategoryScreen(key: typedArgs.key, ItemId: typedArgs.ItemId),
           settings: settings,
         );
       case Router.editUnitType:
-        if (hasInvalidArgs<EditUnitTypeScreenArguments>(args)) {
+        if (hasInvalidArgs<EditUnitTypeScreenArguments>(args,
+            isRequired: true)) {
           return misTypedArgsRoute<EditUnitTypeScreenArguments>(args);
         }
-        final typedArgs = args as EditUnitTypeScreenArguments ??
-            EditUnitTypeScreenArguments();
-        return MaterialPageRoute(
+        final typedArgs = args as EditUnitTypeScreenArguments;
+        return MaterialPageRoute<dynamic>(
           builder: (_) =>
               EditUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
@@ -315,7 +314,7 @@ class Router {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute(
+        return MaterialPageRoute<dynamic>(
           builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
@@ -335,7 +334,9 @@ class AddVariationScreenArguments {
   final double regularRetailPrice;
   final double regularCostPrice;
   AddVariationScreenArguments(
-      {this.key, this.regularRetailPrice, this.regularCostPrice});
+      {this.key,
+      @required this.regularRetailPrice,
+      @required this.regularCostPrice});
 }
 
 //AddUnitTypeScreen arguments holder class
@@ -349,20 +350,20 @@ class AddUnitTypeScreenArguments {
 class ReceiveStockScreenArguments {
   final Key key;
   final int variationId;
-  ReceiveStockScreenArguments({this.key, this.variationId});
+  ReceiveStockScreenArguments({this.key, @required this.variationId});
 }
 
 //ChangeQuantityForSelling arguments holder class
 class ChangeQuantityForSellingArguments {
   final Key key;
   final int itemId;
-  ChangeQuantityForSellingArguments({this.key, this.itemId});
+  ChangeQuantityForSellingArguments({this.key, @required this.itemId});
 }
 
 //CartDetailsScreen arguments holder class
 class CartDetailsScreenArguments {
   final Key key;
-  final List<Cart> carts;
+  final List carts;
   CartDetailsScreenArguments({this.key, this.carts});
 }
 
@@ -373,7 +374,10 @@ class ViewSingleItemScreenArguments {
   final String itemName;
   final String itemColor;
   ViewSingleItemScreenArguments(
-      {this.key, this.itemId, this.itemName, this.itemColor});
+      {this.key,
+      @required this.itemId,
+      @required this.itemName,
+      @required this.itemColor});
 }
 
 //EditVariationScreen arguments holder class
@@ -383,19 +387,22 @@ class EditVariationScreenArguments {
   final int itemId;
   final int unitId;
   EditVariationScreenArguments(
-      {this.key, this.variationId, this.itemId, this.unitId});
+      {this.key,
+      @required this.variationId,
+      @required this.itemId,
+      this.unitId});
 }
 
 //EditCategoryScreen arguments holder class
 class EditCategoryScreenArguments {
   final Key key;
   final int ItemId;
-  EditCategoryScreenArguments({this.key, this.ItemId});
+  EditCategoryScreenArguments({this.key, @required this.ItemId});
 }
 
 //EditUnitTypeScreen arguments holder class
 class EditUnitTypeScreenArguments {
   final Key key;
   final int itemId;
-  EditUnitTypeScreenArguments({this.key, this.itemId});
+  EditUnitTypeScreenArguments({this.key, @required this.itemId});
 }

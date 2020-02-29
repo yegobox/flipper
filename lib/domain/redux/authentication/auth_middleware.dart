@@ -65,7 +65,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
     if (userRepository.checkAuth(store) == null) {
-      Router.navigator.pushNamed(Router.login);
+      Router.navigator.pushNamed(Router.afterSplash);
       store.dispatch(Unauthenticated);
       return;
     }
@@ -395,7 +395,7 @@ void getBusinesses(Store<AppState> store, user) async {
   }
   store.dispatch(OnBusinessLoaded(business: businesses));
   if (businesses.length == 0 || user == null) {
-    Router.navigator.pushNamed(Router.signUpScreen);
+    Router.navigator.pushNamed(Router.afterSplash);
     return;
   } else {
     Router.navigator.pushNamed(Router.dashboard);

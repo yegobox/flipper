@@ -27,8 +27,6 @@ class _$User extends User {
   final String updatedAt;
   @override
   final String token;
-  @override
-  final String avatar;
 
   factory _$User([void Function(UserBuilder) updates]) =>
       (new UserBuilder()..update(updates)).build();
@@ -43,8 +41,7 @@ class _$User extends User {
       this.permissions,
       this.createdAt,
       this.updatedAt,
-      this.token,
-      this.avatar})
+      this.token})
       : super._() {
     if (active == null) {
       throw new BuiltValueNullFieldError('User', 'active');
@@ -86,8 +83,7 @@ class _$User extends User {
         permissions == other.permissions &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
-        token == other.token &&
-        avatar == other.avatar;
+        token == other.token;
   }
 
   @override
@@ -99,19 +95,15 @@ class _$User extends User {
                     $jc(
                         $jc(
                             $jc(
-                                $jc(
-                                    $jc(
-                                        $jc($jc(0, id.hashCode),
-                                            email.hashCode),
-                                        active.hashCode),
-                                    name.hashCode),
-                                status.hashCode),
-                            role.hashCode),
-                        permissions.hashCode),
-                    createdAt.hashCode),
-                updatedAt.hashCode),
-            token.hashCode),
-        avatar.hashCode));
+                                $jc($jc($jc(0, id.hashCode), email.hashCode),
+                                    active.hashCode),
+                                name.hashCode),
+                            status.hashCode),
+                        role.hashCode),
+                    permissions.hashCode),
+                createdAt.hashCode),
+            updatedAt.hashCode),
+        token.hashCode));
   }
 
   @override
@@ -126,8 +118,7 @@ class _$User extends User {
           ..add('permissions', permissions)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
-          ..add('token', token)
-          ..add('avatar', avatar))
+          ..add('token', token))
         .toString();
   }
 }
@@ -175,10 +166,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
   String get token => _$this._token;
   set token(String token) => _$this._token = token;
 
-  String _avatar;
-  String get avatar => _$this._avatar;
-  set avatar(String avatar) => _$this._avatar = avatar;
-
   UserBuilder();
 
   UserBuilder get _$this {
@@ -193,7 +180,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
       _token = _$v.token;
-      _avatar = _$v.avatar;
       _$v = null;
     }
     return this;
@@ -225,8 +211,7 @@ class UserBuilder implements Builder<User, UserBuilder> {
             permissions: permissions,
             createdAt: createdAt,
             updatedAt: updatedAt,
-            token: token,
-            avatar: avatar);
+            token: token);
     replace(_$result);
     return _$result;
   }

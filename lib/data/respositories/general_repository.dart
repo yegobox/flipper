@@ -260,6 +260,7 @@ class GeneralRepository {
   }
 
   Future insertNewDraftOrder(Store<AppState> store) async {
+    if (store.state.branch == null) return null;
     return await store.state.database.orderDao.insert(
       //ignore: missing_required_param
       OrderTableData(

@@ -1,4 +1,3 @@
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/business_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
@@ -28,36 +27,34 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 ) {
   return (store, action, next) async {
     next(action);
-    //todo: get yegobox id and other users information from yegobox and use them while creating flipper account
-    if (store.state.business != null && store.state.userId != null) {
-      int businessId =
-          await businessRepository.insertBusiness(store, store.state.business);
 
-      await businessRepository.assignBusinessToUser(
-          store, businessId, store.state.userId);
+    if (store.state.business != null) {
+//      int businessId =
+//          await businessRepository.insertBusiness(store, store.state.business);
+      //todo: insert business document.
+//      await businessRepository.assignBusinessToUser(
+//          store, businessId, store.state.userId);
+      Map map = {
+        'active': true,
+        '_id': 'businesses',
+        'businessCategoryId': 1,
+        'businessTypeId': 1,
+        'businessUrl': '',
+        'country': 'Rwanda',
+        'currency': 'RWF',
+        'id': 1,
+        'name': store.state.business.name,
+        'taxRate': 18,
+        'timeZone': '',
+        'userId': '',
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+      store.state.couch.createBusiness(map);
 
-      List<BusinessTableData> businessList =
-          await businessRepository.getBusinesses(store);
-
-      List<Business> businesses = [];
-
-      businessList.forEach((b) => {
-            businesses.add(
-              Business(
-                (bu) => bu
-                  ..latitude = bu.latitude
-                  ..longitude = bu.longitude
-                  ..name = b.name
-                  ..id = b.id,
-              ),
-            )
-          });
-
-      store.dispatch(BusinessId(businessId));
+      store.dispatch(BusinessId(1));
 
       store.dispatch(BusinessCreated());
-
-      store.dispatch(OnBusinessLoaded(business: businesses));
     }
   };
 }

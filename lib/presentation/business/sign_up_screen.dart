@@ -179,7 +179,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      //todo: make sure location permission is not denied or error is handleted propper.
+      //todo: make sure location permission is not denied or error is handled popper.
       double lat = _position == null ? 0 : _position.latitude;
       double long = _position == null ? 0 : _position.longitude;
 
@@ -199,7 +199,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..email = tBusiness.email
           ..status = "online"
           ..token = "none"
-          ..avatar = tBusiness.name
           ..name = tBusiness.name,
       );
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));

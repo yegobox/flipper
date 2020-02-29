@@ -20,8 +20,21 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         GlobalKey<NavigatorState> navigatorKey, UserRepository userRepository) {
   return (store, action, next) async {
     if (store.state.user != null) {
-      int userId = await userRepository.insertUser(store, store.state.user);
-      store.dispatch(UserID(userId));
+      var user = store.state.user;
+      //int userId = await userRepository.insertUser(store, store.state.user);
+      // store.dispatch(UserID(userId));
+      Map map = {
+        'active': true,
+        '_id': 'users',
+        'name': user.name,
+        'role': 'Admin',
+        'permissions': '',
+        'token': user.token,
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+        'email': user.email
+      };
+      store.state.couch.createUser(map);
       store.dispatch(CreateBusinessOnSignUp());
     }
   };

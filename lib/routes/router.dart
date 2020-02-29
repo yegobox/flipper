@@ -1,5 +1,5 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
-import 'package:auto_route/transitions_builders.dart';
 import 'package:flipper/home/add_category_screen.dart';
 import 'package:flipper/home/add_item_screen.dart';
 import 'package:flipper/home/add_note_screen.dart';
@@ -26,7 +26,7 @@ import 'package:flipper/presentation/login/login_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
 
-@autoRouter
+@MaterialAutoRouter()
 class $Router {
   @initial
   SplashScreen splashScreen;

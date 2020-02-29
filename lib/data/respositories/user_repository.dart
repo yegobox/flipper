@@ -9,7 +9,6 @@ class UserRepository {
     var u = new UserTableData(
         email: user.email,
         status: user.status,
-        avatar: user.avatar,
         username: user.name,
         bearerToken: user.token,
         refreshToken: user.token);
