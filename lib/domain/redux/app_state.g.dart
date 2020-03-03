@@ -10,7 +10,7 @@ class _$AppState extends AppState {
   @override
   final User user;
   @override
-  final String userId;
+  final int userId;
   @override
   final Business currentActiveBusiness;
   @override
@@ -294,9 +294,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   UserBuilder get user => _$this._user ??= new UserBuilder();
   set user(UserBuilder user) => _$this._user = user;
 
-  String _userId;
-  String get userId => _$this._userId;
-  set userId(String userId) => _$this._userId = userId;
+  int _userId;
+  int get userId => _$this._userId;
+  set userId(int userId) => _$this._userId = userId;
 
   BusinessBuilder _currentActiveBusiness;
   BusinessBuilder get currentActiveBusiness =>

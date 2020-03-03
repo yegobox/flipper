@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 
 class CustomWebView extends StatefulWidget {
@@ -39,7 +42,8 @@ class _CustomWebViewState extends State<CustomWebView> {
 
     _onStateChanged = flutterWebviewPlugin.onStateChanged
         .listen((WebViewStateChanged state) {});
-    _onUrlChanged = flutterWebviewPlugin.onUrlChanged.listen((String url) {
+    _onUrlChanged =
+        flutterWebviewPlugin.onUrlChanged.listen((String url) async {
       if (mounted) {
         //TODO: change the url on production env.
         if (url.startsWith("https://test.flipper.rw/authorized?")) {
@@ -55,6 +59,30 @@ class _CustomWebViewState extends State<CustomWebView> {
           RegExp avatar = new RegExp("avatar=(.*)");
           var _avatar = avatar.firstMatch(url)?.group(1);
 
+          RegExp userId = new RegExp("id=(.*)");
+          var _userId = userId.firstMatch(url)?.group(1);
+          //save the user to be used if exist do update.
+          final store = StoreProvider.of<AppState>(context);
+//          UserTableData user = await store.state.database.userDao.getUser();
+//          if (user == null) {
+//            store.state.database.userDao.insertUser(
+//              UserTableData(
+//                  id: int.parse(_userId),
+//                  email: _email,
+//                  username: _name,
+//                  avatar: _avatar,
+//                  createdAt: DateTime.now(),
+//                  token: token),
+//            );
+//          } else {
+//            store.state.database.userDao.updateUser(
+//              user.copyWith(
+//                id: int.parse(_userId),
+//                updatedAt: DateTime.now(),
+//              ),
+//            );
+//          }
+          store.dispatch(UserID(userId: int.parse(_userId)));
           flutterWebviewPlugin.close();
           Router.navigator.pushNamed(
             Router.signUpScreen,

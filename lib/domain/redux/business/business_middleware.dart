@@ -31,9 +31,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     if (store.state.business != null) {
       String businessId = Uuid().v1();
-      Map map = {
+      Map _mapBusiness = {
         'active': true,
-        '_id': 'businesses',
+        '_id': 'business_' + store.state.userId.toString(),
         'businessCategoryId': 1,
         'businessTypeId': 1,
         'businessUrl': '',
@@ -47,7 +47,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
-      await store.state.couch.createBusiness(map);
+      await store.state.couch.createBusiness(_mapBusiness);
 
       store.dispatch(BusinessId(businessId));
 

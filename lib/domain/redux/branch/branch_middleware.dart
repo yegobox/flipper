@@ -10,6 +10,7 @@ import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBranchMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
@@ -77,19 +78,19 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     //final branchId = await branchRepo.insertBranch(store, branch);
     //create tax for this branch
-    Map map = {
+    String branchId = Uuid().v1();
+    Map _mapBranch = {
       'active': true,
       'name': store.state.business.name,
-      '_id': 'branches',
-      'businessId': 1,
-      'id': 1,
-      'userId': 1,
+      '_id': 'branch_' + store.state.userId.toString(),
+      'businessId': store.state.businessId,
+      'id': branchId,
       'mapLatitude': store.state.business.latitude ?? 0.0,
       'mapLongitude': store.state.currentColor ?? 0.0,
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
     };
-    await store.state.couch.createBranch(map);
+    await store.state.couch.createBranch(_mapBranch);
     store.dispatch(VerifyAuthenticationState());
   };
 }

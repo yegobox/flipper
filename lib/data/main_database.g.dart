@@ -9,22 +9,18 @@ part of 'main_database.dart';
 // ignore_for_file: unnecessary_brace_in_string_interps, unnecessary_this
 class UserTableData extends DataClass implements Insertable<UserTableData> {
   final int id;
+  final int userId;
   final String username;
-  final bool isCurrentAuthenticated;
-  final String status;
-  final String bearerToken;
-  final String refreshToken;
+  final String token;
   final String email;
   final String avatar;
   final DateTime createdAt;
   final DateTime updatedAt;
   UserTableData(
       {@required this.id,
+      @required this.userId,
       this.username,
-      @required this.isCurrentAuthenticated,
-      @required this.status,
-      this.bearerToken,
-      this.refreshToken,
+      this.token,
       @required this.email,
       this.avatar,
       this.createdAt,
@@ -35,20 +31,15 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
-    final boolType = db.typeSystem.forDartType<bool>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return UserTableData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      userId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
       username: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}username']),
-      isCurrentAuthenticated: boolType.mapFromDatabaseResponse(
-          data['${effectivePrefix}is_current_authenticated']),
-      status:
-          stringType.mapFromDatabaseResponse(data['${effectivePrefix}status']),
-      bearerToken: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}bearer_token']),
-      refreshToken: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}refresh_token']),
+      token:
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}token']),
       email:
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}email']),
       avatar:
@@ -64,12 +55,9 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return UserTableData(
       id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
       username: serializer.fromJson<String>(json['username']),
-      isCurrentAuthenticated:
-          serializer.fromJson<bool>(json['isCurrentAuthenticated']),
-      status: serializer.fromJson<String>(json['status']),
-      bearerToken: serializer.fromJson<String>(json['bearerToken']),
-      refreshToken: serializer.fromJson<String>(json['refreshToken']),
+      token: serializer.fromJson<String>(json['token']),
       email: serializer.fromJson<String>(json['email']),
       avatar: serializer.fromJson<String>(json['avatar']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -81,11 +69,9 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
       'username': serializer.toJson<String>(username),
-      'isCurrentAuthenticated': serializer.toJson<bool>(isCurrentAuthenticated),
-      'status': serializer.toJson<String>(status),
-      'bearerToken': serializer.toJson<String>(bearerToken),
-      'refreshToken': serializer.toJson<String>(refreshToken),
+      'token': serializer.toJson<String>(token),
       'email': serializer.toJson<String>(email),
       'avatar': serializer.toJson<String>(avatar),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -97,20 +83,13 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
   UserTableCompanion createCompanion(bool nullToAbsent) {
     return UserTableCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
       username: username == null && nullToAbsent
           ? const Value.absent()
           : Value(username),
-      isCurrentAuthenticated: isCurrentAuthenticated == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isCurrentAuthenticated),
-      status:
-          status == null && nullToAbsent ? const Value.absent() : Value(status),
-      bearerToken: bearerToken == null && nullToAbsent
-          ? const Value.absent()
-          : Value(bearerToken),
-      refreshToken: refreshToken == null && nullToAbsent
-          ? const Value.absent()
-          : Value(refreshToken),
+      token:
+          token == null && nullToAbsent ? const Value.absent() : Value(token),
       email:
           email == null && nullToAbsent ? const Value.absent() : Value(email),
       avatar:
@@ -126,23 +105,18 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
 
   UserTableData copyWith(
           {int id,
+          int userId,
           String username,
-          bool isCurrentAuthenticated,
-          String status,
-          String bearerToken,
-          String refreshToken,
+          String token,
           String email,
           String avatar,
           DateTime createdAt,
           DateTime updatedAt}) =>
       UserTableData(
         id: id ?? this.id,
+        userId: userId ?? this.userId,
         username: username ?? this.username,
-        isCurrentAuthenticated:
-            isCurrentAuthenticated ?? this.isCurrentAuthenticated,
-        status: status ?? this.status,
-        bearerToken: bearerToken ?? this.bearerToken,
-        refreshToken: refreshToken ?? this.refreshToken,
+        token: token ?? this.token,
         email: email ?? this.email,
         avatar: avatar ?? this.avatar,
         createdAt: createdAt ?? this.createdAt,
@@ -152,11 +126,9 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
   String toString() {
     return (StringBuffer('UserTableData(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('username: $username, ')
-          ..write('isCurrentAuthenticated: $isCurrentAuthenticated, ')
-          ..write('status: $status, ')
-          ..write('bearerToken: $bearerToken, ')
-          ..write('refreshToken: $refreshToken, ')
+          ..write('token: $token, ')
           ..write('email: $email, ')
           ..write('avatar: $avatar, ')
           ..write('createdAt: $createdAt, ')
@@ -169,31 +141,23 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
   int get hashCode => $mrjf($mrjc(
       id.hashCode,
       $mrjc(
-          username.hashCode,
+          userId.hashCode,
           $mrjc(
-              isCurrentAuthenticated.hashCode,
+              username.hashCode,
               $mrjc(
-                  status.hashCode,
+                  token.hashCode,
                   $mrjc(
-                      bearerToken.hashCode,
-                      $mrjc(
-                          refreshToken.hashCode,
-                          $mrjc(
-                              email.hashCode,
-                              $mrjc(
-                                  avatar.hashCode,
-                                  $mrjc(createdAt.hashCode,
-                                      updatedAt.hashCode))))))))));
+                      email.hashCode,
+                      $mrjc(avatar.hashCode,
+                          $mrjc(createdAt.hashCode, updatedAt.hashCode))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is UserTableData &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.username == this.username &&
-          other.isCurrentAuthenticated == this.isCurrentAuthenticated &&
-          other.status == this.status &&
-          other.bearerToken == this.bearerToken &&
-          other.refreshToken == this.refreshToken &&
+          other.token == this.token &&
           other.email == this.email &&
           other.avatar == this.avatar &&
           other.createdAt == this.createdAt &&
@@ -202,22 +166,18 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
 
 class UserTableCompanion extends UpdateCompanion<UserTableData> {
   final Value<int> id;
+  final Value<int> userId;
   final Value<String> username;
-  final Value<bool> isCurrentAuthenticated;
-  final Value<String> status;
-  final Value<String> bearerToken;
-  final Value<String> refreshToken;
+  final Value<String> token;
   final Value<String> email;
   final Value<String> avatar;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const UserTableCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.username = const Value.absent(),
-    this.isCurrentAuthenticated = const Value.absent(),
-    this.status = const Value.absent(),
-    this.bearerToken = const Value.absent(),
-    this.refreshToken = const Value.absent(),
+    this.token = const Value.absent(),
     this.email = const Value.absent(),
     this.avatar = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -225,36 +185,29 @@ class UserTableCompanion extends UpdateCompanion<UserTableData> {
   });
   UserTableCompanion.insert({
     this.id = const Value.absent(),
+    @required int userId,
     this.username = const Value.absent(),
-    @required bool isCurrentAuthenticated,
-    this.status = const Value.absent(),
-    this.bearerToken = const Value.absent(),
-    this.refreshToken = const Value.absent(),
+    this.token = const Value.absent(),
     @required String email,
     this.avatar = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  })  : isCurrentAuthenticated = Value(isCurrentAuthenticated),
+  })  : userId = Value(userId),
         email = Value(email);
   UserTableCompanion copyWith(
       {Value<int> id,
+      Value<int> userId,
       Value<String> username,
-      Value<bool> isCurrentAuthenticated,
-      Value<String> status,
-      Value<String> bearerToken,
-      Value<String> refreshToken,
+      Value<String> token,
       Value<String> email,
       Value<String> avatar,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt}) {
     return UserTableCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       username: username ?? this.username,
-      isCurrentAuthenticated:
-          isCurrentAuthenticated ?? this.isCurrentAuthenticated,
-      status: status ?? this.status,
-      bearerToken: bearerToken ?? this.bearerToken,
-      refreshToken: refreshToken ?? this.refreshToken,
+      token: token ?? this.token,
       email: email ?? this.email,
       avatar: avatar ?? this.avatar,
       createdAt: createdAt ?? this.createdAt,
@@ -277,6 +230,18 @@ class $UserTableTable extends UserTable
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
   }
 
+  final VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  GeneratedIntColumn _userId;
+  @override
+  GeneratedIntColumn get userId => _userId ??= _constructUserId();
+  GeneratedIntColumn _constructUserId() {
+    return GeneratedIntColumn(
+      'user_id',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _usernameMeta = const VerificationMeta('username');
   GeneratedTextColumn _username;
   @override
@@ -289,52 +254,13 @@ class $UserTableTable extends UserTable
     );
   }
 
-  final VerificationMeta _isCurrentAuthenticatedMeta =
-      const VerificationMeta('isCurrentAuthenticated');
-  GeneratedBoolColumn _isCurrentAuthenticated;
+  final VerificationMeta _tokenMeta = const VerificationMeta('token');
+  GeneratedTextColumn _token;
   @override
-  GeneratedBoolColumn get isCurrentAuthenticated =>
-      _isCurrentAuthenticated ??= _constructIsCurrentAuthenticated();
-  GeneratedBoolColumn _constructIsCurrentAuthenticated() {
-    return GeneratedBoolColumn(
-      'is_current_authenticated',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _statusMeta = const VerificationMeta('status');
-  GeneratedTextColumn _status;
-  @override
-  GeneratedTextColumn get status => _status ??= _constructStatus();
-  GeneratedTextColumn _constructStatus() {
-    return GeneratedTextColumn('status', $tableName, false,
-        defaultValue: Constant('online'));
-  }
-
-  final VerificationMeta _bearerTokenMeta =
-      const VerificationMeta('bearerToken');
-  GeneratedTextColumn _bearerToken;
-  @override
-  GeneratedTextColumn get bearerToken =>
-      _bearerToken ??= _constructBearerToken();
-  GeneratedTextColumn _constructBearerToken() {
+  GeneratedTextColumn get token => _token ??= _constructToken();
+  GeneratedTextColumn _constructToken() {
     return GeneratedTextColumn(
-      'bearer_token',
-      $tableName,
-      true,
-    );
-  }
-
-  final VerificationMeta _refreshTokenMeta =
-      const VerificationMeta('refreshToken');
-  GeneratedTextColumn _refreshToken;
-  @override
-  GeneratedTextColumn get refreshToken =>
-      _refreshToken ??= _constructRefreshToken();
-  GeneratedTextColumn _constructRefreshToken() {
-    return GeneratedTextColumn(
-      'refresh_token',
+      'token',
       $tableName,
       true,
     );
@@ -386,18 +312,8 @@ class $UserTableTable extends UserTable
   }
 
   @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        username,
-        isCurrentAuthenticated,
-        status,
-        bearerToken,
-        refreshToken,
-        email,
-        avatar,
-        createdAt,
-        updatedAt
-      ];
+  List<GeneratedColumn> get $columns =>
+      [id, userId, username, token, email, avatar, createdAt, updatedAt];
   @override
   $UserTableTable get asDslTable => this;
   @override
@@ -411,31 +327,19 @@ class $UserTableTable extends UserTable
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
     }
+    if (d.userId.present) {
+      context.handle(
+          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
     if (d.username.present) {
       context.handle(_usernameMeta,
           username.isAcceptableValue(d.username.value, _usernameMeta));
     }
-    if (d.isCurrentAuthenticated.present) {
+    if (d.token.present) {
       context.handle(
-          _isCurrentAuthenticatedMeta,
-          isCurrentAuthenticated.isAcceptableValue(
-              d.isCurrentAuthenticated.value, _isCurrentAuthenticatedMeta));
-    } else if (isInserting) {
-      context.missing(_isCurrentAuthenticatedMeta);
-    }
-    if (d.status.present) {
-      context.handle(
-          _statusMeta, status.isAcceptableValue(d.status.value, _statusMeta));
-    }
-    if (d.bearerToken.present) {
-      context.handle(_bearerTokenMeta,
-          bearerToken.isAcceptableValue(d.bearerToken.value, _bearerTokenMeta));
-    }
-    if (d.refreshToken.present) {
-      context.handle(
-          _refreshTokenMeta,
-          refreshToken.isAcceptableValue(
-              d.refreshToken.value, _refreshTokenMeta));
+          _tokenMeta, token.isAcceptableValue(d.token.value, _tokenMeta));
     }
     if (d.email.present) {
       context.handle(
@@ -472,21 +376,14 @@ class $UserTableTable extends UserTable
     if (d.id.present) {
       map['id'] = Variable<int, IntType>(d.id.value);
     }
+    if (d.userId.present) {
+      map['user_id'] = Variable<int, IntType>(d.userId.value);
+    }
     if (d.username.present) {
       map['username'] = Variable<String, StringType>(d.username.value);
     }
-    if (d.isCurrentAuthenticated.present) {
-      map['is_current_authenticated'] =
-          Variable<bool, BoolType>(d.isCurrentAuthenticated.value);
-    }
-    if (d.status.present) {
-      map['status'] = Variable<String, StringType>(d.status.value);
-    }
-    if (d.bearerToken.present) {
-      map['bearer_token'] = Variable<String, StringType>(d.bearerToken.value);
-    }
-    if (d.refreshToken.present) {
-      map['refresh_token'] = Variable<String, StringType>(d.refreshToken.value);
+    if (d.token.present) {
+      map['token'] = Variable<String, StringType>(d.token.value);
     }
     if (d.email.present) {
       map['email'] = Variable<String, StringType>(d.email.value);

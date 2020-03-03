@@ -1,4 +1,3 @@
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/presentation/settings/privacy_settings_button.dart';
@@ -45,20 +44,6 @@ class _LoginFormState extends State<_LoginForm> {
   @override
   Widget build(BuildContext context) {
     final submitCallback = () async {
-      //TODO: stop faking login
-      final _user = new UserTableData(
-          email: "sample@yegobox.com",
-          username: "username",
-          avatar: "Avatar",
-          status: "available",
-          bearerToken: "token",
-          refreshToken: "refresh token");
-
-      StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .userDao
-          .insertUser(_user);
       StoreProvider.of<AppState>(context).dispatch(AfterLoginAction());
       //stop faking
     };

@@ -33,7 +33,7 @@ class WithUser {
 
 @immutable
 class UserID {
-  final String userId;
+  final int userId;
 
   const UserID({this.userId});
 }

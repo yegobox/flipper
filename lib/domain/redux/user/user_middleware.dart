@@ -24,22 +24,21 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       var user = store.state.user;
       //int userId = await userRepository.insertUser(store, store.state.user);
       // store.dispatch(UserID(userId));
+      assert(store.state.userId != null);
       String userId = Uuid().v1();
-      Map map = {
+      Map mapUser = {
         'active': true,
-        '_id': 'users',
+        '_id': 'user_' + store.state.userId.toString(),
         'id': userId,
-        'name': user.name.replaceAll(
-            new RegExp(r"\s\b|\b\s"), ""), //remove any white space from string
-        'role': 'Admin',
-        'permissions': '',
+        'channel': store.state.userId.toString(),
+        'name': user.name, //remove any white space from string
         'token': user.token,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'email': user.email
       };
-      store.dispatch(UserID(userId: userId));
-      await store.state.couch.createUser(map);
+      store.dispatch(UserID(userId: store.state.userId));
+      await store.state.couch.createUser(mapUser);
       store.dispatch(CreateBusinessOnSignUp());
     }
   };

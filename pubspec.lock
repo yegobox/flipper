@@ -383,7 +383,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "8c69e28fd1092258625ee7caca96caf93755e4bd"
+      resolved-ref: bba26b12de0f10832806a2bbfc2f11900571c0c6
       url: "https://github.com/yegobox/fluttercouch.git"
     source: git
     version: "1.0.1"

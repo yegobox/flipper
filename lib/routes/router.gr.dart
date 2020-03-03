@@ -62,7 +62,6 @@ class Router {
   static const editUnitType = '/edit-unit-type';
   static const transactionScreen = '/transaction-screen';
   static const webView = '/web-view';
-  static const _guardedRoutes = const {};
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -392,7 +391,7 @@ class ChangeQuantityForSellingArguments {
 //CartDetailsScreen arguments holder class
 class CartDetailsScreenArguments {
   final Key key;
-  final List carts;
+  final List<Cart> carts;
   CartDetailsScreenArguments({this.key, this.carts});
 }
 

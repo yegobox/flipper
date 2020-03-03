@@ -30,7 +30,6 @@ class CouchBase extends Model with Fluttercouch {
   //create a branch
   Future<dynamic> createBranch(Map map) async {
     assert(map['_id'] != null);
-    Document doc = await getDocumentWithId(map['_id']);
     assert(map['name'] != null);
     assert(map['active'] != null);
     assert(map['businessId'] != null);
@@ -39,22 +38,13 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['id'] != null);
     assert(map['updatedAt'] != null);
     assert(map['createdAt'] != null);
-    assert(map['userId'] != null);
     assert(map['_id'] != null);
 
-    if (doc.getList(map['_id']) == null) {
-      List m = [map];
-      _doc.setString('uid', Uuid().v1());
-      _doc.setList(map['_id'], m);
-      return saveDocumentWithId(map['_id'], _doc);
-    } else {
-      List list = doc.getList(map['_id']);
+    List m = [map];
+    _doc.setString('uid', Uuid().v1());
+    _doc.setList(map['_id'], m);
 
-      list.add(map);
-      _doc.setString('uid', Uuid().v1());
-      _doc.setList(map['_id'], list);
-      return await saveDocumentWithId(map['_id'], _doc);
-    }
+    await saveDocumentWithId(map['_id'], _doc);
   }
 
   //create business.
@@ -92,44 +82,35 @@ class CouchBase extends Model with Fluttercouch {
   //create user
   Future<dynamic> createUser(Map map) async {
     assert(map['_id'] != null);
-    Document doc = await getDocumentWithId(map['_id']);
 
     assert(map['name'] != null);
-    assert(map['role'] != null);
-    assert(map['permissions'] != null);
     assert(map['token'] != null);
     assert(map['id'] != null);
     assert(map['active'] != null);
     assert(map['email'] != null);
+    assert(map['channel'] != null);
     assert(map['createdAt'] != null);
     assert(map['updatedAt'] != null);
 
-    if (doc.getList(map['_id']) == null) {
-      //create it
-      List m = [map];
-      _doc.setString('_id', map['_id']);
-      _doc.setString('uid', Uuid().v1());
-      _doc.setList(map['_id'], m);
-      return await saveDocumentWithId(map['_id'], _doc);
-    } else {
-      //todo: what happen if desktop first initiated all users, and there is some I created
-      //todo: here? how will data merge?
-      //todo: testing scenario:
-      //todo:1. create document offline no internet on mobile
-      //todo:2. let other side create same document with more data than I
-      //todo:3. turn on internet see how my data merge with the other side.
-      //add to existing document do not overwrite anything.
-      List list = doc.getList(map['_id']);
-      print(doc.toMap());
-      print(doc.getString('_rev'));
-      list.add(map);
-      _doc.setString('_id', map['_id']);
-      _doc.setString('uid', Uuid().v1());
-      _doc.setList(map['_id'], list);
-      //should pass a rev to update.
+    //update or create a document
+    _doc.setString('_id', map['_id']);
 
-      return await saveDocumentWithId(map['_id'], _doc);
-    }
+    _doc.setString('uid', Uuid().v1());
+    map.forEach((key, value) {
+      if (value is int) {
+        _doc.setInt(key, value);
+      }
+      if (value is String) {
+        _doc.setString(key, value);
+      }
+      if (value is bool) {
+        _doc.setBoolean(key, value);
+      }
+      if (value is double) {
+        _doc.setDouble(key, value);
+      }
+    });
+    return await saveDocumentWithId(map['_id'], _doc);
   }
 
   //sampleCode
@@ -185,10 +166,7 @@ class CouchBase extends Model with Fluttercouch {
         "password":
             "password" //todo: move this to credential file to avoid security breach
       });
-      setConflictResolver('localWin');
-      //todo: discuss more on setting the channel with ganza.
-//      Map channels = {"name": "lagrace"};
-//      setReplicationChannel(channels);
+
       setReplicatorContinuous(true);
       initReplicator();
       startReplicator();

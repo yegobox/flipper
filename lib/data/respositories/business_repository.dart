@@ -8,7 +8,7 @@ class BusinessRepository {
     //ignore:missing_required_param
     var bussiness = new BusinessTableData(
       name: business.name,
-      userId: int.parse(store.state.userId),
+      userId: store.state.userId,
       isActive: business.active,
     );
     return store.state.database.businessDao.insert(bussiness);
