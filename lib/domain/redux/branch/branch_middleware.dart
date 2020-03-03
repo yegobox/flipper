@@ -79,14 +79,17 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     //create tax for this branch
     Map map = {
       'active': true,
+      'name': store.state.business.name,
       '_id': 'branches',
       'businessId': 1,
-      'mapLatitude': '', //todo:get it from a store that is updated regulary
-      'mapLongitude': '',
+      'id': 1,
+      'userId': 1,
+      'mapLatitude': store.state.business.latitude ?? 0.0,
+      'mapLongitude': store.state.currentColor ?? 0.0,
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
     };
-    store.state.couch.createBranch(map);
+    await store.state.couch.createBranch(map);
     store.dispatch(VerifyAuthenticationState());
   };
 }

@@ -10,7 +10,7 @@ class _$AppState extends AppState {
   @override
   final User user;
   @override
-  final int userId;
+  final String userId;
   @override
   final Business currentActiveBusiness;
   @override
@@ -24,7 +24,7 @@ class _$AppState extends AppState {
   @override
   final Price price;
   @override
-  final int businessId;
+  final String businessId;
   @override
   final Unit unit;
   @override
@@ -294,9 +294,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   UserBuilder get user => _$this._user ??= new UserBuilder();
   set user(UserBuilder user) => _$this._user = user;
 
-  int _userId;
-  int get userId => _$this._userId;
-  set userId(int userId) => _$this._userId = userId;
+  String _userId;
+  String get userId => _$this._userId;
+  set userId(String userId) => _$this._userId = userId;
 
   BusinessBuilder _currentActiveBusiness;
   BusinessBuilder get currentActiveBusiness =>
@@ -326,9 +326,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   PriceBuilder get price => _$this._price ??= new PriceBuilder();
   set price(PriceBuilder price) => _$this._price = price;
 
-  int _businessId;
-  int get businessId => _$this._businessId;
-  set businessId(int businessId) => _$this._businessId = businessId;
+  String _businessId;
+  String get businessId => _$this._businessId;
+  set businessId(String businessId) => _$this._businessId = businessId;
 
   UnitBuilder _unit;
   UnitBuilder get unit => _$this._unit ??= new UnitBuilder();

@@ -33,9 +33,9 @@ class WithUser {
 
 @immutable
 class UserID {
-  final int userId;
+  final String userId;
 
-  const UserID(this.userId);
+  const UserID({this.userId});
 }
 
 @immutable

@@ -4,6 +4,7 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> userMiddleware(
   UserRepository userRepository,
@@ -23,10 +24,13 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       var user = store.state.user;
       //int userId = await userRepository.insertUser(store, store.state.user);
       // store.dispatch(UserID(userId));
+      String userId = Uuid().v1();
       Map map = {
         'active': true,
         '_id': 'users',
-        'name': user.name,
+        'id': userId,
+        'name': user.name.replaceAll(
+            new RegExp(r"\s\b|\b\s"), ""), //remove any white space from string
         'role': 'Admin',
         'permissions': '',
         'token': user.token,
@@ -34,7 +38,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'updatedAt': DateTime.now().toIso8601String(),
         'email': user.email
       };
-      store.state.couch.createUser(map);
+      store.dispatch(UserID(userId: userId));
+      await store.state.couch.createUser(map);
       store.dispatch(CreateBusinessOnSignUp());
     }
   };

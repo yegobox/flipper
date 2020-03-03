@@ -1,12 +1,12 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 void main() {
-  Crashlytics.instance.enableInDevMode = true;
-  FlutterError.onError = Crashlytics.instance.recordFlutterError;
+  // Crashlytics.instance.enableInDevMode = true;
+  // FlutterError.onError = Crashlytics.instance.recordFlutterError;
   configureLogger();
   //todo:this might cause the error please review this.
   WidgetsFlutterBinding.ensureInitialized();

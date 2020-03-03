@@ -6,7 +6,7 @@ abstract class Branch implements Built<Branch, BranchBuilder> {
   @nullable
   int get id;
 
-  int get businessId;
+  String get businessId;
 
   String get createdAt;
 

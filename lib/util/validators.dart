@@ -9,10 +9,10 @@ class Validators {
   }
 
   static String isStringHasMoreChars(String value) {
-    if (value.length < 4) {
-      return 'Name should be greater than 4 characters.';
-    } else if (value.length > 4) {
-      return 'Name can not be greater than 4 characters.';
+    if (value.length < 7) {
+      return 'Name should be greater than 7 characters.';
+    } else if (value.length > 7) {
+      return 'Name can not be greater than 7 characters.';
     } else {
       return null;
     }
@@ -27,10 +27,10 @@ class Validators {
   }
 
   static String validatePassword(String value) {
-    if (value.length < 4) {
-      return 'Password should be greater than 4 characters.';
-    } else if (value.length > 4) {
-      return 'Password can not be greater than 4 characters.';
+    if (value.length < 7) {
+      return 'Password should be greater than 7 characters.';
+    } else if (value.length > 7) {
+      return 'Password can not be greater than 7 characters.';
     } else {
       return null;
     }

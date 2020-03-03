@@ -5,6 +5,7 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
@@ -29,11 +30,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     if (store.state.business != null) {
-//      int businessId =
-//          await businessRepository.insertBusiness(store, store.state.business);
-      //todo: insert business document.
-//      await businessRepository.assignBusinessToUser(
-//          store, businessId, store.state.userId);
+      String businessId = Uuid().v1();
       Map map = {
         'active': true,
         '_id': 'businesses',
@@ -42,7 +39,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'businessUrl': '',
         'country': 'Rwanda',
         'currency': 'RWF',
-        'id': 1,
+        'id': businessId,
         'name': store.state.business.name,
         'taxRate': 18,
         'timeZone': '',
@@ -50,9 +47,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
-      store.state.couch.createBusiness(map);
+      await store.state.couch.createBusiness(map);
 
-      store.dispatch(BusinessId(1));
+      store.dispatch(BusinessId(businessId));
 
       store.dispatch(BusinessCreated());
     }

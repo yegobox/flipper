@@ -22,7 +22,7 @@ class PersistFocusedUnitAction {}
 
 @immutable
 class BusinessId {
-  final int businessId;
+  final String businessId;
 
   BusinessId(this.businessId);
 }

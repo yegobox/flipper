@@ -26,7 +26,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   User get user;
 
   @nullable
-  int get userId;
+  String get userId;
 
   @nullable
   Business get currentActiveBusiness;
@@ -47,7 +47,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   Price get price;
 
   @nullable
-  int get businessId;
+  String get businessId;
 
   @nullable
   Unit get unit;

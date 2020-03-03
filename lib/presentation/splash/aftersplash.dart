@@ -1,8 +1,11 @@
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:query_params/query_params.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -56,7 +59,6 @@ class AfterSplash extends StatelessWidget {
                       height: 60,
                       child: FlatButton(
                         onPressed: () async {
-                          //todo: build params and got to yegobox server for login set callback to flipper.
                           URLQueryParams query = new URLQueryParams();
                           query.append('client_id', "49");
                           query.append('redirect_uri',
@@ -91,13 +93,22 @@ class AfterSplash extends StatelessWidget {
                     child: SizedBox(
                       width: 380,
                       height: 60,
-                      child: OutlineButton(
-                        color: Colors.blue,
-                        child: Text(
-                          S.of(context).signIn,
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                        onPressed: () {},
+                      child: StoreConnector<AppState, CommonViewModel>(
+                        distinct: true,
+                        converter: CommonViewModel.fromStore,
+                        builder: (context, vm) {
+                          return OutlineButton(
+                            color: Colors.blue,
+                            child: Text(
+                              S.of(context).signIn,
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                            onPressed: () {
+                              //todo: go to yegobox for login as usual but build webView so that on change it look up where the email match if has business arleady
+//                              vm.couch.
+                            },
+                          );
+                        },
                       ),
                     ),
                   ),

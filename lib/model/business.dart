@@ -15,9 +15,8 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   double get latitude;
   @nullable
   double get longitude;
-
   @nullable
-  int get userId;
+  String get userId;
   @nullable
   int get businessTypeId;
   @nullable

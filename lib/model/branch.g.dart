@@ -10,7 +10,7 @@ class _$Branch extends Branch {
   @override
   final int id;
   @override
-  final int businessId;
+  final String businessId;
   @override
   final String createdAt;
   @override
@@ -132,9 +132,9 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
   int get id => _$this._id;
   set id(int id) => _$this._id = id;
 
-  int _businessId;
-  int get businessId => _$this._businessId;
-  set businessId(int businessId) => _$this._businessId = businessId;
+  String _businessId;
+  String get businessId => _$this._businessId;
+  set businessId(String businessId) => _$this._businessId = businessId;
 
   String _createdAt;
   String get createdAt => _$this._createdAt;

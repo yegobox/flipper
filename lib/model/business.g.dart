@@ -18,7 +18,7 @@ class _$Business extends Business {
   @override
   final double longitude;
   @override
-  final int userId;
+  final String userId;
   @override
   final int businessTypeId;
   @override
@@ -173,9 +173,9 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   double get longitude => _$this._longitude;
   set longitude(double longitude) => _$this._longitude = longitude;
 
-  int _userId;
-  int get userId => _$this._userId;
-  set userId(int userId) => _$this._userId = userId;
+  String _userId;
+  String get userId => _$this._userId;
+  set userId(String userId) => _$this._userId = userId;
 
   int _businessTypeId;
   int get businessTypeId => _$this._businessTypeId;

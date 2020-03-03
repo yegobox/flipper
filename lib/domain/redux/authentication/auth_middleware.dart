@@ -71,48 +71,50 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     }
     loadClientDb(store);
 
-    TabsTableData tab = await generalRepository.getTab(store);
+//    TabsTableData tab = await generalRepository.getTab(store);
 
-    List<ItemTableData> items = await generalRepository.getItems(store);
+//    List<ItemTableData> items = await generalRepository.getItems(store);
 
-    List<UnitTableData> unitsList = await generalRepository.getUnits(store);
+//    List<UnitTableData> unitsList = await generalRepository.getUnits(store);
 
-    List<CategoryTableData> categoryList =
-        await generalRepository.getCategories(store);
+//    List<CategoryTableData> categoryList =
+//        await generalRepository.getCategories(store);
 
-    List<Unit> units = buildUnitList(unitsList);
+//    List<Unit> units = buildUnitList(unitsList);
 
-    loadProducts(items, store, unitsList);
+//    loadProducts(items, store, unitsList);
 
-    List<Category> categories = loadSystemCategories(categoryList);
+//    List<Category> categories = loadSystemCategories(categoryList);
 
     //set focused Unit
-    store.dispatch(UnitR(units));
-    store.dispatch(CategoryAction(categories));
+//    store.dispatch(UnitR(units));
+//    store.dispatch(CategoryAction(categories));
     await buildBranchList(store);
     User _user = await getActiveUser(store);
-    store.dispatch(OnAuthenticated(user: _user));
+
     //create app actions for saving state,or create.
     await createAppActions(store);
     //start by creating a draft order it it does not exist
-    await createTemporalOrder(generalRepository, store, _user);
+//    await createTemporalOrder(generalRepository, store, _user);
     //set current active business to be used throughout the entire app transaction
-    getBusinesses(store, _user);
+
     //end of setting current active business.
     // Logger.d("Successfully loaded the app");
-    dispatchFocusedTab(tab, store);
+//    dispatchFocusedTab(tab, store);
     //end setting active branch.
     //create custom category if does not exist
-    await createSystemCustomCategory(generalRepository, store);
+//    await createSystemCustomCategory(generalRepository, store);
     //if no reason found then create app defaults reasons
-    await createSystemStockReasons(store);
+//    await createSystemStockReasons(store);
     //create custom item if does not exist
-    await createDefaultTaxes(store);
-    await Util.createCustomItem(store, "custom");
-    await generateAppColors(generalRepository, store);
+//    await createDefaultTaxes(store);
+//    await Util.createCustomItem(store, "custom");
+//    await generateAppColors(generalRepository, store);
 
-    _createCustomCategory(store);
-    _cleanApp(store);
+//    _createCustomCategory(store);
+//    _cleanApp(store);
+
+    await getBusinesses(store, _user);
   };
 }
 
@@ -371,7 +373,7 @@ Future createTemporalOrder(GeneralRepository generalRepository,
   }
 }
 
-void getBusinesses(Store<AppState> store, user) async {
+Future getBusinesses(Store<AppState> store, user) async {
   List<Business> businesses = await CouchBase(shouldInitDb: false)
       .getDocumentByDocId(docId: 'businesses', T: Business);
 
@@ -393,11 +395,15 @@ void getBusinesses(Store<AppState> store, user) async {
     }
   }
   store.dispatch(OnBusinessLoaded(business: businesses));
-  if (businesses.length == 0 || user == null) {
+  if (businesses.length == 0) {
     Router.navigator.pushNamed(Router.afterSplash);
-    return;
+  } else if (user == null) {
+    Router.navigator.pushNamed(Router.afterSplash);
   } else {
-    Router.navigator.pushNamed(Router.dashboard);
+    store.dispatch(OnAuthenticated(user: user));
+    Router.navigator.pushNamed(Router.afterSplash);
+    //todo:
+//    Router.navigator.pushNamed(Router.dashboard);
   }
 }
 
