@@ -40,7 +40,7 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
                       updatedAt: DateTime.now(),
                       id: vm.tempCategoryId,
                       focused: false,
-                      branchId: vm.branch.id,
+//                      branchId: vm.branch.id,
                       name: name,
                     ),
                   );

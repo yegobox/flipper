@@ -17,7 +17,8 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
     return update(db.stockTable).replace(entry);
   }
 
-  Future<StockTableData> getStockByVariantId({int branchId, int variantId}) {
+  Future<StockTableData> getStockByVariantId(
+      {String branchId, String variantId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
           ..where((t) => t.variantId.equals(variantId)))
@@ -25,7 +26,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   }
 
   Stream<List<StockTableData>> getStockByVariantIdStream(
-      {int branchId, int variantId}) {
+      {String branchId, String variantId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
           ..where((t) => t.variantId.equals(variantId)))
@@ -33,7 +34,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   }
 
   Stream<List<StockTableData>> getStockByItemIdStream(
-      {int branchId, int itemId}) {
+      {String branchId, int itemId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
           ..where((t) => t.itemId.equals(itemId)))
@@ -41,7 +42,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   }
 
   Stream<List<StockTableData>> getStockByVariantStream(
-      {int branchId, int variationId}) {
+      {String branchId, String variationId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
           ..where((t) => t.variantId.equals(variationId)))
@@ -49,7 +50,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   }
 
   Future<List<StockTableData>> getItemFromStockByItemId(
-      {int branchId, int itemId}) {
+      {String branchId, int itemId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
           ..where((t) => t.itemId.equals(itemId)))

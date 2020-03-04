@@ -29,7 +29,7 @@ class CartDao extends DatabaseAccessor<Database> with _$CartDaoMixin {
         .get();
   }
 
-  Future<CartTableData> getExistingCartItem(int variationId) {
+  Future<CartTableData> getExistingCartItem(String variationId) {
     return (select(db.cartTable)
           ..where((t) => t.variationId.equals(variationId)))
         .getSingle();

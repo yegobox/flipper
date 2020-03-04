@@ -4,7 +4,7 @@ part 'branch.g.dart';
 
 abstract class Branch implements Built<Branch, BranchBuilder> {
   @nullable
-  int get id;
+  String get id;
 
   String get businessId;
 

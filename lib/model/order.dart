@@ -5,7 +5,7 @@ part 'order.g.dart';
 abstract class Order implements Built<Order, OrderBuilder> {
   int get id;
   int get userId;
-  int get branchId;
+  String get branchId;
   int get orderNUmber;
   int get supplierId;
   int get subTotal;

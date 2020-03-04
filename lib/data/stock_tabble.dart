@@ -19,11 +19,9 @@ class StockTable extends Table {
 
   IntColumn get itemId => integer()();
 
-  IntColumn get variantId =>
-      integer().customConstraint('NULL REFERENCES variation_table(id)')();
+  TextColumn get variantId => text()();
 
-  IntColumn get branchId =>
-      integer().customConstraint('NULL REFERENCES branch_table(id) ')();
+  TextColumn get branchId => text()();
 
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();

@@ -9,7 +9,7 @@ abstract class Cart implements Built<Cart, CartBuilder> {
 
   int get count;
 
-  int get variationId;
+  String get variationId;
 
   @nullable
   DateTime get createdAt;

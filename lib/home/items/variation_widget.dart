@@ -35,7 +35,7 @@ class _VariationWidgetState extends State<VariationWidget> {
         },
         child: StreamBuilder(
             stream: widget.vm.database.stockDao.getStockByVariantIdStream(
-                branchId: widget.vm.branch.id, variantId: widget.variation.id),
+                branchId: widget.vm.branch.id, variantId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return Text("");
@@ -67,10 +67,7 @@ class _VariationWidgetState extends State<VariationWidget> {
             ),
             onPressed: () {
               Router.navigator.pushNamed(
-                Router.receiveStock,
-                arguments: ReceiveStockScreenArguments(
-                  variationId: snapshot.data[i].variantId,
-                ),
+                Router.receiveStock
               );
             },
           )

@@ -241,7 +241,7 @@ class SellMultipleItems extends StatelessWidget {
           item: Item((ui) => ui
             ..id = stocks[i].id
             ..name = vm.currentActiveSaleItem.name
-            ..variantId = stocks[i].variantId
+//            ..variantId = stocks[i].variantId
             ..branchId = stocks[i].branchId
             ..retailPrice = stocks[i].retailPrice.toInt().toDouble()
             ..price = stocks[i].retailPrice.toInt()),
@@ -278,7 +278,7 @@ class SellMultipleItems extends StatelessWidget {
               (ui) => ui
                 ..id = stocks[i].id
                 ..name = vm.currentActiveSaleItem.name
-                ..variantId = stocks[i].variantId
+//                ..variantId = stocks[i].variantId
                 ..branchId = stocks[i].branchId
                 ..retailPrice = stocks[i].retailPrice,
             ),
@@ -331,7 +331,7 @@ class SellMultipleItems extends StatelessWidget {
       (updated) => updated
         ..count = vm.currentIncrement
         ..id = stocks[i].id
-        ..variantId = stocks[i].variantId
+//        ..variantId = stocks[i].variantId
         ..isActive = stocks[i].isActive
         ..price = stocks[i].retailPrice.toInt()
         ..branchId = stocks[i].branchId,

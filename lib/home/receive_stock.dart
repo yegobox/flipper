@@ -44,8 +44,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                 children: <Widget>[
                   StreamBuilder(
                       stream: vm.database.stockDao.getStockByVariantStream(
-                          branchId: vm.branch.id,
-                          variationId: widget.variationId),
+                          branchId: vm.branch.id, variationId: '001'),
                       builder: (context,
                           AsyncSnapshot<List<StockTableData>> snapshot) {
                         if (snapshot.data == null) {

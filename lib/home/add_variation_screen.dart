@@ -147,7 +147,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
 
   Future _createVariant(CommonViewModel vm, BuildContext context) async {
     ItemTableData item = await vm.database.itemDao
-        .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
+        .getItemBy(name: 'tmp', itemId: vm.tmpItem.id);
     VariationTableData variation =
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
     final store = StoreProvider.of<AppState>(context);
@@ -177,7 +177,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         retailPrice: double.parse(retailPrice),
         itemId: item.id,
         costPrice: double.parse(costPrice),
-        variantId: variantId,
+//        variantId: variantId,
         branchId: vm.branch.id,
         createdAt: DateTime.now(),
       ),

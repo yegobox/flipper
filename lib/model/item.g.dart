@@ -28,7 +28,7 @@ class _$Item extends Item {
   @override
   final int quantity;
   @override
-  final int branchId;
+  final String branchId;
   @override
   final int categoryId;
   @override
@@ -195,9 +195,9 @@ class ItemBuilder implements Builder<Item, ItemBuilder> {
   int get quantity => _$this._quantity;
   set quantity(int quantity) => _$this._quantity = quantity;
 
-  int _branchId;
-  int get branchId => _$this._branchId;
-  set branchId(int branchId) => _$this._branchId = branchId;
+  String _branchId;
+  String get branchId => _$this._branchId;
+  set branchId(String branchId) => _$this._branchId = branchId;
 
   int _categoryId;
   int get categoryId => _$this._categoryId;

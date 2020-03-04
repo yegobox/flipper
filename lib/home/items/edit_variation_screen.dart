@@ -223,7 +223,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
         width: 300,
         child: StreamBuilder(
             stream: vm.database.stockDao.getStockByVariantIdStream(
-                branchId: vm.branch.id, variantId: widget.variationId),
+                branchId: vm.branch.id, variantId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return TextFormField(
@@ -269,7 +269,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
         width: 300,
         child: StreamBuilder(
             stream: vm.database.stockDao.getStockByVariantIdStream(
-                branchId: vm.branch.id, variantId: widget.variationId),
+                branchId: vm.branch.id, variantId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return TextFormField(

@@ -34,7 +34,7 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
         .watch();
   }
 
-  Future<VariationTableData> getVariationBy(String name, int branchId) {
+  Future<VariationTableData> getVariationBy(String name, String branchId) {
     return (select(db.variationTable)
           ..orderBy(
             ([
@@ -47,7 +47,7 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
   }
 
   Future<List<VariationTableData>> getVariationByItemId(
-      {int branchId, int itemId}) {
+      {String branchId, int itemId}) {
     return (select(db.variationTable)
           ..where((t) => t.branchId.equals(branchId))
           ..where((t) => t.itemId.equals(itemId)))
@@ -85,7 +85,7 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
       delete(db.variationTable).delete(item);
 
   Stream<List<VariationTableData>> getVariationByStream(
-      String name, int branchId) {
+      String name, String branchId) {
     return (select(db.variationTable)
           ..where((t) => t.name.equals(name))
           ..where((t) => t.branchId.equals(branchId)))

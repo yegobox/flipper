@@ -67,38 +67,6 @@ class GeneralRepository {
     return Util.insertItem(store, data);
   }
 
-  Future<int> insertUnit(Store<AppState> store, Unit unit) async {
-    UnitTableData unitData = await store.state.database.unitDao
-        .getExistingUnit(unit.name, store.state.branch.id);
-    if (unitData == null) {
-      //ignore:missing_required_param
-      var values = new UnitTableData(
-        name: unit.name,
-        branchId: unit.branchId,
-        businessId: unit.businessId,
-        focused: unit.focused,
-      );
-      store.state.database.unitDao.insert(values);
-    }
-    unitData = await store.state.database.unitDao
-        .getExistingUnit(unit.name, store.state.branch.id);
-    store.dispatch(
-      CustomUnit(
-        unit: Unit(
-          (u) => u
-            ..name = unitData.name
-            ..focused = false
-            ..businessId = unitData.businessId
-            ..branchId = unitData.branchId
-            ..id = unitData.id,
-        ),
-      ),
-    );
-
-    return unitData.id;
-    //broadcast custom unit
-  }
-
   Future<List<CategoryTableData>> getCategories(Store<AppState> store) {
     return store.state.database.categoryDao.getCategories();
   }
@@ -175,7 +143,7 @@ class GeneralRepository {
   }
 
   Future<List<ItemVariation>> getItemVariation(Store<AppState> store) {
-    return store.state.database.itemDao.getItemVariations();
+//    return store.state.database.itemDao.getItemVariations();
   }
 
   Future<List<VariationTableData>> getVariations(

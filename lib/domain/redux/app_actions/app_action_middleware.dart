@@ -40,8 +40,8 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
     StockTableData stock;
     int variationId;
     variationId = action.variantId;
-    stock = await store.state.database.stockDao.getStockByVariantId(
-        branchId: store.state.branch.id, variantId: action.variantId);
+//    stock = await store.state.database.stockDao.getStockByVariantId(
+//        branchId: store.state.branch.id, variantId: action.variantId);
     final variant =
         await store.state.database.variationDao.getVariationById(variationId);
     await store.state.database.variationDao
@@ -53,8 +53,8 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
         costPrice: action.costPrice,
       ),
     );
-    stock = await store.state.database.stockDao.getStockByVariantId(
-        branchId: store.state.branch.id, variantId: action.variantId);
+//    stock = await store.state.database.stockDao.getStockByVariantId(
+//        branchId: store.state.branch.id, variantId: action.variantId);
   };
 }
 
@@ -64,17 +64,17 @@ void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     if (store.state.branch != null) {
-      final categoryId = await generalRepository.insertCategory(
-        store,
-        //ignore: missing_required_param
-        CategoryTableData(
-          branchId: store.state.branch.id,
-          focused: false,
-          name: action.name,
-          createdAt: DateTime.now(),
-        ),
-      );
-      store.dispatch(TempCategoryIdAction(categoryId: categoryId));
+//      final categoryId = await generalRepository.insertCategory(
+//        store,
+//        //ignore: missing_required_param
+//        CategoryTableData(
+//          branchId: store.state.branch.id,
+//          focused: false,
+//          name: action.name,
+//          createdAt: DateTime.now(),
+//        ),
+//      );
+//      store.dispatch(TempCategoryIdAction(categoryId: categoryId));
     }
   };
 }
@@ -140,21 +140,21 @@ void Function(Store<AppState> store, SaveCartCustom action, NextDispatcher next)
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     next(action);
-
-    await generalRepository.insertOrUpdateCart(
-      store,
-      //ignore: missing_required_param
-      CartTableData(
-        branchId: store.state.branch.id,
-        count: store.state.currentIncrement == null
-            ? 1
-            : store.state.currentIncrement,
-        variationName: store.state.cartItem.name,
-        orderId: store.state.order.id,
-        variationId: store.state.cartItem.id,
-        parentName: store.state.cartItem.parentName,
-      ),
-    );
+//
+//    await generalRepository.insertOrUpdateCart(
+//      store,
+//      //ignore: missing_required_param
+//      CartTableData(
+//        branchId: store.state.branch.id,
+//        count: store.state.currentIncrement == null
+//            ? 1
+//            : store.state.currentIncrement,
+//        variationName: store.state.cartItem.name,
+//        orderId: store.state.order.id,
+//        variationId: store.state.cartItem.id,
+//        parentName: store.state.cartItem.parentName,
+//      ),
+//    );
   };
 }
 
@@ -164,20 +164,20 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
 
-    await generalRepository.insertOrUpdateCart(
-      store,
-      //ignore: missing_required_param
-      CartTableData(
-        branchId: store.state.branch.id,
-        count: store.state.currentIncrement == null
-            ? 1
-            : store.state.currentIncrement,
-        variationName: store.state.cartItem.name,
-        orderId: store.state.order.id,
-        variationId: store.state.cartItem.variantId,
-        parentName: store.state.cartItem.parentName,
-      ),
-    );
+//    await generalRepository.insertOrUpdateCart(
+//      store,
+//      //ignore: missing_required_param
+//      CartTableData(
+//        branchId: store.state.branch.id,
+//        count: store.state.currentIncrement == null
+//            ? 1
+//            : store.state.currentIncrement,
+//        variationName: store.state.cartItem.name,
+//        orderId: store.state.order.id,
+//        variationId: store.state.cartItem.variantId,
+//        parentName: store.state.cartItem.parentName,
+//      ),
+//    );
 
     Router.navigator.maybePop();
   };

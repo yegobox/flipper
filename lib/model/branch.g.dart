@@ -8,7 +8,7 @@ part of 'branch.dart';
 
 class _$Branch extends Branch {
   @override
-  final int id;
+  final String id;
   @override
   final String businessId;
   @override
@@ -128,9 +128,9 @@ class _$Branch extends Branch {
 class BranchBuilder implements Builder<Branch, BranchBuilder> {
   _$Branch _$v;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   String _businessId;
   String get businessId => _$this._businessId;

@@ -58,15 +58,15 @@ void setUnits(store, branchId, GeneralRepository generalRepository) async {
     ..id = 1
     ..focused = false);
 
-  await generalRepository.insertUnit(store, item);
+//  await generalRepository.insertUnit(store, item);
 
   //toto: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
-  await generalRepository.insertUnit(store, kg);
+//  await generalRepository.insertUnit(store, kg);
   //todo: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
-  await generalRepository.insertUnit(store, ounce);
+//  await generalRepository.insertUnit(store, ounce);
   //todo: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
-  await generalRepository.insertUnit(store, pound);
-  await generalRepository.insertUnit(store, custom);
+//  await generalRepository.insertUnit(store, pound);
+//  await generalRepository.insertUnit(store, custom);
   //todo: by setting each fire the progress to be used on SettingUpApplicationScreen as we set up each.. 25%
 }
 

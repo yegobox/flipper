@@ -13,8 +13,6 @@ abstract class User implements Built<User, UserBuilder> {
 
   String get name;
 
-  String get role;
-  String get permissions;
   String get createdAt;
   String get updatedAt;
 

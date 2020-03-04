@@ -28,7 +28,7 @@ class WithUsers {
 class WithUser {
   final User user;
 
-  const WithUser(this.user);
+  const WithUser({this.user});
 }
 
 @immutable

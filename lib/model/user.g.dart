@@ -16,10 +16,6 @@ class _$User extends User {
   @override
   final String name;
   @override
-  final String role;
-  @override
-  final String permissions;
-  @override
   final String createdAt;
   @override
   final String updatedAt;
@@ -34,8 +30,6 @@ class _$User extends User {
       this.email,
       this.active,
       this.name,
-      this.role,
-      this.permissions,
       this.createdAt,
       this.updatedAt,
       this.token})
@@ -45,12 +39,6 @@ class _$User extends User {
     }
     if (name == null) {
       throw new BuiltValueNullFieldError('User', 'name');
-    }
-    if (role == null) {
-      throw new BuiltValueNullFieldError('User', 'role');
-    }
-    if (permissions == null) {
-      throw new BuiltValueNullFieldError('User', 'permissions');
     }
     if (createdAt == null) {
       throw new BuiltValueNullFieldError('User', 'createdAt');
@@ -75,8 +63,6 @@ class _$User extends User {
         email == other.email &&
         active == other.active &&
         name == other.name &&
-        role == other.role &&
-        permissions == other.permissions &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
         token == other.token;
@@ -88,13 +74,9 @@ class _$User extends User {
         $jc(
             $jc(
                 $jc(
-                    $jc(
-                        $jc(
-                            $jc($jc($jc(0, id.hashCode), email.hashCode),
-                                active.hashCode),
-                            name.hashCode),
-                        role.hashCode),
-                    permissions.hashCode),
+                    $jc($jc($jc(0, id.hashCode), email.hashCode),
+                        active.hashCode),
+                    name.hashCode),
                 createdAt.hashCode),
             updatedAt.hashCode),
         token.hashCode));
@@ -107,8 +89,6 @@ class _$User extends User {
           ..add('email', email)
           ..add('active', active)
           ..add('name', name)
-          ..add('role', role)
-          ..add('permissions', permissions)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
           ..add('token', token))
@@ -135,14 +115,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
-  String _role;
-  String get role => _$this._role;
-  set role(String role) => _$this._role = role;
-
-  String _permissions;
-  String get permissions => _$this._permissions;
-  set permissions(String permissions) => _$this._permissions = permissions;
-
   String _createdAt;
   String get createdAt => _$this._createdAt;
   set createdAt(String createdAt) => _$this._createdAt = createdAt;
@@ -163,8 +135,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
       _email = _$v.email;
       _active = _$v.active;
       _name = _$v.name;
-      _role = _$v.role;
-      _permissions = _$v.permissions;
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
       _token = _$v.token;
@@ -194,8 +164,6 @@ class UserBuilder implements Builder<User, UserBuilder> {
             email: email,
             active: active,
             name: name,
-            role: role,
-            permissions: permissions,
             createdAt: createdAt,
             updatedAt: updatedAt,
             token: token);

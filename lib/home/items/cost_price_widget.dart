@@ -36,7 +36,7 @@ class _BuildCostPriceWidgetState extends State<BuildCostPriceWidget> {
           onChanged: (costPrice) async {
             ItemTableData item = await widget.vm.database.itemDao.getItemBy(
               name: widget.itemName,
-              branchId: widget.vm.branch.id,
+//              branchId: '001',
               itemId: widget.itemId,
             );
 

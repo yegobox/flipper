@@ -6,7 +6,7 @@ class OrderTable extends Table {
 
 //  .customConstraint(
 //      'NULL REFERENCES branch_table(id) ON DELETE SET NULL')
-  IntColumn get branchId => integer()();
+  TextColumn get branchId => text()();
   IntColumn get orderNUmber => integer().nullable()();
   IntColumn get supplierId => integer().nullable()();
   IntColumn get subTotal => integer().nullable()();

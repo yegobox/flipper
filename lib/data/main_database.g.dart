@@ -3244,7 +3244,7 @@ class VariationTableData extends DataClass
   final int id;
   final String name;
   final String sku;
-  final int branchId;
+  final String branchId;
   final int itemId;
   final bool isActive;
   final DateTime createdAt;
@@ -3272,8 +3272,8 @@ class VariationTableData extends DataClass
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       sku: stringType.mapFromDatabaseResponse(data['${effectivePrefix}sku']),
-      branchId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      branchId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
       itemId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}item_id']),
       isActive:
@@ -3293,7 +3293,7 @@ class VariationTableData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       sku: serializer.fromJson<String>(json['sku']),
-      branchId: serializer.fromJson<int>(json['branchId']),
+      branchId: serializer.fromJson<String>(json['branchId']),
       itemId: serializer.fromJson<int>(json['itemId']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -3308,7 +3308,7 @@ class VariationTableData extends DataClass
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'sku': serializer.toJson<String>(sku),
-      'branchId': serializer.toJson<int>(branchId),
+      'branchId': serializer.toJson<String>(branchId),
       'itemId': serializer.toJson<int>(itemId),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -3347,7 +3347,7 @@ class VariationTableData extends DataClass
           {int id,
           String name,
           String sku,
-          int branchId,
+          String branchId,
           int itemId,
           bool isActive,
           DateTime createdAt,
@@ -3416,7 +3416,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> sku;
-  final Value<int> branchId;
+  final Value<String> branchId;
   final Value<int> itemId;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
@@ -3437,7 +3437,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
     this.id = const Value.absent(),
     @required String name,
     this.sku = const Value.absent(),
-    @required int branchId,
+    @required String branchId,
     @required int itemId,
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -3450,7 +3450,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
       {Value<int> id,
       Value<String> name,
       Value<String> sku,
-      Value<int> branchId,
+      Value<String> branchId,
       Value<int> itemId,
       Value<bool> isActive,
       Value<DateTime> createdAt,
@@ -3509,12 +3509,15 @@ class $VariationTableTable extends VariationTable
   }
 
   final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
-  GeneratedIntColumn _branchId;
+  GeneratedTextColumn _branchId;
   @override
-  GeneratedIntColumn get branchId => _branchId ??= _constructBranchId();
-  GeneratedIntColumn _constructBranchId() {
-    return GeneratedIntColumn('branch_id', $tableName, false,
-        $customConstraints: 'NULL REFERENCES branch_table(id)');
+  GeneratedTextColumn get branchId => _branchId ??= _constructBranchId();
+  GeneratedTextColumn _constructBranchId() {
+    return GeneratedTextColumn(
+      'branch_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
@@ -3651,7 +3654,7 @@ class $VariationTableTable extends VariationTable
       map['sku'] = Variable<String, StringType>(d.sku.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<int, IntType>(d.branchId.value);
+      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
     }
     if (d.itemId.present) {
       map['item_id'] = Variable<int, IntType>(d.itemId.value);
@@ -3685,8 +3688,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
   final double costPrice;
   final double retailPrice;
   final int itemId;
-  final int variantId;
-  final int branchId;
+  final String variantId;
+  final String branchId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String deletedAt;
@@ -3710,8 +3713,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
     final intType = db.typeSystem.forDartType<int>();
     final boolType = db.typeSystem.forDartType<bool>();
     final doubleType = db.typeSystem.forDartType<double>();
-    final dateTimeType = db.typeSystem.forDartType<DateTime>();
     final stringType = db.typeSystem.forDartType<String>();
+    final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return StockTableData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       currentStock: intType
@@ -3726,10 +3729,10 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}retail_price']),
       itemId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}item_id']),
-      variantId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}variant_id']),
-      branchId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      variantId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}variant_id']),
+      branchId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
@@ -3749,8 +3752,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       costPrice: serializer.fromJson<double>(json['costPrice']),
       retailPrice: serializer.fromJson<double>(json['retailPrice']),
       itemId: serializer.fromJson<int>(json['itemId']),
-      variantId: serializer.fromJson<int>(json['variantId']),
-      branchId: serializer.fromJson<int>(json['branchId']),
+      variantId: serializer.fromJson<String>(json['variantId']),
+      branchId: serializer.fromJson<String>(json['branchId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<String>(json['deletedAt']),
@@ -3767,8 +3770,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       'costPrice': serializer.toJson<double>(costPrice),
       'retailPrice': serializer.toJson<double>(retailPrice),
       'itemId': serializer.toJson<int>(itemId),
-      'variantId': serializer.toJson<int>(variantId),
-      'branchId': serializer.toJson<int>(branchId),
+      'variantId': serializer.toJson<String>(variantId),
+      'branchId': serializer.toJson<String>(branchId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
@@ -3822,8 +3825,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           double costPrice,
           double retailPrice,
           int itemId,
-          int variantId,
-          int branchId,
+          String variantId,
+          String branchId,
           DateTime createdAt,
           DateTime updatedAt,
           String deletedAt}) =>
@@ -3909,8 +3912,8 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
   final Value<double> costPrice;
   final Value<double> retailPrice;
   final Value<int> itemId;
-  final Value<int> variantId;
-  final Value<int> branchId;
+  final Value<String> variantId;
+  final Value<String> branchId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> deletedAt;
@@ -3936,8 +3939,8 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
     this.costPrice = const Value.absent(),
     this.retailPrice = const Value.absent(),
     @required int itemId,
-    @required int variantId,
-    @required int branchId,
+    @required String variantId,
+    @required String branchId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -3952,8 +3955,8 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
       Value<double> costPrice,
       Value<double> retailPrice,
       Value<int> itemId,
-      Value<int> variantId,
-      Value<int> branchId,
+      Value<String> variantId,
+      Value<String> branchId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> deletedAt}) {
@@ -4052,21 +4055,27 @@ class $StockTableTable extends StockTable
   }
 
   final VerificationMeta _variantIdMeta = const VerificationMeta('variantId');
-  GeneratedIntColumn _variantId;
+  GeneratedTextColumn _variantId;
   @override
-  GeneratedIntColumn get variantId => _variantId ??= _constructVariantId();
-  GeneratedIntColumn _constructVariantId() {
-    return GeneratedIntColumn('variant_id', $tableName, false,
-        $customConstraints: 'NULL REFERENCES variation_table(id)');
+  GeneratedTextColumn get variantId => _variantId ??= _constructVariantId();
+  GeneratedTextColumn _constructVariantId() {
+    return GeneratedTextColumn(
+      'variant_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
-  GeneratedIntColumn _branchId;
+  GeneratedTextColumn _branchId;
   @override
-  GeneratedIntColumn get branchId => _branchId ??= _constructBranchId();
-  GeneratedIntColumn _constructBranchId() {
-    return GeneratedIntColumn('branch_id', $tableName, false,
-        $customConstraints: 'NULL REFERENCES branch_table(id) ');
+  GeneratedTextColumn get branchId => _branchId ??= _constructBranchId();
+  GeneratedTextColumn _constructBranchId() {
+    return GeneratedTextColumn(
+      'branch_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
@@ -4217,10 +4226,10 @@ class $StockTableTable extends StockTable
       map['item_id'] = Variable<int, IntType>(d.itemId.value);
     }
     if (d.variantId.present) {
-      map['variant_id'] = Variable<int, IntType>(d.variantId.value);
+      map['variant_id'] = Variable<String, StringType>(d.variantId.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<int, IntType>(d.branchId.value);
+      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
@@ -5014,7 +5023,7 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
   final int branchId;
   final int count;
   final int orderId;
-  final int variationId;
+  final String variationId;
   final String parentName;
   final String variationName;
   final DateTime createdAt;
@@ -5043,7 +5052,7 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
       count: intType.mapFromDatabaseResponse(data['${effectivePrefix}count']),
       orderId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}order_id']),
-      variationId: intType
+      variationId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}variation_id']),
       parentName: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}parent_name']),
@@ -5063,7 +5072,7 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
       branchId: serializer.fromJson<int>(json['branchId']),
       count: serializer.fromJson<int>(json['count']),
       orderId: serializer.fromJson<int>(json['orderId']),
-      variationId: serializer.fromJson<int>(json['variationId']),
+      variationId: serializer.fromJson<String>(json['variationId']),
       parentName: serializer.fromJson<String>(json['parentName']),
       variationName: serializer.fromJson<String>(json['variationName']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -5078,7 +5087,7 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
       'branchId': serializer.toJson<int>(branchId),
       'count': serializer.toJson<int>(count),
       'orderId': serializer.toJson<int>(orderId),
-      'variationId': serializer.toJson<int>(variationId),
+      'variationId': serializer.toJson<String>(variationId),
       'parentName': serializer.toJson<String>(parentName),
       'variationName': serializer.toJson<String>(variationName),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -5121,7 +5130,7 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
           int branchId,
           int count,
           int orderId,
-          int variationId,
+          String variationId,
           String parentName,
           String variationName,
           DateTime createdAt,
@@ -5190,7 +5199,7 @@ class CartTableCompanion extends UpdateCompanion<CartTableData> {
   final Value<int> branchId;
   final Value<int> count;
   final Value<int> orderId;
-  final Value<int> variationId;
+  final Value<String> variationId;
   final Value<String> parentName;
   final Value<String> variationName;
   final Value<DateTime> createdAt;
@@ -5211,7 +5220,7 @@ class CartTableCompanion extends UpdateCompanion<CartTableData> {
     @required int branchId,
     @required int count,
     @required int orderId,
-    @required int variationId,
+    @required String variationId,
     @required String parentName,
     @required String variationName,
     this.createdAt = const Value.absent(),
@@ -5227,7 +5236,7 @@ class CartTableCompanion extends UpdateCompanion<CartTableData> {
       Value<int> branchId,
       Value<int> count,
       Value<int> orderId,
-      Value<int> variationId,
+      Value<String> variationId,
       Value<String> parentName,
       Value<String> variationName,
       Value<DateTime> createdAt,
@@ -5294,14 +5303,16 @@ class $CartTableTable extends CartTable
 
   final VerificationMeta _variationIdMeta =
       const VerificationMeta('variationId');
-  GeneratedIntColumn _variationId;
+  GeneratedTextColumn _variationId;
   @override
-  GeneratedIntColumn get variationId =>
+  GeneratedTextColumn get variationId =>
       _variationId ??= _constructVariationId();
-  GeneratedIntColumn _constructVariationId() {
-    return GeneratedIntColumn('variation_id', $tableName, false,
-        $customConstraints:
-            'NULL REFERENCES variation_table(id) ON UPDATE CASCADE');
+  GeneratedTextColumn _constructVariationId() {
+    return GeneratedTextColumn(
+      'variation_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _parentNameMeta = const VerificationMeta('parentName');
@@ -5449,7 +5460,7 @@ class $CartTableTable extends CartTable
       map['order_id'] = Variable<int, IntType>(d.orderId.value);
     }
     if (d.variationId.present) {
-      map['variation_id'] = Variable<int, IntType>(d.variationId.value);
+      map['variation_id'] = Variable<String, StringType>(d.variationId.value);
     }
     if (d.parentName.present) {
       map['parent_name'] = Variable<String, StringType>(d.parentName.value);
@@ -5476,7 +5487,7 @@ class $CartTableTable extends CartTable
 class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   final int id;
   final int userId;
-  final int branchId;
+  final String branchId;
   final int orderNUmber;
   final int supplierId;
   final int subTotal;
@@ -5522,14 +5533,14 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
-    final dateTimeType = db.typeSystem.forDartType<DateTime>();
     final stringType = db.typeSystem.forDartType<String>();
+    final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return OrderTableData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       userId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
-      branchId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      branchId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
       orderNUmber: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}order_n_umber']),
       supplierId: intType
@@ -5573,7 +5584,7 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
     return OrderTableData(
       id: serializer.fromJson<int>(json['id']),
       userId: serializer.fromJson<int>(json['userId']),
-      branchId: serializer.fromJson<int>(json['branchId']),
+      branchId: serializer.fromJson<String>(json['branchId']),
       orderNUmber: serializer.fromJson<int>(json['orderNUmber']),
       supplierId: serializer.fromJson<int>(json['supplierId']),
       subTotal: serializer.fromJson<int>(json['subTotal']),
@@ -5601,7 +5612,7 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'userId': serializer.toJson<int>(userId),
-      'branchId': serializer.toJson<int>(branchId),
+      'branchId': serializer.toJson<String>(branchId),
       'orderNUmber': serializer.toJson<int>(orderNUmber),
       'supplierId': serializer.toJson<int>(supplierId),
       'subTotal': serializer.toJson<int>(subTotal),
@@ -5690,7 +5701,7 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   OrderTableData copyWith(
           {int id,
           int userId,
-          int branchId,
+          String branchId,
           int orderNUmber,
           int supplierId,
           int subTotal,
@@ -5836,7 +5847,7 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
 class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
   final Value<int> id;
   final Value<int> userId;
-  final Value<int> branchId;
+  final Value<String> branchId;
   final Value<int> orderNUmber;
   final Value<int> supplierId;
   final Value<int> subTotal;
@@ -5881,7 +5892,7 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
   OrderTableCompanion.insert({
     this.id = const Value.absent(),
     @required int userId,
-    @required int branchId,
+    @required String branchId,
     this.orderNUmber = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.subTotal = const Value.absent(),
@@ -5905,7 +5916,7 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
   OrderTableCompanion copyWith(
       {Value<int> id,
       Value<int> userId,
-      Value<int> branchId,
+      Value<String> branchId,
       Value<int> orderNUmber,
       Value<int> supplierId,
       Value<int> subTotal,
@@ -5978,11 +5989,11 @@ class $OrderTableTable extends OrderTable
   }
 
   final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
-  GeneratedIntColumn _branchId;
+  GeneratedTextColumn _branchId;
   @override
-  GeneratedIntColumn get branchId => _branchId ??= _constructBranchId();
-  GeneratedIntColumn _constructBranchId() {
-    return GeneratedIntColumn(
+  GeneratedTextColumn get branchId => _branchId ??= _constructBranchId();
+  GeneratedTextColumn _constructBranchId() {
+    return GeneratedTextColumn(
       'branch_id',
       $tableName,
       false,
@@ -6371,7 +6382,7 @@ class $OrderTableTable extends OrderTable
       map['user_id'] = Variable<int, IntType>(d.userId.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<int, IntType>(d.branchId.value);
+      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
     }
     if (d.orderNUmber.present) {
       map['order_n_umber'] = Variable<int, IntType>(d.orderNUmber.value);

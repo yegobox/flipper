@@ -187,17 +187,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         (user) => user
           ..email = widget.email
           ..active = true
-          ..role = "Admin"
           ..createdAt = DateTime.now().toIso8601String()
           ..updatedAt = DateTime.now().toIso8601String()
-          ..permissions = ''
           ..token = widget.token
           ..name = widget.name,
       );
       final store = StoreProvider.of<AppState>(context);
       StoreProvider.of<AppState>(context).state.couch.getDocumentByQuery(store);
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
-      StoreProvider.of<AppState>(context).dispatch(WithUser(user));
+      StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));
     }
   }

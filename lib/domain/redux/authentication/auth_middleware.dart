@@ -66,22 +66,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
     //todo: implement token based auth if  user is logging via token
-    await getBusinesses(store);
-    await getBranches(store);
-
-    await createTemporalOrder(generalRepository, store);
+    await getBusinesses(store, generalRepository);
   };
 }
 
-Future createDefaultTaxes(Store<AppState> store) {
-  if (store.state.branch == null) return null;
-  return store.state.database.taxDao
-      //ignore:missing_required_param
-      .insert(TaxTableData(
-          name: 'vat', value: 18, branchId: store.state.branch.id));
-}
-
-Future<List<Branch>> getBranches(Store<AppState> store) async {
+Future<List<Branch>> getBranches(
+    Store<AppState> store, GeneralRepository generalRepository) async {
   List<Branch> branches = await CouchBase(shouldInitDb: false)
       .getDocumentByDocId(
           docId: 'branch_' + store.state.userId.toString(),
@@ -91,10 +81,12 @@ Future<List<Branch>> getBranches(Store<AppState> store) async {
   for (var i = 0; i < branches.length; i++) {
     if (branches[i].active) {
       //set current active branch
+      print(branches[i].id);
       store.dispatch(
         OnCurrentBranchAction(
           branch: Branch((b) => b
             ..name = branches[i].name
+            ..id = branches[i].id
             ..active = branches[i].active
             ..businessId = branches[i].businessId
             ..createdAt = branches[i].createdAt
@@ -147,13 +139,13 @@ List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
 
 Future createSystemCustomCategory(
     GeneralRepository generalRepository, Store<AppState> store) async {
-  if (store.state.branch == null) return;
-  await generalRepository.insertCustomCategory(
-    store,
-    //ignore: missing_required_param
-    CategoryTableData(
-        branchId: store.state.branch.id, focused: false, name: 'custom'),
-  );
+//  if (store.state.branch == null) return;
+//  await generalRepository.insertCustomCategory(
+//    store,
+//    //ignore: missing_required_param
+//    CategoryTableData(
+//        branchId: store.state.branch.id, focused: false, name: 'custom'),
+//  );
 }
 
 void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
@@ -229,7 +221,7 @@ void loadProducts(List<ItemTableData> items, Store<AppState> store,
       Item(
         (v) => v
           ..name = i.name
-          ..branchId = i.branchId
+//          ..branchId = i.branchId
           ..unitId = i.unitId
           ..id = i.id
           ..color = i.color
@@ -317,13 +309,17 @@ Future createTemporalOrder(
   }
 }
 
-Future getBusinesses(Store<AppState> store) async {
+Future getBusinesses(
+    Store<AppState> store, GeneralRepository generalRepository) async {
   List<Business> businesses = await CouchBase(shouldInitDb: false)
       .getDocumentByDocId(
           docId: 'business_' + store.state.userId.toString(),
           store: store,
           T: Business);
-
+  if (businesses.length > 0) {
+    await getBranches(store, generalRepository);
+    await createTemporalOrder(generalRepository, store);
+  }
   for (var i = 0; i < businesses.length; i++) {
     if (businesses[i].active) {
       store.dispatch(

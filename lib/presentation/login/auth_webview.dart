@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,17 @@ class _AuthWebViewState extends State<AuthWebView> {
 //              ),
 //            );
 //          }
+          User user = User(
+            (user) => user
+              ..email = _email
+              ..active = true
+              ..createdAt = DateTime.now().toIso8601String()
+              ..updatedAt = DateTime.now().toIso8601String()
+              ..token = token
+              ..name = _name,
+          );
           store.dispatch(UserID(userId: int.parse(_userId)));
+          store.dispatch(WithUser(user: user));
           flutterWebviewPlugin.close();
 
           if (widget.authType == 'register') {

@@ -12,7 +12,7 @@ class _$Order extends Order {
   @override
   final int userId;
   @override
-  final int branchId;
+  final String branchId;
   @override
   final int orderNUmber;
   @override
@@ -247,9 +247,9 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   int get userId => _$this._userId;
   set userId(int userId) => _$this._userId = userId;
 
-  int _branchId;
-  int get branchId => _$this._branchId;
-  set branchId(int branchId) => _$this._branchId = branchId;
+  String _branchId;
+  String get branchId => _$this._branchId;
+  set branchId(String branchId) => _$this._branchId = branchId;
 
   int _orderNUmber;
   int get orderNUmber => _$this._orderNUmber;

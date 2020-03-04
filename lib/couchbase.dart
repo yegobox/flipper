@@ -219,8 +219,6 @@ class CouchBase extends Model with Fluttercouch {
         (u) => u
           ..email = doc.getList('users')[i]['email']
           ..name = doc.getList('users')[i]['name']
-          ..role = doc.getList('users')[i]['role']
-          ..permissions = doc.getList('users')[i]['permissions']
           ..createdAt = doc.getList('users')[i]['createdAt']
           ..updatedAt = doc.getList('users')[i]['updatedAt']
           ..active = doc.getList('users')[i]['active']
@@ -261,6 +259,7 @@ class CouchBase extends Model with Fluttercouch {
         i++) {
       branch.add(Branch((b) => b
         ..name = doc.getList(branch_)[i]['name']
+        ..id = doc.getList(branch_)[i]['id']
         ..active = doc.getList(branch_)[i]['active']
         ..businessId = doc
             .getList(branch_)[i]['businessId']

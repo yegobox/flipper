@@ -25,7 +25,7 @@ abstract class Item implements Built<Item, ItemBuilder> {
   @nullable
   int get quantity;
 
-  int get branchId;
+  String get branchId;
   @nullable
   int get categoryId;
   @nullable

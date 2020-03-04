@@ -1,4 +1,3 @@
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
@@ -34,26 +33,26 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   _onClose(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
-    ItemTableData item = await store.state.database.itemDao
-        .getItemByName(name: 'tmp', branchId: store.state.branch.id);
-    Util.deleteItem(store, item.name, item.id);
+//    ItemTableData item = await store.state.database.itemDao
+//        .getItemByName(name: 'tmp', branchId: store.state.branch.id);
+//    Util.deleteItem(store, item.name, item.id);
     Router.navigator.pop(true);
   }
 
   Future<bool> _onWillPop() async {
     //if we have dirty db then show the alert or if is clean go back without alert
-    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
+//    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
     int itemId = StoreProvider.of<AppState>(context).state.tmpItem.id;
 
-    ItemTableData item = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .itemDao
-        .getItemBy(name: 'tmp', branchId: branchId, itemId: itemId);
-    if (item == null) {
-      Router.navigator.pop(false);
-      return false;
-    }
+//    ItemTableData item = await StoreProvider.of<AppState>(context)
+//        .state
+//        .database
+//        .itemDao
+//        .getItemBy(name: 'tmp', branchId: branchId, itemId: itemId);
+//    if (item == null) {
+//      Router.navigator.pop(false);
+//      return false;
+//    }
     //delete this item add look trough all variation and delete related variation.
     return (await showDialog(
           context: context,
@@ -274,7 +273,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 stream: vm.database.stockDao
                                     .getStockByVariantIdStream(
                                         branchId: vm.branch.id,
-                                        variantId: vm.tmpItem.variantId),
+                                        variantId: '001'),
                                 builder: (context,
                                     AsyncSnapshot<List<StockTableData>>
                                         snapshot) {
@@ -304,7 +303,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 stream: vm.database.stockDao
                                     .getStockByVariantIdStream(
                                         branchId: vm.branch.id,
-                                        variantId: vm.tmpItem.variantId),
+                                        variantId: '001'), //todo: edit
                                 builder: (context,
                                     AsyncSnapshot<List<StockTableData>>
                                         snapshot) {
@@ -487,8 +486,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Future<bool> _handleCreateItem(CommonViewModel vm) async {
     final store = StoreProvider.of<AppState>(context);
-    ItemTableData item = await vm.database.itemDao
-        .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
+//    ItemTableData item = await vm.database.itemDao
+//        .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
 
     VariationTableData variation =
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
@@ -505,9 +504,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     await resetSaveButtonStatus(vm);
 
-    await updateItem(vm, item);
+//    await updateItem(vm, item);
 
-    await Util.removeItemFromTrash(store, item.id);
+//    await Util.removeItemFromTrash(store, item.id);
 
     return true;
   }
@@ -547,7 +546,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
               child: ListView(children: <Widget>[
                 StreamBuilder(
                     stream: vm.database.stockDao.getStockByVariantIdStream(
-                        branchId: vm.branch.id, variantId: variations[i].id),
+                        branchId: vm.branch.id, variantId: '001'),
                     builder: (context,
                         AsyncSnapshot<List<StockTableData>> snapshot) {
                       if (snapshot.data == null) {

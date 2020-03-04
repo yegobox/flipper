@@ -14,7 +14,7 @@ class _$Cart extends Cart {
   @override
   final int count;
   @override
-  final int variationId;
+  final String variationId;
   @override
   final DateTime createdAt;
   @override
@@ -124,9 +124,9 @@ class CartBuilder implements Builder<Cart, CartBuilder> {
   int get count => _$this._count;
   set count(int count) => _$this._count = count;
 
-  int _variationId;
-  int get variationId => _$this._variationId;
-  set variationId(int variationId) => _$this._variationId = variationId;
+  String _variationId;
+  String get variationId => _$this._variationId;
+  set variationId(String variationId) => _$this._variationId = variationId;
 
   DateTime _createdAt;
   DateTime get createdAt => _$this._createdAt;

@@ -401,7 +401,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
 
   _handleEditItem(CommonViewModel vm) async {
     ItemTableData item = await vm.database.itemDao.getItemBy(
-        itemId: widget.itemId, name: widget.itemName, branchId: vm.branch.id);
+        itemId: widget.itemId, name: widget.itemName);
 
     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
 

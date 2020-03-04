@@ -119,7 +119,7 @@ class _ItemsViewState extends State<ItemsView> {
 
   void onSellingItem(
       BuildContext context, List<ItemTableData> itemList, int i) async {
-    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
+//    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
     //ItemsVariation
     //get the variation with the itemList[i].id wait until are loaded then dispatch
     List<VariationTableData> variations =
@@ -127,7 +127,7 @@ class _ItemsViewState extends State<ItemsView> {
             .state
             .database
             .variationDao
-            .getVariationByItemId(branchId: branchId, itemId: itemList[i].id);
+            .getVariationByItemId(branchId: '001', itemId: itemList[i].id);
     List<Item> variants = [];
     for (var i = 0; i < variations.length; i++) {
       variants.add(
@@ -135,7 +135,7 @@ class _ItemsViewState extends State<ItemsView> {
           (b) => b
             ..id = variations[i].itemId
             ..variantId = variations[i].id
-            ..branchId = variations[i].branchId
+            ..branchId = '001'
             ..name = variations[i].name,
         ),
       );
@@ -149,7 +149,7 @@ class _ItemsViewState extends State<ItemsView> {
           (b) => b
             ..name = itemList[i].name
             ..retailPrice = 0
-            ..branchId = itemList[i].branchId
+            ..branchId = '001'
             ..id = itemList[i].id,
         ),
       ),
@@ -165,7 +165,7 @@ class _ItemsViewState extends State<ItemsView> {
         item: Item(
           (b) => b
             ..name = itemList[i].name
-            ..branchId = itemList[i].branchId
+            ..branchId = '001'
             ..id = itemList[i].id,
         ),
       ),

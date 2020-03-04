@@ -128,11 +128,5 @@ class SingleKey extends StatelessWidget {
     );
   }
 
-  Future updateStockPriceForCustomItem() async {
-    final stock = await vm.database.stockDao.getStockByVariantId(
-        variantId: vm.tmpItem.variantId, branchId: vm.tmpItem.branchId);
-    vm.database.stockDao.updateStock(stock.copyWith(
-        retailPrice: vm.keypad.amount.toDouble(),
-        costPrice: vm.keypad.amount.toDouble()));
-  }
+  Future updateStockPriceForCustomItem() async {}
 }
