@@ -1,5 +1,5 @@
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +15,9 @@ class _AllItemScreenState extends State<AllItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonAppBar(
+          onPop: () {
+            Router.navigator.pop();
+          },
           title: S.of(context).items,
           showActionButton: false,
           onPressedCallback: () async {},

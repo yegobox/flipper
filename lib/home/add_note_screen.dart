@@ -1,5 +1,6 @@
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/home/widget/flipper_input.dart';
-import 'package:flipper/presentation/common/common_app_bar.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
 class AddNoteScreen extends StatefulWidget {
@@ -14,6 +15,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
+        onPop: () {
+          Router.navigator.pop();
+        },
         disableButton: false,
         title: "Add Note",
       ),

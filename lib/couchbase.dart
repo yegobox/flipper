@@ -58,7 +58,6 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['country'] != null);
     assert(map['currency'] != null);
     assert(map['id'] != null);
-    assert(map['taxRate'] != null);
     assert(map['timeZone'] != null);
     assert(map['createdAt'] != null);
     assert(map['updatedAt'] != null);
@@ -132,7 +131,7 @@ class CouchBase extends Model with Fluttercouch {
     switch (T.toString()) {
       case 'User':
         {
-          return buildUserModel(doc);
+          return buildUserModel(doc, store);
         }
         break;
 
@@ -178,6 +177,16 @@ class CouchBase extends Model with Fluttercouch {
             "password" //todo: move this to credential file to avoid security breach
       });
 
+      //this is the way of getting notified about db change. adding a live query
+      //https://docs.couchbase.com/couchbase-lite/2.5/java.html#live-query
+      Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
+
+      ListenerToken token =
+          await query.addChangeListener((change) => {print(change)});
+
+      //call this on logout.
+//      query.removeChangeListener(token);
+
       setReplicatorContinuous(true);
       initReplicator();
       startReplicator();
@@ -211,21 +220,17 @@ class CouchBase extends Model with Fluttercouch {
     ResultSet results = await query.execute();
   }
 
-  List<User> buildUserModel(Document doc) {
-    List<User> users = [];
-    if (doc.getList('users') == null) return users;
-    for (var i = 0; i < doc.getList('users').length; i++) {
-      users.add(User(
-        (u) => u
-          ..email = doc.getList('users')[i]['email']
-          ..name = doc.getList('users')[i]['name']
-          ..createdAt = doc.getList('users')[i]['createdAt']
-          ..updatedAt = doc.getList('users')[i]['updatedAt']
-          ..active = doc.getList('users')[i]['active']
-          ..token = doc.getList('users')[i]['token'],
-      ));
-    }
-    return users;
+  User buildUserModel(Document doc, Store<AppState> store) {
+    return User(
+      (u) => u
+        ..id = doc.getString('id')
+        ..email = doc.getString('email')
+        ..name = doc.getString('name')
+        ..createdAt = doc.getString('createdAt')
+        ..updatedAt = doc.getString('createdAt')
+        ..active = doc.getBoolean('active')
+        ..token = doc.getString('token'),
+    );
   }
 
   List<Business> buildBusinessModel(Document doc, Store<AppState> store) {
@@ -251,8 +256,7 @@ class CouchBase extends Model with Fluttercouch {
   List<Branch> buildBranchModel(Document doc, Store<AppState> store) {
     List<Branch> branch = [];
     var branch_ = 'branch_' + store.state.userId.toString();
-    print(branch_);
-    print(doc.getList(branch_));
+
     if (doc.getList(branch_) == null) return branch;
     for (var i = 0;
         i < doc.getList('branch_' + store.state.userId.toString()).length;

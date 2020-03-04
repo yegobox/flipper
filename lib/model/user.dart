@@ -4,7 +4,7 @@ part 'user.g.dart';
 
 abstract class User implements Built<User, UserBuilder> {
   @nullable
-  int get id;
+  String get id;
 
   @nullable
   String get email;

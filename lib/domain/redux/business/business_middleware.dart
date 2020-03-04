@@ -3,6 +3,7 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/business.dart';
+import 'package:flipper/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -30,6 +31,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     if (store.state.business != null) {
+      User user = await store.state.couch.getDocumentByDocId(
+          docId: 'user_' + store.state.userId.toString(),
+          store: store,
+          T: User);
+
       String businessId = Uuid().v1();
       Map _mapBusiness = {
         'active': true,
@@ -41,9 +47,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'currency': 'RWF',
         'id': businessId,
         'name': store.state.business.name,
-        'taxRate': 18,
         'timeZone': '',
-        'userId': '',
+        'userId': user.id,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };

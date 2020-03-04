@@ -8,7 +8,7 @@ part of 'user.dart';
 
 class _$User extends User {
   @override
-  final int id;
+  final String id;
   @override
   final String email;
   @override
@@ -99,9 +99,9 @@ class _$User extends User {
 class UserBuilder implements Builder<User, UserBuilder> {
   _$User _$v;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   String _email;
   String get email => _$this._email;

@@ -1,11 +1,12 @@
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/model/business.dart';
-import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -36,6 +37,9 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
       builder: (context, vm) {
         return Scaffold(
           appBar: CommonAppBar(
+            onPop: () {
+              Router.navigator.pop();
+            },
             title: "",
             disableButton: false,
             showActionButton: true,

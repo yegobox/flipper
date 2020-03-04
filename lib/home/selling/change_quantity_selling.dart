@@ -1,10 +1,11 @@
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/item.dart';
-import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -150,6 +151,9 @@ class SellMultipleItems extends StatelessWidget {
     // print(vm.currentActiveSaleItem);
     return Scaffold(
       appBar: CommonAppBar(
+        onPop: () {
+          Router.navigator.pop();
+        },
         disableButton: false,
         showActionButton: true,
         actionButtonName: S.of(context).add,

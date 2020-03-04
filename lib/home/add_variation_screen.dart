@@ -1,7 +1,7 @@
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -44,7 +44,10 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
           }
         });
         return Scaffold(
-          appBar: new CommonAppBar(
+          appBar: CommonAppBar(
+            onPop: () {
+              Router.navigator.pop();
+            },
             title: S.of(context).addVariation,
             showActionButton: true,
             disableButton: _actions == null ? true : _actions.isLocked,
@@ -146,8 +149,8 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
   }
 
   Future _createVariant(CommonViewModel vm, BuildContext context) async {
-    ItemTableData item = await vm.database.itemDao
-        .getItemBy(name: 'tmp', itemId: vm.tmpItem.id);
+    ItemTableData item =
+        await vm.database.itemDao.getItemBy(name: 'tmp', itemId: vm.tmpItem.id);
     VariationTableData variation =
         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
     final store = StoreProvider.of<AppState>(context);

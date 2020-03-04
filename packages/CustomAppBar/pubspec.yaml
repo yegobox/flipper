@@ -12,7 +12,8 @@ dependencies:
     sdk: flutter
   apptheme:
     path: ../apptheme
-
+  ui:
+    path: ../ui
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,5 +1,6 @@
-import 'package:flipper/presentation/common/common_app_bar.dart';
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/presentation/settings/privacy_settings_button.dart';
+import 'package:flipper/routes/router.gr.dart';
 import "package:flutter/material.dart";
 
 class SettingsScreen extends StatelessWidget {
@@ -7,6 +8,9 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
+        onPop: () {
+          Router.navigator.pop();
+        },
         disableButton: false,
         title: "Setting",
       ),

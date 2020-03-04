@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/model/business.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -84,13 +86,23 @@ class _AuthWebViewState extends State<AuthWebView> {
             Router.navigator.pushNamed(
               Router.signUpScreen,
               arguments: SignUpScreenArguments(
-                name: _name.split('&')[0],
+                name: _name.split('&')[0].replaceAll('%20', ''),
                 avatar: _avatar,
                 email: _email.split('&')[0],
                 token: token.split('&')[0],
               ),
             );
           } else if (widget.authType == 'login') {
+            Business business = Business(
+              (b) => b
+                ..name = _name.split('&')[0].replaceAll('%20', '')
+                ..latitude = 0
+                ..longitude = 0
+                ..active = true
+                ..type = BusinessType.NORMAL,
+            );
+            store.dispatch(WithBusiness(business));
+            store.dispatch(CreateBusinessOnSignUp());
             store.dispatch(VerifyAuthenticationState());
           }
         }

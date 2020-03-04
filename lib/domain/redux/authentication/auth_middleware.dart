@@ -81,7 +81,6 @@ Future<List<Branch>> getBranches(
   for (var i = 0; i < branches.length; i++) {
     if (branches[i].active) {
       //set current active branch
-      print(branches[i].id);
       store.dispatch(
         OnCurrentBranchAction(
           branch: Branch((b) => b
@@ -338,6 +337,7 @@ Future getBusinesses(
     }
   }
 
+  print('business_' + store.state.userId.toString());
   if (businesses.length == 0) {
     Router.navigator.pushNamed(Router.afterSplash);
   } else if (store.state.userId == null) {

@@ -1,9 +1,9 @@
+import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/items/variation_widget.dart';
 import 'package:flipper/home/widget/switch_widget.dart';
-import 'package:flipper/presentation/common/common_app_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -84,6 +84,9 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                 onWillPop: _onWillPop,
                 child: Scaffold(
                   appBar: CommonAppBar(
+                    onPop: () {
+                      Router.navigator.pop();
+                    },
                     title: S.of(context).editItem,
                     disableButton: _actions == null ? true : _actions.isLocked,
                     showActionButton: true,
@@ -400,8 +403,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   }
 
   _handleEditItem(CommonViewModel vm) async {
-    ItemTableData item = await vm.database.itemDao.getItemBy(
-        itemId: widget.itemId, name: widget.itemName);
+    ItemTableData item = await vm.database.itemDao
+        .getItemBy(itemId: widget.itemId, name: widget.itemName);
 
     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
 

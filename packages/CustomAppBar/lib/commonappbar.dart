@@ -1,8 +1,9 @@
-import 'package:flipper/presentation/widgets/button.dart';
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/theme.dart';
+library customappbar;
+
+import 'package:apptheme/apptheme.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import 'package:ui/ui.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   // @Deprecated("_action will be removed soon")
@@ -16,6 +17,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double _headerMultiplier;
   final double _bottomSpacer;
   final Function _onPressedCallback;
+  final Function _onPop;
   final bool _disableButton;
   const CommonAppBar({
     Widget action,
@@ -26,6 +28,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     double bottomSpacer,
     bool disableButton,
     Function onPressedCallback,
+    Function onPop,
     String actionButtonName,
     Key key,
   })  : _additionalText = action,
@@ -36,6 +39,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
         _bottomSpacer = bottomSpacer,
         _disableButton = disableButton,
         _onPressedCallback = onPressedCallback,
+        _onPop = onPop,
         _actionButtonName = actionButtonName,
         super(key: key);
 
@@ -55,9 +59,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: Colors.black,
                     size: 30,
                   ),
-                  onPressed: () {
-                    Router.navigator.pop(true);
-                  },
+                  onPressed: _onPop,
                 ),
                 title: _title == null
                     ? Text("")
