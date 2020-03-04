@@ -22,8 +22,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (store, action, next) async {
     if (store.state.user != null) {
       var user = store.state.user;
-      //int userId = await userRepository.insertUser(store, store.state.user);
-      // store.dispatch(UserID(userId));
+
       assert(store.state.userId != null);
       String userId = Uuid().v1();
       Map mapUser = {
@@ -37,8 +36,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'updatedAt': DateTime.now().toIso8601String(),
         'email': user.email
       };
-      store.dispatch(UserID(userId: store.state.userId));
       await store.state.couch.createUser(mapUser);
+      store.dispatch(UserID(userId: store.state.userId));
       store.dispatch(CreateBusinessOnSignUp());
     }
   };

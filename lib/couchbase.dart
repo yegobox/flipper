@@ -21,9 +21,6 @@ class CouchBase extends Model with Fluttercouch {
   CouchBase({this.shouldInitDb}) {
     if (shouldInitDb) {
       initPlatformState();
-    } else {
-      //no need
-      print('none');
     }
   }
 
@@ -40,17 +37,19 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['createdAt'] != null);
     assert(map['_id'] != null);
 
-    List m = [map];
-    _doc.setString('uid', Uuid().v1());
-    _doc.setList(map['_id'], m);
+    Document doc = await getDocumentWithId(map['_id']);
 
-    await saveDocumentWithId(map['_id'], _doc);
+    List m = [map];
+
+    doc.toMutable().setList(map['_id'], m).setString('uid', Uuid().v1());
+    return await saveDocumentWithId(map['_id'], doc);
   }
 
   //create business.
   Future<dynamic> createBusiness(Map map) async {
     assert(map['_id'] != null);
     Document doc = await getDocumentWithId(map['_id']);
+
     assert(map['name'] != null);
     assert(map['active'] != null);
     assert(map['businessCategoryId'] != null);
@@ -65,18 +64,9 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['updatedAt'] != null);
     assert(map['userId'] != null);
 
-    if (doc.getList(map['_id']) == null) {
-      List m = [map];
-      _doc.setString('uid', Uuid().v1());
-      _doc.setList(map['_id'], m);
-      return await saveDocumentWithId(map['_id'], _doc);
-    } else {
-      List list = doc.getList(map['_id']);
-      list.add(map);
-      _doc.setString('uid', Uuid().v1());
-      _doc.setList(map['_id'], list);
-      return await saveDocumentWithId(map['_id'], _doc);
-    }
+    List m = [map];
+    doc.toMutable().setList(map['_id'], m);
+    return await saveDocumentWithId(map['_id'], doc);
   }
 
   //create user
@@ -92,25 +82,45 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['createdAt'] != null);
     assert(map['updatedAt'] != null);
 
-    //update or create a document
-    _doc.setString('_id', map['_id']);
+    Document doc = await getDocumentWithId(map['_id']);
 
-    _doc.setString('uid', Uuid().v1());
-    map.forEach((key, value) {
-      if (value is int) {
-        _doc.setInt(key, value);
-      }
-      if (value is String) {
-        _doc.setString(key, value);
-      }
-      if (value is bool) {
-        _doc.setBoolean(key, value);
-      }
-      if (value is double) {
-        _doc.setDouble(key, value);
-      }
-    });
-    return await saveDocumentWithId(map['_id'], _doc);
+    if (doc.toMutable().getString('email') != null) {
+      MutableDocument mutableDocument = doc.toMutable();
+
+      map.forEach((key, value) {
+        if (value is int) {
+          mutableDocument.setInt(key, value);
+        }
+        if (value is String) {
+          mutableDocument.setString(key, value);
+        }
+        if (value is bool) {
+          mutableDocument.setBoolean(key, value);
+        }
+        if (value is double) {
+          mutableDocument.setDouble(key, value);
+        }
+      });
+      return await saveDocumentWithId(map['_id'], mutableDocument);
+    } else {
+      _doc.setString('_id', map['_id']);
+      _doc.setString('uid', Uuid().v1());
+      map.forEach((key, value) {
+        if (value is int) {
+          _doc.setInt(key, value);
+        }
+        if (value is String) {
+          _doc.setString(key, value);
+        }
+        if (value is bool) {
+          _doc.setBoolean(key, value);
+        }
+        if (value is double) {
+          _doc.setDouble(key, value);
+        }
+      });
+      return await saveDocumentWithId(map['_id'], _doc);
+    }
   }
 
   //sampleCode

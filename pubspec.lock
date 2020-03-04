@@ -383,10 +383,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: bba26b12de0f10832806a2bbfc2f11900571c0c6
+      resolved-ref: e997dd0a148957d759449d686787f717e350169b
       url: "https://github.com/yegobox/fluttercouch.git"
     source: git
-    version: "1.0.1"
+    version: "1.0.0"
   fluttertoast:
     dependency: "direct main"
     description:

@@ -64,55 +64,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 ) {
   return (store, action, next) async {
     next(action);
-    if (userRepository.checkAuth(store) == null) {
-      Router.navigator.pushNamed(Router.afterSplash);
-      store.dispatch(Unauthenticated);
-      return;
-    }
+
     loadClientDb(store);
-
-//    TabsTableData tab = await generalRepository.getTab(store);
-
-//    List<ItemTableData> items = await generalRepository.getItems(store);
-
-//    List<UnitTableData> unitsList = await generalRepository.getUnits(store);
-
-//    List<CategoryTableData> categoryList =
-//        await generalRepository.getCategories(store);
-
-//    List<Unit> units = buildUnitList(unitsList);
-
-//    loadProducts(items, store, unitsList);
-
-//    List<Category> categories = loadSystemCategories(categoryList);
-
-    //set focused Unit
-//    store.dispatch(UnitR(units));
-//    store.dispatch(CategoryAction(categories));
     await buildBranchList(store);
     User _user = await getActiveUser(store);
-
-    //create app actions for saving state,or create.
-    await createAppActions(store);
-    //start by creating a draft order it it does not exist
-//    await createTemporalOrder(generalRepository, store, _user);
-    //set current active business to be used throughout the entire app transaction
-
-    //end of setting current active business.
-    // Logger.d("Successfully loaded the app");
-//    dispatchFocusedTab(tab, store);
-    //end setting active branch.
-    //create custom category if does not exist
-//    await createSystemCustomCategory(generalRepository, store);
-    //if no reason found then create app defaults reasons
-//    await createSystemStockReasons(store);
-    //create custom item if does not exist
-//    await createDefaultTaxes(store);
-//    await Util.createCustomItem(store, "custom");
-//    await generateAppColors(generalRepository, store);
-
-//    _createCustomCategory(store);
-//    _cleanApp(store);
+    // await createAppActions(store);
 
     await getBusinesses(store, _user);
   };
@@ -410,28 +366,6 @@ Future getBusinesses(Store<AppState> store, user) async {
 void loadClientDb(Store<AppState> store) {
   //todo: load db from sqlite.
   store.dispatch(OnDbLoaded(name: 'lagrace'));
-}
-
-void _createCustomCategory(Store<AppState> store) async {
-  if (store.state.branch == null) return null;
-  CategoryTableData category = await store.state.database.categoryDao
-      .getCategoryNameAndBranch("custom", store.state.branch.id);
-  if (category == null) {
-    await store.state.database.categoryDao.insert(
-        //ignore:missing_required_param
-        CategoryTableData(
-            name: "custom", branchId: store.state.branch.id, focused: true));
-  }
-}
-
-void _cleanApp(Store<AppState> store) async {
-  if (store.state.branch == null) return null;
-  ItemTableData item = await store.state.database.itemDao
-      .getItemByName(name: 'tmp', branchId: store.state.branch.id);
-
-  if (item == null) return;
-
-  Util.deleteItem(store, item.name, item.id);
 }
 
 void Function(
