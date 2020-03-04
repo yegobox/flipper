@@ -341,9 +341,9 @@ Future getBusinesses(
   if (businesses.length == 0) {
     Router.navigator.pushNamed(Router.afterSplash);
   } else if (store.state.userId == null) {
-    store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.afterSplash);
   } else {
+    store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.dashboard);
   }
 }

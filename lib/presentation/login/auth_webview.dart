@@ -64,27 +64,9 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           RegExp userId = new RegExp("id=(.*)");
           var _userId = userId.firstMatch(url)?.group(1);
-          //save the user to be used if exist do update.
+
           final store = StoreProvider.of<AppState>(context);
-//          UserTableData user = await store.state.database.userDao.getUser();
-//          if (user == null) {
-//            store.state.database.userDao.insertUser(
-//              UserTableData(
-//                  id: int.parse(_userId),
-//                  email: _email,
-//                  username: _name,
-//                  avatar: _avatar,
-//                  createdAt: DateTime.now(),
-//                  token: token),
-//            );
-//          } else {
-//            store.state.database.userDao.updateUser(
-//              user.copyWith(
-//                id: int.parse(_userId),
-//                updatedAt: DateTime.now(),
-//              ),
-//            );
-//          }
+
           User user = User(
             (user) => user
               ..email = _email
