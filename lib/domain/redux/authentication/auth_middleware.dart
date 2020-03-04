@@ -7,7 +7,6 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
@@ -15,11 +14,9 @@ import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/item.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
-import 'package:flipper/util/util.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:redux/redux.dart";
@@ -66,11 +63,13 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     loadClientDb(store);
-    await buildBranchList(store);
-    User _user = await getActiveUser(store);
-    // await createAppActions(store);
+    TabsTableData tab = await generalRepository.getTab(store);
+    dispatchFocusedTab(tab, store);
+    //todo: implement token based auth if  user is logging via token
+    await getBusinesses(store);
+    await getBranches(store);
 
-    await getBusinesses(store, _user);
+    await createTemporalOrder(generalRepository, store);
   };
 }
 
@@ -82,23 +81,12 @@ Future createDefaultTaxes(Store<AppState> store) {
           name: 'vat', value: 18, branchId: store.state.branch.id));
 }
 
-Future<User> getActiveUser(Store<AppState> store) async {
-  List<User> users = await CouchBase(shouldInitDb: false)
-      .getDocumentByDocId(docId: 'users', T: User);
-  User user;
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].active) {
-      user = users[i];
-    }
-  }
-
-  store.dispatch(WithUsers(users: users));
-  return user;
-}
-
-Future<List<Branch>> buildBranchList(store) async {
+Future<List<Branch>> getBranches(Store<AppState> store) async {
   List<Branch> branches = await CouchBase(shouldInitDb: false)
-      .getDocumentByDocId(docId: 'branches', T: Branch);
+      .getDocumentByDocId(
+          docId: 'branch_' + store.state.userId.toString(),
+          store: store,
+          T: Branch);
 
   for (var i = 0; i < branches.length; i++) {
     if (branches[i].active) {
@@ -289,10 +277,10 @@ Future createAppActions(Store<AppState> store) async {
   }
 }
 
-Future createTemporalOrder(GeneralRepository generalRepository,
-    Store<AppState> store, User user) async {
+Future createTemporalOrder(
+    GeneralRepository generalRepository, Store<AppState> store) async {
   if (store.state.branch == null) return;
-  if (store.state.user == null) return;
+  if (store.state.userId == null) return;
   OrderTableData order =
       await generalRepository.createDraftOrderOrReturnExistingOne(store);
   //broadcast order to be used later when creating a sale
@@ -303,7 +291,7 @@ Future createTemporalOrder(GeneralRepository generalRepository,
           (o) => o
             ..status = order.status
             ..id = order.id
-            ..userId = user.id
+            ..userId = store.state.userId
             ..branchId = order.branchId
             ..orderNote = order.orderNote
             ..orderNUmber = order.orderNUmber
@@ -329,9 +317,12 @@ Future createTemporalOrder(GeneralRepository generalRepository,
   }
 }
 
-Future getBusinesses(Store<AppState> store, user) async {
+Future getBusinesses(Store<AppState> store) async {
   List<Business> businesses = await CouchBase(shouldInitDb: false)
-      .getDocumentByDocId(docId: 'businesses', T: Business);
+      .getDocumentByDocId(
+          docId: 'business_' + store.state.userId.toString(),
+          store: store,
+          T: Business);
 
   for (var i = 0; i < businesses.length; i++) {
     if (businesses[i].active) {
@@ -350,16 +341,14 @@ Future getBusinesses(Store<AppState> store, user) async {
       );
     }
   }
-  store.dispatch(OnBusinessLoaded(business: businesses));
+
   if (businesses.length == 0) {
     Router.navigator.pushNamed(Router.afterSplash);
-  } else if (user == null) {
+  } else if (store.state.userId == null) {
+    store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.afterSplash);
   } else {
-    store.dispatch(OnAuthenticated(user: user));
-    Router.navigator.pushNamed(Router.afterSplash);
-    //todo:
-//    Router.navigator.pushNamed(Router.dashboard);
+    Router.navigator.pushNamed(Router.dashboard);
   }
 }
 

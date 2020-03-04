@@ -125,7 +125,8 @@ class CouchBase extends Model with Fluttercouch {
 
   //sampleCode
   // CouchBase(shouldInitDb: false).getDocument(docId:'richie')
-  Future<dynamic> getDocumentByDocId({String docId, T}) async {
+  Future<dynamic> getDocumentByDocId(
+      {String docId, Store<AppState> store, T}) async {
     Document doc = await getDocumentWithId(docId);
 
     switch (T.toString()) {
@@ -137,11 +138,11 @@ class CouchBase extends Model with Fluttercouch {
 
       case 'Business':
         {
-          return buildBusinessModel(doc);
+          return buildBusinessModel(doc, store);
         }
       case 'Branch':
         {
-          return buildBranchModel(doc);
+          return buildBranchModel(doc, store);
         }
         break;
 
@@ -229,42 +230,48 @@ class CouchBase extends Model with Fluttercouch {
     return users;
   }
 
-  List<Business> buildBusinessModel(Document doc) {
+  List<Business> buildBusinessModel(Document doc, Store<AppState> store) {
     List<Business> business = [];
-    if (doc.getList('businesses') == null) return business;
-    for (var i = 0; i < doc.getList('businesses').length; i++) {
+    var business_ = 'business_' + store.state.userId.toString();
+    if (doc.getList(business_) == null) return business;
+    for (var i = 0; i < doc.getList(business_).length; i++) {
       business.add(Business((b) => b
-        ..name = doc.getList('businesses')[i]['name']
-        ..country = doc.getList('businesses')[i]['country']
-        ..taxRate = doc.getList('businesses')[i]['taxRate']
-        ..userId = doc.getList('businesses')[i]['userId'].toString()
-        ..active = doc.getList('businesses')[i]['active']
-        ..businessTypeId = doc.getList('businesses')[i]['businessTypeId']
-        ..userId = doc.getList('businesses')[i]['userId'].toString()
-        ..timeZone = doc.getList('businesses')[i]['timeZone']
-        ..businessUrl = doc.getList('businesses')[i]['businessUrl']
-        ..createdAt = doc.getList('businesses')[i]['country']));
+        ..name = doc.getList(business_)[i]['name']
+        ..country = doc.getList(business_)[i]['country']
+        ..taxRate = doc.getList(business_)[i]['taxRate']
+        ..userId = doc.getList(business_)[i]['userId'].toString()
+        ..active = doc.getList(business_)[i]['active']
+        ..businessTypeId = doc.getList(business_)[i]['businessTypeId']
+        ..userId = doc.getList(business_)[i]['userId'].toString()
+        ..timeZone = doc.getList(business_)[i]['timeZone']
+        ..businessUrl = doc.getList(business_)[i]['businessUrl']
+        ..createdAt = doc.getList(business_)[i]['country']));
     }
     return business;
   }
 
-  List<Branch> buildBranchModel(Document doc) {
+  List<Branch> buildBranchModel(Document doc, Store<AppState> store) {
     List<Branch> branch = [];
-    if (doc.getList('branches') == null) return branch;
-    for (var i = 0; i < doc.getList('branches').length; i++) {
+    var branch_ = 'branch_' + store.state.userId.toString();
+    print(branch_);
+    print(doc.getList(branch_));
+    if (doc.getList(branch_) == null) return branch;
+    for (var i = 0;
+        i < doc.getList('branch_' + store.state.userId.toString()).length;
+        i++) {
       branch.add(Branch((b) => b
-        ..name = doc.getList('branches')[i]['name']
-        ..active = doc.getList('branches')[i]['active']
+        ..name = doc.getList(branch_)[i]['name']
+        ..active = doc.getList(branch_)[i]['active']
         ..businessId = doc
-            .getList('branches')[i]['businessId']
+            .getList(branch_)[i]['businessId']
             .toString() //todo: remove toString() when desktop set it as string
-        ..createdAt = doc.getList('branches')[i]['createdAt']
+        ..createdAt = doc.getList(branch_)[i]['createdAt']
         ..mapLatitude = doc
-            .getList('branches')[i]['mapLatitude']
+            .getList(branch_)[i]['mapLatitude']
             .toString() //todo:remove casting
-        ..mapLongitude = doc.getList('branches')[i]['mapLongitude'].toString()
-        ..mapLongitude = doc.getList('branches')[i]['mapLongitude'].toString()
-        ..updatedAt = doc.getList('branches')[i]['updatedAt']));
+        ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
+        ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
+        ..updatedAt = doc.getList(branch_)[i]['updatedAt']));
     }
     return branch;
   }

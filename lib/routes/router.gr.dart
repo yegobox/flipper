@@ -33,7 +33,7 @@ import 'package:flipper/home/items/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/transactions/transaction_screen.dart';
-import 'package:flipper/presentation/login/custom_web_view.dart';
+import 'package:flipper/presentation/login/auth_webview.dart';
 
 class Router {
   static const splashScreen = '/';
@@ -325,13 +325,16 @@ class Router {
           settings: settings,
         );
       case Router.webView:
-        if (hasInvalidArgs<CustomWebViewArguments>(args)) {
-          return misTypedArgsRoute<CustomWebViewArguments>(args);
+        if (hasInvalidArgs<AuthWebViewArguments>(args)) {
+          return misTypedArgsRoute<AuthWebViewArguments>(args);
         }
         final typedArgs =
-            args as CustomWebViewArguments ?? CustomWebViewArguments();
+            args as AuthWebViewArguments ?? AuthWebViewArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => CustomWebView(key: typedArgs.key, url: typedArgs.url),
+          builder: (_) => AuthWebView(
+              key: typedArgs.key,
+              url: typedArgs.url,
+              authType: typedArgs.authType),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -435,9 +438,10 @@ class EditUnitTypeScreenArguments {
   EditUnitTypeScreenArguments({this.key, @required this.itemId});
 }
 
-//CustomWebView arguments holder class
-class CustomWebViewArguments {
+//AuthWebView arguments holder class
+class AuthWebViewArguments {
   final Key key;
   final String url;
-  CustomWebViewArguments({this.key, this.url});
+  final String authType;
+  AuthWebViewArguments({this.key, this.url, this.authType});
 }

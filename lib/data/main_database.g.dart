@@ -5970,9 +5970,11 @@ class $OrderTableTable extends OrderTable
   @override
   GeneratedIntColumn get userId => _userId ??= _constructUserId();
   GeneratedIntColumn _constructUserId() {
-    return GeneratedIntColumn('user_id', $tableName, false,
-        $customConstraints:
-            'NULL REFERENCES user_table(id) ON DELETE SET NULL');
+    return GeneratedIntColumn(
+      'user_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
@@ -5980,9 +5982,11 @@ class $OrderTableTable extends OrderTable
   @override
   GeneratedIntColumn get branchId => _branchId ??= _constructBranchId();
   GeneratedIntColumn _constructBranchId() {
-    return GeneratedIntColumn('branch_id', $tableName, false,
-        $customConstraints:
-            'NULL REFERENCES branch_table(id) ON DELETE SET NULL');
+    return GeneratedIntColumn(
+      'branch_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _orderNUmberMeta =

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -8,15 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 
-class CustomWebView extends StatefulWidget {
-  CustomWebView({Key key, this.url}) : super(key: key);
+class AuthWebView extends StatefulWidget {
+  AuthWebView({Key key, this.url, this.authType}) : super(key: key);
   final String url;
+  final String authType;
 
   @override
-  _CustomWebViewState createState() => _CustomWebViewState();
+  _AuthWebViewState createState() => _AuthWebViewState();
 }
 
-class _CustomWebViewState extends State<CustomWebView> {
+class _AuthWebViewState extends State<AuthWebView> {
   final flutterWebviewPlugin = new FlutterWebviewPlugin();
 
   StreamSubscription _onDestroy;
@@ -84,15 +86,20 @@ class _CustomWebViewState extends State<CustomWebView> {
 //          }
           store.dispatch(UserID(userId: int.parse(_userId)));
           flutterWebviewPlugin.close();
-          Router.navigator.pushNamed(
-            Router.signUpScreen,
-            arguments: SignUpScreenArguments(
-              name: _name.split('&')[0],
-              avatar: _avatar,
-              email: _email.split('&')[0],
-              token: token.split('&')[0],
-            ),
-          );
+
+          if (widget.authType == 'register') {
+            Router.navigator.pushNamed(
+              Router.signUpScreen,
+              arguments: SignUpScreenArguments(
+                name: _name.split('&')[0],
+                avatar: _avatar,
+                email: _email.split('&')[0],
+                token: token.split('&')[0],
+              ),
+            );
+          } else if (widget.authType == 'login') {
+            store.dispatch(VerifyAuthenticationState());
+          }
         }
       }
     });

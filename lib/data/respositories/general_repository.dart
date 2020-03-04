@@ -283,7 +283,7 @@ class GeneralRepository {
         supplierInvoiceNumber: 0,
         taxAmount: 0,
         taxRate: 0,
-        userId: store.state.user.id,
+        userId: store.state.userId,
       ),
     );
   }

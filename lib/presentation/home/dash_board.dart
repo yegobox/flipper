@@ -55,9 +55,9 @@ class _DashBoardState extends State<DashBoard> {
             WidgetsBinding.instance.addPostFrameCallback(
                 (_) => Router.navigator.pushNamed(Router.addNoteScreen));
           }
-
           return we;
         }
+        //todo: implement if has token.
       },
     );
   }

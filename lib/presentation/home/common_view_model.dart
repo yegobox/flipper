@@ -113,7 +113,7 @@ abstract class CommonViewModel
       _$CommonViewModel;
 
   static bool _hasUser(Store<AppState> store) {
-    return store.state.user != null;
+    return store.state.userId != null;
   }
 
   static bool _hasAction(Store<AppState> store) {

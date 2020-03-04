@@ -72,7 +72,8 @@ class AfterSplash extends StatelessWidget {
                           if (await canLaunch(url)) {
                             //await launch(url);
                             Router.navigator.pushNamed(Router.webView,
-                                arguments: CustomWebViewArguments(url: url));
+                                arguments: AuthWebViewArguments(
+                                    url: url, authType: 'register'));
                           } else {
                             throw 'Could not launch $url';
                           }
@@ -103,9 +104,25 @@ class AfterSplash extends StatelessWidget {
                               S.of(context).signIn,
                               style: TextStyle(color: Colors.blue),
                             ),
-                            onPressed: () {
-                              //todo: go to yegobox for login as usual but build webView so that on change it look up where the email match if has business arleady
-//                              vm.couch.
+                            onPressed: () async {
+                              URLQueryParams query = new URLQueryParams();
+                              query.append('client_id', "49");
+                              query.append('redirect_uri',
+                                  "https://test.flipper.rw/auth/callback");
+                              query.append('response_type', "code");
+                              query.append('scope', "");
+                              query.append('state', "");
+                              var url =
+                                  'https://test.yegobox.com/oauth/authorize?' +
+                                      query.toString();
+                              if (await canLaunch(url)) {
+                                //await launch(url);
+                                Router.navigator.pushNamed(Router.webView,
+                                    arguments: AuthWebViewArguments(
+                                        url: url, authType: 'login'));
+                              } else {
+                                throw 'Could not launch $url';
+                              }
                             },
                           );
                         },
