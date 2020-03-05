@@ -41,6 +41,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'active': true,
         '_id': 'business_' + store.state.userId.toString(),
         'businessCategoryId': 1,
+        'channel': store.state.userId.toString(),
         'businessTypeId': 1,
         'businessUrl': '',
         'country': 'Rwanda',

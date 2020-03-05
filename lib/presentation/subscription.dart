@@ -45,7 +45,7 @@ class _SubscriptionState extends State<Subscription> {
               if (statusCode < 200 || statusCode > 400 || json == null) {
                 // return;
               }
-              print(widget.authType);
+
               if (widget.authType == 'register') {
                 Router.navigator.pushNamed(
                   Router.signUpScreen,

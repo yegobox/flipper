@@ -82,7 +82,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     Map _mapBranch = {
       'active': true,
       'name': store.state.business.name,
-      '_id': 'branch_' + store.state.userId.toString(),
+      '_id': 'branches_' + store.state.userId.toString(),
+      'channel': store.state.userId.toString(),
       'businessId': store.state.businessId,
       'id': branchId,
       'mapLatitude': store.state.business.latitude ?? 0.0,

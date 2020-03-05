@@ -28,6 +28,7 @@ class CouchBase extends Model with Fluttercouch {
   Future<dynamic> createBranch(Map map) async {
     assert(map['_id'] != null);
     assert(map['name'] != null);
+    assert(map['channel'] != null);
     assert(map['active'] != null);
     assert(map['businessId'] != null);
     assert(map['mapLatitude'] != null);
@@ -41,7 +42,11 @@ class CouchBase extends Model with Fluttercouch {
 
     List m = [map];
 
-    doc.toMutable().setList(map['_id'], m).setString('uid', Uuid().v1());
+    doc
+        .toMutable()
+        .setList('branches', m)
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
     return await saveDocumentWithId(map['_id'], doc);
   }
 
@@ -50,6 +55,7 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['_id'] != null);
     Document doc = await getDocumentWithId(map['_id']);
 
+    assert(map['channel'] != null);
     assert(map['name'] != null);
     assert(map['active'] != null);
     assert(map['businessCategoryId'] != null);
@@ -64,7 +70,13 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['userId'] != null);
 
     List m = [map];
-    doc.toMutable().setList(map['_id'], m);
+    doc
+        .toMutable()
+        .setList('businesses', m)
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
+    ;
+
     return await saveDocumentWithId(map['_id'], doc);
   }
 
@@ -73,6 +85,7 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['_id'] != null);
 
     assert(map['name'] != null);
+    assert(map['channel'] != null);
     assert(map['token'] != null);
     assert(map['id'] != null);
     assert(map['active'] != null);
@@ -85,7 +98,10 @@ class CouchBase extends Model with Fluttercouch {
 
     if (doc.toMutable().getString('email') != null) {
       MutableDocument mutableDocument = doc.toMutable();
-      mutableDocument.setString('id', doc.getString('id'));
+      mutableDocument
+          .setString('id', doc.getString('id'))
+          .setString('uid', Uuid().v1())
+          .setString('_id', map['_id']);
 
       map.forEach((key, value) {
         if (value is int) {
@@ -103,8 +119,7 @@ class CouchBase extends Model with Fluttercouch {
       });
       return await saveDocumentWithId(map['_id'], mutableDocument);
     } else {
-      _doc.setString('_id', map['_id']);
-      _doc.setString('uid', Uuid().v1());
+      _doc.setString('uid', Uuid().v1()).setString('_id', map['_id']);
       map.forEach((key, value) {
         if (value is int) {
           _doc.setInt(key, value);
