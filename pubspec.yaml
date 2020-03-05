@@ -83,6 +83,8 @@ dependencies:
   #local package
   customappbar:
     path: ./packages/customappbar
+  subscription:
+    path: ./packages/subscription
 
   flutter_localizations:
     sdk: flutter

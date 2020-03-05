@@ -67,6 +67,13 @@ class _AuthWebViewState extends State<AuthWebView> {
           RegExp userId = new RegExp("id=(.*)");
           var _userId = userId.firstMatch(url)?.group(1);
 
+          RegExp subs = new RegExp("subscription=(.*)");
+          var _subs = userId.firstMatch(url)?.group(1);
+
+          if (_subs.split('&')[0] == 'null') {
+//            Router.navigator.pushNamed(routeName)
+          }
+
           final store = StoreProvider.of<AppState>(context);
 
           User user = User(

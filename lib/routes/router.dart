@@ -26,6 +26,7 @@ import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
+import 'package:subscription/subscription.dart';
 
 @MaterialAutoRouter()
 class $Router {
@@ -100,4 +101,6 @@ class $Router {
 
   @MaterialRoute(fullscreenDialog: true)
   AuthWebView webView;
+
+  SubscribeClient subscription;
 }
