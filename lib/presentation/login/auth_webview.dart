@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper/model/business.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -68,11 +66,9 @@ class _AuthWebViewState extends State<AuthWebView> {
           var _userId = userId.firstMatch(url)?.group(1);
 
           RegExp subs = new RegExp("subscription=(.*)");
-          var _subs = userId.firstMatch(url)?.group(1);
+          var _subs = subs.firstMatch(url)?.group(1);
 
-          if (_subs.split('&')[0] == 'null') {
-//            Router.navigator.pushNamed(routeName)
-          }
+          flutterWebviewPlugin.close();
 
           final store = StoreProvider.of<AppState>(context);
 
@@ -82,35 +78,35 @@ class _AuthWebViewState extends State<AuthWebView> {
               ..active = true
               ..createdAt = DateTime.now().toIso8601String()
               ..updatedAt = DateTime.now().toIso8601String()
-              ..token = token
+              ..token = token.split('&')[0]
               ..name = _name,
           );
-          store.dispatch(UserID(userId: int.parse(_userId)));
+          store.dispatch(UserID(userId: int.parse(_userId.split('&')[0])));
           store.dispatch(WithUser(user: user));
-          flutterWebviewPlugin.close();
 
-          if (widget.authType == 'register') {
-            Router.navigator.pushNamed(
-              Router.signUpScreen,
-              arguments: SignUpScreenArguments(
-                name: _name.split('&')[0].replaceAll('%20', ''),
-                avatar: _avatar,
-                email: _email.split('&')[0],
-                token: token.split('&')[0],
-              ),
-            );
-          } else if (widget.authType == 'login') {
-            Business business = Business(
-              (b) => b
-                ..name = _name.split('&')[0].replaceAll('%20', '')
-                ..latitude = 0
-                ..longitude = 0
-                ..active = true
-                ..type = BusinessType.NORMAL,
-            );
-            store.dispatch(WithBusiness(business));
-            store.dispatch(CreateBusinessOnSignUp());
-            store.dispatch(VerifyAuthenticationState());
+          //check if a user belongs to a subscription then do.
+          if (_subs.split('&')[0] == 'null') {
+            Router.navigator.pushNamed(Router.subscription,
+                arguments: SubscriptionArguments(
+                    name: _name.split('&')[0].replaceAll('%20', ''),
+                    email: _email.split('&')[0],
+                    token: token.split('&')[0],
+                    authType: widget.authType,
+                    avatar: _avatar.split('&')[0]));
+          } else {
+            if (widget.authType == 'register') {
+              Router.navigator.pushNamed(
+                Router.signUpScreen,
+                arguments: SignUpScreenArguments(
+                  name: _name.split('&')[0].replaceAll('%20', ''),
+                  avatar: _avatar.split('&')[0],
+                  email: _email.split('&')[0],
+                  token: token.split('&')[0],
+                ),
+              );
+            } else if (widget.authType == 'login') {
+              store.dispatch(VerifyAuthenticationState());
+            }
           }
         }
       }

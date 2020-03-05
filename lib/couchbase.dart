@@ -85,6 +85,7 @@ class CouchBase extends Model with Fluttercouch {
 
     if (doc.toMutable().getString('email') != null) {
       MutableDocument mutableDocument = doc.toMutable();
+      mutableDocument.setString('id', doc.getString('id'));
 
       map.forEach((key, value) {
         if (value is int) {
