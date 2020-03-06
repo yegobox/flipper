@@ -46,7 +46,33 @@ class CouchBase extends Model with Fluttercouch {
         .toMutable()
         .setList('branches', m)
         .setString('uid', Uuid().v1())
+        .setString('channel', map['channel'])
         .setString('_id', map['_id']);
+    return await saveDocumentWithId(map['_id'], doc);
+  }
+
+  Future<dynamic> createTax(Map map) async {
+    assert(map['_id'] != null);
+    Document doc = await getDocumentWithId(map['_id']);
+
+    assert(map['channel'] != null);
+    assert(map['name'] != null);
+    assert(map['active'] != null);
+    assert(map['isDefault'] != null);
+    assert(map['id'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['updatedAt'] != null);
+    assert(map['businessId'] != null);
+
+    List m = [map];
+    doc
+        .toMutable()
+        .setList('taxes', m)
+        .setString('uid', Uuid().v1())
+        .setString('channel', map['channel'])
+        .setString('_id', map['_id']);
+    ;
+
     return await saveDocumentWithId(map['_id'], doc);
   }
 
@@ -73,6 +99,7 @@ class CouchBase extends Model with Fluttercouch {
     doc
         .toMutable()
         .setList('businesses', m)
+        .setString('channel', map['channel'])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
     ;
