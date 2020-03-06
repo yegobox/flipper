@@ -186,27 +186,28 @@ class AfterSplash extends StatelessWidget {
                   Container(
                     height: 10,
                   ),
-                  Container(
-                    color: Colors.white,
-                    child: SizedBox(
-                      width: 380,
-                      height: 60,
-                      child: FlatButton(
-                        child: Text(
-                          S.of(context).learnaboutFlipper,
-                          style: TextStyle(color: Colors.black54, fontSize: 20),
-                        ),
-                        onPressed: () async {
-                          var url = 'https://yegobox.com';
-                          if (await canLaunch(url)) {
-                            await launch(url);
-                          } else {
-                            throw 'Could not launch $url';
-                          }
-                        },
-                      ),
-                    ),
-                  )
+//todo: implement learn about flipper ASAP.
+//                  Container(
+//                    color: Colors.white,
+//                    child: SizedBox(
+//                      width: 380,
+//                      height: 60,
+//                      child: FlatButton(
+//                        child: Text(
+//                          S.of(context).learnaboutFlipper,
+//                          style: TextStyle(color: Colors.black54, fontSize: 20),
+//                        ),
+//                        onPressed: () async {
+//                          var url = 'https://yegobox.com';
+//                          if (await canLaunch(url)) {
+//                            await launch(url);
+//                          } else {
+//                            throw 'Could not launch $url';
+//                          }
+//                        },
+//                      ),
+//                    ),
+//                  )
                 ],
               ),
             ),

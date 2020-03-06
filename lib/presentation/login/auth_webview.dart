@@ -79,7 +79,7 @@ class _AuthWebViewState extends State<AuthWebView> {
               ..createdAt = DateTime.now().toIso8601String()
               ..updatedAt = DateTime.now().toIso8601String()
               ..token = token.split('&')[0]
-              ..name = _name,
+              ..name = _name.split('&')[0].replaceAll('%20', ' '),
           );
           store.dispatch(UserID(userId: int.parse(_userId.split('&')[0])));
           store.dispatch(WithUser(user: user));
@@ -88,7 +88,7 @@ class _AuthWebViewState extends State<AuthWebView> {
           if (_subs.split('&')[0] == 'null') {
             Router.navigator.pushNamed(Router.subscription,
                 arguments: SubscriptionArguments(
-                    name: _name.split('&')[0].replaceAll('%20', ''),
+                    name: _name.split('&')[0].replaceAll('%20', ' '),
                     email: _email.split('&')[0],
                     token: token.split('&')[0],
                     authType: widget.authType,

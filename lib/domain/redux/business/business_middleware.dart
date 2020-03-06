@@ -40,9 +40,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       Map _mapBusiness = {
         'active': true,
         '_id': 'business_' + store.state.userId.toString(),
-        'businessCategoryId': 1,
+        'businessCategoryId': 10, //pet store a default id when signup on mobile
         'channel': store.state.userId.toString(),
-        'businessTypeId': 1,
+        'businessTypeId': 1, //pet store a default id when signup on mobile
         'businessUrl': '',
         'country': 'Rwanda',
         'currency': 'RWF',
