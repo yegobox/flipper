@@ -111,7 +111,6 @@ class _SubscriptionState extends State<Subscription> {
         cvv = _cvvController.text;
       });
     });
-    //
   }
 
   /// Credit Card prefix patterns as of March 2019
@@ -454,22 +453,6 @@ class _SubscriptionState extends State<Subscription> {
                             confirmFlipper(
                                 store, subscriptionResponse.message.data);
                           }
-
-                          //call flipper for confirming the user is subscribed.
-
-                          // if (widget.authType == 'register') {
-                          //   Router.navigator.pushNamed(
-                          //     Router.signUpScreen,
-                          //     arguments: SignUpScreenArguments(
-                          //       name: widget.name,
-                          //       avatar: widget.avatar,
-                          //       email: widget.email,
-                          //       token: widget.token,
-                          //     ),
-                          //   );
-                          // } else if (widget.authType == 'login') {
-                          //   store.dispatch(VerifyAuthenticationState());
-                          // }
                         }).catchError((dynamic onError) {});
                       }
                     },
@@ -499,9 +482,7 @@ class _SubscriptionState extends State<Subscription> {
       'customer_name': data.customer.fullName
     }).then((dynamic response) {
       final int statusCode = response.statusCode;
-      if (statusCode < 200 || statusCode > 400 || json == null) {
-        // return;
-      }
+      if (statusCode < 200 || statusCode > 400 || json == null) {}
       if (widget.authType == 'register') {
         Router.navigator.pushNamed(
           Router.signUpScreen,
