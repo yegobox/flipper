@@ -53,6 +53,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
+      await store.state.couch.createBusiness(_mapBusiness);
 
       Map _notTax = {
         'active': true,
@@ -66,7 +67,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'name': 'no tax',
         'percentage': 0,
       };
-      await store.state.couch.createBusiness(_mapBusiness);
+
       await store.state.couch.createTax(_notTax);
       Map vat = {
         'active': true,

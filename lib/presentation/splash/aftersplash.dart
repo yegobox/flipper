@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
@@ -6,6 +8,7 @@ import 'package:flipper/util/HexColor.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:query_params/query_params.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -66,16 +69,41 @@ class AfterSplash extends StatelessWidget {
                           query.append('response_type', "code");
                           query.append('scope', "");
                           query.append('state', "");
-                          var url =
-                              'https://test.yegobox.com/oauth/authorize?' +
-                                  query.toString();
-                          if (await canLaunch(url)) {
-                            //await launch(url);
-                            Router.navigator.pushNamed(Router.webView,
-                                arguments: AuthWebViewArguments(
-                                    url: url, authType: 'register'));
-                          } else {
-                            throw 'Could not launch $url';
+
+                          try {
+                            final result =
+                                await InternetAddress.lookup('google.com');
+                            if (result.isNotEmpty &&
+                                result[0].rawAddress.isNotEmpty) {
+                              var url =
+                                  'https://test.yegobox.com/oauth/authorize?' +
+                                      query.toString();
+                              if (await canLaunch(url)) {
+                                //await launch(url);
+                                Router.navigator.pushNamed(Router.webView,
+                                    arguments: AuthWebViewArguments(
+                                        url: url, authType: 'register'));
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg:
+                                        "There is a problem launching login url",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.BOTTOM,
+                                    timeInSecForIos: 1,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0);
+                              }
+                            }
+                          } on SocketException catch (_) {
+                            Fluttertoast.showToast(
+                                msg: "you are not connected to internet",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIos: 1,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                fontSize: 16.0);
                           }
                         },
                         color: Colors.blue,
@@ -112,16 +140,42 @@ class AfterSplash extends StatelessWidget {
                               query.append('response_type', "code");
                               query.append('scope', "");
                               query.append('state', "");
-                              var url =
-                                  'https://test.yegobox.com/oauth/authorize?' +
-                                      query.toString();
-                              if (await canLaunch(url)) {
-                                //await launch(url);
-                                Router.navigator.pushNamed(Router.webView,
-                                    arguments: AuthWebViewArguments(
-                                        url: url, authType: 'login'));
-                              } else {
-                                throw 'Could not launch $url';
+
+                              try {
+                                final result =
+                                    await InternetAddress.lookup('google.com');
+                                if (result.isNotEmpty &&
+                                    result[0].rawAddress.isNotEmpty) {
+                                  var url =
+                                      'https://test.yegobox.com/oauth/authorize?' +
+                                          query.toString();
+                                  if (await canLaunch(url)) {
+                                    //await launch(url);
+                                    Router.navigator.pushNamed(Router.webView,
+                                        arguments: AuthWebViewArguments(
+                                            url: url, authType: 'login'));
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        msg:
+                                            "There is a problem launching login url",
+                                        toastLength: Toast.LENGTH_LONG,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIos: 1,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0);
+                                  }
+                                }
+                              } on SocketException catch (_) {
+                                Fluttertoast.showToast(
+                                    msg: "There is no internet",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.BOTTOM,
+                                    timeInSecForIos: 1,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0);
+                                return;
                               }
                             },
                           );

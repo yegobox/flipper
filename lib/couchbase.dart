@@ -278,8 +278,9 @@ class CouchBase extends Model with Fluttercouch {
 
   List<Business> buildBusinessModel(Document doc, Store<AppState> store) {
     List<Business> business = [];
-    var business_ = 'business_' + store.state.userId.toString();
+    var business_ = 'businesses';
     if (doc.getList(business_) == null) return business;
+
     for (var i = 0; i < doc.getList(business_).length; i++) {
       business.add(Business((b) => b
         ..name = doc.getList(business_)[i]['name']
@@ -298,12 +299,10 @@ class CouchBase extends Model with Fluttercouch {
 
   List<Branch> buildBranchModel(Document doc, Store<AppState> store) {
     List<Branch> branch = [];
-    var branch_ = 'branch_' + store.state.userId.toString();
+    var branch_ = 'branches';
 
     if (doc.getList(branch_) == null) return branch;
-    for (var i = 0;
-        i < doc.getList('branch_' + store.state.userId.toString()).length;
-        i++) {
+    for (var i = 0; i < doc.getList('branches').length; i++) {
       branch.add(Branch((b) => b
         ..name = doc.getList(branch_)[i]['name']
         ..id = doc.getList(branch_)[i]['id']

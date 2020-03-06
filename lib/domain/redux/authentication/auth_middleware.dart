@@ -74,7 +74,7 @@ Future<List<Branch>> getBranches(
     Store<AppState> store, GeneralRepository generalRepository) async {
   List<Branch> branches = await CouchBase(shouldInitDb: false)
       .getDocumentByDocId(
-          docId: 'branch_' + store.state.userId.toString(),
+          docId: 'branches_' + store.state.userId.toString(),
           store: store,
           T: Branch);
 
@@ -220,7 +220,6 @@ void loadProducts(List<ItemTableData> items, Store<AppState> store,
       Item(
         (v) => v
           ..name = i.name
-//          ..branchId = i.branchId
           ..unitId = i.unitId
           ..id = i.id
           ..color = i.color
@@ -315,10 +314,10 @@ Future getBusinesses(
           docId: 'business_' + store.state.userId.toString(),
           store: store,
           T: Business);
-  if (businesses.length > 0) {
-    await getBranches(store, generalRepository);
-    await createTemporalOrder(generalRepository, store);
-  }
+
+  await getBranches(store, generalRepository);
+  await createTemporalOrder(generalRepository, store);
+
   for (var i = 0; i < businesses.length; i++) {
     if (businesses[i].active) {
       store.dispatch(
