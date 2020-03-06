@@ -74,7 +74,7 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           User user = User(
             (user) => user
-              ..email = _email
+              ..email = _email.split('&')[0]
               ..active = true
               ..createdAt = DateTime.now().toIso8601String()
               ..updatedAt = DateTime.now().toIso8601String()
@@ -105,7 +105,14 @@ class _AuthWebViewState extends State<AuthWebView> {
                 ),
               );
             } else if (widget.authType == 'login') {
-              store.dispatch(VerifyAuthenticationState());
+              Router.navigator.pushNamed(Router.subscription,
+                  arguments: SubscriptionArguments(
+                      name: _name.split('&')[0].replaceAll('%20', ' '),
+                      email: _email.split('&')[0],
+                      token: token.split('&')[0],
+                      authType: widget.authType,
+                      avatar: _avatar.split('&')[0]));
+              // store.dispatch(VerifyAuthenticationState());
             }
           }
         }

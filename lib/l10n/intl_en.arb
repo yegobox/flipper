@@ -43,5 +43,7 @@
     "editItem": "Edit Item",
     "editCategory": "Edit Category",
     "editUnitType": "Edit Unit",
+    "subscribe": "Subscribe",
+    "pay": "Pay",
     "editVariation": "Edit Variation"
 }

@@ -15,6 +15,11 @@ import 'package:url_launcher/url_launcher.dart';
 class AfterSplash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    //remove anykeyboard that might have initialized from some pages.
+    // FocusScopeNode currentFocus = FocusScope.of(context);
+    // if (!currentFocus.hasPrimaryFocus) {
+    //   currentFocus.unfocus();
+    // }
     return Scaffold(
       body: Wrap(
         children: <Widget>[

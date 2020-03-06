@@ -29,6 +29,8 @@ dependencies:
       ref: master
   scoped_model: ^1.0.1
 
+  strings: ^0.1.2
+  
   auto_route: ^0.3.1
   # Firebase dependencies
   firebase_core: ^0.4.4+2
@@ -117,26 +119,9 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/placeholder/user_image_placeholder.png
-    - assets/graphics/avatar_no_picture.png
-    - assets/graphics/analytics.svg
-    - assets/graphics/credit-card.svg
-    - assets/graphics/navigation.svg
-    - assets/graphics/grid.svg
-    - assets/graphics/menu_icon.png
-    - assets/graphics/refresh.svg
-    - assets/graphics/settings.svg
-    - assets/graphics/logo.png
-    - assets/graphics/chevron-left.svg
-    - assets/graphics/chevron-right.svg
-    - assets/graphics/drawer/events.png
-    - assets/graphics/input/icon_add_content.png
-    - assets/graphics/updates_indicator.png
-    - assets/graphics/updates_indicator_white.png
-    - assets/graphics/drawer/create_topic.png
-    - assets/graphics/drawer/account.png
-    - assets/graphics/drawer/settings.png
-    - assets/graphics/arrow-up-right.svg
+    - assets/
+    - assets/graphics/
+    - assets/card_provider/
 
   fonts:
     - family: Heebo-Black

@@ -425,6 +425,24 @@ class S {
     );
   }
 
+  String get subscribe {
+    return Intl.message(
+      'Subscribe',
+      name: 'subscribe',
+      desc: '',
+      args: [],
+    );
+  }
+
+  String get pay {
+    return Intl.message(
+      'Pay',
+      name: 'pay',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get editVariation {
     return Intl.message(
       'Edit Variation',
