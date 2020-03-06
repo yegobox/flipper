@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';

@@ -9,6 +9,7 @@ import 'package:flipper/external-api/subscription_response.dart';
 // import 'package:flipper/external-api/subscription_response.dart'as Data;
 import 'package:flipper/extra/card_type.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/style/card_background.dart';
 import 'package:flutter/material.dart';
@@ -416,9 +417,8 @@ class _SubscriptionState extends State<Subscription> {
                     onPressed: () async {
                       final store = StoreProvider.of<AppState>(context);
 
-                      // new LoadingProgressModel();
+                      Manager.showLoader(context);
 
-                      return;
                       if (_formKey.currentState.validate()) {
                         http.post(
                             "https://mysterious-depths-19225.herokuapp.com/subscribe",
@@ -491,9 +491,9 @@ class _SubscriptionState extends State<Subscription> {
       'txRef': data.txRef,
       'flwRef': data.flwRef,
       'raveRef': data.raveRef,
-      'flutter_customer_id': data.customer.id,
-      'flutter_customer_accountId': data.customer.accountId,
-      'amount': data.amount,
+      'flutter_customer_id': data.customer.id.toString(),
+      'flutter_customer_accountId': data.customer.accountId.toString(),
+      'amount': data.amount.toString(),
       'currency': data.currency,
       'app': 'flipper',
       'customer_name': data.customer.fullName
@@ -502,7 +502,6 @@ class _SubscriptionState extends State<Subscription> {
       if (statusCode < 200 || statusCode > 400 || json == null) {
         // return;
       }
-
       if (widget.authType == 'register') {
         Router.navigator.pushNamed(
           Router.signUpScreen,
