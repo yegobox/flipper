@@ -483,12 +483,16 @@ class _SubscriptionState extends State<Subscription> {
       'txRef': data.txRef,
       'flwRef': data.flwRef,
       'raveRef': data.raveRef,
-      'flutter_customer_id': data.customer.id.toString(),
-      'flutter_customer_accountId': data.customer.accountId.toString(),
+      'flutter_customer_id':
+          data.customer == null ? data.customerId : data.customer.id.toString(),
+      'flutter_customer_accountId': data.customer == null
+          ? data.accountId
+          : data.customer.accountId.toString(),
       'amount': data.amount.toString(),
       'currency': data.currency,
       'app': 'flipper',
-      'customer_name': data.customer.fullName
+      'customer_name':
+          data.customer == null ? firstName + lastName : data.customer.fullName
     }).then((dynamic response) {
       final int statusCode = response.statusCode;
       if (statusCode < 200 || statusCode > 400 || json == null) {}

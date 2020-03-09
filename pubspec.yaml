@@ -122,6 +122,7 @@ flutter:
     - assets/
     - assets/graphics/
     - assets/card_provider/
+    - assets/graphics/drawer/
 
   fonts:
     - family: Heebo-Black
