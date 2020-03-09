@@ -422,9 +422,8 @@ class _SubscriptionState extends State<Subscription> {
                     onPressed: () async {
                       final store = StoreProvider.of<AppState>(context);
 
-                      Manager.showLoader(context);
-
                       if (_formKey.currentState.validate()) {
+                        Manager.showLoader(context);
                         http.post(
                             "https://mysterious-depths-19225.herokuapp.com/subscribe",
                             body: {
