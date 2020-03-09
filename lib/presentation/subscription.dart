@@ -243,6 +243,12 @@ class _SubscriptionState extends State<Subscription> {
                         if (value.isEmpty || value == null || value == '') {
                           return 'Please add valid card';
                         }
+                        if (validateCardNumWithLuhnAlgorithm(value) ==
+                                'Invalid card number' ||
+                            validateCardNumWithLuhnAlgorithm(value) ==
+                                'This field is required') {
+                          return 'Please add valid card';
+                        }
                         return null;
                       },
                       decoration: InputDecoration(
@@ -445,15 +451,19 @@ class _SubscriptionState extends State<Subscription> {
                                 fontSize: 16.0);
                             return;
                           }
-
+                          Manager.dismissDialog();
                           final subscriptionResponse =
                               subscriptionResponseFromJson(response.body);
                           if (subscriptionResponse.message.status ==
                               'success') {
+                            //todo: update the couch with user payment info.
+                            //todo: log today payment date then build up the cron for the next payment enforcement.
                             confirmFlipper(
                                 store, subscriptionResponse.message.data);
                           }
-                        }).catchError((dynamic onError) {});
+                        }).catchError((dynamic onError) {
+                          Manager.dismissDialog();
+                        });
                       }
                     },
                   ),

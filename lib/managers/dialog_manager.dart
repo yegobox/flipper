@@ -1,4 +1,5 @@
 import 'package:flipper/home/widget/loader.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
 class Manager {
@@ -20,5 +21,9 @@ class Manager {
         );
       },
     );
+  }
+
+  static dismissDialog() {
+    Router.navigator.pop();
   }
 }
