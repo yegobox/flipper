@@ -3,6 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,8 @@ import 'package:flutter_redux/flutter_redux.dart';
 enum CategoriesEnum { beverage, drinks, ikawa }
 
 class EditCategoryScreen extends StatefulWidget {
-  EditCategoryScreen({Key key, @required this.ItemId}) : super(key: key);
-  final int ItemId;
+  EditCategoryScreen({Key key, @required this.productId}) : super(key: key);
+  final String productId;
 
   @override
   _EditCategoryScreenState createState() => _EditCategoryScreenState();
@@ -46,7 +47,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
               trailing: Radio(
                 value: categories[i].id,
                 groupValue: categories[i].focused ? categories[i].id : 0,
-                onChanged: (int categoryId) {},
+                // onChanged: (int categoryId) {},
               ),
             ),
           ),
@@ -66,11 +67,12 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
   Future updateItemWithActiveCategory(
       CommonViewModel vm, List<CategoryTableData> categories, int i) async {
-    final item = await vm.database.itemDao.getItemById(itemId: widget.ItemId);
-    if (item != null) {
-      vm.database.itemDao
-          .updateItem(item.copyWith(categoryId: categories[i].id));
-    }
+    Manager.deprecatedNotification();
+    // final item = await vm.database.productDao.getItemById(productId: widget.ItemId);
+    // if (item != null) {
+    //   vm.database.productDao
+    //       .updateItem(item.copyWith(categoryId: categories[i].id));
+    // }
   }
 
   @override

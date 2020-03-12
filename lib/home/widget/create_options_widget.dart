@@ -3,8 +3,8 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
-import 'package:flipper/util/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -80,7 +80,9 @@ class CreateOptionsWidget extends StatelessWidget {
     );
   }
 
+  //create a temporal product with default regular variant to be updated along the way while creating the product
+  //if such product with tmp name exist return it.
   Future _createTemporalItem(CommonViewModel vm, BuildContext context) async {
-    Util.createCustomItem(StoreProvider.of<AppState>(context), "tmp");
+    DataManager.createTempProduct(StoreProvider.of<AppState>(context), "tmp");
   }
 }

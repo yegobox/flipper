@@ -38,9 +38,9 @@ class _ViewItemsScreenState extends State<ViewItemsScreen> {
             children: <Widget>[
               Expanded(
                 child: StreamBuilder(
-                  stream: vm.database.itemDao.getItemsStream(),
-                  builder:
-                      (context, AsyncSnapshot<List<ItemTableData>> snapshot) {
+                  stream: vm.database.productDao.getProductStream(),
+                  builder: (context,
+                      AsyncSnapshot<List<ProductTableData>> snapshot) {
                     if (snapshot.data == null) {
                       return Text("");
                     }

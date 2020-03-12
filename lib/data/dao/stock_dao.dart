@@ -34,10 +34,10 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   }
 
   Stream<List<StockTableData>> getStockByItemIdStream(
-      {String branchId, int itemId}) {
+      {String branchId, String productId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
-          ..where((t) => t.itemId.equals(itemId)))
+          ..where((t) => t.productId.equals(productId)))
         .watch();
   }
 
@@ -49,18 +49,18 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
         .watch();
   }
 
-  Future<List<StockTableData>> getItemFromStockByItemId(
-      {String branchId, int itemId}) {
-    return (select(db.stockTable)
-          ..where((t) => t.branchId.equals(branchId))
-          ..where((t) => t.itemId.equals(itemId)))
-        .get();
+  Future<StockTableData> getById({String id}) {
+    return (select(db.stockTable)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  Future softDelete(StockTableData entry) {
-    return update(db.stockTable)
-        .replace(entry.copyWith(deletedAt: DateTime.now().toIso8601String()));
+  Future<List<StockTableData>> getStock({String id}) {
+    return (select(db.stockTable)..where((t) => t.id.equals(id))).get();
   }
+
+  // Future softDelete(StockTableData entry) {
+  //   return update(db.stockTable)
+  //       .replace(entry.copyWith(deletedAt: DateTime.now().toIso8601String()));
+  // }
 
   Future<List<StockTableData>> getReasons() => select(db.stockTable).get();
 

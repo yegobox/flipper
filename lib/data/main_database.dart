@@ -15,17 +15,19 @@ import 'package:flipper/data/dao/cart_dao.dart';
 import 'package:flipper/data/dao/category_dao.dart';
 import 'package:flipper/data/dao/color_dao.dart';
 import 'package:flipper/data/dao/history_dao.dart';
-import 'package:flipper/data/dao/item_dao.dart';
+import 'package:flipper/data/dao/product_dao.dart';
 import 'package:flipper/data/dao/order_dao.dart';
+import 'package:flipper/data/dao/products/branch_product_dao.dart';
 import 'package:flipper/data/dao/reason_dao.dart';
 import 'package:flipper/data/dao/stock_dao.dart';
 import 'package:flipper/data/dao/tab_dao.dart';
 import 'package:flipper/data/dao/tax_dao.dart';
 import 'package:flipper/data/dao/unit_dao.dart';
 import 'package:flipper/data/dao/variation_dao.dart';
-import 'package:flipper/data/item_table.dart';
+import 'package:flipper/data/product_table.dart';
 import 'package:flipper/data/order.dart';
 import 'package:flipper/data/price_table.dart';
+import 'package:flipper/data/products/branch_product_table.dart';
 import 'package:flipper/data/reason_table.dart';
 import 'package:flipper/data/stock_history_table.dart';
 import 'package:flipper/data/stock_tabble.dart';
@@ -63,7 +65,7 @@ LazyDatabase _openConnection() {
   BranchTable,
   UnitTable,
   CategoryTable,
-  ItemTable,
+  ProductTable,
   TokenTable,
   BusinessUserTable,
   TabsTable,
@@ -76,7 +78,8 @@ LazyDatabase _openConnection() {
   ColorTable,
   ActionsTable,
   ReasonTable,
-  TaxTable
+  TaxTable,
+  BranchProductTable
 ], daos: [
   UserDao,
   TokenDao,
@@ -86,7 +89,7 @@ LazyDatabase _openConnection() {
   CategoryDao,
   TabsDao,
   VariationDao,
-  ItemDao,
+  ProductDao,
   StockHistoryDao,
   StockDao,
   CartDao,
@@ -94,7 +97,8 @@ LazyDatabase _openConnection() {
   ColorDao,
   ActionsDao,
   TaxDao,
-  ReasonDao
+  ReasonDao,
+  BranchProductDao
 ])
 class Database extends _$Database {
   Database() : super(_openConnection());

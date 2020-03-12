@@ -1,7 +1,8 @@
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/item.dart';
+
 import 'package:flipper/model/key_pad.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,16 +84,11 @@ class SingleKey extends StatelessWidget {
           }
           if (keypadValue == "+") {
             await updateStockPriceForCustomItem();
-            Item cartItem = Item(
+            Product cartItem = Product(
               (b) => b
                 ..id = vm.tmpItem.id
                 ..name = vm.tmpItem.name
-                ..branchId = vm.tmpItem.branchId
-                ..unitId = vm.tmpItem.unitId
-                ..price = vm.keypad.amount
-                ..parentName = vm.tmpItem.name
                 ..categoryId = vm.tmpItem.categoryId
-                ..color = vm.tmpItem.color
                 ..count = 1, //default.
             );
 

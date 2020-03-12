@@ -1,0 +1,224 @@
+import 'dart:async';
+
+import 'package:flipper/couchbase.dart';
+import 'package:flipper/data/main_database.dart';
+import 'package:flipper/domain/redux/app_actions/actions.dart';
+import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/model/product.dart';
+import 'package:flipper/model/variation.dart';
+import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
+
+class DataManager extends CouchBase {
+  //updatable variables
+  static double retailPrice;
+  static double costPrice;
+  static String description;
+  static String sku;
+  static String name;
+
+  static Future updateVariation({
+    VariationTableData variation,
+    Store<AppState> store,
+    double retailPrice,
+    double costPrice,
+    String variantName,
+  }) async {
+    if (variation != null) {
+      final stock = await store.state.database.stockDao.getStockByVariantId(
+          branchId: store.state.branch.id, variantId: variation.id);
+      final variant = await store.state.database.variationDao
+          .getVariationById(variantId: variation.id);
+      await store.state.database.variationDao
+          .updateVariation(variant.copyWith(name: variantName));
+
+      await store.state.database.stockDao.updateStock(
+        stock.copyWith(
+          retailPrice: retailPrice ?? stock.retailPrice,
+          supplyPrice: costPrice ?? stock.supplyPrice,
+        ),
+      );
+    }
+  }
+
+  static updateOrder(Store<AppState> store, OrderTableData order) {
+    store.state.database.orderDao.updateOrder(order);
+  }
+
+  static removeItemFromTrash(Store<AppState> store, int itemId) async {
+//    ProductTableData item = await store.state.database.productDao
+//        .getItemByIdBranch(branchId: store.state.branch.id, itemId: itemId);
+//
+//    if (item == null) return;
+//    List<StockTableData> stocks = await store.state.database.stockDao
+//        .getItemFromStockByItemId(
+//            branchId: store.state.branch.id, itemId: item.id);
+//    for (var i = 0; i < stocks.length; i++) {
+//      VariationTableData variant = await store.state.database.variationDao
+//          .getVariationById(stocks[i].variantId);
+//
+//      await store.state.database.variationDao
+//          .updateVariation(variant.copyWith(deletedAt: 'null'));
+//
+//      await store.state.database.stockDao
+//          .updateStock(stocks[i].copyWith(deletedAt: 'null'));
+//    }
+//    store.state.database.productDao.updateItem(item.copyWith(deletedAt: 'null'));
+  }
+
+  static deleteItem(Store<AppState> store, String itemName, int itemId) async {
+//    ProductTableData item = await store.state.database.productDao.getItemBy(
+//        name: itemName, branchId: store.state.branch.id, itemId: itemId);
+//
+//    if (item == null) return;
+//    List<StockTableData> stocks = await store.state.database.stockDao
+//        .getItemFromStockByItemId(
+//            branchId: store.state.branch.id, itemId: item.id);
+//
+//    for (var i = 0; i < stocks.length; i++) {
+//      VariationTableData variant = await store.state.database.variationDao
+//          .getVariationById(stocks[i].variantId);
+//
+//      await store.state.database.variationDao.softDelete(variant);
+//
+//      await store.state.database.stockDao.softDelete(stocks[i]);
+//    }
+//
+//    store.state.database.productDao.softDelete(item);
+  }
+
+  static deleteVariant(Store<AppState> store, int variantId) async {
+    // VariationTableData variationTableData =
+    //     await store.state.database.variationDao.getVariationById(variantId);
+    // store.state.database.variationDao.updateVariation(variationTableData
+    //     .copyWith(deletedAt: DateTime.now().toIso8601String()));
+  }
+
+  //create a product and it's default variant which is regular
+  //if a product does not exist then create it otherwise
+  //create variant,
+  //add the variant to stock with default value 0
+  static Future createTempProduct(
+      Store<AppState> store, String productName) async {
+    if (store.state.branch == null) return null;
+    CategoryTableData category =
+        await store.state.database.categoryDao.getCategoryByNameBranchId(
+      "custom",
+      store.state.branch.id,
+    );
+
+    ProductTableData product =
+        await store.state.database.productDao.getItemByName(
+      name: productName,
+      businessId: store.state.currentActiveBusiness.id,
+    );
+
+    TaxTableData tax = await store.state.database.taxDao.getByName(
+        businessId: store.state.currentActiveBusiness.id, name: 'Vat');
+
+    if (product == null) {
+      final productId = await store.state.database.productDao.insert(
+        //ignore: missing_required_param
+        ProductTableData(
+          name: productName,
+          categoryId: category.id, //this will be updated ,
+          color: "#955be9",
+          active: true,
+          hasPicture: false,
+          isCurrentUpdate: false,
+          isDraft: true,
+          picture: '',
+          supplierId: '',
+          taxId: tax.id,
+          businessId: store.state.currentActiveBusiness.id,
+          id: Uuid().v1(),
+          description: productName,
+          createdAt: DateTime.now(),
+        ),
+      );
+      product = await store.state.database.productDao
+          .getProductByIdLocal(productId: productId);
+
+      final variantId = await store.state.database.variationDao.insert(
+        //ignore: missing_required_param
+        VariationTableData(
+          name: productName,
+          unit: 'kg',
+          productId: product.id,
+          sku: Uuid().v1().substring(0, 4),
+          id: Uuid().v1(),
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      VariationTableData variant = await store.state.database.variationDao
+          .getVariationByIdLocal(variantId: variantId);
+
+      store.state.database.stockDao.insert(
+        //ignore: missing_required_param
+        StockTableData(
+          variantId: variant.id,
+          supplyPrice: 0,
+          canTrackingStock: false,
+          showLowStockAlert: false,
+          retailPrice: 0,
+          isActive: true,
+          lowStock: 0,
+          currentStock: 0,
+          id: Uuid().v1(),
+          productId: product.id,
+          branchId: store.state.branch.id,
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      dispatchCurrentTmpItem(store, product);
+      return;
+    }
+
+    dispatchCurrentTmpItem(store, product);
+  }
+
+  static void dispatchCurrentTmpItem(
+      Store<AppState> store, ProductTableData product) async {
+    VariationTableData variant =
+        await store.state.database.variationDao.getVariationByName(name: 'tmp',productId: product.id);
+    //dispatch this variant.
+    store.dispatch(
+      VariationAction(
+        variation: Variation(
+          (v) => v
+            ..productId = variant.productId
+            ..sku = variant.sku
+            ..name = variant.name
+            ..id = variant.id,
+        ),
+      ),
+    );
+
+    return store.dispatch(
+      TempProduct(
+        product: Product(
+          (i) => i
+            ..isCurrentUpdate = product.isCurrentUpdate
+            ..isDraft = product.isDraft
+            ..taxId = product.taxId
+            ..description = product.description
+            ..picture = product.picture
+            ..hasPicture = product.hasPicture
+            ..active = product.active
+            ..color = product.color
+            ..businessId = product.businessId
+            ..supplierId = product.supplierId
+            ..categoryId = product.categoryId
+            ..id = product.id
+            ..name = product.name
+            ..color = product.color,
+        ),
+      ),
+    );
+  }
+
+  static Future insertProduct(
+      Store<AppState> store, ProductTableData data) async {}
+}

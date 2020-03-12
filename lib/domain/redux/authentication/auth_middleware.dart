@@ -11,7 +11,7 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/hint.dart';
-import 'package:flipper/model/item.dart';
+
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -66,6 +66,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
     //todo: implement token based auth if  user is logging via token
+    await store.state.couch.initSqlDb(store);
     await getBusinesses(store, generalRepository);
   };
 }
@@ -211,44 +212,6 @@ Future createSystemStockReasons(Store<AppState> store) async {
   }
 }
 
-void loadProducts(List<ItemTableData> items, Store<AppState> store,
-    List<UnitTableData> unitsList) {
-  List<Item> itemList = [];
-
-  items.forEach(
-    (i) => itemList.add(
-      Item(
-        (v) => v
-          ..name = i.name
-          ..unitId = i.unitId
-          ..id = i.id
-          ..color = i.color
-          ..price = 0
-          ..categoryId = i.categoryId,
-      ),
-    ),
-  );
-
-  store.dispatch(ItemLoaded(items: itemList));
-  unitsList.forEach((c) => {
-        if (c.focused)
-          {
-            store.dispatch(
-              CurrentUnit(
-                unit: Unit(
-                  (u) => u
-                    ..id = c.id
-                    ..name = c.name
-                    ..focused = c.focused
-                    ..businessId = c.businessId ?? 0
-                    ..branchId = c.branchId ?? 0,
-                ),
-              ),
-            )
-          }
-      });
-}
-
 Future createAppActions(Store<AppState> store) async {
   ActionsTableData actionAction =
       await store.state.database.actionsDao.getActionBy('save');
@@ -325,6 +288,9 @@ Future getBusinesses(
           Business(
             (b) => b
               ..id = businesses[i].id
+              ..currency = businesses[i].currency
+              ..typeId = businesses[i].typeId
+              ..categoryId = businesses[i].categoryId
               ..active = businesses[i].active
               ..name = businesses[i].name
               ..type = BusinessType.NORMAL

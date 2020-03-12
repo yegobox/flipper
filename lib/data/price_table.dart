@@ -4,8 +4,7 @@ import 'package:moor/moor.dart';
 class PriceTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get value => text()();
-  IntColumn get categoryId => integer().nullable().customConstraint(
-      'NULL REFERENCES variation_table(id) ON DELETE CASCADE  ON UPDATE CASCADE')();
+  IntColumn get categoryId => integer().nullable()();
 
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();

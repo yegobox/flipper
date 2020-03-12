@@ -5,18 +5,22 @@ import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/util.dart';
+import 'package:flipper/util/data_manager.dart';
+
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class EditVariationScreen extends StatefulWidget {
   EditVariationScreen(
-      {Key key, @required this.variationId, @required this.itemId, this.unitId})
+      {Key key,
+      @required this.variationId,
+      @required this.productId,
+      this.unitId})
       : super(key: key);
-  final int variationId;
-  final int unitId;
-  final int itemId;
+  final String variationId;
+  final String unitId;
+  final String productId;
 
   @override
   _EditVariationScreenState createState() => _EditVariationScreenState();
@@ -91,12 +95,12 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           width: 300,
                           child: GestureDetector(
                             onTap: () {
-                              Router.navigator.pushNamed(
-                                Router.addUnitType,
-                                arguments: AddUnitTypeScreenArguments(
-                                  itemId: widget.itemId,
-                                ),
-                              );
+                              // Router.navigator.pushNamed(
+                              //   Router.addUnitType,
+                              //   arguments: AddUnitTypeScreenArguments(
+                              //     itemId: widget.productId,
+                              //   ),
+                              // );
                             },
                             child: ListTile(
                               contentPadding:
@@ -105,10 +109,10 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                               trailing: Wrap(
                                 children: <Widget>[
                                   StreamBuilder(
-                                      stream: vm.database.itemDao
-                                          .getItemByIdStream(widget.itemId),
+                                      stream: vm.database.productDao
+                                          .getItemByIdStream(widget.productId),
                                       builder: (context,
-                                          AsyncSnapshot<List<ItemTableData>>
+                                          AsyncSnapshot<List<ProductTableData>>
                                               snapshot) {
                                         if (snapshot.data == null) {
                                           return Text("None");
@@ -116,7 +120,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                         return StreamBuilder(
                                             stream: vm.database.unitDao
                                                 .getUnitByIdStream(
-                                                    snapshot.data[0].unitId),
+                                                    snapshot.data[0].idLocal),
                                             builder: (context,
                                                 AsyncSnapshot<
                                                         List<UnitTableData>>
@@ -211,7 +215,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
     double costPrice = _costPrice ?? null;
     String variantName = _name ?? variation.name;
 
-    await Util.updateVariation(
+    await DataManager.updateVariation(
       costPrice: costPrice,
       retailPrice: retailPrice,
       variation: variation,
@@ -246,7 +250,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                 return Container(
                   width: 300,
                   child: TextFormField(
-                    initialValue: snapshot.data[0].costPrice.toString(),
+                    initialValue: snapshot.data[0].supplyPrice.toString(),
                     style: TextStyle(color: HexColor("#2d3436")),
                     validator: Validators.isStringHasMoreChars,
                     onChanged: (cost) {
@@ -313,7 +317,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
 
   void _closeAndDelete(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
-    Util.deleteVariant(store, widget.variationId);
+    // Util.deleteVariant(store, widget.variationId);
     Router.navigator.pop(true);
   }
 }

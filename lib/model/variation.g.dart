@@ -8,49 +8,29 @@ part of 'variation.dart';
 
 class _$Variation extends Variation {
   @override
-  final int id;
-  @override
-  final String name;
-  @override
-  final String unityType;
-  @override
-  final String price;
-  @override
-  final int stockValue;
-  @override
-  final int itemId;
+  final String id;
   @override
   final String sku;
+  @override
+  final String productId;
+  @override
+  final String name;
 
   factory _$Variation([void Function(VariationBuilder) updates]) =>
       (new VariationBuilder()..update(updates)).build();
 
-  _$Variation._(
-      {this.id,
-      this.name,
-      this.unityType,
-      this.price,
-      this.stockValue,
-      this.itemId,
-      this.sku})
-      : super._() {
+  _$Variation._({this.id, this.sku, this.productId, this.name}) : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
     }
-    if (name == null) {
-      throw new BuiltValueNullFieldError('Variation', 'name');
-    }
-    if (unityType == null) {
-      throw new BuiltValueNullFieldError('Variation', 'unityType');
-    }
-    if (price == null) {
-      throw new BuiltValueNullFieldError('Variation', 'price');
-    }
-    if (stockValue == null) {
-      throw new BuiltValueNullFieldError('Variation', 'stockValue');
-    }
     if (sku == null) {
       throw new BuiltValueNullFieldError('Variation', 'sku');
+    }
+    if (productId == null) {
+      throw new BuiltValueNullFieldError('Variation', 'productId');
+    }
+    if (name == null) {
+      throw new BuiltValueNullFieldError('Variation', 'name');
     }
   }
 
@@ -66,38 +46,25 @@ class _$Variation extends Variation {
     if (identical(other, this)) return true;
     return other is Variation &&
         id == other.id &&
-        name == other.name &&
-        unityType == other.unityType &&
-        price == other.price &&
-        stockValue == other.stockValue &&
-        itemId == other.itemId &&
-        sku == other.sku;
+        sku == other.sku &&
+        productId == other.productId &&
+        name == other.name;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc($jc($jc(0, id.hashCode), name.hashCode),
-                        unityType.hashCode),
-                    price.hashCode),
-                stockValue.hashCode),
-            itemId.hashCode),
-        sku.hashCode));
+        $jc($jc($jc(0, id.hashCode), sku.hashCode), productId.hashCode),
+        name.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('Variation')
           ..add('id', id)
-          ..add('name', name)
-          ..add('unityType', unityType)
-          ..add('price', price)
-          ..add('stockValue', stockValue)
-          ..add('itemId', itemId)
-          ..add('sku', sku))
+          ..add('sku', sku)
+          ..add('productId', productId)
+          ..add('name', name))
         .toString();
   }
 }
@@ -105,45 +72,30 @@ class _$Variation extends Variation {
 class VariationBuilder implements Builder<Variation, VariationBuilder> {
   _$Variation _$v;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
-
-  String _name;
-  String get name => _$this._name;
-  set name(String name) => _$this._name = name;
-
-  String _unityType;
-  String get unityType => _$this._unityType;
-  set unityType(String unityType) => _$this._unityType = unityType;
-
-  String _price;
-  String get price => _$this._price;
-  set price(String price) => _$this._price = price;
-
-  int _stockValue;
-  int get stockValue => _$this._stockValue;
-  set stockValue(int stockValue) => _$this._stockValue = stockValue;
-
-  int _itemId;
-  int get itemId => _$this._itemId;
-  set itemId(int itemId) => _$this._itemId = itemId;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   String _sku;
   String get sku => _$this._sku;
   set sku(String sku) => _$this._sku = sku;
+
+  String _productId;
+  String get productId => _$this._productId;
+  set productId(String productId) => _$this._productId = productId;
+
+  String _name;
+  String get name => _$this._name;
+  set name(String name) => _$this._name = name;
 
   VariationBuilder();
 
   VariationBuilder get _$this {
     if (_$v != null) {
       _id = _$v.id;
-      _name = _$v.name;
-      _unityType = _$v.unityType;
-      _price = _$v.price;
-      _stockValue = _$v.stockValue;
-      _itemId = _$v.itemId;
       _sku = _$v.sku;
+      _productId = _$v.productId;
+      _name = _$v.name;
       _$v = null;
     }
     return this;
@@ -165,14 +117,7 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   @override
   _$Variation build() {
     final _$result = _$v ??
-        new _$Variation._(
-            id: id,
-            name: name,
-            unityType: unityType,
-            price: price,
-            stockValue: stockValue,
-            itemId: itemId,
-            sku: sku);
+        new _$Variation._(id: id, sku: sku, productId: productId, name: name);
     replace(_$result);
     return _$result;
   }

@@ -25,4 +25,9 @@ class StockHistoryDao extends DatabaseAccessor<Database>
 
   Future<List<StockHistoryTableData>> getHistories() =>
       select(db.stockHistoryTable).get();
+
+  Future<StockHistoryTableData> getById({String id}) {
+    return (select(db.stockHistoryTable)..where((t) => t.id.equals(id)))
+        .getSingle();
+  }
 }

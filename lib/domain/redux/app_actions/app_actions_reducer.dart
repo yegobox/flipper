@@ -20,16 +20,17 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, AddItemToCartAction>(_onAddingOneItemOnCart),
   TypedReducer<AppState, IncrementAction>(_onIncrement),
   TypedReducer<AppState, ItemsVariation>(_onItemsVariation),
-  TypedReducer<AppState, CurrentActiveSaleItem>(_onCurrentSaleItem),
+  TypedReducer<AppState, CurrentActiveSaleProduct>(_onCurrentSaleItem),
   TypedReducer<AppState, Carts>(_onCarts),
   TypedReducer<AppState, CartQuantity>(_onCartQuantity),
   TypedReducer<AppState, KayPadAction>(_onKeyPad),
   TypedReducer<AppState, CleanKeyPad>(_onCleanKeyPad),
-  TypedReducer<AppState, TempItem>(_onTempItem),
+  TypedReducer<AppState, TempProduct>(_onTempItem),
   TypedReducer<AppState, CleanAppActions>(_onCleanAppAction),
   TypedReducer<AppState, CleanCurrentColor>(_onCleanCurrentColor),
   TypedReducer<AppState, CustomUnit>(_onCustomUnit),
   TypedReducer<AppState, CustomCategory>(_onCustomCategory),
+  TypedReducer<AppState, VariationAction>(_onVariation),
   TypedReducer<AppState, CustomItem>(_onCustomItem),
 ];
 AppState _onAppActions(AppState state, AppAction action) {
@@ -108,12 +109,13 @@ AppState _onIncrement(AppState state, IncrementAction action) {
 }
 
 AppState _onItemsVariation(AppState state, ItemsVariation action) {
-  return state.rebuild((a) => a..itemVariations = ListBuilder(action.items));
+  return state
+      .rebuild((a) => a..itemVariations = ListBuilder(action.variations));
 }
 
-AppState _onCurrentSaleItem(AppState state, CurrentActiveSaleItem action) {
+AppState _onCurrentSaleItem(AppState state, CurrentActiveSaleProduct action) {
   return state
-      .rebuild((a) => a..currentActiveSaleItem = action.item.toBuilder());
+      .rebuild((a) => a..currentActiveSaleItem = action.product.toBuilder());
 }
 
 AppState _onCarts(AppState state, Carts action) {
@@ -153,6 +155,10 @@ AppState _onCustomItem(AppState state, CustomItem action) {
   return state.rebuild((a) => a..customItem = action.item.toBuilder());
 }
 
-AppState _onTempItem(AppState state, TempItem action) {
-  return state.rebuild((a) => a..tmpItem = action.item.toBuilder());
+AppState _onVariation(AppState state, VariationAction action) {
+  return state.rebuild((a) => a..variant = action.variation.toBuilder());
+}
+
+AppState _onTempItem(AppState state, TempProduct action) {
+  return state.rebuild((a) => a..tmpItem = action.product.toBuilder());
 }

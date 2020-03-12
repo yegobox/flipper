@@ -226,7 +226,7 @@ class Router {
         final typedArgs = args as ChangeQuantityForSellingArguments;
         return MaterialPageRoute<dynamic>(
           builder: (_) => ChangeQuantityForSelling(
-              key: typedArgs.key, itemId: typedArgs.itemId),
+              key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -275,7 +275,7 @@ class Router {
         return MaterialPageRoute<dynamic>(
           builder: (_) => ViewSingleItemScreen(
               key: typedArgs.key,
-              itemId: typedArgs.itemId,
+              productId: typedArgs.productId,
               itemName: typedArgs.itemName,
               itemColor: typedArgs.itemColor),
           settings: settings,
@@ -291,7 +291,7 @@ class Router {
           builder: (_) => EditVariationScreen(
               key: typedArgs.key,
               variationId: typedArgs.variationId,
-              itemId: typedArgs.itemId,
+              productId: typedArgs.productId,
               unitId: typedArgs.unitId),
           settings: settings,
         );
@@ -302,8 +302,8 @@ class Router {
         }
         final typedArgs = args as EditCategoryScreenArguments;
         return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              EditCategoryScreen(key: typedArgs.key, ItemId: typedArgs.ItemId),
+          builder: (_) => EditCategoryScreen(
+              key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
         );
       case Router.editUnitType:
@@ -405,8 +405,8 @@ class ReceiveStockScreenArguments {
 //ChangeQuantityForSelling arguments holder class
 class ChangeQuantityForSellingArguments {
   final Key key;
-  final int itemId;
-  ChangeQuantityForSellingArguments({this.key, @required this.itemId});
+  final String productId;
+  ChangeQuantityForSellingArguments({this.key, @required this.productId});
 }
 
 //CartDetailsScreen arguments holder class
@@ -419,12 +419,12 @@ class CartDetailsScreenArguments {
 //ViewSingleItemScreen arguments holder class
 class ViewSingleItemScreenArguments {
   final Key key;
-  final int itemId;
+  final String productId;
   final String itemName;
   final String itemColor;
   ViewSingleItemScreenArguments(
       {this.key,
-      @required this.itemId,
+      @required this.productId,
       @required this.itemName,
       @required this.itemColor});
 }
@@ -432,27 +432,27 @@ class ViewSingleItemScreenArguments {
 //EditVariationScreen arguments holder class
 class EditVariationScreenArguments {
   final Key key;
-  final int variationId;
-  final int itemId;
-  final int unitId;
+  final String variationId;
+  final String productId;
+  final String unitId;
   EditVariationScreenArguments(
       {this.key,
       @required this.variationId,
-      @required this.itemId,
+      @required this.productId,
       this.unitId});
 }
 
 //EditCategoryScreen arguments holder class
 class EditCategoryScreenArguments {
   final Key key;
-  final int ItemId;
-  EditCategoryScreenArguments({this.key, @required this.ItemId});
+  final String productId;
+  EditCategoryScreenArguments({this.key, @required this.productId});
 }
 
 //EditUnitTypeScreen arguments holder class
 class EditUnitTypeScreenArguments {
   final Key key;
-  final int itemId;
+  final String itemId;
   EditUnitTypeScreenArguments({this.key, @required this.itemId});
 }
 

@@ -34,23 +34,22 @@ class _BuildCostPriceWidgetState extends State<BuildCostPriceWidget> {
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.black),
           onChanged: (costPrice) async {
-            ItemTableData item = await widget.vm.database.itemDao.getItemBy(
-              name: widget.itemName,
-//              branchId: '001',
-              itemId: widget.itemId,
-            );
+//             ProductTableData item = await widget.vm.database.productDao.getItemBy(
+//               name: widget.itemName,
+// //              branchId: '001',
+//               itemId: widget.itemId,
+//             );
 
-            VariationTableData variation = await widget.vm.database.variationDao
-                .getVariationBy('tmp', widget.vm.branch.id);
+            // VariationTableData variation = await widget.vm.database.variationDao
+            //     .getVariationBy('tmp', widget.vm.branch.id);
 
-            StoreProvider.of<AppState>(context).dispatch(
-              SaveRegular(
-                costPrice: double.parse(costPrice),
-                retailPrice: 0,
-                itemId: item.id,
-                name: variation.name,
-              ),
-            );
+            // StoreProvider.of<AppState>(context).dispatch(
+            //   SaveRegular(
+            //     costPrice: double.parse(costPrice),
+            //     retailPrice: 0,
+            //     name: variation.name,
+            //   ),
+            // );
             //on typing here should save Regular Item variation
           },
           decoration: InputDecoration(

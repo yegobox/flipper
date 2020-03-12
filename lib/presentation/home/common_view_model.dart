@@ -11,11 +11,12 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
+import 'package:flipper/model/variation.dart';
 import 'package:redux/redux.dart';
 
 part 'common_view_model.g.dart';
@@ -60,17 +61,20 @@ abstract class CommonViewModel
   Branch get branch;
 
   @nullable
-  Item get cartItem;
+  Product get cartItem;
 
   @nullable
-  BuiltList<Item> get itemVariations;
+  BuiltList<Variation> get itemVariations;
 
-  BuiltList<Item> get items;
+  @nullable
+  Variation get variant;
+
+  BuiltList<Product> get items;
 
   @nullable
   int get currentIncrement;
   @nullable
-  Item get currentActiveSaleItem;
+  Product get currentActiveSaleItem;
 
   Database get database;
 
@@ -97,13 +101,13 @@ abstract class CommonViewModel
   Category get customCategory;
 
   @nullable
-  Item get customItem;
+  Product get customItem;
 
   @nullable
   int get tempCategoryId;
 
   @nullable
-  Item get tmpItem;
+  Product get tmpItem;
 
   @nullable
   CouchDbClient get couchDbClient;
@@ -178,6 +182,8 @@ abstract class CommonViewModel
       ..couchDbClient = store.state.couchDbClient == null
           ? null
           : store.state.couchDbClient.toBuilder()
+      ..variant =
+          store.state.variant == null ? null : store.state.variant.toBuilder()
       ..branches = store.state.branches
       ..tmpItem =
           store.state.tmpItem == null ? null : store.state.tmpItem.toBuilder()

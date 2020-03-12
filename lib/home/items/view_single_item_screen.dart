@@ -7,7 +7,7 @@ import 'package:flipper/home/widget/switch_widget.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/util.dart';
+
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -22,11 +22,11 @@ class TForm {
 class ViewSingleItemScreen extends StatefulWidget {
   ViewSingleItemScreen({
     Key key,
-    @required this.itemId,
+    @required this.productId,
     @required this.itemName,
     @required this.itemColor,
   }) : super(key: key);
-  final int itemId;
+  final String productId;
 
   final String itemName;
   final String itemColor;
@@ -46,7 +46,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
 
   _closeAndDelete(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
-    Util.deleteItem(store, widget.itemName, widget.itemId);
+    // Util.deleteItem(store, widget.itemName, widget.productId);
     Router.navigator.pop(true);
   }
 
@@ -73,7 +73,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
       builder: (context, vm) {
         return StreamBuilder(
             stream: vm.database.variationDao
-                .getVariationByItemIdStream(widget.itemId),
+                .getVariationByItemIdStream(widget.productId),
             builder:
                 (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
               if (snapshot.data == null) {
@@ -155,7 +155,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   Router.navigator.pushNamed(
                                     Router.editCategoryScreen,
                                     arguments: EditCategoryScreenArguments(
-                                      ItemId: widget.itemId,
+                                      productId: widget.productId,
                                     ),
                                   );
                                 },
@@ -166,10 +166,12 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   trailing: Wrap(
                                     children: <Widget>[
                                       StreamBuilder(
-                                        stream: vm.database.itemDao
-                                            .getItemByIdStream(widget.itemId),
+                                        stream: vm.database.productDao
+                                            .getItemByIdStream(
+                                                widget.productId),
                                         builder: (context,
-                                            AsyncSnapshot<List<ItemTableData>>
+                                            AsyncSnapshot<
+                                                    List<ProductTableData>>
                                                 snapshot) {
                                           if (snapshot.data == null) {
                                             return Text(
@@ -222,7 +224,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   Router.navigator.pushNamed(
                                       Router.editUnitType,
                                       arguments: EditUnitTypeScreenArguments(
-                                          itemId: widget.itemId));
+                                          itemId: widget.productId));
                                 },
                                 child: ListTile(
                                   contentPadding:
@@ -231,10 +233,12 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   trailing: Wrap(
                                     children: <Widget>[
                                       StreamBuilder(
-                                          stream: vm.database.itemDao
-                                              .getItemByIdStream(widget.itemId),
+                                          stream: vm.database.productDao
+                                              .getItemByIdStream(
+                                                  widget.productId),
                                           builder: (context,
-                                              AsyncSnapshot<List<ItemTableData>>
+                                              AsyncSnapshot<
+                                                      List<ProductTableData>>
                                                   item) {
                                             if (item.data == null) {
                                               return Text("");
@@ -242,7 +246,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                             return StreamBuilder(
                                                 stream: vm.database.unitDao
                                                     .getUnitStream(
-                                                        item.data[0].unitId),
+                                                        item.data[0].idLocal),
                                                 builder: (context,
                                                     AsyncSnapshot<
                                                             List<UnitTableData>>
@@ -264,7 +268,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                           CustomDivider(),
                           StreamBuilder(
                             stream: vm.database.variationDao
-                                .getItemVariationsByItemId(widget.itemId),
+                                .getItemVariationsByItemId(widget.productId),
                             builder: (context,
                                 AsyncSnapshot<List<VariationTableData>>
                                     snapshot) {
@@ -390,7 +394,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
     });
   }
 
-  Widget categorySelector(List<ItemTableData> item, CommonViewModel vm) {
+  Widget categorySelector(List<ProductTableData> item, CommonViewModel vm) {
     return StreamBuilder(
         stream:
             vm.database.categoryDao.getCategoryByIdStream(item[0].categoryId),
@@ -403,18 +407,17 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   }
 
   _handleEditItem(CommonViewModel vm) async {
-    ItemTableData item = await vm.database.itemDao
-        .getItemBy(itemId: widget.itemId, name: widget.itemName);
+    // ProductTableData item = await vm.database.productDao
+    //     .getItemBy(name: widget.itemName, productId: widget.productId);
 
-    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+    // vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
 
-    vm.database.itemDao.updateItem(
-      item.copyWith(
-        name: _name,
-        updatedAt: DateTime.now(),
-        color: vm.currentColor == null ? item.color : vm.currentColor.hexCode,
-      ),
-    );
+    // vm.database.productDao.updateProduct(
+    //   item.copyWith(
+    //     name: _name,
+    //     updatedAt: DateTime.now(),
+    //   ),
+    // );
     Router.navigator.pop();
   }
 

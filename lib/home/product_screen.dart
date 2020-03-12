@@ -40,9 +40,12 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               Expanded(
                 child: StreamBuilder(
-                  stream: vm.database.itemDao.getItemsStream(),
+                  stream: vm.database.productDao
+                      .getProductStream(branchId: vm.branch.id),
                   builder:
-                      (context, AsyncSnapshot<List<ItemTableData>> snapshot) {
+                      //todo: get item from couchdb, set type of item returned to Item make it common as ganza. then list item.
+                      (context,
+                          AsyncSnapshot<List<ProductTableData>> snapshot) {
                     if (snapshot.data == null) {
                       return Text("");
                     }

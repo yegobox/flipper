@@ -27,6 +27,7 @@
     "add": "Add",
     "quantity": "Quantity",
     "notes": "Notes",
+    "supplyPrice": "supply Price",
     "noSale": "No Sale",
     "costPrice": "Cost Price",
     "retailPrice": "Retail Price",
@@ -45,5 +46,6 @@
     "editUnitType": "Edit Unit",
     "subscribe": "Subscribe",
     "pay": "Pay",
-    "editVariation": "Edit Variation"
+    "editVariation": "Edit Variation",
+    "selectUnit": "Select Unit"
 }

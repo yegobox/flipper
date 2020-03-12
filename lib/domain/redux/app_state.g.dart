@@ -30,7 +30,7 @@ class _$AppState extends AppState {
   @override
   final Unit customUnit;
   @override
-  final Item customItem;
+  final Product customItem;
   @override
   final Category customCategory;
   @override
@@ -64,13 +64,15 @@ class _$AppState extends AppState {
   @override
   final FlipperColor currentColor;
   @override
-  final BuiltList<Item> itemVariations;
+  final Variation variant;
   @override
-  final Item currentActiveSaleItem;
+  final BuiltList<Variation> itemVariations;
   @override
-  final Item cartItem;
+  final Product currentActiveSaleItem;
   @override
-  final BuiltList<Item> items;
+  final Product cartItem;
+  @override
+  final BuiltList<Product> items;
   @override
   final int currentIncrement;
   @override
@@ -82,7 +84,7 @@ class _$AppState extends AppState {
   @override
   final KeyPad keypad;
   @override
-  final Item tmpItem;
+  final Product tmpItem;
   @override
   final CouchDbClient couchDbClient;
 
@@ -118,6 +120,7 @@ class _$AppState extends AppState {
       this.tempCategoryId,
       this.currentUnit,
       this.currentColor,
+      this.variant,
       this.itemVariations,
       this.currentActiveSaleItem,
       this.cartItem,
@@ -186,6 +189,7 @@ class _$AppState extends AppState {
         tempCategoryId == other.tempCategoryId &&
         currentUnit == other.currentUnit &&
         currentColor == other.currentColor &&
+        variant == other.variant &&
         itemVariations == other.itemVariations &&
         currentActiveSaleItem == other.currentActiveSaleItem &&
         cartItem == other.cartItem &&
@@ -219,15 +223,15 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), customCategory.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode),
-                                                                                branch.hashCode),
-                                                                            business.hashCode),
-                                                                        hint.hashCode),
-                                                                    database.hashCode),
-                                                                couch.hashCode),
-                                                            tempCategoryId.hashCode),
-                                                        currentUnit.hashCode),
-                                                    currentColor.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), customCategory.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode),
+                                                                                business.hashCode),
+                                                                            hint.hashCode),
+                                                                        database.hashCode),
+                                                                    couch.hashCode),
+                                                                tempCategoryId.hashCode),
+                                                            currentUnit.hashCode),
+                                                        currentColor.hashCode),
+                                                    variant.hashCode),
                                                 itemVariations.hashCode),
                                             currentActiveSaleItem.hashCode),
                                         cartItem.hashCode),
@@ -272,6 +276,7 @@ class _$AppState extends AppState {
           ..add('tempCategoryId', tempCategoryId)
           ..add('currentUnit', currentUnit)
           ..add('currentColor', currentColor)
+          ..add('variant', variant)
           ..add('itemVariations', itemVariations)
           ..add('currentActiveSaleItem', currentActiveSaleItem)
           ..add('cartItem', cartItem)
@@ -338,9 +343,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   UnitBuilder get customUnit => _$this._customUnit ??= new UnitBuilder();
   set customUnit(UnitBuilder customUnit) => _$this._customUnit = customUnit;
 
-  ItemBuilder _customItem;
-  ItemBuilder get customItem => _$this._customItem ??= new ItemBuilder();
-  set customItem(ItemBuilder customItem) => _$this._customItem = customItem;
+  ProductBuilder _customItem;
+  ProductBuilder get customItem => _$this._customItem ??= new ProductBuilder();
+  set customItem(ProductBuilder customItem) => _$this._customItem = customItem;
 
   CategoryBuilder _customCategory;
   CategoryBuilder get customCategory =>
@@ -413,25 +418,30 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set currentColor(FlipperColorBuilder currentColor) =>
       _$this._currentColor = currentColor;
 
-  ListBuilder<Item> _itemVariations;
-  ListBuilder<Item> get itemVariations =>
-      _$this._itemVariations ??= new ListBuilder<Item>();
-  set itemVariations(ListBuilder<Item> itemVariations) =>
+  VariationBuilder _variant;
+  VariationBuilder get variant => _$this._variant ??= new VariationBuilder();
+  set variant(VariationBuilder variant) => _$this._variant = variant;
+
+  ListBuilder<Variation> _itemVariations;
+  ListBuilder<Variation> get itemVariations =>
+      _$this._itemVariations ??= new ListBuilder<Variation>();
+  set itemVariations(ListBuilder<Variation> itemVariations) =>
       _$this._itemVariations = itemVariations;
 
-  ItemBuilder _currentActiveSaleItem;
-  ItemBuilder get currentActiveSaleItem =>
-      _$this._currentActiveSaleItem ??= new ItemBuilder();
-  set currentActiveSaleItem(ItemBuilder currentActiveSaleItem) =>
+  ProductBuilder _currentActiveSaleItem;
+  ProductBuilder get currentActiveSaleItem =>
+      _$this._currentActiveSaleItem ??= new ProductBuilder();
+  set currentActiveSaleItem(ProductBuilder currentActiveSaleItem) =>
       _$this._currentActiveSaleItem = currentActiveSaleItem;
 
-  ItemBuilder _cartItem;
-  ItemBuilder get cartItem => _$this._cartItem ??= new ItemBuilder();
-  set cartItem(ItemBuilder cartItem) => _$this._cartItem = cartItem;
+  ProductBuilder _cartItem;
+  ProductBuilder get cartItem => _$this._cartItem ??= new ProductBuilder();
+  set cartItem(ProductBuilder cartItem) => _$this._cartItem = cartItem;
 
-  ListBuilder<Item> _items;
-  ListBuilder<Item> get items => _$this._items ??= new ListBuilder<Item>();
-  set items(ListBuilder<Item> items) => _$this._items = items;
+  ListBuilder<Product> _items;
+  ListBuilder<Product> get items =>
+      _$this._items ??= new ListBuilder<Product>();
+  set items(ListBuilder<Product> items) => _$this._items = items;
 
   int _currentIncrement;
   int get currentIncrement => _$this._currentIncrement;
@@ -455,9 +465,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   KeyPadBuilder get keypad => _$this._keypad ??= new KeyPadBuilder();
   set keypad(KeyPadBuilder keypad) => _$this._keypad = keypad;
 
-  ItemBuilder _tmpItem;
-  ItemBuilder get tmpItem => _$this._tmpItem ??= new ItemBuilder();
-  set tmpItem(ItemBuilder tmpItem) => _$this._tmpItem = tmpItem;
+  ProductBuilder _tmpItem;
+  ProductBuilder get tmpItem => _$this._tmpItem ??= new ProductBuilder();
+  set tmpItem(ProductBuilder tmpItem) => _$this._tmpItem = tmpItem;
 
   CouchDbClientBuilder _couchDbClient;
   CouchDbClientBuilder get couchDbClient =>
@@ -497,6 +507,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _tempCategoryId = _$v.tempCategoryId;
       _currentUnit = _$v.currentUnit?.toBuilder();
       _currentColor = _$v.currentColor?.toBuilder();
+      _variant = _$v.variant?.toBuilder();
       _itemVariations = _$v.itemVariations?.toBuilder();
       _currentActiveSaleItem = _$v.currentActiveSaleItem?.toBuilder();
       _cartItem = _$v.cartItem?.toBuilder();
@@ -560,6 +571,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               tempCategoryId: tempCategoryId,
               currentUnit: _currentUnit?.build(),
               currentColor: _currentColor?.build(),
+              variant: _variant?.build(),
               itemVariations: itemVariations.build(),
               currentActiveSaleItem: _currentActiveSaleItem?.build(),
               cartItem: _cartItem?.build(),
@@ -618,6 +630,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _currentUnit?.build();
         _$failedField = 'currentColor';
         _currentColor?.build();
+        _$failedField = 'variant';
+        _variant?.build();
         _$failedField = 'itemVariations';
         itemVariations.build();
         _$failedField = 'currentActiveSaleItem';

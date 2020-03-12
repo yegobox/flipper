@@ -28,9 +28,11 @@ class _VariationWidgetState extends State<VariationWidget> {
         onTap: () {
           Router.navigator.pushNamed(
             Router.editVariationScreen,
-            arguments: EditVariationScreenArguments(
-                variationId: widget.variation.id,
-                itemId: widget.variation.itemId),
+            //todo: work on this.
+            // arguments: EditVariationScreenArguments(
+            //   variationId: widget.variation.id,
+            //     itemId: widget.variation.productId
+            // ),
           );
         },
         child: StreamBuilder(
@@ -66,9 +68,7 @@ class _VariationWidgetState extends State<VariationWidget> {
                   : "${snapshot.data[i].currentStock}" + S.of(context).inStock,
             ),
             onPressed: () {
-              Router.navigator.pushNamed(
-                Router.receiveStock
-              );
+              Router.navigator.pushNamed(Router.receiveStock);
             },
           )
         ]),

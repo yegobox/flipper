@@ -281,6 +281,15 @@ class S {
     );
   }
 
+  String get supplyPrice {
+    return Intl.message(
+      'supply Price',
+      name: 'supplyPrice',
+      desc: '',
+      args: [],
+    );
+  }
+
   String get noSale {
     return Intl.message(
       'No Sale',
@@ -447,6 +456,15 @@ class S {
     return Intl.message(
       'Edit Variation',
       name: 'editVariation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  String get selectUnit {
+    return Intl.message(
+      'Select Unit',
+      name: 'selectUnit',
       desc: '',
       args: [],
     );

@@ -1,15 +1,12 @@
 import 'package:moor/moor.dart';
 
 class VariationTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get idLocal => integer().autoIncrement()();
+  TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get sku => text().nullable()();
-  TextColumn get branchId => text()();
-
-  IntColumn get itemId =>
-      integer().customConstraint('NULL REFERENCES item_table(id)')();
-
-  BoolColumn get isActive => boolean().withDefault(Constant(false))();
+  TextColumn get unit => text().nullable()();
+  TextColumn get productId => text()();
 
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();

@@ -5,7 +5,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/util/util.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 
@@ -42,15 +42,15 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
     variationId = action.variantId;
 //    stock = await store.state.database.stockDao.getStockByVariantId(
 //        branchId: store.state.branch.id, variantId: action.variantId);
-    final variant =
-        await store.state.database.variationDao.getVariationById(variationId);
-    await store.state.database.variationDao
-        .updateVariation(variant.copyWith(name: 'Regular'));
+    // final variant =
+    //     await store.state.database.variationDao.getVariationById(variationId);
+    // await store.state.database.variationDao
+    //     .updateVariation(variant.copyWith(name: 'Regular'));
 
     await store.state.database.stockDao.updateStock(
       stock.copyWith(
         retailPrice: action.retailPrice,
-        costPrice: action.costPrice,
+        supplyPrice: action.costPrice,
       ),
     );
 //    stock = await store.state.database.stockDao.getStockByVariantId(
@@ -189,8 +189,12 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
 
-    final order = await store.state.database.orderDao.getOrderById(store.state.order.id);
-    Util.updateOrder(store,order.copyWith(orderNote: action.note,cashReceived: action.cashReceived));
+    final order =
+        await store.state.database.orderDao.getOrderById(store.state.order.id);
+    DataManager.updateOrder(
+        store,
+        order.copyWith(
+            orderNote: action.note, cashReceived: action.cashReceived));
 
     //this will clear all state and create new order if needed.
     store.dispatch(VerifyAuthenticationState());

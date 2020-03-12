@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 
 class ItemVariation {
   final VariationTableData variations;
-  final ItemTableData items;
+  final ProductTableData items;
 
   ItemVariation({
     @required this.variations,

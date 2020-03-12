@@ -4,8 +4,8 @@ import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/flipper_color.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/model/key_pad.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flutter/material.dart';
@@ -138,14 +138,14 @@ class SaveItemAction {
 
 @immutable
 class ItemLoaded {
-  final List<Item> items;
+  final List<Product> items;
 
   ItemLoaded({this.items});
 }
 
 @immutable
 class AddItemToCartAction {
-  final Item cartItem;
+  final Product cartItem;
 
   AddItemToCartAction({this.cartItem});
 }
@@ -159,23 +159,23 @@ class IncrementAction {
 
 @immutable
 class SwitchVariation {
-  final Item item;
+  final Product item;
 
   SwitchVariation({this.item});
 }
 
 @immutable
 class ItemsVariation {
-  final List<Item> items;
+  final List<Variation> variations;
 
-  ItemsVariation({this.items});
+  ItemsVariation({this.variations});
 }
 
 @immutable
-class CurrentActiveSaleItem {
-  final Item item;
+class CurrentActiveSaleProduct {
+  final Product product;
 
-  CurrentActiveSaleItem({this.item});
+  CurrentActiveSaleProduct({this.product});
 }
 
 @immutable
@@ -236,7 +236,7 @@ class CustomCategory {
 
 @immutable
 class CustomItem {
-  final Item item;
+  final Product item;
 
   CustomItem({this.item});
 }
@@ -263,10 +263,17 @@ class SaveRegular {
 }
 
 @immutable
-class TempItem {
-  final Item item;
+class TempProduct {
+  final Product product;
 
-  TempItem({this.item});
+  TempProduct({this.product});
+}
+
+@immutable
+class VariationAction {
+  final Variation variation;
+
+  VariationAction({this.variation});
 }
 
 @immutable

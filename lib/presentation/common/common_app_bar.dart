@@ -7,11 +7,9 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   showOverlay(BuildContext context) async {
     OverlayState overlayState = Overlay.of(context);
     OverlayEntry overlayEntry = OverlayEntry(
-//        opaque: true,
         builder: (context) => Material(
               type: MaterialType.transparency,
               child: Center(
-                  // Aligns the container to center
                   child: Container(
                 // A simplified version of dialog.
                 width: 100.0,

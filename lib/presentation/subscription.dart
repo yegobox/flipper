@@ -6,17 +6,16 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/error_handler/subscription_error.dart';
 import 'package:flipper/external-api/subscription_response.dart';
-// import 'package:flipper/external-api/subscription_response.dart'as Data;
 import 'package:flipper/extra/card_type.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/style/card_background.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 import 'package:redux/src/store.dart';
 import 'package:subscription/my_strings.dart';
 
@@ -450,6 +449,7 @@ class _SubscriptionState extends State<Subscription> {
                                 fontSize: 16.0);
                             return;
                           }
+                          //todo: call authUrl for confirming subscription in a browser.
                           Manager.dismissDialog();
                           final subscriptionResponse =
                               subscriptionResponseFromJson(response.body);

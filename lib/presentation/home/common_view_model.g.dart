@@ -38,15 +38,17 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Branch branch;
   @override
-  final Item cartItem;
+  final Product cartItem;
   @override
-  final BuiltList<Item> itemVariations;
+  final BuiltList<Variation> itemVariations;
   @override
-  final BuiltList<Item> items;
+  final Variation variant;
+  @override
+  final BuiltList<Product> items;
   @override
   final int currentIncrement;
   @override
-  final Item currentActiveSaleItem;
+  final Product currentActiveSaleItem;
   @override
   final Database database;
   @override
@@ -66,11 +68,11 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Category customCategory;
   @override
-  final Item customItem;
+  final Product customItem;
   @override
   final int tempCategoryId;
   @override
-  final Item tmpItem;
+  final Product tmpItem;
   @override
   final CouchDbClient couchDbClient;
 
@@ -95,6 +97,7 @@ class _$CommonViewModel extends CommonViewModel {
       this.branch,
       this.cartItem,
       this.itemVariations,
+      this.variant,
       this.items,
       this.currentIncrement,
       this.currentActiveSaleItem,
@@ -173,6 +176,7 @@ class _$CommonViewModel extends CommonViewModel {
         branch == other.branch &&
         cartItem == other.cartItem &&
         itemVariations == other.itemVariations &&
+        variant == other.variant &&
         items == other.items &&
         currentIncrement == other.currentIncrement &&
         currentActiveSaleItem == other.currentActiveSaleItem &&
@@ -211,10 +215,10 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode),
-                                                                                branch.hashCode),
-                                                                            cartItem.hashCode),
-                                                                        itemVariations.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode),
+                                                                                cartItem.hashCode),
+                                                                            itemVariations.hashCode),
+                                                                        variant.hashCode),
                                                                     items.hashCode),
                                                                 currentIncrement.hashCode),
                                                             currentActiveSaleItem.hashCode),
@@ -253,6 +257,7 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('branch', branch)
           ..add('cartItem', cartItem)
           ..add('itemVariations', itemVariations)
+          ..add('variant', variant)
           ..add('items', items)
           ..add('currentIncrement', currentIncrement)
           ..add('currentActiveSaleItem', currentActiveSaleItem)
@@ -342,29 +347,34 @@ class CommonViewModelBuilder
   BranchBuilder get branch => _$this._branch ??= new BranchBuilder();
   set branch(BranchBuilder branch) => _$this._branch = branch;
 
-  ItemBuilder _cartItem;
-  ItemBuilder get cartItem => _$this._cartItem ??= new ItemBuilder();
-  set cartItem(ItemBuilder cartItem) => _$this._cartItem = cartItem;
+  ProductBuilder _cartItem;
+  ProductBuilder get cartItem => _$this._cartItem ??= new ProductBuilder();
+  set cartItem(ProductBuilder cartItem) => _$this._cartItem = cartItem;
 
-  ListBuilder<Item> _itemVariations;
-  ListBuilder<Item> get itemVariations =>
-      _$this._itemVariations ??= new ListBuilder<Item>();
-  set itemVariations(ListBuilder<Item> itemVariations) =>
+  ListBuilder<Variation> _itemVariations;
+  ListBuilder<Variation> get itemVariations =>
+      _$this._itemVariations ??= new ListBuilder<Variation>();
+  set itemVariations(ListBuilder<Variation> itemVariations) =>
       _$this._itemVariations = itemVariations;
 
-  ListBuilder<Item> _items;
-  ListBuilder<Item> get items => _$this._items ??= new ListBuilder<Item>();
-  set items(ListBuilder<Item> items) => _$this._items = items;
+  VariationBuilder _variant;
+  VariationBuilder get variant => _$this._variant ??= new VariationBuilder();
+  set variant(VariationBuilder variant) => _$this._variant = variant;
+
+  ListBuilder<Product> _items;
+  ListBuilder<Product> get items =>
+      _$this._items ??= new ListBuilder<Product>();
+  set items(ListBuilder<Product> items) => _$this._items = items;
 
   int _currentIncrement;
   int get currentIncrement => _$this._currentIncrement;
   set currentIncrement(int currentIncrement) =>
       _$this._currentIncrement = currentIncrement;
 
-  ItemBuilder _currentActiveSaleItem;
-  ItemBuilder get currentActiveSaleItem =>
-      _$this._currentActiveSaleItem ??= new ItemBuilder();
-  set currentActiveSaleItem(ItemBuilder currentActiveSaleItem) =>
+  ProductBuilder _currentActiveSaleItem;
+  ProductBuilder get currentActiveSaleItem =>
+      _$this._currentActiveSaleItem ??= new ProductBuilder();
+  set currentActiveSaleItem(ProductBuilder currentActiveSaleItem) =>
       _$this._currentActiveSaleItem = currentActiveSaleItem;
 
   Database _database;
@@ -406,18 +416,18 @@ class CommonViewModelBuilder
   set customCategory(CategoryBuilder customCategory) =>
       _$this._customCategory = customCategory;
 
-  ItemBuilder _customItem;
-  ItemBuilder get customItem => _$this._customItem ??= new ItemBuilder();
-  set customItem(ItemBuilder customItem) => _$this._customItem = customItem;
+  ProductBuilder _customItem;
+  ProductBuilder get customItem => _$this._customItem ??= new ProductBuilder();
+  set customItem(ProductBuilder customItem) => _$this._customItem = customItem;
 
   int _tempCategoryId;
   int get tempCategoryId => _$this._tempCategoryId;
   set tempCategoryId(int tempCategoryId) =>
       _$this._tempCategoryId = tempCategoryId;
 
-  ItemBuilder _tmpItem;
-  ItemBuilder get tmpItem => _$this._tmpItem ??= new ItemBuilder();
-  set tmpItem(ItemBuilder tmpItem) => _$this._tmpItem = tmpItem;
+  ProductBuilder _tmpItem;
+  ProductBuilder get tmpItem => _$this._tmpItem ??= new ProductBuilder();
+  set tmpItem(ProductBuilder tmpItem) => _$this._tmpItem = tmpItem;
 
   CouchDbClientBuilder _couchDbClient;
   CouchDbClientBuilder get couchDbClient =>
@@ -446,6 +456,7 @@ class CommonViewModelBuilder
       _branch = _$v.branch?.toBuilder();
       _cartItem = _$v.cartItem?.toBuilder();
       _itemVariations = _$v.itemVariations?.toBuilder();
+      _variant = _$v.variant?.toBuilder();
       _items = _$v.items?.toBuilder();
       _currentIncrement = _$v.currentIncrement;
       _currentActiveSaleItem = _$v.currentActiveSaleItem?.toBuilder();
@@ -503,6 +514,7 @@ class CommonViewModelBuilder
               branch: _branch?.build(),
               cartItem: _cartItem?.build(),
               itemVariations: _itemVariations?.build(),
+              variant: _variant?.build(),
               items: items.build(),
               currentIncrement: currentIncrement,
               currentActiveSaleItem: _currentActiveSaleItem?.build(),
@@ -544,6 +556,8 @@ class CommonViewModelBuilder
         _cartItem?.build();
         _$failedField = 'itemVariations';
         _itemVariations?.build();
+        _$failedField = 'variant';
+        _variant?.build();
         _$failedField = 'items';
         items.build();
 

@@ -17,61 +17,56 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
     return update(db.variationTable).replace(entry);
   }
 
-  Future<List<VariationTableData>> getItemVariations(int itemId) {
+  Future<List<VariationTableData>> getItemVariations(String productId) {
     return (select(db.variationTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
-          ..where((t) => t.itemId.equals(itemId)))
+          ..where((t) => t.productId.equals(productId)))
         .get();
   }
 
-  Stream<List<VariationTableData>> getItemVariationsByItemId(int itemId) {
+  Stream<List<VariationTableData>> getItemVariationsByItemId(String itemId) {
     return (select(db.variationTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.asc)])
-          ..where((t) => t.itemId.equals(itemId))
+          ..where((t) => t.productId.equals(itemId))
           ..where((t) => t.deletedAt.equals('null')))
         .watch();
   }
 
-  Future<VariationTableData> getVariationBy(String name, String branchId) {
+  Future<VariationTableData> getVariationBy(String variationId) {
     return (select(db.variationTable)
           ..orderBy(
             ([
               (t) => OrderingTerm(expression: t.id, mode: OrderingMode.asc),
             ]),
           )
-          ..where((t) => t.name.equals(name))
-          ..where((t) => t.branchId.equals(branchId)))
+          ..where((t) => t.id.equals(variationId)))
         .getSingle();
   }
 
-  Future<List<VariationTableData>> getVariationByItemId(
-      {String branchId, int itemId}) {
+  Future<List<VariationTableData>> getVariationByItemId({String productId}) {
     return (select(db.variationTable)
-          ..where((t) => t.branchId.equals(branchId))
-          ..where((t) => t.itemId.equals(itemId)))
+          ..where((t) => t.productId.equals(productId)))
         .get();
   }
 
-  Future<VariationTableData> getVariationById(int variantId) {
+  Future<VariationTableData> getVariationById({String variantId}) {
     return (select(db.variationTable)..where((t) => t.id.equals(variantId)))
         .getSingle();
   }
 
-  Stream<List<VariationTableData>> getVariationByIdStream(int variantId) {
-    return (select(db.variationTable)
-          ..where((t) => t.id.equals(variantId))
-          ..where((t) => t.deletedAt.equals('null')))
+  Stream<List<VariationTableData>> getVariationByIdStream(String variantId) {
+    return (select(db.variationTable)..where((t) => t.id.equals(variantId)))
         .watch();
   }
 
-  Future<List<VariationTableData>> getVariantByItemId(int itemId) {
-    return (select(db.variationTable)..where((t) => t.itemId.equals(itemId)))
+  Future<List<VariationTableData>> getVariantByItemId(String itemId) {
+    return (select(db.variationTable)..where((t) => t.productId.equals(itemId)))
         .get();
   }
 
-  Stream<List<VariationTableData>> getVariantByItemIdStream(int itemId) {
+  Stream<List<VariationTableData>> getVariantByItemIdStream(String itemId) {
     return (select(db.variationTable)..where((t) => t.id.equals(itemId)))
         .watch();
   }
@@ -86,24 +81,36 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
 
   Stream<List<VariationTableData>> getVariationByStream(
       String name, String branchId) {
-    return (select(db.variationTable)
-          ..where((t) => t.name.equals(name))
-          ..where((t) => t.branchId.equals(branchId)))
+    return (select(db.variationTable)..where((t) => t.name.equals(name)))
         .watch();
   }
 
-  Stream<List<VariationTableData>> getVariationByItemIdStream(int itemId) {
+  Stream<List<VariationTableData>> getVariationByItemIdStream(String itemId) {
     return (select(db.variationTable)
-          ..where((t) => t.itemId.equals(itemId))
+          ..where((t) => t.productId.equals(itemId))
           ..where((t) => t.deletedAt.equals('null')))
         .watch();
   }
 
-  Stream<List<VariationTableData>> getVariationByStream2(
-      String name, int itemId) {
+  Stream<List<VariationTableData>> getVariationByNameStream(
+      String name, String productId) {
     return (select(db.variationTable)
           ..where((t) => t.name.equals(name))
-          ..where((t) => t.itemId.equals(itemId)))
+          ..where((t) => t.productId.equals(productId)))
         .watch();
+  }
+
+  Future<VariationTableData> getVariationByName(
+      {String name, String productId}) {
+    return (select(db.variationTable)
+          ..where((t) => t.name.equals(name))
+          ..where((t) => t.productId.equals(productId)))
+        .getSingle();
+  }
+
+  Future<VariationTableData> getVariationByIdLocal({int variantId}) {
+    return (select(db.variationTable)
+          ..where((t) => t.idLocal.equals(variantId)))
+        .getSingle();
   }
 }

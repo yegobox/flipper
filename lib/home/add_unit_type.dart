@@ -3,6 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -61,9 +62,10 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
 
   Future updatedItemWithCurrentUnit(
       CommonViewModel vm, UnitTableData unit) async {
-    ItemTableData item =
-        await vm.database.itemDao.getItemById(itemId: widget.itemId);
-    vm.database.itemDao.updateItem(item.copyWith(unitId: unit.id));
+    Manager.deprecatedNotification();
+    // ProductTableData item =
+    //     await vm.database.productDao.getItemById(productId: widget.itemId);
+    // vm.database.productDao.updateItem(item.copyWith(unitId: unit.id));
   }
 
   @override

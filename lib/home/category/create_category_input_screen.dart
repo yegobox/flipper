@@ -42,7 +42,7 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
                     //ignore: missing_required_param
                     CategoryTableData(
                       updatedAt: DateTime.now(),
-                      id: vm.tempCategoryId,
+                      // id: vm.tempCategoryId,
                       focused: false,
 //                      branchId: vm.branch.id,
                       name: name,

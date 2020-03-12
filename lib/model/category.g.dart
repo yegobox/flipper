@@ -10,7 +10,7 @@ class _$Category extends Category {
   @override
   final String name;
   @override
-  final int id;
+  final String id;
   @override
   final bool focused;
   @override
@@ -76,9 +76,9 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   bool _focused;
   bool get focused => _$this._focused;

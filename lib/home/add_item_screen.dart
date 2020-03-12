@@ -2,21 +2,24 @@ import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/home/widget/add_product/add_variant.dart';
+import 'package:flipper/home/widget/add_product/category_section.dart';
+import 'package:flipper/home/widget/add_product/center_divider.dart';
+import 'package:flipper/home/widget/add_product/description_widget.dart';
+import 'package:flipper/home/widget/add_product/list_divider.dart';
+import 'package:flipper/home/widget/add_product/retail_price_widget.dart';
+import 'package:flipper/home/widget/add_product/section_zero.dart';
+import 'package:flipper/home/widget/add_product/sku_field.dart';
+import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
+import 'package:flipper/home/widget/add_product/variation_list.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/util.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-
-class TForm {
-  String retailPrice;
-  String costPrice;
-  String sku;
-  String description;
-  String name;
-}
 
 class AddItemScreen extends StatefulWidget {
   AddItemScreen({Key key}) : super(key: key);
@@ -26,34 +29,14 @@ class AddItemScreen extends StatefulWidget {
 }
 
 class _AddItemScreenState extends State<AddItemScreen> {
-  final TForm tForm = new TForm();
-
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
 
   _onClose(BuildContext context) async {
-    final store = StoreProvider.of<AppState>(context);
-//    ItemTableData item = await store.state.database.itemDao
-//        .getItemByName(name: 'tmp', branchId: store.state.branch.id);
-//    Util.deleteItem(store, item.name, item.id);
     Router.navigator.pop(true);
   }
 
   Future<bool> _onWillPop() async {
-    //if we have dirty db then show the alert or if is clean go back without alert
-//    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
-    int itemId = StoreProvider.of<AppState>(context).state.tmpItem.id;
-
-//    ItemTableData item = await StoreProvider.of<AppState>(context)
-//        .state
-//        .database
-//        .itemDao
-//        .getItemBy(name: 'tmp', branchId: branchId, itemId: itemId);
-//    if (item == null) {
-//      Router.navigator.pop(false);
-//      return false;
-//    }
-    //delete this item add look trough all variation and delete related variation.
     return (await showDialog(
           context: context,
           builder: (context) => new AlertDialog(
@@ -152,57 +135,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               _getSaveStatus(vm);
                             }
 
-                            tForm.name = name;
+                            setState(() {
+                              DataManager.name = name;
+                            });
                           },
                           decoration: InputDecoration(
                               hintText: "Name", focusColor: Colors.black),
                         ),
                       ),
                     ),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: GestureDetector(
-                          onTap: () {
-                            Router.navigator
-                                .pushNamed(Router.addCategoryScreen);
-                          },
-                          child: ListTile(
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 0.3),
-                            leading: Text(S.of(context).category),
-                            trailing: Wrap(
-                              children: <Widget>[
-                                StreamBuilder(
-                                  stream: vm.database.categoryDao
-                                      .getCategoriesStream(),
-                                  builder: (context,
-                                      AsyncSnapshot<List<CategoryTableData>>
-                                          snapshot) {
-                                    if (snapshot.data == null) {
-                                      return Text(S.of(context).selectCategory);
-                                    }
-                                    return snapshot.data == null
-                                        ? Text(S.of(context).selectCategory)
-                                        : categorySelector(snapshot.data);
-                                  },
-                                ),
-                                Icon(Icons.arrow_forward_ios)
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                    CategorySection(),
+                    CenterDivider(
+                      width: 300,
                     ),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: Divider(
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    Container(
+                    ListDivider(
                       height: 24,
                     ),
                     Center(
@@ -211,6 +157,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         child: Text(S.of(context).priceAndInventory),
                       ),
                     ),
+                    CenterDivider(
+                      width: 300,
+                    ),
+                    SectionZero(),
                     Center(
                       child: Container(
                         width: 300,
@@ -219,188 +169,32 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                       ),
                     ),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: GestureDetector(
-                          onTap: () {
-                            Router.navigator.pushNamed(Router.addUnitType);
-                          },
-                          child: ListTile(
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 0.3),
-                            leading: Text(S.of(context).unityType),
-                            trailing: Wrap(
-                              children: <Widget>[
-                                StreamBuilder(
-                                    stream:
-                                        vm.database.unitDao.getUnitsStream(),
-                                    builder: (context,
-                                        AsyncSnapshot<List<UnitTableData>>
-                                            snapshot) {
-                                      if (snapshot.data == null) {
-                                        return Text(
-                                            S.of(context).selectCategory);
-                                      }
-                                      return snapshot.data == null
-                                          ? Text(S.of(context).selectCategory)
-                                          : unitSelector(snapshot.data);
-                                    }),
-                                Icon(Icons.arrow_forward_ios)
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: Divider(
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    StreamBuilder(
-                      stream: vm.database.variationDao.getVariationByStream2(
-                          'tmp',
-                          vm.tmpItem
-                              .id), //do we have regular variant on this item?
-                      builder: (context,
-                          AsyncSnapshot<List<VariationTableData>> snapshot) {
-                        if (snapshot.data == null) {
-                          return Text("");
-                        }
-                        return snapshot.data != null
-                            ? StreamBuilder(
-                                stream: vm.database.stockDao
-                                    .getStockByVariantIdStream(
-                                        branchId: vm.branch.id,
-                                        variantId: '001'),
-                                builder: (context,
-                                    AsyncSnapshot<List<StockTableData>>
-                                        snapshot) {
-                                  if (snapshot.data == null) {
-                                    return Text("");
-                                  }
-                                  if (snapshot.data[0].retailPrice == null) {
-                                    return buildRetailPriceWidget(vm, context);
-                                  }
-                                  return Text("");
-                                })
-                            : Text("");
-                      },
-                    ),
-                    StreamBuilder(
-                      stream: vm.database.variationDao.getVariationByStream2(
-                          'tmp',
-                          vm.tmpItem
-                              .id), //do we have regular variant on this item?
-                      builder: (context,
-                          AsyncSnapshot<List<VariationTableData>> snapshot) {
-                        if (snapshot.data == null) {
-                          return Text("");
-                        }
-                        return snapshot.data != null
-                            ? StreamBuilder(
-                                stream: vm.database.stockDao
-                                    .getStockByVariantIdStream(
-                                        branchId: vm.branch.id,
-                                        variantId: '001'), //todo: edit
-                                builder: (context,
-                                    AsyncSnapshot<List<StockTableData>>
-                                        snapshot) {
-                                  if (snapshot.data == null) {
-                                    return Text("");
-                                  }
-                                  if (snapshot.data[0].costPrice == null) {
-                                    return buildCostPriceWidget(vm, context);
-                                  }
-                                  return Text("");
-                                })
-                            : Text("");
-                      },
-                    ),
-                    StreamBuilder(
-                      stream: vm.database.variationDao
-                          .getVariationByStream2("Regular", vm.tmpItem.id),
-                      builder: (context,
-                          AsyncSnapshot<List<VariationTableData>> snapshot) {
-                        if (snapshot.data == null) {
-                          return Text("");
-                        }
-                        return snapshot.data == null
-                            ? Center(
-                                child: Container(
-                                  width: 300,
-                                  child: TextFormField(
-                                    style: TextStyle(color: Colors.black),
-                                    onChanged: (sku) {
-                                      tForm.sku = sku;
-                                    },
-                                    decoration: InputDecoration(
-                                        hintText: "SKU",
-                                        focusColor: Colors.blue),
-                                  ),
-                                ),
-                              )
-                            : Text("");
-                      },
-                    ),
-                    StreamBuilder(
-                      stream: vm.database.variationDao
-                          .getItemVariationsByItemId(vm.tmpItem.id),
-                      builder: (context,
-                          AsyncSnapshot<List<VariationTableData>> snapshot) {
-                        if (snapshot.data == null) {
-                          return Text("");
-                        }
-                        return snapshot.data != 0
-                            ? _buildVariationsList(snapshot.data, vm)
-                            : Text("");
-                      },
-                    ),
-                    Center(
-                      child: SizedBox(
-                        height: 50,
-                        width: 340,
-                        child: OutlineButton(
-                          color: HexColor("#ecf0f1"),
-                          child: Text(S.of(context).addVariation),
-                          onPressed: () async {
-                            _getSaveStatus(vm);
-                            if (_actions != null) {
-                              vm.database.actionsDao.updateAction(
-                                  _actions.copyWith(isLocked: true));
+                    RetailPriceWidget(),
+                    SupplyPriceWidget(),
+                    SkuField(),
+                    VariationList(),
+                    AddVariant(
+                      onPressedCallback: () {
+                        _getSaveStatus(vm);
+                        if (_actions != null) {
+                          vm.database.actionsDao
+                              .updateAction(_actions.copyWith(isLocked: true));
 
-                              Router.navigator.pushNamed(
-                                  Router.addVariationScreen,
-                                  arguments: AddVariationScreenArguments(
-                                      regularCostPrice:
-                                          tForm.retailPrice == null
-                                              ? 0
-                                              : double.parse(tForm.retailPrice),
-                                      regularRetailPrice:
-                                          tForm.costPrice == null
-                                              ? 0
-                                              : double.parse(tForm.costPrice)));
-                            }
-                          },
-                        ),
-                      ),
+                          Router.navigator.pushNamed(Router.addVariationScreen,
+                              arguments: AddVariationScreenArguments(
+                                  regularCostPrice:
+                                      DataManager.retailPrice == null
+                                          ? 0
+                                          : DataManager.retailPrice,
+                                  regularRetailPrice:
+                                      DataManager.costPrice == null
+                                          ? 0
+                                          : DataManager.costPrice));
+                        }
+                      },
                     ),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: TextFormField(
-                          style: TextStyle(color: Colors.black),
-                          onChanged: (description) {
-                            tForm.description = description;
-                          },
-                        ),
-                      ),
-                    ),
-                    Container(
+                    DescriptionWidget(),
+                    ListDivider(
                       height: 64,
                     ),
                   ],
@@ -410,40 +204,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
           ),
         );
       },
-    );
-  }
-
-  Center buildRetailPriceWidget(CommonViewModel vm, BuildContext context) {
-    return Center(
-      child: Container(
-        width: 300,
-        child: TextFormField(
-          keyboardType: TextInputType.number,
-          style: TextStyle(color: Colors.black),
-          onChanged: (retailPrice) async {
-            tForm.retailPrice = retailPrice;
-          },
-          decoration: InputDecoration(
-              hintText: S.of(context).retailPrice, focusColor: Colors.blue),
-        ),
-      ),
-    );
-  }
-
-  Center buildCostPriceWidget(CommonViewModel vm, BuildContext context) {
-    return Center(
-      child: Container(
-        width: 300,
-        child: TextFormField(
-          keyboardType: TextInputType.number,
-          style: TextStyle(color: Colors.black),
-          onChanged: (costPrice) async {
-            tForm.costPrice = costPrice;
-          },
-          decoration: InputDecoration(
-              hintText: S.of(context).costPrice, focusColor: Colors.blue),
-        ),
-      ),
     );
   }
 
@@ -461,66 +221,31 @@ class _AddItemScreenState extends State<AddItemScreen> {
     });
   }
 
-  Text unitSelector(List<UnitTableData> units) {
-    Text text;
-    for (var i = 0; i < units.length; i++) {
-      if (units[i].focused) {
-        text = Text(units[i].name);
-        return text;
-      } else {
-        text = Text(S.of(context).selectCategory);
-      }
-    }
-    return text;
-  }
-
-  Text categorySelector(List<CategoryTableData> categories) {
-    Text text;
-    for (var i = 0; i < categories.length; i++) {
-      if (categories[i].focused) {
-        text = Text(categories[i].name);
-        return text;
-      } else {
-        text = Text(S.of(context).selectCategory);
-      }
-    }
-    return text;
-  }
-
   Future<bool> _handleCreateItem(CommonViewModel vm) async {
     final store = StoreProvider.of<AppState>(context);
-//    ItemTableData item = await vm.database.itemDao
-//        .getItemBy(name: 'tmp', branchId: vm.branch.id, itemId: vm.tmpItem.id);
 
-    VariationTableData variation =
-        await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
+    Manager.deprecatedNotification();
+    // VariationTableData variation =
+    //     await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
 
-    await Util.updateVariation(
-      variation: variation,
-      costPrice: double.parse(tForm.costPrice),
-      store: store,
-      variantName: 'Regular',
-      retailPrice: double.parse(tForm.retailPrice),
-    );
+    // await Util.updateVariation(
+    //   variation: variation,
+    //   costPrice: double.parse(tForm.costPrice),
+    //   store: store,
+    //   variantName: 'Regular',
+    //   retailPrice: double.parse(tForm.retailPrice),
+    // );
 
-//    new CouchBase().createUser();
+    // await resetSaveButtonStatus(vm);
 
-    await resetSaveButtonStatus(vm);
-
-//    await updateItem(vm, item);
-
-//    await Util.removeItemFromTrash(store, item.id);
-
-    return true;
+    // return true;
   }
 
-  Future<bool> updateItem(CommonViewModel vm, ItemTableData item) async {
-    await vm.database.itemDao.updateItem(
+  Future<bool> updateItem(CommonViewModel vm, ProductTableData item) async {
+    await vm.database.productDao.updateProduct(
       item.copyWith(
-        name: tForm.name,
-        unitId: vm.currentUnit.id,
+        name: DataManager.name,
         updatedAt: DateTime.now(),
-        color: vm.currentColor == null ? item.color : vm.currentColor.hexCode,
         deletedAt: 'null',
       ),
     );
@@ -534,64 +259,5 @@ class _AddItemScreenState extends State<AddItemScreen> {
     await vm.database.actionsDao
         .updateAction(_actions.copyWith(isLocked: true));
     return true;
-  }
-
-  _buildVariationsList(
-      List<VariationTableData> variations, CommonViewModel vm) {
-    List<Widget> list = new List<Widget>();
-    for (var i = 0; i < variations.length; i++) {
-      if (variations[i].name != 'tmp') {
-        list.add(
-          Center(
-            child: SizedBox(
-              height: 90,
-              width: 350,
-              child: ListView(children: <Widget>[
-                StreamBuilder(
-                    stream: vm.database.stockDao.getStockByVariantIdStream(
-                        branchId: vm.branch.id, variantId: '001'),
-                    builder: (context,
-                        AsyncSnapshot<List<StockTableData>> snapshot) {
-                      if (snapshot.data == null) {
-                        return Text("");
-                      }
-                      return ListTile(
-                        leading: Icon(
-                          Icons.dehaze,
-                        ),
-                        subtitle: Text(
-                            "${variations[i].name} \nRWF ${snapshot.data[0].retailPrice}"),
-                        trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              FlatButton(
-                                child: Text(
-                                  snapshot.data[0].currentStock == 0
-                                      ? S.of(context).receiveStock
-                                      : snapshot.data[0].currentStock
-                                              .toString() +
-                                          S.of(context).inStock,
-                                ),
-                                onPressed: () {
-                                  Router.navigator.pushNamed(
-                                      Router.receiveStock,
-                                      arguments: variations[i].id);
-                                },
-                              ),
-                            ]),
-                        dense: true,
-                      );
-                    })
-              ]),
-            ),
-          ),
-        );
-      }
-      ;
-    }
-    if (list.length == 0) {
-      return Container();
-    }
-    return Column(children: list);
   }
 }

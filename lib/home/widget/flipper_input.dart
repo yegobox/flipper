@@ -1,6 +1,7 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/util/util.dart';
+import 'package:flipper/util/data_manager.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -33,10 +34,11 @@ class FlipperInput extends StatelessWidget {
                 }
                 return null;
               },
-              onChanged: (note)async {
+              onChanged: (note) async {
                 final store = StoreProvider.of<AppState>(context);
-                final order = await vm.database.orderDao.getOrderById(vm.order.id);
-                Util.updateOrder(store,order.copyWith(orderNote: note));
+                final order =
+                    await vm.database.orderDao.getOrderById(vm.order.id);
+                DataManager.updateOrder(store, order.copyWith(orderNote: note));
               },
               decoration: InputDecoration(hintText: _hint ?? ""),
             ),

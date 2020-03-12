@@ -1,14 +1,15 @@
 import 'package:moor/moor.dart';
 
 class CategoryTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get idLocal => integer().autoIncrement()();
 
+  //should not be pushed to other app.
   BoolColumn get focused => boolean()();
+  TextColumn get id => text()();
 
   TextColumn get name => text()();
 
-  IntColumn get branchId => integer().customConstraint(
-      'NULL REFERENCES branch_table(id) ON DELETE SET NULL ON UPDATE CASCADE')();
+  TextColumn get branchId => text()();
 
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();

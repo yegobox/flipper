@@ -3,7 +3,9 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/widget/create_options_widget.dart';
-import 'package:flipper/model/item.dart';
+import 'package:flipper/managers/dialog_manager.dart';
+import 'package:flipper/model/product.dart';
+import 'package:flipper/model/variation.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -23,7 +25,7 @@ class ItemsView extends StatefulWidget {
   }) : super(key: key);
 
   final BuildContext context;
-  final List<ItemTableData> data;
+  final List<ProductTableData> data;
   final CommonViewModel vm;
   final bool showCreateItemOnTop;
   final String createButtonName;
@@ -34,8 +36,8 @@ class ItemsView extends StatefulWidget {
 }
 
 class _ItemsViewState extends State<ItemsView> {
-  List<Widget> getItems(
-      List<ItemTableData> itemList, BuildContext context, CommonViewModel vm) {
+  List<Widget> getItems(List<ProductTableData> products, BuildContext context,
+      CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
 
     if (widget.showCreateItemOnTop) {
@@ -46,34 +48,34 @@ class _ItemsViewState extends State<ItemsView> {
     }
     ;
 
-    for (var i = 0; i < itemList.length; i++) {
-      if (itemList[i].name != "custom" && itemList[i].name != 'tmp') {
+    for (var i = 0; i < products.length; i++) {
+      if (products[i].name != "custom" && products[i].name != 'tmp') {
         list.add(
           GestureDetector(
             onTap: () {
               if (widget.shouldSeeItem) {
-                shouldSeeItemOnly(context, itemList, i);
+                shouldSeeItemOnly(context, products, i);
               } else {
-                onSellingItem(context, itemList, i);
+                onSellingItem(context, products, i);
               }
             },
             onLongPress: () {
               if (widget.shouldSeeItem) {
-                shouldSeeItemOnly(context, itemList, i);
+                shouldSeeItemOnly(context, products, i);
               } else {
-                onSellingItem(context, itemList, i);
+                onSellingItem(context, products, i);
               }
             },
             child: ListTile(
               contentPadding: EdgeInsets.fromLTRB(0, 0, 10, 0),
               leading: Container(
+                color: HexColor(products[i].color),
                 width: 50,
-                color: HexColor(itemList[i].color),
                 child: FlatButton(
                   child: Text(
-                    itemList[i].name.length > 2
-                        ? itemList[i].name.substring(0, 2)
-                        : itemList[i].name,
+                    products[i].name.length > 2
+                        ? products[i].name.substring(0, 2)
+                        : products[i].name,
                     style: TextStyle(
                       color: Colors.white,
                     ),
@@ -82,12 +84,12 @@ class _ItemsViewState extends State<ItemsView> {
                 ),
               ),
               title: Text(
-                itemList[i].name,
+                products[i].name,
                 style: TextStyle(color: Colors.black),
               ),
               trailing: StreamBuilder(
                 stream: vm.database.stockDao.getStockByItemIdStream(
-                    branchId: vm.branch.id, itemId: itemList[i].id),
+                    branchId: vm.branch.id, productId: products[i].id),
                 builder:
                     (context, AsyncSnapshot<List<StockTableData>> snapshot) {
                   if (snapshot.data == null) {
@@ -118,66 +120,88 @@ class _ItemsViewState extends State<ItemsView> {
   }
 
   void onSellingItem(
-      BuildContext context, List<ItemTableData> itemList, int i) async {
-//    int branchId = StoreProvider.of<AppState>(context).state.branch.id;
-    //ItemsVariation
-    //get the variation with the itemList[i].id wait until are loaded then dispatch
+      BuildContext context, List<ProductTableData> products, int i) async {
+    List<Variation> variants = await buildVariantsList(context, products, i);
+
+    dispatchCurrentProductVariants(context, variants, products, i);
+
+    Router.navigator.pushNamed(Router.editQuantityItemScreen,
+        arguments:
+            ChangeQuantityForSellingArguments(productId: products[i].id));
+  }
+
+  void dispatchCurrentProductVariants(BuildContext context,
+      List<Variation> variants, List<ProductTableData> products, int i) {
+    StoreProvider.of<AppState>(context)
+        .dispatch(ItemsVariation(variations: variants));
+
+    StoreProvider.of<AppState>(context).dispatch(
+      CurrentActiveSaleProduct(
+        product: Product(
+          (b) => b
+            ..name = products[i].name
+            ..description = products[i].description
+            ..isCurrentUpdate = products[i].isCurrentUpdate
+            ..isDraft = products[i].isDraft
+            ..categoryId = products[i].categoryId
+            ..supplierId = products[i].supplierId
+            ..businessId = products[i].businessId
+            ..color = products[i].color
+            ..taxId = products[i].taxId
+            ..hasPicture = products[i].hasPicture
+            ..active = products[i].active
+            ..picture = products[i].picture
+            ..id = products[i].id,
+        ),
+      ),
+    );
+  }
+
+  Future<List<Variation>> buildVariantsList(
+      BuildContext context, List<ProductTableData> products, int i) async {
     List<VariationTableData> variations =
         await StoreProvider.of<AppState>(context)
             .state
             .database
             .variationDao
-            .getVariationByItemId(branchId: '001', itemId: itemList[i].id);
-    List<Item> variants = [];
+            .getVariationByItemId(productId: products[i].id);
+
+    List<Variation> variants = [];
     for (var i = 0; i < variations.length; i++) {
       variants.add(
-        Item(
+        Variation(
           (b) => b
-            ..id = variations[i].itemId
-            ..variantId = variations[i].id
-            ..branchId = '001'
+            ..sku = variations[i].sku
+            ..productId = variations[i].productId
+            ..id = variations[i].id
             ..name = variations[i].name,
         ),
       );
     }
-
-    StoreProvider.of<AppState>(context)
-        .dispatch(ItemsVariation(items: variants));
-    StoreProvider.of<AppState>(context).dispatch(
-      CurrentActiveSaleItem(
-        item: Item(
-          (b) => b
-            ..name = itemList[i].name
-            ..retailPrice = 0
-            ..branchId = '001'
-            ..id = itemList[i].id,
-        ),
-      ),
-    );
-    Router.navigator.pushNamed(Router.editQuantityItemScreen,
-        arguments: ChangeQuantityForSellingArguments(itemId: itemList[i].id));
+    return variants;
   }
 
   void shouldSeeItemOnly(
-      BuildContext context, List<ItemTableData> itemList, int i) {
-    StoreProvider.of<AppState>(context).dispatch(
-      CurrentActiveSaleItem(
-        item: Item(
-          (b) => b
-            ..name = itemList[i].name
-            ..branchId = '001'
-            ..id = itemList[i].id,
-        ),
-      ),
-    );
-    Router.navigator.pushNamed(
-      Router.viewSingleItem,
-      arguments: ViewSingleItemScreenArguments(
-        itemId: itemList[i].id,
-        itemName: itemList[i].name,
-        itemColor: itemList[i].color,
-      ),
-    );
+      BuildContext context, List<ProductTableData> itemList, int i) {
+    Manager.deprecatedNotification();
+    // StoreProvider.of<AppState>(context).dispatch(
+    //   CurrentActiveSaleItem(
+    //     item: Item(
+    //       (b) => b
+    //         ..name = itemList[i].name
+    //         ..branchId = '001'
+    //         ..id = itemList[i].id,
+    //     ),
+    //   ),
+    // );
+    // Router.navigator.pushNamed(
+    //   Router.viewSingleItem,
+    //   arguments: ViewSingleItemScreenArguments(
+    //     itemId: itemList[i].id,
+    //     itemName: itemList[i].name,
+    //     itemColor: itemList[i].color,
+    //   ),
+    // );
   }
 
   void itemRow(List<Widget> list, BuildContext context) {
@@ -212,10 +236,11 @@ class _ItemsViewState extends State<ItemsView> {
           StoreProvider.of<AppState>(context).dispatch(CleanCurrentColor());
 
           showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return CreateOptionsWidget();
-              });
+            context: context,
+            builder: (BuildContext context) {
+              return CreateOptionsWidget();
+            },
+          );
         },
         child: ListTile(
           leading: Icon(Icons.add),

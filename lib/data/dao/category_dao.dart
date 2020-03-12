@@ -22,12 +22,12 @@ class CategoryDao extends DatabaseAccessor<Database> with _$CategoryDaoMixin {
     return update(db.categoryTable).replace(entry);
   }
 
-  Future<CategoryTableData> getCategoryById(int categoryId) {
+  Future<CategoryTableData> getCategoryById(String categoryId) {
     return (select(db.categoryTable)..where((t) => t.id.equals(categoryId)))
         .getSingle();
   }
 
-  Stream<List<CategoryTableData>> getCategoryByIdStream(int categoryId) {
+  Stream<List<CategoryTableData>> getCategoryByIdStream(String categoryId) {
     return (select(db.categoryTable)..where((t) => t.id.equals(categoryId)))
         .watch();
   }
@@ -37,8 +37,16 @@ class CategoryDao extends DatabaseAccessor<Database> with _$CategoryDaoMixin {
         .getSingle();
   }
 
-  Future<CategoryTableData> getCategoryNameAndBranch(
-      String name, int branchId) {
+  Future<CategoryTableData> getById({String id}) {
+    return (select(db.categoryTable)
+          ..orderBy(
+              [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
+          ..where((tbl) => tbl.id.equals(id)))
+        .getSingle();
+  }
+
+  Future<CategoryTableData> getCategoryByNameBranchId(
+      String name, String branchId) {
     return (select(db.categoryTable)
           ..where((t) => t.name.equals(name))
           ..where((t) => t.branchId.equals(branchId)))

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -104,14 +105,15 @@ class _AuthWebViewState extends State<AuthWebView> {
                 ),
               );
             } else if (widget.authType == 'login') {
-              Router.navigator.pushNamed(Router.subscription,
-                  arguments: SubscriptionArguments(
-                      name: _name.split('&')[0].replaceAll('%20', ' '),
-                      email: _email.split('&')[0],
-                      token: token.split('&')[0],
-                      authType: widget.authType,
-                      avatar: _avatar.split('&')[0]));
-              // store.dispatch(VerifyAuthenticationState());
+              //this is to just check subscription will work??
+              // Router.navigator.pushNamed(Router.subscription,
+              //     arguments: SubscriptionArguments(
+              //         name: _name.split('&')[0].replaceAll('%20', ' '),
+              //         email: _email.split('&')[0],
+              //         token: token.split('&')[0],
+              //         authType: widget.authType,
+              //         avatar: _avatar.split('&')[0]));
+              store.dispatch(VerifyAuthenticationState());
             }
           }
         }
@@ -122,9 +124,10 @@ class _AuthWebViewState extends State<AuthWebView> {
   @override
   Widget build(BuildContext context) {
     return WebviewScaffold(
-        url: widget.url,
-        appBar: new AppBar(
-          backgroundColor: HexColor("#955be9"),
-        ));
+      url: widget.url,
+      appBar: new AppBar(
+        backgroundColor: HexColor("#955be9"),
+      ),
+    );
   }
 }

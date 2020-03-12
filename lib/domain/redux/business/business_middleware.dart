@@ -40,9 +40,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       Map _mapBusiness = {
         'active': true,
         '_id': 'business_' + store.state.userId.toString(),
-        'businessCategoryId': 10, //pet store a default id when signup on mobile
+        'categoryId': '10', //pet store a default id when signup on mobile
         'channel': store.state.userId.toString(),
-        'businessTypeId': 1, //pet store a default id when signup on mobile
+        'businessTypeId': '1', //pet store a default id when signup on mobile
         'businessUrl': '',
         'country': 'Rwanda',
         'currency': 'RWF',
@@ -57,21 +57,21 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
       Map _notTax = {
         'active': true,
-        '_id': 'business_' + store.state.userId.toString(),
+        '_id': 'taxes_' + store.state.userId.toString(),
         'channel': store.state.userId.toString(),
         'businessId': businessId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'id': Uuid().v1(),
         'isDefault': false,
-        'name': 'no tax',
+        'name': 'No Tax',
         'percentage': 0,
       };
 
       await store.state.couch.createTax(_notTax);
       Map vat = {
         'active': true,
-        '_id': 'business_' + store.state.userId.toString(),
+        '_id': 'taxes_' + store.state.userId.toString(),
         'channel': store.state.userId.toString(),
         'businessId': businessId,
         'createdAt': DateTime.now().toIso8601String(),

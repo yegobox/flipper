@@ -1,12 +1,11 @@
 import 'package:flipper/data/dao/item_variation.dart';
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/model/category.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/util/util.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:redux/redux.dart';
 
 class GeneralRepository {
@@ -19,22 +18,23 @@ class GeneralRepository {
   Future<bool> updateCategory(
       Store<AppState> store, int categoryId, String categoryName, int branchId,
       {bool focused}) async {
-    final cat =
-        await store.state.database.categoryDao.getCategoryById(categoryId);
+    Manager.deprecatedNotification();
+    // final cat =
+    //     await store.state.database.categoryDao.getCategoryById(categoryId);
 
-    if (cat == null) {
-      return false;
-    }
-    //ignore:missing_required_param
-    final updated = CategoryTableData(
-      name: categoryName ?? cat.name,
-      id: cat.id,
-      focused: focused,
-      branchId: branchId,
-      updatedAt: DateTime.now(),
-    );
+    // if (cat == null) {
+    //   return false;
+    // }
+    // //ignore:missing_required_param
+    // final updated = CategoryTableData(
+    //   name: categoryName ?? cat.name,
+    //   id: cat.id,
+    //   focused: focused,
+    //   branchId: branchId,
+    //   updatedAt: DateTime.now(),
+    // );
 
-    return store.state.database.categoryDao.updateCategory(updated);
+    // return store.state.database.categoryDao.updateCategory(updated);
   }
 
   Future<bool> updateTab(Store<AppState> store, int value) {
@@ -45,13 +45,8 @@ class GeneralRepository {
 
   Future<bool> updateUnit(Store<AppState> store, Unit unit) {
     //ignore:missing_required_param
-    final b = UnitTableData(
-      id: unit.id,
-      name: unit.name,
-      focused: unit.focused,
-      businessId: unit.businessId,
-      branchId: unit.branchId,
-    );
+    final b =
+        UnitTableData(id: unit.id, name: unit.name, focused: unit.focused);
     return store.state.database.unitDao.updateUnit(b);
   }
 
@@ -63,8 +58,8 @@ class GeneralRepository {
     return store.state.database.unitDao.getUnits();
   }
 
-  Future<int> insertItem(Store<AppState> store, ItemTableData data) async {
-    return Util.insertItem(store, data);
+  Future<int> insertItem(Store<AppState> store, ProductTableData data) async {
+    return DataManager.insertProduct(store, data);
   }
 
   Future<List<CategoryTableData>> getCategories(Store<AppState> store) {
@@ -83,22 +78,23 @@ class GeneralRepository {
     categoryData =
         await store.state.database.categoryDao.getCategoryName(category.name);
 
-    store.dispatch(
-      CustomCategory(
-        category: Category(
-          (u) => u
-            ..name = categoryData.name
-            ..focused = categoryData.focused
-            ..branchId = categoryData.branchId
-            ..id = categoryData.id,
-        ),
-      ),
-    );
+    Manager.deprecatedNotification();
+    // store.dispatch(
+    //   CustomCategory(
+    //     category: Category(
+    //       (u) => u
+    //         ..name = categoryData.name
+    //         ..focused = categoryData.focused
+    //         ..branchId = categoryData.branchId
+    //         ..id = categoryData.id,
+    //     ),
+    //   ),
+    // );
 
-    return categoryData.id;
+    // return categoryData.id;
   }
 
-  Future<int> insertCategory(
+  Future<String> insertCategory(
       Store<AppState> store, CategoryTableData category) async {
     CategoryTableData existingCategory =
         await store.state.database.categoryDao.getCategoryName(category.name);
@@ -115,40 +111,39 @@ class GeneralRepository {
   Future<int> insertVariant(
       Store<AppState> store, VariationTableData data) async {
     //insert or update if exist
-    VariationTableData exist;
-    if (data.name == 'Regular') {
-      exist = await store.state.database.variationDao.getVariationById(data.id);
-    } else {
-      exist = await store.state.database.variationDao
-          .getVariationBy(data.name, data.branchId);
-    }
+    // VariationTableData exist;
+    // if (data.name == 'Regular') {
+    //   exist = await store.state.database.variationDao.getVariationById(data.id);
+    // } else {
+    //   exist = await store.state.database.variationDao.getVariationBy(data.id);
+    // }
 
-    if (exist != null) {
-      store.state.database.variationDao.updateVariation(
-          exist.copyWith(name: data.name, updatedAt: DateTime.now()));
-      return 1;
-    } else {
-      return store.state.database.variationDao.insert(data);
-    }
+    // if (exist != null) {
+    //   store.state.database.variationDao.updateVariation(
+    //       exist.copyWith(name: data.name, updatedAt: DateTime.now()));
+    //   return 1;
+    // } else {
+    //   return store.state.database.variationDao.insert(data);
+    // }
   }
 
   Future<int> insertHistory(Store<AppState> store, int variantId, int count) {
-    return store.state.database.stockHistoryDao
-        // ignore: missing_required_param
-        .insert(StockHistoryTableData(quantity: count, variantId: variantId));
+    // return store.state.database.stockHistoryDao
+    //     // ignore: missing_required_param
+    //     .insert(StockHistoryTableData(quantity: count, variantId: variantId));
   }
 
-  Future<List<ItemTableData>> getItems(Store<AppState> store) {
-    return store.state.database.itemDao.getItems();
+  Future<List<ProductTableData>> getItems(Store<AppState> store) {
+    return store.state.database.productDao.getItems();
   }
 
   Future<List<ItemVariation>> getItemVariation(Store<AppState> store) {
-//    return store.state.database.itemDao.getItemVariations();
+//    return store.state.database.productDao.getItemVariations();
   }
 
   Future<List<VariationTableData>> getVariations(
-      {Store<AppState> store, int itemId}) {
-    return store.state.database.variationDao.getItemVariations(itemId);
+      {Store<AppState> store, String productId}) {
+    return store.state.database.variationDao.getItemVariations(productId);
   }
 
   Stream<List<CartTableData>> getCarts(Store<AppState> store) {
@@ -166,14 +161,15 @@ class GeneralRepository {
 
   Future<List<StockTableData>> getItemFromStockByItemId(
       Store<AppState> store, int itemId) async {
-    return await store.state.database.stockDao.getItemFromStockByItemId(
-        branchId: store.state.branch.id, itemId: itemId);
+    Manager.deprecatedNotification();
+    // return await store.state.database.stockDao.getItemFromStockByItemId(
+    //     branchId: store.state.branch.id, variantId: itemId);
   }
 
   Future<List<VariationTableData>> getVariationsByItems(
-      Store<AppState> store, int itemId) async {
+      Store<AppState> store, String productId) async {
     return await store.state.database.variationDao
-        .getVariationByItemId(branchId: store.state.branch.id, itemId: itemId);
+        .getVariationByItemId(productId: productId);
   }
 
   Future<bool> insertOrUpdateCart(
@@ -207,8 +203,8 @@ class GeneralRepository {
   }
 
   Future<VariationTableData> getVariationById(
-      Store<AppState> store, int variantId) async {
-    return await store.state.database.variationDao.getVariationById(variantId);
+      Store<AppState> store, String variantId) async {
+    // return await store.state.database.variationDao.getVariationById(variantId);
   }
 
   Future<OrderTableData> createDraftOrderOrReturnExistingOne(

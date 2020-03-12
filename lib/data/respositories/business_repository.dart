@@ -16,9 +16,9 @@ class BusinessRepository {
 
   Future<bool> update(Store<AppState> store, Business business,
       {bool active = false}) {
-    final b = BusinessTableData(
-        name: business.name, id: business.id, isActive: active);
-    return store.state.database.businessDao.updateBusiness(b);
+    // final b = BusinessTableData(
+    //     name: business.name, id: business.id, isActive: active);
+    // return store.state.database.businessDao.updateBusiness(b);
   }
 
   Future<int> assignBusinessToUser(Store<AppState> store, int bId, int uId) {

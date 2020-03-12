@@ -10,14 +10,15 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
-import 'package:flipper/model/item.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/permission.dart';
 import 'package:flipper/model/price.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/model/sheet.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
+import 'package:flipper/model/variation.dart';
 
 part 'app_state.g.dart';
 
@@ -55,7 +56,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   Unit get customUnit;
   @nullable
-  Item get customItem;
+  Product get customItem;
 
   @nullable
   Category get customCategory;
@@ -103,15 +104,18 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   FlipperColor get currentColor;
 
-  BuiltList<Item> get itemVariations;
+  @nullable
+  Variation get variant;
+
+  BuiltList<Variation> get itemVariations;
 
   @nullable
-  Item get currentActiveSaleItem;
+  Product get currentActiveSaleItem;
 
   @nullable
-  Item get cartItem;
+  Product get cartItem;
 
-  BuiltList<Item> get items;
+  BuiltList<Product> get items;
 
   @nullable
   int get currentIncrement;
@@ -127,7 +131,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   KeyPad get keypad;
 
   @nullable
-  Item get tmpItem;
+  Product get tmpItem;
 
   @nullable
   CouchDbClient get couchDbClient;

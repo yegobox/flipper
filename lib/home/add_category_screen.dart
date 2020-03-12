@@ -41,7 +41,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               trailing: Radio(
                 value: categories[i].id,
                 groupValue: categories[i].focused ? categories[i].id : 0,
-                onChanged: (int categoryId) {},
+                // onChanged: (int categoryId) {},
               ),
             ),
           ),

@@ -8,11 +8,15 @@ part of 'business.dart';
 
 class _$Business extends Business {
   @override
-  final int id;
+  final String id;
   @override
   final String name;
   @override
   final bool active;
+  @override
+  final String currency;
+  @override
+  final String categoryId;
   @override
   final double latitude;
   @override
@@ -20,9 +24,7 @@ class _$Business extends Business {
   @override
   final String userId;
   @override
-  final int businessTypeId;
-  @override
-  final int taxRate;
+  final String typeId;
   @override
   final String timeZone;
   @override
@@ -47,11 +49,12 @@ class _$Business extends Business {
       {this.id,
       this.name,
       this.active,
+      this.currency,
+      this.categoryId,
       this.latitude,
       this.longitude,
       this.userId,
-      this.businessTypeId,
-      this.taxRate,
+      this.typeId,
       this.timeZone,
       this.createdAt,
       this.updatedAt,
@@ -60,7 +63,26 @@ class _$Business extends Business {
       this.hexColor,
       this.image,
       this.type})
-      : super._();
+      : super._() {
+    if (id == null) {
+      throw new BuiltValueNullFieldError('Business', 'id');
+    }
+    if (name == null) {
+      throw new BuiltValueNullFieldError('Business', 'name');
+    }
+    if (active == null) {
+      throw new BuiltValueNullFieldError('Business', 'active');
+    }
+    if (currency == null) {
+      throw new BuiltValueNullFieldError('Business', 'currency');
+    }
+    if (categoryId == null) {
+      throw new BuiltValueNullFieldError('Business', 'categoryId');
+    }
+    if (typeId == null) {
+      throw new BuiltValueNullFieldError('Business', 'typeId');
+    }
+  }
 
   @override
   Business rebuild(void Function(BusinessBuilder) updates) =>
@@ -76,11 +98,12 @@ class _$Business extends Business {
         id == other.id &&
         name == other.name &&
         active == other.active &&
+        currency == other.currency &&
+        categoryId == other.categoryId &&
         latitude == other.latitude &&
         longitude == other.longitude &&
         userId == other.userId &&
-        businessTypeId == other.businessTypeId &&
-        taxRate == other.taxRate &&
+        typeId == other.typeId &&
         timeZone == other.timeZone &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
@@ -108,15 +131,17 @@ class _$Business extends Business {
                                                     $jc(
                                                         $jc(
                                                             $jc(
-                                                                $jc(0,
-                                                                    id.hashCode),
-                                                                name.hashCode),
-                                                            active.hashCode),
-                                                        latitude.hashCode),
-                                                    longitude.hashCode),
-                                                userId.hashCode),
-                                            businessTypeId.hashCode),
-                                        taxRate.hashCode),
+                                                                $jc(
+                                                                    $jc(0,
+                                                                        id.hashCode),
+                                                                    name.hashCode),
+                                                                active.hashCode),
+                                                            currency.hashCode),
+                                                        categoryId.hashCode),
+                                                    latitude.hashCode),
+                                                longitude.hashCode),
+                                            userId.hashCode),
+                                        typeId.hashCode),
                                     timeZone.hashCode),
                                 createdAt.hashCode),
                             updatedAt.hashCode),
@@ -133,11 +158,12 @@ class _$Business extends Business {
           ..add('id', id)
           ..add('name', name)
           ..add('active', active)
+          ..add('currency', currency)
+          ..add('categoryId', categoryId)
           ..add('latitude', latitude)
           ..add('longitude', longitude)
           ..add('userId', userId)
-          ..add('businessTypeId', businessTypeId)
-          ..add('taxRate', taxRate)
+          ..add('typeId', typeId)
           ..add('timeZone', timeZone)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
@@ -153,9 +179,9 @@ class _$Business extends Business {
 class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   _$Business _$v;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   String _name;
   String get name => _$this._name;
@@ -164,6 +190,14 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   bool _active;
   bool get active => _$this._active;
   set active(bool active) => _$this._active = active;
+
+  String _currency;
+  String get currency => _$this._currency;
+  set currency(String currency) => _$this._currency = currency;
+
+  String _categoryId;
+  String get categoryId => _$this._categoryId;
+  set categoryId(String categoryId) => _$this._categoryId = categoryId;
 
   double _latitude;
   double get latitude => _$this._latitude;
@@ -177,14 +211,9 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get userId => _$this._userId;
   set userId(String userId) => _$this._userId = userId;
 
-  int _businessTypeId;
-  int get businessTypeId => _$this._businessTypeId;
-  set businessTypeId(int businessTypeId) =>
-      _$this._businessTypeId = businessTypeId;
-
-  int _taxRate;
-  int get taxRate => _$this._taxRate;
-  set taxRate(int taxRate) => _$this._taxRate = taxRate;
+  String _typeId;
+  String get typeId => _$this._typeId;
+  set typeId(String typeId) => _$this._typeId = typeId;
 
   String _timeZone;
   String get timeZone => _$this._timeZone;
@@ -225,11 +254,12 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
       _id = _$v.id;
       _name = _$v.name;
       _active = _$v.active;
+      _currency = _$v.currency;
+      _categoryId = _$v.categoryId;
       _latitude = _$v.latitude;
       _longitude = _$v.longitude;
       _userId = _$v.userId;
-      _businessTypeId = _$v.businessTypeId;
-      _taxRate = _$v.taxRate;
+      _typeId = _$v.typeId;
       _timeZone = _$v.timeZone;
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
@@ -263,11 +293,12 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
             id: id,
             name: name,
             active: active,
+            currency: currency,
+            categoryId: categoryId,
             latitude: latitude,
             longitude: longitude,
             userId: userId,
-            businessTypeId: businessTypeId,
-            taxRate: taxRate,
+            typeId: typeId,
             timeZone: timeZone,
             createdAt: createdAt,
             updatedAt: updatedAt,

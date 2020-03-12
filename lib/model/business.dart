@@ -3,13 +3,15 @@ import "package:built_value/built_value.dart";
 part 'business.g.dart';
 
 abstract class Business implements Built<Business, BusinessBuilder> {
-  @nullable
-  int get id;
-  @nullable
+  String get id;
+
   String get name;
 
-  @nullable
   bool get active;
+
+  String get currency;
+
+  String get categoryId;
 
   @nullable
   double get latitude;
@@ -17,10 +19,9 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   double get longitude;
   @nullable
   String get userId;
-  @nullable
-  int get businessTypeId;
-  @nullable
-  int get taxRate;
+
+  String get typeId;
+
   @nullable
   String get timeZone;
   @nullable

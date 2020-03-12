@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttercouch/fluttercouch.dart';
 import 'package:redux/redux.dart';
@@ -12,7 +14,7 @@ import 'package:uuid/uuid.dart';
 import 'model/user.dart';
 
 class CouchBase extends Model with Fluttercouch {
-  String _databaseName;
+  String databaseName;
   Document docExample;
   MutableDocument _doc = MutableDocument();
   Query query;
@@ -84,8 +86,8 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['channel'] != null);
     assert(map['name'] != null);
     assert(map['active'] != null);
-    assert(map['businessCategoryId'] != null);
-    assert(map['businessTypeId'] != null);
+    assert(map['categoryId'] != null);
+    assert(map['typeId'] != null);
     assert(map['businessUrl'] != null);
     assert(map['country'] != null);
     assert(map['currency'] != null);
@@ -186,6 +188,10 @@ class CouchBase extends Model with Fluttercouch {
         {
           return buildBranchModel(doc, store);
         }
+      case 'Item':
+        {
+          return buildProduct(doc, store);
+        }
         break;
 
       default:
@@ -222,18 +228,284 @@ class CouchBase extends Model with Fluttercouch {
 
       //this is the way of getting notified about db change. adding a live query
       //https://docs.couchbase.com/couchbase-lite/2.5/java.html#live-query
-      Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
 
-      ListenerToken token =
-          await query.addChangeListener((change) => {print(change)});
-
-      //call this on logout.
-//      query.removeChangeListener(token);
+      // Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
+      // ListenerToken token =
+      //     await query.addChangeListener((change) => {print(change)});
 
       setReplicatorContinuous(true);
       initReplicator();
       startReplicator();
     } on PlatformException {}
+  }
+
+  Future initSqlDb(Store<AppState> store) async {
+    //load products
+    Document doc =
+        await getDocumentWithId('products_' + store.state.userId.toString());
+    if (doc.getList('products') == null) return; //no need to go further!
+    for (var i = 0; i < doc.getList('products').length; i++) {
+      ProductTableData product = await store.state.database.productDao
+          .getItemById(productId: doc.getList('products')[i]['id']);
+      // ignore:missing_required_param
+      ProductTableData productData = ProductTableData(
+          businessId: doc.getList('products')[i]['businessId'].toString(),
+          active: doc.getList('products')[i]['active'],
+          name: doc.getList('products')[i]['name'],
+          id: doc.getList('products')[i]['id'],
+          color: doc.getList('products')[i]['color'],
+          description: doc.getList('products')[i]['description'],
+          picture: doc.getList('products')[i]['picture'],
+          taxId: doc.getList('products')[i]['taxId'],
+          hasPicture: doc.getList('products')[i]['hasPicture'],
+          isDraft: doc.getList('products')[i]['isDraft'],
+          isCurrentUpdate: doc.getList('products')[i]['isCurrentUpdate'],
+          supplierId: doc.getList('products')[i]['supplierId'],
+          categoryId: doc.getList('products')[i]['categoryId'],
+          createdAt: DateTime.parse(doc.getList('products')[i]['createdAt']),
+          updatedAt: DateTime.parse(doc.getList('products')[i]['updatedAt']));
+
+      if (product == null) {
+        store.state.database.productDao.insert(productData);
+      } else {
+        store.state.database.productDao
+            .updateProduct(productData.copyWith(idLocal: product.idLocal));
+      }
+    }
+
+    //load variants:
+    Document variants =
+        await getDocumentWithId('variants_' + store.state.userId.toString());
+
+    if (variants.getList('variants') == null) return; //no need to go further!
+
+    for (var i = 0; i < variants.getList('variants').length; i++) {
+      VariationTableData variation = await store.state.database.variationDao
+          .getVariationById(variantId: variants.getList('variants')[i]['id']);
+      // ignore:missing_required_param
+      VariationTableData variationData = VariationTableData(
+          name: variants.getList('variants')[i]['name'],
+          id: variants.getList('variants')[i]['id'],
+          sku: variants.getList('variants')[i]['SKU'],
+          productId: variants.getList('variants')[i]['productId'],
+          unit: variants.getList('variants')[i]['unit'],
+          createdAt:
+              DateTime.parse(variants.getList('variants')[i]['createdAt']),
+          updatedAt:
+              DateTime.parse(variants.getList('variants')[i]['updatedAt']));
+
+      if (variation == null) {
+        store.state.database.variationDao.insert(variationData);
+      } else {
+        store.state.database.variationDao.updateVariation(
+            variationData.copyWith(idLocal: variation.idLocal));
+      }
+    }
+
+    //load branch products
+    Document branchProducts = await getDocumentWithId(
+        'branchProducts_' + store.state.userId.toString());
+
+    if (branchProducts.getList('branchProducts') == null)
+      return; //no need to go further!
+
+    for (var i = 0; i < branchProducts.getList('branchProducts').length; i++) {
+      BranchProductTableData branchProduct = await store
+          .state.database.branchProductDao
+          .getById(id: branchProducts.getList('branchProducts')[i]['id']);
+      // ignore:missing_required_param
+      BranchProductTableData branchProductData = BranchProductTableData(
+        id: branchProducts.getList('branchProducts')[i]['id'],
+        branchId: branchProducts.getList('branchProducts')[i]['branchId'],
+        productId: branchProducts.getList('branchProducts')[i]['productId'],
+      );
+
+      if (branchProduct == null) {
+        store.state.database.branchProductDao.insert(branchProductData);
+      } else {
+        store.state.database.branchProductDao.updateBP(
+            branchProductData.copyWith(idLocal: branchProduct.idLocal));
+      }
+    }
+
+    //load all stocks:
+    Document stocks =
+        await getDocumentWithId('stocks_' + store.state.userId.toString());
+    if (stocks.getList('stocks') == null) return; //no need to go further!
+
+    for (var i = 0; i < stocks.getList('stocks').length; i++) {
+      StockTableData stock = await store.state.database.stockDao
+          .getById(id: stocks.getList('stocks')[i]['id']);
+      // ignore:missing_required_param
+      StockTableData branchProductData = StockTableData(
+          id: stocks.getList('stocks')[i]['id'],
+          supplyPrice: stocks.getList('stocks')[i]['supplyPrice'].toDouble(),
+          retailPrice: stocks.getList('stocks')[i]['retailPrice'].toDouble(),
+          lowStock: stocks.getList('stocks')[i]['lowStock'],
+          variantId: stocks.getList('stocks')[i]['variantId'],
+          branchId: stocks.getList('stocks')[i]['branchId'],
+          productId: stocks.getList('stocks')[i]['productId'],
+          currentStock: stocks.getList('stocks')[i]['currentStock'],
+          canTrackingStock: stocks.getList('stocks')[i]['canTrackingStock'],
+          showLowStockAlert: stocks.getList('stocks')[i]['showLowStockAlert'],
+          createdAt: DateTime.parse(stocks.getList('stocks')[i]['createdAt']),
+          updatedAt: DateTime.parse(stocks.getList('stocks')[i]['updatedAt']));
+
+      if (stock == null) {
+        store.state.database.stockDao.insert(branchProductData);
+      } else {
+        store.state.database.stockDao.updateStock(branchProductData.copyWith(
+            idLocal: stock.idLocal, isActive: false));
+      }
+    }
+
+    //load stock history
+    Document stockHistories = await getDocumentWithId(
+        'stockHistory_' + store.state.userId.toString());
+    if (stockHistories.getList('stockHistory') == null)
+      return; //no need to go further!
+    for (var i = 0; i < stockHistories.getList('stockHistory').length; i++) {
+      StockHistoryTableData history = await store.state.database.stockHistoryDao
+          .getById(id: stockHistories.getList('stockHistory')[i]['id']);
+      // ignore:missing_required_param
+      StockHistoryTableData historyData = StockHistoryTableData(
+          id: stockHistories.getList('stockHistory')[i]['id'],
+          note: stockHistories.getList('stockHistory')[i]['note'],
+          quantity: stockHistories.getList('stockHistory')[i]['quantity'],
+          stockId: stockHistories.getList('stockHistory')[i]['stockId'],
+          reason: stockHistories.getList('stockHistory')[i]['reason'],
+          variantId: stockHistories.getList('stockHistory')[i]['variantId'],
+          createdAt: DateTime.parse(
+              stockHistories.getList('stockHistory')[i]['createdAt']),
+          updatedAt: DateTime.parse(
+              stockHistories.getList('stockHistory')[i]['updatedAt']));
+
+      if (history == null) {
+        store.state.database.stockHistoryDao.insert(historyData);
+      } else {
+        store.state.database.stockHistoryDao
+            .updateHistory(historyData.copyWith(idLocal: history.idLocal));
+      }
+    }
+
+    //load taxes:
+
+    Document taxes =
+        await getDocumentWithId('taxes_' + store.state.userId.toString());
+
+    if (taxes.getList('taxes') == null) return; //no need to go further!
+
+    for (var i = 0; i < taxes.getList('taxes').length; i++) {
+      TaxTableData tax = await store.state.database.taxDao
+          .getById(taxid: taxes.getList('taxes')[i]['id']);
+      // ignore:missing_required_param
+      TaxTableData taxData = TaxTableData(
+          id: taxes.getList('taxes')[i]['id'],
+          name: taxes.getList('taxes')[i]['name'],
+          businessId: taxes.getList('taxes')[i]['businessId'],
+          isDefault: taxes.getList('taxes')[i]['isDefault'],
+          percentage: taxes.getList('taxes')[i]['percentage'].toDouble(),
+          createdAt: DateTime.parse(taxes.getList('taxes')[i]['createdAt']),
+          updatedAt: DateTime.parse(taxes.getList('taxes')[i]['updatedAt']));
+
+      print(taxes.getList('taxes'));
+      if (tax == null) {
+        store.state.database.taxDao.insert(taxData);
+      } else {
+        store.state.database.taxDao
+            .updateTax(taxData.copyWith(idLocal: tax.idLocal));
+      }
+    }
+
+    //load categories:
+    Document categories =
+        await getDocumentWithId('categories_' + store.state.userId.toString());
+
+    if (categories.getList('categories') == null)
+      return; //no need to go further!
+
+    for (var i = 0; i < categories.getList('categories').length; i++) {
+      CategoryTableData category = await store.state.database.categoryDao
+          .getById(id: categories.getList('categories')[i]['id']);
+      // ignore:missing_required_param
+      CategoryTableData categoryData = CategoryTableData(
+          id: categories.getList('categories')[i]['id'],
+          name: categories.getList('categories')[i]['name'],
+          focused: false,
+          branchId: categories.getList('categories')[i]['branchId'],
+          createdAt:
+              DateTime.parse(categories.getList('categories')[i]['createdAt']),
+          updatedAt:
+              DateTime.parse(categories.getList('categories')[i]['updatedAt']));
+
+      if (category == null) {
+        store.state.database.categoryDao.insert(categoryData);
+      } else {
+        store.state.database.categoryDao
+            .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
+      }
+    }
+
+    //load all app units:
+    var units = [
+      {"name": "Per Item", "value": ""},
+      {"name": "Per Kilogram (kg)", "value": "kg"},
+      {"name": "Per Cup (c)", "value": "c"},
+      {"name": "Per Liter (l)", "value": "l"},
+      {"name": "Per Pound (lb)", "value": "lb"},
+      {"name": "Per Pint (pt)", "value": "pt"},
+      {"name": "Per Acre (ac)", "value": "ac"},
+      {"name": "Per Centimeter (cm)", "value": "cm"},
+      {"name": "Per Cubic Footer (cu ft)", "value": "cu ft"},
+      {"name": "Per Day (day)", "value": "day"},
+      {"name": "Footer (ft)", "value": "ft"},
+      {"name": "Per Gram (g)", "value": "g"},
+      {"name": "Per Hour (hr)", "value": "hr"},
+      {"name": "Per Minute (min)", "value": "min"},
+      {"name": "Per Acre (ac)", "value": "ac"},
+      {"name": "Per Cubic Inch (cu in)", "value": "cu in"},
+      {"name": "Per Cubic Yard (cu yd)", "value": "cu yd"},
+      {"name": "Per Fluid Ounce (fl oz)", "value": "fl oz"},
+      {"name": "Per Gallon (gal)", "value": "gal"},
+      {"name": "Per Inch (in)", "value": "in"},
+      {"name": "Per Kilometer (km)", "value": "km"},
+      {"name": "Per Meter (m)", "value": "m"},
+      {"name": "Per Mile (mi)", "value": "mi"},
+      {"name": "Per Milligram (mg)", "value": "mg"},
+      {"name": "Per Milliliter (mL)", "value": "mL"},
+      {"name": "Per Millimeter (mm)", "value": "mm"},
+      {"name": "Per Millisecond (ms)", "value": "ms"},
+      {"name": "Per Ounce (oz)", "value": "oz"},
+      {"name": "Per  Quart (qt)", "value": "qt"},
+      {"name": "Per Second (sec)", "value": "sec"},
+      {"name": "Per Shot (sh)", "value": "sh"},
+      {"name": "Per Square Centimeter (sq cm)", "value": "sq cm"},
+      {"name": "Per Square Foot (sq ft)", "value": "sq ft"},
+      {"name": "Per Square Inch (sq in)", "value": "sq in"},
+      {"name": "Per Square Kilometer (sq km)", "value": "sq km"},
+      {"name": "Per Square Meter (sq m)", "value": "sq m"},
+      {"name": "Per Square Mile (sq mi)", "value": "sq mi"},
+      {"name": "Per Square Yard (sq yd)", "value": "sq yd"},
+      {"name": "Per Stone (st)", "value": "st"},
+      {"name": "Per Yard (yd)", "value": "yd"}
+    ];
+    for (var i = 0; i < units.length; i++) {
+      //insert or update unit in table set focus to false for all.
+      UnitTableData unit = await store.state.database.unitDao
+          .getUnitByName(name: units[i]['name']);
+
+      UnitTableData unitTableData =
+          //ignore:missing_required_param
+          UnitTableData(
+              name: units[i]['name'], focused: false, value: units[i]['value']);
+      if (unit == null) {
+        store.state.database.unitDao.insert(unitTableData);
+      } else {
+        store.state.database.unitDao
+            .updateUnit(unitTableData.copyWith(id: unit.id));
+      }
+    }
+    //merging: get product of this branchId
   }
 
   //return
@@ -259,8 +531,7 @@ class CouchBase extends Model with Fluttercouch {
     Query query = QueryBuilder.select([SelectResult.all()])
         .from(store.state.couchDbClient.name)
         .where(Expression.property("_id").equalTo(Expression.string('users')));
-
-    ResultSet results = await query.execute();
+    // ResultSet results = await query.execute();
   }
 
   User buildUserModel(Document doc, Store<AppState> store) {
@@ -284,11 +555,13 @@ class CouchBase extends Model with Fluttercouch {
     for (var i = 0; i < doc.getList(business_).length; i++) {
       business.add(Business((b) => b
         ..name = doc.getList(business_)[i]['name']
+        ..id = doc.getList(business_)[i]['id']
+        ..currency = doc.getList(business_)[i]['currency']
+        ..categoryId = doc.getList(business_)[i]['categoryId'].toString()
         ..country = doc.getList(business_)[i]['country']
-        ..taxRate = doc.getList(business_)[i]['taxRate']
         ..userId = doc.getList(business_)[i]['userId'].toString()
         ..active = doc.getList(business_)[i]['active']
-        ..businessTypeId = doc.getList(business_)[i]['businessTypeId']
+        ..typeId = doc.getList(business_)[i]['typeId'].toString()
         ..userId = doc.getList(business_)[i]['userId'].toString()
         ..timeZone = doc.getList(business_)[i]['timeZone']
         ..businessUrl = doc.getList(business_)[i]['businessUrl']
@@ -296,6 +569,8 @@ class CouchBase extends Model with Fluttercouch {
     }
     return business;
   }
+
+  List<Product> buildProduct(Document doc, Store<AppState> store) {}
 
   List<Branch> buildBranchModel(Document doc, Store<AppState> store) {
     List<Branch> branch = [];
@@ -319,5 +594,11 @@ class CouchBase extends Model with Fluttercouch {
         ..updatedAt = doc.getList(branch_)[i]['updatedAt']));
     }
     return branch;
+  }
+
+  syncProduct(String productId) async {
+    //get product sync it to couch db
+    //get product variants sync them too
+    //get stock of each variant and sync them each to couch
   }
 }

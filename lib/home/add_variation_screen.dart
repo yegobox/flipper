@@ -2,10 +2,11 @@ import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/util.dart';
+
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -149,43 +150,42 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
   }
 
   Future _createVariant(CommonViewModel vm, BuildContext context) async {
-    ItemTableData item =
-        await vm.database.itemDao.getItemBy(name: 'tmp', itemId: vm.tmpItem.id);
-    VariationTableData variation =
-        await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
-    final store = StoreProvider.of<AppState>(context);
+    Manager.deprecatedNotification();
+//     ProductTableData item =
+//         await vm.database.productDao.getItemBy(name: 'tmp', itemId: vm.tmpItem.id);
+//     VariationTableData variation =
+//         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
+//     final store = StoreProvider.of<AppState>(context);
 
-    await Util.updateVariation(
-      variation: variation,
-      costPrice: widget.regularCostPrice,
-      store: store,
-      variantName: 'Regular',
-      retailPrice: widget.regularRetailPrice,
-    );
-    int variantId = await vm.database.variationDao.insert(
-      //ignore:missing_required_param
-      VariationTableData(
-        name: name,
-        branchId: vm.branch.id,
-        createdAt: DateTime.now(),
-        isActive: false,
-        itemId: item.id,
-      ),
-    );
-    //insert into stock too
-    vm.database.stockDao.insert(
-      //ignore: missing_required_param
-      StockTableData(
-        canTrackStock: false,
-        retailPrice: double.parse(retailPrice),
-        itemId: item.id,
-        costPrice: double.parse(costPrice),
-//        variantId: variantId,
-        branchId: vm.branch.id,
-        createdAt: DateTime.now(),
-      ),
-    );
-    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+//     await Util.updateVariation(
+//       variation: variation,
+//       costPrice: widget.regularCostPrice,
+//       store: store,
+//       variantName: 'Regular',
+//       retailPrice: widget.regularRetailPrice,
+//     );
+//     int variantId = await vm.database.variationDao.insert(
+//       //ignore:missing_required_param
+//       VariationTableData(
+//         name: name,
+//         createdAt: DateTime.now(),
+//         productId: item.id,
+//       ),
+//     );
+//     //insert into stock too
+//     vm.database.stockDao.insert(
+//       //ignore: missing_required_param
+//       StockTableData(
+//         canTrackingStock: false,
+//         retailPrice: double.parse(retailPrice),
+//         // productId: item.id,
+//         supplyPrice: double.parse(costPrice),
+// //        variantId: variantId,
+//         branchId: vm.branch.id,
+//         createdAt: DateTime.now(),
+//       ),
+//     );
+//     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
   }
 
   Container buildCostPriceWidget(BuildContext context) {

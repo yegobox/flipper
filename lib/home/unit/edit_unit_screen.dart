@@ -3,6 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -11,7 +12,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 
 class EditUnitTypeScreen extends StatefulWidget {
   EditUnitTypeScreen({Key key, @required this.itemId}) : super(key: key);
-  final int itemId;
+  final String itemId;
   @override
   _EditUnitTypeScreenState createState() => _EditUnitTypeScreenState();
 }
@@ -128,9 +129,10 @@ class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
 
   Future<void> updateItemWithActiveUnit(
       CommonViewModel vm, List<UnitTableData> unit, int i) async {
-    final item = await vm.database.itemDao.getItemById(itemId: widget.itemId);
-    if (item != null) {
-      vm.database.itemDao.updateItem(item.copyWith(unitId: unit[i].id));
-    }
+    Manager.deprecatedNotification();
+    // final item = await vm.database.productDao.getItemById(productId: widget.itemId);
+    // if (item != null) {
+    //   vm.database.productDao.updateItem(item.copyWith(unitId: unit[i].id));
+    // }
   }
 }
