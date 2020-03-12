@@ -8,11 +8,10 @@ import 'package:flipper/home/widget/add_product/center_divider.dart';
 import 'package:flipper/home/widget/add_product/description_widget.dart';
 import 'package:flipper/home/widget/add_product/list_divider.dart';
 import 'package:flipper/home/widget/add_product/retail_price_widget.dart';
-import 'package:flipper/home/widget/add_product/section_zero.dart';
+import 'package:flipper/home/widget/add_product/section_select_unit.dart';
 import 'package:flipper/home/widget/add_product/sku_field.dart';
 import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
 import 'package:flipper/home/widget/add_product/variation_list.dart';
-import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -21,14 +20,14 @@ import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class AddItemScreen extends StatefulWidget {
-  AddItemScreen({Key key}) : super(key: key);
+class AddProductScreen extends StatefulWidget {
+  AddProductScreen({Key key}) : super(key: key);
 
   @override
-  _AddItemScreenState createState() => _AddItemScreenState();
+  _AddProductScreenState createState() => _AddProductScreenState();
 }
 
-class _AddItemScreenState extends State<AddItemScreen> {
+class _AddProductScreenState extends State<AddProductScreen> {
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
 
@@ -110,6 +109,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       ),
                     ),
                     Text(S.of(context).newItem),
+                    //nameField
                     Center(
                       child: Container(
                         width: 300,
@@ -117,27 +117,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           style: TextStyle(color: Colors.black),
                           validator: Validators.isStringHasMoreChars,
                           onChanged: (name) async {
-                            if (name == '') {
-                              _getSaveStatus(vm);
-                              _getSaveItemStatus(vm);
-                              if (_actions != null) {
-                                await vm.database.actionsDao.updateAction(
-                                    _actions.copyWith(isLocked: true));
-                                _getSaveStatus(vm);
-                              }
-                              return;
-                            }
-                            _getSaveStatus(vm);
-                            _getSaveItemStatus(vm);
-                            if (_actions != null) {
-                              await vm.database.actionsDao.updateAction(
-                                  _actions.copyWith(isLocked: false));
-                              _getSaveStatus(vm);
-                            }
-
-                            setState(() {
-                              DataManager.name = name;
-                            });
+                            await updateNameField(name, vm);
                           },
                           decoration: InputDecoration(
                               hintText: "Name", focusColor: Colors.black),
@@ -160,7 +140,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     CenterDivider(
                       width: 300,
                     ),
-                    SectionZero(),
+                    SectionSelectUnit(),
                     Center(
                       child: Container(
                         width: 300,
@@ -175,22 +155,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     VariationList(),
                     AddVariant(
                       onPressedCallback: () {
-                        _getSaveStatus(vm);
-                        if (_actions != null) {
-                          vm.database.actionsDao
-                              .updateAction(_actions.copyWith(isLocked: true));
-
-                          Router.navigator.pushNamed(Router.addVariationScreen,
-                              arguments: AddVariationScreenArguments(
-                                  regularCostPrice:
-                                      DataManager.retailPrice == null
-                                          ? 0
-                                          : DataManager.retailPrice,
-                                  regularRetailPrice:
-                                      DataManager.costPrice == null
-                                          ? 0
-                                          : DataManager.costPrice));
-                        }
+                        createVariant(vm);
                       },
                     ),
                     DescriptionWidget(),
@@ -207,6 +172,51 @@ class _AddItemScreenState extends State<AddItemScreen> {
     );
   }
 
+  Future updateNameField(String name, CommonViewModel vm) async {
+    if (name == '') {
+      _getSaveStatus(vm);
+      _getSaveItemStatus(vm);
+      if (_actions != null) {
+        await vm.database.actionsDao
+            .updateAction(_actions.copyWith(isLocked: true));
+        _getSaveStatus(vm);
+        _getSaveItemStatus(vm);
+      }
+      setState(() {
+        DataManager.name = name;
+      });
+    } else if (_actions != null) {
+      await vm.database.actionsDao
+          .updateAction(_actions.copyWith(isLocked: false));
+      _getSaveStatus(vm);
+      _getSaveItemStatus(vm);
+      setState(() {
+        DataManager.name = name;
+      });
+    } else {
+      _getSaveStatus(vm);
+      _getSaveItemStatus(vm);
+      setState(() {
+        DataManager.name = name;
+      });
+    }
+  }
+
+  void createVariant(CommonViewModel vm) {
+    _getSaveStatus(vm);
+    if (_actions != null) {
+      vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+
+      Router.navigator.pushNamed(Router.addVariationScreen,
+          arguments: AddVariationScreenArguments(
+              regularCostPrice:
+                  DataManager.retailPrice == null ? 0 : DataManager.retailPrice,
+              regularRetailPrice: DataManager.supplyPrice == null
+                  ? 0
+                  : DataManager.supplyPrice));
+    }
+  }
+
   void _getSaveItemStatus(CommonViewModel vm) async {
     var result = await vm.database.actionsDao.getActionBy('saveItem');
     setState(() {
@@ -216,6 +226,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _getSaveStatus(CommonViewModel vm) async {
     var result = await vm.database.actionsDao.getActionBy('save');
+
     setState(() {
       _actions = result;
     });
@@ -224,26 +235,30 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<bool> _handleCreateItem(CommonViewModel vm) async {
     final store = StoreProvider.of<AppState>(context);
 
-    Manager.deprecatedNotification();
-    // VariationTableData variation =
-    //     await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
+    await updateProduct(vm, vm.tmpItem.id);
+    VariationTableData variation = await vm.database.variationDao
+        .getVariationById(variantId: vm.variant.id);
 
-    // await Util.updateVariation(
-    //   variation: variation,
-    //   costPrice: double.parse(tForm.costPrice),
-    //   store: store,
-    //   variantName: 'Regular',
-    //   retailPrice: double.parse(tForm.retailPrice),
-    // );
+    await DataManager.updateVariation(
+      variation: variation,
+      supplyPrice: DataManager.supplyPrice,
+      store: store,
+      variantName: 'Regular',
+      retailPrice: DataManager.retailPrice,
+    );
 
-    // await resetSaveButtonStatus(vm);
+    await vm.couch.syncProduct(vm.tmpItem.id, store);
 
-    // return true;
+    await resetSaveButtonStatus(vm);
+
+    return true;
   }
 
-  Future<bool> updateItem(CommonViewModel vm, ProductTableData item) async {
+  Future<bool> updateProduct(CommonViewModel vm, String productId) async {
+    ProductTableData product =
+        await vm.database.productDao.getProductById(productId: productId);
     await vm.database.productDao.updateProduct(
-      item.copyWith(
+      product.copyWith(
         name: DataManager.name,
         updatedAt: DateTime.now(),
         deletedAt: 'null',

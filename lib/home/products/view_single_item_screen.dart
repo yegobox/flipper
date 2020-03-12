@@ -2,12 +2,11 @@ import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/home/items/variation_widget.dart';
+import 'package:flipper/home/products/variation_widget.dart';
 import 'package:flipper/home/widget/switch_widget.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
-
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';

@@ -13,8 +13,8 @@ import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class ItemsView extends StatefulWidget {
-  const ItemsView({
+class ProductsView extends StatefulWidget {
+  const ProductsView({
     Key key,
     @required this.context,
     @required this.data,
@@ -32,10 +32,10 @@ class ItemsView extends StatefulWidget {
   final bool shouldSeeItem;
 
   @override
-  _ItemsViewState createState() => _ItemsViewState();
+  _ProductsViewState createState() => _ProductsViewState();
 }
 
-class _ItemsViewState extends State<ItemsView> {
+class _ProductsViewState extends State<ProductsView> {
   List<Widget> getItems(List<ProductTableData> products, BuildContext context,
       CommonViewModel vm) {
     List<Widget> list = new List<Widget>();

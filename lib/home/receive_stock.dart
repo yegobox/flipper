@@ -12,7 +12,7 @@ class ReceiveStockScreen extends StatefulWidget {
     Key key,
     @required this.variationId,
   }) : super(key: key);
-  final int variationId;
+  final String variationId;
   @override
   _ReceiveStockScreenState createState() => _ReceiveStockScreenState();
 }
@@ -47,16 +47,17 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                 children: <Widget>[
                   StreamBuilder(
                       stream: vm.database.stockDao.getStockByVariantStream(
-                          branchId: vm.branch.id, variationId: '001'),
+                          branchId: vm.branch.id,
+                          variationId: widget.variationId),
                       builder: (context,
                           AsyncSnapshot<List<StockTableData>> snapshot) {
                         if (snapshot.data == null) {
-                          return InputWidget(
+                          return ReceiveStockInputWidget(
                             variantId: widget.variationId,
                             vm: vm,
                           );
                         } else {
-                          return InputWidget(
+                          return ReceiveStockInputWidget(
                             variantId: widget.variationId,
                             vm: vm,
                             currentStock: snapshot.data[0].currentStock,
@@ -78,8 +79,8 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
   }
 }
 
-class InputWidget extends StatefulWidget {
-  const InputWidget({
+class ReceiveStockInputWidget extends StatefulWidget {
+  const ReceiveStockInputWidget({
     Key key,
     @required this.vm,
     @required this.variantId,
@@ -89,10 +90,11 @@ class InputWidget extends StatefulWidget {
   final variantId;
   final int currentStock;
   @override
-  _InputWidgetState createState() => _InputWidgetState();
+  _ReceiveStockInputWidgetState createState() =>
+      _ReceiveStockInputWidgetState();
 }
 
-class _InputWidgetState extends State<InputWidget> {
+class _ReceiveStockInputWidgetState extends State<ReceiveStockInputWidget> {
   Future receiveStock(CommonViewModel vm, double count) async {
     StockTableData stock = await vm.database.stockDao.getStockByVariantId(
         variantId: widget.variantId, branchId: vm.branch.id);

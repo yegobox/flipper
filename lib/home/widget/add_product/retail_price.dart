@@ -18,9 +18,11 @@ class _RetailPriceState extends State<RetailPrice> {
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.black),
           onChanged: (retailPrice) async {
-            setState(() {
-              DataManager.retailPrice = double.parse(retailPrice);
-            });
+            if (retailPrice != '' || retailPrice == null) {
+              setState(() {
+                DataManager.retailPrice = double.parse(retailPrice);
+              });
+            }
           },
           decoration: InputDecoration(
               hintText: S.of(context).retailPrice, focusColor: Colors.blue),

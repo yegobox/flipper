@@ -56,13 +56,15 @@ class VariationDao extends DatabaseAccessor<Database> with _$VariationDaoMixin {
         .getSingle();
   }
 
+
   Stream<List<VariationTableData>> getVariationByIdStream(String variantId) {
     return (select(db.variationTable)..where((t) => t.id.equals(variantId)))
         .watch();
   }
 
-  Future<List<VariationTableData>> getVariantByItemId(String itemId) {
-    return (select(db.variationTable)..where((t) => t.productId.equals(itemId)))
+  Future<List<VariationTableData>> getVariantByProductId({String productId}) {
+    return (select(db.variationTable)
+          ..where((t) => t.productId.equals(productId)))
         .get();
   }
 

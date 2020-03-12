@@ -14,7 +14,7 @@ import 'package:flipper/home/add_note_screen.dart';
 import 'package:flipper/home/setting_up_application_screen.dart';
 import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/business/create_business_screen.dart';
-import 'package:flipper/home/add_item_screen.dart';
+import 'package:flipper/home/add_product_screen.dart';
 import 'package:flipper/home/edit_item_title.dart';
 import 'package:flipper/home/take_picture_screen.dart';
 import 'package:flipper/home/add_variation_screen.dart';
@@ -25,11 +25,11 @@ import 'package:flipper/home/receive_stock.dart';
 import 'package:flipper/home/selling/change_quantity_selling.dart';
 import 'package:flipper/home/cart/cart_details_screen.dart';
 import 'package:flipper/model/cart.dart';
-import 'package:flipper/home/items/all_item_screen.dart';
-import 'package:flipper/home/items/view_items_screen.dart';
+import 'package:flipper/home/products/all_item_screen.dart';
+import 'package:flipper/home/products/view_products_screen.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
-import 'package:flipper/home/items/view_single_item_screen.dart';
-import 'package:flipper/home/items/edit_variation_screen.dart';
+import 'package:flipper/home/products/view_single_item_screen.dart';
+import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/transactions/transaction_screen.dart';
@@ -141,7 +141,7 @@ class Router {
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => AddItemScreen(key: typedArgs),
+          builder: (_) => AddProductScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -182,8 +182,8 @@ class Router {
         final typedArgs =
             args as AddUnitTypeScreenArguments ?? AddUnitTypeScreenArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              AddUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
+          builder: (_) => AddUnitTypeScreen(
+              key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -258,7 +258,7 @@ class Router {
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => ViewItemsScreen(key: typedArgs),
+          builder: (_) => ViewProductsScreen(key: typedArgs),
           settings: settings,
         );
       case Router.login:
@@ -391,14 +391,14 @@ class AddVariationScreenArguments {
 //AddUnitTypeScreen arguments holder class
 class AddUnitTypeScreenArguments {
   final Key key;
-  final int itemId;
-  AddUnitTypeScreenArguments({this.key, this.itemId});
+  final String productId;
+  AddUnitTypeScreenArguments({this.key, this.productId});
 }
 
 //ReceiveStockScreen arguments holder class
 class ReceiveStockScreenArguments {
   final Key key;
-  final int variationId;
+  final String variationId;
   ReceiveStockScreenArguments({this.key, @required this.variationId});
 }
 

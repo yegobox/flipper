@@ -6,21 +6,19 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class SectionZero extends StatefulWidget {
-  SectionZero({Key key}) : super(key: key);
+class SectionSelectUnit extends StatefulWidget {
+  SectionSelectUnit({Key key}) : super(key: key);
 
   @override
-  _SectionZeroState createState() => _SectionZeroState();
+  _SectionSelectUnitState createState() => _SectionSelectUnitState();
 }
 
-class _SectionZeroState extends State<SectionZero> {
+class _SectionSelectUnitState extends State<SectionSelectUnit> {
   Text unitSelector(List<UnitTableData> units) {
     Text text;
     for (var i = 0; i < units.length; i++) {
       if (units[i].focused) {
         text = Text(units[i].name);
-      } else {
-        text = Text(S.of(context).selectUnit);
       }
     }
     return text;
@@ -37,7 +35,9 @@ class _SectionZeroState extends State<SectionZero> {
             width: 300,
             child: GestureDetector(
               onTap: () {
-                Router.navigator.pushNamed(Router.addUnitType);
+                Router.navigator.pushNamed(Router.addUnitType,
+                    arguments:
+                        AddUnitTypeScreenArguments(productId: vm.tmpItem.id));
               },
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),
@@ -49,10 +49,10 @@ class _SectionZeroState extends State<SectionZero> {
                         builder: (context,
                             AsyncSnapshot<List<UnitTableData>> snapshot) {
                           if (snapshot.data == null) {
-                            return Text(S.of(context).selectCategory);
+                            return Text(S.of(context).selectUnit);
                           }
                           return snapshot.data == null
-                              ? Text(S.of(context).selectCategory)
+                              ? Text(S.of(context).selectUnit)
                               : unitSelector(snapshot.data);
                         }),
                     Icon(Icons.arrow_forward_ios)

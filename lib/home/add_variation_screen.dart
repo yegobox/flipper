@@ -6,10 +6,11 @@ import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
-
+import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:uuid/uuid.dart';
 
 class AddVariationScreen extends StatefulWidget {
   AddVariationScreen(
@@ -26,9 +27,6 @@ class AddVariationScreen extends StatefulWidget {
 
 class _AddVariationScreenState extends State<AddVariationScreen> {
   String name;
-  String retailPrice;
-  String costPrice;
-  String sku;
 
   ActionsTableData _actions;
   @override
@@ -128,9 +126,13 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                       child: TextFormField(
                         style: TextStyle(color: HexColor("#2d3436")),
                         validator: Validators.isStringHasMoreChars,
-                        onChanged: (_sku) {
-                          if (_sku != '') {
-                            sku = _sku;
+                        onChanged: (sku) {
+                          if (sku == '' || sku == null) {
+                            sku = DateTime.now().year.toString() +
+                                Uuid().v1().substring(0, 4);
+                          } else {
+                            sku = DateTime.now().year.toString() +
+                                sku.substring(0, 4);
                           }
                         },
                         decoration: InputDecoration(
@@ -151,41 +153,51 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
 
   Future _createVariant(CommonViewModel vm, BuildContext context) async {
     Manager.deprecatedNotification();
-//     ProductTableData item =
-//         await vm.database.productDao.getItemBy(name: 'tmp', itemId: vm.tmpItem.id);
-//     VariationTableData variation =
-//         await vm.database.variationDao.getVariationBy('tmp', vm.branch.id);
-//     final store = StoreProvider.of<AppState>(context);
 
-//     await Util.updateVariation(
-//       variation: variation,
-//       costPrice: widget.regularCostPrice,
-//       store: store,
-//       variantName: 'Regular',
-//       retailPrice: widget.regularRetailPrice,
-//     );
-//     int variantId = await vm.database.variationDao.insert(
-//       //ignore:missing_required_param
-//       VariationTableData(
-//         name: name,
-//         createdAt: DateTime.now(),
-//         productId: item.id,
-//       ),
-//     );
-//     //insert into stock too
-//     vm.database.stockDao.insert(
-//       //ignore: missing_required_param
-//       StockTableData(
-//         canTrackingStock: false,
-//         retailPrice: double.parse(retailPrice),
-//         // productId: item.id,
-//         supplyPrice: double.parse(costPrice),
-// //        variantId: variantId,
-//         branchId: vm.branch.id,
-//         createdAt: DateTime.now(),
-//       ),
-//     );
-//     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+    VariationTableData variation = await vm.database.variationDao
+        .getVariationById(variantId: vm.variant.id);
+    final store = StoreProvider.of<AppState>(context);
+
+    await DataManager.updateVariation(
+      variation: variation,
+      supplyPrice: widget.regularCostPrice,
+      store: store,
+      variantName: 'Regular',
+      retailPrice: widget.regularRetailPrice,
+    );
+
+    int variantId = await vm.database.variationDao.insert(
+      //ignore:missing_required_param
+      VariationTableData(
+        name: name,
+        id: Uuid().v1(),
+        sku: DateTime.now().year.toString() + Uuid().v1().substring(0, 4),
+        unit: '',
+        createdAt: DateTime.now(),
+        productId: vm.tmpItem.id,
+      ),
+    );
+    VariationTableData variant = await vm.database.variationDao
+        .getVariationByIdLocal(variantId: variantId);
+    //insert into stock too
+    vm.database.stockDao.insert(
+      //ignore: missing_required_param
+      StockTableData(
+        canTrackingStock: false,
+        retailPrice: DataManager.retailPrice,
+        supplyPrice: DataManager.supplyPrice,
+        lowStock: 0,
+        productId: vm.tmpItem.id,
+        showLowStockAlert: false,
+        currentStock: 0,
+        variantId: variant.id,
+        isActive: true,
+        id: Uuid().v1(),
+        branchId: vm.branch.id,
+        createdAt: DateTime.now(),
+      ),
+    );
+    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
   }
 
   Container buildCostPriceWidget(BuildContext context) {
@@ -195,9 +207,11 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         keyboardType: TextInputType.number,
         style: TextStyle(color: Colors.black),
         validator: Validators.isStringHasMoreChars,
-        onChanged: (cost) {
-          if (cost != '') {
-            costPrice = cost;
+        onChanged: (supplyPrice) {
+          if (supplyPrice != '') {
+            setState(() {
+              DataManager.supplyPrice = double.parse(supplyPrice);
+            });
           }
         },
         decoration: InputDecoration(
@@ -215,7 +229,9 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         validator: Validators.isStringHasMoreChars,
         onChanged: (price) {
           if (price != '') {
-            retailPrice = price;
+            setState(() {
+              DataManager.retailPrice = double.parse(price);
+            });
           }
         },
         decoration: InputDecoration(

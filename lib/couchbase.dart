@@ -226,16 +226,28 @@ class CouchBase extends Model with Fluttercouch {
             "password" //todo: move this to credential file to avoid security breach
       });
 
-      //this is the way of getting notified about db change. adding a live query
-      //https://docs.couchbase.com/couchbase-lite/2.5/java.html#live-query
-
-      // Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
-      // ListenerToken token =
-      //     await query.addChangeListener((change) => {print(change)});
-
       setReplicatorContinuous(true);
       initReplicator();
       startReplicator();
+
+      //this is the way of getting notified about db change. adding a live query
+      //https://docs.couchbase.com/couchbase-lite/2.5/java.html#live-query
+
+      //query.removeChangeListener(token);
+      //https://blog.couchbase.com/document-conflicts-couchbase-mobile/
+      //todo: to be tested alongside the desktop app,because when I edit data manually in dashboard it create conflict.
+      //todo: experimenting with live Query.
+      Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
+
+      query.execute();
+      ListenerToken token =
+          await query.addChangeListener((change) => {print(change)});
+
+      Query b = QueryBuilder.select([SelectResult.all()]).from('lagrace').where(
+          Expression.property("_id").equalTo(Expression.string('business_1')));
+
+      ResultSet results = await b.execute();
+      b.addChangeListener((change) => {print(change.results)});
     } on PlatformException {}
   }
 
@@ -408,7 +420,6 @@ class CouchBase extends Model with Fluttercouch {
           createdAt: DateTime.parse(taxes.getList('taxes')[i]['createdAt']),
           updatedAt: DateTime.parse(taxes.getList('taxes')[i]['updatedAt']));
 
-      print(taxes.getList('taxes'));
       if (tax == null) {
         store.state.database.taxDao.insert(taxData);
       } else {
@@ -494,10 +505,24 @@ class CouchBase extends Model with Fluttercouch {
       UnitTableData unit = await store.state.database.unitDao
           .getUnitByName(name: units[i]['name']);
 
-      UnitTableData unitTableData =
-          //ignore:missing_required_param
-          UnitTableData(
-              name: units[i]['name'], focused: false, value: units[i]['value']);
+      UnitTableData unitTableData;
+      if (units[i]['value'] == 'kg') {
+        unitTableData =
+            //ignore:missing_required_param
+            UnitTableData(
+          name: units[i]['name'],
+          focused: true,
+          value: units[i]['value'],
+        );
+      } else {
+        unitTableData =
+            //ignore:missing_required_param
+            UnitTableData(
+                name: units[i]['name'],
+                focused: false,
+                value: units[i]['value']);
+      }
+
       if (unit == null) {
         store.state.database.unitDao.insert(unitTableData);
       } else {
@@ -509,6 +534,7 @@ class CouchBase extends Model with Fluttercouch {
   }
 
   //return
+  //FIXME: this worked but could not
   Stream<dynamic> getDocumentByQuery(Store<AppState> store) async* {
     Query query = QueryBuilder.select([SelectResult.all()])
         .from(store.state.couchDbClient.name)
@@ -596,9 +622,209 @@ class CouchBase extends Model with Fluttercouch {
     return branch;
   }
 
-  syncProduct(String productId) async {
+  Future<dynamic> createProduct(Map map) async {
+    assert(map['_id'] != null);
+    Document products = await getDocumentWithId(map['_id']);
+
+    assert(map['channel'] != null);
+    assert(map['name'] != null);
+    assert(map['active'] != null);
+    assert(map['businessId'] != null);
+    assert(map['hasPicture'] != null);
+    assert(map['isDraft'] != null);
+    assert(map['picture'] != null);
+    assert(map['color'] != null);
+    assert(map['taxId'] != null);
+    assert(map['isCurrentUpdate'] != null);
+    assert(map['id'] != null);
+    assert(map['supplierId'] != null);
+    assert(map['categoryId'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['updatedAt'] != null);
+
+    List m = [map];
+    List m2 = products.getList('products');
+    m2.addAll(m);
+    products
+        .toMutable()
+        .setList('products', m2)
+        .setString('channel', map['channel'])
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
+
+    return await saveDocumentWithId(map['_id'], products);
+  }
+
+  Future<dynamic> createVariant(Map map) async {
+    assert(map['_id'] != null);
+    Document variants = await getDocumentWithId(map['_id']);
+
+    assert(map['channel'] != null);
+    assert(map['SKU'] != null);
+    assert(map['name'] != null);
+    assert(map['productId'] != null);
+    assert(map['id'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['updatedAt'] != null);
+
+    List m = [map];
+    List m2 = variants.getList('variants');
+    m.addAll(m2);
+
+    variants
+        .toMutable()
+        .setList('variants', m)
+        .setString('channel', map['channel'])
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
+
+    return await saveDocumentWithId(map['_id'], variants);
+  }
+
+  Future<dynamic> createBranchProduct(Map map) async {
+    assert(map['_id'] != null);
+    Document branchProducts = await getDocumentWithId(map['_id']);
+
+    assert(map['channel'] != null);
+    assert(map['productId'] != null);
+    assert(map['branchId'] != null);
+    assert(map['id'] != null);
+
+    List m = [map];
+    List m2 = branchProducts.getList('branchProducts');
+    m.addAll(m2);
+
+    branchProducts
+        .toMutable()
+        .setList('variants', m)
+        .setString('channel', map['channel'])
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
+
+    return await saveDocumentWithId(map['_id'], branchProducts);
+  }
+
+  Future<dynamic> createStock(Map map) async {
+    assert(map['_id'] != null);
+    Document stocks = await getDocumentWithId(map['_id']);
+
+    assert(map['channel'] != null);
+    assert(map['productId'] != null);
+    assert(map['retailPrice'] != null);
+    assert(map['supplyPrice'] != null);
+    assert(map['canTrackingStock'] != null);
+    assert(map['lowStock'] != null);
+    assert(map['variantId'] != null);
+    assert(map['showLowStockAlert'] != null);
+    assert(map['currentStock'] != null);
+    assert(map['isActive'] != null);
+    assert(map['branchId'] != null);
+    assert(map['branchId'] != null);
+    assert(map['id'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['updatedAt'] != null);
+
+    List m = [map];
+    List m2 = stocks.getList('stocks');
+    m.addAll(m2);
+
+    stocks
+        .toMutable()
+        .setList('stocks', m)
+        .setString('channel', map['channel'])
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
+
+    return await saveDocumentWithId(map['_id'], stocks);
+  }
+
+  Future syncProduct(String productId, Store<AppState> store) async {
     //get product sync it to couch db
     //get product variants sync them too
     //get stock of each variant and sync them each to couch
+    ProductTableData product = await store.state.database.productDao
+        .getProductById(productId: productId);
+
+    Map _mapProduct = {
+      'active': product.active,
+      'name': product.name,
+      'id': product.id,
+      'supplierId': product.supplierId,
+      'hasPicture': product.hasPicture,
+      'picture': product.picture,
+      'isDraft': product.isDraft,
+      'taxId': product.taxId,
+      'isCurrentUpdate': product.isCurrentUpdate,
+      'color': product.color,
+      '_id': 'products_' + store.state.userId.toString(),
+      'categoryId':
+          product.categoryId, //pet store a default id when signup on mobile
+      'channel': store.state.userId.toString(),
+      'businessId':
+          product.businessId, //pet store a default id when signup on mobile
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+    await createProduct(_mapProduct);
+
+    //sync variants
+    List<VariationTableData> variations = await store
+        .state.database.variationDao
+        .getVariantByProductId(productId: productId);
+
+    for (var i = 0; i < variations.length; i++) {
+      Map _mapVariant = {
+        'name': variations[i].name,
+        'productId': variations[i].productId,
+        'id': variations[i].id,
+        'channel': store.state.userId.toString(),
+        'unit': variations[i].unit,
+        'createdAt': variations[i].createdAt.toIso8601String(),
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+        'SKU': variations[i].sku,
+        '_id': 'variants_' + store.state.userId.toString(),
+      };
+      //sync stock:
+      StockTableData stock = await store.state.database.stockDao
+          .getStockByVariantId(
+              variantId: variations[i].id, branchId: store.state.branch.id);
+
+      Map _mapStock = {
+        'branchId': stock.branchId,
+        'productId':
+            productId, //todo: check stock the inserted productId if it is matching!.
+        'createdAt': stock.createdAt.toIso8601String(),
+        'id': stock.id,
+        '_id': 'stocks_' + store.state.userId.toString(),
+        'channel': store.state.userId.toString(),
+        'variantId': stock.variantId,
+        'retailPrice': stock.retailPrice,
+        'supplyPrice': stock.supplyPrice,
+        'isActive': stock.isActive,
+        'showLowStockAlert': stock.showLowStockAlert,
+        'updatedAt': DateTime.now().toIso8601String(),
+        'canTrackingStock': stock.canTrackingStock,
+        'lowStock': stock.lowStock,
+        'currentStock': stock.currentStock,
+      };
+      await createVariant(_mapVariant);
+      await createStock(_mapStock);
+    }
+
+    //sync branchProduct:
+
+    BranchProductTableData branchProduct = await store
+        .state.database.branchProductDao
+        .getBranchProduct(productId: productId);
+    Map _mapBranchProduct = {
+      'id': branchProduct.id,
+      'branchId': branchProduct.branchId,
+      'productId': branchProduct.productId,
+      'channel': store.state.userId.toString(),
+      '_id': 'branchProducts_' + store.state.userId.toString(),
+      'branchId': branchProduct.branchId
+    };
+    await createBranchProduct(_mapBranchProduct);
   }
 }

@@ -3,7 +3,6 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -11,18 +10,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class AddUnitTypeScreen extends StatefulWidget {
-  AddUnitTypeScreen({Key key, this.itemId}) : super(key: key);
-  final int itemId;
+  AddUnitTypeScreen({Key key, this.productId}) : super(key: key);
+  final String productId;
   @override
   _AddUnitTypeScreenState createState() => _AddUnitTypeScreenState();
 }
 
 class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
-  Widget _getUnitsWidgets(
+  List<Widget> _getUnitsWidgets(
       AsyncSnapshot<List<UnitTableData>> snapshot, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
     for (var i = 0; i < snapshot.data.length; i++) {
-      if (snapshot.data[i].focused && widget.itemId != null) {
+      if (snapshot.data[i].focused && widget.productId != null) {
         updatedItemWithCurrentUnit(vm, snapshot.data[i]);
       }
       list.add(
@@ -37,7 +36,7 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
           },
           child: ListTile(
             title: Text(
-              'Per ' + snapshot.data[i].name,
+              snapshot.data[i].name,
               style: TextStyle(color: Colors.black),
             ),
             trailing: Radio(
@@ -48,24 +47,20 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
           ),
         ),
       );
-      list.add(Center(
-        child: Container(
-          width: 400,
-          child: Divider(
-            color: Colors.black,
-          ),
-        ),
-      ));
     }
-    return Wrap(children: list);
+    return list;
   }
 
   Future updatedItemWithCurrentUnit(
       CommonViewModel vm, UnitTableData unit) async {
-    Manager.deprecatedNotification();
-    // ProductTableData item =
-    //     await vm.database.productDao.getItemById(productId: widget.itemId);
-    // vm.database.productDao.updateItem(item.copyWith(unitId: unit.id));
+    //get all variant related to this product and updated it unit.
+    //all variant submitted to this product has same unit, can be changed later on.
+    List<VariationTableData> variants = await vm.database.variationDao
+        .getVariantByProductId(productId: widget.productId);
+    for (var i = 0; i < variants.length; i++) {
+      vm.database.variationDao
+          .updateVariation(variants[i].copyWith(unit: unit.value));
+    }
   }
 
   @override
@@ -94,37 +89,19 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: Column(
-            children: <Widget>[
-              Center(
-                child: Container(
-                  height: 40,
-                  child: Divider(
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              StreamBuilder(
-                  stream: vm.database.unitDao.getUnitsStream(),
-                  builder:
-                      (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
-                    if (snapshot.data == null) {
-                      return Text("");
-                    }
-                    return _getUnitsWidgets(snapshot, vm);
-                  }),
-              Text("Edit units and precision in items> Units"),
-              Visibility(
-                visible: false,
-                child: FlatButton(
-                  child: Text("invisible button"),
-                  onPressed: vm.hasAction && vm.appAction.name == 'showLoader'
-                      ? _handleFormSubmit()
-                      : null,
-                ),
-              )
-            ],
-          ),
+          body: StreamBuilder(
+              stream: vm.database.unitDao.getUnitsStream(),
+              builder: (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
+                if (snapshot.data == null) {
+                  return Text("");
+                }
+
+                return ListView(
+                    children: ListTile.divideTiles(
+                  context: context,
+                  tiles: _getUnitsWidgets(snapshot, vm),
+                ).toList());
+              }),
         );
       },
     );

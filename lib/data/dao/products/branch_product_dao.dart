@@ -22,4 +22,10 @@ class BranchProductDao extends DatabaseAccessor<Database>
     return (select(db.branchProductTable)..where((t) => t.id.equals(id)))
         .getSingle();
   }
+
+  Future<BranchProductTableData> getBranchProduct({String productId}) {
+    return (select(db.branchProductTable)
+          ..where((t) => t.productId.equals(productId)))
+        .getSingle();
+  }
 }

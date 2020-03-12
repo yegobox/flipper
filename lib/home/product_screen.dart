@@ -1,7 +1,7 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/home/items/item_view_widget.dart';
+import 'package:flipper/home/products/product_view_widget.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
@@ -42,17 +42,17 @@ class _ProductScreenState extends State<ProductScreen> {
                 child: StreamBuilder(
                   stream: vm.database.productDao
                       .getProductStream(branchId: vm.branch.id),
-                  builder:
-                      //todo: get item from couchdb, set type of item returned to Item make it common as ganza. then list item.
-                      (context,
-                          AsyncSnapshot<List<ProductTableData>> snapshot) {
-                    if (snapshot.data == null) {
+                  builder: (context,
+                      AsyncSnapshot<List<ProductTableData>> products) {
+                    if (products.data == null) {
                       return Text("");
                     }
 
-                    return ItemsView(
+                    print(products.data);
+
+                    return ProductsView(
                       context: context,
-                      data: snapshot.data,
+                      data: products.data,
                       vm: vm,
                       shouldSeeItem: false,
                       showCreateItemOnTop: false,

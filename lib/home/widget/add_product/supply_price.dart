@@ -17,10 +17,12 @@ class _SupplyPriceState extends State<SupplyPrice> {
         child: TextFormField(
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.black),
-          onChanged: (costPrice) async {
-            setState(() {
-              DataManager.costPrice = double.parse(costPrice);
-            });
+          onChanged: (supplyPrice) async {
+            if (supplyPrice != '' || supplyPrice == null) {
+              setState(() {
+                DataManager.supplyPrice = double.parse(supplyPrice);
+              });
+            }
           },
           decoration: InputDecoration(
               hintText: S.of(context).supplyPrice, focusColor: Colors.blue),

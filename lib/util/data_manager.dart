@@ -12,7 +12,7 @@ import 'package:uuid/uuid.dart';
 class DataManager extends CouchBase {
   //updatable variables
   static double retailPrice;
-  static double costPrice;
+  static double supplyPrice;
   static String description;
   static String sku;
   static String name;
@@ -21,7 +21,7 @@ class DataManager extends CouchBase {
     VariationTableData variation,
     Store<AppState> store,
     double retailPrice,
-    double costPrice,
+    double supplyPrice,
     String variantName,
   }) async {
     if (variation != null) {
@@ -34,8 +34,8 @@ class DataManager extends CouchBase {
 
       await store.state.database.stockDao.updateStock(
         stock.copyWith(
-          retailPrice: retailPrice ?? stock.retailPrice,
-          supplyPrice: costPrice ?? stock.supplyPrice,
+          retailPrice: retailPrice,
+          supplyPrice: supplyPrice,
         ),
       );
     }
@@ -125,6 +125,7 @@ class DataManager extends CouchBase {
           color: "#955be9",
           active: true,
           hasPicture: false,
+
           isCurrentUpdate: false,
           isDraft: true,
           picture: '',
@@ -172,6 +173,15 @@ class DataManager extends CouchBase {
         ),
       );
 
+      //update branchProduct.
+      store.state.database.branchProductDao.insert(
+        //ignore: missing_required_param
+        BranchProductTableData(
+            branchId: store.state.branch.id,
+            productId: product.id,
+            id: Uuid().v1()),
+      );
+
       dispatchCurrentTmpItem(store, product);
       return;
     }
@@ -181,8 +191,17 @@ class DataManager extends CouchBase {
 
   static void dispatchCurrentTmpItem(
       Store<AppState> store, ProductTableData product) async {
-    VariationTableData variant =
-        await store.state.database.variationDao.getVariationByName(name: 'tmp',productId: product.id);
+    VariationTableData variant;
+    variant = await store.state.database.variationDao
+        .getVariationByName(name: 'tmp', productId: product.id);
+
+    if (variant == null) {
+      //this is when a user started editing default variant to regular variant
+      //and we do not need to get error as there is no tmp variant available, the product
+      //is not done creating.
+      variant = await store.state.database.variationDao
+          .getVariationByName(name: 'Regular', productId: product.id);
+    }
     //dispatch this variant.
     store.dispatch(
       VariationAction(

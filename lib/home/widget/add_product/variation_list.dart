@@ -25,7 +25,7 @@ class _VariationListState extends State<VariationList> {
               child: ListView(children: <Widget>[
                 StreamBuilder(
                     stream: vm.database.stockDao.getStockByVariantIdStream(
-                        branchId: vm.branch.id, variantId: '001'),
+                        branchId: vm.branch.id, variantId: vm.variant.id),
                     builder: (context,
                         AsyncSnapshot<List<StockTableData>> snapshot) {
                       if (snapshot.data == null) {
@@ -50,8 +50,11 @@ class _VariationListState extends State<VariationList> {
                                 ),
                                 onPressed: () {
                                   Router.navigator.pushNamed(
-                                      Router.receiveStock,
-                                      arguments: variations[i].id);
+                                    Router.receiveStock,
+                                    arguments: ReceiveStockScreenArguments(
+                                      variationId: variations[i].id,
+                                    ),
+                                  );
                                 },
                               ),
                             ]),

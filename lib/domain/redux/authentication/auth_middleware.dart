@@ -11,7 +11,6 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/hint.dart';
-
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -68,6 +67,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     //todo: implement token based auth if  user is logging via token
     await store.state.couch.initSqlDb(store);
     await getBusinesses(store, generalRepository);
+    await generateAppColors(generalRepository, store);
+    await createAppActions(store);
   };
 }
 

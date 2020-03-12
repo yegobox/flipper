@@ -1,5 +1,5 @@
-import 'package:flipper/data/product_table.dart';
 import 'package:flipper/data/main_database.dart';
+import 'package:flipper/data/product_table.dart';
 import 'package:flipper/data/variation_table.dart';
 import 'package:moor/moor.dart';
 
@@ -73,8 +73,9 @@ class ProductDao extends DatabaseAccessor<Database> with _$ProductDaoMixin {
           ..where((t) => t.branchId.equals(branchId))
           ..orderBy(
             ([
-              (t) => OrderingTerm(expression: t.id, mode: OrderingMode.asc),
-              (t) => OrderingTerm(expression: t.id),
+              (t) =>
+                  OrderingTerm(expression: t.idLocal, mode: OrderingMode.desc),
+              (t) => OrderingTerm(expression: t.idLocal),
             ]),
           ))
         .join([

@@ -6,7 +6,6 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
-
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -216,7 +215,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
     String variantName = _name ?? variation.name;
 
     await DataManager.updateVariation(
-      costPrice: costPrice,
+      supplyPrice: costPrice,
       retailPrice: retailPrice,
       variation: variation,
       variantName: variantName,

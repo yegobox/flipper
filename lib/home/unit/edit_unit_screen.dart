@@ -18,7 +18,7 @@ class EditUnitTypeScreen extends StatefulWidget {
 }
 
 class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
-  Widget _getUnitsWidgets(
+  List<Widget> _getUnitsWidgets(
       AsyncSnapshot<List<UnitTableData>> snapshot, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
     for (var i = 0; i < snapshot.data.length; i++) {
@@ -37,7 +37,7 @@ class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
           },
           child: ListTile(
             title: Text(
-              'Per ' + snapshot.data[i].name,
+              snapshot.data[i].name,
               style: TextStyle(color: Colors.black),
             ),
             trailing: Radio(
@@ -57,7 +57,8 @@ class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
         ),
       ));
     }
-    return Wrap(children: list);
+    return list;
+//    return Wrap(children: list);
   }
 
   @override
@@ -86,37 +87,19 @@ class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: Wrap(
-            children: <Widget>[
-              Center(
-                child: Container(
-                  height: 40,
-                  child: Divider(
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              StreamBuilder(
-                  stream: vm.database.unitDao.getUnitsStream(),
-                  builder:
-                      (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
-                    if (snapshot.data == null) {
-                      return Text("");
-                    }
-                    return _getUnitsWidgets(snapshot, vm);
-                  }),
-              Text("Edit units and precision in items> Units"),
-              Visibility(
-                visible: false,
-                child: FlatButton(
-                  child: Text("invisible button"),
-                  onPressed: vm.hasAction && vm.appAction.name == 'showLoader'
-                      ? _handleFormSubmit()
-                      : null,
-                ),
-              )
-            ],
-          ),
+          body: StreamBuilder(
+              stream: vm.database.unitDao.getUnitsStream(),
+              builder: (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
+                if (snapshot.data == null) {
+                  return Text("");
+                }
+                return ListView(
+                    children: ListTile.divideTiles(
+                  context: context,
+                  tiles: _getUnitsWidgets(snapshot, vm),
+                ).toList());
+//                    return _getUnitsWidgets(snapshot, vm);
+              }),
         );
       },
     );
