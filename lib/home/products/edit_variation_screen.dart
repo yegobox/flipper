@@ -161,7 +161,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           child: TextFormField(
                             initialValue: snapshot.data[0].sku,
                             style: TextStyle(color: HexColor("#2d3436")),
-                            validator: Validators.isStringHasMoreChars,
+                            validator: Validators.isValid,
                             onChanged: (_sku) {
                               if (_sku != '') {
                                 sku = _sku;
@@ -228,14 +228,14 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
       child: Container(
         width: 300,
         child: StreamBuilder(
-            stream: vm.database.stockDao.getStockByVariantIdStream(
-                branchId: vm.branch.id, variantId: '001'),
+            stream: vm.database.stockDao.getStockByProductIdStream(
+                branchId: vm.branch.id, productId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return TextFormField(
                   keyboardType: TextInputType.number,
                   style: TextStyle(color: Colors.black),
-                  validator: Validators.isStringHasMoreChars,
+                  validator: Validators.isValid,
                   onChanged: (cost) {
                     if (cost != '') {
                       _costPrice = double.parse(cost);
@@ -251,7 +251,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                   child: TextFormField(
                     initialValue: snapshot.data[0].supplyPrice.toString(),
                     style: TextStyle(color: HexColor("#2d3436")),
-                    validator: Validators.isStringHasMoreChars,
+                    validator: Validators.isValid,
                     onChanged: (cost) {
                       if (cost != '') {
                         _costPrice = double.parse(cost);
@@ -274,14 +274,14 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
       child: Container(
         width: 300,
         child: StreamBuilder(
-            stream: vm.database.stockDao.getStockByVariantIdStream(
-                branchId: vm.branch.id, variantId: '001'),
+            stream: vm.database.stockDao.getStockByProductIdStream(
+                branchId: vm.branch.id, productId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return TextFormField(
                   keyboardType: TextInputType.number,
                   style: TextStyle(color: Colors.black),
-                  validator: Validators.isStringHasMoreChars,
+                  validator: Validators.isValid,
                   onChanged: (price) {
                     if (price != '') {
                       _retailPrice = double.parse(price);
@@ -297,7 +297,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                   child: TextFormField(
                     initialValue: snapshot.data[0].retailPrice.toString(),
                     style: TextStyle(color: HexColor("#2d3436")),
-                    validator: Validators.isStringHasMoreChars,
+                    validator: Validators.isValid,
                     onChanged: (price) {
                       if (price != '') {
                         _retailPrice = double.parse(price);

@@ -15,11 +15,6 @@ class StockHistoryDao extends DatabaseAccessor<Database>
       into(db.stockHistoryTable).insert(stockHistory);
 
   Future updateHistory(StockHistoryTableData entry) {
-    // using replace will update all fields from the entry that are not marked as a primary key.
-    // it will also make sure that only the entry with the same primary key will be updated.
-    // Here, this means that the row that has the same id as entry will be updated to reflect
-    // the entry's title, content and category. As it set's its where clause automatically, it
-    // can not be used together with where.
     return update(db.stockHistoryTable).replace(entry);
   }
 
@@ -27,7 +22,14 @@ class StockHistoryDao extends DatabaseAccessor<Database>
       select(db.stockHistoryTable).get();
 
   Future<StockHistoryTableData> getById({String id}) {
-    return (select(db.stockHistoryTable)..where((t) => t.id.equals(id)))
+    return (select(db.stockHistoryTable)
+          ..where((t) => t.id.like('%' + id + '%')))
+        .getSingle();
+  }
+
+  Future<StockHistoryTableData> getByVariantId({String variantId}) {
+    return (select(db.stockHistoryTable)
+          ..where((t) => t.variantId.like('%' + variantId + '%')))
         .getSingle();
   }
 }

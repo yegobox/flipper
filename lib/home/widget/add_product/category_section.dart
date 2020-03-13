@@ -1,6 +1,8 @@
 import 'package:flipper/data/main_database.dart';
+import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/model/category.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,15 @@ class _CategorySectionState extends State<CategorySection> {
     for (var i = 0; i < categories.length; i++) {
       if (categories[i].focused) {
         text = Text(categories[i].name);
+        StoreProvider.of<AppState>(context).dispatch(
+          CategoryAction(
+            category: Category((c) => c
+              ..branchId = categories[i].branchId
+              ..id = categories[i].id
+              ..focused = categories[i].focused
+              ..name = categories[i].name),
+          ),
+        );
         return text;
       } else {
         text = Text(S.of(context).selectCategory);

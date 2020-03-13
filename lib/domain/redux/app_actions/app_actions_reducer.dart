@@ -29,7 +29,7 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, CleanAppActions>(_onCleanAppAction),
   TypedReducer<AppState, CleanCurrentColor>(_onCleanCurrentColor),
   TypedReducer<AppState, CustomUnit>(_onCustomUnit),
-  TypedReducer<AppState, CustomCategory>(_onCustomCategory),
+  TypedReducer<AppState, CategoryAction>(_onCategory),
   TypedReducer<AppState, VariationAction>(_onVariation),
   TypedReducer<AppState, CustomItem>(_onCustomItem),
 ];
@@ -146,8 +146,8 @@ AppState _onCustomUnit(AppState state, CustomUnit action) {
   return state.rebuild((a) => a..customUnit = action.unit.toBuilder());
 }
 
-AppState _onCustomCategory(AppState state, CustomCategory action) {
-  return state.rebuild((a) => a..customCategory = action.category.toBuilder());
+AppState _onCategory(AppState state, CategoryAction action) {
+  return state.rebuild((a) => a..category = action.category.toBuilder());
 }
 
 //fixme: delete this when no longer in use keep _onTempItem

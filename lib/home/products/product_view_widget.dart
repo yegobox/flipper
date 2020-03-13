@@ -36,8 +36,8 @@ class ProductsView extends StatefulWidget {
 }
 
 class _ProductsViewState extends State<ProductsView> {
-  List<Widget> getItems(List<ProductTableData> products, BuildContext context,
-      CommonViewModel vm) {
+  List<Widget> getProducts(List<ProductTableData> products,
+      BuildContext context, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
 
     if (widget.showCreateItemOnTop) {
@@ -46,7 +46,6 @@ class _ProductsViewState extends State<ProductsView> {
     if (!widget.showCreateItemOnTop) {
       itemRow(list, context);
     }
-    ;
 
     for (var i = 0; i < products.length; i++) {
       if (products[i].name != "custom" && products[i].name != 'tmp') {
@@ -88,7 +87,7 @@ class _ProductsViewState extends State<ProductsView> {
                 style: TextStyle(color: Colors.black),
               ),
               trailing: StreamBuilder(
-                stream: vm.database.stockDao.getStockByItemIdStream(
+                stream: vm.database.stockDao.getStockByProductIdStream(
                     branchId: vm.branch.id, productId: products[i].id),
                 builder:
                     (context, AsyncSnapshot<List<StockTableData>> snapshot) {
@@ -258,7 +257,7 @@ class _ProductsViewState extends State<ProductsView> {
     return ListView(
       children: ListTile.divideTiles(
         context: context,
-        tiles: getItems(widget.data, context, widget.vm),
+        tiles: getProducts(widget.data, context, widget.vm),
       ).toList(),
     );
   }

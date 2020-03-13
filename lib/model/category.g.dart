@@ -14,7 +14,7 @@ class _$Category extends Category {
   @override
   final bool focused;
   @override
-  final int branchId;
+  final String branchId;
 
   factory _$Category([void Function(CategoryBuilder) updates]) =>
       (new CategoryBuilder()..update(updates)).build();
@@ -84,9 +84,9 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
   bool get focused => _$this._focused;
   set focused(bool focused) => _$this._focused = focused;
 
-  int _branchId;
-  int get branchId => _$this._branchId;
-  set branchId(int branchId) => _$this._branchId = branchId;
+  String _branchId;
+  String get branchId => _$this._branchId;
+  set branchId(String branchId) => _$this._branchId = branchId;
 
   CategoryBuilder();
 

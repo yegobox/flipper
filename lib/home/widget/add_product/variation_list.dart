@@ -24,8 +24,8 @@ class _VariationListState extends State<VariationList> {
               width: 350,
               child: ListView(children: <Widget>[
                 StreamBuilder(
-                    stream: vm.database.stockDao.getStockByVariantIdStream(
-                        branchId: vm.branch.id, variantId: vm.variant.id),
+                    stream: vm.database.stockDao.getStockByVariantStream(
+                        branchId: vm.branch.id, variationId: variations[i].id),
                     builder: (context,
                         AsyncSnapshot<List<StockTableData>> snapshot) {
                       if (snapshot.data == null) {
@@ -72,6 +72,32 @@ class _VariationListState extends State<VariationList> {
     }
     return Column(children: list);
   }
+
+//  List<Widget> buildButton(AsyncSnapshot<List<StockTableData>> stock,
+//      BuildContext context, VariationTableData variation) {
+//    List<Widget> buttons = [];
+//    for (var i = 0; i < stock.data.length; i++) {
+//      buttons.add(
+//        FlatButton(
+//          child: Text(
+//            stock.data[i].currentStock == 0
+//                ? S.of(context).receiveStock
+//                : stock.data[i].currentStock.toString() + S.of(context).inStock,
+//          ),
+//          onPressed: () {
+//            Router.navigator.pushNamed(
+//              Router.receiveStock,
+//              arguments: ReceiveStockScreenArguments(
+//                variationId: variation.id,
+//              ),
+//            );
+//          },
+//        ),
+//      );
+//    }
+//
+//    return buttons;
+//  }
 
   @override
   Widget build(BuildContext context) {

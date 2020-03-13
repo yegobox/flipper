@@ -6,6 +6,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:uuid/uuid.dart';
 
 class ReceiveStockScreen extends StatefulWidget {
   ReceiveStockScreen({
@@ -52,10 +53,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                       builder: (context,
                           AsyncSnapshot<List<StockTableData>> snapshot) {
                         if (snapshot.data == null) {
-                          return ReceiveStockInputWidget(
-                            variantId: widget.variationId,
-                            vm: vm,
-                          );
+                          return Text("");
                         } else {
                           return ReceiveStockInputWidget(
                             variantId: widget.variationId,
@@ -87,7 +85,7 @@ class ReceiveStockInputWidget extends StatefulWidget {
     this.currentStock,
   }) : super(key: key);
   final CommonViewModel vm;
-  final variantId;
+  final String variantId;
   final int currentStock;
   @override
   _ReceiveStockInputWidgetState createState() =>
@@ -95,13 +93,34 @@ class ReceiveStockInputWidget extends StatefulWidget {
 }
 
 class _ReceiveStockInputWidgetState extends State<ReceiveStockInputWidget> {
-  Future receiveStock(CommonViewModel vm, double count) async {
+  Future receiveStock(CommonViewModel vm, double quantity) async {
     StockTableData stock = await vm.database.stockDao.getStockByVariantId(
         variantId: widget.variantId, branchId: vm.branch.id);
+    //get a stock history by variantId then update it with: Received as reason every time an edit.
+    StockHistoryTableData history = await vm.database.stockHistoryDao
+        .getByVariantId(variantId: widget.variantId);
 
-    vm.database.stockDao.updateStock(
-      stock.copyWith(updatedAt: DateTime.now(), currentStock: count.toInt()),
+    await vm.database.stockDao.updateStock(
+      stock.copyWith(
+          updatedAt: DateTime.now(),
+          currentStock: quantity.toInt(),
+          idLocal: stock.idLocal),
     );
+
+    if (history == null) {
+      await vm.database.stockHistoryDao.insert(StockHistoryTableData(
+          quantity: quantity.toInt(),
+          variantId: widget.variantId,
+          id: Uuid().v1(),
+          note: 'Received ' + quantity.toString() + 'qty',
+          reason: 'Received',
+          stockId: stock.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now()));
+    } else {
+      await vm.database.stockHistoryDao
+          .updateHistory(history.copyWith(quantity: quantity.toInt()));
+    }
   }
 
   @override

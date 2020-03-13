@@ -4,7 +4,6 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/product.dart';
-
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +30,7 @@ class _ChangeQuantityForSellingState extends State<ChangeQuantityForSelling> {
         builder: (context, vm) {
           return StreamBuilder(
               //todo:passrealproductId
-              stream: vm.database.stockDao.getStockByItemIdStream(
+              stream: vm.database.stockDao.getStockByProductIdStream(
                   branchId: vm.branch.id, productId: widget.productId),
               builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
                 if (snapshot.data == null) {

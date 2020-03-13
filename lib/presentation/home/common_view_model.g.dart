@@ -66,8 +66,6 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Unit customUnit;
   @override
-  final Category customCategory;
-  @override
   final Product customItem;
   @override
   final int tempCategoryId;
@@ -109,7 +107,6 @@ class _$CommonViewModel extends CommonViewModel {
       this.user,
       this.keypad,
       this.customUnit,
-      this.customCategory,
       this.customItem,
       this.tempCategoryId,
       this.tmpItem,
@@ -188,7 +185,6 @@ class _$CommonViewModel extends CommonViewModel {
         user == other.user &&
         keypad == other.keypad &&
         customUnit == other.customUnit &&
-        customCategory == other.customCategory &&
         customItem == other.customItem &&
         tempCategoryId == other.tempCategoryId &&
         tmpItem == other.tmpItem &&
@@ -215,22 +211,22 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode),
-                                                                                cartItem.hashCode),
-                                                                            itemVariations.hashCode),
-                                                                        variant.hashCode),
-                                                                    items.hashCode),
-                                                                currentIncrement.hashCode),
-                                                            currentActiveSaleItem.hashCode),
-                                                        database.hashCode),
-                                                    couch.hashCode),
-                                                carts.hashCode),
-                                            cartQuantities.hashCode),
-                                        order.hashCode),
-                                    user.hashCode),
-                                keypad.hashCode),
-                            customUnit.hashCode),
-                        customCategory.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode),
+                                                                                branch.hashCode),
+                                                                            cartItem.hashCode),
+                                                                        itemVariations.hashCode),
+                                                                    variant.hashCode),
+                                                                items.hashCode),
+                                                            currentIncrement.hashCode),
+                                                        currentActiveSaleItem.hashCode),
+                                                    database.hashCode),
+                                                couch.hashCode),
+                                            carts.hashCode),
+                                        cartQuantities.hashCode),
+                                    order.hashCode),
+                                user.hashCode),
+                            keypad.hashCode),
+                        customUnit.hashCode),
                     customItem.hashCode),
                 tempCategoryId.hashCode),
             tmpItem.hashCode),
@@ -269,7 +265,6 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('user', user)
           ..add('keypad', keypad)
           ..add('customUnit', customUnit)
-          ..add('customCategory', customCategory)
           ..add('customItem', customItem)
           ..add('tempCategoryId', tempCategoryId)
           ..add('tmpItem', tmpItem)
@@ -410,12 +405,6 @@ class CommonViewModelBuilder
   UnitBuilder get customUnit => _$this._customUnit ??= new UnitBuilder();
   set customUnit(UnitBuilder customUnit) => _$this._customUnit = customUnit;
 
-  CategoryBuilder _customCategory;
-  CategoryBuilder get customCategory =>
-      _$this._customCategory ??= new CategoryBuilder();
-  set customCategory(CategoryBuilder customCategory) =>
-      _$this._customCategory = customCategory;
-
   ProductBuilder _customItem;
   ProductBuilder get customItem => _$this._customItem ??= new ProductBuilder();
   set customItem(ProductBuilder customItem) => _$this._customItem = customItem;
@@ -468,7 +457,6 @@ class CommonViewModelBuilder
       _user = _$v.user?.toBuilder();
       _keypad = _$v.keypad?.toBuilder();
       _customUnit = _$v.customUnit?.toBuilder();
-      _customCategory = _$v.customCategory?.toBuilder();
       _customItem = _$v.customItem?.toBuilder();
       _tempCategoryId = _$v.tempCategoryId;
       _tmpItem = _$v.tmpItem?.toBuilder();
@@ -526,7 +514,6 @@ class CommonViewModelBuilder
               user: _user?.build(),
               keypad: _keypad?.build(),
               customUnit: _customUnit?.build(),
-              customCategory: _customCategory?.build(),
               customItem: _customItem?.build(),
               tempCategoryId: tempCategoryId,
               tmpItem: _tmpItem?.build(),
@@ -575,8 +562,6 @@ class CommonViewModelBuilder
         _keypad?.build();
         _$failedField = 'customUnit';
         _customUnit?.build();
-        _$failedField = 'customCategory';
-        _customCategory?.build();
         _$failedField = 'customItem';
         _customItem?.build();
 

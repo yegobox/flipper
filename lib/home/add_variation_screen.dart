@@ -2,7 +2,7 @@ import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/managers/dialog_manager.dart';
+import 'package:flipper/home/widget/add_product/section_select_unit.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -14,12 +14,10 @@ import 'package:uuid/uuid.dart';
 
 class AddVariationScreen extends StatefulWidget {
   AddVariationScreen(
-      {Key key,
-      @required this.regularRetailPrice,
-      @required this.regularCostPrice})
+      {Key key, @required this.retailPrice, @required this.supplyPrice})
       : super(key: key);
-  final double regularRetailPrice;
-  final double regularCostPrice;
+  final double retailPrice;
+  final double supplyPrice;
 
   @override
   _AddVariationScreenState createState() => _AddVariationScreenState();
@@ -29,6 +27,10 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
   String name;
 
   ActionsTableData _actions;
+
+  double _retailPrice;
+
+  double _supplyPrice;
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -75,32 +77,13 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      width: 300,
-                      child: GestureDetector(
-                        onTap: () {
-                          Router.navigator.pushNamed(Router.addUnitType);
-                        },
-                        child: ListTile(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 0.3),
-                          leading: Text(S.of(context).unityType),
-                          trailing: Wrap(
-                            children: <Widget>[
-                              Text(vm.currentUnit != null
-                                  ? vm.currentUnit.name
-                                  : S.of(context).unityType),
-                              Icon(Icons.arrow_forward_ios)
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    SectionSelectUnit(),
                     Center(
                       child: Container(
                         width: 300,
                         child: TextFormField(
                           style: TextStyle(color: Colors.black),
-                          validator: Validators.isStringHasMoreChars,
+                          validator: Validators.isValid,
                           onChanged: (_name) {
                             if (_name == '') {
                               vm.database.actionsDao.updateAction(
@@ -125,7 +108,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                       width: 300,
                       child: TextFormField(
                         style: TextStyle(color: HexColor("#2d3436")),
-                        validator: Validators.isStringHasMoreChars,
+                        validator: Validators.isValid,
                         onChanged: (sku) {
                           if (sku == '' || sku == null) {
                             sku = DateTime.now().year.toString() +
@@ -152,18 +135,16 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
   }
 
   Future _createVariant(CommonViewModel vm, BuildContext context) async {
-    Manager.deprecatedNotification();
-
     VariationTableData variation = await vm.database.variationDao
         .getVariationById(variantId: vm.variant.id);
     final store = StoreProvider.of<AppState>(context);
 
     await DataManager.updateVariation(
       variation: variation,
-      supplyPrice: widget.regularCostPrice,
+      supplyPrice: widget.supplyPrice,
       store: store,
       variantName: 'Regular',
-      retailPrice: widget.regularRetailPrice,
+      retailPrice: widget.retailPrice,
     );
 
     int variantId = await vm.database.variationDao.insert(
@@ -179,13 +160,12 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
     );
     VariationTableData variant = await vm.database.variationDao
         .getVariationByIdLocal(variantId: variantId);
-    //insert into stock too
-    vm.database.stockDao.insert(
-      //ignore: missing_required_param
+
+    await vm.database.stockDao.insert(
       StockTableData(
         canTrackingStock: false,
-        retailPrice: DataManager.retailPrice,
-        supplyPrice: DataManager.supplyPrice,
+        retailPrice: _retailPrice,
+        supplyPrice: _supplyPrice,
         lowStock: 0,
         productId: vm.tmpItem.id,
         showLowStockAlert: false,
@@ -197,7 +177,8 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         createdAt: DateTime.now(),
       ),
     );
-    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+    await vm.database.actionsDao
+        .updateAction(_actions.copyWith(isLocked: true));
   }
 
   Container buildCostPriceWidget(BuildContext context) {
@@ -206,11 +187,11 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
       child: TextFormField(
         keyboardType: TextInputType.number,
         style: TextStyle(color: Colors.black),
-        validator: Validators.isStringHasMoreChars,
+        validator: Validators.isValid,
         onChanged: (supplyPrice) {
           if (supplyPrice != '') {
             setState(() {
-              DataManager.supplyPrice = double.parse(supplyPrice);
+              _supplyPrice = double.parse(supplyPrice);
             });
           }
         },
@@ -226,11 +207,11 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
       child: TextFormField(
         keyboardType: TextInputType.number,
         style: TextStyle(color: Colors.black),
-        validator: Validators.isStringHasMoreChars,
+        validator: Validators.isValid,
         onChanged: (price) {
           if (price != '') {
             setState(() {
-              DataManager.retailPrice = double.parse(price);
+              _retailPrice = double.parse(price);
             });
           }
         },

@@ -45,7 +45,7 @@ class _ViewProductsScreenState extends State<ViewProductsScreen> {
                     if (products.data == null) {
                       return Text("");
                     }
-                    print(products.data);
+
                     return ProductsView(
                       context: context,
                       shouldSeeItem: true,

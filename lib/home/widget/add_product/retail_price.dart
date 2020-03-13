@@ -22,6 +22,10 @@ class _RetailPriceState extends State<RetailPrice> {
               setState(() {
                 DataManager.retailPrice = double.parse(retailPrice);
               });
+            } else {
+              setState(() {
+                DataManager.retailPrice = 0.0;
+              });
             }
           },
           decoration: InputDecoration(

@@ -25,15 +25,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
         .getSingle();
   }
 
-  Stream<List<StockTableData>> getStockByVariantIdStream(
-      {String branchId, String variantId}) {
-    return (select(db.stockTable)
-          ..where((t) => t.branchId.equals(branchId))
-          ..where((t) => t.variantId.equals(variantId)))
-        .watch();
-  }
-
-  Stream<List<StockTableData>> getStockByItemIdStream(
+  Stream<List<StockTableData>> getStockByProductIdStream(
       {String branchId, String productId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))
@@ -44,8 +36,8 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
   Stream<List<StockTableData>> getStockByVariantStream(
       {String branchId, String variationId}) {
     return (select(db.stockTable)
-          ..where((t) => t.branchId.equals(branchId))
-          ..where((t) => t.variantId.equals(variationId)))
+          ..where((t) => t.branchId.like('%' + branchId + '%'))
+          ..where((t) => t.variantId.like('%' + variationId + '%')))
         .watch();
   }
 

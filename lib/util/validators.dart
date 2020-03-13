@@ -8,7 +8,7 @@ class Validators {
       return null;
   }
 
-  static String isStringHasMoreChars(String value) {
+  static String isValid(String value) {
     if (value.length < 7) {
       return 'Name should be greater than 7 characters.';
     } else if (value.length > 7) {

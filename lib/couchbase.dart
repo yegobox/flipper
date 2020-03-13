@@ -278,9 +278,9 @@ class CouchBase extends Model with Fluttercouch {
           updatedAt: DateTime.parse(doc.getList('products')[i]['updatedAt']));
 
       if (product == null) {
-        store.state.database.productDao.insert(productData);
+        await store.state.database.productDao.insert(productData);
       } else {
-        store.state.database.productDao
+        await store.state.database.productDao
             .updateProduct(productData.copyWith(idLocal: product.idLocal));
       }
     }
@@ -307,9 +307,9 @@ class CouchBase extends Model with Fluttercouch {
               DateTime.parse(variants.getList('variants')[i]['updatedAt']));
 
       if (variation == null) {
-        store.state.database.variationDao.insert(variationData);
+        await store.state.database.variationDao.insert(variationData);
       } else {
-        store.state.database.variationDao.updateVariation(
+        await store.state.database.variationDao.updateVariation(
             variationData.copyWith(idLocal: variation.idLocal));
       }
     }
@@ -333,9 +333,9 @@ class CouchBase extends Model with Fluttercouch {
       );
 
       if (branchProduct == null) {
-        store.state.database.branchProductDao.insert(branchProductData);
+        await store.state.database.branchProductDao.insert(branchProductData);
       } else {
-        store.state.database.branchProductDao.updateBP(
+        await store.state.database.branchProductDao.updateBP(
             branchProductData.copyWith(idLocal: branchProduct.idLocal));
       }
     }
@@ -364,10 +364,10 @@ class CouchBase extends Model with Fluttercouch {
           updatedAt: DateTime.parse(stocks.getList('stocks')[i]['updatedAt']));
 
       if (stock == null) {
-        store.state.database.stockDao.insert(branchProductData);
+        await store.state.database.stockDao.insert(branchProductData);
       } else {
-        store.state.database.stockDao.updateStock(branchProductData.copyWith(
-            idLocal: stock.idLocal, isActive: false));
+        await store.state.database.stockDao.updateStock(branchProductData
+            .copyWith(idLocal: stock.idLocal, isActive: false));
       }
     }
 
@@ -393,9 +393,9 @@ class CouchBase extends Model with Fluttercouch {
               stockHistories.getList('stockHistory')[i]['updatedAt']));
 
       if (history == null) {
-        store.state.database.stockHistoryDao.insert(historyData);
+        await store.state.database.stockHistoryDao.insert(historyData);
       } else {
-        store.state.database.stockHistoryDao
+        await store.state.database.stockHistoryDao
             .updateHistory(historyData.copyWith(idLocal: history.idLocal));
       }
     }
@@ -421,9 +421,9 @@ class CouchBase extends Model with Fluttercouch {
           updatedAt: DateTime.parse(taxes.getList('taxes')[i]['updatedAt']));
 
       if (tax == null) {
-        store.state.database.taxDao.insert(taxData);
+        await store.state.database.taxDao.insert(taxData);
       } else {
-        store.state.database.taxDao
+        await store.state.database.taxDao
             .updateTax(taxData.copyWith(idLocal: tax.idLocal));
       }
     }
@@ -438,21 +438,35 @@ class CouchBase extends Model with Fluttercouch {
     for (var i = 0; i < categories.getList('categories').length; i++) {
       CategoryTableData category = await store.state.database.categoryDao
           .getById(id: categories.getList('categories')[i]['id']);
-      // ignore:missing_required_param
-      CategoryTableData categoryData = CategoryTableData(
-          id: categories.getList('categories')[i]['id'],
-          name: categories.getList('categories')[i]['name'],
-          focused: false,
-          branchId: categories.getList('categories')[i]['branchId'],
-          createdAt:
-              DateTime.parse(categories.getList('categories')[i]['createdAt']),
-          updatedAt:
-              DateTime.parse(categories.getList('categories')[i]['updatedAt']));
+      CategoryTableData categoryData;
+      if (i == 1) {
+        // ignore:missing_required_param
+        categoryData = CategoryTableData(
+            id: categories.getList('categories')[i]['id'],
+            name: categories.getList('categories')[i]['name'],
+            focused: true,
+            branchId: categories.getList('categories')[i]['branchId'],
+            createdAt: DateTime.parse(
+                categories.getList('categories')[i]['createdAt']),
+            updatedAt: DateTime.parse(
+                categories.getList('categories')[i]['updatedAt']));
+      } else {
+        // ignore:missing_required_param
+        categoryData = CategoryTableData(
+            id: categories.getList('categories')[i]['id'],
+            name: categories.getList('categories')[i]['name'],
+            focused: false,
+            branchId: categories.getList('categories')[i]['branchId'],
+            createdAt: DateTime.parse(
+                categories.getList('categories')[i]['createdAt']),
+            updatedAt: DateTime.parse(
+                categories.getList('categories')[i]['updatedAt']));
+      }
 
       if (category == null) {
-        store.state.database.categoryDao.insert(categoryData);
+        await store.state.database.categoryDao.insert(categoryData);
       } else {
-        store.state.database.categoryDao
+        await store.state.database.categoryDao
             .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
       }
     }
@@ -524,9 +538,9 @@ class CouchBase extends Model with Fluttercouch {
       }
 
       if (unit == null) {
-        store.state.database.unitDao.insert(unitTableData);
+        await store.state.database.unitDao.insert(unitTableData);
       } else {
-        store.state.database.unitDao
+        await store.state.database.unitDao
             .updateUnit(unitTableData.copyWith(id: unit.id));
       }
     }
@@ -644,7 +658,7 @@ class CouchBase extends Model with Fluttercouch {
 
     List m = [map];
     List m2 = products.getList('products');
-    m2.addAll(m);
+    m2.addAll(m); //merge two array
     products
         .toMutable()
         .setList('products', m2)
@@ -696,12 +710,40 @@ class CouchBase extends Model with Fluttercouch {
 
     branchProducts
         .toMutable()
-        .setList('variants', m)
+        .setList('branchProducts', m)
         .setString('channel', map['channel'])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
     return await saveDocumentWithId(map['_id'], branchProducts);
+  }
+
+  Future<dynamic> createStockHistory(Map map) async {
+    assert(map['_id'] != null);
+    Document history = await getDocumentWithId(map['_id']);
+
+    assert(map['channel'] != null);
+    assert(map['variantId'] != null);
+    assert(map['stockId'] != null);
+    assert(map['quantity'] != null);
+    assert(map['reason'] != null);
+    assert(map['note'] != null);
+    assert(map['updatedAt'] != null);
+    assert(map['createdAt'] != null);
+    assert(map['id'] != null);
+
+    List m = [map];
+    List m2 = history.getList('stockHistory');
+    m.addAll(m2);
+
+    history
+        .toMutable()
+        .setList('stockHistory', m)
+        .setString('channel', map['channel'])
+        .setString('uid', Uuid().v1())
+        .setString('_id', map['_id']);
+
+    return await saveDocumentWithId(map['_id'], history);
   }
 
   Future<dynamic> createStock(Map map) async {
@@ -790,10 +832,28 @@ class CouchBase extends Model with Fluttercouch {
           .getStockByVariantId(
               variantId: variations[i].id, branchId: store.state.branch.id);
 
+      //sync stock history:
+      StockHistoryTableData history = await store.state.database.stockHistoryDao
+          .getByVariantId(variantId: variations[i].id);
+      if (history != null) {
+        Map _history = {
+          'variantId': history.variantId,
+          'stockId': history.stockId,
+          'quantity': history.quantity,
+          'note': history.note,
+          'reason': history.reason,
+          'id': history.id,
+          '_id': 'stockHistory_' + store.state.userId.toString(),
+          'channel': store.state.userId.toString(),
+          'createdAt': history.createdAt.toIso8601String(),
+          'updatedAt': DateTime.now().toIso8601String(),
+        };
+        await createStockHistory(_history);
+      }
+
       Map _mapStock = {
         'branchId': stock.branchId,
-        'productId':
-            productId, //todo: check stock the inserted productId if it is matching!.
+        'productId': productId,
         'createdAt': stock.createdAt.toIso8601String(),
         'id': stock.id,
         '_id': 'stocks_' + store.state.userId.toString(),

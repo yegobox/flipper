@@ -20,8 +20,8 @@ class _RetailPriceWidgetState extends State<RetailPriceWidget> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         return StreamBuilder(
-          stream: vm.database.stockDao.getStockByVariantIdStream(
-              variantId: vm.variant.id,
+          stream: vm.database.stockDao.getStockByProductIdStream(
+              productId: vm.tmpItem.id,
               branchId:
                   vm.branch.id), //do we have regular variant on this item?
           builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {

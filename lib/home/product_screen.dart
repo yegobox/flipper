@@ -31,7 +31,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       Container(
                         child: TextFormField(
                           style: TextStyle(color: Colors.black),
-                          validator: Validators.isStringHasMoreChars,
+                          validator: Validators.isValid,
                         ),
                       )
                     ],
@@ -47,9 +47,6 @@ class _ProductScreenState extends State<ProductScreen> {
                     if (products.data == null) {
                       return Text("");
                     }
-
-                    print(products.data);
-
                     return ProductsView(
                       context: context,
                       data: products.data,

@@ -11,8 +11,8 @@ import 'package:uuid/uuid.dart';
 
 class DataManager extends CouchBase {
   //updatable variables
-  static double retailPrice;
-  static double supplyPrice;
+  static double retailPrice = 0.0;
+  static double supplyPrice = 0.0;
   static String description;
   static String sku;
   static String name;
@@ -121,11 +121,10 @@ class DataManager extends CouchBase {
         //ignore: missing_required_param
         ProductTableData(
           name: productName,
-          categoryId: category.id, //this will be updated ,
+          categoryId: category.id,
           color: "#955be9",
           active: true,
           hasPicture: false,
-
           isCurrentUpdate: false,
           isDraft: true,
           picture: '',
@@ -183,10 +182,9 @@ class DataManager extends CouchBase {
       );
 
       dispatchCurrentTmpItem(store, product);
-      return;
+    } else {
+      dispatchCurrentTmpItem(store, product);
     }
-
-    dispatchCurrentTmpItem(store, product);
   }
 
   static void dispatchCurrentTmpItem(

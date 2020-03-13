@@ -55,9 +55,9 @@ class TempCategoryIdAction {
 }
 
 @immutable
-class CategoryAction {
+class ListCategoryAction {
   final List<Category> categories;
-  CategoryAction(this.categories);
+  ListCategoryAction(this.categories);
 }
 
 @immutable
@@ -228,10 +228,10 @@ class CustomUnit {
 }
 
 @immutable
-class CustomCategory {
+class CategoryAction {
   final Category category;
 
-  CustomCategory({this.category});
+  CategoryAction({this.category});
 }
 
 @immutable

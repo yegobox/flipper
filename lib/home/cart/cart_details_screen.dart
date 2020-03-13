@@ -60,8 +60,8 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
         trailing: Padding(
           padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
           child: StreamBuilder(
-              stream: vm.database.stockDao.getStockByVariantIdStream(
-                  branchId: vm.branch.id, variantId: carts[i].variationId),
+              stream: vm.database.stockDao.getStockByProductIdStream(
+                  branchId: vm.branch.id, productId: carts[i].variationId),
               builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
                 if (snapshot.data == null) {
                   return Text("");

@@ -170,8 +170,8 @@ class Router {
         return MaterialPageRoute<dynamic>(
           builder: (_) => AddVariationScreen(
               key: typedArgs.key,
-              regularRetailPrice: typedArgs.regularRetailPrice,
-              regularCostPrice: typedArgs.regularCostPrice),
+              retailPrice: typedArgs.retailPrice,
+              supplyPrice: typedArgs.supplyPrice),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -380,12 +380,10 @@ class SignUpScreenArguments {
 //AddVariationScreen arguments holder class
 class AddVariationScreenArguments {
   final Key key;
-  final double regularRetailPrice;
-  final double regularCostPrice;
+  final double retailPrice;
+  final double supplyPrice;
   AddVariationScreenArguments(
-      {this.key,
-      @required this.regularRetailPrice,
-      @required this.regularCostPrice});
+      {this.key, @required this.retailPrice, @required this.supplyPrice});
 }
 
 //AddUnitTypeScreen arguments holder class

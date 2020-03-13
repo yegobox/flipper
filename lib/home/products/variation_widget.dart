@@ -36,8 +36,8 @@ class _VariationWidgetState extends State<VariationWidget> {
           );
         },
         child: StreamBuilder(
-            stream: widget.vm.database.stockDao.getStockByVariantIdStream(
-                branchId: widget.vm.branch.id, variantId: '001'),
+            stream: widget.vm.database.stockDao.getStockByProductIdStream(
+                branchId: widget.vm.branch.id, productId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
                 return Text("");

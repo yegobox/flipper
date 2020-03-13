@@ -32,8 +32,6 @@ class _$AppState extends AppState {
   @override
   final Product customItem;
   @override
-  final Category customCategory;
-  @override
   final BuiltList<Unit> units;
   @override
   final BuiltList<User> users;
@@ -104,7 +102,6 @@ class _$AppState extends AppState {
       this.unit,
       this.customUnit,
       this.customItem,
-      this.customCategory,
       this.units,
       this.users,
       this.focusedUnit,
@@ -173,7 +170,6 @@ class _$AppState extends AppState {
         unit == other.unit &&
         customUnit == other.customUnit &&
         customItem == other.customItem &&
-        customCategory == other.customCategory &&
         units == other.units &&
         users == other.users &&
         focusedUnit == other.focusedUnit &&
@@ -223,7 +219,7 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), customCategory.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode),
                                                                                 business.hashCode),
                                                                             hint.hashCode),
                                                                         database.hashCode),
@@ -260,7 +256,6 @@ class _$AppState extends AppState {
           ..add('unit', unit)
           ..add('customUnit', customUnit)
           ..add('customItem', customItem)
-          ..add('customCategory', customCategory)
           ..add('units', units)
           ..add('users', users)
           ..add('focusedUnit', focusedUnit)
@@ -346,12 +341,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ProductBuilder _customItem;
   ProductBuilder get customItem => _$this._customItem ??= new ProductBuilder();
   set customItem(ProductBuilder customItem) => _$this._customItem = customItem;
-
-  CategoryBuilder _customCategory;
-  CategoryBuilder get customCategory =>
-      _$this._customCategory ??= new CategoryBuilder();
-  set customCategory(CategoryBuilder customCategory) =>
-      _$this._customCategory = customCategory;
 
   ListBuilder<Unit> _units;
   ListBuilder<Unit> get units => _$this._units ??= new ListBuilder<Unit>();
@@ -491,7 +480,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _unit = _$v.unit?.toBuilder();
       _customUnit = _$v.customUnit?.toBuilder();
       _customItem = _$v.customItem?.toBuilder();
-      _customCategory = _$v.customCategory?.toBuilder();
       _units = _$v.units?.toBuilder();
       _users = _$v.users?.toBuilder();
       _focusedUnit = _$v.focusedUnit;
@@ -555,7 +543,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               unit: _unit?.build(),
               customUnit: _customUnit?.build(),
               customItem: _customItem?.build(),
-              customCategory: _customCategory?.build(),
               units: _units?.build(),
               users: _users?.build(),
               focusedUnit: focusedUnit,
@@ -607,8 +594,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _customUnit?.build();
         _$failedField = 'customItem';
         _customItem?.build();
-        _$failedField = 'customCategory';
-        _customCategory?.build();
         _$failedField = 'units';
         _units?.build();
         _$failedField = 'users';

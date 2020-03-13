@@ -22,6 +22,10 @@ class _SupplyPriceState extends State<SupplyPrice> {
               setState(() {
                 DataManager.supplyPrice = double.parse(supplyPrice);
               });
+            } else {
+              setState(() {
+                DataManager.supplyPrice = 0.0;
+              });
             }
           },
           decoration: InputDecoration(

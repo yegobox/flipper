@@ -124,7 +124,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                 style: TextStyle(
                                     color: Colors
                                         .black), //todo: move this to app theme
-                                validator: Validators.isStringHasMoreChars,
+                                validator: Validators.isValid,
                                 onChanged: (name) async {
                                   if (name == '') {
                                     setState(() {

@@ -96,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         width: 300,
                         child: TextFormField(
                           style: TextStyle(color: Colors.black),
-                          validator: Validators.isStringHasMoreChars,
+                          validator: Validators.isValid,
                           onChanged: (name) {
                             tBusiness.name = name;
                           },

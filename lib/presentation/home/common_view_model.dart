@@ -98,9 +98,6 @@ abstract class CommonViewModel
   Unit get customUnit;
 
   @nullable
-  Category get customCategory;
-
-  @nullable
   Product get customItem;
 
   @nullable
@@ -168,9 +165,8 @@ abstract class CommonViewModel
       ..user = store.state.user == null ? null : store.state.user.toBuilder()
       ..keypad =
           store.state.keypad == null ? null : store.state.keypad.toBuilder()
-      ..customCategory = store.state.customCategory == null
-          ? null
-          : store.state.customCategory.toBuilder()
+      ..category =
+          store.state.category == null ? null : store.state.category.toBuilder()
       ..customUnit = store.state.customUnit == null
           ? null
           : store.state.customUnit.toBuilder()

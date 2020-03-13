@@ -65,6 +65,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    DataManager.supplyPrice = 0;
+    DataManager.retailPrice = 0;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
@@ -115,7 +122,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         width: 300,
                         child: TextFormField(
                           style: TextStyle(color: Colors.black),
-                          validator: Validators.isStringHasMoreChars,
+                          validator: Validators.isValid,
                           onChanged: (name) async {
                             await updateNameField(name, vm);
                           },
@@ -209,11 +216,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       Router.navigator.pushNamed(Router.addVariationScreen,
           arguments: AddVariationScreenArguments(
-              regularCostPrice:
-                  DataManager.retailPrice == null ? 0 : DataManager.retailPrice,
-              regularRetailPrice: DataManager.supplyPrice == null
-                  ? 0
-                  : DataManager.supplyPrice));
+              retailPrice: DataManager.retailPrice,
+              supplyPrice: DataManager.supplyPrice));
     }
   }
 
@@ -235,16 +239,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<bool> _handleCreateItem(CommonViewModel vm) async {
     final store = StoreProvider.of<AppState>(context);
 
-    await updateProduct(vm, vm.tmpItem.id);
+    await updateProduct(
+        productId: vm.tmpItem.id, categoryId: store.state.category.id, vm: vm);
     VariationTableData variation = await vm.database.variationDao
         .getVariationById(variantId: vm.variant.id);
 
     await DataManager.updateVariation(
       variation: variation,
-      supplyPrice: DataManager.supplyPrice,
+      supplyPrice: DataManager.supplyPrice ?? 0.0,
       store: store,
       variantName: 'Regular',
-      retailPrice: DataManager.retailPrice,
+      retailPrice: DataManager.retailPrice ?? 0.0,
     );
 
     await vm.couch.syncProduct(vm.tmpItem.id, store);
@@ -254,12 +259,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return true;
   }
 
-  Future<bool> updateProduct(CommonViewModel vm, String productId) async {
+  Future<bool> updateProduct(
+      {CommonViewModel vm, String productId, String categoryId}) async {
     ProductTableData product =
         await vm.database.productDao.getProductById(productId: productId);
     await vm.database.productDao.updateProduct(
       product.copyWith(
         name: DataManager.name,
+        categoryId: categoryId,
         updatedAt: DateTime.now(),
         deletedAt: 'null',
       ),
