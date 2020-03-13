@@ -46,6 +46,7 @@ class _VariationListState extends State<VariationList> {
                                       ? S.of(context).receiveStock
                                       : snapshot.data[0].currentStock
                                               .toString() +
+                                          " " +
                                           S.of(context).inStock,
                                 ),
                                 onPressed: () {
