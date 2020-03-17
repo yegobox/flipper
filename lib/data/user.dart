@@ -5,7 +5,7 @@ class UserTable extends Table {
   IntColumn get userId => integer()();
   TextColumn get username => text().nullable()();
   TextColumn get token => text().nullable()();
-  TextColumn get email => text()();
+  TextColumn get email => text().nullable()();
   TextColumn get avatar => text().nullable()();
 
   DateTimeColumn get createdAt =>

@@ -21,7 +21,7 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
       @required this.userId,
       this.username,
       this.token,
-      @required this.email,
+      this.email,
       this.avatar,
       this.createdAt,
       this.updatedAt});
@@ -188,12 +188,11 @@ class UserTableCompanion extends UpdateCompanion<UserTableData> {
     @required int userId,
     this.username = const Value.absent(),
     this.token = const Value.absent(),
-    @required String email,
+    this.email = const Value.absent(),
     this.avatar = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  })  : userId = Value(userId),
-        email = Value(email);
+  }) : userId = Value(userId);
   UserTableCompanion copyWith(
       {Value<int> id,
       Value<int> userId,
@@ -274,7 +273,7 @@ class $UserTableTable extends UserTable
     return GeneratedTextColumn(
       'email',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -344,8 +343,6 @@ class $UserTableTable extends UserTable
     if (d.email.present) {
       context.handle(
           _emailMeta, email.isAcceptableValue(d.email.value, _emailMeta));
-    } else if (isInserting) {
-      context.missing(_emailMeta);
     }
     if (d.avatar.present) {
       context.handle(

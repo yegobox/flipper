@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
@@ -82,6 +83,8 @@ class _AuthWebViewState extends State<AuthWebView> {
               ..name = _name.split('&')[0].replaceAll('%20', ' '),
           );
           store.dispatch(UserID(userId: int.parse(_userId.split('&')[0])));
+          await store.state.database.userDao.insertUser(
+              UserTableData(userId: int.parse(_userId.split('&')[0])));
           store.dispatch(WithUser(user: user));
 
           //check if a user belongs to a subscription then do.

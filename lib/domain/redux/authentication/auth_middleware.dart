@@ -7,6 +7,7 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
+import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
@@ -62,6 +63,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     loadClientDb(store);
+    await isUserCurrentlyLoggedIn(store);
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
     //todo: implement token based auth if  user is logging via token
@@ -70,6 +72,14 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
   };
+}
+
+Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
+  UserTableData user = await store.state.database.userDao.getUser();
+  if (user != null) {
+    store.dispatch(UserID(userId: user.id));
+  }
+  return true;
 }
 
 Future<List<Branch>> getBranches(
