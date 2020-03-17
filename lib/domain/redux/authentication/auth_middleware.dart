@@ -20,6 +20,7 @@ import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import 'package:geolocator/geolocator.dart';
 import "package:redux/redux.dart";
 
 import '../app_state.dart';
@@ -67,10 +68,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await isUserCurrentlyLoggedIn(store);
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
-    await store.state.couch.initSqlDb(store);
+    await store.state.couch.syncRemoteToLocal(store: store);
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
+    _getCurrentLocation(store: store);
   };
 }
 
@@ -90,6 +92,26 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     store.dispatch(UserID(userId: user.id));
   }
   return true;
+}
+
+_getCurrentLocation({Store<AppState> store}) async {
+  var geolocator = Geolocator();
+  var locationOptions =
+      LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
+
+  if (store.state.currentActiveBusiness == null) return;
+  BusinessTableData businessTableData = await store.state.database.businessDao
+      .getBusinesById(id: store.state.currentActiveBusiness.id);
+  geolocator
+      .getPositionStream(locationOptions)
+      .listen((Position location) async {
+    //time to update data....
+    store.state.database.businessDao.updateBusiness(businessTableData.copyWith(
+        idLocal: businessTableData.idLocal,
+        longitude: location.longitude,
+        latitude: location.latitude));
+    await store.state.couch.syncLocalToRemote(store: store);
+  });
 }
 
 Future<List<Branch>> getBranches(

@@ -9,7 +9,7 @@ class BranchRepository {
     var branch = new BranchTableData(
       name: b.name,
       isActive: b.active,
-      businessId: int.parse(store.state.businessId), //no longer using methods
+      businessId: store.state.businessId, //no longer using methods
     );
     return store.state.database.branchDao.insert(branch);
   }

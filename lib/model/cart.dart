@@ -17,7 +17,7 @@ abstract class Cart implements Built<Cart, CartBuilder> {
   @nullable
   DateTime get updatedAt;
 
-  int get branchId;
+  String get branchId;
 
   String get variationName;
 

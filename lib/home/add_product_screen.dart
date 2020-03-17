@@ -165,10 +165,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         createVariant(vm);
                       },
                     ),
-                    DescriptionWidget(),
-                    ListDivider(
-                      height: 64,
-                    ),
+                    DescriptionWidget()
                   ],
                 ),
               ],

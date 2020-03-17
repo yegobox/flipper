@@ -2,13 +2,11 @@ import 'package:moor/moor.dart';
 
 class CartTable extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get branchId => integer()
-      .customConstraint('NULL REFERENCES branch_table(id) ON DELETE CASCADE')();
+  TextColumn get branchId => text()();
 
   IntColumn get count => integer()();
 
-  IntColumn get orderId => integer()
-      .customConstraint('NULL REFERENCES order_table(id) ON DELETE CASCADE')();
+  TextColumn get orderId => text()();
 
   TextColumn get variationId => text()();
 

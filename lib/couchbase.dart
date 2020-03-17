@@ -251,7 +251,41 @@ class CouchBase extends Model with Fluttercouch {
     } on PlatformException {}
   }
 
-  Future initSqlDb(Store<AppState> store) async {
+  Future syncRemoteToLocal({Store<AppState> store}) async {
+    //load business.
+    Document business =
+        await getDocumentWithId('business_' + store.state.userId.toString());
+    if (business.getList('businesses') == null) return;
+    for (var i = 0; i < business.getList('businesses').length; i++) {
+      BusinessTableData busine = await store.state.database.businessDao
+          .getBusinesById(id: business.getList('businesses')[i]['id']);
+      // ignore:missing_required_param
+      BusinessTableData businessTableData = BusinessTableData(
+          active: business.getList('businesses')[i]['active'],
+          name: business.getList('businesses')[i]['name'],
+          id: business.getList('businesses')[i]['id'],
+          userId: business.getList('businesses')[i]['userId'],
+          longitude: business.getList('businesses')[i]['longitude'],
+          typeId: business.getList('businesses')[i]['typeId'].toString(),
+          categoryId:
+              business.getList('businesses')[i]['categoryId'].toString(),
+          country: business.getList('businesses')[i]['country'],
+          timeZone: business.getList('businesses')[i]['timeZone'],
+          currency: business.getList('businesses')[i]['currency'],
+          latitude: business.getList('businesses')[i]['latitude'],
+          createdAt:
+              DateTime.parse(business.getList('businesses')[i]['createdAt']),
+          updatedAt:
+              DateTime.parse(business.getList('businesses')[i]['updatedAt']));
+
+      if (busine == null) {
+        await store.state.database.businessDao.insert(businessTableData);
+      } else {
+        await store.state.database.businessDao.updateBusiness(
+            businessTableData.copyWith(idLocal: busine.idLocal));
+      }
+    }
+
     //load products
     Document doc =
         await getDocumentWithId('products_' + store.state.userId.toString());
@@ -786,8 +820,47 @@ class CouchBase extends Model with Fluttercouch {
     return await saveDocumentWithId(map['_id'], stocks);
   }
 
-  Future<dynamic> syncLocalDbToRemote({Store<AppState> store}) async {
-    //get all
+  Future<dynamic> syncLocalToRemote({Store<AppState> store}) async {
+    // sync business
+    List<BusinessTableData> businesses =
+        await store.state.database.businessDao.getBusinesses();
+
+    Document business =
+        await getDocumentWithId('business_' + store.state.userId.toString());
+    List mapTypeListBusiness = [];
+    for (var i = 0; i < businesses.length; i++) {
+      Map map = {
+        'name': businesses[i].name,
+        'id': businesses[i].id,
+        'active': businesses[i].active,
+        'userId': businesses[i].userId,
+        'categoryId': businesses[i].categoryId,
+        'typeId': businesses[i].typeId,
+        'country': businesses[i].country,
+        'currency': businesses[i].currency,
+        'timeZone': businesses[i].timeZone,
+        'longitude': businesses[i].longitude,
+        'latitude': businesses[i].latitude,
+        'createdAt': businesses[i].createdAt.toIso8601String(),
+        'updatedAt': businesses[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : businesses[i].updatedAt.toIso8601String(),
+      };
+      mapTypeListBusiness.add(map);
+    }
+    business
+        .toMutable()
+        .setList('businesses', mapTypeListBusiness)
+        .setString('channel', store.state.userId.toString())
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'business_' + store.state.userId.toString());
+
+    await saveDocumentWithId(
+        'business_' + store.state.userId.toString(), business);
+
+    //done  sync business
+
+    //sync variant
     List<VariationTableData> variations =
         await store.state.database.variationDao.getVariations();
 

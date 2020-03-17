@@ -8,8 +8,8 @@ class BusinessRepository {
     //ignore:missing_required_param
     var bussiness = new BusinessTableData(
       name: business.name,
-      userId: store.state.userId,
-      isActive: business.active,
+      userId: store.state.userId.toString(),
+      active: business.active,
     );
     return store.state.database.businessDao.insert(bussiness);
   }
@@ -24,7 +24,8 @@ class BusinessRepository {
   Future<int> assignBusinessToUser(Store<AppState> store, int bId, int uId) {
     var assignBusiness =
         //ignore:missing_required_param
-        new BusinessUserTableData(businessId: bId, userId: uId);
+        new BusinessUserTableData(
+            businessId: bId.toString(), userId: uId.toString());
     return store.state.database.businessDao
         .assignBusinessToUser(assignBusiness);
   }

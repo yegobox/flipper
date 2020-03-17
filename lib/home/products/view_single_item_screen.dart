@@ -413,7 +413,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
         updatedAt: DateTime.now(),
       ),
     );
-    await store.state.couch.syncLocalDbToRemote(store: store);
+    await store.state.couch.syncLocalToRemote(store: store);
     Router.navigator.pop();
   }
 }

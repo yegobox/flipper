@@ -35,7 +35,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Align(
                     alignment: Alignment.center,
                     child: StreamBuilder(
-                      stream: vm.database.cartDao.getCartsStream(vm.order.id),
+                      stream: vm.database.cartDao
+                          .getCartsStream(vm.order.id.toString()),
                       builder: (context,
                           AsyncSnapshot<List<CartTableData>> snapshot) {
                         var quantity = snapshot.data == null

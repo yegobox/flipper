@@ -30,41 +30,46 @@ class BusinessDao extends DatabaseAccessor<Database> with _$BusinessDaoMixin {
   Stream<List<UserBusiness>> watchAllTasks() {
     // Wrap the whole select statement in parenthesis
     return (select(db.businessTable)
-    // Statements like orderBy and where return void => the need to use a cascading ".." operator
-      ..orderBy(
-        ([
-          // Primary sorting by due date
-              (t) =>
-              OrderingTerm(expression: t.id, mode: OrderingMode.asc),
-          // Secondary alphabetical sorting
+          // Statements like orderBy and where return void => the need to use a cascading ".." operator
+          ..orderBy(
+            ([
+              // Primary sorting by due date
+              (t) => OrderingTerm(expression: t.id, mode: OrderingMode.asc),
+              // Secondary alphabetical sorting
               (t) => OrderingTerm(expression: t.id),
-        ]),
-      ))
-    // As opposed to orderBy or where, join returns a value. This is what we want to watch/get.
+            ]),
+          ))
+        // As opposed to orderBy or where, join returns a value. This is what we want to watch/get.
         .join(
-      [
-        // Join all the tasks with their tags.
-        // It's important that we use equalsExp and not just equals.
-        // This way, we can join using all tag names in the tasks table, not just a specific one.
-        leftOuterJoin(db.businessUserTable, db.businessUserTable.userId.equalsExp(db.businessUserTable.businessId)),
-      ],
-    )
-    // watch the whole select statement including the join
+          [
+            // Join all the tasks with their tags.
+            // It's important that we use equalsExp and not just equals.
+            // This way, we can join using all tag names in the tasks table, not just a specific one.
+            leftOuterJoin(
+                db.businessUserTable,
+                db.businessUserTable.userId
+                    .equalsExp(db.businessUserTable.businessId)),
+          ],
+        )
+        // watch the whole select statement including the join
         .watch()
-    // Watching a join gets us a Stream of List<TypedResult>
-    // Mapping each List<TypedResult> emitted by the Stream to a List<UserBusiness>
+        // Watching a join gets us a Stream of List<TypedResult>
+        // Mapping each List<TypedResult> emitted by the Stream to a List<UserBusiness>
         .map(
           (rows) => rows.map(
             (row) {
-
 //          return UserBusiness(
 //            business: row.readTable(db.businessTable),
 //            user: row.readTable(db.userTable),
 //          );
+            },
+          ).toList(),
+        );
+  }
 
-        },
-      ).toList(),
-    );
+  Future<BusinessTableData> getBusinesById({String id}) {
+    return (select(db.businessTable)..where((t) => t.id.equals(id)))
+        .getSingle();
   }
 
   Future<List<BusinessTableData>> getBusinesses() =>
@@ -72,10 +77,10 @@ class BusinessDao extends DatabaseAccessor<Database> with _$BusinessDaoMixin {
 
   Future<BusinessTableData> getActiveBusiness() {
     return (select(db.businessTable)
-      ..orderBy(
-          [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
-      ..where((t)=>t.isActive.equals(true))
-      ..limit(1))
+          ..orderBy(
+              [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
+          ..where((t) => t.active.equals(true))
+          ..limit(1))
         .getSingle();
   }
 }

@@ -5,7 +5,5 @@ class BranchProductTable extends Table {
   TextColumn get id => text()();
   TextColumn get productId => text()();
 
-//  TextColumn get channel => text().nullable()();
-
   TextColumn get branchId => text()();
 }

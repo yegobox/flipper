@@ -5,8 +5,7 @@ class BranchTable extends Table {
   TextColumn get name => text()();
   BoolColumn get isActive => boolean().withDefault(Constant(false))();
 
-  IntColumn get businessId =>
-      integer().customConstraint('NULL REFERENCES business_table(id)')();
+  TextColumn get businessId => text()();
 
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();

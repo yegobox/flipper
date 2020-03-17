@@ -83,7 +83,7 @@ class DataManager extends CouchBase {
     }
     //todo: update couch for a deletion.
     await store.state.database.productDao.deleteItem(product);
-    store.state.couch.syncLocalDbToRemote(store: store);
+    store.state.couch.syncLocalToRemote(store: store);
   }
 
   //create a product and it's default variant which is regular

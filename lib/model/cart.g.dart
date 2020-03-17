@@ -20,7 +20,7 @@ class _$Cart extends Cart {
   @override
   final DateTime updatedAt;
   @override
-  final int branchId;
+  final String branchId;
   @override
   final String variationName;
 
@@ -136,9 +136,9 @@ class CartBuilder implements Builder<Cart, CartBuilder> {
   DateTime get updatedAt => _$this._updatedAt;
   set updatedAt(DateTime updatedAt) => _$this._updatedAt = updatedAt;
 
-  int _branchId;
-  int get branchId => _$this._branchId;
-  set branchId(int branchId) => _$this._branchId = branchId;
+  String _branchId;
+  String get branchId => _$this._branchId;
+  set branchId(String branchId) => _$this._branchId = branchId;
 
   String _variationName;
   String get variationName => _$this._variationName;

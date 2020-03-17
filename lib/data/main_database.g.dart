@@ -405,22 +405,32 @@ class $UserTableTable extends UserTable
 
 class BusinessTableData extends DataClass
     implements Insertable<BusinessTableData> {
-  final int id;
+  final int idLocal;
+  final String id;
   final String name;
-  final String abbreviation;
-  final bool isActive;
-  final int userId;
+  final bool active;
+  final String userId;
+  final String typeId;
+  final String categoryId;
+  final String country;
+  final String currency;
+  final String timeZone;
   final double longitude;
   final double latitude;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String deletedAt;
   BusinessTableData(
-      {@required this.id,
+      {@required this.idLocal,
+      @required this.id,
       @required this.name,
-      this.abbreviation,
-      @required this.isActive,
+      @required this.active,
       @required this.userId,
+      @required this.typeId,
+      this.categoryId,
+      this.country,
+      this.currency,
+      this.timeZone,
       this.longitude,
       this.latitude,
       this.createdAt,
@@ -436,14 +446,24 @@ class BusinessTableData extends DataClass
     final doubleType = db.typeSystem.forDartType<double>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return BusinessTableData(
-      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      idLocal:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}id_local']),
+      id: stringType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
-      abbreviation: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}abbreviation']),
-      isActive:
-          boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
+      active:
+          boolType.mapFromDatabaseResponse(data['${effectivePrefix}active']),
       userId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
+      typeId:
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}type_id']),
+      categoryId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}category_id']),
+      country:
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}country']),
+      currency: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}currency']),
+      timeZone: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}time_zone']),
       longitude: doubleType
           .mapFromDatabaseResponse(data['${effectivePrefix}longitude']),
       latitude: doubleType
@@ -460,11 +480,16 @@ class BusinessTableData extends DataClass
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return BusinessTableData(
-      id: serializer.fromJson<int>(json['id']),
+      idLocal: serializer.fromJson<int>(json['idLocal']),
+      id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      abbreviation: serializer.fromJson<String>(json['abbreviation']),
-      isActive: serializer.fromJson<bool>(json['isActive']),
-      userId: serializer.fromJson<int>(json['userId']),
+      active: serializer.fromJson<bool>(json['active']),
+      userId: serializer.fromJson<String>(json['userId']),
+      typeId: serializer.fromJson<String>(json['typeId']),
+      categoryId: serializer.fromJson<String>(json['categoryId']),
+      country: serializer.fromJson<String>(json['country']),
+      currency: serializer.fromJson<String>(json['currency']),
+      timeZone: serializer.fromJson<String>(json['timeZone']),
       longitude: serializer.fromJson<double>(json['longitude']),
       latitude: serializer.fromJson<double>(json['latitude']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -476,11 +501,16 @@ class BusinessTableData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'idLocal': serializer.toJson<int>(idLocal),
+      'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
-      'abbreviation': serializer.toJson<String>(abbreviation),
-      'isActive': serializer.toJson<bool>(isActive),
-      'userId': serializer.toJson<int>(userId),
+      'active': serializer.toJson<bool>(active),
+      'userId': serializer.toJson<String>(userId),
+      'typeId': serializer.toJson<String>(typeId),
+      'categoryId': serializer.toJson<String>(categoryId),
+      'country': serializer.toJson<String>(country),
+      'currency': serializer.toJson<String>(currency),
+      'timeZone': serializer.toJson<String>(timeZone),
       'longitude': serializer.toJson<double>(longitude),
       'latitude': serializer.toJson<double>(latitude),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -492,16 +522,29 @@ class BusinessTableData extends DataClass
   @override
   BusinessTableCompanion createCompanion(bool nullToAbsent) {
     return BusinessTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      abbreviation: abbreviation == null && nullToAbsent
-          ? const Value.absent()
-          : Value(abbreviation),
-      isActive: isActive == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isActive),
+      active:
+          active == null && nullToAbsent ? const Value.absent() : Value(active),
       userId:
           userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      typeId:
+          typeId == null && nullToAbsent ? const Value.absent() : Value(typeId),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
+      country: country == null && nullToAbsent
+          ? const Value.absent()
+          : Value(country),
+      currency: currency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currency),
+      timeZone: timeZone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timeZone),
       longitude: longitude == null && nullToAbsent
           ? const Value.absent()
           : Value(longitude),
@@ -521,22 +564,32 @@ class BusinessTableData extends DataClass
   }
 
   BusinessTableData copyWith(
-          {int id,
+          {int idLocal,
+          String id,
           String name,
-          String abbreviation,
-          bool isActive,
-          int userId,
+          bool active,
+          String userId,
+          String typeId,
+          String categoryId,
+          String country,
+          String currency,
+          String timeZone,
           double longitude,
           double latitude,
           DateTime createdAt,
           DateTime updatedAt,
           String deletedAt}) =>
       BusinessTableData(
+        idLocal: idLocal ?? this.idLocal,
         id: id ?? this.id,
         name: name ?? this.name,
-        abbreviation: abbreviation ?? this.abbreviation,
-        isActive: isActive ?? this.isActive,
+        active: active ?? this.active,
         userId: userId ?? this.userId,
+        typeId: typeId ?? this.typeId,
+        categoryId: categoryId ?? this.categoryId,
+        country: country ?? this.country,
+        currency: currency ?? this.currency,
+        timeZone: timeZone ?? this.timeZone,
         longitude: longitude ?? this.longitude,
         latitude: latitude ?? this.latitude,
         createdAt: createdAt ?? this.createdAt,
@@ -546,11 +599,16 @@ class BusinessTableData extends DataClass
   @override
   String toString() {
     return (StringBuffer('BusinessTableData(')
+          ..write('idLocal: $idLocal, ')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('abbreviation: $abbreviation, ')
-          ..write('isActive: $isActive, ')
+          ..write('active: $active, ')
           ..write('userId: $userId, ')
+          ..write('typeId: $typeId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('country: $country, ')
+          ..write('currency: $currency, ')
+          ..write('timeZone: $timeZone, ')
           ..write('longitude: $longitude, ')
           ..write('latitude: $latitude, ')
           ..write('createdAt: $createdAt, ')
@@ -562,32 +620,49 @@ class BusinessTableData extends DataClass
 
   @override
   int get hashCode => $mrjf($mrjc(
-      id.hashCode,
+      idLocal.hashCode,
       $mrjc(
-          name.hashCode,
+          id.hashCode,
           $mrjc(
-              abbreviation.hashCode,
+              name.hashCode,
               $mrjc(
-                  isActive.hashCode,
+                  active.hashCode,
                   $mrjc(
                       userId.hashCode,
                       $mrjc(
-                          longitude.hashCode,
+                          typeId.hashCode,
                           $mrjc(
-                              latitude.hashCode,
+                              categoryId.hashCode,
                               $mrjc(
-                                  createdAt.hashCode,
-                                  $mrjc(updatedAt.hashCode,
-                                      deletedAt.hashCode))))))))));
+                                  country.hashCode,
+                                  $mrjc(
+                                      currency.hashCode,
+                                      $mrjc(
+                                          timeZone.hashCode,
+                                          $mrjc(
+                                              longitude.hashCode,
+                                              $mrjc(
+                                                  latitude.hashCode,
+                                                  $mrjc(
+                                                      createdAt.hashCode,
+                                                      $mrjc(
+                                                          updatedAt.hashCode,
+                                                          deletedAt
+                                                              .hashCode)))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is BusinessTableData &&
+          other.idLocal == this.idLocal &&
           other.id == this.id &&
           other.name == this.name &&
-          other.abbreviation == this.abbreviation &&
-          other.isActive == this.isActive &&
+          other.active == this.active &&
           other.userId == this.userId &&
+          other.typeId == this.typeId &&
+          other.categoryId == this.categoryId &&
+          other.country == this.country &&
+          other.currency == this.currency &&
+          other.timeZone == this.timeZone &&
           other.longitude == this.longitude &&
           other.latitude == this.latitude &&
           other.createdAt == this.createdAt &&
@@ -596,22 +671,32 @@ class BusinessTableData extends DataClass
 }
 
 class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
-  final Value<int> id;
+  final Value<int> idLocal;
+  final Value<String> id;
   final Value<String> name;
-  final Value<String> abbreviation;
-  final Value<bool> isActive;
-  final Value<int> userId;
+  final Value<bool> active;
+  final Value<String> userId;
+  final Value<String> typeId;
+  final Value<String> categoryId;
+  final Value<String> country;
+  final Value<String> currency;
+  final Value<String> timeZone;
   final Value<double> longitude;
   final Value<double> latitude;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> deletedAt;
   const BusinessTableCompanion({
+    this.idLocal = const Value.absent(),
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.abbreviation = const Value.absent(),
-    this.isActive = const Value.absent(),
+    this.active = const Value.absent(),
     this.userId = const Value.absent(),
+    this.typeId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.country = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.timeZone = const Value.absent(),
     this.longitude = const Value.absent(),
     this.latitude = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -619,35 +704,52 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
     this.deletedAt = const Value.absent(),
   });
   BusinessTableCompanion.insert({
-    this.id = const Value.absent(),
+    this.idLocal = const Value.absent(),
+    @required String id,
     @required String name,
-    this.abbreviation = const Value.absent(),
-    this.isActive = const Value.absent(),
-    @required int userId,
+    this.active = const Value.absent(),
+    @required String userId,
+    @required String typeId,
+    this.categoryId = const Value.absent(),
+    this.country = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.timeZone = const Value.absent(),
     this.longitude = const Value.absent(),
     this.latitude = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
-  })  : name = Value(name),
-        userId = Value(userId);
+  })  : id = Value(id),
+        name = Value(name),
+        userId = Value(userId),
+        typeId = Value(typeId);
   BusinessTableCompanion copyWith(
-      {Value<int> id,
+      {Value<int> idLocal,
+      Value<String> id,
       Value<String> name,
-      Value<String> abbreviation,
-      Value<bool> isActive,
-      Value<int> userId,
+      Value<bool> active,
+      Value<String> userId,
+      Value<String> typeId,
+      Value<String> categoryId,
+      Value<String> country,
+      Value<String> currency,
+      Value<String> timeZone,
       Value<double> longitude,
       Value<double> latitude,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> deletedAt}) {
     return BusinessTableCompanion(
+      idLocal: idLocal ?? this.idLocal,
       id: id ?? this.id,
       name: name ?? this.name,
-      abbreviation: abbreviation ?? this.abbreviation,
-      isActive: isActive ?? this.isActive,
+      active: active ?? this.active,
       userId: userId ?? this.userId,
+      typeId: typeId ?? this.typeId,
+      categoryId: categoryId ?? this.categoryId,
+      country: country ?? this.country,
+      currency: currency ?? this.currency,
+      timeZone: timeZone ?? this.timeZone,
       longitude: longitude ?? this.longitude,
       latitude: latitude ?? this.latitude,
       createdAt: createdAt ?? this.createdAt,
@@ -662,13 +764,25 @@ class $BusinessTableTable extends BusinessTable
   final GeneratedDatabase _db;
   final String _alias;
   $BusinessTableTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  GeneratedIntColumn _id;
+  final VerificationMeta _idLocalMeta = const VerificationMeta('idLocal');
+  GeneratedIntColumn _idLocal;
   @override
-  GeneratedIntColumn get id => _id ??= _constructId();
-  GeneratedIntColumn _constructId() {
-    return GeneratedIntColumn('id', $tableName, false,
+  GeneratedIntColumn get idLocal => _idLocal ??= _constructIdLocal();
+  GeneratedIntColumn _constructIdLocal() {
+    return GeneratedIntColumn('id_local', $tableName, false,
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedTextColumn _id;
+  @override
+  GeneratedTextColumn get id => _id ??= _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _nameMeta = const VerificationMeta('name');
@@ -683,36 +797,85 @@ class $BusinessTableTable extends BusinessTable
     );
   }
 
-  final VerificationMeta _abbreviationMeta =
-      const VerificationMeta('abbreviation');
-  GeneratedTextColumn _abbreviation;
+  final VerificationMeta _activeMeta = const VerificationMeta('active');
+  GeneratedBoolColumn _active;
   @override
-  GeneratedTextColumn get abbreviation =>
-      _abbreviation ??= _constructAbbreviation();
-  GeneratedTextColumn _constructAbbreviation() {
+  GeneratedBoolColumn get active => _active ??= _constructActive();
+  GeneratedBoolColumn _constructActive() {
+    return GeneratedBoolColumn('active', $tableName, false,
+        defaultValue: Constant(false));
+  }
+
+  final VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  GeneratedTextColumn _userId;
+  @override
+  GeneratedTextColumn get userId => _userId ??= _constructUserId();
+  GeneratedTextColumn _constructUserId() {
     return GeneratedTextColumn(
-      'abbreviation',
+      'user_id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _typeIdMeta = const VerificationMeta('typeId');
+  GeneratedTextColumn _typeId;
+  @override
+  GeneratedTextColumn get typeId => _typeId ??= _constructTypeId();
+  GeneratedTextColumn _constructTypeId() {
+    return GeneratedTextColumn(
+      'type_id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _categoryIdMeta = const VerificationMeta('categoryId');
+  GeneratedTextColumn _categoryId;
+  @override
+  GeneratedTextColumn get categoryId => _categoryId ??= _constructCategoryId();
+  GeneratedTextColumn _constructCategoryId() {
+    return GeneratedTextColumn(
+      'category_id',
       $tableName,
       true,
     );
   }
 
-  final VerificationMeta _isActiveMeta = const VerificationMeta('isActive');
-  GeneratedBoolColumn _isActive;
+  final VerificationMeta _countryMeta = const VerificationMeta('country');
+  GeneratedTextColumn _country;
   @override
-  GeneratedBoolColumn get isActive => _isActive ??= _constructIsActive();
-  GeneratedBoolColumn _constructIsActive() {
-    return GeneratedBoolColumn('is_active', $tableName, false,
-        defaultValue: Constant(false));
+  GeneratedTextColumn get country => _country ??= _constructCountry();
+  GeneratedTextColumn _constructCountry() {
+    return GeneratedTextColumn(
+      'country',
+      $tableName,
+      true,
+    );
   }
 
-  final VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  GeneratedIntColumn _userId;
+  final VerificationMeta _currencyMeta = const VerificationMeta('currency');
+  GeneratedTextColumn _currency;
   @override
-  GeneratedIntColumn get userId => _userId ??= _constructUserId();
-  GeneratedIntColumn _constructUserId() {
-    return GeneratedIntColumn('user_id', $tableName, false,
-        $customConstraints: 'NULL REFERENCES user_table(id)');
+  GeneratedTextColumn get currency => _currency ??= _constructCurrency();
+  GeneratedTextColumn _constructCurrency() {
+    return GeneratedTextColumn(
+      'currency',
+      $tableName,
+      true,
+    );
+  }
+
+  final VerificationMeta _timeZoneMeta = const VerificationMeta('timeZone');
+  GeneratedTextColumn _timeZone;
+  @override
+  GeneratedTextColumn get timeZone => _timeZone ??= _constructTimeZone();
+  GeneratedTextColumn _constructTimeZone() {
+    return GeneratedTextColumn(
+      'time_zone',
+      $tableName,
+      true,
+    );
   }
 
   final VerificationMeta _longitudeMeta = const VerificationMeta('longitude');
@@ -771,11 +934,16 @@ class $BusinessTableTable extends BusinessTable
 
   @override
   List<GeneratedColumn> get $columns => [
+        idLocal,
         id,
         name,
-        abbreviation,
-        isActive,
+        active,
         userId,
+        typeId,
+        categoryId,
+        country,
+        currency,
+        timeZone,
         longitude,
         latitude,
         createdAt,
@@ -792,8 +960,14 @@ class $BusinessTableTable extends BusinessTable
   VerificationContext validateIntegrity(BusinessTableCompanion d,
       {bool isInserting = false}) {
     final context = VerificationContext();
+    if (d.idLocal.present) {
+      context.handle(_idLocalMeta,
+          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+    }
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
@@ -801,21 +975,37 @@ class $BusinessTableTable extends BusinessTable
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.abbreviation.present) {
+    if (d.active.present) {
       context.handle(
-          _abbreviationMeta,
-          abbreviation.isAcceptableValue(
-              d.abbreviation.value, _abbreviationMeta));
-    }
-    if (d.isActive.present) {
-      context.handle(_isActiveMeta,
-          isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
+          _activeMeta, active.isAcceptableValue(d.active.value, _activeMeta));
     }
     if (d.userId.present) {
       context.handle(
           _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (d.typeId.present) {
+      context.handle(
+          _typeIdMeta, typeId.isAcceptableValue(d.typeId.value, _typeIdMeta));
+    } else if (isInserting) {
+      context.missing(_typeIdMeta);
+    }
+    if (d.categoryId.present) {
+      context.handle(_categoryIdMeta,
+          categoryId.isAcceptableValue(d.categoryId.value, _categoryIdMeta));
+    }
+    if (d.country.present) {
+      context.handle(_countryMeta,
+          country.isAcceptableValue(d.country.value, _countryMeta));
+    }
+    if (d.currency.present) {
+      context.handle(_currencyMeta,
+          currency.isAcceptableValue(d.currency.value, _currencyMeta));
+    }
+    if (d.timeZone.present) {
+      context.handle(_timeZoneMeta,
+          timeZone.isAcceptableValue(d.timeZone.value, _timeZoneMeta));
     }
     if (d.longitude.present) {
       context.handle(_longitudeMeta,
@@ -841,7 +1031,7 @@ class $BusinessTableTable extends BusinessTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {idLocal};
   @override
   BusinessTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
@@ -851,20 +1041,35 @@ class $BusinessTableTable extends BusinessTable
   @override
   Map<String, Variable> entityToSql(BusinessTableCompanion d) {
     final map = <String, Variable>{};
+    if (d.idLocal.present) {
+      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+    }
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<String, StringType>(d.id.value);
     }
     if (d.name.present) {
       map['name'] = Variable<String, StringType>(d.name.value);
     }
-    if (d.abbreviation.present) {
-      map['abbreviation'] = Variable<String, StringType>(d.abbreviation.value);
-    }
-    if (d.isActive.present) {
-      map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
+    if (d.active.present) {
+      map['active'] = Variable<bool, BoolType>(d.active.value);
     }
     if (d.userId.present) {
-      map['user_id'] = Variable<int, IntType>(d.userId.value);
+      map['user_id'] = Variable<String, StringType>(d.userId.value);
+    }
+    if (d.typeId.present) {
+      map['type_id'] = Variable<String, StringType>(d.typeId.value);
+    }
+    if (d.categoryId.present) {
+      map['category_id'] = Variable<String, StringType>(d.categoryId.value);
+    }
+    if (d.country.present) {
+      map['country'] = Variable<String, StringType>(d.country.value);
+    }
+    if (d.currency.present) {
+      map['currency'] = Variable<String, StringType>(d.currency.value);
+    }
+    if (d.timeZone.present) {
+      map['time_zone'] = Variable<String, StringType>(d.timeZone.value);
     }
     if (d.longitude.present) {
       map['longitude'] = Variable<double, RealType>(d.longitude.value);
@@ -894,7 +1099,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   final int id;
   final String name;
   final bool isActive;
-  final int businessId;
+  final String businessId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String deletedAt;
@@ -919,7 +1124,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       isActive:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
-      businessId: intType
+      businessId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}business_id']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
@@ -936,7 +1141,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       isActive: serializer.fromJson<bool>(json['isActive']),
-      businessId: serializer.fromJson<int>(json['businessId']),
+      businessId: serializer.fromJson<String>(json['businessId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<String>(json['deletedAt']),
@@ -949,7 +1154,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'isActive': serializer.toJson<bool>(isActive),
-      'businessId': serializer.toJson<int>(businessId),
+      'businessId': serializer.toJson<String>(businessId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
@@ -983,7 +1188,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           {int id,
           String name,
           bool isActive,
-          int businessId,
+          String businessId,
           DateTime createdAt,
           DateTime updatedAt,
           String deletedAt}) =>
@@ -1038,7 +1243,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
   final Value<int> id;
   final Value<String> name;
   final Value<bool> isActive;
-  final Value<int> businessId;
+  final Value<String> businessId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> deletedAt;
@@ -1055,7 +1260,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
     this.id = const Value.absent(),
     @required String name,
     this.isActive = const Value.absent(),
-    @required int businessId,
+    @required String businessId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -1065,7 +1270,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
       {Value<int> id,
       Value<String> name,
       Value<bool> isActive,
-      Value<int> businessId,
+      Value<String> businessId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> deletedAt}) {
@@ -1117,12 +1322,15 @@ class $BranchTableTable extends BranchTable
   }
 
   final VerificationMeta _businessIdMeta = const VerificationMeta('businessId');
-  GeneratedIntColumn _businessId;
+  GeneratedTextColumn _businessId;
   @override
-  GeneratedIntColumn get businessId => _businessId ??= _constructBusinessId();
-  GeneratedIntColumn _constructBusinessId() {
-    return GeneratedIntColumn('business_id', $tableName, false,
-        $customConstraints: 'NULL REFERENCES business_table(id)');
+  GeneratedTextColumn get businessId => _businessId ??= _constructBusinessId();
+  GeneratedTextColumn _constructBusinessId() {
+    return GeneratedTextColumn(
+      'business_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
@@ -1223,7 +1431,7 @@ class $BranchTableTable extends BranchTable
       map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
     }
     if (d.businessId.present) {
-      map['business_id'] = Variable<int, IntType>(d.businessId.value);
+      map['business_id'] = Variable<String, StringType>(d.businessId.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
@@ -3014,8 +3222,8 @@ class $TokenTableTable extends TokenTable
 class BusinessUserTableData extends DataClass
     implements Insertable<BusinessUserTableData> {
   final int id;
-  final int userId;
-  final int businessId;
+  final String userId;
+  final String businessId;
   final DateTime createdAt;
   final DateTime updatedAt;
   BusinessUserTableData(
@@ -3029,12 +3237,13 @@ class BusinessUserTableData extends DataClass
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return BusinessUserTableData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       userId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
-      businessId: intType
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
+      businessId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}business_id']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
@@ -3047,8 +3256,8 @@ class BusinessUserTableData extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return BusinessUserTableData(
       id: serializer.fromJson<int>(json['id']),
-      userId: serializer.fromJson<int>(json['userId']),
-      businessId: serializer.fromJson<int>(json['businessId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      businessId: serializer.fromJson<String>(json['businessId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -3058,8 +3267,8 @@ class BusinessUserTableData extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'userId': serializer.toJson<int>(userId),
-      'businessId': serializer.toJson<int>(businessId),
+      'userId': serializer.toJson<String>(userId),
+      'businessId': serializer.toJson<String>(businessId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -3085,8 +3294,8 @@ class BusinessUserTableData extends DataClass
 
   BusinessUserTableData copyWith(
           {int id,
-          int userId,
-          int businessId,
+          String userId,
+          String businessId,
           DateTime createdAt,
           DateTime updatedAt}) =>
       BusinessUserTableData(
@@ -3129,8 +3338,8 @@ class BusinessUserTableData extends DataClass
 class BusinessUserTableCompanion
     extends UpdateCompanion<BusinessUserTableData> {
   final Value<int> id;
-  final Value<int> userId;
-  final Value<int> businessId;
+  final Value<String> userId;
+  final Value<String> businessId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const BusinessUserTableCompanion({
@@ -3149,8 +3358,8 @@ class BusinessUserTableCompanion
   });
   BusinessUserTableCompanion copyWith(
       {Value<int> id,
-      Value<int> userId,
-      Value<int> businessId,
+      Value<String> userId,
+      Value<String> businessId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt}) {
     return BusinessUserTableCompanion(
@@ -3178,22 +3387,27 @@ class $BusinessUserTableTable extends BusinessUserTable
   }
 
   final VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  GeneratedIntColumn _userId;
+  GeneratedTextColumn _userId;
   @override
-  GeneratedIntColumn get userId => _userId ??= _constructUserId();
-  GeneratedIntColumn _constructUserId() {
-    return GeneratedIntColumn('user_id', $tableName, true,
-        $customConstraints: 'NULL REFERENCES user_table(id) ON DELETE CASCADE');
+  GeneratedTextColumn get userId => _userId ??= _constructUserId();
+  GeneratedTextColumn _constructUserId() {
+    return GeneratedTextColumn(
+      'user_id',
+      $tableName,
+      true,
+    );
   }
 
   final VerificationMeta _businessIdMeta = const VerificationMeta('businessId');
-  GeneratedIntColumn _businessId;
+  GeneratedTextColumn _businessId;
   @override
-  GeneratedIntColumn get businessId => _businessId ??= _constructBusinessId();
-  GeneratedIntColumn _constructBusinessId() {
-    return GeneratedIntColumn('business_id', $tableName, true,
-        $customConstraints:
-            'NULL REFERENCES business_table(id) ON DELETE CASCADE');
+  GeneratedTextColumn get businessId => _businessId ??= _constructBusinessId();
+  GeneratedTextColumn _constructBusinessId() {
+    return GeneratedTextColumn(
+      'business_id',
+      $tableName,
+      true,
+    );
   }
 
   final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
@@ -3267,10 +3481,10 @@ class $BusinessUserTableTable extends BusinessUserTable
       map['id'] = Variable<int, IntType>(d.id.value);
     }
     if (d.userId.present) {
-      map['user_id'] = Variable<int, IntType>(d.userId.value);
+      map['user_id'] = Variable<String, StringType>(d.userId.value);
     }
     if (d.businessId.present) {
-      map['business_id'] = Variable<int, IntType>(d.businessId.value);
+      map['business_id'] = Variable<String, StringType>(d.businessId.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
@@ -5439,9 +5653,9 @@ class $StockHistoryTableTable extends StockHistoryTable
 
 class CartTableData extends DataClass implements Insertable<CartTableData> {
   final int id;
-  final int branchId;
+  final String branchId;
   final int count;
-  final int orderId;
+  final String orderId;
   final String variationId;
   final String parentName;
   final String variationName;
@@ -5466,11 +5680,11 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return CartTableData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
-      branchId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      branchId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
       count: intType.mapFromDatabaseResponse(data['${effectivePrefix}count']),
-      orderId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}order_id']),
+      orderId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}order_id']),
       variationId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}variation_id']),
       parentName: stringType
@@ -5488,9 +5702,9 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return CartTableData(
       id: serializer.fromJson<int>(json['id']),
-      branchId: serializer.fromJson<int>(json['branchId']),
+      branchId: serializer.fromJson<String>(json['branchId']),
       count: serializer.fromJson<int>(json['count']),
-      orderId: serializer.fromJson<int>(json['orderId']),
+      orderId: serializer.fromJson<String>(json['orderId']),
       variationId: serializer.fromJson<String>(json['variationId']),
       parentName: serializer.fromJson<String>(json['parentName']),
       variationName: serializer.fromJson<String>(json['variationName']),
@@ -5503,9 +5717,9 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'branchId': serializer.toJson<int>(branchId),
+      'branchId': serializer.toJson<String>(branchId),
       'count': serializer.toJson<int>(count),
-      'orderId': serializer.toJson<int>(orderId),
+      'orderId': serializer.toJson<String>(orderId),
       'variationId': serializer.toJson<String>(variationId),
       'parentName': serializer.toJson<String>(parentName),
       'variationName': serializer.toJson<String>(variationName),
@@ -5546,9 +5760,9 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
 
   CartTableData copyWith(
           {int id,
-          int branchId,
+          String branchId,
           int count,
-          int orderId,
+          String orderId,
           String variationId,
           String parentName,
           String variationName,
@@ -5615,9 +5829,9 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
 
 class CartTableCompanion extends UpdateCompanion<CartTableData> {
   final Value<int> id;
-  final Value<int> branchId;
+  final Value<String> branchId;
   final Value<int> count;
-  final Value<int> orderId;
+  final Value<String> orderId;
   final Value<String> variationId;
   final Value<String> parentName;
   final Value<String> variationName;
@@ -5636,9 +5850,9 @@ class CartTableCompanion extends UpdateCompanion<CartTableData> {
   });
   CartTableCompanion.insert({
     this.id = const Value.absent(),
-    @required int branchId,
+    @required String branchId,
     @required int count,
-    @required int orderId,
+    @required String orderId,
     @required String variationId,
     @required String parentName,
     @required String variationName,
@@ -5652,9 +5866,9 @@ class CartTableCompanion extends UpdateCompanion<CartTableData> {
         variationName = Value(variationName);
   CartTableCompanion copyWith(
       {Value<int> id,
-      Value<int> branchId,
+      Value<String> branchId,
       Value<int> count,
-      Value<int> orderId,
+      Value<String> orderId,
       Value<String> variationId,
       Value<String> parentName,
       Value<String> variationName,
@@ -5689,13 +5903,15 @@ class $CartTableTable extends CartTable
   }
 
   final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
-  GeneratedIntColumn _branchId;
+  GeneratedTextColumn _branchId;
   @override
-  GeneratedIntColumn get branchId => _branchId ??= _constructBranchId();
-  GeneratedIntColumn _constructBranchId() {
-    return GeneratedIntColumn('branch_id', $tableName, false,
-        $customConstraints:
-            'NULL REFERENCES branch_table(id) ON DELETE CASCADE');
+  GeneratedTextColumn get branchId => _branchId ??= _constructBranchId();
+  GeneratedTextColumn _constructBranchId() {
+    return GeneratedTextColumn(
+      'branch_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _countMeta = const VerificationMeta('count');
@@ -5711,13 +5927,15 @@ class $CartTableTable extends CartTable
   }
 
   final VerificationMeta _orderIdMeta = const VerificationMeta('orderId');
-  GeneratedIntColumn _orderId;
+  GeneratedTextColumn _orderId;
   @override
-  GeneratedIntColumn get orderId => _orderId ??= _constructOrderId();
-  GeneratedIntColumn _constructOrderId() {
-    return GeneratedIntColumn('order_id', $tableName, false,
-        $customConstraints:
-            'NULL REFERENCES order_table(id) ON DELETE CASCADE');
+  GeneratedTextColumn get orderId => _orderId ??= _constructOrderId();
+  GeneratedTextColumn _constructOrderId() {
+    return GeneratedTextColumn(
+      'order_id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _variationIdMeta =
@@ -5870,13 +6088,13 @@ class $CartTableTable extends CartTable
       map['id'] = Variable<int, IntType>(d.id.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<int, IntType>(d.branchId.value);
+      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
     }
     if (d.count.present) {
       map['count'] = Variable<int, IntType>(d.count.value);
     }
     if (d.orderId.present) {
-      map['order_id'] = Variable<int, IntType>(d.orderId.value);
+      map['order_id'] = Variable<String, StringType>(d.orderId.value);
     }
     if (d.variationId.present) {
       map['variation_id'] = Variable<String, StringType>(d.variationId.value);
