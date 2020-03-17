@@ -6,6 +6,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:uuid/uuid.dart';
 
 class CreateCategoryInputScreen extends StatefulWidget {
   CreateCategoryInputScreen({Key key}) : super(key: key);
@@ -42,6 +43,8 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
                     //ignore: missing_required_param
                     CategoryTableData(
                       updatedAt: DateTime.now(),
+                      id: Uuid().v1(),
+                      idLocal: vm.tempCategoryId,
                       focused: false,
                       branchId: vm.branch.id,
                       name: name,

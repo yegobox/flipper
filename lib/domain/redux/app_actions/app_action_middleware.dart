@@ -8,6 +8,7 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> AppActionMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
@@ -38,14 +39,6 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     StockTableData stock;
-    int variationId;
-    variationId = action.variantId;
-//    stock = await store.state.database.stockDao.getStockByVariantId(
-//        branchId: store.state.branch.id, variantId: action.variantId);
-    // final variant =
-    //     await store.state.database.variationDao.getVariationById(variationId);
-    // await store.state.database.variationDao
-    //     .updateVariation(variant.copyWith(name: 'Regular'));
 
     await store.state.database.stockDao.updateStock(
       stock.copyWith(
@@ -53,8 +46,6 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
         supplyPrice: action.costPrice,
       ),
     );
-//    stock = await store.state.database.stockDao.getStockByVariantId(
-//        branchId: store.state.branch.id, variantId: action.variantId);
   };
 }
 
@@ -64,17 +55,18 @@ void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     if (store.state.branch != null) {
-//      final categoryId = await generalRepository.insertCategory(
-//        store,
-//        //ignore: missing_required_param
-//        CategoryTableData(
-//          branchId: store.state.branch.id,
-//          focused: false,
-//          name: action.name,
-//          createdAt: DateTime.now(),
-//        ),
-//      );
-//      store.dispatch(TempCategoryIdAction(categoryId: categoryId));
+      final categoryId = await generalRepository.insertCategory(
+        store,
+        //ignore: missing_required_param
+        CategoryTableData(
+          branchId: store.state.branch.id,
+          id: Uuid().v1(),
+          focused: true,
+          name: action.name,
+          createdAt: DateTime.now(),
+        ),
+      );
+      store.dispatch(TempCategoryIdAction(categoryId: categoryId));
     }
   };
 }

@@ -94,7 +94,7 @@ class GeneralRepository {
     // return categoryData.id;
   }
 
-  Future<String> insertCategory(
+  Future<int> insertCategory(
       Store<AppState> store, CategoryTableData category) async {
     CategoryTableData existingCategory =
         await store.state.database.categoryDao.getCategoryName(category.name);
@@ -105,7 +105,7 @@ class GeneralRepository {
         .updateCategory(category.copyWith(updatedAt: DateTime.now()));
     existingCategory =
         await store.state.database.categoryDao.getCategoryName(category.name);
-    return existingCategory.id;
+    return existingCategory.idLocal;
   }
 
   Future<int> insertVariant(
