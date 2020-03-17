@@ -862,12 +862,72 @@ class CouchBase extends Model with Fluttercouch {
     await saveDocumentWithId(
         'products_' + store.state.userId.toString(), product);
 
-//done sync products:
-//
-//    List<StockTableData> stocks =
-//        await store.state.database.stockDao.getStocks();
-//    List<BranchProductTableData> branchProduct =
-//        await store.state.database.branchProductDao.branchProducts();
+    //done sync products:
+
+    List<StockTableData> stocks =
+        await store.state.database.stockDao.getStocks();
+
+    Document stock =
+        await getDocumentWithId('stocks_' + store.state.userId.toString());
+
+    List mapTypeListStocks = [];
+    for (var i = 0; i < stocks.length; i++) {
+      Map map = {
+        'currentStock': stocks[i].currentStock,
+        'id': stocks[i].id,
+        'lowStock': stocks[i].lowStock,
+        'canTrackingStock': stocks[i].canTrackingStock,
+        'showLowStockAlert': stocks[i].showLowStockAlert,
+        'isActive': stocks[i].isActive,
+        'supplyPrice': stocks[i].supplyPrice,
+        'retailPrice': stocks[i].retailPrice,
+        'variantId': stocks[i].variantId,
+        'branchId': stocks[i].branchId,
+        'productId': stocks[i].productId,
+        'createdAt': stocks[i].createdAt.toIso8601String(),
+        'updatedAt': stocks[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : variations[i].updatedAt.toIso8601String(),
+      };
+      mapTypeListStocks.add(map);
+    }
+
+    stock
+        .toMutable()
+        .setList('stocks', mapTypeListStocks)
+        .setString('channel', store.state.userId.toString())
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'stocks_' + store.state.userId.toString());
+
+    await saveDocumentWithId('stocks_' + store.state.userId.toString(), stock);
+    //done sync stock:
+
+    List<BranchProductTableData> branchProducts =
+        await store.state.database.branchProductDao.branchProducts();
+
+    Document bP = await getDocumentWithId(
+        'branchProducts_' + store.state.userId.toString());
+
+    List mapTypeListBranchProducts = [];
+    for (var i = 0; i < branchProducts.length; i++) {
+      Map map = {
+        'branchId': branchProducts[i].branchId,
+        'id': branchProducts[i].id,
+        'productId': branchProducts[i].productId,
+      };
+      mapTypeListBranchProducts.add(map);
+    }
+
+    bP
+        .toMutable()
+        .setList('branchProducts', mapTypeListBranchProducts)
+        .setString('channel', store.state.userId.toString())
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'branchProducts_' + store.state.userId.toString());
+
+    await saveDocumentWithId(
+        'branchProducts_' + store.state.userId.toString(), stock);
+    //done sync branchProduct:
   }
 
   Future syncProduct(String productId, Store<AppState> store) async {
