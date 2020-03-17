@@ -66,32 +66,24 @@ class DataManager extends CouchBase {
 //    store.state.database.productDao.updateItem(item.copyWith(deletedAt: 'null'));
   }
 
-  static deleteItem(Store<AppState> store, String itemName, int itemId) async {
-//    ProductTableData item = await store.state.database.productDao.getItemBy(
-//        name: itemName, branchId: store.state.branch.id, itemId: itemId);
-//
-//    if (item == null) return;
-//    List<StockTableData> stocks = await store.state.database.stockDao
-//        .getItemFromStockByItemId(
-//            branchId: store.state.branch.id, itemId: item.id);
-//
-//    for (var i = 0; i < stocks.length; i++) {
-//      VariationTableData variant = await store.state.database.variationDao
-//          .getVariationById(stocks[i].variantId);
-//
-//      await store.state.database.variationDao.softDelete(variant);
-//
-//      await store.state.database.stockDao.softDelete(stocks[i]);
-//    }
-//
-//    store.state.database.productDao.softDelete(item);
-  }
+  static Future deleteProduct({Store<AppState> store, String productId}) async {
+    List<StockTableData> stocks = await store.state.database.stockDao
+        .getItemFromStockByProductId(
+            branchId: store.state.branch.id, productId: productId);
+    ProductTableData product = await store.state.database.productDao
+        .getProductById(productId: productId);
 
-  static deleteVariant(Store<AppState> store, int variantId) async {
-    // VariationTableData variationTableData =
-    //     await store.state.database.variationDao.getVariationById(variantId);
-    // store.state.database.variationDao.updateVariation(variationTableData
-    //     .copyWith(deletedAt: DateTime.now().toIso8601String()));
+    for (var i = 0; i < stocks.length; i++) {
+      VariationTableData variant = await store.state.database.variationDao
+          .getVariationById(variantId: stocks[i].variantId);
+      //todo: update couch for a deletion.
+      await store.state.database.variationDao.deleteVariation(variant);
+
+      await store.state.database.stockDao.deleteStock(stocks[i]);
+    }
+    //todo: update couch for a deletion.
+    await store.state.database.productDao.deleteItem(product);
+    store.state.couch.syncLocalDbToRemote(store: store);
   }
 
   //create a product and it's default variant which is regular
@@ -123,6 +115,7 @@ class DataManager extends CouchBase {
           name: productName,
           categoryId: category.id,
           color: "#955be9",
+//          channel: store.state.userId.toString(),
           active: true,
           hasPicture: false,
           isCurrentUpdate: false,
@@ -158,6 +151,7 @@ class DataManager extends CouchBase {
         //ignore: missing_required_param
         StockTableData(
           variantId: variant.id,
+//          channel: store.state.userId.toString(),
           supplyPrice: 0,
           canTrackingStock: false,
           showLowStockAlert: false,
@@ -177,6 +171,7 @@ class DataManager extends CouchBase {
         //ignore: missing_required_param
         BranchProductTableData(
             branchId: store.state.branch.id,
+//            channel: store.state.userId.toString(),
             productId: product.id,
             id: Uuid().v1()),
       );

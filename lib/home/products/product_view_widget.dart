@@ -3,7 +3,6 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/widget/create_options_widget.dart';
-import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
@@ -48,7 +47,9 @@ class _ProductsViewState extends State<ProductsView> {
     }
 
     for (var i = 0; i < products.length; i++) {
-      if (products[i].name != "custom" && products[i].name != 'tmp') {
+      if (products[i] != null &&
+          products[i].name != "custom" &&
+          products[i].name != 'tmp') {
         list.add(
           GestureDetector(
             onTap: () {
@@ -181,26 +182,35 @@ class _ProductsViewState extends State<ProductsView> {
   }
 
   void shouldSeeItemOnly(
-      BuildContext context, List<ProductTableData> itemList, int i) {
-    Manager.deprecatedNotification();
-    // StoreProvider.of<AppState>(context).dispatch(
-    //   CurrentActiveSaleItem(
-    //     item: Item(
-    //       (b) => b
-    //         ..name = itemList[i].name
-    //         ..branchId = '001'
-    //         ..id = itemList[i].id,
-    //     ),
-    //   ),
-    // );
-    // Router.navigator.pushNamed(
-    //   Router.viewSingleItem,
-    //   arguments: ViewSingleItemScreenArguments(
-    //     itemId: itemList[i].id,
-    //     itemName: itemList[i].name,
-    //     itemColor: itemList[i].color,
-    //   ),
-    // );
+      BuildContext context, List<ProductTableData> products, int i) {
+    StoreProvider.of<AppState>(context).dispatch(
+      CurrentActiveSaleProduct(
+        product: Product(
+          (b) => b
+            ..name = products[i].name
+            ..description = products[i].description
+            ..picture = products[i].picture
+            ..taxId = products[i].taxId
+            ..active = products[i].active
+            ..hasPicture = products[i].hasPicture
+            ..isDraft = products[i].isDraft
+            ..color = products[i].color
+            ..isCurrentUpdate = products[i].isCurrentUpdate
+            ..supplierId = products[i].supplierId
+            ..categoryId = products[i].categoryId
+            ..businessId = products[i].businessId
+            ..id = products[i].id,
+        ),
+      ),
+    );
+    Router.navigator.pushNamed(
+      Router.viewSingleItem,
+      arguments: ViewSingleItemScreenArguments(
+        productId: products[i].id,
+        itemName: products[i].name,
+        itemColor: products[i].color,
+      ),
+    );
   }
 
   void itemRow(List<Widget> list, BuildContext context) {

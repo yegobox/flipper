@@ -134,7 +134,7 @@ class GeneralRepository {
   }
 
   Future<List<ProductTableData>> getItems(Store<AppState> store) {
-    return store.state.database.productDao.getItems();
+    return store.state.database.productDao.getProducts();
   }
 
   Future<List<ItemVariation>> getItemVariation(Store<AppState> store) {

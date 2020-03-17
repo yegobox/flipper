@@ -28,6 +28,8 @@ class StockTable extends Table {
   TextColumn get branchId => text()();
   TextColumn get productId => text()();
 
+//  TextColumn get channel => text()();
+
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();

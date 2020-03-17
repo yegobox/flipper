@@ -9,9 +9,7 @@ class StockHistoryTable extends Table {
   TextColumn get id => text()();
 
   TextColumn get reason => text()();
-
-  // .customConstraint(
-  // 'NULL REFERENCES stock_table(id) ON DELETE SET NULL ON UPDATE CASCADE')
+//  TextColumn get channel => text().nullable()();
 
   TextColumn get stockId => text()();
 

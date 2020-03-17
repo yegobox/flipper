@@ -159,7 +159,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     RetailPriceWidget(),
                     SupplyPriceWidget(),
                     SkuField(),
-                    VariationList(),
+                    VariationList(productId: vm.tmpItem.id),
                     AddVariant(
                       onPressedCallback: () {
                         createVariant(vm);

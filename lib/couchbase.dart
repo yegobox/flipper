@@ -264,6 +264,7 @@ class CouchBase extends Model with Fluttercouch {
           businessId: doc.getList('products')[i]['businessId'].toString(),
           active: doc.getList('products')[i]['active'],
           name: doc.getList('products')[i]['name'],
+//          channel: doc.getList('products')[i]['channel'] ?? '',
           id: doc.getList('products')[i]['id'],
           color: doc.getList('products')[i]['color'],
           description: doc.getList('products')[i]['description'],
@@ -328,6 +329,7 @@ class CouchBase extends Model with Fluttercouch {
       // ignore:missing_required_param
       BranchProductTableData branchProductData = BranchProductTableData(
         id: branchProducts.getList('branchProducts')[i]['id'],
+//        channel: branchProducts.getList('branchProducts')[i]['channel'] ?? '',
         branchId: branchProducts.getList('branchProducts')[i]['branchId'],
         productId: branchProducts.getList('branchProducts')[i]['productId'],
       );
@@ -354,6 +356,7 @@ class CouchBase extends Model with Fluttercouch {
           supplyPrice: stocks.getList('stocks')[i]['supplyPrice'].toDouble(),
           retailPrice: stocks.getList('stocks')[i]['retailPrice'].toDouble(),
           lowStock: stocks.getList('stocks')[i]['lowStock'],
+//          channel: stocks.getList('stocks')[i]['channel'] ?? '',
           variantId: stocks.getList('stocks')[i]['variantId'],
           branchId: stocks.getList('stocks')[i]['branchId'],
           productId: stocks.getList('stocks')[i]['productId'],
@@ -382,6 +385,7 @@ class CouchBase extends Model with Fluttercouch {
       // ignore:missing_required_param
       StockHistoryTableData historyData = StockHistoryTableData(
           id: stockHistories.getList('stockHistory')[i]['id'],
+//          channel: stockHistories.getList('stockHistory')[i]['channel'] ?? '',
           note: stockHistories.getList('stockHistory')[i]['note'],
           quantity: stockHistories.getList('stockHistory')[i]['quantity'],
           stockId: stockHistories.getList('stockHistory')[i]['stockId'],
@@ -413,6 +417,7 @@ class CouchBase extends Model with Fluttercouch {
       // ignore:missing_required_param
       TaxTableData taxData = TaxTableData(
           id: taxes.getList('taxes')[i]['id'],
+//          channel: taxes.getList('taxes')[i]['channel'] ?? '',
           name: taxes.getList('taxes')[i]['name'],
           businessId: taxes.getList('taxes')[i]['businessId'],
           isDefault: taxes.getList('taxes')[i]['isDefault'],
@@ -444,6 +449,7 @@ class CouchBase extends Model with Fluttercouch {
         categoryData = CategoryTableData(
             id: categories.getList('categories')[i]['id'],
             name: categories.getList('categories')[i]['name'],
+//            channel: categories.getList('categories')[i]['channel'] ?? '',
             focused: true,
             branchId: categories.getList('categories')[i]['branchId'],
             createdAt: DateTime.parse(
@@ -455,6 +461,7 @@ class CouchBase extends Model with Fluttercouch {
         categoryData = CategoryTableData(
             id: categories.getList('categories')[i]['id'],
             name: categories.getList('categories')[i]['name'],
+//            channel: categories.getList('categories')[i]['channel'] ?? '',
             focused: false,
             branchId: categories.getList('categories')[i]['branchId'],
             createdAt: DateTime.parse(
@@ -470,7 +477,6 @@ class CouchBase extends Model with Fluttercouch {
             .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
       }
     }
-
     //load all app units:
     var units = [
       {"name": "Per Item", "value": ""},
@@ -778,6 +784,90 @@ class CouchBase extends Model with Fluttercouch {
         .setString('_id', map['_id']);
 
     return await saveDocumentWithId(map['_id'], stocks);
+  }
+
+  Future<dynamic> syncLocalDbToRemote({Store<AppState> store}) async {
+    //get all
+    List<VariationTableData> variations =
+        await store.state.database.variationDao.getVariations();
+
+    Document variant =
+        await getDocumentWithId('variants_' + store.state.userId.toString());
+
+    List mapTypeListVariants = [];
+    for (var i = 0; i < variations.length; i++) {
+      Map map = {
+        'name': variations[i].name,
+        'id': variations[i].id,
+        'sku': variations[i].sku,
+        'unit': variations[i].unit,
+        'productId': variations[i].productId,
+        'createdAt': variations[i].createdAt.toIso8601String(),
+        'updatedAt': variations[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : variations[i].updatedAt.toIso8601String(),
+      };
+      mapTypeListVariants.add(map);
+    }
+
+    variant
+        .toMutable()
+        .setList('variants', mapTypeListVariants)
+        .setString('channel', store.state.userId.toString())
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'variants_' + store.state.userId.toString());
+
+    await saveDocumentWithId(
+        'variants_' + store.state.userId.toString(), variant);
+    //done sync variant
+
+    List<ProductTableData> products =
+        await store.state.database.productDao.getProducts();
+
+    Document product =
+        await getDocumentWithId('products_' + store.state.userId.toString());
+
+    List mapTypeListProducts = [];
+    for (var i = 0; i < products.length; i++) {
+      Map map = {
+        'name': products[i].name,
+        'id': products[i].id,
+        'color': products[i].color,
+        'picture': products[i].picture,
+        'active': products[i].active,
+        'hasPicture': products[i].hasPicture,
+        'id': products[i].id,
+        'isDraft': products[i].isDraft,
+        'isCurrentUpdate': products[i].isCurrentUpdate,
+        'description': products[i].description,
+        'businessId': products[i].businessId,
+        'supplierId': products[i].supplierId,
+        'categoryId': products[i].categoryId,
+        'taxId': products[i].taxId,
+        'createdAt': products[i].createdAt.toIso8601String(),
+        'updatedAt': variations[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : variations[i].updatedAt.toIso8601String(),
+      };
+      mapTypeListProducts.add(map);
+    }
+
+    product
+        .toMutable()
+        .setList('products', mapTypeListProducts)
+        .setString('channel', store.state.userId.toString())
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'products_' + store.state.userId.toString());
+
+    await saveDocumentWithId(
+        'products_' + store.state.userId.toString(), product);
+
+//done sync products:
+//
+//    List<StockTableData> stocks =
+//        await store.state.database.stockDao.getStocks();
+//    List<BranchProductTableData> branchProduct =
+//        await store.state.database.branchProductDao.branchProducts();
   }
 
   Future syncProduct(String productId, Store<AppState> store) async {

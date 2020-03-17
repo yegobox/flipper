@@ -4,6 +4,7 @@ class TaxTable extends Table {
   IntColumn get idLocal => integer().autoIncrement()();
 
   TextColumn get name => text()();
+//  TextColumn get channel => text().nullable()();
 
   BoolColumn get isDefault => boolean()();
 

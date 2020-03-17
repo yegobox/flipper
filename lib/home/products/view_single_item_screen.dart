@@ -2,11 +2,11 @@ import 'package:customappbar/commonappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/home/products/variation_widget.dart';
-import 'package:flipper/home/widget/switch_widget.dart';
+import 'package:flipper/home/widget/add_product/variation_list.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -43,10 +43,12 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
 
   int _deleteCount;
 
+  List<bool> _selections = List.generate(2, (index) => false);
+
   _closeAndDelete(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
-    // Util.deleteItem(store, widget.itemName, widget.productId);
-    Router.navigator.pop(true);
+    await DataManager.deleteProduct(store: store, productId: widget.productId);
+    Router.navigator.pop();
   }
 
   Future<bool> _onWillPop() async {
@@ -172,11 +174,13 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                             AsyncSnapshot<
                                                     List<ProductTableData>>
                                                 snapshot) {
-                                          if (snapshot.data == null) {
+                                          if (snapshot.data == null ||
+                                              snapshot.data.length == 0) {
                                             return Text(
                                                 S.of(context).selectCategory);
                                           }
-                                          return snapshot.data == null
+                                          return snapshot.data == null ||
+                                                  snapshot.data.length == 0
                                               ? Text(
                                                   S.of(context).selectCategory)
                                               : categorySelector(
@@ -242,6 +246,10 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                             if (item.data == null) {
                                               return Text("");
                                             }
+                                            if (item.data.length == 0) {
+                                              return Text("");
+                                            }
+
                                             return StreamBuilder(
                                                 stream: vm.database.unitDao
                                                     .getUnitStream(
@@ -265,17 +273,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                             ),
                           ),
                           CustomDivider(),
-                          StreamBuilder(
-                            stream: vm.database.variationDao
-                                .getItemVariationsByItemId(widget.productId),
-                            builder: (context,
-                                AsyncSnapshot<List<VariationTableData>>
-                                    snapshot) {
-                              if (snapshot.data == null) {
-                                return Text("");
-                              }
-                              return _buildVariationsList(snapshot.data, vm);
-                            },
+                          VariationList(
+                            productId: widget.productId,
                           ),
                           Center(
                             child: SizedBox(
@@ -297,32 +296,21 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               ),
                             ),
                           ),
-                          Center(
-                            child: Text("Tax"),
-                          ),
-                          Center(
-                            child: LiteRollingSwitch(
-                              value: true,
-                              textOn: 'with tax',
-                              textOff: 'no tax',
-                              colorOn: Colors.greenAccent[700],
-                              colorOff: Colors.redAccent[700],
-                              iconOn: Icons.done,
-                              iconOff: Icons.remove_circle_outline,
-                              textSize: 16.0,
-                              onChanged: (bool state) {},
+                          ListTile(
+                            contentPadding: EdgeInsets.fromLTRB(40, 10, 40, 0),
+                            trailing: ToggleButtons(
+                              children: <Widget>[
+                                Text("18%"),
+                                Text("0%"),
+                              ],
+                              isSelected: _selections,
+                              onPressed: (int index) {
+                                setState(() {
+                                  _selections[index] = !_selections[index];
+                                });
+                              },
                             ),
-                          ),
-                          Center(
-                            child: Container(
-                              width: 300,
-                              child: TextFormField(
-                                style: TextStyle(color: Colors.black),
-                                onChanged: (description) {
-                                  tForm.description = description;
-                                },
-                              ),
-                            ),
+                            leading: Text('Tax'),
                           ),
                           Container(
                             height: 20,
@@ -406,41 +394,27 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   }
 
   _handleEditItem(CommonViewModel vm) async {
-    // ProductTableData item = await vm.database.productDao
-    //     .getItemBy(name: widget.itemName, productId: widget.productId);
+    TaxTableData tax;
+    final store = StoreProvider.of<AppState>(context);
+    if (_selections[0] == true) {
+      //then use 18 % known id in database. 0 index we know it is 18% 0 otherwise
+      tax = await store.state.database.taxDao.getByName(
+          name: 'Vat', businessId: store.state.currentActiveBusiness.id);
+    }
+    ProductTableData product =
+        await vm.database.productDao.getItemById(productId: widget.productId);
 
-    // vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+    vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
 
-    // vm.database.productDao.updateProduct(
-    //   item.copyWith(
-    //     name: _name,
-    //     updatedAt: DateTime.now(),
-    //   ),
-    // );
+    vm.database.productDao.updateProduct(
+      product.copyWith(
+        taxId: tax.id ?? product.taxId,
+        name: _name ?? product.name,
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await store.state.couch.syncLocalDbToRemote(store: store);
     Router.navigator.pop();
-  }
-
-  _buildVariationsList(
-      List<VariationTableData> variations, CommonViewModel vm) {
-    List<Widget> list = new List<Widget>();
-    for (var i = 0; i < variations.length; i++) {
-      if (variations[i].name != 'tmp') {
-        list.add(
-          Center(
-            child: SizedBox(
-              height: 90,
-              width: 350,
-              child: VariationWidget(
-                  variation: variations[i], context: context, vm: vm),
-            ),
-          ),
-        );
-      }
-    }
-    if (list.length == 0) {
-      return Container();
-    }
-    return Column(children: list);
   }
 }
 

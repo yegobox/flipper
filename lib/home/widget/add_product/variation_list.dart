@@ -7,8 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class VariationList extends StatefulWidget {
+  const VariationList({Key key, this.productId}) : super(key: key);
+
   @override
   _VariationListState createState() => _VariationListState();
+  final String productId;
 }
 
 class _VariationListState extends State<VariationList> {
@@ -74,32 +77,6 @@ class _VariationListState extends State<VariationList> {
     return Column(children: list);
   }
 
-//  List<Widget> buildButton(AsyncSnapshot<List<StockTableData>> stock,
-//      BuildContext context, VariationTableData variation) {
-//    List<Widget> buttons = [];
-//    for (var i = 0; i < stock.data.length; i++) {
-//      buttons.add(
-//        FlatButton(
-//          child: Text(
-//            stock.data[i].currentStock == 0
-//                ? S.of(context).receiveStock
-//                : stock.data[i].currentStock.toString() + S.of(context).inStock,
-//          ),
-//          onPressed: () {
-//            Router.navigator.pushNamed(
-//              Router.receiveStock,
-//              arguments: ReceiveStockScreenArguments(
-//                variationId: variation.id,
-//              ),
-//            );
-//          },
-//        ),
-//      );
-//    }
-//
-//    return buttons;
-//  }
-
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -107,8 +84,8 @@ class _VariationListState extends State<VariationList> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         return StreamBuilder(
-          stream:
-              vm.database.variationDao.getItemVariationsByItemId(vm.tmpItem.id),
+          stream: vm.database.variationDao
+              .getItemVariationsByItemId(widget.productId),
           builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             if (snapshot.data == null) {
               return Text("");

@@ -61,7 +61,7 @@ class ProductDao extends DatabaseAccessor<Database> with _$ProductDaoMixin {
         .getSingle();
   }
 
-  Future<List<ProductTableData>> getItems() => select(db.productTable).get();
+  Future<List<ProductTableData>> getProducts() => select(db.productTable).get();
 
   Stream<List<ProductTableData>> getItemByIdStream(String productId) {
     return (select(db.productTable)..where((t) => t.id.equals(productId)))

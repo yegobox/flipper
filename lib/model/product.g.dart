@@ -67,9 +67,6 @@ class _$Product extends Product {
     if (id == null) {
       throw new BuiltValueNullFieldError('Product', 'id');
     }
-    if (description == null) {
-      throw new BuiltValueNullFieldError('Product', 'description');
-    }
     if (picture == null) {
       throw new BuiltValueNullFieldError('Product', 'picture');
     }

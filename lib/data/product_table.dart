@@ -22,6 +22,8 @@ class ProductTable extends Table {
 
   TextColumn get taxId => text()();
 
+//  TextColumn get channel => text().nullable()();
+
   // DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();

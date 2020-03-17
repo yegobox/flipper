@@ -18,6 +18,9 @@ class BranchProductDao extends DatabaseAccessor<Database>
     return update(db.branchProductTable).replace(entry);
   }
 
+  Future<List<BranchProductTableData>> branchProducts() =>
+      select(db.branchProductTable).get();
+
   Future<BranchProductTableData> getById({String id}) {
     return (select(db.branchProductTable)..where((t) => t.id.equals(id)))
         .getSingle();

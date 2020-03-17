@@ -8,6 +8,7 @@ class CategoryTable extends Table {
   TextColumn get id => text()();
 
   TextColumn get name => text()();
+//  TextColumn get channel => text()();
 
   TextColumn get branchId => text()();
 

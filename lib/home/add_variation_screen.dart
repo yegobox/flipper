@@ -146,7 +146,6 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
       variantName: 'Regular',
       retailPrice: widget.retailPrice,
     );
-
     int variantId = await vm.database.variationDao.insert(
       //ignore:missing_required_param
       VariationTableData(
