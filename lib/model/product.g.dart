@@ -67,36 +67,6 @@ class _$Product extends Product {
     if (id == null) {
       throw new BuiltValueNullFieldError('Product', 'id');
     }
-    if (picture == null) {
-      throw new BuiltValueNullFieldError('Product', 'picture');
-    }
-    if (taxId == null) {
-      throw new BuiltValueNullFieldError('Product', 'taxId');
-    }
-    if (active == null) {
-      throw new BuiltValueNullFieldError('Product', 'active');
-    }
-    if (hasPicture == null) {
-      throw new BuiltValueNullFieldError('Product', 'hasPicture');
-    }
-    if (isDraft == null) {
-      throw new BuiltValueNullFieldError('Product', 'isDraft');
-    }
-    if (color == null) {
-      throw new BuiltValueNullFieldError('Product', 'color');
-    }
-    if (isCurrentUpdate == null) {
-      throw new BuiltValueNullFieldError('Product', 'isCurrentUpdate');
-    }
-    if (businessId == null) {
-      throw new BuiltValueNullFieldError('Product', 'businessId');
-    }
-    if (supplierId == null) {
-      throw new BuiltValueNullFieldError('Product', 'supplierId');
-    }
-    if (categoryId == null) {
-      throw new BuiltValueNullFieldError('Product', 'categoryId');
-    }
   }
 
   @override

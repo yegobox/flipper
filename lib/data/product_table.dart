@@ -5,6 +5,7 @@ class ProductTable extends Table {
   IntColumn get idLocal => integer().autoIncrement()();
   TextColumn get id => text()();
   TextColumn get name => text()();
+
   TextColumn get picture => text()();
   BoolColumn get active => boolean()();
   BoolColumn get hasPicture => boolean()();
@@ -21,10 +22,6 @@ class ProductTable extends Table {
   TextColumn get categoryId => text()();
 
   TextColumn get taxId => text()();
-
-//  TextColumn get channel => text().nullable()();
-
-  // DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();

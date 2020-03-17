@@ -171,7 +171,8 @@ class _ProductsViewState extends State<ProductsView> {
       variants.add(
         Variation(
           (b) => b
-            ..sku = variations[i].sku
+            ..sku = variations[i].sku ??
+                'none' //todo: check if a variant can be save with no default sku
             ..productId = variations[i].productId
             ..id = variations[i].id
             ..name = variations[i].name,

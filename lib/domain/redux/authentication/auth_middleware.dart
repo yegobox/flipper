@@ -14,6 +14,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
+import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
@@ -66,7 +67,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await isUserCurrentlyLoggedIn(store);
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
-    //todo: implement token based auth if  user is logging via token
     await store.state.couch.initSqlDb(store);
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
@@ -77,6 +77,16 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   UserTableData user = await store.state.database.userDao.getUser();
   if (user != null) {
+    User u = User(
+      (p) => p
+        ..email = user.email
+        ..active = true
+        ..createdAt = DateTime.now().toIso8601String()
+        ..updatedAt = DateTime.now().toIso8601String()
+        ..token = user.token
+        ..name = user.username,
+    );
+    store.dispatch(WithUser(user: u));
     store.dispatch(UserID(userId: user.id));
   }
   return true;

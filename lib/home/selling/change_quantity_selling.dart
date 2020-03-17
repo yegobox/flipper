@@ -29,7 +29,6 @@ class _ChangeQuantityForSellingState extends State<ChangeQuantityForSelling> {
         converter: CommonViewModel.fromStore,
         builder: (context, vm) {
           return StreamBuilder(
-              //todo:passrealproductId
               stream: vm.database.stockDao.getStockByProductIdStream(
                   branchId: vm.branch.id, productId: widget.productId),
               builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
@@ -244,7 +243,7 @@ class SellMultipleItems extends StatelessWidget {
       Product cartItem = Product(
         (item) => item
           ..count = vm.currentIncrement == null ? 1 : vm.currentIncrement
-          ..id = stocks[i].id
+          ..id = stocks[i].productId
           ..name = vm.currentActiveSaleItem.name,
       );
       StoreProvider.of<AppState>(context).dispatch(

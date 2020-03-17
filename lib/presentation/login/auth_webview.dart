@@ -83,8 +83,11 @@ class _AuthWebViewState extends State<AuthWebView> {
               ..name = _name.split('&')[0].replaceAll('%20', ' '),
           );
           store.dispatch(UserID(userId: int.parse(_userId.split('&')[0])));
-          await store.state.database.userDao.insertUser(
-              UserTableData(userId: int.parse(_userId.split('&')[0])));
+          await store.state.database.userDao.insertUser(UserTableData(
+              username: _name.split('&')[0].replaceAll('%20', ' '),
+              email: _email.split('&')[0],
+              token: token.split('&')[0],
+              userId: int.parse(_userId.split('&')[0])));
           store.dispatch(WithUser(user: user));
 
           //check if a user belongs to a subscription then do.

@@ -112,7 +112,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         width: 80,
                         color: vm.currentColor != null
                             ? HexColor(vm.currentColor.hexCode)
-                            : HexColor("#00cec9"),
+                            : HexColor("#ee5253"),
                       ),
                     ),
                     Text(S.of(context).newItem),
