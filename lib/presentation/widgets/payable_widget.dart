@@ -32,7 +32,7 @@ class _PayableWidgetState extends State<PayableWidget> {
           height: 66,
           color: HexColor(FlipperColors.blue),
           child: StreamBuilder(
-            stream: vm.database.cartDao.getCartsStream(vm.order.id),
+            stream: vm.database.cartDao.getCartsStream(vm.order.id.toString()),
             builder: (context, AsyncSnapshot<List<CartTableData>> snapshot) {
               int cashReceived = 0;
               if (snapshot.data != null) {
@@ -105,7 +105,7 @@ class _PayableWidgetState extends State<PayableWidget> {
         .state
         .database
         .cartDao
-        .getCarts(orderId);
+        .getCarts(orderId.toString());
 
     _getPayable(carts, context);
   }

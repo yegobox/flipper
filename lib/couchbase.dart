@@ -957,10 +957,9 @@ class CouchBase extends Model with Fluttercouch {
         'variantId': stocks[i].variantId,
         'branchId': stocks[i].branchId,
         'productId': stocks[i].productId,
-        'createdAt': stocks[i].createdAt.toIso8601String(),
-        'updatedAt': stocks[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : variations[i].updatedAt.toIso8601String(),
+        'createdAt': DateTime.now().toIso8601String(),
+        //todo: this line of code
+        'updatedAt': DateTime.now().toIso8601String(),
       };
       mapTypeListStocks.add(map);
     }

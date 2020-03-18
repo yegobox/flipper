@@ -103,8 +103,10 @@ class ControlSaleWidget extends StatelessWidget {
         enableFeedback: false,
         icon: Icon(Icons.add),
         onPressed: () {
+          print(vm.currentActiveSaleItem.id);
+          print(vm.itemVariations);
           for (var i = 0; i < vm.itemVariations.length; i++) {
-            if (vm.currentActiveSaleItem.id == vm.itemVariations[i].id) {
+            if (vm.currentActiveSaleItem.id == vm.itemVariations[i].productId) {
               var increment =
                   vm.currentIncrement == null ? 1 : vm.currentIncrement + 1;
 
@@ -154,14 +156,15 @@ class SellMultipleItems extends StatelessWidget {
         actionButtonName: S.of(context).add,
         title: vm.currentActiveSaleItem == null
             ? null
-            : vm.currentActiveSaleItem.name +
-                " RWF " +
-                //todo:  vm.currentActiveSaleItem.picture => vm.currentActiveSaleItem.price i.e variant price
-                (vm.currentActiveSaleItem.picture *
-                        (vm.currentIncrement == null || vm.currentIncrement == 0
-                            ? 1
-                            : vm.currentIncrement))
-                    .toString(),
+            : vm.currentActiveSaleItem.name,
+//            +
+//                " RWF " +
+//                //todo:  vm.currentActiveSaleItem.picture => vm.currentActiveSaleItem.price i.e variant price
+//                (vm.currentActiveSaleItem.color *
+//                        (vm.currentIncrement == null || vm.currentIncrement == 0
+//                            ? 1
+//                            : vm.currentIncrement))
+//                    .toString(),
         onPressedCallback: () {
           //todo: show animation like square that item has been added to the current sale
           if (StoreProvider.of<AppState>(context).state.cartItem == null) {

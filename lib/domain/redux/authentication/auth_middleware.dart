@@ -110,7 +110,7 @@ _getCurrentLocation({Store<AppState> store}) async {
         idLocal: businessTableData.idLocal,
         longitude: location.longitude,
         latitude: location.latitude));
-    await store.state.couch.syncLocalToRemote(store: store);
+    await store.state.couch.syncRemoteToLocal(store: store);
   });
 }
 
