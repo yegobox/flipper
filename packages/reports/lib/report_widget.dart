@@ -1,5 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flutter/material.dart';
+import 'package:reports/report_view.dart';
+import 'package:reports/tabs.dart';
 
 class ReportWidget extends StatefulWidget {
   @override
@@ -24,42 +26,7 @@ class _ReportWidgetState extends State<ReportWidget> {
             actionButtonName: 'save',
             action: Container(
               width: double.infinity,
-              child: TabBar(
-                labelColor: Colors.black,
-                isScrollable: true,
-                tabs: [
-                  Container(
-                    width: tabLenght,
-                    child: Tab(
-                      text: '1D',
-                    ),
-                  ),
-                  Container(
-                    width: tabLenght,
-                    child: Tab(
-                      text: '1W',
-                    ),
-                  ),
-                  Container(
-                    width: tabLenght,
-                    child: Tab(
-                      text: '1M',
-                    ),
-                  ),
-                  Container(
-                    width: tabLenght,
-                    child: Tab(
-                      text: '3M',
-                    ),
-                  ),
-                  Container(
-                    width: tabLenght,
-                    child: Tab(
-                      text: '1Y',
-                    ),
-                  ),
-                ],
-              ),
+              child: Tabs(tabLenght: tabLenght),
             ),
             icon: Icons.close,
             multi: 3,
@@ -67,11 +34,11 @@ class _ReportWidgetState extends State<ReportWidget> {
           ),
           body: TabBarView(
             children: [
-              Icon(Icons.directions_car),
-              Icon(Icons.directions_transit),
-              Icon(Icons.directions_bike),
-              Icon(Icons.directions_bike),
-              Icon(Icons.directions_bike),
+              ReportView(),
+              ReportView(),
+              ReportView(),
+              ReportView(),
+              ReportView(),
             ],
           ),
         ),

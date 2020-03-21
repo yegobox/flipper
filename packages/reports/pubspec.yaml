@@ -2,7 +2,7 @@ name: reports
 description: This package try to emitate the square point of sale report.
 version: 0.0.1
 
-homepage: "https://yegobox.com"
+homepage: "https://github.com/yegobox/flipper-mobile"
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
