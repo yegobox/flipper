@@ -83,8 +83,7 @@ dependencies:
   cupertino_icons: ^0.1.3
 
   #local package
-  customappbar:
-    path: ./packages/customappbar
+  customappbar: ^0.0.1
   subscription:
     path: ./packages/subscription
 

@@ -25,9 +25,9 @@ packages:
   apptheme:
     dependency: transitive
     description:
-      path: "packages/apptheme"
-      relative: true
-    source: path
+      name: apptheme
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.0.1"
   archive:
     dependency: transitive
@@ -228,9 +228,9 @@ packages:
   customappbar:
     dependency: "direct main"
     description:
-      path: "packages/customappbar"
-      relative: true
-    source: path
+      name: customappbar
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.0.1"
   dart_style:
     dependency: transitive
@@ -309,6 +309,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.11"
+  flipper_ui:
+    dependency: transitive
+    description:
+      name: flipper_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -973,13 +980,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.6"
-  ui:
-    dependency: transitive
-    description:
-      path: "packages/ui"
-      relative: true
-    source: path
-    version: "0.0.1"
   unicode:
     dependency: transitive
     description:

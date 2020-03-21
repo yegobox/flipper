@@ -1,9 +1,9 @@
 library customappbar;
 
 import 'package:apptheme/apptheme.dart';
+import 'package:flipper_ui/ui.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
-import 'package:ui/ui.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   // @Deprecated("_action will be removed soon")

@@ -1,8 +1,8 @@
-name: ui
+name: flipper_ui
 description: A new Flutter package project.
 version: 0.0.1
-author:
-homepage:
+
+homepage: "https://yegobox.com"
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -10,11 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  apptheme: ^0.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  apptheme:
-    path: ../apptheme
+  
 flutter:
 

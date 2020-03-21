@@ -2,11 +2,11 @@
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   apptheme:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
-      path: "../apptheme"
-      relative: true
-    source: path
+      name: apptheme
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.0.1"
   archive:
     dependency: transitive
