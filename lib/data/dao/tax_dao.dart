@@ -28,8 +28,9 @@ class TaxDao extends DatabaseAccessor<Database> with _$TaxDaoMixin {
     return (select(db.taxTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
-          ..where((tbl) => tbl.name.equals(name))
-          ..where((tbl) => tbl.businessId.equals(businessId)))
+          ..where((tbl) => tbl.name.like('%' + name + '%'))
+//          ..where((tbl) => tbl.businessId.equals(businessId))
+        )
         .getSingle();
   }
 

@@ -115,7 +115,6 @@ class DataManager extends CouchBase {
           name: productName,
           categoryId: category.id,
           color: "#955be9",
-//          channel: store.state.userId.toString(),
           active: true,
           hasPicture: false,
           isCurrentUpdate: false,
@@ -135,6 +134,7 @@ class DataManager extends CouchBase {
       final variantId = await store.state.database.variationDao.insert(
         //ignore: missing_required_param
         VariationTableData(
+          isActive: false,
           name: productName,
           unit: 'kg',
           productId: product.id,

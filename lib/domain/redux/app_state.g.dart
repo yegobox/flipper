@@ -66,7 +66,9 @@ class _$AppState extends AppState {
   @override
   final BuiltList<Variation> itemVariations;
   @override
-  final Product currentActiveSaleItem;
+  final Product currentActiveSaleProduct;
+  @override
+  final Variation currentActiveSaleVariant;
   @override
   final Product cartItem;
   @override
@@ -83,6 +85,8 @@ class _$AppState extends AppState {
   final KeyPad keypad;
   @override
   final Product tmpItem;
+  @override
+  final Total total;
   @override
   final CouchDbClient couchDbClient;
 
@@ -119,7 +123,8 @@ class _$AppState extends AppState {
       this.currentColor,
       this.variant,
       this.itemVariations,
-      this.currentActiveSaleItem,
+      this.currentActiveSaleProduct,
+      this.currentActiveSaleVariant,
       this.cartItem,
       this.items,
       this.currentIncrement,
@@ -128,6 +133,7 @@ class _$AppState extends AppState {
       this.order,
       this.keypad,
       this.tmpItem,
+      this.total,
       this.couchDbClient})
       : super._() {
     if (database == null) {
@@ -187,7 +193,8 @@ class _$AppState extends AppState {
         currentColor == other.currentColor &&
         variant == other.variant &&
         itemVariations == other.itemVariations &&
-        currentActiveSaleItem == other.currentActiveSaleItem &&
+        currentActiveSaleProduct == other.currentActiveSaleProduct &&
+        currentActiveSaleVariant == other.currentActiveSaleVariant &&
         cartItem == other.cartItem &&
         items == other.items &&
         currentIncrement == other.currentIncrement &&
@@ -196,6 +203,7 @@ class _$AppState extends AppState {
         order == other.order &&
         keypad == other.keypad &&
         tmpItem == other.tmpItem &&
+        total == other.total &&
         couchDbClient == other.couchDbClient;
   }
 
@@ -219,25 +227,25 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode),
-                                                                                business.hashCode),
-                                                                            hint.hashCode),
-                                                                        database.hashCode),
-                                                                    couch.hashCode),
-                                                                tempCategoryId.hashCode),
-                                                            currentUnit.hashCode),
-                                                        currentColor.hashCode),
-                                                    variant.hashCode),
-                                                itemVariations.hashCode),
-                                            currentActiveSaleItem.hashCode),
-                                        cartItem.hashCode),
-                                    items.hashCode),
-                                currentIncrement.hashCode),
-                            carts.hashCode),
-                        cartQuantities.hashCode),
-                    order.hashCode),
-                keypad.hashCode),
-            tmpItem.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode),
+                                                                                database.hashCode),
+                                                                            couch.hashCode),
+                                                                        tempCategoryId.hashCode),
+                                                                    currentUnit.hashCode),
+                                                                currentColor.hashCode),
+                                                            variant.hashCode),
+                                                        itemVariations.hashCode),
+                                                    currentActiveSaleProduct.hashCode),
+                                                currentActiveSaleVariant.hashCode),
+                                            cartItem.hashCode),
+                                        items.hashCode),
+                                    currentIncrement.hashCode),
+                                carts.hashCode),
+                            cartQuantities.hashCode),
+                        order.hashCode),
+                    keypad.hashCode),
+                tmpItem.hashCode),
+            total.hashCode),
         couchDbClient.hashCode));
   }
 
@@ -273,7 +281,8 @@ class _$AppState extends AppState {
           ..add('currentColor', currentColor)
           ..add('variant', variant)
           ..add('itemVariations', itemVariations)
-          ..add('currentActiveSaleItem', currentActiveSaleItem)
+          ..add('currentActiveSaleProduct', currentActiveSaleProduct)
+          ..add('currentActiveSaleVariant', currentActiveSaleVariant)
           ..add('cartItem', cartItem)
           ..add('items', items)
           ..add('currentIncrement', currentIncrement)
@@ -282,6 +291,7 @@ class _$AppState extends AppState {
           ..add('order', order)
           ..add('keypad', keypad)
           ..add('tmpItem', tmpItem)
+          ..add('total', total)
           ..add('couchDbClient', couchDbClient))
         .toString();
   }
@@ -417,11 +427,17 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set itemVariations(ListBuilder<Variation> itemVariations) =>
       _$this._itemVariations = itemVariations;
 
-  ProductBuilder _currentActiveSaleItem;
-  ProductBuilder get currentActiveSaleItem =>
-      _$this._currentActiveSaleItem ??= new ProductBuilder();
-  set currentActiveSaleItem(ProductBuilder currentActiveSaleItem) =>
-      _$this._currentActiveSaleItem = currentActiveSaleItem;
+  ProductBuilder _currentActiveSaleProduct;
+  ProductBuilder get currentActiveSaleProduct =>
+      _$this._currentActiveSaleProduct ??= new ProductBuilder();
+  set currentActiveSaleProduct(ProductBuilder currentActiveSaleProduct) =>
+      _$this._currentActiveSaleProduct = currentActiveSaleProduct;
+
+  VariationBuilder _currentActiveSaleVariant;
+  VariationBuilder get currentActiveSaleVariant =>
+      _$this._currentActiveSaleVariant ??= new VariationBuilder();
+  set currentActiveSaleVariant(VariationBuilder currentActiveSaleVariant) =>
+      _$this._currentActiveSaleVariant = currentActiveSaleVariant;
 
   ProductBuilder _cartItem;
   ProductBuilder get cartItem => _$this._cartItem ??= new ProductBuilder();
@@ -457,6 +473,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ProductBuilder _tmpItem;
   ProductBuilder get tmpItem => _$this._tmpItem ??= new ProductBuilder();
   set tmpItem(ProductBuilder tmpItem) => _$this._tmpItem = tmpItem;
+
+  TotalBuilder _total;
+  TotalBuilder get total => _$this._total ??= new TotalBuilder();
+  set total(TotalBuilder total) => _$this._total = total;
 
   CouchDbClientBuilder _couchDbClient;
   CouchDbClientBuilder get couchDbClient =>
@@ -497,7 +517,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _currentColor = _$v.currentColor?.toBuilder();
       _variant = _$v.variant?.toBuilder();
       _itemVariations = _$v.itemVariations?.toBuilder();
-      _currentActiveSaleItem = _$v.currentActiveSaleItem?.toBuilder();
+      _currentActiveSaleProduct = _$v.currentActiveSaleProduct?.toBuilder();
+      _currentActiveSaleVariant = _$v.currentActiveSaleVariant?.toBuilder();
       _cartItem = _$v.cartItem?.toBuilder();
       _items = _$v.items?.toBuilder();
       _currentIncrement = _$v.currentIncrement;
@@ -506,6 +527,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _order = _$v.order?.toBuilder();
       _keypad = _$v.keypad?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
+      _total = _$v.total?.toBuilder();
       _couchDbClient = _$v.couchDbClient?.toBuilder();
       _$v = null;
     }
@@ -560,7 +582,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               currentColor: _currentColor?.build(),
               variant: _variant?.build(),
               itemVariations: itemVariations.build(),
-              currentActiveSaleItem: _currentActiveSaleItem?.build(),
+              currentActiveSaleProduct: _currentActiveSaleProduct?.build(),
+              currentActiveSaleVariant: _currentActiveSaleVariant?.build(),
               cartItem: _cartItem?.build(),
               items: items.build(),
               currentIncrement: currentIncrement,
@@ -569,6 +592,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               order: _order?.build(),
               keypad: _keypad?.build(),
               tmpItem: _tmpItem?.build(),
+              total: _total?.build(),
               couchDbClient: _couchDbClient?.build());
     } catch (_) {
       String _$failedField;
@@ -619,8 +643,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _variant?.build();
         _$failedField = 'itemVariations';
         itemVariations.build();
-        _$failedField = 'currentActiveSaleItem';
-        _currentActiveSaleItem?.build();
+        _$failedField = 'currentActiveSaleProduct';
+        _currentActiveSaleProduct?.build();
+        _$failedField = 'currentActiveSaleVariant';
+        _currentActiveSaleVariant?.build();
         _$failedField = 'cartItem';
         _cartItem?.build();
         _$failedField = 'items';
@@ -635,6 +661,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _keypad?.build();
         _$failedField = 'tmpItem';
         _tmpItem?.build();
+        _$failedField = 'total';
+        _total?.build();
         _$failedField = 'couchDbClient';
         _couchDbClient?.build();
       } catch (e) {

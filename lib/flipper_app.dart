@@ -10,6 +10,7 @@ import 'package:flipper/domain/redux/business/business_middleware.dart';
 import 'package:flipper/domain/redux/permission/permission_middleware.dart';
 import 'package:flipper/domain/redux/user/user_middleware.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/home/selling/selling_middleware.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/logger.dart';
@@ -56,6 +57,7 @@ class _FlipperAppState extends State<FlipperApp> {
           userRepo, businessRepo, branchRepo, generalRepo, _navigatorKey)
         ..addAll(createBusinessMiddleware(_navigatorKey, businessRepo))
         ..addAll(permissionMiddleware(_navigatorKey))
+        ..addAll(sellMiddleware(_navigatorKey))
         ..addAll(AppActionMiddleware(_navigatorKey, generalRepo))
         ..addAll(userMiddleware(userRepo, _navigatorKey))
         ..addAll(createBranchMiddleware(_navigatorKey, branchRepo, generalRepo))

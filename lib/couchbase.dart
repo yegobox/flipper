@@ -6,6 +6,7 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttercouch/fluttercouch.dart';
 import 'package:redux/redux.dart';
 import 'package:scoped_model/scoped_model.dart';
@@ -48,8 +49,7 @@ class CouchBase extends Model with Fluttercouch {
         .toMutable()
         .setList('branches', m)
         .setString('uid', Uuid().v1())
-        .setString('channel', map['channel'])
-        .setString('_id', map['_id']);
+        .setList('channels', [map['channel']]).setString('_id', map['_id']);
     return await saveDocumentWithId(map['_id'], doc);
   }
 
@@ -71,8 +71,7 @@ class CouchBase extends Model with Fluttercouch {
         .toMutable()
         .setList('taxes', m)
         .setString('uid', Uuid().v1())
-        .setString('channel', map['channel'])
-        .setString('_id', map['_id']);
+        .setList('channels', [map['channel']]).setString('_id', map['_id']);
     ;
 
     return await saveDocumentWithId(map['_id'], doc);
@@ -80,8 +79,10 @@ class CouchBase extends Model with Fluttercouch {
 
   //create business.
   Future<dynamic> createBusiness(Map map) async {
-    assert(map['_id'] != null);
+    //if user has business do nothing
     Document doc = await getDocumentWithId(map['_id']);
+    if (doc != null) return;
+    assert(map['_id'] != null);
 
     assert(map['channel'] != null);
     assert(map['name'] != null);
@@ -101,7 +102,7 @@ class CouchBase extends Model with Fluttercouch {
     doc
         .toMutable()
         .setList('businesses', m)
-        .setString('channel', map['channel'])
+        .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
     ;
@@ -163,6 +164,7 @@ class CouchBase extends Model with Fluttercouch {
           _doc.setDouble(key, value);
         }
       });
+      _doc.setList('channels', [map['channel']]);
       return await saveDocumentWithId(map['_id'], _doc);
     }
   }
@@ -212,20 +214,29 @@ class CouchBase extends Model with Fluttercouch {
   //return stream of branches
   static getBranches(int userId) {}
 
+  addChannelListenTo({Store<AppState> store}) {
+    setChannel(store.state.userId.toString());
+  }
+
   initPlatformState() async {
     try {
-      await initDatabaseWithName("lagrace");
-      //todo: enable this sync replication when user has paid.
-      setReplicatorEndpoint(
-          "ws://enexus.rw:4984/lagrace"); //todo: move this to credential file to avoid security breach
-      setReplicatorType("PUSH_AND_PULL");
-      setReplicatorBasicAuthentication(<String, String>{
-        "username":
-            "Administrator", //todo: move this to credential file to avoid security breach
-        "password":
-            "password" //todo: move this to credential file to avoid security breach
-      });
+      final storage = new FlutterSecureStorage();
+      String sync_database = await storage.read(key: "sync_database");
+      String sync_url = await storage.read(key: "sync_url");
+      String channel = await storage.read(key: "channel");
 
+      await initDatabaseWithName("${sync_database}");
+      //todo: enable this sync replication when user has paid.
+      setReplicatorEndpoint("ws://${sync_url}/${sync_database}");
+      setReplicatorType("PUSH_AND_PULL");
+
+      setReplicatorSessionAuthentication(
+          'b2dfb02940783371ea48881e9594ae0e0eb472d8');
+
+      if (channel != null) {
+        //todo: set channel on app login, also check if we do load data when no user logged in!
+        setChannel(channel);
+      }
       setReplicatorContinuous(true);
       initReplicator();
       startReplicator();
@@ -252,266 +263,240 @@ class CouchBase extends Model with Fluttercouch {
   }
 
   Future syncRemoteToLocal({Store<AppState> store}) async {
-    //load business.
-    Document business =
-        await getDocumentWithId('business_' + store.state.userId.toString());
-    if (business.getList('businesses') == null) return;
-    for (var i = 0; i < business.getList('businesses').length; i++) {
-      BusinessTableData busine = await store.state.database.businessDao
-          .getBusinesById(id: business.getList('businesses')[i]['id']);
-      // ignore:missing_required_param
-      BusinessTableData businessTableData = BusinessTableData(
-          active: business.getList('businesses')[i]['active'],
-          name: business.getList('businesses')[i]['name'],
-          id: business.getList('businesses')[i]['id'],
-          userId: business.getList('businesses')[i]['userId'],
-          longitude: business.getList('businesses')[i]['longitude'],
-          typeId: business.getList('businesses')[i]['typeId'].toString(),
-          categoryId:
-              business.getList('businesses')[i]['categoryId'].toString(),
-          country: business.getList('businesses')[i]['country'],
-          timeZone: business.getList('businesses')[i]['timeZone'],
-          currency: business.getList('businesses')[i]['currency'],
-          latitude: business.getList('businesses')[i]['latitude'],
-          createdAt:
-              DateTime.parse(business.getList('businesses')[i]['createdAt']),
-          updatedAt:
-              DateTime.parse(business.getList('businesses')[i]['updatedAt']));
-
-      if (busine == null) {
-        await store.state.database.businessDao.insert(businessTableData);
-      } else {
-        await store.state.database.businessDao.updateBusiness(
-            businessTableData.copyWith(idLocal: busine.idLocal));
-      }
-    }
+    //load branch products
+    await syncBranchProductRLocal(store);
 
     //load products
-    Document doc =
-        await getDocumentWithId('products_' + store.state.userId.toString());
-    if (doc.getList('products') == null) return; //no need to go further!
-    for (var i = 0; i < doc.getList('products').length; i++) {
-      ProductTableData product = await store.state.database.productDao
-          .getItemById(productId: doc.getList('products')[i]['id']);
-      // ignore:missing_required_param
-      ProductTableData productData = ProductTableData(
-          businessId: doc.getList('products')[i]['businessId'].toString(),
-          active: doc.getList('products')[i]['active'],
-          name: doc.getList('products')[i]['name'],
-//          channel: doc.getList('products')[i]['channel'] ?? '',
-          id: doc.getList('products')[i]['id'],
-          color: doc.getList('products')[i]['color'],
-          description: doc.getList('products')[i]['description'],
-          picture: doc.getList('products')[i]['picture'],
-          taxId: doc.getList('products')[i]['taxId'],
-          hasPicture: doc.getList('products')[i]['hasPicture'],
-          isDraft: doc.getList('products')[i]['isDraft'],
-          isCurrentUpdate: doc.getList('products')[i]['isCurrentUpdate'],
-          supplierId: doc.getList('products')[i]['supplierId'],
-          categoryId: doc.getList('products')[i]['categoryId'],
-          createdAt: DateTime.parse(doc.getList('products')[i]['createdAt']),
-          updatedAt: DateTime.parse(doc.getList('products')[i]['updatedAt']));
+    await syncProductRLocal(store);
 
-      if (product == null) {
-        await store.state.database.productDao.insert(productData);
-      } else {
-        await store.state.database.productDao
-            .updateProduct(productData.copyWith(idLocal: product.idLocal));
-      }
-    }
+    //load all app units:
+    await syncUnit(store);
+
+    //load taxes:
+    await syncTaxesRLocal(store);
+    //end loading taxes
+    //category
+    await syncCategoriesRLocal(store);
+    //done loading category
+
+    //load business.
+    await syncBusinessRLocal(store);
 
     //load variants:
+    await syncVariantsRLocal(store);
+
+    //load all stocks:
+    await syncStockRLocal(store);
+
+    //load stock history
+    await syncHistoryRLocal(store);
+  }
+
+  Future syncHistoryRLocal(Store<AppState> store) async {
+    Document stockHistories = await getDocumentWithId(
+        'stockHistory_' + store.state.userId.toString());
+    if (stockHistories.getList('stockHistory') != null) {
+      for (var i = 0; i < stockHistories.getList('stockHistory').length; i++) {
+        StockHistoryTableData history = await store
+            .state.database.stockHistoryDao
+            .getById(id: stockHistories.getList('stockHistory')[i]['id']);
+        // ignore:missing_required_param
+        StockHistoryTableData historyData = StockHistoryTableData(
+            id: stockHistories.getList('stockHistory')[i]['id'],
+            note: stockHistories.getList('stockHistory')[i]['note'],
+            quantity: stockHistories.getList('stockHistory')[i]['quantity'],
+            stockId: stockHistories.getList('stockHistory')[i]['stockId'],
+            reason: stockHistories.getList('stockHistory')[i]['reason'],
+            variantId: stockHistories.getList('stockHistory')[i]['variantId'],
+            createdAt: DateTime.parse(
+                stockHistories.getList('stockHistory')[i]['createdAt']),
+            updatedAt: DateTime.parse(
+                stockHistories.getList('stockHistory')[i]['updatedAt']));
+
+        if (history == null) {
+          await store.state.database.stockHistoryDao.insert(historyData);
+        } else {
+          await store.state.database.stockHistoryDao
+              .updateHistory(historyData.copyWith(idLocal: history.idLocal));
+        }
+      }
+    }
+    ;
+  }
+
+  Future syncStockRLocal(Store<AppState> store) async {
+    Document stocks =
+        await getDocumentWithId('stocks_' + store.state.userId.toString());
+    if (stocks.getList('stocks') != null) {
+      for (var i = 0; i < stocks.getList('stocks').length; i++) {
+        StockTableData stock = await store.state.database.stockDao
+            .getById(id: stocks.getList('stocks')[i]['id']);
+        // ignore:missing_required_param
+        StockTableData branchProductData = StockTableData(
+            id: stocks.getList('stocks')[i]['id'],
+            supplyPrice: stocks.getList('stocks')[i]['supplyPrice'].toDouble(),
+            retailPrice: stocks.getList('stocks')[i]['retailPrice'].toDouble(),
+            lowStock: stocks.getList('stocks')[i]['lowStock'],
+            variantId: stocks.getList('stocks')[i]['variantId'],
+            branchId: stocks.getList('stocks')[i]['branchId'],
+            productId: stocks.getList('stocks')[i]['productId'],
+            currentStock: stocks.getList('stocks')[i]['currentStock'],
+            canTrackingStock: stocks.getList('stocks')[i]['canTrackingStock'],
+            showLowStockAlert: stocks.getList('stocks')[i]['showLowStockAlert'],
+            createdAt: DateTime.parse(stocks.getList('stocks')[i]['createdAt']),
+            updatedAt:
+                DateTime.parse(stocks.getList('stocks')[i]['updatedAt']));
+
+        if (stock == null) {
+          await store.state.database.stockDao.insert(branchProductData);
+        } else {
+          await store.state.database.stockDao.updateStock(branchProductData
+              .copyWith(idLocal: stock.idLocal, isActive: false));
+        }
+      }
+    }
+    ;
+  }
+
+  Future syncVariantsRLocal(Store<AppState> store) async {
     Document variants =
         await getDocumentWithId('variants_' + store.state.userId.toString());
 
-    if (variants.getList('variants') == null) return; //no need to go further!
+    if (variants.getList('variants') != null) {
+      for (var i = 0; i < variants.getList('variants').length; i++) {
+        VariationTableData variation = await store.state.database.variationDao
+            .getVariationById(variantId: variants.getList('variants')[i]['id']);
+        // ignore:missing_required_param
+        VariationTableData variationData = VariationTableData(
+            name: variants.getList('variants')[i]['name'],
+            id: variants.getList('variants')[i]['id'],
+            isActive: false,
+            sku: variants.getList('variants')[i]['SKU'],
+            productId: variants.getList('variants')[i]['productId'],
+            unit: variants.getList('variants')[i]['unit'],
+            createdAt:
+                DateTime.parse(variants.getList('variants')[i]['createdAt']),
+            updatedAt:
+                DateTime.parse(variants.getList('variants')[i]['updatedAt']));
 
-    for (var i = 0; i < variants.getList('variants').length; i++) {
-      VariationTableData variation = await store.state.database.variationDao
-          .getVariationById(variantId: variants.getList('variants')[i]['id']);
-      // ignore:missing_required_param
-      VariationTableData variationData = VariationTableData(
-          name: variants.getList('variants')[i]['name'],
-          id: variants.getList('variants')[i]['id'],
-          sku: variants.getList('variants')[i]['SKU'],
-          productId: variants.getList('variants')[i]['productId'],
-          unit: variants.getList('variants')[i]['unit'],
-          createdAt:
-              DateTime.parse(variants.getList('variants')[i]['createdAt']),
-          updatedAt:
-              DateTime.parse(variants.getList('variants')[i]['updatedAt']));
-
-      if (variation == null) {
-        await store.state.database.variationDao.insert(variationData);
-      } else {
-        await store.state.database.variationDao.updateVariation(
-            variationData.copyWith(idLocal: variation.idLocal));
+        if (variation == null) {
+          await store.state.database.variationDao.insert(variationData);
+        } else {
+          await store.state.database.variationDao.updateVariation(
+              variationData.copyWith(idLocal: variation.idLocal));
+        }
       }
     }
+    ;
+  }
 
-    //load branch products
-    Document branchProducts = await getDocumentWithId(
-        'branchProducts_' + store.state.userId.toString());
+  Future syncBusinessRLocal(Store<AppState> store) async {
+    Document business =
+        await getDocumentWithId('business_' + store.state.userId.toString());
+    if (business.getList('businesses') != null) {
+      for (var i = 0; i < business.getList('businesses').length; i++) {
+        BusinessTableData busine = await store.state.database.businessDao
+            .getBusinesById(id: business.getList('businesses')[i]['id']);
+        // ignore:missing_required_param
+        BusinessTableData businessTableData = BusinessTableData(
+            active: business.getList('businesses')[i]['active'],
+            name: business.getList('businesses')[i]['name'],
+            id: business.getList('businesses')[i]['id'],
+            userId: business.getList('businesses')[i]['userId'],
+            longitude: business.getList('businesses')[i]['longitude'],
+            typeId: business.getList('businesses')[i]['typeId'].toString(),
+            categoryId:
+                business.getList('businesses')[i]['categoryId'].toString(),
+            country: business.getList('businesses')[i]['country'],
+            timeZone: business.getList('businesses')[i]['timeZone'],
+            currency: business.getList('businesses')[i]['currency'],
+            latitude: business.getList('businesses')[i]['latitude'],
+            createdAt:
+                DateTime.parse(business.getList('businesses')[i]['createdAt']),
+            updatedAt:
+                DateTime.parse(business.getList('businesses')[i]['updatedAt']));
 
-    if (branchProducts.getList('branchProducts') == null)
-      return; //no need to go further!
-
-    for (var i = 0; i < branchProducts.getList('branchProducts').length; i++) {
-      BranchProductTableData branchProduct = await store
-          .state.database.branchProductDao
-          .getById(id: branchProducts.getList('branchProducts')[i]['id']);
-      // ignore:missing_required_param
-      BranchProductTableData branchProductData = BranchProductTableData(
-        id: branchProducts.getList('branchProducts')[i]['id'],
-//        channel: branchProducts.getList('branchProducts')[i]['channel'] ?? '',
-        branchId: branchProducts.getList('branchProducts')[i]['branchId'],
-        productId: branchProducts.getList('branchProducts')[i]['productId'],
-      );
-
-      if (branchProduct == null) {
-        await store.state.database.branchProductDao.insert(branchProductData);
-      } else {
-        await store.state.database.branchProductDao.updateBP(
-            branchProductData.copyWith(idLocal: branchProduct.idLocal));
+        if (busine == null) {
+          await store.state.database.businessDao.insert(businessTableData);
+        } else {
+          await store.state.database.businessDao.updateBusiness(
+              businessTableData.copyWith(idLocal: busine.idLocal));
+        }
       }
     }
+  }
 
-    //load all stocks:
-    Document stocks =
-        await getDocumentWithId('stocks_' + store.state.userId.toString());
-    if (stocks.getList('stocks') == null) return; //no need to go further!
-
-    for (var i = 0; i < stocks.getList('stocks').length; i++) {
-      StockTableData stock = await store.state.database.stockDao
-          .getById(id: stocks.getList('stocks')[i]['id']);
-      // ignore:missing_required_param
-      StockTableData branchProductData = StockTableData(
-          id: stocks.getList('stocks')[i]['id'],
-          supplyPrice: stocks.getList('stocks')[i]['supplyPrice'].toDouble(),
-          retailPrice: stocks.getList('stocks')[i]['retailPrice'].toDouble(),
-          lowStock: stocks.getList('stocks')[i]['lowStock'],
-//          channel: stocks.getList('stocks')[i]['channel'] ?? '',
-          variantId: stocks.getList('stocks')[i]['variantId'],
-          branchId: stocks.getList('stocks')[i]['branchId'],
-          productId: stocks.getList('stocks')[i]['productId'],
-          currentStock: stocks.getList('stocks')[i]['currentStock'],
-          canTrackingStock: stocks.getList('stocks')[i]['canTrackingStock'],
-          showLowStockAlert: stocks.getList('stocks')[i]['showLowStockAlert'],
-          createdAt: DateTime.parse(stocks.getList('stocks')[i]['createdAt']),
-          updatedAt: DateTime.parse(stocks.getList('stocks')[i]['updatedAt']));
-
-      if (stock == null) {
-        await store.state.database.stockDao.insert(branchProductData);
-      } else {
-        await store.state.database.stockDao.updateStock(branchProductData
-            .copyWith(idLocal: stock.idLocal, isActive: false));
-      }
-    }
-
-    //load stock history
-    Document stockHistories = await getDocumentWithId(
-        'stockHistory_' + store.state.userId.toString());
-    if (stockHistories.getList('stockHistory') == null)
-      return; //no need to go further!
-    for (var i = 0; i < stockHistories.getList('stockHistory').length; i++) {
-      StockHistoryTableData history = await store.state.database.stockHistoryDao
-          .getById(id: stockHistories.getList('stockHistory')[i]['id']);
-      // ignore:missing_required_param
-      StockHistoryTableData historyData = StockHistoryTableData(
-          id: stockHistories.getList('stockHistory')[i]['id'],
-//          channel: stockHistories.getList('stockHistory')[i]['channel'] ?? '',
-          note: stockHistories.getList('stockHistory')[i]['note'],
-          quantity: stockHistories.getList('stockHistory')[i]['quantity'],
-          stockId: stockHistories.getList('stockHistory')[i]['stockId'],
-          reason: stockHistories.getList('stockHistory')[i]['reason'],
-          variantId: stockHistories.getList('stockHistory')[i]['variantId'],
-          createdAt: DateTime.parse(
-              stockHistories.getList('stockHistory')[i]['createdAt']),
-          updatedAt: DateTime.parse(
-              stockHistories.getList('stockHistory')[i]['updatedAt']));
-
-      if (history == null) {
-        await store.state.database.stockHistoryDao.insert(historyData);
-      } else {
-        await store.state.database.stockHistoryDao
-            .updateHistory(historyData.copyWith(idLocal: history.idLocal));
-      }
-    }
-
-    //load taxes:
-
-    Document taxes =
-        await getDocumentWithId('taxes_' + store.state.userId.toString());
-
-    if (taxes.getList('taxes') == null) return; //no need to go further!
-
-    for (var i = 0; i < taxes.getList('taxes').length; i++) {
-      TaxTableData tax = await store.state.database.taxDao
-          .getById(taxid: taxes.getList('taxes')[i]['id']);
-      // ignore:missing_required_param
-      TaxTableData taxData = TaxTableData(
-          id: taxes.getList('taxes')[i]['id'],
-//          channel: taxes.getList('taxes')[i]['channel'] ?? '',
-          name: taxes.getList('taxes')[i]['name'],
-          businessId: taxes.getList('taxes')[i]['businessId'],
-          isDefault: taxes.getList('taxes')[i]['isDefault'],
-          percentage: taxes.getList('taxes')[i]['percentage'].toDouble(),
-          createdAt: DateTime.parse(taxes.getList('taxes')[i]['createdAt']),
-          updatedAt: DateTime.parse(taxes.getList('taxes')[i]['updatedAt']));
-
-      if (tax == null) {
-        await store.state.database.taxDao.insert(taxData);
-      } else {
-        await store.state.database.taxDao
-            .updateTax(taxData.copyWith(idLocal: tax.idLocal));
-      }
-    }
-
-    //load categories:
+  Future syncCategoriesRLocal(Store<AppState> store) async {
     Document categories =
         await getDocumentWithId('categories_' + store.state.userId.toString());
+    if (categories.getList('categories') != null) {
+      for (var i = 0; i < categories.getList('categories').length; i++) {
+        CategoryTableData category = await store.state.database.categoryDao
+            .getById(id: categories.getList('categories')[i]['id']);
+        CategoryTableData categoryData;
+        if (i == 1) {
+          // ignore:missing_required_param
+          categoryData = CategoryTableData(
+              id: categories.getList('categories')[i]['id'],
+              name: categories.getList('categories')[i]['name'],
+              focused: true,
+              branchId: categories.getList('categories')[i]['branchId'],
+              createdAt: DateTime.parse(
+                  categories.getList('categories')[i]['createdAt']),
+              updatedAt: DateTime.parse(
+                  categories.getList('categories')[i]['updatedAt']));
+        } else {
+          // ignore:missing_required_param
+          categoryData = CategoryTableData(
+              id: categories.getList('categories')[i]['id'],
+              name: categories.getList('categories')[i]['name'],
+              focused: false,
+              branchId: categories.getList('categories')[i]['branchId'],
+              createdAt: DateTime.parse(
+                  categories.getList('categories')[i]['createdAt']),
+              updatedAt: DateTime.parse(
+                  categories.getList('categories')[i]['updatedAt']));
+        }
 
-    if (categories.getList('categories') == null)
-      return; //no need to go further!
-
-    for (var i = 0; i < categories.getList('categories').length; i++) {
-      CategoryTableData category = await store.state.database.categoryDao
-          .getById(id: categories.getList('categories')[i]['id']);
-      CategoryTableData categoryData;
-      if (i == 1) {
-        // ignore:missing_required_param
-        categoryData = CategoryTableData(
-            id: categories.getList('categories')[i]['id'],
-            name: categories.getList('categories')[i]['name'],
-//            channel: categories.getList('categories')[i]['channel'] ?? '',
-            focused: true,
-            branchId: categories.getList('categories')[i]['branchId'],
-            createdAt: DateTime.parse(
-                categories.getList('categories')[i]['createdAt']),
-            updatedAt: DateTime.parse(
-                categories.getList('categories')[i]['updatedAt']));
-      } else {
-        // ignore:missing_required_param
-        categoryData = CategoryTableData(
-            id: categories.getList('categories')[i]['id'],
-            name: categories.getList('categories')[i]['name'],
-//            channel: categories.getList('categories')[i]['channel'] ?? '',
-            focused: false,
-            branchId: categories.getList('categories')[i]['branchId'],
-            createdAt: DateTime.parse(
-                categories.getList('categories')[i]['createdAt']),
-            updatedAt: DateTime.parse(
-                categories.getList('categories')[i]['updatedAt']));
-      }
-
-      if (category == null) {
-        await store.state.database.categoryDao.insert(categoryData);
-      } else {
-        await store.state.database.categoryDao
-            .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
+        if (category == null) {
+          await store.state.database.categoryDao.insert(categoryData);
+        } else {
+          await store.state.database.categoryDao
+              .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
+        }
       }
     }
-    //load all app units:
+  }
+
+  Future syncTaxesRLocal(Store<AppState> store) async {
+    Document taxes =
+        await getDocumentWithId('taxes_' + store.state.userId.toString());
+    if (taxes.getList('taxes') != null) {
+      for (var i = 0; i < taxes.getList('taxes').length; i++) {
+        TaxTableData tax = await store.state.database.taxDao
+            .getById(taxid: taxes.getList('taxes')[i]['id']);
+        // ignore:missing_required_param
+        TaxTableData taxData = TaxTableData(
+            id: taxes.getList('taxes')[i]['id'],
+            name: taxes.getList('taxes')[i]['name'],
+            businessId: taxes.getList('taxes')[i]['businessId'],
+            isDefault: taxes.getList('taxes')[i]['isDefault'],
+            percentage: taxes.getList('taxes')[i]['percentage'].toDouble(),
+            createdAt: DateTime.parse(taxes.getList('taxes')[i]['createdAt']),
+            updatedAt: DateTime.parse(taxes.getList('taxes')[i]['updatedAt']));
+
+        if (tax == null) {
+          await store.state.database.taxDao.insert(taxData);
+        } else {
+          await store.state.database.taxDao
+              .updateTax(taxData.copyWith(idLocal: tax.idLocal));
+        }
+      }
+    }
+    ;
+  }
+
+  Future syncUnit(Store<AppState> store) async {
     var units = [
       {"name": "Per Item", "value": ""},
       {"name": "Per Kilogram (kg)", "value": "kg"},
@@ -584,7 +569,67 @@ class CouchBase extends Model with Fluttercouch {
             .updateUnit(unitTableData.copyWith(id: unit.id));
       }
     }
-    //merging: get product of this branchId
+  }
+
+  Future syncProductRLocal(Store<AppState> store) async {
+    Document doc =
+        await getDocumentWithId('products_' + store.state.userId.toString());
+    if (doc.getList('products') != null) {
+      for (var i = 0; i < doc.getList('products').length; i++) {
+        ProductTableData product = await store.state.database.productDao
+            .getItemById(productId: doc.getList('products')[i]['id']);
+        // ignore:missing_required_param
+        ProductTableData productData = ProductTableData(
+            businessId: doc.getList('products')[i]['businessId'].toString(),
+            active: doc.getList('products')[i]['active'],
+            name: doc.getList('products')[i]['name'],
+            id: doc.getList('products')[i]['id'],
+            color: doc.getList('products')[i]['color'],
+            description: doc.getList('products')[i]['description'],
+            picture: doc.getList('products')[i]['picture'],
+            taxId: doc.getList('products')[i]['taxId'],
+            hasPicture: doc.getList('products')[i]['hasPicture'],
+            isDraft: doc.getList('products')[i]['isDraft'],
+            isCurrentUpdate: doc.getList('products')[i]['isCurrentUpdate'],
+            supplierId: doc.getList('products')[i]['supplierId'].toString(),
+            categoryId: doc.getList('products')[i]['categoryId'].toString(),
+            createdAt: DateTime.parse(doc.getList('products')[i]['createdAt']),
+            updatedAt: DateTime.parse(doc.getList('products')[i]['updatedAt']));
+
+        if (product == null) {
+          await store.state.database.productDao.insert(productData);
+        } else {
+          await store.state.database.productDao
+              .updateProduct(productData.copyWith(idLocal: product.idLocal));
+        }
+      }
+    }
+  }
+
+  Future syncBranchProductRLocal(Store<AppState> store) async {
+    Document branchProducts = await getDocumentWithId(
+        'branchProducts_' + store.state.userId.toString());
+    if (branchProducts.getList('branchProducts') != null) {
+      for (var i = 0;
+          i < branchProducts.getList('branchProducts').length;
+          i++) {
+        BranchProductTableData branchProduct = await store
+            .state.database.branchProductDao
+            .getById(id: branchProducts.getList('branchProducts')[i]['id']);
+        BranchProductTableData branchProductData = BranchProductTableData(
+          id: branchProducts.getList('branchProducts')[i]['id'],
+          branchId: branchProducts.getList('branchProducts')[i]['branchId'],
+          productId: branchProducts.getList('branchProducts')[i]['productId'],
+        );
+
+        if (branchProduct == null) {
+          await store.state.database.branchProductDao.insert(branchProductData);
+        } else {
+          await store.state.database.branchProductDao.updateBP(
+              branchProductData.copyWith(idLocal: branchProduct.idLocal));
+        }
+      }
+    }
   }
 
   //return
@@ -702,7 +747,7 @@ class CouchBase extends Model with Fluttercouch {
     products
         .toMutable()
         .setList('products', m2)
-        .setString('channel', map['channel'])
+        .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -728,7 +773,7 @@ class CouchBase extends Model with Fluttercouch {
     variants
         .toMutable()
         .setList('variants', m)
-        .setString('channel', map['channel'])
+        .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -751,7 +796,7 @@ class CouchBase extends Model with Fluttercouch {
     branchProducts
         .toMutable()
         .setList('branchProducts', m)
-        .setString('channel', map['channel'])
+        .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -779,7 +824,7 @@ class CouchBase extends Model with Fluttercouch {
     history
         .toMutable()
         .setList('stockHistory', m)
-        .setString('channel', map['channel'])
+        .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -822,78 +867,87 @@ class CouchBase extends Model with Fluttercouch {
 
   Future<dynamic> syncLocalToRemote({Store<AppState> store}) async {
     // sync business
-    List<BusinessTableData> businesses =
-        await store.state.database.businessDao.getBusinesses();
-
-    Document business =
-        await getDocumentWithId('business_' + store.state.userId.toString());
-    List mapTypeListBusiness = [];
-    for (var i = 0; i < businesses.length; i++) {
-      Map map = {
-        'name': businesses[i].name,
-        'id': businesses[i].id,
-        'active': businesses[i].active,
-        'userId': businesses[i].userId,
-        'categoryId': businesses[i].categoryId,
-        'typeId': businesses[i].typeId,
-        'country': businesses[i].country,
-        'currency': businesses[i].currency,
-        'timeZone': businesses[i].timeZone,
-        'longitude': businesses[i].longitude,
-        'latitude': businesses[i].latitude,
-        'createdAt': businesses[i].createdAt.toIso8601String(),
-        'updatedAt': businesses[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : businesses[i].updatedAt.toIso8601String(),
-      };
-      mapTypeListBusiness.add(map);
-    }
-    business
-        .toMutable()
-        .setList('businesses', mapTypeListBusiness)
-        .setString('channel', store.state.userId.toString())
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'business_' + store.state.userId.toString());
-
-    await saveDocumentWithId(
-        'business_' + store.state.userId.toString(), business);
-
-    //done  sync business
+    await syncBusinessLRemote(store);
 
     //sync variant
-    List<VariationTableData> variations =
-        await store.state.database.variationDao.getVariations();
+    List<VariationTableData> variations = await syncVariantLRemote(store);
 
-    Document variant =
-        await getDocumentWithId('variants_' + store.state.userId.toString());
+    await syncProductsLRemote(store, variations);
 
-    List mapTypeListVariants = [];
-    for (var i = 0; i < variations.length; i++) {
+    Document stock = await syncStockLRemote(store);
+
+    await syncBranchProductLRemote(store, stock);
+  }
+
+  Future syncBranchProductLRemote(Store<AppState> store, Document stock) async {
+    List<BranchProductTableData> branchProducts =
+        await store.state.database.branchProductDao.branchProducts();
+
+    Document bP = await getDocumentWithId(
+        'branchProducts_' + store.state.userId.toString());
+
+    List mapTypeListBranchProducts = [];
+    for (var i = 0; i < branchProducts.length; i++) {
       Map map = {
-        'name': variations[i].name,
-        'id': variations[i].id,
-        'sku': variations[i].sku,
-        'unit': variations[i].unit,
-        'productId': variations[i].productId,
-        'createdAt': variations[i].createdAt.toIso8601String(),
-        'updatedAt': variations[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : variations[i].updatedAt.toIso8601String(),
+        'branchId': branchProducts[i].branchId,
+        'id': branchProducts[i].id,
+        'productId': branchProducts[i].productId,
       };
-      mapTypeListVariants.add(map);
+      mapTypeListBranchProducts.add(map);
     }
 
-    variant
+    bP
         .toMutable()
-        .setList('variants', mapTypeListVariants)
-        .setString('channel', store.state.userId.toString())
+        .setList('branchProducts', mapTypeListBranchProducts)
+        .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
-        .setString('_id', 'variants_' + store.state.userId.toString());
+        .setString('_id', 'branchProducts_' + store.state.userId.toString());
 
     await saveDocumentWithId(
-        'variants_' + store.state.userId.toString(), variant);
-    //done sync variant
+        'branchProducts_' + store.state.userId.toString(), stock);
+  }
 
+  Future<Document> syncStockLRemote(Store<AppState> store) async {
+    List<StockTableData> stocks =
+        await store.state.database.stockDao.getStocks();
+
+    Document stock =
+        await getDocumentWithId('stocks_' + store.state.userId.toString());
+
+    List mapTypeListStocks = [];
+    for (var i = 0; i < stocks.length; i++) {
+      Map map = {
+        'currentStock': stocks[i].currentStock,
+        'id': stocks[i].id,
+        'lowStock': stocks[i].lowStock,
+        'canTrackingStock': stocks[i].canTrackingStock,
+        'showLowStockAlert': stocks[i].showLowStockAlert,
+        'isActive': stocks[i].isActive,
+        'supplyPrice': stocks[i].supplyPrice,
+        'retailPrice': stocks[i].retailPrice,
+        'variantId': stocks[i].variantId,
+        'branchId': stocks[i].branchId,
+        'productId': stocks[i].productId,
+        'createdAt': DateTime.now().toIso8601String(),
+        //todo: this line of code
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+      mapTypeListStocks.add(map);
+    }
+
+    stock
+        .toMutable()
+        .setList('stocks', mapTypeListStocks)
+        .setList('channels', [store.state.userId.toString()])
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'stocks_' + store.state.userId.toString());
+
+    await saveDocumentWithId('stocks_' + store.state.userId.toString(), stock);
+    return stock;
+  }
+
+  Future syncProductsLRemote(
+      Store<AppState> store, List<VariationTableData> variations) async {
     List<ProductTableData> products =
         await store.state.database.productDao.getProducts();
 
@@ -928,78 +982,86 @@ class CouchBase extends Model with Fluttercouch {
     product
         .toMutable()
         .setList('products', mapTypeListProducts)
-        .setString('channel', store.state.userId.toString())
+        .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
         .setString('_id', 'products_' + store.state.userId.toString());
 
     await saveDocumentWithId(
         'products_' + store.state.userId.toString(), product);
+  }
 
-    //done sync products:
+  Future<List<VariationTableData>> syncVariantLRemote(
+      Store<AppState> store) async {
+    List<VariationTableData> variations =
+        await store.state.database.variationDao.getVariations();
 
-    List<StockTableData> stocks =
-        await store.state.database.stockDao.getStocks();
+    Document variant =
+        await getDocumentWithId('variants_' + store.state.userId.toString());
 
-    Document stock =
-        await getDocumentWithId('stocks_' + store.state.userId.toString());
-
-    List mapTypeListStocks = [];
-    for (var i = 0; i < stocks.length; i++) {
+    List mapTypeListVariants = [];
+    for (var i = 0; i < variations.length; i++) {
       Map map = {
-        'currentStock': stocks[i].currentStock,
-        'id': stocks[i].id,
-        'lowStock': stocks[i].lowStock,
-        'canTrackingStock': stocks[i].canTrackingStock,
-        'showLowStockAlert': stocks[i].showLowStockAlert,
-        'isActive': stocks[i].isActive,
-        'supplyPrice': stocks[i].supplyPrice,
-        'retailPrice': stocks[i].retailPrice,
-        'variantId': stocks[i].variantId,
-        'branchId': stocks[i].branchId,
-        'productId': stocks[i].productId,
-        'createdAt': DateTime.now().toIso8601String(),
-        //todo: this line of code
-        'updatedAt': DateTime.now().toIso8601String(),
+        'name': variations[i].name,
+        'id': variations[i].id,
+        'sku': variations[i].sku,
+        'unit': variations[i].unit,
+        'productId': variations[i].productId,
+        'createdAt': variations[i].createdAt.toIso8601String(),
+        'updatedAt': variations[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : variations[i].updatedAt.toIso8601String(),
       };
-      mapTypeListStocks.add(map);
+      mapTypeListVariants.add(map);
     }
 
-    stock
+    variant
         .toMutable()
-        .setList('stocks', mapTypeListStocks)
-        .setString('channel', store.state.userId.toString())
+        .setList('variants', mapTypeListVariants)
+        .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
-        .setString('_id', 'stocks_' + store.state.userId.toString());
-
-    await saveDocumentWithId('stocks_' + store.state.userId.toString(), stock);
-    //done sync stock:
-
-    List<BranchProductTableData> branchProducts =
-        await store.state.database.branchProductDao.branchProducts();
-
-    Document bP = await getDocumentWithId(
-        'branchProducts_' + store.state.userId.toString());
-
-    List mapTypeListBranchProducts = [];
-    for (var i = 0; i < branchProducts.length; i++) {
-      Map map = {
-        'branchId': branchProducts[i].branchId,
-        'id': branchProducts[i].id,
-        'productId': branchProducts[i].productId,
-      };
-      mapTypeListBranchProducts.add(map);
-    }
-
-    bP
-        .toMutable()
-        .setList('branchProducts', mapTypeListBranchProducts)
-        .setString('channel', store.state.userId.toString())
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'branchProducts_' + store.state.userId.toString());
+        .setString('_id', 'variants_' + store.state.userId.toString());
 
     await saveDocumentWithId(
-        'branchProducts_' + store.state.userId.toString(), stock);
-    //done sync branchProduct:
+        'variants_' + store.state.userId.toString(), variant);
+    return variations;
+  }
+
+  Future syncBusinessLRemote(Store<AppState> store) async {
+    List<BusinessTableData> businesses =
+        await store.state.database.businessDao.getBusinesses();
+
+    Document business =
+        await getDocumentWithId('business_' + store.state.userId.toString());
+    List mapTypeListBusiness = [];
+    for (var i = 0; i < businesses.length; i++) {
+      Map map = {
+        'name': businesses[i].name,
+        'id': businesses[i].id,
+        'active': businesses[i].active,
+        'userId': businesses[i].userId,
+        'categoryId': businesses[i].categoryId,
+        'typeId': businesses[i].typeId,
+        'country': businesses[i].country,
+        'currency': businesses[i].currency,
+        'timeZone': businesses[i].timeZone,
+        'longitude': businesses[i].longitude,
+        'latitude': businesses[i].latitude,
+        'createdAt': businesses[i].createdAt.toIso8601String(),
+        'updatedAt': businesses[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : businesses[i].updatedAt.toIso8601String(),
+      };
+      mapTypeListBusiness.add(map);
+    }
+    business
+        .toMutable()
+        .setList('businesses', mapTypeListBusiness)
+        .setList('channels', [store.state.userId.toString()])
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'business_' + store.state.userId.toString());
+
+    await saveDocumentWithId(
+        'business_' + store.state.userId.toString(), business);
   }
 
   Future syncProduct(String productId, Store<AppState> store) async {

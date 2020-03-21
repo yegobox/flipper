@@ -48,7 +48,7 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final int currentIncrement;
   @override
-  final Product currentActiveSaleItem;
+  final Product currentActiveSaleProduct;
   @override
   final Database database;
   @override
@@ -73,6 +73,10 @@ class _$CommonViewModel extends CommonViewModel {
   final Product tmpItem;
   @override
   final CouchDbClient couchDbClient;
+  @override
+  final Variation currentActiveSaleVariant;
+  @override
+  final Total total;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
       (new CommonViewModelBuilder()..update(updates)).build();
@@ -98,7 +102,7 @@ class _$CommonViewModel extends CommonViewModel {
       this.variant,
       this.items,
       this.currentIncrement,
-      this.currentActiveSaleItem,
+      this.currentActiveSaleProduct,
       this.database,
       this.couch,
       this.carts,
@@ -110,7 +114,9 @@ class _$CommonViewModel extends CommonViewModel {
       this.customItem,
       this.tempCategoryId,
       this.tmpItem,
-      this.couchDbClient})
+      this.couchDbClient,
+      this.currentActiveSaleVariant,
+      this.total})
       : super._() {
     if (hasUser == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'hasUser');
@@ -176,7 +182,7 @@ class _$CommonViewModel extends CommonViewModel {
         variant == other.variant &&
         items == other.items &&
         currentIncrement == other.currentIncrement &&
-        currentActiveSaleItem == other.currentActiveSaleItem &&
+        currentActiveSaleProduct == other.currentActiveSaleProduct &&
         database == other.database &&
         couch == other.couch &&
         carts == other.carts &&
@@ -188,7 +194,9 @@ class _$CommonViewModel extends CommonViewModel {
         customItem == other.customItem &&
         tempCategoryId == other.tempCategoryId &&
         tmpItem == other.tmpItem &&
-        couchDbClient == other.couchDbClient;
+        couchDbClient == other.couchDbClient &&
+        currentActiveSaleVariant == other.currentActiveSaleVariant &&
+        total == other.total;
   }
 
   @override
@@ -211,26 +219,26 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode),
-                                                                                branch.hashCode),
-                                                                            cartItem.hashCode),
-                                                                        itemVariations.hashCode),
-                                                                    variant.hashCode),
-                                                                items.hashCode),
-                                                            currentIncrement.hashCode),
-                                                        currentActiveSaleItem.hashCode),
-                                                    database.hashCode),
-                                                couch.hashCode),
-                                            carts.hashCode),
-                                        cartQuantities.hashCode),
-                                    order.hashCode),
-                                user.hashCode),
-                            keypad.hashCode),
-                        customUnit.hashCode),
-                    customItem.hashCode),
-                tempCategoryId.hashCode),
-            tmpItem.hashCode),
-        couchDbClient.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode),
+                                                                                itemVariations.hashCode),
+                                                                            variant.hashCode),
+                                                                        items.hashCode),
+                                                                    currentIncrement.hashCode),
+                                                                currentActiveSaleProduct.hashCode),
+                                                            database.hashCode),
+                                                        couch.hashCode),
+                                                    carts.hashCode),
+                                                cartQuantities.hashCode),
+                                            order.hashCode),
+                                        user.hashCode),
+                                    keypad.hashCode),
+                                customUnit.hashCode),
+                            customItem.hashCode),
+                        tempCategoryId.hashCode),
+                    tmpItem.hashCode),
+                couchDbClient.hashCode),
+            currentActiveSaleVariant.hashCode),
+        total.hashCode));
   }
 
   @override
@@ -256,7 +264,7 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('variant', variant)
           ..add('items', items)
           ..add('currentIncrement', currentIncrement)
-          ..add('currentActiveSaleItem', currentActiveSaleItem)
+          ..add('currentActiveSaleProduct', currentActiveSaleProduct)
           ..add('database', database)
           ..add('couch', couch)
           ..add('carts', carts)
@@ -268,7 +276,9 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('customItem', customItem)
           ..add('tempCategoryId', tempCategoryId)
           ..add('tmpItem', tmpItem)
-          ..add('couchDbClient', couchDbClient))
+          ..add('couchDbClient', couchDbClient)
+          ..add('currentActiveSaleVariant', currentActiveSaleVariant)
+          ..add('total', total))
         .toString();
   }
 }
@@ -366,11 +376,11 @@ class CommonViewModelBuilder
   set currentIncrement(int currentIncrement) =>
       _$this._currentIncrement = currentIncrement;
 
-  ProductBuilder _currentActiveSaleItem;
-  ProductBuilder get currentActiveSaleItem =>
-      _$this._currentActiveSaleItem ??= new ProductBuilder();
-  set currentActiveSaleItem(ProductBuilder currentActiveSaleItem) =>
-      _$this._currentActiveSaleItem = currentActiveSaleItem;
+  ProductBuilder _currentActiveSaleProduct;
+  ProductBuilder get currentActiveSaleProduct =>
+      _$this._currentActiveSaleProduct ??= new ProductBuilder();
+  set currentActiveSaleProduct(ProductBuilder currentActiveSaleProduct) =>
+      _$this._currentActiveSaleProduct = currentActiveSaleProduct;
 
   Database _database;
   Database get database => _$this._database;
@@ -424,6 +434,16 @@ class CommonViewModelBuilder
   set couchDbClient(CouchDbClientBuilder couchDbClient) =>
       _$this._couchDbClient = couchDbClient;
 
+  VariationBuilder _currentActiveSaleVariant;
+  VariationBuilder get currentActiveSaleVariant =>
+      _$this._currentActiveSaleVariant ??= new VariationBuilder();
+  set currentActiveSaleVariant(VariationBuilder currentActiveSaleVariant) =>
+      _$this._currentActiveSaleVariant = currentActiveSaleVariant;
+
+  TotalBuilder _total;
+  TotalBuilder get total => _$this._total ??= new TotalBuilder();
+  set total(TotalBuilder total) => _$this._total = total;
+
   CommonViewModelBuilder();
 
   CommonViewModelBuilder get _$this {
@@ -448,7 +468,7 @@ class CommonViewModelBuilder
       _variant = _$v.variant?.toBuilder();
       _items = _$v.items?.toBuilder();
       _currentIncrement = _$v.currentIncrement;
-      _currentActiveSaleItem = _$v.currentActiveSaleItem?.toBuilder();
+      _currentActiveSaleProduct = _$v.currentActiveSaleProduct?.toBuilder();
       _database = _$v.database;
       _couch = _$v.couch;
       _carts = _$v.carts?.toBuilder();
@@ -461,6 +481,8 @@ class CommonViewModelBuilder
       _tempCategoryId = _$v.tempCategoryId;
       _tmpItem = _$v.tmpItem?.toBuilder();
       _couchDbClient = _$v.couchDbClient?.toBuilder();
+      _currentActiveSaleVariant = _$v.currentActiveSaleVariant?.toBuilder();
+      _total = _$v.total?.toBuilder();
       _$v = null;
     }
     return this;
@@ -505,7 +527,7 @@ class CommonViewModelBuilder
               variant: _variant?.build(),
               items: items.build(),
               currentIncrement: currentIncrement,
-              currentActiveSaleItem: _currentActiveSaleItem?.build(),
+              currentActiveSaleProduct: _currentActiveSaleProduct?.build(),
               database: database,
               couch: couch,
               carts: carts.build(),
@@ -517,7 +539,9 @@ class CommonViewModelBuilder
               customItem: _customItem?.build(),
               tempCategoryId: tempCategoryId,
               tmpItem: _tmpItem?.build(),
-              couchDbClient: _couchDbClient?.build());
+              couchDbClient: _couchDbClient?.build(),
+              currentActiveSaleVariant: _currentActiveSaleVariant?.build(),
+              total: _total?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -548,8 +572,8 @@ class CommonViewModelBuilder
         _$failedField = 'items';
         items.build();
 
-        _$failedField = 'currentActiveSaleItem';
-        _currentActiveSaleItem?.build();
+        _$failedField = 'currentActiveSaleProduct';
+        _currentActiveSaleProduct?.build();
 
         _$failedField = 'carts';
         carts.build();
@@ -569,6 +593,10 @@ class CommonViewModelBuilder
         _tmpItem?.build();
         _$failedField = 'couchDbClient';
         _couchDbClient?.build();
+        _$failedField = 'currentActiveSaleVariant';
+        _currentActiveSaleVariant?.build();
+        _$failedField = 'total';
+        _total?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'CommonViewModel', _$failedField, e.toString());

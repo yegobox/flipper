@@ -149,6 +149,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
     int variantId = await vm.database.variationDao.insert(
       //ignore:missing_required_param
       VariationTableData(
+        isActive: false,
         name: name,
         id: Uuid().v1(),
         sku: DateTime.now().year.toString() + Uuid().v1().substring(0, 4),

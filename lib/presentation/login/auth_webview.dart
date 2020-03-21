@@ -9,6 +9,7 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 
 class AuthWebView extends StatefulWidget {
@@ -73,6 +74,13 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           final store = StoreProvider.of<AppState>(context);
 
+          //store credentials: todo: load the bellow credential from api
+          final storage = new FlutterSecureStorage();
+          await storage.write(key: "sync_url", value: "enexus.rw:4984");
+          await storage.write(key: "sync_database", value: "lagrace");
+          await storage.write(key: "db_username", value: "Administrator");
+          await storage.write(key: "db_password", value: "password");
+          //done saving credentials.
           User user = User(
             (user) => user
               ..email = _email.split('&')[0]

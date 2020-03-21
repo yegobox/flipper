@@ -171,6 +171,14 @@ class ItemsVariation {
   ItemsVariation({this.variations});
 }
 
+//CurrentActiveSaleProduct
+@immutable
+class CurrentActiveSaleVariant {
+  final Variation variation;
+
+  CurrentActiveSaleVariant({this.variation});
+}
+
 @immutable
 class CurrentActiveSaleProduct {
   final Product product;

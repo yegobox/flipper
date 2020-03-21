@@ -14,6 +14,7 @@ import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/model/variation.dart';
@@ -74,7 +75,7 @@ abstract class CommonViewModel
   @nullable
   int get currentIncrement;
   @nullable
-  Product get currentActiveSaleItem;
+  Product get currentActiveSaleProduct;
 
   Database get database;
 
@@ -108,6 +109,11 @@ abstract class CommonViewModel
 
   @nullable
   CouchDbClient get couchDbClient;
+  @nullable
+  Variation get currentActiveSaleVariant;
+
+  @nullable
+  Total get total;
 
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
@@ -143,9 +149,9 @@ abstract class CommonViewModel
       ..currentUnit = store.state.currentUnit == null
           ? null
           : store.state.currentUnit.toBuilder()
-      ..currentActiveSaleItem = store.state.currentActiveSaleItem == null
+      ..currentActiveSaleProduct = store.state.currentActiveSaleProduct == null
           ? null
-          : store.state.currentActiveSaleItem.toBuilder()
+          : store.state.currentActiveSaleProduct.toBuilder()
       ..units = store.state.units.toBuilder()
       ..itemVariations = store.state.itemVariations.toBuilder()
       ..currentColor = store.state.currentColor == null
@@ -178,6 +184,10 @@ abstract class CommonViewModel
       ..couchDbClient = store.state.couchDbClient == null
           ? null
           : store.state.couchDbClient.toBuilder()
+      ..currentActiveSaleVariant = store.state.currentActiveSaleVariant == null
+          ? null
+          : store.state.currentActiveSaleVariant.toBuilder()
+      ..total = store.state.total == null ? null : store.state.total.toBuilder()
       ..variant =
           store.state.variant == null ? null : store.state.variant.toBuilder()
       ..branches = store.state.branches

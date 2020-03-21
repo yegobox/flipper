@@ -3736,6 +3736,7 @@ class VariationTableData extends DataClass
   final String sku;
   final String unit;
   final String productId;
+  final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String deletedAt;
@@ -3746,6 +3747,7 @@ class VariationTableData extends DataClass
       this.sku,
       this.unit,
       @required this.productId,
+      @required this.isActive,
       this.createdAt,
       this.updatedAt,
       this.deletedAt});
@@ -3755,6 +3757,7 @@ class VariationTableData extends DataClass
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
+    final boolType = db.typeSystem.forDartType<bool>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return VariationTableData(
       idLocal:
@@ -3765,6 +3768,8 @@ class VariationTableData extends DataClass
       unit: stringType.mapFromDatabaseResponse(data['${effectivePrefix}unit']),
       productId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}product_id']),
+      isActive:
+          boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
@@ -3783,6 +3788,7 @@ class VariationTableData extends DataClass
       sku: serializer.fromJson<String>(json['sku']),
       unit: serializer.fromJson<String>(json['unit']),
       productId: serializer.fromJson<String>(json['productId']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<String>(json['deletedAt']),
@@ -3798,6 +3804,7 @@ class VariationTableData extends DataClass
       'sku': serializer.toJson<String>(sku),
       'unit': serializer.toJson<String>(unit),
       'productId': serializer.toJson<String>(productId),
+      'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
@@ -3817,6 +3824,9 @@ class VariationTableData extends DataClass
       productId: productId == null && nullToAbsent
           ? const Value.absent()
           : Value(productId),
+      isActive: isActive == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isActive),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -3836,6 +3846,7 @@ class VariationTableData extends DataClass
           String sku,
           String unit,
           String productId,
+          bool isActive,
           DateTime createdAt,
           DateTime updatedAt,
           String deletedAt}) =>
@@ -3846,6 +3857,7 @@ class VariationTableData extends DataClass
         sku: sku ?? this.sku,
         unit: unit ?? this.unit,
         productId: productId ?? this.productId,
+        isActive: isActive ?? this.isActive,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt ?? this.deletedAt,
@@ -3859,6 +3871,7 @@ class VariationTableData extends DataClass
           ..write('sku: $sku, ')
           ..write('unit: $unit, ')
           ..write('productId: $productId, ')
+          ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -3880,9 +3893,11 @@ class VariationTableData extends DataClass
                       $mrjc(
                           productId.hashCode,
                           $mrjc(
-                              createdAt.hashCode,
-                              $mrjc(updatedAt.hashCode,
-                                  deletedAt.hashCode)))))))));
+                              isActive.hashCode,
+                              $mrjc(
+                                  createdAt.hashCode,
+                                  $mrjc(updatedAt.hashCode,
+                                      deletedAt.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -3893,6 +3908,7 @@ class VariationTableData extends DataClass
           other.sku == this.sku &&
           other.unit == this.unit &&
           other.productId == this.productId &&
+          other.isActive == this.isActive &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -3905,6 +3921,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
   final Value<String> sku;
   final Value<String> unit;
   final Value<String> productId;
+  final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String> deletedAt;
@@ -3915,6 +3932,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
     this.sku = const Value.absent(),
     this.unit = const Value.absent(),
     this.productId = const Value.absent(),
+    this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -3926,6 +3944,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
     this.sku = const Value.absent(),
     this.unit = const Value.absent(),
     @required String productId,
+    this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -3939,6 +3958,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
       Value<String> sku,
       Value<String> unit,
       Value<String> productId,
+      Value<bool> isActive,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String> deletedAt}) {
@@ -3949,6 +3969,7 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
       sku: sku ?? this.sku,
       unit: unit ?? this.unit,
       productId: productId ?? this.productId,
+      isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -4030,6 +4051,15 @@ class $VariationTableTable extends VariationTable
     );
   }
 
+  final VerificationMeta _isActiveMeta = const VerificationMeta('isActive');
+  GeneratedBoolColumn _isActive;
+  @override
+  GeneratedBoolColumn get isActive => _isActive ??= _constructIsActive();
+  GeneratedBoolColumn _constructIsActive() {
+    return GeneratedBoolColumn('is_active', $tableName, false,
+        defaultValue: Constant(false));
+  }
+
   final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
   GeneratedDateTimeColumn _createdAt;
   @override
@@ -4068,6 +4098,7 @@ class $VariationTableTable extends VariationTable
         sku,
         unit,
         productId,
+        isActive,
         createdAt,
         updatedAt,
         deletedAt
@@ -4109,6 +4140,10 @@ class $VariationTableTable extends VariationTable
           productId.isAcceptableValue(d.productId.value, _productIdMeta));
     } else if (isInserting) {
       context.missing(_productIdMeta);
+    }
+    if (d.isActive.present) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
@@ -4153,6 +4188,9 @@ class $VariationTableTable extends VariationTable
     }
     if (d.productId.present) {
       map['product_id'] = Variable<String, StringType>(d.productId.value);
+    }
+    if (d.isActive.present) {
+      map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);

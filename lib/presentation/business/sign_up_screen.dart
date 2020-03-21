@@ -14,6 +14,7 @@ import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:uuid/uuid.dart';
 
 class TBusiness {
   String name;
@@ -176,7 +177,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       Business business = Business(
         (b) => b
+          ..id = Uuid().v1()
           ..name = tBusiness.name
+          ..active = true
+          ..currency = 'RWF'
+          ..categoryId = '1'
+          ..typeId = '1'
           ..latitude = lat ?? 0
           ..longitude = long ?? 0
           ..active = true

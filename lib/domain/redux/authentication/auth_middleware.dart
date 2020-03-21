@@ -106,10 +106,11 @@ _getCurrentLocation({Store<AppState> store}) async {
       .getPositionStream(locationOptions)
       .listen((Position location) async {
     //time to update data....
-    store.state.database.businessDao.updateBusiness(businessTableData.copyWith(
-        idLocal: businessTableData.idLocal,
-        longitude: location.longitude,
-        latitude: location.latitude));
+//    store.state.database.businessDao.updateBusiness(businessTableData.copyWith(
+//        idLocal: businessTableData.idLocal,
+//        longitude: location.longitude,
+//        latitude: location.latitude));
+
     await store.state.couch.syncRemoteToLocal(store: store);
   });
 }
@@ -350,6 +351,7 @@ Future getBusinesses(
   } else if (store.state.userId == null) {
     Router.navigator.pushNamed(Router.afterSplash);
   } else {
+//    store.state.couch.addChannelListenTo(store: store);
     store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.dashboard);
   }

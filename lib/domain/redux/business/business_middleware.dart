@@ -53,6 +53,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
+
       await store.state.couch.createBusiness(_mapBusiness);
 
       Map _notTax = {

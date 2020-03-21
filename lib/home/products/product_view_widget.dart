@@ -96,6 +96,7 @@ class _ProductsViewState extends State<ProductsView> {
                     return Text("");
                   }
 
+                  print(vm.branch.id);
                   return snapshot.data.length == 1
                       ? Text(
                           "RWF " + snapshot.data[0].retailPrice.toString(),
@@ -134,6 +135,8 @@ class _ProductsViewState extends State<ProductsView> {
       List<Variation> variants, List<ProductTableData> products, int i) {
     StoreProvider.of<AppState>(context)
         .dispatch(ItemsVariation(variations: variants));
+
+    print(products[i].id);
 
     StoreProvider.of<AppState>(context).dispatch(
       CurrentActiveSaleProduct(

@@ -16,6 +16,7 @@ import 'package:flipper/model/permission.dart';
 import 'package:flipper/model/price.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/sheet.dart';
+import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/model/variation.dart';
@@ -107,7 +108,10 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   BuiltList<Variation> get itemVariations;
 
   @nullable
-  Product get currentActiveSaleItem;
+  Product get currentActiveSaleProduct;
+
+  @nullable
+  Variation get currentActiveSaleVariant;
 
   @nullable
   Product get cartItem;
@@ -131,6 +135,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   Product get tmpItem;
 
   @nullable
+  Total get total;
+
+  @nullable
   CouchDbClient get couchDbClient;
   AppState._();
   factory AppState([void Function(AppStateBuilder) updates]) = _$AppState;
@@ -148,5 +155,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   AppState clear() {
     // Add here anything else that also needs to be carried over.
     return AppState.init().rebuild((s) => () => {});
+//    return AppState.init().rebuild((s) => s..fcmToken = fcmToken);
   }
 }

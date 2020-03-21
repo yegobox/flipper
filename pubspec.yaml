@@ -30,7 +30,7 @@ dependencies:
   scoped_model: ^1.0.1
 
   strings: ^0.1.2
-  
+  flutter_secure_storage: ^3.3.1+1
   auto_route: ^0.3.1
   # Firebase dependencies
   firebase_core: ^0.4.4+2
