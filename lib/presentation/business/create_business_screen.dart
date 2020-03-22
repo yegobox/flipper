@@ -1,4 +1,4 @@
-import 'package:customappbar/commonappbar.dart';
+import 'package:customappbar/customappbar.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';

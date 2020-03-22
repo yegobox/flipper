@@ -1,4 +1,4 @@
-import 'package:customappbar/commonappbar.dart';
+import 'package:customappbar/customappbar.dart';
 import 'package:flipper/presentation/settings/privacy_settings_button.dart';
 import 'package:flipper/routes/router.gr.dart';
 import "package:flutter/material.dart";

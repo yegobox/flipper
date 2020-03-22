@@ -1,4 +1,4 @@
-import 'package:customappbar/commonappbar.dart';
+import 'package:customappbar/customappbar.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
