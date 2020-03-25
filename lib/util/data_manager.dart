@@ -48,27 +48,6 @@ class DataManager extends CouchBase {
     store.state.database.orderDao.updateOrder(order);
   }
 
-  static removeItemFromTrash(Store<AppState> store, int itemId) async {
-//    ProductTableData item = await store.state.database.productDao
-//        .getItemByIdBranch(branchId: store.state.branch.id, itemId: itemId);
-//
-//    if (item == null) return;
-//    List<StockTableData> stocks = await store.state.database.stockDao
-//        .getItemFromStockByItemId(
-//            branchId: store.state.branch.id, itemId: item.id);
-//    for (var i = 0; i < stocks.length; i++) {
-//      VariationTableData variant = await store.state.database.variationDao
-//          .getVariationById(stocks[i].variantId);
-//
-//      await store.state.database.variationDao
-//          .updateVariation(variant.copyWith(deletedAt: 'null'));
-//
-//      await store.state.database.stockDao
-//          .updateStock(stocks[i].copyWith(deletedAt: 'null'));
-//    }
-//    store.state.database.productDao.updateItem(item.copyWith(deletedAt: 'null'));
-  }
-
   static Future deleteProduct({Store<AppState> store, String productId}) async {
     List<StockTableData> stocks = await store.state.database.stockDao
         .getStockByProductId(

@@ -954,21 +954,31 @@ class CouchBase extends Model with Fluttercouch {
     return await saveDocumentWithId(map['_id'], stocks);
   }
 
-  Future<dynamic> syncLocalToRemote({Store<AppState> store}) async {
-    // sync business
-    await syncBusinessLRemote(store);
-
-    //sync variant
-    List<VariationTableData> variations = await syncVariantLRemote(store);
-
-    await syncProductsLRemote(store, variations);
-
-    Document stock = await syncStockLRemote(store);
-
-    await syncBranchProductLRemote(store, stock);
+  Future<dynamic> syncLocalToRemote(
+      {Store<AppState> store, String partial}) async {
+    //L stands for local and R stands for remote.
+    switch (partial) {
+      case 'Business':
+        await syncBusinessLRemote(store);
+        break;
+      case 'Variant':
+        await syncVariantLRemote(store);
+        break;
+      case 'Stock':
+        await syncStockLRemote(store);
+        break;
+      case 'Order':
+        break;
+      default:
+        await syncBusinessLRemote(store);
+        await syncVariantLRemote(store);
+        await syncProductsLRemote(store);
+        await syncStockLRemote(store);
+        await syncBranchProductLRemote(store);
+    }
   }
 
-  Future syncBranchProductLRemote(Store<AppState> store, Document stock) async {
+  Future syncBranchProductLRemote(Store<AppState> store) async {
     List<BranchProductTableData> branchProducts =
         await store.state.database.branchProductDao.branchProducts();
 
@@ -993,7 +1003,7 @@ class CouchBase extends Model with Fluttercouch {
         .setString('_id', 'branchProducts_' + store.state.userId.toString());
 
     await saveDocumentWithId(
-        'branchProducts_' + store.state.userId.toString(), stock);
+        'branchProducts_' + store.state.userId.toString(), bP);
   }
 
   Future<Document> syncStockLRemote(Store<AppState> store) async {
@@ -1035,8 +1045,7 @@ class CouchBase extends Model with Fluttercouch {
     return stock;
   }
 
-  Future syncProductsLRemote(
-      Store<AppState> store, List<VariationTableData> variations) async {
+  Future syncProductsLRemote(Store<AppState> store) async {
     List<ProductTableData> products =
         await store.state.database.productDao.getProducts();
 
@@ -1061,9 +1070,9 @@ class CouchBase extends Model with Fluttercouch {
         'categoryId': products[i].categoryId,
         'taxId': products[i].taxId,
         'createdAt': products[i].createdAt.toIso8601String(),
-        'updatedAt': variations[i].updatedAt == null
+        'updatedAt': products[i].updatedAt == null
             ? DateTime.now().toIso8601String()
-            : variations[i].updatedAt.toIso8601String(),
+            : products[i].updatedAt.toIso8601String(),
       };
       mapTypeListProducts.add(map);
     }
