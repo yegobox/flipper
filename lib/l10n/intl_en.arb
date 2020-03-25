@@ -47,5 +47,6 @@
     "subscribe": "Subscribe",
     "pay": "Pay",
     "editVariation": "Edit Variation",
-    "selectUnit": "Select Unit"
+    "selectUnit": "Select Unit",
+    "tender": "Tender"
 }

@@ -38,25 +38,25 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                       stream: vm.database.cartDao
                           .getCartsStream(vm.order.id.toString()),
                       builder: (context,
-                          AsyncSnapshot<List<CartTableData>> snapshot) {
-                        var quantity = snapshot.data == null
+                          AsyncSnapshot<List<OrderDetailData>> orderDetail) {
+                        var quantity = orderDetail.data == null
                             ? 0
-                            : snapshot.data.fold(0, (a, b) => a + b.count);
+                            : orderDetail.data.fold(0, (a, b) => a + b.count);
                         return FlatButton(
                           onPressed: () {
                             List<Cart> cart = [];
-                            for (var i = 0; i < snapshot.data.length; i++) {
+                            for (var i = 0; i < orderDetail.data.length; i++) {
                               cart.add(
-                                Cart(
-                                  (c) => c
-                                    ..id = snapshot.data[i].id
-                                    ..branchId = snapshot.data[i].branchId
-                                    ..count = snapshot.data[i].count
-                                    ..variationName =
-                                        snapshot.data[i].variationName
-                                    ..variationId = snapshot.data[i].variationId
-                                    ..parentName = snapshot.data[i].parentName,
-                                ),
+                                Cart((c) => c
+                                      ..id = orderDetail.data[i].id
+                                      ..branchId = orderDetail.data[i].branchId
+                                      ..count = orderDetail.data[i].count
+                                      ..variationName =
+                                          orderDetail.data[i].variantName
+                                      ..variationId =
+                                          orderDetail.data[i].variationId
+                                    // ..parentName = snapshot.data[i].parentName,
+                                    ),
                               );
                             }
                             Router.navigator.pushNamed(
@@ -69,7 +69,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(90, 0, 0, 0),
                             child: Text(
-                              snapshot.data == null || quantity == 0
+                              orderDetail.data == null || quantity == 0
                                   ? S.of(context).noSale
                                   : S.of(context).currentSale +
                                       "[" +

@@ -19,9 +19,9 @@ class ProductTable extends Table {
 
   TextColumn get supplierId => text()();
 
-  TextColumn get categoryId => text()();
+  TextColumn get categoryId => text().nullable()();
 
-  TextColumn get taxId => text()();
+  TextColumn get taxId => text().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();

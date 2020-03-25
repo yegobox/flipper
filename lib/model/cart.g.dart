@@ -10,7 +10,7 @@ class _$Cart extends Cart {
   @override
   final String parentName;
   @override
-  final int id;
+  final String id;
   @override
   final int count;
   @override
@@ -116,9 +116,9 @@ class CartBuilder implements Builder<Cart, CartBuilder> {
   String get parentName => _$this._parentName;
   set parentName(String parentName) => _$this._parentName = parentName;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   int _count;
   int get count => _$this._count;

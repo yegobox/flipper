@@ -8,6 +8,7 @@ import 'package:flipper/home/selling/control_widget.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -100,6 +101,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
         (b) => b
           ..id = v.id
           ..name = v.name
+          ..unit = v.unit
           ..count = vm.currentIncrement,
       );
 
@@ -157,5 +159,6 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
   void _saveCart(CommonViewModel vm, context) {
     StoreProvider.of<AppState>(context).dispatch(SaveCart());
+    Router.navigator.maybePop();
   }
 }

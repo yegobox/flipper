@@ -6,6 +6,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flutter/material.dart';
@@ -240,6 +241,13 @@ class CategoryAction {
   final Category category;
 
   CategoryAction({this.category});
+}
+
+@immutable
+class DefaultTax {
+  final Tax tax;
+
+  DefaultTax({this.tax});
 }
 
 @immutable

@@ -33,6 +33,7 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, CategoryAction>(_onCategory),
   TypedReducer<AppState, VariationAction>(_onVariation),
   TypedReducer<AppState, CustomItem>(_onCustomItem),
+  TypedReducer<AppState, DefaultTax>(_onDefaultTax),
 ];
 AppState _onAppActions(AppState state, AppAction action) {
   return state.rebuild((a) => a..action = action.actions.toBuilder());
@@ -169,4 +170,8 @@ AppState _onVariation(AppState state, VariationAction action) {
 
 AppState _onTempItem(AppState state, TempProduct action) {
   return state.rebuild((a) => a..tmpItem = action.product.toBuilder());
+}
+
+AppState _onDefaultTax(AppState state, DefaultTax action) {
+  return state.rebuild((a) => a..defaultTax = action.tax.toBuilder());
 }

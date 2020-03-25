@@ -13,6 +13,8 @@ import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/products/view_products_screen.dart';
 import 'package:flipper/home/products/view_single_item_screen.dart';
 import 'package:flipper/home/receive_stock.dart';
+import 'package:flipper/home/reports/date_screen.dart';
+import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/selling/change_quantity_selling.dart';
 import 'package:flipper/home/setting_up_application_screen.dart';
 import 'package:flipper/home/take_picture_screen.dart';
@@ -24,6 +26,8 @@ import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/home/dash_board.dart';
 import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
+import 'package:flipper/presentation/selling/complete_sale_screen.dart';
+import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
 import 'package:flipper/presentation/subscription.dart';
@@ -101,6 +105,18 @@ class $Router {
 
   @MaterialRoute(fullscreenDialog: true)
   AuthWebView webView;
+
+  @MaterialRoute(fullscreenDialog: true)
+  ReportScreen reportScreen;
+
+  @MaterialRoute(fullscreenDialog: true)
+  DateScreen dateScreen;
+
+  @MaterialRoute(fullscreenDialog: true)
+  CompleteSaleScreen compleSaleScreen;
+
+  @MaterialRoute(fullscreenDialog: true)
+  TenderScreen tenderScreen;
 
   Subscription subscription;
 }

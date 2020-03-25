@@ -3,9 +3,24 @@ import 'package:built_value/built_value.dart';
 part 'order.g.dart';
 
 abstract class Order implements Built<Order, OrderBuilder> {
-  int get id;
+  String get id;
   int get userId;
   String get branchId;
+  @nullable
+  String get deviceId;
+  @nullable
+  String get currency;
+  @nullable
+  String get reference;
+  @nullable
+  String get idLocal;
+  @nullable
+  String get orderDate;
+  @nullable
+  bool get isDraft;
+  @nullable
+  String get orderType;
+
   int get orderNUmber;
   int get supplierId;
   int get subTotal;

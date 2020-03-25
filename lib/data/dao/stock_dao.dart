@@ -27,7 +27,7 @@ class StockDao extends DatabaseAccessor<Database> with _$StockDaoMixin {
 
   Future<List<StockTableData>> getStocks() => select(db.stockTable).get();
 
-  Future<List<StockTableData>> getItemFromStockByProductId(
+  Future<List<StockTableData>> getStockByProductId(
       {String branchId, String productId}) {
     return (select(db.stockTable)
           ..where((t) => t.branchId.equals(branchId))

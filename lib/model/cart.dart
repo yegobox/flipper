@@ -5,7 +5,7 @@ part 'cart.g.dart';
 abstract class Cart implements Built<Cart, CartBuilder> {
   String get parentName;
 
-  int get id;
+  String get id;
 
   int get count;
 

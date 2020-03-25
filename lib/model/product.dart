@@ -41,6 +41,9 @@ abstract class Product implements Built<Product, ProductBuilder> {
   String get createdAt;
 
   @nullable
+  String get unit;
+
+  @nullable
   String get updatedAt;
 
   @nullable

@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flipper/data/main_database.dart';
+import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/tax.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttercouch/fluttercouch.dart';
 import 'package:redux/redux.dart';
 import 'package:scoped_model/scoped_model.dart';
@@ -45,16 +46,12 @@ class CouchBase extends Model with Fluttercouch {
 
     List m = [map];
 
-    doc
-        .toMutable()
-        .setList('branches', m)
-        .setString('uid', Uuid().v1())
-        .setList('channels', [map['channel']]).setString('_id', map['_id']);
+    doc.toMutable().setList('branches', m).setString('uid', Uuid().v1());
+    // .setList('channels', [map['channel']]).setString('_id', map['_id']);
     return await saveDocumentWithId(map['_id'], doc);
   }
 
   Future<dynamic> createTax(Map map) async {
-    assert(map['_id'] != null);
     Document doc = await getDocumentWithId(map['_id']);
 
     assert(map['channel'] != null);
@@ -67,12 +64,8 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['businessId'] != null);
 
     List m = [map];
-    doc
-        .toMutable()
-        .setList('taxes', m)
-        .setString('uid', Uuid().v1())
-        .setList('channels', [map['channel']]).setString('_id', map['_id']);
-    ;
+    doc.toMutable().setList('taxes', m).setString('uid', Uuid().v1());
+    // .setList('channels', [map['channel']]).setString('_id', map['_id']);
 
     return await saveDocumentWithId(map['_id'], doc);
   }
@@ -81,7 +74,7 @@ class CouchBase extends Model with Fluttercouch {
   Future<dynamic> createBusiness(Map map) async {
     //if user has business do nothing
     Document doc = await getDocumentWithId(map['_id']);
-    if (doc != null) return;
+
     assert(map['_id'] != null);
 
     assert(map['channel'] != null);
@@ -102,10 +95,9 @@ class CouchBase extends Model with Fluttercouch {
     doc
         .toMutable()
         .setList('businesses', m)
-        .setList('channels', [map['channel']])
+        // .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
-    ;
 
     return await saveDocumentWithId(map['_id'], doc);
   }
@@ -164,13 +156,11 @@ class CouchBase extends Model with Fluttercouch {
           _doc.setDouble(key, value);
         }
       });
-      _doc.setList('channels', [map['channel']]);
+      // _doc.setList('channels', [map['channel']]);
       return await saveDocumentWithId(map['_id'], _doc);
     }
   }
 
-  //sampleCode
-  // CouchBase(shouldInitDb: false).getDocument(docId:'richie')
   Future<dynamic> getDocumentByDocId(
       {String docId, Store<AppState> store, T}) async {
     Document doc = await getDocumentWithId(docId);
@@ -220,45 +210,59 @@ class CouchBase extends Model with Fluttercouch {
 
   initPlatformState() async {
     try {
-      final storage = new FlutterSecureStorage();
-      String sync_database = await storage.read(key: "sync_database");
-      String sync_url = await storage.read(key: "sync_url");
-      String channel = await storage.read(key: "channel");
+      // final storage = new FlutterSecureStorage();
+      // String sync_database = await storage.read(key: "sync_database");
+      // String sync_url = await storage.read(key: "sync_url");
+      // String channel = await storage.read(key: "channel");
+      // if (sync_database == null || sync_url == null) return;
 
-      await initDatabaseWithName("${sync_database}");
-      //todo: enable this sync replication when user has paid.
-      setReplicatorEndpoint("ws://${sync_url}/${sync_database}");
-      setReplicatorType("PUSH_AND_PULL");
-
-      setReplicatorSessionAuthentication(
-          'b2dfb02940783371ea48881e9594ae0e0eb472d8');
-
-      if (channel != null) {
-        //todo: set channel on app login, also check if we do load data when no user logged in!
-        setChannel(channel);
+      try {
+        //prod:
+        // await initDatabaseWithName('lagrace');
+        //dev:
+        await initDatabaseWithName('lagrace_dev');
+      } on PlatformException {
+        // Handle error during database initialization
       }
-      setReplicatorContinuous(true);
-      initReplicator();
-      startReplicator();
+
+      //todo: enable this sync replication when user has paid.
+      // setReplicatorEndpoint("ws://${sync_url}/${sync_database}");
+      // setReplicatorType("PUSH_AND_PULL");
+
+      // setReplicatorSessionAuthentication(
+      //     'b2dfb02940783371ea48881e9594ae0e0eb472d8');
+
+      // if (channel != null) {
+      //   //todo: set channel on app login, also check if we do load data when no user logged in!
+      //   setChannel(channel);
+      // }
+      // setReplicatorContinuous(true);
+      // initReplicator();
+      // startReplicator();
 
       //this is the way of getting notified about db change. adding a live query
       //https://docs.couchbase.com/couchbase-lite/2.5/java.html#live-query
+
+      //channel: https://blog.couchbase.com/exploring-the-public-and-user-channels-in-couchbase-sync-gateway/
 
       //query.removeChangeListener(token);
       //https://blog.couchbase.com/document-conflicts-couchbase-mobile/
       //todo: to be tested alongside the desktop app,because when I edit data manually in dashboard it create conflict.
       //todo: experimenting with live Query.
-      Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
+      // Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
 
-      query.execute();
-      ListenerToken token =
-          await query.addChangeListener((change) => {print(change)});
+      //start of the query:
+      // query.execute();
+      // ListenerToken token =
+      //     await query.addChangeListener((change) => {print(change)});
 
-      Query b = QueryBuilder.select([SelectResult.all()]).from('lagrace').where(
-          Expression.property("_id").equalTo(Expression.string('business_1')));
+      // Query b = QueryBuilder.select([SelectResult.all()]).from('lagrace').where(
+      //     Expression.property("_id").equalTo(Expression.string('business_1')));
 
-      ResultSet results = await b.execute();
-      b.addChangeListener((change) => {print(change.results)});
+      // ResultSet results = await b.execute();
+      // b.addChangeListener((change) => {print(change.results)});
+
+      notifyListeners();
     } on PlatformException {}
   }
 
@@ -321,7 +325,6 @@ class CouchBase extends Model with Fluttercouch {
         }
       }
     }
-    ;
   }
 
   Future syncStockRLocal(Store<AppState> store) async {
@@ -355,7 +358,6 @@ class CouchBase extends Model with Fluttercouch {
         }
       }
     }
-    ;
   }
 
   Future syncVariantsRLocal(Store<AppState> store) async {
@@ -387,7 +389,6 @@ class CouchBase extends Model with Fluttercouch {
         }
       }
     }
-    ;
   }
 
   Future syncBusinessRLocal(Store<AppState> store) async {
@@ -465,6 +466,28 @@ class CouchBase extends Model with Fluttercouch {
               .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
         }
       }
+    } else {
+      //the remote did not work create it then offline sync them later
+
+      //todo: remember to sync a custom category created local and tax to remote so other client can have them too.
+      if (store.state.branch == null) return;
+      CategoryTableData category =
+          await store.state.database.categoryDao.getCategoryByNameBranchId(
+        "custom",
+        store.state.branch.id,
+      );
+      if (category == null) {
+        //ignore:missing_required_param
+        CategoryTableData categoryData = CategoryTableData(
+            id: Uuid().v1(),
+            name: 'custom',
+            focused: true,
+            branchId: store.state.branch.id,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now());
+
+        await store.state.database.categoryDao.insert(categoryData);
+      }
     }
   }
 
@@ -487,13 +510,78 @@ class CouchBase extends Model with Fluttercouch {
 
         if (tax == null) {
           await store.state.database.taxDao.insert(taxData);
+          if (taxes.getList('taxes')[i]['isDefault']) {
+            store.dispatch(
+              DefaultTax(
+                tax: Tax((t) => t
+                  ..name = taxData.name
+                  ..id = taxData.id
+                  ..isDefault = taxData.isDefault
+                  ..percentage = taxData.percentage
+                  ..businessId = taxData.businessId),
+              ),
+            );
+          }
         } else {
           await store.state.database.taxDao
               .updateTax(taxData.copyWith(idLocal: tax.idLocal));
+
+          if (taxes.getList('taxes')[i]['isDefault']) {
+            store.dispatch(
+              DefaultTax(
+                tax: Tax((t) => t
+                  ..name = taxData.name
+                  ..id = taxData.id
+                  ..isDefault = taxData.isDefault
+                  ..percentage = taxData.percentage
+                  ..businessId = taxData.businessId),
+              ),
+            );
+          }
         }
       }
+    } else {
+      //create them local for sync to remote later.
+      //ignore:missing_required_param
+      if (store.state.currentActiveBusiness == null) return;
+      TaxTableData tax = await store.state.database.taxDao.getByName(
+          businessId: store.state.currentActiveBusiness.id, name: 'Vat');
+      if (tax == null) {
+        //ignore:missing_required_param
+        TaxTableData taxData = TaxTableData(
+            id: Uuid().v1(),
+            name: 'Vat',
+            businessId: store.state.businessId,
+            isDefault: true,
+            percentage: 18,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now());
+
+        //dispatch default tax we are using:
+        store.dispatch(
+          DefaultTax(
+            tax: Tax((t) => t
+              ..name = taxData.name
+              ..id = taxData.id
+              ..isDefault = taxData.isDefault
+              ..percentage = taxData.percentage
+              ..businessId = taxData.businessId),
+          ),
+        );
+        await store.state.database.taxDao.insert(taxData);
+        //ignore:missing_required_param
+        TaxTableData noVat = TaxTableData(
+            id: Uuid().v1(),
+            name: 'No Tax',
+            businessId: store.state.businessId,
+            isDefault: true,
+            percentage: 18,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now());
+
+        await store.state.database.taxDao.insert(noVat);
+      }
     }
-    ;
   }
 
   Future syncUnit(Store<AppState> store) async {
@@ -675,6 +763,7 @@ class CouchBase extends Model with Fluttercouch {
   List<Business> buildBusinessModel(Document doc, Store<AppState> store) {
     List<Business> business = [];
     var business_ = 'businesses';
+
     if (doc.getList(business_) == null) return business;
 
     for (var i = 0; i < doc.getList(business_).length; i++) {
@@ -742,12 +831,12 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['updatedAt'] != null);
 
     List m = [map];
-    List m2 = products.getList('products');
-    m2.addAll(m); //merge two array
+    // List m2 = products.getList('products');
+    // m2.addAll(m);
     products
         .toMutable()
-        .setList('products', m2)
-        .setList('channels', [map['channel']])
+        .setList('products', m) //here was when we were not overriding m2
+        // .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -767,13 +856,13 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['updatedAt'] != null);
 
     List m = [map];
-    List m2 = variants.getList('variants');
-    m.addAll(m2);
+    // List m2 = variants.getList('variants');
+    // m.addAll(m2);
 
     variants
         .toMutable()
         .setList('variants', m)
-        .setList('channels', [map['channel']])
+        // .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -790,13 +879,13 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['id'] != null);
 
     List m = [map];
-    List m2 = branchProducts.getList('branchProducts');
-    m.addAll(m2);
+    // List m2 = branchProducts.getList('branchProducts');
+    // m.addAll(m2);
 
     branchProducts
         .toMutable()
         .setList('branchProducts', m)
-        .setList('channels', [map['channel']])
+        // .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -818,13 +907,13 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['id'] != null);
 
     List m = [map];
-    List m2 = history.getList('stockHistory');
-    m.addAll(m2);
+    // List m2 = history.getList('stockHistory');
+    // m.addAll(m2);
 
     history
         .toMutable()
         .setList('stockHistory', m)
-        .setList('channels', [map['channel']])
+        // .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 
@@ -852,8 +941,8 @@ class CouchBase extends Model with Fluttercouch {
     assert(map['updatedAt'] != null);
 
     List m = [map];
-    List m2 = stocks.getList('stocks');
-    m.addAll(m2);
+    // List m2 = stocks.getList('stocks');
+    // m.addAll(m2);
 
     stocks
         .toMutable()
@@ -899,7 +988,7 @@ class CouchBase extends Model with Fluttercouch {
     bP
         .toMutable()
         .setList('branchProducts', mapTypeListBranchProducts)
-        .setList('channels', [store.state.userId.toString()])
+        // .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
         .setString('_id', 'branchProducts_' + store.state.userId.toString());
 
@@ -938,7 +1027,7 @@ class CouchBase extends Model with Fluttercouch {
     stock
         .toMutable()
         .setList('stocks', mapTypeListStocks)
-        .setList('channels', [store.state.userId.toString()])
+        // .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
         .setString('_id', 'stocks_' + store.state.userId.toString());
 
@@ -982,7 +1071,7 @@ class CouchBase extends Model with Fluttercouch {
     product
         .toMutable()
         .setList('products', mapTypeListProducts)
-        .setList('channels', [store.state.userId.toString()])
+        // .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
         .setString('_id', 'products_' + store.state.userId.toString());
 
@@ -1017,7 +1106,7 @@ class CouchBase extends Model with Fluttercouch {
     variant
         .toMutable()
         .setList('variants', mapTypeListVariants)
-        .setList('channels', [store.state.userId.toString()])
+        // .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
         .setString('_id', 'variants_' + store.state.userId.toString());
 
@@ -1056,7 +1145,7 @@ class CouchBase extends Model with Fluttercouch {
     business
         .toMutable()
         .setList('businesses', mapTypeListBusiness)
-        .setList('channels', [store.state.userId.toString()])
+        // .setList('channels', [store.state.userId.toString()])
         .setString('uid', Uuid().v1())
         .setString('_id', 'business_' + store.state.userId.toString());
 

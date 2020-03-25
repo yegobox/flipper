@@ -23,14 +23,27 @@ class _ReportViewState extends State<ReportView> {
           ),
           leading: Text("SALES SUMMARY: OVERVIEW"),
           title: Text(""),
+        ),
+        ListView(
+          children: ListTile.divideTiles(
+            context: context,
+            tiles: getReport(),
+          ).toList(),
         )
-        // ListView(
-        //  children: ListTile.divideTiles(
-        //       context: context,
-        //       tiles: getProducts(widget.data, context, widget.vm),
-        //     ).toList(),
-        //   )
       ],
     );
+  }
+
+  List<Widget> getReport() {
+    List<Widget> list = [];
+
+    list.add(ListTile(
+      leading: Text(
+        'FRw 1700',
+        style: TextStyle(color: Colors.black),
+      ),
+      trailing: Text("FRw 1200", style: TextStyle(color: Colors.black)),
+    ));
+    return list;
   }
 }

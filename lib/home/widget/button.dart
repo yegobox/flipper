@@ -1,3 +1,4 @@
+import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 
@@ -83,19 +84,42 @@ class SingleKey extends StatelessWidget {
             return;
           }
           if (keypadValue == "+") {
-            await updateStockPriceForCustomItem();
+            final store = StoreProvider.of<AppState>(context);
+            List<VariationTableData> variants = await store
+                .state.database.variationDao
+                .getVariantByProductId(productId: vm.tmpItem.id);
+
+            StoreProvider.of<AppState>(context).dispatch(
+              IncrementAction(
+                increment: 1,
+              ),
+            );
             Product cartItem = Product(
               (b) => b
-                ..id = vm.tmpItem.id
+                ..id = variants[0]
+                    .id //we expect that this product should have 1 default variant to use while selling.
                 ..name = vm.tmpItem.name
                 ..categoryId = vm.tmpItem.categoryId
-                ..count = 1, //default.
+                ..unit = 'custom',
             );
-
             StoreProvider.of<AppState>(context).dispatch(
               AddItemToCartAction(cartItem: cartItem),
             );
-            StoreProvider.of<AppState>(context).dispatch(SaveCartCustom());
+
+            String branchId =
+                StoreProvider.of<AppState>(context).state.branch.id;
+            List<StockTableData> stocks = await store.state.database.stockDao
+                .getStockByProductId(
+                    branchId: branchId, productId: vm.tmpItem.id);
+
+            for (var i = 0; i < stocks.length; i++) {
+              await store.state.database.stockDao.updateStock(stocks[i]
+                  .copyWith(
+                      retailPrice: vm.keypad.amount.toDouble(),
+                      branchId: branchId));
+            }
+
+            StoreProvider.of<AppState>(context).dispatch(SaveCart());
             StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
           } else {
             StoreProvider.of<AppState>(context).dispatch(
@@ -123,6 +147,4 @@ class SingleKey extends StatelessWidget {
       ),
     );
   }
-
-  Future updateStockPriceForCustomItem() async {}
 }

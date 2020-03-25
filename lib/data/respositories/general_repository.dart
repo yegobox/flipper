@@ -7,6 +7,7 @@ import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 class GeneralRepository {
   Future<int> insertTabs(Store<AppState> store, int value) {
@@ -146,7 +147,7 @@ class GeneralRepository {
     return store.state.database.variationDao.getItemVariations(productId);
   }
 
-  Stream<List<CartTableData>> getCarts(Store<AppState> store) {
+  Stream<List<OrderDetailData>> getCarts(Store<AppState> store) {
     return store.state.database.cartDao
         .getCartsStream(store.state.order.id.toString());
   }
@@ -174,12 +175,22 @@ class GeneralRepository {
   }
 
   Future<bool> insertOrUpdateCart(
-      Store<AppState> store, CartTableData data) async {
-    CartTableData existingCart = await store.state.database.cartDao
+      Store<AppState> store, OrderDetailData data) async {
+    OrderDetailData existingCart = await store.state.database.cartDao
         .getExistingCartItem(data.variationId);
     if (existingCart == null) {
       store.state.database.cartDao.insert(
         data.copyWith(
+          quantity: store.state.currentIncrement.toDouble(),
+          subTotal: data.subTotal, //ask ganza what is a subtotal
+          id: data.id,
+          taxAmount: data.taxAmount, //get current active tax rate * amount /100
+          price: data.price, //get it we can have it from this item
+          taxRate: data.taxRate, //get the current active tax rate
+          unit: data.unit, //get unit of this item sold should hav it.
+          note: data.note, //keep it lik this.
+          discountAmount: data.discountAmount,
+          discountRate: data.discountRate,
           createdAt: DateTime.now(),
         ),
       );
@@ -188,6 +199,7 @@ class GeneralRepository {
       store.state.database.cartDao.updateCart(
         data.copyWith(
           id: existingCart.id,
+          idLocal: existingCart.idLocal,
           updatedAt: DateTime.now(),
         ),
       );
@@ -199,7 +211,7 @@ class GeneralRepository {
     return await store.state.database.orderDao.updateOrder(order);
   }
 
-  Future<OrderTableData> getOrder(Store<AppState> store, int orderId) async {
+  Future<OrderTableData> getOrder(Store<AppState> store, String orderId) async {
     return await store.state.database.orderDao.getOrderById(orderId);
   }
 
@@ -231,13 +243,20 @@ class GeneralRepository {
       OrderTableData(
         status: "draft",
         branchId: store.state.branch.id,
+        id: Uuid().v1(),
+        currency: 'RWF', //todo: change dummy
+        deviceId: Uuid().v1(), //todo: change dummy
+        orderDate: DateTime.now(),
+        isDraft: true,
+        orderType: 'sales', //todo: change dummy
+        reference: Uuid().v1(), //todo: change dummy.
         cashReceived: 0,
         customerChangeDue: 0,
         customerSaving: 0,
         deliverDate: DateTime.now(),
         discountAmount: 0,
         discountRate: 0,
-        orderNote: "draft",
+        orderNote: "none",
         variantName: "custom",
         count: 1,
         orderNUmber: 0,
@@ -247,6 +266,7 @@ class GeneralRepository {
         supplierId: 0,
         supplierInvoiceNumber: 0,
         taxAmount: 0,
+
         taxRate: 0,
         userId: store.state.userId,
       ),
@@ -259,7 +279,7 @@ class GeneralRepository {
         (o) => o
           ..status = order.status
           ..id = order.id
-          ..userId = order.id
+          ..userId = store.state.userId
           ..branchId = order.branchId
           ..orderNote = order.orderNote
           ..orderNUmber = order.orderNUmber

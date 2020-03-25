@@ -1,7 +1,7 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
@@ -32,10 +32,11 @@ class _PayableWidgetState extends State<PayableWidget> {
           height: 66,
           color: HexColor(FlipperColors.blue),
           child: StreamBuilder(
+            //always take the current order Id which should always be an a draft order.
             stream: vm.database.cartDao.getCartsStream(vm.order.id.toString()),
-            builder: (context, AsyncSnapshot<List<CartTableData>> snapshot) {
+            builder: (context, AsyncSnapshot<List<OrderDetailData>> cart) {
               int cashReceived = 0;
-              if (snapshot.data != null) {
+              if (cart.data != null) {
                 cashReceived = _total;
                 payable.updateValue(_total.toDouble());
               } else {
@@ -46,9 +47,9 @@ class _PayableWidgetState extends State<PayableWidget> {
                   FlatButton(
                       color: HexColor(FlipperColors.blue),
                       onPressed: () {
-                        StoreProvider.of<AppState>(context).dispatch(
-                          SavePayment(
-                            note: "note",
+                        Router.navigator.pushNamed(
+                          Router.compleSaleScreen,
+                          arguments: CompleteSaleScreenArguments(
                             cashReceived: cashReceived,
                           ),
                         );
@@ -87,7 +88,7 @@ class _PayableWidgetState extends State<PayableWidget> {
     );
   }
 
-  void _getPayable(List<CartTableData> carts, context) async {
+  void _getPayable(List<OrderDetailData> carts, context) async {
     final store = StoreProvider.of<AppState>(context);
     int total = 0;
     for (var i = 0; i < carts.length; i++) {
@@ -101,7 +102,7 @@ class _PayableWidgetState extends State<PayableWidget> {
 
   void _getOrderCart() async {
     final orderId = StoreProvider.of<AppState>(context).state.order.id;
-    List<CartTableData> carts = await StoreProvider.of<AppState>(context)
+    List<OrderDetailData> carts = await StoreProvider.of<AppState>(context)
         .state
         .database
         .cartDao

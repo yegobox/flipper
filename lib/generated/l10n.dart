@@ -469,6 +469,15 @@ class S {
       args: [],
     );
   }
+
+  String get tender {
+    return Intl.message(
+      'Tender',
+      name: 'tender',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

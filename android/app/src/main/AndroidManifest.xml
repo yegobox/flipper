@@ -16,7 +16,7 @@
     <application
         tools:replace="android:label"
         android:usesCleartextTraffic="true"
-        android:name="io.flutter.app.FlutterApplication"
+        android:name=".Application"
         android:label="flipper"
         android:icon="@mipmap/ic_launcher">
         <activity

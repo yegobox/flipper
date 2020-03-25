@@ -2,7 +2,6 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/data_manager.dart';
@@ -27,8 +26,6 @@ List<Middleware<AppState>> AppActionMiddleware(
         _saveRegular(navigatorKey, generalRepository)),
     TypedMiddleware<AppState, SaveCart>(
         _saveCart(navigatorKey, generalRepository)),
-    TypedMiddleware<AppState, SaveCartCustom>(
-        _saveCartCustom(navigatorKey, generalRepository)),
     TypedMiddleware<AppState, SavePayment>(
         _savePayment(navigatorKey, generalRepository)),
   ];
@@ -127,51 +124,40 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   };
 }
 
-void Function(Store<AppState> store, SaveCartCustom action, NextDispatcher next)
-    _saveCartCustom(GlobalKey<NavigatorState> navigatorKey,
-        GeneralRepository generalRepository) {
-  return (store, action, next) async {
-    next(action);
-//
-//    await generalRepository.insertOrUpdateCart(
-//      store,
-//      //ignore: missing_required_param
-//      CartTableData(
-//        branchId: store.state.branch.id,
-//        count: store.state.currentIncrement == null
-//            ? 1
-//            : store.state.currentIncrement,
-//        variationName: store.state.cartItem.name,
-//        orderId: store.state.order.id,
-//        variationId: store.state.cartItem.id,
-//        parentName: store.state.cartItem.parentName,
-//      ),
-//    );
-  };
-}
-
 void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
     _saveCart(GlobalKey<NavigatorState> navigatorKey,
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     next(action);
 
+    //get this stock additional data for selling
+    StockTableData stock = await store.state.database.stockDao
+        .getStockByVariantId(
+            branchId: store.state.branch.id,
+            variantId: store.state.cartItem.id);
+
     await generalRepository.insertOrUpdateCart(
       store,
       //ignore: missing_required_param
-      CartTableData(
-        branchId: store.state.branch.id,
-        count: store.state.currentIncrement == null
-            ? 1
-            : store.state.currentIncrement,
-        variationName: store.state.cartItem.name,
-        orderId: store.state.order.id.toString(),
-        variationId: store.state.cartItem.id,
-        parentName: store.state.currentActiveSaleProduct.name,
-      ),
+      OrderDetailData(
+          branchId: store.state.branch.id,
+          count: store.state.currentIncrement ?? 1,
+          variantName: store.state.cartItem.name,
+          price: stock.retailPrice,
+          discountAmount: 0,
+          discountRate: 0,
+          quantity: store.state.currentIncrement.toDouble(),
+          subTotal: stock.retailPrice * store.state.currentIncrement,
+          taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
+                  store.state.defaultTax.percentage.toInt()) /
+              100,
+          taxRate: store.state.defaultTax.percentage.toInt(),
+          note: 'note',
+          unit: store.state.cartItem.unit,
+          orderId: store.state.order.id.toString(),
+          variationId: store.state.cartItem.id,
+          id: store.state.cartItem.id),
     );
-
-    Router.navigator.maybePop();
   };
 }
 
@@ -183,12 +169,23 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
 
     final order =
         await store.state.database.orderDao.getOrderById(store.state.order.id);
+
     DataManager.updateOrder(
         store,
         order.copyWith(
-            orderNote: action.note, cashReceived: action.cashReceived));
+            status: 'completed',
+            orderNote: action.note,
+            cashReceived: action.cashReceived));
 
-    //this will clear all state and create new order if needed.
-    store.dispatch(VerifyAuthenticationState());
+    DataManager.createTemporalOrder(generalRepository, store);
+
+    //todo: what happen if I sell this custom product
+    //then on create of new product start by editing this custom product:
+    //the problem: we can loose control of which has been sold for that purpose.
+    //solution 1: we keep the name custom for the flow of the product creation
+    //         2: we name a custom selling on POS to custom-product
+    //         3: we keep refering custom-product as an item sold without stock or actual flow,just sell of fly
+    //         4: ensure this custom-product is loaded when app start.
+    DataManager.createTempProduct(store, 'custom-product');
   };
 }

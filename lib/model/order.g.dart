@@ -8,11 +8,25 @@ part of 'order.dart';
 
 class _$Order extends Order {
   @override
-  final int id;
+  final String id;
   @override
   final int userId;
   @override
   final String branchId;
+  @override
+  final String deviceId;
+  @override
+  final String currency;
+  @override
+  final String reference;
+  @override
+  final String idLocal;
+  @override
+  final String orderDate;
+  @override
+  final bool isDraft;
+  @override
+  final String orderType;
   @override
   final int orderNUmber;
   @override
@@ -53,6 +67,13 @@ class _$Order extends Order {
       {this.id,
       this.userId,
       this.branchId,
+      this.deviceId,
+      this.currency,
+      this.reference,
+      this.idLocal,
+      this.orderDate,
+      this.isDraft,
+      this.orderType,
       this.orderNUmber,
       this.supplierId,
       this.subTotal,
@@ -143,6 +164,13 @@ class _$Order extends Order {
         id == other.id &&
         userId == other.userId &&
         branchId == other.branchId &&
+        deviceId == other.deviceId &&
+        currency == other.currency &&
+        reference == other.reference &&
+        idLocal == other.idLocal &&
+        orderDate == other.orderDate &&
+        isDraft == other.isDraft &&
+        orderType == other.orderType &&
         orderNUmber == other.orderNUmber &&
         supplierId == other.supplierId &&
         subTotal == other.subTotal &&
@@ -181,21 +209,14 @@ class _$Order extends Order {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc(
-                                                                                0,
-                                                                                id
-                                                                                    .hashCode),
-                                                                            userId
-                                                                                .hashCode),
-                                                                        branchId
-                                                                            .hashCode),
-                                                                    orderNUmber
-                                                                        .hashCode),
-                                                                supplierId
-                                                                    .hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc(0, id.hashCode), userId.hashCode), branchId.hashCode), deviceId.hashCode), currency.hashCode), reference.hashCode), idLocal.hashCode),
+                                                                                orderDate.hashCode),
+                                                                            isDraft.hashCode),
+                                                                        orderType.hashCode),
+                                                                    orderNUmber.hashCode),
+                                                                supplierId.hashCode),
                                                             subTotal.hashCode),
-                                                        supplierInvoiceNumber
-                                                            .hashCode),
+                                                        supplierInvoiceNumber.hashCode),
                                                     deliverDate.hashCode),
                                                 taxRate.hashCode),
                                             taxAmount.hashCode),
@@ -216,6 +237,13 @@ class _$Order extends Order {
           ..add('id', id)
           ..add('userId', userId)
           ..add('branchId', branchId)
+          ..add('deviceId', deviceId)
+          ..add('currency', currency)
+          ..add('reference', reference)
+          ..add('idLocal', idLocal)
+          ..add('orderDate', orderDate)
+          ..add('isDraft', isDraft)
+          ..add('orderType', orderType)
           ..add('orderNUmber', orderNUmber)
           ..add('supplierId', supplierId)
           ..add('subTotal', subTotal)
@@ -239,9 +267,9 @@ class _$Order extends Order {
 class OrderBuilder implements Builder<Order, OrderBuilder> {
   _$Order _$v;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   int _userId;
   int get userId => _$this._userId;
@@ -250,6 +278,34 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String _branchId;
   String get branchId => _$this._branchId;
   set branchId(String branchId) => _$this._branchId = branchId;
+
+  String _deviceId;
+  String get deviceId => _$this._deviceId;
+  set deviceId(String deviceId) => _$this._deviceId = deviceId;
+
+  String _currency;
+  String get currency => _$this._currency;
+  set currency(String currency) => _$this._currency = currency;
+
+  String _reference;
+  String get reference => _$this._reference;
+  set reference(String reference) => _$this._reference = reference;
+
+  String _idLocal;
+  String get idLocal => _$this._idLocal;
+  set idLocal(String idLocal) => _$this._idLocal = idLocal;
+
+  String _orderDate;
+  String get orderDate => _$this._orderDate;
+  set orderDate(String orderDate) => _$this._orderDate = orderDate;
+
+  bool _isDraft;
+  bool get isDraft => _$this._isDraft;
+  set isDraft(bool isDraft) => _$this._isDraft = isDraft;
+
+  String _orderType;
+  String get orderType => _$this._orderType;
+  set orderType(String orderType) => _$this._orderType = orderType;
 
   int _orderNUmber;
   int get orderNUmber => _$this._orderNUmber;
@@ -326,6 +382,13 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _id = _$v.id;
       _userId = _$v.userId;
       _branchId = _$v.branchId;
+      _deviceId = _$v.deviceId;
+      _currency = _$v.currency;
+      _reference = _$v.reference;
+      _idLocal = _$v.idLocal;
+      _orderDate = _$v.orderDate;
+      _isDraft = _$v.isDraft;
+      _orderType = _$v.orderType;
       _orderNUmber = _$v.orderNUmber;
       _supplierId = _$v.supplierId;
       _subTotal = _$v.subTotal;
@@ -367,6 +430,13 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
             id: id,
             userId: userId,
             branchId: branchId,
+            deviceId: deviceId,
+            currency: currency,
+            reference: reference,
+            idLocal: idLocal,
+            orderDate: orderDate,
+            isDraft: isDraft,
+            orderType: orderType,
             orderNUmber: orderNUmber,
             supplierId: supplierId,
             subTotal: subTotal,

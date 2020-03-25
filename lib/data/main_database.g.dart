@@ -2213,8 +2213,8 @@ class ProductTableData extends DataClass
       this.color,
       @required this.businessId,
       @required this.supplierId,
-      @required this.categoryId,
-      @required this.taxId,
+      this.categoryId,
+      this.taxId,
       this.createdAt,
       this.updatedAt,
       this.deletedAt});
@@ -2529,8 +2529,8 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     this.color = const Value.absent(),
     @required String businessId,
     @required String supplierId,
-    @required String categoryId,
-    @required String taxId,
+    this.categoryId = const Value.absent(),
+    this.taxId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -2542,9 +2542,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
         isDraft = Value(isDraft),
         isCurrentUpdate = Value(isCurrentUpdate),
         businessId = Value(businessId),
-        supplierId = Value(supplierId),
-        categoryId = Value(categoryId),
-        taxId = Value(taxId);
+        supplierId = Value(supplierId);
   ProductTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -2740,7 +2738,7 @@ class $ProductTableTable extends ProductTable
     return GeneratedTextColumn(
       'category_id',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -2752,7 +2750,7 @@ class $ProductTableTable extends ProductTable
     return GeneratedTextColumn(
       'tax_id',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -2886,14 +2884,10 @@ class $ProductTableTable extends ProductTable
     if (d.categoryId.present) {
       context.handle(_categoryIdMeta,
           categoryId.isAcceptableValue(d.categoryId.value, _categoryIdMeta));
-    } else if (isInserting) {
-      context.missing(_categoryIdMeta);
     }
     if (d.taxId.present) {
       context.handle(
           _taxIdMeta, taxId.isAcceptableValue(d.taxId.value, _taxIdMeta));
-    } else if (isInserting) {
-      context.missing(_taxIdMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
@@ -5689,63 +5683,107 @@ class $StockHistoryTableTable extends StockHistoryTable
   }
 }
 
-class CartTableData extends DataClass implements Insertable<CartTableData> {
-  final int id;
+class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
+  final int idLocal;
+  final String id;
   final String branchId;
   final int count;
+  final int discountRate;
+  final int discountAmount;
+  final String unit;
+  final String note;
+  final int taxRate;
+  final double price;
+  final double taxAmount;
+  final double quantity;
+  final double subTotal;
   final String orderId;
   final String variationId;
-  final String parentName;
-  final String variationName;
+  final String variantName;
   final DateTime createdAt;
   final DateTime updatedAt;
-  CartTableData(
-      {@required this.id,
+  OrderDetailData(
+      {@required this.idLocal,
+      @required this.id,
       @required this.branchId,
       @required this.count,
+      @required this.discountRate,
+      @required this.discountAmount,
+      @required this.unit,
+      @required this.note,
+      @required this.taxRate,
+      @required this.price,
+      @required this.taxAmount,
+      @required this.quantity,
+      @required this.subTotal,
       @required this.orderId,
       @required this.variationId,
-      @required this.parentName,
-      @required this.variationName,
+      @required this.variantName,
       this.createdAt,
       this.updatedAt});
-  factory CartTableData.fromData(
+  factory OrderDetailData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
+    final doubleType = db.typeSystem.forDartType<double>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
-    return CartTableData(
-      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+    return OrderDetailData(
+      idLocal:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}id_local']),
+      id: stringType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       branchId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
       count: intType.mapFromDatabaseResponse(data['${effectivePrefix}count']),
+      discountRate: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}discount_rate']),
+      discountAmount: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}discount_amount']),
+      unit: stringType.mapFromDatabaseResponse(data['${effectivePrefix}unit']),
+      note: stringType.mapFromDatabaseResponse(data['${effectivePrefix}note']),
+      taxRate:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}tax_rate']),
+      price:
+          doubleType.mapFromDatabaseResponse(data['${effectivePrefix}price']),
+      taxAmount: doubleType
+          .mapFromDatabaseResponse(data['${effectivePrefix}tax_amount']),
+      quantity: doubleType
+          .mapFromDatabaseResponse(data['${effectivePrefix}quantity']),
+      subTotal: doubleType
+          .mapFromDatabaseResponse(data['${effectivePrefix}sub_total']),
       orderId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}order_id']),
       variationId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}variation_id']),
-      parentName: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}parent_name']),
-      variationName: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}variation_name']),
+      variantName: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}variant_name']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
-  factory CartTableData.fromJson(Map<String, dynamic> json,
+  factory OrderDetailData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return CartTableData(
-      id: serializer.fromJson<int>(json['id']),
+    return OrderDetailData(
+      idLocal: serializer.fromJson<int>(json['idLocal']),
+      id: serializer.fromJson<String>(json['id']),
       branchId: serializer.fromJson<String>(json['branchId']),
       count: serializer.fromJson<int>(json['count']),
+      discountRate: serializer.fromJson<int>(json['discountRate']),
+      discountAmount: serializer.fromJson<int>(json['discountAmount']),
+      unit: serializer.fromJson<String>(json['unit']),
+      note: serializer.fromJson<String>(json['note']),
+      taxRate: serializer.fromJson<int>(json['taxRate']),
+      price: serializer.fromJson<double>(json['price']),
+      taxAmount: serializer.fromJson<double>(json['taxAmount']),
+      quantity: serializer.fromJson<double>(json['quantity']),
+      subTotal: serializer.fromJson<double>(json['subTotal']),
       orderId: serializer.fromJson<String>(json['orderId']),
       variationId: serializer.fromJson<String>(json['variationId']),
-      parentName: serializer.fromJson<String>(json['parentName']),
-      variationName: serializer.fromJson<String>(json['variationName']),
+      variantName: serializer.fromJson<String>(json['variantName']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -5754,39 +5792,70 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'idLocal': serializer.toJson<int>(idLocal),
+      'id': serializer.toJson<String>(id),
       'branchId': serializer.toJson<String>(branchId),
       'count': serializer.toJson<int>(count),
+      'discountRate': serializer.toJson<int>(discountRate),
+      'discountAmount': serializer.toJson<int>(discountAmount),
+      'unit': serializer.toJson<String>(unit),
+      'note': serializer.toJson<String>(note),
+      'taxRate': serializer.toJson<int>(taxRate),
+      'price': serializer.toJson<double>(price),
+      'taxAmount': serializer.toJson<double>(taxAmount),
+      'quantity': serializer.toJson<double>(quantity),
+      'subTotal': serializer.toJson<double>(subTotal),
       'orderId': serializer.toJson<String>(orderId),
       'variationId': serializer.toJson<String>(variationId),
-      'parentName': serializer.toJson<String>(parentName),
-      'variationName': serializer.toJson<String>(variationName),
+      'variantName': serializer.toJson<String>(variantName),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   @override
-  CartTableCompanion createCompanion(bool nullToAbsent) {
-    return CartTableCompanion(
+  OrderDetailCompanion createCompanion(bool nullToAbsent) {
+    return OrderDetailCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       branchId: branchId == null && nullToAbsent
           ? const Value.absent()
           : Value(branchId),
       count:
           count == null && nullToAbsent ? const Value.absent() : Value(count),
+      discountRate: discountRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountRate),
+      discountAmount: discountAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountAmount),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      taxRate: taxRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxRate),
+      price:
+          price == null && nullToAbsent ? const Value.absent() : Value(price),
+      taxAmount: taxAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxAmount),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
+      subTotal: subTotal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subTotal),
       orderId: orderId == null && nullToAbsent
           ? const Value.absent()
           : Value(orderId),
       variationId: variationId == null && nullToAbsent
           ? const Value.absent()
           : Value(variationId),
-      parentName: parentName == null && nullToAbsent
+      variantName: variantName == null && nullToAbsent
           ? const Value.absent()
-          : Value(parentName),
-      variationName: variationName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variationName),
+          : Value(variantName),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -5796,37 +5865,64 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
     );
   }
 
-  CartTableData copyWith(
-          {int id,
+  OrderDetailData copyWith(
+          {int idLocal,
+          String id,
           String branchId,
           int count,
+          int discountRate,
+          int discountAmount,
+          String unit,
+          String note,
+          int taxRate,
+          double price,
+          double taxAmount,
+          double quantity,
+          double subTotal,
           String orderId,
           String variationId,
-          String parentName,
-          String variationName,
+          String variantName,
           DateTime createdAt,
           DateTime updatedAt}) =>
-      CartTableData(
+      OrderDetailData(
+        idLocal: idLocal ?? this.idLocal,
         id: id ?? this.id,
         branchId: branchId ?? this.branchId,
         count: count ?? this.count,
+        discountRate: discountRate ?? this.discountRate,
+        discountAmount: discountAmount ?? this.discountAmount,
+        unit: unit ?? this.unit,
+        note: note ?? this.note,
+        taxRate: taxRate ?? this.taxRate,
+        price: price ?? this.price,
+        taxAmount: taxAmount ?? this.taxAmount,
+        quantity: quantity ?? this.quantity,
+        subTotal: subTotal ?? this.subTotal,
         orderId: orderId ?? this.orderId,
         variationId: variationId ?? this.variationId,
-        parentName: parentName ?? this.parentName,
-        variationName: variationName ?? this.variationName,
+        variantName: variantName ?? this.variantName,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
   @override
   String toString() {
-    return (StringBuffer('CartTableData(')
+    return (StringBuffer('OrderDetailData(')
+          ..write('idLocal: $idLocal, ')
           ..write('id: $id, ')
           ..write('branchId: $branchId, ')
           ..write('count: $count, ')
+          ..write('discountRate: $discountRate, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('unit: $unit, ')
+          ..write('note: $note, ')
+          ..write('taxRate: $taxRate, ')
+          ..write('price: $price, ')
+          ..write('taxAmount: $taxAmount, ')
+          ..write('quantity: $quantity, ')
+          ..write('subTotal: $subTotal, ')
           ..write('orderId: $orderId, ')
           ..write('variationId: $variationId, ')
-          ..write('parentName: $parentName, ')
-          ..write('variationName: $variationName, ')
+          ..write('variantName: $variantName, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -5835,109 +5931,207 @@ class CartTableData extends DataClass implements Insertable<CartTableData> {
 
   @override
   int get hashCode => $mrjf($mrjc(
-      id.hashCode,
+      idLocal.hashCode,
       $mrjc(
-          branchId.hashCode,
+          id.hashCode,
           $mrjc(
-              count.hashCode,
+              branchId.hashCode,
               $mrjc(
-                  orderId.hashCode,
+                  count.hashCode,
                   $mrjc(
-                      variationId.hashCode,
+                      discountRate.hashCode,
                       $mrjc(
-                          parentName.hashCode,
+                          discountAmount.hashCode,
                           $mrjc(
-                              variationName.hashCode,
-                              $mrjc(createdAt.hashCode,
-                                  updatedAt.hashCode)))))))));
+                              unit.hashCode,
+                              $mrjc(
+                                  note.hashCode,
+                                  $mrjc(
+                                      taxRate.hashCode,
+                                      $mrjc(
+                                          price.hashCode,
+                                          $mrjc(
+                                              taxAmount.hashCode,
+                                              $mrjc(
+                                                  quantity.hashCode,
+                                                  $mrjc(
+                                                      subTotal.hashCode,
+                                                      $mrjc(
+                                                          orderId.hashCode,
+                                                          $mrjc(
+                                                              variationId
+                                                                  .hashCode,
+                                                              $mrjc(
+                                                                  variantName
+                                                                      .hashCode,
+                                                                  $mrjc(
+                                                                      createdAt
+                                                                          .hashCode,
+                                                                      updatedAt
+                                                                          .hashCode))))))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
-      (other is CartTableData &&
+      (other is OrderDetailData &&
+          other.idLocal == this.idLocal &&
           other.id == this.id &&
           other.branchId == this.branchId &&
           other.count == this.count &&
+          other.discountRate == this.discountRate &&
+          other.discountAmount == this.discountAmount &&
+          other.unit == this.unit &&
+          other.note == this.note &&
+          other.taxRate == this.taxRate &&
+          other.price == this.price &&
+          other.taxAmount == this.taxAmount &&
+          other.quantity == this.quantity &&
+          other.subTotal == this.subTotal &&
           other.orderId == this.orderId &&
           other.variationId == this.variationId &&
-          other.parentName == this.parentName &&
-          other.variationName == this.variationName &&
+          other.variantName == this.variantName &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
-class CartTableCompanion extends UpdateCompanion<CartTableData> {
-  final Value<int> id;
+class OrderDetailCompanion extends UpdateCompanion<OrderDetailData> {
+  final Value<int> idLocal;
+  final Value<String> id;
   final Value<String> branchId;
   final Value<int> count;
+  final Value<int> discountRate;
+  final Value<int> discountAmount;
+  final Value<String> unit;
+  final Value<String> note;
+  final Value<int> taxRate;
+  final Value<double> price;
+  final Value<double> taxAmount;
+  final Value<double> quantity;
+  final Value<double> subTotal;
   final Value<String> orderId;
   final Value<String> variationId;
-  final Value<String> parentName;
-  final Value<String> variationName;
+  final Value<String> variantName;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  const CartTableCompanion({
+  const OrderDetailCompanion({
+    this.idLocal = const Value.absent(),
     this.id = const Value.absent(),
     this.branchId = const Value.absent(),
     this.count = const Value.absent(),
+    this.discountRate = const Value.absent(),
+    this.discountAmount = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.note = const Value.absent(),
+    this.taxRate = const Value.absent(),
+    this.price = const Value.absent(),
+    this.taxAmount = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.subTotal = const Value.absent(),
     this.orderId = const Value.absent(),
     this.variationId = const Value.absent(),
-    this.parentName = const Value.absent(),
-    this.variationName = const Value.absent(),
+    this.variantName = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
-  CartTableCompanion.insert({
-    this.id = const Value.absent(),
+  OrderDetailCompanion.insert({
+    this.idLocal = const Value.absent(),
+    @required String id,
     @required String branchId,
     @required int count,
+    @required int discountRate,
+    @required int discountAmount,
+    @required String unit,
+    @required String note,
+    @required int taxRate,
+    @required double price,
+    @required double taxAmount,
+    @required double quantity,
+    @required double subTotal,
     @required String orderId,
     @required String variationId,
-    @required String parentName,
-    @required String variationName,
+    @required String variantName,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  })  : branchId = Value(branchId),
+  })  : id = Value(id),
+        branchId = Value(branchId),
         count = Value(count),
+        discountRate = Value(discountRate),
+        discountAmount = Value(discountAmount),
+        unit = Value(unit),
+        note = Value(note),
+        taxRate = Value(taxRate),
+        price = Value(price),
+        taxAmount = Value(taxAmount),
+        quantity = Value(quantity),
+        subTotal = Value(subTotal),
         orderId = Value(orderId),
         variationId = Value(variationId),
-        parentName = Value(parentName),
-        variationName = Value(variationName);
-  CartTableCompanion copyWith(
-      {Value<int> id,
+        variantName = Value(variantName);
+  OrderDetailCompanion copyWith(
+      {Value<int> idLocal,
+      Value<String> id,
       Value<String> branchId,
       Value<int> count,
+      Value<int> discountRate,
+      Value<int> discountAmount,
+      Value<String> unit,
+      Value<String> note,
+      Value<int> taxRate,
+      Value<double> price,
+      Value<double> taxAmount,
+      Value<double> quantity,
+      Value<double> subTotal,
       Value<String> orderId,
       Value<String> variationId,
-      Value<String> parentName,
-      Value<String> variationName,
+      Value<String> variantName,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt}) {
-    return CartTableCompanion(
+    return OrderDetailCompanion(
+      idLocal: idLocal ?? this.idLocal,
       id: id ?? this.id,
       branchId: branchId ?? this.branchId,
       count: count ?? this.count,
+      discountRate: discountRate ?? this.discountRate,
+      discountAmount: discountAmount ?? this.discountAmount,
+      unit: unit ?? this.unit,
+      note: note ?? this.note,
+      taxRate: taxRate ?? this.taxRate,
+      price: price ?? this.price,
+      taxAmount: taxAmount ?? this.taxAmount,
+      quantity: quantity ?? this.quantity,
+      subTotal: subTotal ?? this.subTotal,
       orderId: orderId ?? this.orderId,
       variationId: variationId ?? this.variationId,
-      parentName: parentName ?? this.parentName,
-      variationName: variationName ?? this.variationName,
+      variantName: variantName ?? this.variantName,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
 
-class $CartTableTable extends CartTable
-    with TableInfo<$CartTableTable, CartTableData> {
+class $OrderDetailTable extends OrderDetail
+    with TableInfo<$OrderDetailTable, OrderDetailData> {
   final GeneratedDatabase _db;
   final String _alias;
-  $CartTableTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  GeneratedIntColumn _id;
+  $OrderDetailTable(this._db, [this._alias]);
+  final VerificationMeta _idLocalMeta = const VerificationMeta('idLocal');
+  GeneratedIntColumn _idLocal;
   @override
-  GeneratedIntColumn get id => _id ??= _constructId();
-  GeneratedIntColumn _constructId() {
-    return GeneratedIntColumn('id', $tableName, false,
+  GeneratedIntColumn get idLocal => _idLocal ??= _constructIdLocal();
+  GeneratedIntColumn _constructIdLocal() {
+    return GeneratedIntColumn('id_local', $tableName, false,
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedTextColumn _id;
+  @override
+  GeneratedTextColumn get id => _id ??= _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _branchIdMeta = const VerificationMeta('branchId');
@@ -5959,6 +6153,118 @@ class $CartTableTable extends CartTable
   GeneratedIntColumn _constructCount() {
     return GeneratedIntColumn(
       'count',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _discountRateMeta =
+      const VerificationMeta('discountRate');
+  GeneratedIntColumn _discountRate;
+  @override
+  GeneratedIntColumn get discountRate =>
+      _discountRate ??= _constructDiscountRate();
+  GeneratedIntColumn _constructDiscountRate() {
+    return GeneratedIntColumn(
+      'discount_rate',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _discountAmountMeta =
+      const VerificationMeta('discountAmount');
+  GeneratedIntColumn _discountAmount;
+  @override
+  GeneratedIntColumn get discountAmount =>
+      _discountAmount ??= _constructDiscountAmount();
+  GeneratedIntColumn _constructDiscountAmount() {
+    return GeneratedIntColumn(
+      'discount_amount',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _unitMeta = const VerificationMeta('unit');
+  GeneratedTextColumn _unit;
+  @override
+  GeneratedTextColumn get unit => _unit ??= _constructUnit();
+  GeneratedTextColumn _constructUnit() {
+    return GeneratedTextColumn(
+      'unit',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _noteMeta = const VerificationMeta('note');
+  GeneratedTextColumn _note;
+  @override
+  GeneratedTextColumn get note => _note ??= _constructNote();
+  GeneratedTextColumn _constructNote() {
+    return GeneratedTextColumn(
+      'note',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _taxRateMeta = const VerificationMeta('taxRate');
+  GeneratedIntColumn _taxRate;
+  @override
+  GeneratedIntColumn get taxRate => _taxRate ??= _constructTaxRate();
+  GeneratedIntColumn _constructTaxRate() {
+    return GeneratedIntColumn(
+      'tax_rate',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _priceMeta = const VerificationMeta('price');
+  GeneratedRealColumn _price;
+  @override
+  GeneratedRealColumn get price => _price ??= _constructPrice();
+  GeneratedRealColumn _constructPrice() {
+    return GeneratedRealColumn(
+      'price',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _taxAmountMeta = const VerificationMeta('taxAmount');
+  GeneratedRealColumn _taxAmount;
+  @override
+  GeneratedRealColumn get taxAmount => _taxAmount ??= _constructTaxAmount();
+  GeneratedRealColumn _constructTaxAmount() {
+    return GeneratedRealColumn(
+      'tax_amount',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _quantityMeta = const VerificationMeta('quantity');
+  GeneratedRealColumn _quantity;
+  @override
+  GeneratedRealColumn get quantity => _quantity ??= _constructQuantity();
+  GeneratedRealColumn _constructQuantity() {
+    return GeneratedRealColumn(
+      'quantity',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _subTotalMeta = const VerificationMeta('subTotal');
+  GeneratedRealColumn _subTotal;
+  @override
+  GeneratedRealColumn get subTotal => _subTotal ??= _constructSubTotal();
+  GeneratedRealColumn _constructSubTotal() {
+    return GeneratedRealColumn(
+      'sub_total',
       $tableName,
       false,
     );
@@ -5990,27 +6296,15 @@ class $CartTableTable extends CartTable
     );
   }
 
-  final VerificationMeta _parentNameMeta = const VerificationMeta('parentName');
-  GeneratedTextColumn _parentName;
+  final VerificationMeta _variantNameMeta =
+      const VerificationMeta('variantName');
+  GeneratedTextColumn _variantName;
   @override
-  GeneratedTextColumn get parentName => _parentName ??= _constructParentName();
-  GeneratedTextColumn _constructParentName() {
+  GeneratedTextColumn get variantName =>
+      _variantName ??= _constructVariantName();
+  GeneratedTextColumn _constructVariantName() {
     return GeneratedTextColumn(
-      'parent_name',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _variationNameMeta =
-      const VerificationMeta('variationName');
-  GeneratedTextColumn _variationName;
-  @override
-  GeneratedTextColumn get variationName =>
-      _variationName ??= _constructVariationName();
-  GeneratedTextColumn _constructVariationName() {
-    return GeneratedTextColumn(
-      'variation_name',
+      'variant_name',
       $tableName,
       false,
     );
@@ -6039,28 +6333,43 @@ class $CartTableTable extends CartTable
 
   @override
   List<GeneratedColumn> get $columns => [
+        idLocal,
         id,
         branchId,
         count,
+        discountRate,
+        discountAmount,
+        unit,
+        note,
+        taxRate,
+        price,
+        taxAmount,
+        quantity,
+        subTotal,
         orderId,
         variationId,
-        parentName,
-        variationName,
+        variantName,
         createdAt,
         updatedAt
       ];
   @override
-  $CartTableTable get asDslTable => this;
+  $OrderDetailTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'cart_table';
+  String get $tableName => _alias ?? 'order_detail';
   @override
-  final String actualTableName = 'cart_table';
+  final String actualTableName = 'order_detail';
   @override
-  VerificationContext validateIntegrity(CartTableCompanion d,
+  VerificationContext validateIntegrity(OrderDetailCompanion d,
       {bool isInserting = false}) {
     final context = VerificationContext();
+    if (d.idLocal.present) {
+      context.handle(_idLocalMeta,
+          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+    }
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (d.branchId.present) {
       context.handle(_branchIdMeta,
@@ -6074,6 +6383,64 @@ class $CartTableTable extends CartTable
     } else if (isInserting) {
       context.missing(_countMeta);
     }
+    if (d.discountRate.present) {
+      context.handle(
+          _discountRateMeta,
+          discountRate.isAcceptableValue(
+              d.discountRate.value, _discountRateMeta));
+    } else if (isInserting) {
+      context.missing(_discountRateMeta);
+    }
+    if (d.discountAmount.present) {
+      context.handle(
+          _discountAmountMeta,
+          discountAmount.isAcceptableValue(
+              d.discountAmount.value, _discountAmountMeta));
+    } else if (isInserting) {
+      context.missing(_discountAmountMeta);
+    }
+    if (d.unit.present) {
+      context.handle(
+          _unitMeta, unit.isAcceptableValue(d.unit.value, _unitMeta));
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    if (d.note.present) {
+      context.handle(
+          _noteMeta, note.isAcceptableValue(d.note.value, _noteMeta));
+    } else if (isInserting) {
+      context.missing(_noteMeta);
+    }
+    if (d.taxRate.present) {
+      context.handle(_taxRateMeta,
+          taxRate.isAcceptableValue(d.taxRate.value, _taxRateMeta));
+    } else if (isInserting) {
+      context.missing(_taxRateMeta);
+    }
+    if (d.price.present) {
+      context.handle(
+          _priceMeta, price.isAcceptableValue(d.price.value, _priceMeta));
+    } else if (isInserting) {
+      context.missing(_priceMeta);
+    }
+    if (d.taxAmount.present) {
+      context.handle(_taxAmountMeta,
+          taxAmount.isAcceptableValue(d.taxAmount.value, _taxAmountMeta));
+    } else if (isInserting) {
+      context.missing(_taxAmountMeta);
+    }
+    if (d.quantity.present) {
+      context.handle(_quantityMeta,
+          quantity.isAcceptableValue(d.quantity.value, _quantityMeta));
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (d.subTotal.present) {
+      context.handle(_subTotalMeta,
+          subTotal.isAcceptableValue(d.subTotal.value, _subTotalMeta));
+    } else if (isInserting) {
+      context.missing(_subTotalMeta);
+    }
     if (d.orderId.present) {
       context.handle(_orderIdMeta,
           orderId.isAcceptableValue(d.orderId.value, _orderIdMeta));
@@ -6086,19 +6453,11 @@ class $CartTableTable extends CartTable
     } else if (isInserting) {
       context.missing(_variationIdMeta);
     }
-    if (d.parentName.present) {
-      context.handle(_parentNameMeta,
-          parentName.isAcceptableValue(d.parentName.value, _parentNameMeta));
+    if (d.variantName.present) {
+      context.handle(_variantNameMeta,
+          variantName.isAcceptableValue(d.variantName.value, _variantNameMeta));
     } else if (isInserting) {
-      context.missing(_parentNameMeta);
-    }
-    if (d.variationName.present) {
-      context.handle(
-          _variationNameMeta,
-          variationName.isAcceptableValue(
-              d.variationName.value, _variationNameMeta));
-    } else if (isInserting) {
-      context.missing(_variationNameMeta);
+      context.missing(_variantNameMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
@@ -6112,18 +6471,21 @@ class $CartTableTable extends CartTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {idLocal};
   @override
-  CartTableData map(Map<String, dynamic> data, {String tablePrefix}) {
+  OrderDetailData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
-    return CartTableData.fromData(data, _db, prefix: effectivePrefix);
+    return OrderDetailData.fromData(data, _db, prefix: effectivePrefix);
   }
 
   @override
-  Map<String, Variable> entityToSql(CartTableCompanion d) {
+  Map<String, Variable> entityToSql(OrderDetailCompanion d) {
     final map = <String, Variable>{};
+    if (d.idLocal.present) {
+      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+    }
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<String, StringType>(d.id.value);
     }
     if (d.branchId.present) {
       map['branch_id'] = Variable<String, StringType>(d.branchId.value);
@@ -6131,18 +6493,41 @@ class $CartTableTable extends CartTable
     if (d.count.present) {
       map['count'] = Variable<int, IntType>(d.count.value);
     }
+    if (d.discountRate.present) {
+      map['discount_rate'] = Variable<int, IntType>(d.discountRate.value);
+    }
+    if (d.discountAmount.present) {
+      map['discount_amount'] = Variable<int, IntType>(d.discountAmount.value);
+    }
+    if (d.unit.present) {
+      map['unit'] = Variable<String, StringType>(d.unit.value);
+    }
+    if (d.note.present) {
+      map['note'] = Variable<String, StringType>(d.note.value);
+    }
+    if (d.taxRate.present) {
+      map['tax_rate'] = Variable<int, IntType>(d.taxRate.value);
+    }
+    if (d.price.present) {
+      map['price'] = Variable<double, RealType>(d.price.value);
+    }
+    if (d.taxAmount.present) {
+      map['tax_amount'] = Variable<double, RealType>(d.taxAmount.value);
+    }
+    if (d.quantity.present) {
+      map['quantity'] = Variable<double, RealType>(d.quantity.value);
+    }
+    if (d.subTotal.present) {
+      map['sub_total'] = Variable<double, RealType>(d.subTotal.value);
+    }
     if (d.orderId.present) {
       map['order_id'] = Variable<String, StringType>(d.orderId.value);
     }
     if (d.variationId.present) {
       map['variation_id'] = Variable<String, StringType>(d.variationId.value);
     }
-    if (d.parentName.present) {
-      map['parent_name'] = Variable<String, StringType>(d.parentName.value);
-    }
-    if (d.variationName.present) {
-      map['variation_name'] =
-          Variable<String, StringType>(d.variationName.value);
+    if (d.variantName.present) {
+      map['variant_name'] = Variable<String, StringType>(d.variantName.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
@@ -6154,20 +6539,25 @@ class $CartTableTable extends CartTable
   }
 
   @override
-  $CartTableTable createAlias(String alias) {
-    return $CartTableTable(_db, alias);
+  $OrderDetailTable createAlias(String alias) {
+    return $OrderDetailTable(_db, alias);
   }
 }
 
 class OrderTableData extends DataClass implements Insertable<OrderTableData> {
-  final int id;
+  final int idLocal;
+  final String id;
   final int userId;
   final String branchId;
+  final String deviceId;
+  final String currency;
+  final String reference;
   final int orderNUmber;
   final int supplierId;
   final int subTotal;
   final int supplierInvoiceNumber;
   final DateTime deliverDate;
+  final DateTime orderDate;
   final int taxRate;
   final int taxAmount;
   final int count;
@@ -6179,17 +6569,24 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   final int customerSaving;
   final int paymentId;
   final String orderNote;
+  final bool isDraft;
   final String status;
+  final String orderType;
   final int customerChangeDue;
   OrderTableData(
-      {@required this.id,
+      {@required this.idLocal,
+      @required this.id,
       @required this.userId,
       @required this.branchId,
+      this.deviceId,
+      this.currency,
+      this.reference,
       this.orderNUmber,
       this.supplierId,
       this.subTotal,
       this.supplierInvoiceNumber,
       this.deliverDate,
+      this.orderDate,
       this.taxRate,
       this.taxAmount,
       @required this.count,
@@ -6201,7 +6598,9 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       this.customerSaving,
       this.paymentId,
       this.orderNote,
+      @required this.isDraft,
       @required this.status,
+      @required this.orderType,
       this.customerChangeDue});
   factory OrderTableData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
@@ -6210,12 +6609,21 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    final boolType = db.typeSystem.forDartType<bool>();
     return OrderTableData(
-      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      idLocal:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}id_local']),
+      id: stringType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       userId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}user_id']),
       branchId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
+      deviceId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}device_id']),
+      currency: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}currency']),
+      reference: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}reference']),
       orderNUmber: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}order_n_umber']),
       supplierId: intType
@@ -6226,6 +6634,8 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           data['${effectivePrefix}supplier_invoice_number']),
       deliverDate: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}deliver_date']),
+      orderDate: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}order_date']),
       taxRate:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}tax_rate']),
       taxAmount:
@@ -6247,8 +6657,12 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           intType.mapFromDatabaseResponse(data['${effectivePrefix}payment_id']),
       orderNote: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}order_note']),
+      isDraft:
+          boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_draft']),
       status:
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}status']),
+      orderType: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}order_type']),
       customerChangeDue: intType.mapFromDatabaseResponse(
           data['${effectivePrefix}customer_change_due']),
     );
@@ -6257,15 +6671,20 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return OrderTableData(
-      id: serializer.fromJson<int>(json['id']),
+      idLocal: serializer.fromJson<int>(json['idLocal']),
+      id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<int>(json['userId']),
       branchId: serializer.fromJson<String>(json['branchId']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      currency: serializer.fromJson<String>(json['currency']),
+      reference: serializer.fromJson<String>(json['reference']),
       orderNUmber: serializer.fromJson<int>(json['orderNUmber']),
       supplierId: serializer.fromJson<int>(json['supplierId']),
       subTotal: serializer.fromJson<int>(json['subTotal']),
       supplierInvoiceNumber:
           serializer.fromJson<int>(json['supplierInvoiceNumber']),
       deliverDate: serializer.fromJson<DateTime>(json['deliverDate']),
+      orderDate: serializer.fromJson<DateTime>(json['orderDate']),
       taxRate: serializer.fromJson<int>(json['taxRate']),
       taxAmount: serializer.fromJson<int>(json['taxAmount']),
       count: serializer.fromJson<int>(json['count']),
@@ -6277,7 +6696,9 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       customerSaving: serializer.fromJson<int>(json['customerSaving']),
       paymentId: serializer.fromJson<int>(json['paymentId']),
       orderNote: serializer.fromJson<String>(json['orderNote']),
+      isDraft: serializer.fromJson<bool>(json['isDraft']),
       status: serializer.fromJson<String>(json['status']),
+      orderType: serializer.fromJson<String>(json['orderType']),
       customerChangeDue: serializer.fromJson<int>(json['customerChangeDue']),
     );
   }
@@ -6285,14 +6706,19 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'idLocal': serializer.toJson<int>(idLocal),
+      'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<int>(userId),
       'branchId': serializer.toJson<String>(branchId),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'currency': serializer.toJson<String>(currency),
+      'reference': serializer.toJson<String>(reference),
       'orderNUmber': serializer.toJson<int>(orderNUmber),
       'supplierId': serializer.toJson<int>(supplierId),
       'subTotal': serializer.toJson<int>(subTotal),
       'supplierInvoiceNumber': serializer.toJson<int>(supplierInvoiceNumber),
       'deliverDate': serializer.toJson<DateTime>(deliverDate),
+      'orderDate': serializer.toJson<DateTime>(orderDate),
       'taxRate': serializer.toJson<int>(taxRate),
       'taxAmount': serializer.toJson<int>(taxAmount),
       'count': serializer.toJson<int>(count),
@@ -6304,7 +6730,9 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       'customerSaving': serializer.toJson<int>(customerSaving),
       'paymentId': serializer.toJson<int>(paymentId),
       'orderNote': serializer.toJson<String>(orderNote),
+      'isDraft': serializer.toJson<bool>(isDraft),
       'status': serializer.toJson<String>(status),
+      'orderType': serializer.toJson<String>(orderType),
       'customerChangeDue': serializer.toJson<int>(customerChangeDue),
     };
   }
@@ -6312,12 +6740,24 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   @override
   OrderTableCompanion createCompanion(bool nullToAbsent) {
     return OrderTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       userId:
           userId == null && nullToAbsent ? const Value.absent() : Value(userId),
       branchId: branchId == null && nullToAbsent
           ? const Value.absent()
           : Value(branchId),
+      deviceId: deviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deviceId),
+      currency: currency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currency),
+      reference: reference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reference),
       orderNUmber: orderNUmber == null && nullToAbsent
           ? const Value.absent()
           : Value(orderNUmber),
@@ -6333,6 +6773,9 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       deliverDate: deliverDate == null && nullToAbsent
           ? const Value.absent()
           : Value(deliverDate),
+      orderDate: orderDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderDate),
       taxRate: taxRate == null && nullToAbsent
           ? const Value.absent()
           : Value(taxRate),
@@ -6365,8 +6808,14 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       orderNote: orderNote == null && nullToAbsent
           ? const Value.absent()
           : Value(orderNote),
+      isDraft: isDraft == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isDraft),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
+      orderType: orderType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderType),
       customerChangeDue: customerChangeDue == null && nullToAbsent
           ? const Value.absent()
           : Value(customerChangeDue),
@@ -6374,14 +6823,19 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
   }
 
   OrderTableData copyWith(
-          {int id,
+          {int idLocal,
+          String id,
           int userId,
           String branchId,
+          String deviceId,
+          String currency,
+          String reference,
           int orderNUmber,
           int supplierId,
           int subTotal,
           int supplierInvoiceNumber,
           DateTime deliverDate,
+          DateTime orderDate,
           int taxRate,
           int taxAmount,
           int count,
@@ -6393,18 +6847,25 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           int customerSaving,
           int paymentId,
           String orderNote,
+          bool isDraft,
           String status,
+          String orderType,
           int customerChangeDue}) =>
       OrderTableData(
+        idLocal: idLocal ?? this.idLocal,
         id: id ?? this.id,
         userId: userId ?? this.userId,
         branchId: branchId ?? this.branchId,
+        deviceId: deviceId ?? this.deviceId,
+        currency: currency ?? this.currency,
+        reference: reference ?? this.reference,
         orderNUmber: orderNUmber ?? this.orderNUmber,
         supplierId: supplierId ?? this.supplierId,
         subTotal: subTotal ?? this.subTotal,
         supplierInvoiceNumber:
             supplierInvoiceNumber ?? this.supplierInvoiceNumber,
         deliverDate: deliverDate ?? this.deliverDate,
+        orderDate: orderDate ?? this.orderDate,
         taxRate: taxRate ?? this.taxRate,
         taxAmount: taxAmount ?? this.taxAmount,
         count: count ?? this.count,
@@ -6416,20 +6877,27 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
         customerSaving: customerSaving ?? this.customerSaving,
         paymentId: paymentId ?? this.paymentId,
         orderNote: orderNote ?? this.orderNote,
+        isDraft: isDraft ?? this.isDraft,
         status: status ?? this.status,
+        orderType: orderType ?? this.orderType,
         customerChangeDue: customerChangeDue ?? this.customerChangeDue,
       );
   @override
   String toString() {
     return (StringBuffer('OrderTableData(')
+          ..write('idLocal: $idLocal, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('branchId: $branchId, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('currency: $currency, ')
+          ..write('reference: $reference, ')
           ..write('orderNUmber: $orderNUmber, ')
           ..write('supplierId: $supplierId, ')
           ..write('subTotal: $subTotal, ')
           ..write('supplierInvoiceNumber: $supplierInvoiceNumber, ')
           ..write('deliverDate: $deliverDate, ')
+          ..write('orderDate: $orderDate, ')
           ..write('taxRate: $taxRate, ')
           ..write('taxAmount: $taxAmount, ')
           ..write('count: $count, ')
@@ -6441,7 +6909,9 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           ..write('customerSaving: $customerSaving, ')
           ..write('paymentId: $paymentId, ')
           ..write('orderNote: $orderNote, ')
+          ..write('isDraft: $isDraft, ')
           ..write('status: $status, ')
+          ..write('orderType: $orderType, ')
           ..write('customerChangeDue: $customerChangeDue')
           ..write(')'))
         .toString();
@@ -6449,61 +6919,65 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
 
   @override
   int get hashCode => $mrjf($mrjc(
-      id.hashCode,
+      idLocal.hashCode,
       $mrjc(
-          userId.hashCode,
+          id.hashCode,
           $mrjc(
-              branchId.hashCode,
+              userId.hashCode,
               $mrjc(
-                  orderNUmber.hashCode,
+                  branchId.hashCode,
                   $mrjc(
-                      supplierId.hashCode,
+                      deviceId.hashCode,
                       $mrjc(
-                          subTotal.hashCode,
+                          currency.hashCode,
                           $mrjc(
-                              supplierInvoiceNumber.hashCode,
+                              reference.hashCode,
                               $mrjc(
-                                  deliverDate.hashCode,
+                                  orderNUmber.hashCode,
                                   $mrjc(
-                                      taxRate.hashCode,
+                                      supplierId.hashCode,
                                       $mrjc(
-                                          taxAmount.hashCode,
+                                          subTotal.hashCode,
                                           $mrjc(
-                                              count.hashCode,
+                                              supplierInvoiceNumber.hashCode,
                                               $mrjc(
-                                                  variantName.hashCode,
+                                                  deliverDate.hashCode,
                                                   $mrjc(
-                                                      discountRate.hashCode,
+                                                      orderDate.hashCode,
                                                       $mrjc(
-                                                          discountAmount
-                                                              .hashCode,
+                                                          taxRate.hashCode,
                                                           $mrjc(
-                                                              cashReceived
+                                                              taxAmount
                                                                   .hashCode,
                                                               $mrjc(
-                                                                  saleTotal
+                                                                  count
                                                                       .hashCode,
                                                                   $mrjc(
-                                                                      customerSaving
+                                                                      variantName
                                                                           .hashCode,
                                                                       $mrjc(
-                                                                          paymentId
+                                                                          discountRate
                                                                               .hashCode,
                                                                           $mrjc(
-                                                                              orderNote.hashCode,
-                                                                              $mrjc(status.hashCode, customerChangeDue.hashCode)))))))))))))))))))));
+                                                                              discountAmount.hashCode,
+                                                                              $mrjc(cashReceived.hashCode, $mrjc(saleTotal.hashCode, $mrjc(customerSaving.hashCode, $mrjc(paymentId.hashCode, $mrjc(orderNote.hashCode, $mrjc(isDraft.hashCode, $mrjc(status.hashCode, $mrjc(orderType.hashCode, customerChangeDue.hashCode))))))))))))))))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is OrderTableData &&
+          other.idLocal == this.idLocal &&
           other.id == this.id &&
           other.userId == this.userId &&
           other.branchId == this.branchId &&
+          other.deviceId == this.deviceId &&
+          other.currency == this.currency &&
+          other.reference == this.reference &&
           other.orderNUmber == this.orderNUmber &&
           other.supplierId == this.supplierId &&
           other.subTotal == this.subTotal &&
           other.supplierInvoiceNumber == this.supplierInvoiceNumber &&
           other.deliverDate == this.deliverDate &&
+          other.orderDate == this.orderDate &&
           other.taxRate == this.taxRate &&
           other.taxAmount == this.taxAmount &&
           other.count == this.count &&
@@ -6515,19 +6989,26 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           other.customerSaving == this.customerSaving &&
           other.paymentId == this.paymentId &&
           other.orderNote == this.orderNote &&
+          other.isDraft == this.isDraft &&
           other.status == this.status &&
+          other.orderType == this.orderType &&
           other.customerChangeDue == this.customerChangeDue);
 }
 
 class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
-  final Value<int> id;
+  final Value<int> idLocal;
+  final Value<String> id;
   final Value<int> userId;
   final Value<String> branchId;
+  final Value<String> deviceId;
+  final Value<String> currency;
+  final Value<String> reference;
   final Value<int> orderNUmber;
   final Value<int> supplierId;
   final Value<int> subTotal;
   final Value<int> supplierInvoiceNumber;
   final Value<DateTime> deliverDate;
+  final Value<DateTime> orderDate;
   final Value<int> taxRate;
   final Value<int> taxAmount;
   final Value<int> count;
@@ -6539,17 +7020,24 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
   final Value<int> customerSaving;
   final Value<int> paymentId;
   final Value<String> orderNote;
+  final Value<bool> isDraft;
   final Value<String> status;
+  final Value<String> orderType;
   final Value<int> customerChangeDue;
   const OrderTableCompanion({
+    this.idLocal = const Value.absent(),
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.branchId = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.reference = const Value.absent(),
     this.orderNUmber = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.subTotal = const Value.absent(),
     this.supplierInvoiceNumber = const Value.absent(),
     this.deliverDate = const Value.absent(),
+    this.orderDate = const Value.absent(),
     this.taxRate = const Value.absent(),
     this.taxAmount = const Value.absent(),
     this.count = const Value.absent(),
@@ -6561,18 +7049,25 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
     this.customerSaving = const Value.absent(),
     this.paymentId = const Value.absent(),
     this.orderNote = const Value.absent(),
+    this.isDraft = const Value.absent(),
     this.status = const Value.absent(),
+    this.orderType = const Value.absent(),
     this.customerChangeDue = const Value.absent(),
   });
   OrderTableCompanion.insert({
-    this.id = const Value.absent(),
+    this.idLocal = const Value.absent(),
+    @required String id,
     @required int userId,
     @required String branchId,
+    this.deviceId = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.reference = const Value.absent(),
     this.orderNUmber = const Value.absent(),
     this.supplierId = const Value.absent(),
     this.subTotal = const Value.absent(),
     this.supplierInvoiceNumber = const Value.absent(),
     this.deliverDate = const Value.absent(),
+    this.orderDate = const Value.absent(),
     this.taxRate = const Value.absent(),
     this.taxAmount = const Value.absent(),
     this.count = const Value.absent(),
@@ -6584,19 +7079,27 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
     this.customerSaving = const Value.absent(),
     this.paymentId = const Value.absent(),
     this.orderNote = const Value.absent(),
+    this.isDraft = const Value.absent(),
     this.status = const Value.absent(),
+    this.orderType = const Value.absent(),
     this.customerChangeDue = const Value.absent(),
-  })  : userId = Value(userId),
+  })  : id = Value(id),
+        userId = Value(userId),
         branchId = Value(branchId);
   OrderTableCompanion copyWith(
-      {Value<int> id,
+      {Value<int> idLocal,
+      Value<String> id,
       Value<int> userId,
       Value<String> branchId,
+      Value<String> deviceId,
+      Value<String> currency,
+      Value<String> reference,
       Value<int> orderNUmber,
       Value<int> supplierId,
       Value<int> subTotal,
       Value<int> supplierInvoiceNumber,
       Value<DateTime> deliverDate,
+      Value<DateTime> orderDate,
       Value<int> taxRate,
       Value<int> taxAmount,
       Value<int> count,
@@ -6608,18 +7111,25 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
       Value<int> customerSaving,
       Value<int> paymentId,
       Value<String> orderNote,
+      Value<bool> isDraft,
       Value<String> status,
+      Value<String> orderType,
       Value<int> customerChangeDue}) {
     return OrderTableCompanion(
+      idLocal: idLocal ?? this.idLocal,
       id: id ?? this.id,
       userId: userId ?? this.userId,
       branchId: branchId ?? this.branchId,
+      deviceId: deviceId ?? this.deviceId,
+      currency: currency ?? this.currency,
+      reference: reference ?? this.reference,
       orderNUmber: orderNUmber ?? this.orderNUmber,
       supplierId: supplierId ?? this.supplierId,
       subTotal: subTotal ?? this.subTotal,
       supplierInvoiceNumber:
           supplierInvoiceNumber ?? this.supplierInvoiceNumber,
       deliverDate: deliverDate ?? this.deliverDate,
+      orderDate: orderDate ?? this.orderDate,
       taxRate: taxRate ?? this.taxRate,
       taxAmount: taxAmount ?? this.taxAmount,
       count: count ?? this.count,
@@ -6631,7 +7141,9 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
       customerSaving: customerSaving ?? this.customerSaving,
       paymentId: paymentId ?? this.paymentId,
       orderNote: orderNote ?? this.orderNote,
+      isDraft: isDraft ?? this.isDraft,
       status: status ?? this.status,
+      orderType: orderType ?? this.orderType,
       customerChangeDue: customerChangeDue ?? this.customerChangeDue,
     );
   }
@@ -6642,13 +7154,25 @@ class $OrderTableTable extends OrderTable
   final GeneratedDatabase _db;
   final String _alias;
   $OrderTableTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  GeneratedIntColumn _id;
+  final VerificationMeta _idLocalMeta = const VerificationMeta('idLocal');
+  GeneratedIntColumn _idLocal;
   @override
-  GeneratedIntColumn get id => _id ??= _constructId();
-  GeneratedIntColumn _constructId() {
-    return GeneratedIntColumn('id', $tableName, false,
+  GeneratedIntColumn get idLocal => _idLocal ??= _constructIdLocal();
+  GeneratedIntColumn _constructIdLocal() {
+    return GeneratedIntColumn('id_local', $tableName, false,
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedTextColumn _id;
+  @override
+  GeneratedTextColumn get id => _id ??= _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _userIdMeta = const VerificationMeta('userId');
@@ -6672,6 +7196,42 @@ class $OrderTableTable extends OrderTable
       'branch_id',
       $tableName,
       false,
+    );
+  }
+
+  final VerificationMeta _deviceIdMeta = const VerificationMeta('deviceId');
+  GeneratedTextColumn _deviceId;
+  @override
+  GeneratedTextColumn get deviceId => _deviceId ??= _constructDeviceId();
+  GeneratedTextColumn _constructDeviceId() {
+    return GeneratedTextColumn(
+      'device_id',
+      $tableName,
+      true,
+    );
+  }
+
+  final VerificationMeta _currencyMeta = const VerificationMeta('currency');
+  GeneratedTextColumn _currency;
+  @override
+  GeneratedTextColumn get currency => _currency ??= _constructCurrency();
+  GeneratedTextColumn _constructCurrency() {
+    return GeneratedTextColumn(
+      'currency',
+      $tableName,
+      true,
+    );
+  }
+
+  final VerificationMeta _referenceMeta = const VerificationMeta('reference');
+  GeneratedTextColumn _reference;
+  @override
+  GeneratedTextColumn get reference => _reference ??= _constructReference();
+  GeneratedTextColumn _constructReference() {
+    return GeneratedTextColumn(
+      'reference',
+      $tableName,
+      true,
     );
   }
 
@@ -6736,6 +7296,18 @@ class $OrderTableTable extends OrderTable
   GeneratedDateTimeColumn _constructDeliverDate() {
     return GeneratedDateTimeColumn(
       'deliver_date',
+      $tableName,
+      true,
+    );
+  }
+
+  final VerificationMeta _orderDateMeta = const VerificationMeta('orderDate');
+  GeneratedDateTimeColumn _orderDate;
+  @override
+  GeneratedDateTimeColumn get orderDate => _orderDate ??= _constructOrderDate();
+  GeneratedDateTimeColumn _constructOrderDate() {
+    return GeneratedDateTimeColumn(
+      'order_date',
       $tableName,
       true,
     );
@@ -6880,6 +7452,15 @@ class $OrderTableTable extends OrderTable
     );
   }
 
+  final VerificationMeta _isDraftMeta = const VerificationMeta('isDraft');
+  GeneratedBoolColumn _isDraft;
+  @override
+  GeneratedBoolColumn get isDraft => _isDraft ??= _constructIsDraft();
+  GeneratedBoolColumn _constructIsDraft() {
+    return GeneratedBoolColumn('is_draft', $tableName, false,
+        defaultValue: Constant(true));
+  }
+
   final VerificationMeta _statusMeta = const VerificationMeta('status');
   GeneratedTextColumn _status;
   @override
@@ -6887,6 +7468,15 @@ class $OrderTableTable extends OrderTable
   GeneratedTextColumn _constructStatus() {
     return GeneratedTextColumn('status', $tableName, false,
         defaultValue: Constant("draft"));
+  }
+
+  final VerificationMeta _orderTypeMeta = const VerificationMeta('orderType');
+  GeneratedTextColumn _orderType;
+  @override
+  GeneratedTextColumn get orderType => _orderType ??= _constructOrderType();
+  GeneratedTextColumn _constructOrderType() {
+    return GeneratedTextColumn('order_type', $tableName, false,
+        defaultValue: Constant("sales"));
   }
 
   final VerificationMeta _customerChangeDueMeta =
@@ -6905,14 +7495,19 @@ class $OrderTableTable extends OrderTable
 
   @override
   List<GeneratedColumn> get $columns => [
+        idLocal,
         id,
         userId,
         branchId,
+        deviceId,
+        currency,
+        reference,
         orderNUmber,
         supplierId,
         subTotal,
         supplierInvoiceNumber,
         deliverDate,
+        orderDate,
         taxRate,
         taxAmount,
         count,
@@ -6924,7 +7519,9 @@ class $OrderTableTable extends OrderTable
         customerSaving,
         paymentId,
         orderNote,
+        isDraft,
         status,
+        orderType,
         customerChangeDue
       ];
   @override
@@ -6937,8 +7534,14 @@ class $OrderTableTable extends OrderTable
   VerificationContext validateIntegrity(OrderTableCompanion d,
       {bool isInserting = false}) {
     final context = VerificationContext();
+    if (d.idLocal.present) {
+      context.handle(_idLocalMeta,
+          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+    }
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (d.userId.present) {
       context.handle(
@@ -6951,6 +7554,18 @@ class $OrderTableTable extends OrderTable
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
+    }
+    if (d.deviceId.present) {
+      context.handle(_deviceIdMeta,
+          deviceId.isAcceptableValue(d.deviceId.value, _deviceIdMeta));
+    }
+    if (d.currency.present) {
+      context.handle(_currencyMeta,
+          currency.isAcceptableValue(d.currency.value, _currencyMeta));
+    }
+    if (d.reference.present) {
+      context.handle(_referenceMeta,
+          reference.isAcceptableValue(d.reference.value, _referenceMeta));
     }
     if (d.orderNUmber.present) {
       context.handle(_orderNUmberMeta,
@@ -6973,6 +7588,10 @@ class $OrderTableTable extends OrderTable
     if (d.deliverDate.present) {
       context.handle(_deliverDateMeta,
           deliverDate.isAcceptableValue(d.deliverDate.value, _deliverDateMeta));
+    }
+    if (d.orderDate.present) {
+      context.handle(_orderDateMeta,
+          orderDate.isAcceptableValue(d.orderDate.value, _orderDateMeta));
     }
     if (d.taxRate.present) {
       context.handle(_taxRateMeta,
@@ -7026,9 +7645,17 @@ class $OrderTableTable extends OrderTable
       context.handle(_orderNoteMeta,
           orderNote.isAcceptableValue(d.orderNote.value, _orderNoteMeta));
     }
+    if (d.isDraft.present) {
+      context.handle(_isDraftMeta,
+          isDraft.isAcceptableValue(d.isDraft.value, _isDraftMeta));
+    }
     if (d.status.present) {
       context.handle(
           _statusMeta, status.isAcceptableValue(d.status.value, _statusMeta));
+    }
+    if (d.orderType.present) {
+      context.handle(_orderTypeMeta,
+          orderType.isAcceptableValue(d.orderType.value, _orderTypeMeta));
     }
     if (d.customerChangeDue.present) {
       context.handle(
@@ -7040,7 +7667,7 @@ class $OrderTableTable extends OrderTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {idLocal};
   @override
   OrderTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
@@ -7050,14 +7677,26 @@ class $OrderTableTable extends OrderTable
   @override
   Map<String, Variable> entityToSql(OrderTableCompanion d) {
     final map = <String, Variable>{};
+    if (d.idLocal.present) {
+      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+    }
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<String, StringType>(d.id.value);
     }
     if (d.userId.present) {
       map['user_id'] = Variable<int, IntType>(d.userId.value);
     }
     if (d.branchId.present) {
       map['branch_id'] = Variable<String, StringType>(d.branchId.value);
+    }
+    if (d.deviceId.present) {
+      map['device_id'] = Variable<String, StringType>(d.deviceId.value);
+    }
+    if (d.currency.present) {
+      map['currency'] = Variable<String, StringType>(d.currency.value);
+    }
+    if (d.reference.present) {
+      map['reference'] = Variable<String, StringType>(d.reference.value);
     }
     if (d.orderNUmber.present) {
       map['order_n_umber'] = Variable<int, IntType>(d.orderNUmber.value);
@@ -7075,6 +7714,9 @@ class $OrderTableTable extends OrderTable
     if (d.deliverDate.present) {
       map['deliver_date'] =
           Variable<DateTime, DateTimeType>(d.deliverDate.value);
+    }
+    if (d.orderDate.present) {
+      map['order_date'] = Variable<DateTime, DateTimeType>(d.orderDate.value);
     }
     if (d.taxRate.present) {
       map['tax_rate'] = Variable<int, IntType>(d.taxRate.value);
@@ -7109,8 +7751,14 @@ class $OrderTableTable extends OrderTable
     if (d.orderNote.present) {
       map['order_note'] = Variable<String, StringType>(d.orderNote.value);
     }
+    if (d.isDraft.present) {
+      map['is_draft'] = Variable<bool, BoolType>(d.isDraft.value);
+    }
     if (d.status.present) {
       map['status'] = Variable<String, StringType>(d.status.value);
+    }
+    if (d.orderType.present) {
+      map['order_type'] = Variable<String, StringType>(d.orderType.value);
     }
     if (d.customerChangeDue.present) {
       map['customer_change_due'] =
@@ -8526,8 +9174,8 @@ abstract class _$Database extends GeneratedDatabase {
   $StockHistoryTableTable _stockHistoryTable;
   $StockHistoryTableTable get stockHistoryTable =>
       _stockHistoryTable ??= $StockHistoryTableTable(this);
-  $CartTableTable _cartTable;
-  $CartTableTable get cartTable => _cartTable ??= $CartTableTable(this);
+  $OrderDetailTable _orderDetail;
+  $OrderDetailTable get orderDetail => _orderDetail ??= $OrderDetailTable(this);
   $OrderTableTable _orderTable;
   $OrderTableTable get orderTable => _orderTable ??= $OrderTableTable(this);
   $ColorTableTable _colorTable;
@@ -8598,7 +9246,7 @@ abstract class _$Database extends GeneratedDatabase {
         stockTable,
         priceTable,
         stockHistoryTable,
-        cartTable,
+        orderDetail,
         orderTable,
         colorTable,
         actionsTable,

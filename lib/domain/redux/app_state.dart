@@ -16,6 +16,7 @@ import 'package:flipper/model/permission.dart';
 import 'package:flipper/model/price.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/sheet.dart';
+import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
@@ -136,6 +137,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   @nullable
   Total get total;
+
+  @nullable
+  Tax get defaultTax;
 
   @nullable
   CouchDbClient get couchDbClient;

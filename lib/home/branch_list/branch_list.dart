@@ -93,6 +93,18 @@ class _BranchListState extends State<BranchList> {
               ListTile(
                 leading: FlatButton(
                   onPressed: () {
+                    Router.navigator.pushNamed(Router.reportScreen);
+                  },
+                  child: Text(
+                    "Report",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                dense: true,
+              ),
+              ListTile(
+                leading: FlatButton(
+                  onPressed: () {
                     Router.navigator.pushNamed(Router.allItemScreen);
                   },
                   child: Text(

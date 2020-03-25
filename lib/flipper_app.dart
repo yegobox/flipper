@@ -27,6 +27,20 @@ import 'domain/redux/branch/branch_middleware.dart';
 import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 
+Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) {
+  if (message.containsKey('data')) {
+    // Handle data message
+    final dynamic data = message['data'];
+  }
+
+  if (message.containsKey('notification')) {
+    // Handle notification message
+    final dynamic notification = message['notification'];
+  }
+
+  // Or do other work.
+}
+
 class FlipperApp extends StatefulWidget {
   FlipperApp({Key key}) : super(key: key);
 
@@ -47,6 +61,15 @@ class _FlipperAppState extends State<FlipperApp> {
   final businessRepo = BusinessRepository();
   final branchRepo = BranchRepository();
   final generalRepo = GeneralRepository();
+
+  @override
+  void didChangeDependencies() async {
+    super.didChangeDependencies();
+    // fire all bootstrap method for the app so no nullity will arise.
+    // todo: uncomment this line when server is fixed:
+    await store.state.couch.syncRemoteToLocal(store: store);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +96,7 @@ class _FlipperAppState extends State<FlipperApp> {
       ShouldLoadBusiness(),
     );
     _firebaseMessaging.configure(
+      onBackgroundMessage: backgroundMessageHandler,
       onMessage: (Map<String, dynamic> message) async {
         store.dispatch(OnPushNotificationReceivedAction(message));
       },

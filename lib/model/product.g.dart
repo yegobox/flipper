@@ -36,6 +36,8 @@ class _$Product extends Product {
   @override
   final String createdAt;
   @override
+  final String unit;
+  @override
   final String updatedAt;
   @override
   final int count;
@@ -58,6 +60,7 @@ class _$Product extends Product {
       this.supplierId,
       this.categoryId,
       this.createdAt,
+      this.unit,
       this.updatedAt,
       this.count})
       : super._() {
@@ -94,6 +97,7 @@ class _$Product extends Product {
         supplierId == other.supplierId &&
         categoryId == other.categoryId &&
         createdAt == other.createdAt &&
+        unit == other.unit &&
         updatedAt == other.updatedAt &&
         count == other.count;
   }
@@ -116,23 +120,26 @@ class _$Product extends Product {
                                                         $jc(
                                                             $jc(
                                                                 $jc(
-                                                                    0,
-                                                                    name
+                                                                    $jc(
+                                                                        0,
+                                                                        name
+                                                                            .hashCode),
+                                                                    id
                                                                         .hashCode),
-                                                                id.hashCode),
-                                                            description
-                                                                .hashCode),
-                                                        picture.hashCode),
-                                                    taxId.hashCode),
-                                                active.hashCode),
-                                            hasPicture.hashCode),
-                                        isDraft.hashCode),
-                                    color.hashCode),
-                                isCurrentUpdate.hashCode),
-                            businessId.hashCode),
-                        supplierId.hashCode),
-                    categoryId.hashCode),
-                createdAt.hashCode),
+                                                                description
+                                                                    .hashCode),
+                                                            picture.hashCode),
+                                                        taxId.hashCode),
+                                                    active.hashCode),
+                                                hasPicture.hashCode),
+                                            isDraft.hashCode),
+                                        color.hashCode),
+                                    isCurrentUpdate.hashCode),
+                                businessId.hashCode),
+                            supplierId.hashCode),
+                        categoryId.hashCode),
+                    createdAt.hashCode),
+                unit.hashCode),
             updatedAt.hashCode),
         count.hashCode));
   }
@@ -154,6 +161,7 @@ class _$Product extends Product {
           ..add('supplierId', supplierId)
           ..add('categoryId', categoryId)
           ..add('createdAt', createdAt)
+          ..add('unit', unit)
           ..add('updatedAt', updatedAt)
           ..add('count', count))
         .toString();
@@ -220,6 +228,10 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   String get createdAt => _$this._createdAt;
   set createdAt(String createdAt) => _$this._createdAt = createdAt;
 
+  String _unit;
+  String get unit => _$this._unit;
+  set unit(String unit) => _$this._unit = unit;
+
   String _updatedAt;
   String get updatedAt => _$this._updatedAt;
   set updatedAt(String updatedAt) => _$this._updatedAt = updatedAt;
@@ -246,6 +258,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
       _supplierId = _$v.supplierId;
       _categoryId = _$v.categoryId;
       _createdAt = _$v.createdAt;
+      _unit = _$v.unit;
       _updatedAt = _$v.updatedAt;
       _count = _$v.count;
       _$v = null;
@@ -284,6 +297,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
             supplierId: supplierId,
             categoryId: categoryId,
             createdAt: createdAt,
+            unit: unit,
             updatedAt: updatedAt,
             count: count);
     replace(_$result);

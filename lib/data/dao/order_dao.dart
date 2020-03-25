@@ -1,10 +1,10 @@
-import 'package:flipper/data/cart_table.dart';
 import 'package:flipper/data/main_database.dart';
+import 'package:flipper/data/order_detail_table.dart';
 import 'package:moor/moor.dart';
 
 part 'order_dao.g.dart';
 
-@UseDao(tables: [CartTable])
+@UseDao(tables: [OrderDetail])
 class OrderDao extends DatabaseAccessor<Database> with _$OrderDaoMixin {
   final Database db;
 
@@ -18,7 +18,7 @@ class OrderDao extends DatabaseAccessor<Database> with _$OrderDaoMixin {
         .getSingle();
   }
 
-  Future<OrderTableData> getOrderById(int orderId) {
+  Future<OrderTableData> getOrderById(String orderId) {
     return (select(db.orderTable)..where((t) => t.id.equals(orderId)))
         .getSingle();
   }

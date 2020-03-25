@@ -63,6 +63,7 @@ dependencies:
   firebase_analytics: ^5.0.11
   built_collection: ^4.3.2
   flutter_date_pickers: ^0.0.6
+  flutter_material_color_picker: ^0.0.5
   # We fixed a bug in the plugin
   #  media_picker_builder:
   #    git:

@@ -66,6 +66,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "stock" : MessageLookupByLibrary.simpleMessage("Stock"),
     "subscribe" : MessageLookupByLibrary.simpleMessage("Subscribe"),
     "supplyPrice" : MessageLookupByLibrary.simpleMessage("supply Price"),
+    "tender" : MessageLookupByLibrary.simpleMessage("Tender"),
     "unityType" : MessageLookupByLibrary.simpleMessage("Unit Type"),
     "unity_type" : MessageLookupByLibrary.simpleMessage("Unit Type"),
     "youNeedCategoryOfYourProduct" : MessageLookupByLibrary.simpleMessage("You need to provide category for your product"),

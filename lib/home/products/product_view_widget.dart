@@ -49,7 +49,9 @@ class _ProductsViewState extends State<ProductsView> {
     for (var i = 0; i < products.length; i++) {
       if (products[i] != null &&
           products[i].name != "custom" &&
-          products[i].name != 'tmp') {
+          products[i].name != 'tmp' &&
+          products[i].name != 'custom-product' &&
+          products[i].name != 'custom-product-test') {
         list.add(
           GestureDetector(
             onTap: () {

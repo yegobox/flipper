@@ -7,5 +7,5 @@ part of 'order_dao.dart';
 // **************************************************************************
 
 mixin _$OrderDaoMixin on DatabaseAccessor<Database> {
-  $CartTableTable get cartTable => db.cartTable;
+  $OrderDetailTable get orderDetail => db.orderDetail;
 }

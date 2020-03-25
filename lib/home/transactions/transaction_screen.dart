@@ -41,11 +41,15 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
                 return StreamBuilder(
                     stream: null,
-                    builder: (context, snapshot) {
+                    builder: (context, transactions) {
+                      if (transactions.data == null) {
+                        return Text("");
+                      }
                       return ListView(
                         children: ListTile.divideTiles(
                           context: context,
-                          tiles: renderTransactions(snapshot.data, context, vm),
+                          tiles: renderTransactions(
+                              transactions.data, context, vm),
                         ).toList(),
                       );
                     });

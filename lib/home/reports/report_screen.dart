@@ -1,14 +1,15 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/home/reports/report_view.dart';
 import 'package:flipper/home/reports/tabs.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
-class ReportWidget extends StatefulWidget {
+class ReportScreen extends StatefulWidget {
   @override
-  _ReportWidgetState createState() => _ReportWidgetState();
+  _ReportScreenState createState() => _ReportScreenState();
 }
 
-class _ReportWidgetState extends State<ReportWidget> {
+class _ReportScreenState extends State<ReportScreen> {
   double tabLenght = 50.0;
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,9 @@ class _ReportWidgetState extends State<ReportWidget> {
         length: 5,
         child: Scaffold(
           appBar: CommonAppBar(
-            onPop: () {},
+            onPop: () {
+              Router.navigator.pop();
+            },
             title: 'Report',
             disableButton: false,
             showActionButton: true,
@@ -26,11 +29,23 @@ class _ReportWidgetState extends State<ReportWidget> {
             actionButtonName: 'save',
             action: Container(
               width: double.infinity,
-              child: Tabs(tabLenght: tabLenght),
+              child: Wrap(
+                children: <Widget>[
+                  Center(
+                    child: FlatButton(
+                      onPressed: () {
+                        Router.navigator.pushNamed(Router.dateScreen);
+                      },
+                      child: Text("Date"),
+                    ),
+                  ),
+                  Tabs(tabLenght: tabLenght)
+                ],
+              ),
             ),
             icon: Icons.close,
             multi: 3,
-            bottomSpacer: 96,
+            bottomSpacer: 146,
           ),
           body: TabBarView(
             children: [

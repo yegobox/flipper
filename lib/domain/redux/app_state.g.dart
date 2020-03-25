@@ -88,6 +88,8 @@ class _$AppState extends AppState {
   @override
   final Total total;
   @override
+  final Tax defaultTax;
+  @override
   final CouchDbClient couchDbClient;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
@@ -134,6 +136,7 @@ class _$AppState extends AppState {
       this.keypad,
       this.tmpItem,
       this.total,
+      this.defaultTax,
       this.couchDbClient})
       : super._() {
     if (database == null) {
@@ -204,6 +207,7 @@ class _$AppState extends AppState {
         keypad == other.keypad &&
         tmpItem == other.tmpItem &&
         total == other.total &&
+        defaultTax == other.defaultTax &&
         couchDbClient == other.couchDbClient;
   }
 
@@ -227,25 +231,25 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode),
-                                                                                database.hashCode),
-                                                                            couch.hashCode),
-                                                                        tempCategoryId.hashCode),
-                                                                    currentUnit.hashCode),
-                                                                currentColor.hashCode),
-                                                            variant.hashCode),
-                                                        itemVariations.hashCode),
-                                                    currentActiveSaleProduct.hashCode),
-                                                currentActiveSaleVariant.hashCode),
-                                            cartItem.hashCode),
-                                        items.hashCode),
-                                    currentIncrement.hashCode),
-                                carts.hashCode),
-                            cartQuantities.hashCode),
-                        order.hashCode),
-                    keypad.hashCode),
-                tmpItem.hashCode),
-            total.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode),
+                                                                                couch.hashCode),
+                                                                            tempCategoryId.hashCode),
+                                                                        currentUnit.hashCode),
+                                                                    currentColor.hashCode),
+                                                                variant.hashCode),
+                                                            itemVariations.hashCode),
+                                                        currentActiveSaleProduct.hashCode),
+                                                    currentActiveSaleVariant.hashCode),
+                                                cartItem.hashCode),
+                                            items.hashCode),
+                                        currentIncrement.hashCode),
+                                    carts.hashCode),
+                                cartQuantities.hashCode),
+                            order.hashCode),
+                        keypad.hashCode),
+                    tmpItem.hashCode),
+                total.hashCode),
+            defaultTax.hashCode),
         couchDbClient.hashCode));
   }
 
@@ -292,6 +296,7 @@ class _$AppState extends AppState {
           ..add('keypad', keypad)
           ..add('tmpItem', tmpItem)
           ..add('total', total)
+          ..add('defaultTax', defaultTax)
           ..add('couchDbClient', couchDbClient))
         .toString();
   }
@@ -478,6 +483,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   TotalBuilder get total => _$this._total ??= new TotalBuilder();
   set total(TotalBuilder total) => _$this._total = total;
 
+  TaxBuilder _defaultTax;
+  TaxBuilder get defaultTax => _$this._defaultTax ??= new TaxBuilder();
+  set defaultTax(TaxBuilder defaultTax) => _$this._defaultTax = defaultTax;
+
   CouchDbClientBuilder _couchDbClient;
   CouchDbClientBuilder get couchDbClient =>
       _$this._couchDbClient ??= new CouchDbClientBuilder();
@@ -528,6 +537,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _keypad = _$v.keypad?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
       _total = _$v.total?.toBuilder();
+      _defaultTax = _$v.defaultTax?.toBuilder();
       _couchDbClient = _$v.couchDbClient?.toBuilder();
       _$v = null;
     }
@@ -593,6 +603,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               keypad: _keypad?.build(),
               tmpItem: _tmpItem?.build(),
               total: _total?.build(),
+              defaultTax: _defaultTax?.build(),
               couchDbClient: _couchDbClient?.build());
     } catch (_) {
       String _$failedField;
@@ -663,6 +674,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _tmpItem?.build();
         _$failedField = 'total';
         _total?.build();
+        _$failedField = 'defaultTax';
+        _defaultTax?.build();
         _$failedField = 'couchDbClient';
         _couchDbClient?.build();
       } catch (e) {

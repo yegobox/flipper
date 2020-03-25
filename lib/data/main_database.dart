@@ -4,7 +4,6 @@ import 'package:flipper/data/actions_table.dart';
 import 'package:flipper/data/branch.dart';
 import 'package:flipper/data/business.dart';
 import 'package:flipper/data/business_user.dart';
-import 'package:flipper/data/cart_table.dart';
 
 import 'package:flipper/data/category_table.dart';
 import 'package:flipper/data/color_table.dart';
@@ -24,8 +23,9 @@ import 'package:flipper/data/dao/tab_dao.dart';
 import 'package:flipper/data/dao/tax_dao.dart';
 import 'package:flipper/data/dao/unit_dao.dart';
 import 'package:flipper/data/dao/variation_dao.dart';
+import 'package:flipper/data/order_detail_table.dart';
+import 'package:flipper/data/order_table.dart';
 import 'package:flipper/data/product_table.dart';
-import 'package:flipper/data/order.dart';
 import 'package:flipper/data/price_table.dart';
 import 'package:flipper/data/products/branch_product_table.dart';
 import 'package:flipper/data/reason_table.dart';
@@ -73,7 +73,7 @@ LazyDatabase _openConnection() {
   StockTable,
   PriceTable,
   StockHistoryTable,
-  CartTable,
+  OrderDetail,
   OrderTable,
   ColorTable,
   ActionsTable,

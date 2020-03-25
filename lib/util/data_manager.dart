@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
+import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:redux/redux.dart';
@@ -68,7 +71,7 @@ class DataManager extends CouchBase {
 
   static Future deleteProduct({Store<AppState> store, String productId}) async {
     List<StockTableData> stocks = await store.state.database.stockDao
-        .getItemFromStockByProductId(
+        .getStockByProductId(
             branchId: store.state.branch.id, productId: productId);
     ProductTableData product = await store.state.database.productDao
         .getProductById(productId: productId);
@@ -84,6 +87,45 @@ class DataManager extends CouchBase {
     //todo: update couch for a deletion.
     await store.state.database.productDao.deleteItem(product);
     store.state.couch.syncLocalToRemote(store: store);
+  }
+
+  static createTemporalOrder(
+      GeneralRepository generalRepository, Store<AppState> store) async {
+    OrderTableData order =
+        await generalRepository.createDraftOrderOrReturnExistingOne(store);
+
+    //broadcast order to be used later when creating a sale
+    if (order != null) {
+      store.dispatch(
+        OrderCreated(
+          order: Order(
+            (o) => o
+              ..status = order.status
+              ..id = order.id
+              ..userId = store.state.userId
+              ..branchId = order.branchId
+              ..orderNote = order.orderNote
+              ..orderNUmber = order.orderNUmber
+              ..supplierId = order.supplierId
+              ..subTotal = order.subTotal
+              ..discountAmount = order.discountAmount
+              ..supplierInvoiceNumber = order.supplierInvoiceNumber
+              ..deliverDate = order.deliverDate
+              ..discountRate = order.discountRate
+              ..taxRate = order.taxRate
+              ..taxAmount = order.taxAmount
+              ..cashReceived = order.cashReceived
+              ..saleTotal = order.saleTotal
+              ..userId = order.userId
+              ..customerSaving = order.customerSaving
+              ..paymentId = order.paymentId
+              ..orderNote = order.orderNote
+              ..status = order.status
+              ..customerChangeDue = order.customerChangeDue,
+          ),
+        ),
+      );
+    }
   }
 
   //create a product and it's default variant which is regular
@@ -113,7 +155,7 @@ class DataManager extends CouchBase {
         //ignore: missing_required_param
         ProductTableData(
           name: productName,
-          categoryId: category.id,
+          categoryId: category?.id,
           color: "#955be9",
           active: true,
           hasPicture: false,
@@ -121,7 +163,7 @@ class DataManager extends CouchBase {
           isDraft: true,
           picture: '',
           supplierId: '',
-          taxId: tax.id,
+          taxId: tax?.id,
           businessId: store.state.currentActiveBusiness.id,
           id: Uuid().v1(),
           description: productName,
@@ -151,7 +193,6 @@ class DataManager extends CouchBase {
         //ignore: missing_required_param
         StockTableData(
           variantId: variant.id,
-//          channel: store.state.userId.toString(),
           supplyPrice: 0,
           canTrackingStock: false,
           showLowStockAlert: false,
@@ -171,22 +212,21 @@ class DataManager extends CouchBase {
         //ignore: missing_required_param
         BranchProductTableData(
             branchId: store.state.branch.id,
-//            channel: store.state.userId.toString(),
             productId: product.id,
             id: Uuid().v1()),
       );
 
-      dispatchCurrentTmpItem(store, product);
+      dispatchCurrentTmpItem(store, product, productName);
     } else {
-      dispatchCurrentTmpItem(store, product);
+      dispatchCurrentTmpItem(store, product, productName);
     }
   }
 
-  static void dispatchCurrentTmpItem(
-      Store<AppState> store, ProductTableData product) async {
+  static void dispatchCurrentTmpItem(Store<AppState> store,
+      ProductTableData product, String productName) async {
     VariationTableData variant;
     variant = await store.state.database.variationDao
-        .getVariationByName(name: 'tmp', productId: product.id);
+        .getVariationByName(name: productName, productId: product.id);
 
     if (variant == null) {
       //this is when a user started editing default variant to regular variant

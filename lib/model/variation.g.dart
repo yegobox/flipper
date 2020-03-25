@@ -15,11 +15,14 @@ class _$Variation extends Variation {
   final String productId;
   @override
   final String name;
+  @override
+  final String unit;
 
   factory _$Variation([void Function(VariationBuilder) updates]) =>
       (new VariationBuilder()..update(updates)).build();
 
-  _$Variation._({this.id, this.sku, this.productId, this.name}) : super._() {
+  _$Variation._({this.id, this.sku, this.productId, this.name, this.unit})
+      : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
     }
@@ -48,14 +51,16 @@ class _$Variation extends Variation {
         id == other.id &&
         sku == other.sku &&
         productId == other.productId &&
-        name == other.name;
+        name == other.name &&
+        unit == other.unit;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc(0, id.hashCode), sku.hashCode), productId.hashCode),
-        name.hashCode));
+        $jc($jc($jc($jc(0, id.hashCode), sku.hashCode), productId.hashCode),
+            name.hashCode),
+        unit.hashCode));
   }
 
   @override
@@ -64,7 +69,8 @@ class _$Variation extends Variation {
           ..add('id', id)
           ..add('sku', sku)
           ..add('productId', productId)
-          ..add('name', name))
+          ..add('name', name)
+          ..add('unit', unit))
         .toString();
   }
 }
@@ -88,6 +94,10 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
+  String _unit;
+  String get unit => _$this._unit;
+  set unit(String unit) => _$this._unit = unit;
+
   VariationBuilder();
 
   VariationBuilder get _$this {
@@ -96,6 +106,7 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
       _sku = _$v.sku;
       _productId = _$v.productId;
       _name = _$v.name;
+      _unit = _$v.unit;
       _$v = null;
     }
     return this;
@@ -117,7 +128,8 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   @override
   _$Variation build() {
     final _$result = _$v ??
-        new _$Variation._(id: id, sku: sku, productId: productId, name: name);
+        new _$Variation._(
+            id: id, sku: sku, productId: productId, name: name, unit: unit);
     replace(_$result);
     return _$result;
   }

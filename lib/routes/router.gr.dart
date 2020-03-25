@@ -34,6 +34,10 @@ import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/transactions/transaction_screen.dart';
 import 'package:flipper/presentation/login/auth_webview.dart';
+import 'package:flipper/home/reports/report_screen.dart';
+import 'package:flipper/home/reports/date_screen.dart';
+import 'package:flipper/presentation/selling/complete_sale_screen.dart';
+import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/subscription.dart';
 
 class Router {
@@ -63,6 +67,10 @@ class Router {
   static const editUnitType = '/edit-unit-type';
   static const transactionScreen = '/transaction-screen';
   static const webView = '/web-view';
+  static const reportScreen = '/report-screen';
+  static const dateScreen = '/date-screen';
+  static const compleSaleScreen = '/comple-sale-screen';
+  static const tenderScreen = '/tender-screen';
   static const subscription = '/subscription';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -340,6 +348,47 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
+      case Router.reportScreen:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ReportScreen(),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Router.dateScreen:
+        if (hasInvalidArgs<DateScreenArguments>(args)) {
+          return misTypedArgsRoute<DateScreenArguments>(args);
+        }
+        final typedArgs = args as DateScreenArguments ?? DateScreenArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) =>
+              DateScreen(key: typedArgs.key, title: typedArgs.title),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Router.compleSaleScreen:
+        if (hasInvalidArgs<CompleteSaleScreenArguments>(args)) {
+          return misTypedArgsRoute<CompleteSaleScreenArguments>(args);
+        }
+        final typedArgs = args as CompleteSaleScreenArguments ??
+            CompleteSaleScreenArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => CompleteSaleScreen(
+              key: typedArgs.key, cashReceived: typedArgs.cashReceived),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Router.tenderScreen:
+        if (hasInvalidArgs<TenderScreenArguments>(args)) {
+          return misTypedArgsRoute<TenderScreenArguments>(args);
+        }
+        final typedArgs =
+            args as TenderScreenArguments ?? TenderScreenArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => TenderScreen(
+              key: typedArgs.key, cashReceived: typedArgs.cashReceived),
+          settings: settings,
+          fullscreenDialog: true,
+        );
       case Router.subscription:
         if (hasInvalidArgs<SubscriptionArguments>(args)) {
           return misTypedArgsRoute<SubscriptionArguments>(args);
@@ -460,6 +509,27 @@ class AuthWebViewArguments {
   final String url;
   final String authType;
   AuthWebViewArguments({this.key, this.url, this.authType});
+}
+
+//DateScreen arguments holder class
+class DateScreenArguments {
+  final Key key;
+  final String title;
+  DateScreenArguments({this.key, this.title});
+}
+
+//CompleteSaleScreen arguments holder class
+class CompleteSaleScreenArguments {
+  final Key key;
+  final int cashReceived;
+  CompleteSaleScreenArguments({this.key, this.cashReceived});
+}
+
+//TenderScreen arguments holder class
+class TenderScreenArguments {
+  final Key key;
+  final int cashReceived;
+  TenderScreenArguments({this.key, this.cashReceived});
 }
 
 //Subscription arguments holder class

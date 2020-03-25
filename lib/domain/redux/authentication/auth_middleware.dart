@@ -16,6 +16,7 @@ import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
 import "package:flutter/material.dart";
@@ -68,10 +69,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await isUserCurrentlyLoggedIn(store);
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
-    await store.state.couch.syncRemoteToLocal(store: store);
+
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
+    await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
   };
 }
@@ -89,8 +91,9 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
         ..name = user.username,
     );
     store.dispatch(WithUser(user: u));
-    store.dispatch(UserID(userId: user.id));
+    store.dispatch(UserID(userId: user.userId));
   }
+
   return true;
 }
 
@@ -278,40 +281,7 @@ Future createTemporalOrder(
     GeneralRepository generalRepository, Store<AppState> store) async {
   if (store.state.branch == null) return;
   if (store.state.userId == null) return;
-  OrderTableData order =
-      await generalRepository.createDraftOrderOrReturnExistingOne(store);
-  //broadcast order to be used later when creating a sale
-  if (order != null) {
-    store.dispatch(
-      OrderCreated(
-        order: Order(
-          (o) => o
-            ..status = order.status
-            ..id = order.id
-            ..userId = store.state.userId
-            ..branchId = order.branchId
-            ..orderNote = order.orderNote
-            ..orderNUmber = order.orderNUmber
-            ..supplierId = order.supplierId
-            ..subTotal = order.subTotal
-            ..discountAmount = order.discountAmount
-            ..supplierInvoiceNumber = order.supplierInvoiceNumber
-            ..deliverDate = order.deliverDate
-            ..discountRate = order.discountRate
-            ..taxRate = order.taxRate
-            ..taxAmount = order.taxAmount
-            ..cashReceived = order.cashReceived
-            ..saleTotal = order.saleTotal
-            ..userId = order.userId
-            ..customerSaving = order.customerSaving
-            ..paymentId = order.paymentId
-            ..orderNote = order.orderNote
-            ..status = order.status
-            ..customerChangeDue = order.customerChangeDue,
-        ),
-      ),
-    );
-  }
+  DataManager.createTemporalOrder(generalRepository, store);
 }
 
 Future getBusinesses(
@@ -351,7 +321,6 @@ Future getBusinesses(
   } else if (store.state.userId == null) {
     Router.navigator.pushNamed(Router.afterSplash);
   } else {
-//    store.state.couch.addChannelListenTo(store: store);
     store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.dashboard);
   }
