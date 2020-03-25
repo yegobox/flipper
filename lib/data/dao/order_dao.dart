@@ -23,6 +23,8 @@ class OrderDao extends DatabaseAccessor<Database> with _$OrderDaoMixin {
         .getSingle();
   }
 
+  Future<List<OrderTableData>> getOrders() => select(db.orderTable).get();
+
   Stream<List<OrderTableData>> getOrdersStream() {
     return (select(db.orderTable)..where((t) => t.status.equals('completed')))
         .watch();

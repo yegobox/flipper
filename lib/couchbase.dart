@@ -968,6 +968,7 @@ class CouchBase extends Model with Fluttercouch {
         await syncStockLRemote(store);
         break;
       case 'Order':
+        await syncOrderLRemote(store);
         break;
       default:
         await syncBusinessLRemote(store);
@@ -1122,6 +1123,17 @@ class CouchBase extends Model with Fluttercouch {
     await saveDocumentWithId(
         'variants_' + store.state.userId.toString(), variant);
     return variations;
+  }
+
+  Future syncOrderLRemote(Store<AppState> store) async {
+    List<OrderTableData> orders =
+        await store.state.database.orderDao.getOrders();
+
+    //todo: work in progress syncing this.
+    //get orderDetails
+
+    //sync stock too.
+    await syncStockLRemote(store);
   }
 
   Future syncBusinessLRemote(Store<AppState> store) async {

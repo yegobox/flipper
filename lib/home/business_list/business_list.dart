@@ -85,6 +85,7 @@ class _BusinessListState extends State<BusinessList> {
             Image.asset("assets/graphics/drawer/account.png"),
             () {
               // _openUserAccount(context);
+              //todo: implement logout.
             },
           ),
           _Style.defaultPadding,

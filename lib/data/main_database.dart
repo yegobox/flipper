@@ -94,6 +94,7 @@ LazyDatabase _openConnection() {
   StockDao,
   CartDao,
   OrderDao,
+  //todo: create orderDetailDao.
   ColorDao,
   ActionsDao,
   TaxDao,
