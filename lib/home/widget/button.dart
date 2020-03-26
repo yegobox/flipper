@@ -5,9 +5,11 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class KeyPadButtons extends StatefulWidget {
   KeyPadButtons({Key key}) : super(key: key);
@@ -134,16 +136,17 @@ class SingleKey extends StatelessWidget {
           }
         },
         child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Color.fromRGBO(0, 0, 0, 0.1),
-              width: 0.5,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Color.fromRGBO(0, 0, 0, 0.1),
+                width: 0.5,
+              ),
             ),
-          ),
-          padding: EdgeInsets.fromLTRB(55, 21, 20, 20),
-          child: Text(keypadValue.toString(),
-              style: TextStyle(fontSize: 40, fontFamily: "Heebo-Thin")),
-        ),
+            padding: EdgeInsets.fromLTRB(55, 21, 20, 20),
+            child: Text(
+              keypadValue.toString(),
+              style: AppTheme.keypad.textTheme.bodyText1,
+            )),
       ),
     );
   }

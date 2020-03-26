@@ -1,6 +1,8 @@
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/theme.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SupplyPrice extends StatefulWidget {
   SupplyPrice({Key key}) : super(key: key);
@@ -16,7 +18,13 @@ class _SupplyPriceState extends State<SupplyPrice> {
         width: 300,
         child: TextFormField(
           keyboardType: TextInputType.number,
-          style: TextStyle(color: Colors.black),
+          style: GoogleFonts.lato(
+            fontStyle: FontStyle.normal,
+            color: AppTheme.addProduct.accentColor,
+            fontSize: AppTheme.addProduct.textTheme.bodyText1
+                .copyWith(fontSize: 12)
+                .fontSize,
+          ),
           onChanged: (supplyPrice) async {
             if (supplyPrice != '' || supplyPrice == null) {
               setState(() {

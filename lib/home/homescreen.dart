@@ -1,3 +1,4 @@
+import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/flipper_drawer.dart';
@@ -33,14 +34,27 @@ class _HomeScreenState extends State<HomeScreen>
   TabController _tabController;
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 2);
+
+    _tabController.addListener(() {
+      // if (_tabController.indexIsChanging) {
+      final b = TabsTableData(id: 1, tab: _tabController.index);
+      StoreProvider.of<AppState>(context).state.database.tabsDao.updateTab(b);
+    });
   }
 
   void _nextPage(int delta) {
     final int newIndex = _tabController.index + delta;
     if (newIndex < 0 || newIndex >= _tabController.length) return;
+
     _tabController.animateTo(newIndex);
   }
 

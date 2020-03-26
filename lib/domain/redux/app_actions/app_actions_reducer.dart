@@ -41,7 +41,13 @@ AppState _onAppActions(AppState state, AppAction action) {
 
 AppState _onResetAppAction(AppState state, ResetAppAction action) {
   //todo: should update the
-  return state.rebuild((a) => a..action = null);
+  switch (action.type) {
+    case 'User':
+      return state.rebuild((a) => a..userId = null);
+      break;
+    default:
+      return state.rebuild((a) => a..action = null);
+  }
 }
 
 AppState _onUpdateUnit(AppState state, UpdateUnitAction action) {

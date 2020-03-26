@@ -1,9 +1,10 @@
 library customappbar;
 
 import 'package:apptheme/apptheme.dart';
-import 'package:flipper_ui/ui.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import 'package:google_fonts/google_fonts.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   // @Deprecated("_action will be removed soon")
@@ -66,11 +67,16 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     : Text(
                         _title,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTheme.appBarTitleTextStyle,
+                        // style: AppTheme.appBarTitleTextStyle,
+                        style: GoogleFonts.lato(
+                          fontStyle: FontStyle.normal,
+                          color: Color.fromRGBO(0, 0, 0, 1.0),
+                          fontSize: 20,
+                        ),
                       ),
                 trailing: _showActionButton == null || !_showActionButton
                     ? Text("")
-                    : button(
+                    : Button(
                         disableButton: _disableButton,
                         onPressedCallback: _onPressedCallback,
                         buttonName: _actionButtonName ?? "",

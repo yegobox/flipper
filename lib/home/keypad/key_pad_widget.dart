@@ -2,10 +2,12 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/widget/button.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class KeyPadWidget extends StatefulWidget {
   KeyPadWidget({Key key}) : super(key: key);
@@ -40,7 +42,11 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                   trailing: FlatButton(
                     child: Text(
                       moneyFormat.text,
-                      style: TextStyle(color: Colors.black, fontSize: 30),
+                      style: GoogleFonts.lato(
+                          fontStyle: FontStyle.normal,
+                          color: AppTheme.money.accentColor,
+                          fontSize:
+                              AppTheme.money.textTheme.bodyText1.fontSize),
                     ),
                     onPressed: () {},
                   ),
@@ -50,7 +56,11 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                     },
                     child: Text(
                       "Add a note",
-                      style: TextStyle(color: HexColor("#95a5a6")),
+                      style: GoogleFonts.lato(
+                          fontStyle: FontStyle.normal,
+                          color: AppTheme.addAnote.accentColor,
+                          fontSize:
+                              AppTheme.addAnote.textTheme.bodyText1.fontSize),
                     ),
                   ),
                 ),

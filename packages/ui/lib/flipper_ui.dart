@@ -2,9 +2,10 @@ library ui;
 
 import 'package:apptheme/HexColor.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class button extends StatelessWidget {
-  const button(
+class Button extends StatelessWidget {
+  const Button(
       {Key key,
       @required bool disableButton,
       @required Function onPressedCallback,
@@ -32,7 +33,11 @@ class button extends StatelessWidget {
             _buttonName,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.white),
+            style: GoogleFonts.lato(
+              fontStyle: FontStyle.normal,
+              color: Colors.white,
+              // fontSize: 20,
+            ),
           ),
         ),
       ),

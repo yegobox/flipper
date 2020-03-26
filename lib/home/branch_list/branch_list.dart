@@ -1,8 +1,10 @@
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class BranchList extends StatefulWidget {
   final CommonViewModel vm;
@@ -23,7 +25,11 @@ class _BranchListState extends State<BranchList> {
           child: Text(
             widget.vm.hint.name,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white),
+            style: GoogleFonts.lato(
+              fontStyle: FontStyle.normal,
+              color: AppTheme.branchList.accentColor,
+              fontSize: AppTheme.branchList.textTheme.bodyText1.fontSize,
+            ),
           ),
         ),
         items: widget.vm.branches.map((b) {
@@ -34,6 +40,7 @@ class _BranchListState extends State<BranchList> {
                 SvgPicture.asset(
                   "assets/graphics/arrow-up-right.svg",
                   allowDrawingOutsideViewBox: true,
+                  color: Colors.white,
                 ),
                 SizedBox(
                   width: 10,
@@ -66,26 +73,17 @@ class _BranchListState extends State<BranchList> {
                 height: 46,
               ),
               _BranchItem(),
-              // ListTile(
-              //   leading: SvgPicture.asset(
-              //     "assets/graphics/analytics.svg",
-              //     semanticsLabel: 'Analytics',
-              //   ),
-              //   title: Text(
-              //     "Analytics",
-              //     style: TextStyle(
-              //         color: Colors.white,
-              //         fontFamily: _Style.fontFamily,
-              //         fontSize: 18),
-              //   ),
-              //   dense: true,
-              // ),
               ListTile(
                 leading: FlatButton(
                   onPressed: () {},
                   child: Text(
                     "Checkout",
-                    style: TextStyle(color: Colors.white),
+                    style: GoogleFonts.lato(
+                      fontStyle: FontStyle.normal,
+                      color: AppTheme.branchList.accentColor,
+                      fontSize:
+                          AppTheme.branchList.textTheme.bodyText1.fontSize,
+                    ),
                   ),
                 ),
                 dense: true,
@@ -97,7 +95,12 @@ class _BranchListState extends State<BranchList> {
                   },
                   child: Text(
                     "Report",
-                    style: TextStyle(color: Colors.white),
+                    style: GoogleFonts.lato(
+                      fontStyle: FontStyle.normal,
+                      color: AppTheme.branchList.accentColor,
+                      fontSize:
+                          AppTheme.branchList.textTheme.bodyText1.fontSize,
+                    ),
                   ),
                 ),
                 dense: true,
@@ -108,8 +111,13 @@ class _BranchListState extends State<BranchList> {
                     Router.navigator.pushNamed(Router.allItemScreen);
                   },
                   child: Text(
-                    "Items",
-                    style: TextStyle(color: Colors.white),
+                    "Items  ",
+                    style: GoogleFonts.lato(
+                      fontStyle: FontStyle.normal,
+                      color: AppTheme.branchList.accentColor,
+                      fontSize:
+                          AppTheme.branchList.textTheme.bodyText1.fontSize,
+                    ),
                   ),
                 ),
                 dense: true,
@@ -121,55 +129,18 @@ class _BranchListState extends State<BranchList> {
                   },
                   child: Text(
                     "Transactions",
-                    style: TextStyle(color: Colors.white),
+                    style: GoogleFonts.lato(
+                      fontStyle: FontStyle.normal,
+                      color: AppTheme.branchList.accentColor,
+                      fontSize:
+                          AppTheme.branchList.textTheme.bodyText1.fontSize,
+                    ),
                   ),
                 ),
                 dense: true,
               ),
-              // ListTile(
-              //   leading: SvgPicture.asset(
-              //     "assets/graphics/grid.svg",
-              //     semanticsLabel: 'Inventory',
-              //   ),
-              //   title: Text(
-              //     "Inventory",
-              //     style: TextStyle(
-              //         color: Colors.white,
-              //         fontFamily: _Style.fontFamily,
-              //         fontSize: 18),
-              //   ),
-              //   dense: true,
-              // ),
-              // ListTile(
-              //   leading: SvgPicture.asset(
-              //     "assets/graphics/navigation.svg",
-              //     semanticsLabel: 'Inventory Count',
-              //   ),
-              //   title: Text(
-              //     "Inventory Count",
-              //     style: TextStyle(
-              //         color: Colors.white,
-              //         fontFamily: _Style.fontFamily,
-              //         fontSize: 18),
-              //   ),
-              //   dense: true,
-              // ),
-              // ListTile(
-              //   leading: SvgPicture.asset(
-              //     "assets/graphics/refresh.svg",
-              //     semanticsLabel: 'Orders',
-              //   ),
-              //   title: Text(
-              //     "Orders",
-              //     style: TextStyle(
-              //         color: Colors.white,
-              //         fontFamily: _Style.fontFamily,
-              //         fontSize: 18),
-              //   ),
-              //   dense: true,
-              // ),
               SizedBox(
-                height: 445,
+                height: 425,
               ),
               Container(
                 width: 237,
@@ -182,10 +153,12 @@ class _BranchListState extends State<BranchList> {
                   ),
                   title: Text(
                     "Settings",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: _Style.fontFamily,
-                        fontSize: 18),
+                    style: GoogleFonts.lato(
+                      fontStyle: FontStyle.normal,
+                      color: AppTheme.branchList.accentColor,
+                      fontSize:
+                          AppTheme.branchList.textTheme.bodyText1.fontSize,
+                    ),
                   ),
                   dense: true,
                 ),

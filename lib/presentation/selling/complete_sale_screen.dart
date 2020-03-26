@@ -1,6 +1,7 @@
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:customappbar/customappbar.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CompleteSaleScreen extends StatefulWidget {
   CompleteSaleScreen({Key key, this.cashReceived}) : super(key: key);
@@ -34,10 +35,16 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
               height: 100,
             ),
             Center(
-              child: Text("RWF" + widget.cashReceived.toString()),
+              child: Text(
+                "RWF" + widget.cashReceived.toString(),
+                style: GoogleFonts.lato(fontStyle: FontStyle.normal),
+              ),
             ),
             Center(
-              child: Text("Select Payment Type Below"),
+              child: Text(
+                "Select Payment Type Below",
+                style: GoogleFonts.lato(fontStyle: FontStyle.normal),
+              ),
             ),
             SizedBox(
               height: 20,
@@ -49,7 +56,10 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
                         cashReceived: widget.cashReceived));
               },
               child: ListTile(
-                leading: Text("Cash"),
+                leading: Text(
+                  "Cash",
+                  style: GoogleFonts.lato(fontStyle: FontStyle.normal),
+                ),
                 trailing: Wrap(
                   children: <Widget>[Icon(Icons.arrow_forward_ios)],
                 ),

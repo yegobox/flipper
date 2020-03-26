@@ -1,5 +1,6 @@
 import 'package:flipper/util/HexColor.dart';
 import "package:flutter/material.dart";
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static const pixelMultiplier = 1.0;
@@ -34,27 +35,107 @@ class AppTheme {
 
   static ThemeData get theme {
     return ThemeData.light().copyWith(
-      // primaryColor: Colors.red,
-      accentColor: HexColor("#1e3799"),
-      textTheme: TextTheme(
-          body1: TextStyle(
-              color: Colors.black,
-              // color: Color.fromRGBO(0, 0, 0, 0.8),
-              fontSize: 15,
-              fontStyle: FontStyle.normal,
-              fontWeight: FontWeight.bold,
-              fontFamily: fontFamily)), //todo: customize later
-      // canvasColor: HexColor("#130f1f"), //this affect the
+      primaryColor: Colors.black,
+      accentColor: Colors.black,
     );
   }
 
-// HexColor("#130f1f")
+  static ThemeData get payableTheme {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.white,
+      accentColor: Colors.white,
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontSize: 30,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get branchList {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.white,
+      accentColor: Colors.white,
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontSize: 20,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get currentSale {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.black,
+      accentColor: Colors.black,
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontSize: 19,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get addProduct {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.black,
+      accentColor: Colors.black,
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontSize: 19,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get keypad {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.black,
+      accentColor: Colors.black,
+      textTheme: TextTheme(
+        bodyText1: TextStyle(fontSize: 40, fontFamily: "Heebo-Thin"),
+      ),
+    );
+  }
+
+  static ThemeData get money {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.black,
+      accentColor: Colors.black,
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontSize: 19,
+        ),
+      ),
+    );
+  }
+
+  static TextStyle get notificationBody {
+    return theme.textTheme.bodyText1.copyWith(
+      color: Colors.white,
+      fontSize: 16,
+      fontFamily: fontFamilyEdmondsansRegular,
+    );
+  }
+
+  static ThemeData get addAnote {
+    return ThemeData.light().copyWith(
+      primaryColor: HexColor('#95a5a6'),
+      accentColor: HexColor('#95a5a6'),
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontSize: 19,
+        ),
+      ),
+    );
+  }
+
   static const fontFamily = "Heebo-Thin";
 
   /// Calendar
 
   static TextStyle get calendarDayTitle {
-    return theme.textTheme.headline.copyWith(
+    return theme.textTheme.headline5.copyWith(
       color: colorDarkBlue,
       fontSize: 16,
       fontFamily: fontFamilyHeeboThin,
@@ -62,7 +143,7 @@ class AppTheme {
   }
 
   static TextStyle get calendarListEventName {
-    return theme.textTheme.headline.copyWith(
+    return theme.textTheme.headline5.copyWith(
       color: colorDarkBlue,
       fontSize: 16,
       fontFamily: fontFamilyEdmondsansMedium,
@@ -70,7 +151,7 @@ class AppTheme {
   }
 
   static TextStyle get calendarListGroupName {
-    return theme.textTheme.headline.copyWith(
+    return theme.textTheme.headline5.copyWith(
       color: colorDarkBlue.withAlpha(150),
       fontSize: 16,
       fontFamily: fontFamilyEdmondsansMedium,
@@ -78,7 +159,7 @@ class AppTheme {
   }
 
   static TextStyle get calendarListTime {
-    return theme.textTheme.headline.copyWith(
+    return theme.textTheme.headline5.copyWith(
       color: Colors.white,
       fontSize: 12,
       fontFamily: fontFamilyEdmondsansMedium,
@@ -96,7 +177,7 @@ class AppTheme {
   }
 
   static TextStyle get circleTitle {
-    return theme.textTheme.headline.copyWith(
+    return theme.textTheme.headline5.copyWith(
       color: colorDarkBlueFont,
       fontSize: 24,
       fontFamily: fontFamilyHeeboThin,
@@ -104,7 +185,7 @@ class AppTheme {
   }
 
   static TextStyle get flipperSectionButtonTitle {
-    return theme.textTheme.headline.copyWith(
+    return theme.textTheme.headline5.copyWith(
       color: colorDarkBlueFont,
       fontSize: 16,
       fontFamily: fontFamilyHeeboThin,
@@ -112,7 +193,7 @@ class AppTheme {
   }
 
   static TextStyle get notificationTitle {
-    return theme.textTheme.body1.copyWith(
+    return theme.textTheme.bodyText1.copyWith(
       color: Colors.white,
       fontSize: 16,
       fontWeight: FontWeight.w800,
@@ -121,7 +202,7 @@ class AppTheme {
   }
 
   static TextStyle get notificationTime {
-    return theme.textTheme.body1.copyWith(
+    return theme.textTheme.bodyText1.copyWith(
       color: Colors.white,
       fontSize: 12,
       fontFamily: fontFamilyEdmondsansRegular,
@@ -129,7 +210,7 @@ class AppTheme {
   }
 
   static TextStyle get createItem {
-    return theme.textTheme.body1.copyWith(
+    return theme.textTheme.bodyText1.copyWith(
       color: Colors.white,
       fontSize: 16 * pixelMultiplier,
       fontFamily: fontFamilyHeeboThin,
@@ -137,7 +218,7 @@ class AppTheme {
   }
 
   static TextStyle get createDiscount {
-    return theme.textTheme.body1.copyWith(
+    return theme.textTheme.bodyText1.copyWith(
       color: Colors.black,
       fontSize: 16 * pixelMultiplier,
       fontFamily: fontFamilyHeeboThin,
@@ -145,7 +226,7 @@ class AppTheme {
   }
 
   static TextStyle get dismiss {
-    return theme.textTheme.body1.copyWith(
+    return theme.textTheme.bodyText1.copyWith(
       color: Colors.black,
       fontSize: 16 * pixelMultiplier,
       fontFamily: fontFamilyHeeboThin,
@@ -226,6 +307,14 @@ class AppTheme {
   static InputDecorationTheme get inputDecorationEmptyTheme {
     return _inputDecorationTheme(
       baseColor: colorGrey128,
+    );
+  }
+
+  static TextStyle get inputMediumTextStyle {
+    return TextStyle(
+      fontSize: 16,
+      fontFamily: fontFamilyEdmondsansMedium,
+      color: colorTextEnabled,
     );
   }
 

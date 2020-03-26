@@ -342,7 +342,7 @@ void Function(
   return (store, action, next) async {
     next(action);
     try {
-      await userRepository.logOut();
+      await userRepository.logOut(store);
       store.dispatch(OnLogoutSuccess());
     } catch (e) {
       Logger.w("Failed logout", e: e);

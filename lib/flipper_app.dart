@@ -114,10 +114,11 @@ class _FlipperAppState extends State<FlipperApp> {
       Logger.d("Settings registered: $settings");
     });
     _firebaseMessaging.getToken().then((String token) {
-      //assert(token != null);
+      assert(token != null);
       if (token != null) {
         Logger.d("Push Messaging token: $token");
-        store.dispatch(UpdateUserTokenAction(token));
+        print(token);
+        store.dispatch(UpdateUserTokenAction(token, store));
       }
     });
   }

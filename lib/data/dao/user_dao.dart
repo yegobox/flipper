@@ -17,6 +17,9 @@ class UserDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
     return update(db.userTable).replace(entry);
   }
 
+  Future deleteUser(Insertable<UserTableData> user) =>
+      delete(db.userTable).delete(user);
+
   Future<UserTableData> getUser() {
     return (select(db.userTable)
           ..orderBy(

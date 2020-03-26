@@ -110,7 +110,11 @@ class CurrentColor {
 }
 
 @immutable
-class ResetAppAction {}
+class ResetAppAction {
+  final String type;
+
+  ResetAppAction({this.type});
+}
 
 @immutable
 class SaveItemAction {

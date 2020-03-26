@@ -6,6 +6,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../theme.dart';
 
@@ -75,10 +76,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                       "[" +
                                       quantity.toString() +
                                       "]",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 19,
-                              ),
+                              style: GoogleFonts.lato(
+                                  fontStyle: FontStyle.normal,
+                                  color: AppTheme.currentSale.accentColor,
+                                  fontSize: AppTheme.currentSale.textTheme
+                                      .bodyText1.fontSize),
                             ),
                           ),
                         );

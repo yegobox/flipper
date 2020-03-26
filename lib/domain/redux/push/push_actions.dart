@@ -1,9 +1,11 @@
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/in_app_notification.dart';
+import 'package:redux/src/store.dart';
 
 class UpdateUserTokenAction {
   final String token;
 
-  UpdateUserTokenAction(this.token);
+  UpdateUserTokenAction(this.token, Store<AppState> store);
 }
 
 class OnPushNotificationOpenAction {

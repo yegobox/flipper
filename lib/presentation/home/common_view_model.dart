@@ -131,69 +131,45 @@ abstract class CommonViewModel
     return store.state.sheet != null;
   }
 
-  static Hint _hasHint(Store<AppState> store) {
-    return store.state.hint;
-  }
-
   static CommonViewModel fromStore(Store<AppState> store) {
-    return CommonViewModel((vm) => vm
-      ..hasUser = _hasUser(store)
-      ..hasSheet = _hasSheet(store)
-      ..hasAction = _hasAction(store)
-      ..businesses = store.state.businesses
-      ..tab = store.state.tab
-      ..currentIncrement = store.state.currentIncrement
-      ..cartItem =
-          store.state.cartItem == null ? null : store.state.cartItem.toBuilder()
-      ..items = store.state.items.toBuilder()
-      ..currentUnit = store.state.currentUnit == null
-          ? null
-          : store.state.currentUnit.toBuilder()
-      ..currentActiveSaleProduct = store.state.currentActiveSaleProduct == null
-          ? null
-          : store.state.currentActiveSaleProduct.toBuilder()
-      ..units = store.state.units.toBuilder()
-      ..itemVariations = store.state.itemVariations.toBuilder()
-      ..currentColor = store.state.currentColor == null
-          ? null
-          : store.state.currentColor.toBuilder()
-      ..appAction =
-          store.state.action == null ? null : store.state.action.toBuilder()
-      ..currentBusiness = store.state.currentActiveBusiness == null
-          ? null
-          : store.state.currentActiveBusiness.toBuilder()
-      ..database = store.state.database
-      ..couch = store.state.couch
-      ..hint = _hasHint(store) == null ? null : store.state.hint.toBuilder()
-      ..carts = store.state.carts.toBuilder()
-      ..cartQuantities = store.state.cartQuantities
-      ..order = store.state.order == null ? null : store.state.order.toBuilder()
-      ..user = store.state.user == null ? null : store.state.user.toBuilder()
-      ..keypad =
-          store.state.keypad == null ? null : store.state.keypad.toBuilder()
-      ..category =
-          store.state.category == null ? null : store.state.category.toBuilder()
-      ..customUnit = store.state.customUnit == null
-          ? null
-          : store.state.customUnit.toBuilder()
-      ..tempCategoryId =
-          store.state.tempCategoryId == null ? null : store.state.tempCategoryId
-      ..customItem = store.state.customItem == null
-          ? null
-          : store.state.customItem.toBuilder()
-      ..couchDbClient = store.state.couchDbClient == null
-          ? null
-          : store.state.couchDbClient.toBuilder()
-      ..currentActiveSaleVariant = store.state.currentActiveSaleVariant == null
-          ? null
-          : store.state.currentActiveSaleVariant.toBuilder()
-      ..total = store.state.total == null ? null : store.state.total.toBuilder()
-      ..variant =
-          store.state.variant == null ? null : store.state.variant.toBuilder()
-      ..branches = store.state.branches
-      ..tmpItem =
-          store.state.tmpItem == null ? null : store.state.tmpItem.toBuilder()
-      ..branch =
-          store.state.branch == null ? null : store.state.branch.toBuilder());
+    return CommonViewModel(
+      (vm) => vm
+        ..hasUser = _hasUser(store)
+        ..hasSheet = _hasSheet(store)
+        ..hasAction = _hasAction(store)
+        ..businesses = store.state.businesses
+        ..tab = store.state.tab
+        ..currentIncrement = store.state.currentIncrement
+        ..cartItem = store.state.cartItem?.toBuilder()
+        ..items = store.state.items.toBuilder()
+        ..currentUnit = store.state.currentUnit?.toBuilder()
+        ..currentActiveSaleProduct =
+            store.state.currentActiveSaleProduct?.toBuilder()
+        ..units = store.state.units.toBuilder()
+        ..itemVariations = store.state.itemVariations.toBuilder()
+        ..currentColor = store.state.currentColor?.toBuilder()
+        ..appAction = store.state.action?.toBuilder()
+        ..currentBusiness = store.state.currentActiveBusiness?.toBuilder()
+        ..database = store.state.database
+        ..couch = store.state.couch
+        ..hint = store.state.hint?.toBuilder()
+        ..carts = store.state.carts.toBuilder()
+        ..cartQuantities = store.state.cartQuantities
+        ..order = store.state.order?.toBuilder()
+        ..user = store.state.user?.toBuilder()
+        ..keypad = store.state.keypad?.toBuilder()
+        ..category = store.state.category?.toBuilder()
+        ..customUnit = store.state.customUnit?.toBuilder()
+        ..tempCategoryId = store.state.tempCategoryId
+        ..customItem = store.state.customItem?.toBuilder()
+        ..couchDbClient = store.state.couchDbClient?.toBuilder()
+        ..currentActiveSaleVariant =
+            store.state.currentActiveSaleVariant?.toBuilder()
+        ..total = store.state.total?.toBuilder()
+        ..variant = store.state.variant?.toBuilder()
+        ..branches = store.state.branches
+        ..tmpItem = store.state.tmpItem?.toBuilder()
+        ..branch = store.state.branch?.toBuilder(),
+    );
   }
 }

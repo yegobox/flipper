@@ -3,8 +3,10 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SectionSelectUnit extends StatefulWidget {
   SectionSelectUnit({Key key}) : super(key: key);
@@ -41,7 +43,16 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
               },
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),
-                leading: Text(S.of(context).unityType),
+                leading: Text(
+                  S.of(context).unityType,
+                  style: GoogleFonts.lato(
+                    fontStyle: FontStyle.normal,
+                    color: AppTheme.addProduct.accentColor,
+                    fontSize: AppTheme.addProduct.textTheme.bodyText1
+                        .copyWith(fontSize: 12)
+                        .fontSize,
+                  ),
+                ),
                 trailing: Wrap(
                   children: <Widget>[
                     StreamBuilder(
@@ -49,7 +60,17 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                         builder: (context,
                             AsyncSnapshot<List<UnitTableData>> snapshot) {
                           if (snapshot.data == null) {
-                            return Text(S.of(context).selectUnit);
+                            return Text(
+                              S.of(context).selectUnit,
+                              style: GoogleFonts.lato(
+                                fontStyle: FontStyle.normal,
+                                color: AppTheme.addProduct.accentColor,
+                                fontSize: AppTheme
+                                    .addProduct.textTheme.bodyText1
+                                    .copyWith(fontSize: 12)
+                                    .fontSize,
+                              ),
+                            );
                           }
                           return snapshot.data == null
                               ? Text(S.of(context).selectUnit)

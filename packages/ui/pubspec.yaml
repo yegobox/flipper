@@ -1,6 +1,6 @@
 name: flipper_ui
 description: A new Flutter package project.
-version: 0.0.1
+version: 0.0.2
 
 homepage: "https://yegobox.com"
 
@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   apptheme: ^0.0.1
+  google_fonts: ^0.3.10
 dev_dependencies:
   flutter_test:
     sdk: flutter

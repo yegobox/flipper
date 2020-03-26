@@ -14,11 +14,13 @@ import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
 import 'package:flipper/home/widget/add_product/variation_list.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AddProductScreen extends StatefulWidget {
   AddProductScreen({Key key}) : super(key: key);
@@ -30,6 +32,8 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
+  bool _isEmpty = true;
+  bool _hasErrors = false;
 
   _onClose(BuildContext context) async {
     Router.navigator.pop(true);
@@ -73,6 +77,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = _hasErrors
+        ? AppTheme.inputDecorationErrorTheme
+        : (_isEmpty
+            ? AppTheme.inputDecorationEmptyTheme
+            : AppTheme.inputDecorationFilledTheme);
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
@@ -115,19 +124,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             : HexColor("#ee5253"),
                       ),
                     ),
-                    Text(S.of(context).newItem),
+                    Text(
+                      S.of(context).newItem,
+                      style: GoogleFonts.lato(
+                        fontStyle: FontStyle.normal,
+                        color: AppTheme.addProduct.accentColor,
+                        fontSize:
+                            AppTheme.addProduct.textTheme.bodyText1.fontSize,
+                      ),
+                    ),
                     //nameField
                     Center(
                       child: Container(
                         width: 300,
                         child: TextFormField(
-                          style: TextStyle(color: Colors.black),
+                          style: GoogleFonts.lato(
+                            fontStyle: FontStyle.normal,
+                            color: AppTheme.addProduct.accentColor,
+                            fontSize: AppTheme
+                                .addProduct.textTheme.bodyText1.fontSize,
+                          ),
                           validator: Validators.isValid,
                           onChanged: (name) async {
                             await updateNameField(name, vm);
                           },
                           decoration: InputDecoration(
-                              hintText: "Name", focusColor: Colors.black),
+                            hintText: "Name",
+                            focusColor: Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -141,7 +165,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     Center(
                       child: Container(
                         width: 300,
-                        child: Text(S.of(context).priceAndInventory),
+                        child: Text(
+                          S.of(context).priceAndInventory,
+                          style: GoogleFonts.lato(
+                            fontStyle: FontStyle.normal,
+                            color: AppTheme.addProduct.accentColor,
+                            fontSize: AppTheme.addProduct.textTheme.bodyText1
+                                .copyWith(fontSize: 12)
+                                .fontSize,
+                          ),
+                        ),
                       ),
                     ),
                     CenterDivider(

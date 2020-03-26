@@ -1,5 +1,6 @@
 import "package:built_value/built_value.dart";
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/push/push_actions.dart';
 import 'package:flipper/model/in_app_notification.dart';
 import "package:redux/redux.dart";
 
@@ -24,21 +25,13 @@ abstract class InAppNotificationViewModel
       _$InAppNotificationViewModel;
 
   static InAppNotificationViewModel fromStore(Store<AppState> store) {
-//    final previouslySelectedChannel = store.state.channelState.selectedChannel;
     return InAppNotificationViewModel((i) => i
-//      ..inAppNotification = store.state.inAppNotification?.toBuilder()
+      ..inAppNotification = store.state.inAppNotification?.toBuilder()
       ..onDismissed = () {
-//        store.dispatch(OnPushNotificationDismissedAction());
+        store.dispatch(OnPushNotificationDismissedAction());
       }
       ..onTap = () {
-//        store.dispatch(SelectGroup(store.state.inAppNotification.groupId));
-//        store.dispatch(SelectChannel(
-//          previousChannelId: previouslySelectedChannel,
-//          channel: store.state.inAppNotification.channel,
-//          groupId: store.state.inAppNotification.groupId,
-//          userId: store.state.user.uid,
-//        ));
-//        store.dispatch(OnPushNotificationDismissedAction());
+        store.dispatch(OnPushNotificationDismissedAction());
       });
   }
 }

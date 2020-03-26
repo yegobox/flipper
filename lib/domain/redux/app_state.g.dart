@@ -91,6 +91,10 @@ class _$AppState extends AppState {
   final Tax defaultTax;
   @override
   final CouchDbClient couchDbClient;
+  @override
+  final String fcmToken;
+  @override
+  final InAppNotification inAppNotification;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
       (new AppStateBuilder()..update(updates)).build();
@@ -137,7 +141,9 @@ class _$AppState extends AppState {
       this.tmpItem,
       this.total,
       this.defaultTax,
-      this.couchDbClient})
+      this.couchDbClient,
+      this.fcmToken,
+      this.inAppNotification})
       : super._() {
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
@@ -208,7 +214,9 @@ class _$AppState extends AppState {
         tmpItem == other.tmpItem &&
         total == other.total &&
         defaultTax == other.defaultTax &&
-        couchDbClient == other.couchDbClient;
+        couchDbClient == other.couchDbClient &&
+        fcmToken == other.fcmToken &&
+        inAppNotification == other.inAppNotification;
   }
 
   @override
@@ -231,26 +239,26 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode),
-                                                                                couch.hashCode),
-                                                                            tempCategoryId.hashCode),
-                                                                        currentUnit.hashCode),
-                                                                    currentColor.hashCode),
-                                                                variant.hashCode),
-                                                            itemVariations.hashCode),
-                                                        currentActiveSaleProduct.hashCode),
-                                                    currentActiveSaleVariant.hashCode),
-                                                cartItem.hashCode),
-                                            items.hashCode),
-                                        currentIncrement.hashCode),
-                                    carts.hashCode),
-                                cartQuantities.hashCode),
-                            order.hashCode),
-                        keypad.hashCode),
-                    tmpItem.hashCode),
-                total.hashCode),
-            defaultTax.hashCode),
-        couchDbClient.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode),
+                                                                                currentUnit.hashCode),
+                                                                            currentColor.hashCode),
+                                                                        variant.hashCode),
+                                                                    itemVariations.hashCode),
+                                                                currentActiveSaleProduct.hashCode),
+                                                            currentActiveSaleVariant.hashCode),
+                                                        cartItem.hashCode),
+                                                    items.hashCode),
+                                                currentIncrement.hashCode),
+                                            carts.hashCode),
+                                        cartQuantities.hashCode),
+                                    order.hashCode),
+                                keypad.hashCode),
+                            tmpItem.hashCode),
+                        total.hashCode),
+                    defaultTax.hashCode),
+                couchDbClient.hashCode),
+            fcmToken.hashCode),
+        inAppNotification.hashCode));
   }
 
   @override
@@ -297,7 +305,9 @@ class _$AppState extends AppState {
           ..add('tmpItem', tmpItem)
           ..add('total', total)
           ..add('defaultTax', defaultTax)
-          ..add('couchDbClient', couchDbClient))
+          ..add('couchDbClient', couchDbClient)
+          ..add('fcmToken', fcmToken)
+          ..add('inAppNotification', inAppNotification))
         .toString();
   }
 }
@@ -493,6 +503,16 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set couchDbClient(CouchDbClientBuilder couchDbClient) =>
       _$this._couchDbClient = couchDbClient;
 
+  String _fcmToken;
+  String get fcmToken => _$this._fcmToken;
+  set fcmToken(String fcmToken) => _$this._fcmToken = fcmToken;
+
+  InAppNotificationBuilder _inAppNotification;
+  InAppNotificationBuilder get inAppNotification =>
+      _$this._inAppNotification ??= new InAppNotificationBuilder();
+  set inAppNotification(InAppNotificationBuilder inAppNotification) =>
+      _$this._inAppNotification = inAppNotification;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -539,6 +559,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _total = _$v.total?.toBuilder();
       _defaultTax = _$v.defaultTax?.toBuilder();
       _couchDbClient = _$v.couchDbClient?.toBuilder();
+      _fcmToken = _$v.fcmToken;
+      _inAppNotification = _$v.inAppNotification?.toBuilder();
       _$v = null;
     }
     return this;
@@ -604,7 +626,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               tmpItem: _tmpItem?.build(),
               total: _total?.build(),
               defaultTax: _defaultTax?.build(),
-              couchDbClient: _couchDbClient?.build());
+              couchDbClient: _couchDbClient?.build(),
+              fcmToken: fcmToken,
+              inAppNotification: _inAppNotification?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -678,6 +702,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _defaultTax?.build();
         _$failedField = 'couchDbClient';
         _couchDbClient?.build();
+
+        _$failedField = 'inAppNotification';
+        _inAppNotification?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'AppState', _$failedField, e.toString());

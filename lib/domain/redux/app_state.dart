@@ -10,6 +10,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
+import 'package:flipper/model/in_app_notification.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/permission.dart';
@@ -143,6 +144,13 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   @nullable
   CouchDbClient get couchDbClient;
+
+  @nullable
+  String get fcmToken;
+
+  @nullable
+  InAppNotification get inAppNotification;
+
   AppState._();
   factory AppState([void Function(AppStateBuilder) updates]) = _$AppState;
 
@@ -158,7 +166,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   AppState clear() {
     // Add here anything else that also needs to be carried over.
-    return AppState.init().rebuild((s) => () => {});
-//    return AppState.init().rebuild((s) => s..fcmToken = fcmToken);
+    return AppState.init().rebuild((s) => s..fcmToken = fcmToken);
   }
 }
