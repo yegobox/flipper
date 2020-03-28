@@ -282,7 +282,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ProductTableData product = await store.state.database.productDao
             .getItemById(productId: vm.tmpItem.id);
         store.state.database.productDao
-            .updateProduct(product.copyWith(picture: ''));
+            .updateProduct(product.copyWith(picture: '', hasPicture: false));
+
+        ProductTableData updatedProduct = await store.state.database.productDao
+            .getItemById(productId: vm.tmpItem.id);
+
+        DataManager.dispatchProduct(store, updatedProduct);
       },
     );
   }
