@@ -87,7 +87,7 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                 ],
                 borderRadius: BorderRadius.all(Radius.circular(8)),
                 image: DecorationImage(
-                  //todo: replace with a notification designed icon.
+                  //TODO(richard): replace with a notification designed icon.
                   image: AssetImage("assets/graphics/visual_twist.png"),
                   fit: BoxFit.cover,
                 ),

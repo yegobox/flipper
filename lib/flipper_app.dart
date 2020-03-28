@@ -65,8 +65,6 @@ class _FlipperAppState extends State<FlipperApp> {
   @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
-    // fire all bootstrap method for the app so no nullity will arise.
-    // todo: uncomment this line when server is fixed:
     await store.state.couch.syncRemoteToLocal(store: store);
   }
 

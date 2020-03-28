@@ -142,8 +142,8 @@ class _SubscriptionState extends State<Subscription> {
   };
   CardType detectCCType(String cardNumber) {
     //Default card type is other
-    CardType cardType =
-        CardType.visa; //todo: change to other once we have icon for that.
+    CardType cardType = CardType
+        .visa; //TODO(richard): change to other once we have icon for that.
 
     if (cardNumber.isEmpty || cardNumber == null || cardNumber == '') {
       return cardType;
@@ -449,14 +449,14 @@ class _SubscriptionState extends State<Subscription> {
                                 fontSize: 16.0);
                             return;
                           }
-                          //todo: call authUrl for confirming subscription in a browser.
+                          //TODO(richard): call authUrl for confirming subscription in a browser.
                           Manager.dismissDialog();
                           final subscriptionResponse =
                               subscriptionResponseFromJson(response.body);
                           if (subscriptionResponse.message.status ==
                               'success') {
-                            //todo: update the couch with user payment info.
-                            //todo: log today payment date then build up the cron for the next payment enforcement.
+                            //TODO(richard): update the couch with user payment info.
+                            //TODO(richard): log today payment date then build up the cron for the next payment enforcement.
                             confirmFlipper(
                                 store, subscriptionResponse.message.data);
                           }

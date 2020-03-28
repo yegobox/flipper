@@ -13,8 +13,6 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/hint.dart';
-import 'package:flipper/model/order.dart';
-import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/data_manager.dart';
@@ -66,7 +64,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
 
-    loadClientDb(store);
     await isUserCurrentlyLoggedIn(store);
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
@@ -138,7 +135,6 @@ heartBeatSync({Store<AppState> store}) {
     BackgroundFetch.finish(taskId);
   });
 
-// Step 2:  Schedule a custom "oneshot" task "com.transistorsoft.customtask" to execute 5000ms from now.
   BackgroundFetch.scheduleTask(
     TaskConfig(
       taskId: "uploader",
@@ -162,10 +158,13 @@ _getCurrentLocation({Store<AppState> store}) async {
       .getPositionStream(locationOptions)
       .listen((Position location) async {
     //time to update data....
-//    store.state.database.businessDao.updateBusiness(businessTableData.copyWith(
-//        idLocal: businessTableData.idLocal,
-//        longitude: location.longitude,
-//        latitude: location.latitude));
+    if (businessTableData != null) {
+      store.state.database.businessDao.updateBusiness(
+          businessTableData.copyWith(
+              idLocal: businessTableData.idLocal,
+              longitude: location.longitude,
+              latitude: location.latitude));
+    }
   });
 }
 
@@ -205,20 +204,6 @@ Future<List<Branch>> getBranches(
   return branches;
 }
 
-List<Unit> buildUnitList(List<UnitTableData> unitsList) {
-  List<Unit> units = [];
-  unitsList.forEach((b) => {
-        units.add(Unit((u) => u
-          ..name = b.name
-          ..branchId =
-              1 //todo: put default now, discuss more if we still need referencing as we are now in noSQL
-          ..businessId = 1
-          ..focused = b.focused
-          ..id = b.id))
-      });
-  return units;
-}
-
 List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
   List<Category> categories = [];
   categoryList.forEach((c) => {
@@ -233,17 +218,6 @@ List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
         )
       });
   return categories;
-}
-
-Future createSystemCustomCategory(
-    GeneralRepository generalRepository, Store<AppState> store) async {
-//  if (store.state.branch == null) return;
-//  await generalRepository.insertCustomCategory(
-//    store,
-//    //ignore: missing_required_param
-//    CategoryTableData(
-//        branchId: store.state.branch.id, focused: false, name: 'custom'),
-//  );
 }
 
 void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
@@ -375,11 +349,6 @@ Future getBusinesses(
     store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.dashboard);
   }
-}
-
-void loadClientDb(Store<AppState> store) {
-  //todo: load db from sqlite.
-  store.dispatch(OnDbLoaded(name: 'lagrace'));
 }
 
 void Function(

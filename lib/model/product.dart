@@ -10,7 +10,7 @@ part 'product.g.dart';
 abstract class Product implements Built<Product, ProductBuilder> {
   String get name;
   String get id;
-  @nullable //todo: remove nullable a product should have atleast default description, should be added when creating a product.
+  @nullable
   String get description;
   @nullable
   String get picture;

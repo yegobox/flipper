@@ -28,7 +28,7 @@ class _VariationWidgetState extends State<VariationWidget> {
         onTap: () {
           Router.navigator.pushNamed(
             Router.editVariationScreen,
-            //todo: work on this.
+            //TODO(richard): work on this.
             // arguments: EditVariationScreenArguments(
             //   variationId: widget.variation.id,
             //     itemId: widget.variation.productId

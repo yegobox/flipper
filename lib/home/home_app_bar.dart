@@ -111,7 +111,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               overflow: Overflow.visible,
               children: <Widget>[
                 Image.asset(
-                  "assets/graphics/menu_icon.png", //TODO: change it to our icon later.
+                  "assets/graphics/menu_icon.png", //TODO(richard): change it to our icon later.
                   width: 25,
                   height: 25,
                 ),

@@ -89,7 +89,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
               Expanded(
                 child: Divider(
                   color: Colors
-                      .black, //todo: tweak this divider so it can be visible
+                      .black, //TODO(richard): tweak this divider so it can be visible
                 ),
               )
             ],

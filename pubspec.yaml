@@ -79,7 +79,7 @@ dependencies:
   flutter_image_compress: ^0.6.5+1
  
   #  pinch_zoom_image: ^0.2.5
-  # TODO: the flutter_platform_widgets: 0.20.3-beta.1 is the only version mathing beta channel please do not change
+  # TODO(richard): the flutter_platform_widgets: 0.20.3-beta.1 is the only version mathing beta channel please do not change
   flutter_platform_widgets: 0.20.3-beta.1
   flutter_linkify: ^3.1.0
   uuid: 2.0.4

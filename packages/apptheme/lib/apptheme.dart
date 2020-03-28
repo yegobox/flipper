@@ -45,7 +45,7 @@ class AppTheme {
               fontSize: 15,
               fontStyle: FontStyle.normal,
               fontWeight: FontWeight.bold,
-              fontFamily: fontFamily)), //todo: customize later
+              fontFamily: fontFamily)), //TODO(richard): customize later
       // canvasColor: HexColor("#130f1f"), //this affect the
     );
   }

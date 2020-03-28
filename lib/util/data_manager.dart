@@ -112,12 +112,12 @@ class DataManager extends CouchBase {
     for (var i = 0; i < stocks.length; i++) {
       VariationTableData variant = await store.state.database.variationDao
           .getVariationById(variantId: stocks[i].variantId);
-      //todo: update couch for a deletion.
+      //TODO(richard): update couch for a deletion.
       await store.state.database.variationDao.deleteVariation(variant);
 
       await store.state.database.stockDao.deleteStock(stocks[i]);
     }
-    //todo: update couch for a deletion.
+    //TODO(richard): update couch for a deletion.
     await store.state.database.productDao.deleteItem(product);
     store.state.couch.syncLocalToRemote(store: store);
   }

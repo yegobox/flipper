@@ -14,7 +14,7 @@ SELLING ITEM
 * Add to cart button should add item to current cartItem List
 * on completion of selling item from cart should create a new temp order.
 
-*Todo: what happen if I sell this custom product
+*TODO(richard): what happen if I sell this custom product
     *then on create of new product start by editing this custom product:
     *the problem: we can loose control of which has been sold for that purpose.
     *solution 1: we keep the name custom for the flow of the product creation

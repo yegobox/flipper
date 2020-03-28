@@ -244,12 +244,12 @@ class GeneralRepository {
         status: "draft",
         branchId: store.state.branch.id,
         id: Uuid().v1(),
-        currency: 'RWF', //todo: change dummy
-        deviceId: Uuid().v1(), //todo: change dummy
+        currency: 'RWF', //TODO(richard): change dummy
+        deviceId: Uuid().v1(), //TODO(richard): change dummy
         orderDate: DateTime.now(),
         isDraft: true,
-        orderType: 'sales', //todo: change dummy
-        reference: Uuid().v1(), //todo: change dummy.
+        orderType: 'sales', //TODO(richard): change dummy
+        reference: Uuid().v1(), //TODO(richard): change dummy.
         cashReceived: 0,
         customerChangeDue: 0,
         customerSaving: 0,

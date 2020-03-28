@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    //todo: handle swipe should change tab focus.
+    //TODO(richard): handle swipe should change tab focus.
     _nextPage(widget.vm.tab);
     return Scaffold(
       extendBody: true,

@@ -8,7 +8,6 @@ void main() {
   Crashlytics.instance.enableInDevMode = true;
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
   configureLogger();
-  //todo:this might cause the error please review this.
   WidgetsFlutterBinding.ensureInitialized();
   // SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top]);
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light

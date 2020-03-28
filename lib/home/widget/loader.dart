@@ -32,7 +32,6 @@ class _LoaderState extends State<Loader> with SingleTickerProviderStateMixin {
     radius = widget.radius;
     dotRadius = widget.dotRadius;
 
-
     controller = AnimationController(
         lowerBound: 0.0,
         upperBound: 1.0,
@@ -95,7 +94,7 @@ class _LoaderState extends State<Loader> with SingleTickerProviderStateMixin {
                     child: Dot(
                       radius: radius,
                       color: HexColor(
-                          "#955be9"), //TODO: make inner not rotate so our logo stay in position...
+                          "#955be9"), //TODO(richard): make inner not rotate so our logo stay in position...
                     ),
                   ),
                   Transform.translate(

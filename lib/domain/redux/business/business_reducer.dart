@@ -33,7 +33,7 @@ AppState _onNextActiveBusinessId(AppState state, NextActiveBussiness action) {
 }
 
 AppState _refreshBusinessList(AppState state, RefreshBusinessList action) {
-  //todo:FIXME: this is not updating as it should
+  //TODO(richard):FIXME: this is not updating as it should
   //FIXME:
   return state.rebuild((a) => a
 //    ..businesses.remove( state.previousActiveBusiness)

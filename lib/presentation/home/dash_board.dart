@@ -67,7 +67,7 @@ class _DashBoardState extends State<DashBoard> {
                 }
                 return we;
               }
-              //todo: implement if has token.
+              //TODO(richard): implement if has token.
             },
           ),
           StoreConnector<AppState, InAppNotificationViewModel>(

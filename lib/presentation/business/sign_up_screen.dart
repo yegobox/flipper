@@ -171,7 +171,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      //todo: make sure location permission is not denied or error is handled popper.
+      //TODO(richard): make sure location permission is not denied or error is handled popper.
       double lat = _position == null ? 0 : _position.latitude;
       double long = _position == null ? 0 : _position.longitude;
 

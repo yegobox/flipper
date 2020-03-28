@@ -18,7 +18,7 @@ class ControlSaleWidget extends StatelessWidget {
           child: TextField(
             textDirection: TextDirection.rtl,
             onChanged: (count) {
-              //todo: work on entering count from keyboard right now it is messing around with other inputs
+              //TODO(richard): work on entering count from keyboard right now it is messing around with other inputs
             },
             controller: TextEditingController(
               text: vm.currentIncrement == null

@@ -303,7 +303,7 @@
 //    });
 //  }
 //
-//  // TODO: Maybe unify with Create Channel module
+//  // TODO(richard): Maybe unify with Create Channel module
 //  void _showAlert(
 //    BuildContext context,
 //    String title,
@@ -404,7 +404,7 @@
 //    completer.future.then((val) {
 //      Navigator.of(context).popUntil(ModalRoute.withName(Routes.home));
 //    }).catchError((error) {
-//      // TODO: Log or display error
+//      // TODO(richard): Log or display error
 //    });
 //    final provider = StoreProvider.of<AppState>(context);
 //    provider.dispatch(EditChannelAction(

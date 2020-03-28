@@ -191,7 +191,7 @@ class AfterSplash extends StatelessWidget {
                   Container(
                     height: 10,
                   ),
-//todo: implement learn about flipper ASAP.
+//TODO(richard): implement learn about flipper ASAP.
 //                  Container(
 //                    color: Colors.white,
 //                    child: SizedBox(

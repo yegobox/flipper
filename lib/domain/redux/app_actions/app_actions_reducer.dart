@@ -41,7 +41,7 @@ AppState _onAppActions(AppState state, AppAction action) {
 }
 
 AppState _onResetAppAction(AppState state, ResetAppAction action) {
-  //todo: should update the
+  //TODO(richard): should update the
   switch (action.type) {
     case 'User':
       return state.rebuild((a) => a..userId = null);

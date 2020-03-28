@@ -125,7 +125,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                 initialValue: widget.itemName,
                                 style: TextStyle(
                                     color: Colors
-                                        .black), //todo: move this to app theme
+                                        .black), //TODO(richard): move this to app theme
                                 validator: Validators.isValid,
                                 onChanged: (name) async {
                                   if (name == '') {

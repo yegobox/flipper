@@ -50,7 +50,7 @@ class _AuthWebViewState extends State<AuthWebView> {
     _onUrlChanged =
         flutterWebviewPlugin.onUrlChanged.listen((String url) async {
       if (mounted) {
-        //TODO: change the url on production env.
+        //TODO(richard): change the url on production env.
         if (url.startsWith("https://test.flipper.rw/authorized?")) {
           RegExp accessToken = new RegExp("personal_token=(.*)");
           var token = accessToken.firstMatch(url)?.group(1);
@@ -74,7 +74,7 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           final store = StoreProvider.of<AppState>(context);
 
-          //store credentials: todo: load the bellow credential from api
+          //store credentials: TODO(richard): load the bellow credential from api
           final storage = new FlutterSecureStorage();
           await storage.write(key: "sync_url", value: "enexus.rw:4984");
           await storage.write(key: "sync_database", value: "lagrace");

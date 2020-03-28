@@ -179,13 +179,6 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
 
     DataManager.createTemporalOrder(generalRepository, store);
 
-    //todo: what happen if I sell this custom product
-    //then on create of new product start by editing this custom product:
-    //the problem: we can loose control of which has been sold for that purpose.
-    //solution 1: we keep the name custom for the flow of the product creation
-    //         2: we name a custom selling on POS to custom-product
-    //         3: we keep refering custom-product as an item sold without stock or actual flow,just sell of fly
-    //         4: ensure this custom-product is loaded when app start.
     DataManager.createTempProduct(store, 'custom-product');
   };
 }

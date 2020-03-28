@@ -225,7 +225,7 @@ class CouchBase extends Model with Fluttercouch {
         // Handle error during database initialization
       }
 
-      //todo: enable this sync replication when user has paid.
+      //TODO(richard): enable this sync replication when user has paid.
       // setReplicatorEndpoint("ws://${sync_url}/${sync_database}");
       // setReplicatorType("PUSH_AND_PULL");
 
@@ -233,7 +233,7 @@ class CouchBase extends Model with Fluttercouch {
       //     'b2dfb02940783371ea48881e9594ae0e0eb472d8');
 
       // if (channel != null) {
-      //   //todo: set channel on app login, also check if we do load data when no user logged in!
+      //   //TODO(richard): set channel on app login, also check if we do load data when no user logged in!
       //   setChannel(channel);
       // }
       // setReplicatorContinuous(true);
@@ -247,8 +247,8 @@ class CouchBase extends Model with Fluttercouch {
 
       //query.removeChangeListener(token);
       //https://blog.couchbase.com/document-conflicts-couchbase-mobile/
-      //todo: to be tested alongside the desktop app,because when I edit data manually in dashboard it create conflict.
-      //todo: experimenting with live Query.
+      //TODO(richard): to be tested alongside the desktop app,because when I edit data manually in dashboard it create conflict.
+      //TODO(richard): experimenting with live Query.
       // Query query = QueryBuilder.select([SelectResult.all()]).from("lagrace");
 
       //start of the query:
@@ -469,7 +469,7 @@ class CouchBase extends Model with Fluttercouch {
     } else {
       //the remote did not work create it then offline sync them later
 
-      //todo: remember to sync a custom category created local and tax to remote so other client can have them too.
+      //TODO(richard): remember to sync a custom category created local and tax to remote so other client can have them too.
       if (store.state.branch == null) return;
       CategoryTableData category =
           await store.state.database.categoryDao.getCategoryByNameBranchId(
@@ -798,11 +798,11 @@ class CouchBase extends Model with Fluttercouch {
         ..active = doc.getList(branch_)[i]['active']
         ..businessId = doc
             .getList(branch_)[i]['businessId']
-            .toString() //todo: remove toString() when desktop set it as string
+            .toString() //TODO(richard): remove toString() when desktop set it as string
         ..createdAt = doc.getList(branch_)[i]['createdAt']
         ..mapLatitude = doc
             .getList(branch_)[i]['mapLatitude']
-            .toString() //todo:remove casting
+            .toString() //TODO(richard):remove casting
         ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
         ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
         ..updatedAt = doc.getList(branch_)[i]['updatedAt']));
@@ -1029,7 +1029,7 @@ class CouchBase extends Model with Fluttercouch {
         'branchId': stocks[i].branchId,
         'productId': stocks[i].productId,
         'createdAt': DateTime.now().toIso8601String(),
-        //todo: this line of code
+        //TODO(richard): this line of code
         'updatedAt': DateTime.now().toIso8601String(),
       };
       mapTypeListStocks.add(map);
@@ -1129,7 +1129,7 @@ class CouchBase extends Model with Fluttercouch {
     List<OrderTableData> orders =
         await store.state.database.orderDao.getOrders();
 
-    //todo: work in progress syncing this.
+    //TODO(richard): work in progress syncing this.
     //get orderDetails
 
     //sync stock too.

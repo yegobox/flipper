@@ -28,7 +28,6 @@ import 'package:flipper/data/image_product.dart';
 import 'package:flipper/data/order_detail_table.dart';
 import 'package:flipper/data/order_table.dart';
 import 'package:flipper/data/product_table.dart';
-import 'package:flipper/data/price_table.dart';
 import 'package:flipper/data/products/branch_product_table.dart';
 import 'package:flipper/data/reason_table.dart';
 import 'package:flipper/data/stock_history_table.dart';
@@ -73,7 +72,6 @@ LazyDatabase _openConnection() {
   TabsTable,
   VariationTable,
   StockTable,
-  PriceTable,
   StockHistoryTable,
   OrderDetail,
   OrderTable,
@@ -97,7 +95,7 @@ LazyDatabase _openConnection() {
   StockDao,
   CartDao,
   OrderDao,
-  //todo: create orderDetailDao.
+  //TODO(richard): create orderDetailDao.
   ColorDao,
   ActionsDao,
   TaxDao,

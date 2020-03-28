@@ -1,5 +1,5 @@
-## [0.0.3] - TODO: Add release date.
-## [0.0.2] - TODO: Add release date.
-## [0.0.1] - TODO: Add release date.
+## [0.0.3] - TODO(richard): Add release date.
+## [0.0.2] - TODO(richard): Add release date.
+## [0.0.1] - TODO(richard): Add release date.
 
-* TODO: Describe initial release.
+* TODO(richard): Describe initial release.

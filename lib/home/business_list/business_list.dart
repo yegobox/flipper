@@ -63,9 +63,9 @@ class _BusinessListState extends State<BusinessList> {
             _Style.defaultPadding,
             _GroupSettingsButton(
                 Image.asset("assets/graphics/drawer/create_topic.png"), () {
-              //todo: fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
+              //TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
               if (widget.vm.businesses.length >= 3) {
-                //todo:show a toast here that we can not create additional business...
+                //TODO(richard):show a toast here that we can not create additional business...
                 return;
               }
               Router.navigator.pushNamed(Router.createBusiness);
@@ -85,7 +85,7 @@ class _BusinessListState extends State<BusinessList> {
             Image.asset("assets/graphics/drawer/account.png"),
             () {
               // _openUserAccount(context);
-              //todo: implement logout.
+              //TODO(richard): implement logout.
             },
           ),
           _Style.defaultPadding,
@@ -187,8 +187,8 @@ class _GroupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _circleColor =
-        HexColor("#f5a623"); //todo: make this color comes from setting in v.2
+    final _circleColor = HexColor(
+        "#f5a623"); //TODO(richard): make this color comes from setting in v.2
     final _groupText = business.name.substring(0, 1).toUpperCase();
 
     if (business.active) {
