@@ -10,6 +10,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
+import 'package:flipper/model/image.dart';
 import 'package:flipper/model/in_app_notification.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
@@ -147,6 +148,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   @nullable
   String get fcmToken;
+
+  @nullable
+  ImageP get image;
 
   @nullable
   InAppNotification get inAppNotification;

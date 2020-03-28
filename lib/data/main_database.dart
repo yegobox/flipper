@@ -16,6 +16,7 @@ import 'package:flipper/data/dao/color_dao.dart';
 import 'package:flipper/data/dao/history_dao.dart';
 import 'package:flipper/data/dao/product_dao.dart';
 import 'package:flipper/data/dao/order_dao.dart';
+import 'package:flipper/data/dao/product_image_dao.dart';
 import 'package:flipper/data/dao/products/branch_product_dao.dart';
 import 'package:flipper/data/dao/reason_dao.dart';
 import 'package:flipper/data/dao/stock_dao.dart';
@@ -23,6 +24,7 @@ import 'package:flipper/data/dao/tab_dao.dart';
 import 'package:flipper/data/dao/tax_dao.dart';
 import 'package:flipper/data/dao/unit_dao.dart';
 import 'package:flipper/data/dao/variation_dao.dart';
+import 'package:flipper/data/image_product.dart';
 import 'package:flipper/data/order_detail_table.dart';
 import 'package:flipper/data/order_table.dart';
 import 'package:flipper/data/product_table.dart';
@@ -79,7 +81,8 @@ LazyDatabase _openConnection() {
   ActionsTable,
   ReasonTable,
   TaxTable,
-  BranchProductTable
+  BranchProductTable,
+  ProductImageTable,
 ], daos: [
   UserDao,
   TokenDao,
@@ -99,7 +102,8 @@ LazyDatabase _openConnection() {
   ActionsDao,
   TaxDao,
   ReasonDao,
-  BranchProductDao
+  BranchProductDao,
+  ProductImageDao
 ])
 class Database extends _$Database {
   Database() : super(_openConnection());
@@ -112,12 +116,12 @@ class Database extends _$Database {
         customStatement('PRAGMA foreign_keys = ON');
       },
       onUpgrade: (Migrator migrator, from, to) async {
-//        if (from == 2) {
-//          await migrator.createTable(actionsTable);
-//        }
+        // if (from == 1) {
+        // await migrator.createTable(actionsTable);
+        // }
       },
       onCreate: (Migrator m) {
-        return m.createAllTables();
+        return m.createAll();
       },
     );
   }

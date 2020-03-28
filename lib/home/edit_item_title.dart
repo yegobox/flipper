@@ -2,17 +2,22 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/flipper_color.dart';
+import 'package:flipper/model/image.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class EditItemTitle extends StatefulWidget {
-  EditItemTitle({Key key}) : super(key: key);
+  EditItemTitle({Key key, this.productId}) : super(key: key);
+  final String productId;
 
   @override
   _EditItemTitleState createState() => _EditItemTitleState();
@@ -59,24 +64,54 @@ class _EditItemTitleState extends State<EditItemTitle> {
                             child: Theme(
                               data: Theme.of(context)
                                   .copyWith(splashColor: Colors.transparent),
-                              child: TextField(
-                                maxLines: 4,
-                                autofocus: false,
-                                style: TextStyle(
-                                    fontSize: 22.0, color: Color(0xFFbdc6cf)),
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: HexColor(vm.currentColor == null
-                                      ? "#0984e3"
-                                      : vm.currentColor.hexCode),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
-                                  ),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
-                                  ),
-                                ),
-                              ),
+                              child: vm.image == null
+                                  ? TextField(
+                                      maxLines: 4,
+                                      autofocus: false,
+                                      style: TextStyle(
+                                          fontSize: 22.0,
+                                          color: Color(0xFFbdc6cf)),
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: HexColor(
+                                            vm.currentColor == null
+                                                ? "#0984e3"
+                                                : vm.currentColor.hexCode),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide:
+                                              BorderSide(color: Colors.white),
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide:
+                                              BorderSide(color: Colors.white),
+                                        ),
+                                      ),
+                                    )
+                                  : vm.image.isLocal
+                                      ? Image.file(
+                                          File(vm.image.path),
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.fitWidth,
+                                        )
+                                      : Image.network(
+                                          vm.image.path,
+                                          frameBuilder: (BuildContext context,
+                                              Widget child,
+                                              int frame,
+                                              bool wasSynchronouslyLoaded) {
+                                            if (wasSynchronouslyLoaded) {
+                                              return child;
+                                            }
+                                            return AnimatedOpacity(
+                                              child: child,
+                                              opacity: frame == null ? 0 : 1,
+                                              duration:
+                                                  const Duration(seconds: 1),
+                                              curve: Curves.easeOut,
+                                            );
+                                          },
+                                        ),
                             ),
                           ),
                           Text("New Item")
@@ -127,16 +162,11 @@ class _EditItemTitleState extends State<EditItemTitle> {
                         child: OutlineButton(
                           color: HexColor("#ecf0f1"),
                           child: Text("Choose Photo"),
-                          onPressed: () {
-                            Fluttertoast.showToast(
-                              msg: S.of(context).commingSoon,
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              timeInSecForIos: 1,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                              fontSize: 16.0,
-                            );
+                          onPressed: () async {
+                            File image = await ImagePicker.pickImage(
+                                source: ImageSource.gallery);
+
+                            await handleImage(image, context);
                           },
                         ),
                       ),
@@ -149,18 +179,11 @@ class _EditItemTitleState extends State<EditItemTitle> {
                         child: OutlineButton(
                           color: HexColor("#ecf0f1"),
                           child: Text("Take Photo"),
-                          onPressed: () {
-                            Fluttertoast.showToast(
-                              msg: S.of(context).commingSoon,
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              timeInSecForIos: 1,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                              fontSize: 16.0,
-                            );
-                            // Router.navigator
-                            //     .pushNamed(Router.takePictureScreen);
+                          onPressed: () async {
+                            File image = await ImagePicker.pickImage(
+                                source: ImageSource.camera);
+
+                            await handleImage(image, context);
                           },
                         ),
                       )
@@ -173,6 +196,55 @@ class _EditItemTitleState extends State<EditItemTitle> {
         );
       },
     );
+  }
+
+  Future handleImage(File image, BuildContext context) async {
+    if (image != null) {
+      final store = StoreProvider.of<AppState>(context);
+
+      String targetPath = (await getTemporaryDirectory()).path +
+          "/" +
+          DateTime.now().toIso8601String() +
+          ".jpg";
+
+      File compresedFile = await compress(image, targetPath);
+
+      String fileName = compresedFile.path.split('/').removeLast();
+      String storagePath = compresedFile.path.replaceAll('/' + fileName, '');
+
+      ProductTableData product = await store.state.database.productDao
+          .getItemById(productId: widget.productId);
+
+      store.state.database.productDao.updateProduct(product.copyWith(
+          picture: compresedFile.path, isImageLocal: true, hasPicture: true));
+
+      ProductTableData productUpdated = await store.state.database.productDao
+          .getItemById(productId: widget.productId);
+
+      DataManager.dispatchProduct(store, productUpdated);
+
+      store.dispatch(ImagePreview(
+          image: ImageP((img) => img
+            ..path = compresedFile.path
+            ..isLocal = true)));
+
+      store.state.database.productImageDao.insertImageProduct(
+        //ignore: missing_required_param
+        ProductImageTableData(
+          localPath: compresedFile.path,
+          productId: widget.productId,
+        ),
+      );
+
+      bool internetAvailable = await DataManager.isInternetAvailable();
+      if (internetAvailable) {
+        DataManager.startUploading(
+            store: store,
+            fileName: fileName,
+            productId: widget.productId,
+            storagePath: storagePath);
+      }
+    }
   }
 
   List<Widget> buildStack(
@@ -244,5 +316,18 @@ class _EditItemTitleState extends State<EditItemTitle> {
     }
 
     return stacks;
+  }
+
+  Future<File> compress(File file, String targetPath) async {
+    var result = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      minHeight: 80,
+      minWidth: 80,
+      quality: 95,
+      rotate: 0,
+    );
+
+    return result;
   }
 }

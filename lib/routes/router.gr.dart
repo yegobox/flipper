@@ -16,7 +16,6 @@ import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/business/create_business_screen.dart';
 import 'package:flipper/home/add_product_screen.dart';
 import 'package:flipper/home/edit_item_title.dart';
-import 'package:flipper/home/take_picture_screen.dart';
 import 'package:flipper/home/add_variation_screen.dart';
 import 'package:flipper/home/add_unit_type.dart';
 import 'package:flipper/home/add_category_screen.dart';
@@ -39,6 +38,7 @@ import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/subscription.dart';
+import 'package:flipper/home/camera/camera_preview.dart';
 
 class Router {
   static const splashScreen = '/';
@@ -50,7 +50,6 @@ class Router {
   static const createBusiness = '/create-business';
   static const addItemScreen = '/add-item-screen';
   static const editItemTitle = '/edit-item-title';
-  static const takePictureScreen = '/take-picture-screen';
   static const addVariationScreen = '/add-variation-screen';
   static const addUnitType = '/add-unit-type';
   static const addCategoryScreen = '/add-category-screen';
@@ -72,6 +71,7 @@ class Router {
   static const compleSaleScreen = '/comple-sale-screen';
   static const tenderScreen = '/tender-screen';
   static const subscription = '/subscription';
+  static const cameraPreview = '/camera-preview';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -154,18 +154,14 @@ class Router {
           fullscreenDialog: true,
         );
       case Router.editItemTitle:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
+        if (hasInvalidArgs<EditItemTitleArguments>(args)) {
+          return misTypedArgsRoute<EditItemTitleArguments>(args);
         }
-        final typedArgs = args as Key;
+        final typedArgs =
+            args as EditItemTitleArguments ?? EditItemTitleArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => EditItemTitle(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Router.takePictureScreen:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => TakePictureScreen(),
+          builder: (_) =>
+              EditItemTitle(key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -405,6 +401,18 @@ class Router {
               authType: typedArgs.authType),
           settings: settings,
         );
+      case Router.cameraPreview:
+        if (hasInvalidArgs<CameraPreviewArguments>(args)) {
+          return misTypedArgsRoute<CameraPreviewArguments>(args);
+        }
+        final typedArgs =
+            args as CameraPreviewArguments ?? CameraPreviewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) =>
+              CameraPreview(key: typedArgs.key, image: typedArgs.image),
+          settings: settings,
+          fullscreenDialog: true,
+        );
       default:
         return unknownRoutePage(settings.name);
     }
@@ -424,6 +432,13 @@ class SignUpScreenArguments {
   final String avatar;
   SignUpScreenArguments(
       {this.key, this.token, this.email, this.name, this.avatar});
+}
+
+//EditItemTitle arguments holder class
+class EditItemTitleArguments {
+  final Key key;
+  final String productId;
+  EditItemTitleArguments({this.key, this.productId});
 }
 
 //AddVariationScreen arguments holder class
@@ -547,4 +562,11 @@ class SubscriptionArguments {
       this.email,
       this.token,
       this.authType});
+}
+
+//CameraPreview arguments holder class
+class CameraPreviewArguments {
+  final Key key;
+  final dynamic image;
+  CameraPreviewArguments({this.key, this.image});
 }

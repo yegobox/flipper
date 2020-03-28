@@ -8,7 +8,9 @@ class ProductTable extends Table {
 
   TextColumn get picture => text()();
   BoolColumn get active => boolean()();
+
   BoolColumn get hasPicture => boolean()();
+  BoolColumn get isImageLocal => boolean().withDefault(Constant(true))();
   BoolColumn get isDraft => boolean()();
   BoolColumn get isCurrentUpdate => boolean()();
   TextColumn get description => text().nullable()();

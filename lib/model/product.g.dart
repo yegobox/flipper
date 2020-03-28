@@ -22,6 +22,8 @@ class _$Product extends Product {
   @override
   final bool hasPicture;
   @override
+  final bool isImageLocal;
+  @override
   final bool isDraft;
   @override
   final String color;
@@ -53,6 +55,7 @@ class _$Product extends Product {
       this.taxId,
       this.active,
       this.hasPicture,
+      this.isImageLocal,
       this.isDraft,
       this.color,
       this.isCurrentUpdate,
@@ -90,6 +93,7 @@ class _$Product extends Product {
         taxId == other.taxId &&
         active == other.active &&
         hasPicture == other.hasPicture &&
+        isImageLocal == other.isImageLocal &&
         isDraft == other.isDraft &&
         color == other.color &&
         isCurrentUpdate == other.isCurrentUpdate &&
@@ -121,17 +125,20 @@ class _$Product extends Product {
                                                             $jc(
                                                                 $jc(
                                                                     $jc(
-                                                                        0,
-                                                                        name
+                                                                        $jc(
+                                                                            0,
+                                                                            name
+                                                                                .hashCode),
+                                                                        id
                                                                             .hashCode),
-                                                                    id
+                                                                    description
                                                                         .hashCode),
-                                                                description
+                                                                picture
                                                                     .hashCode),
-                                                            picture.hashCode),
-                                                        taxId.hashCode),
-                                                    active.hashCode),
-                                                hasPicture.hashCode),
+                                                            taxId.hashCode),
+                                                        active.hashCode),
+                                                    hasPicture.hashCode),
+                                                isImageLocal.hashCode),
                                             isDraft.hashCode),
                                         color.hashCode),
                                     isCurrentUpdate.hashCode),
@@ -154,6 +161,7 @@ class _$Product extends Product {
           ..add('taxId', taxId)
           ..add('active', active)
           ..add('hasPicture', hasPicture)
+          ..add('isImageLocal', isImageLocal)
           ..add('isDraft', isDraft)
           ..add('color', color)
           ..add('isCurrentUpdate', isCurrentUpdate)
@@ -198,6 +206,10 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   bool _hasPicture;
   bool get hasPicture => _$this._hasPicture;
   set hasPicture(bool hasPicture) => _$this._hasPicture = hasPicture;
+
+  bool _isImageLocal;
+  bool get isImageLocal => _$this._isImageLocal;
+  set isImageLocal(bool isImageLocal) => _$this._isImageLocal = isImageLocal;
 
   bool _isDraft;
   bool get isDraft => _$this._isDraft;
@@ -251,6 +263,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
       _taxId = _$v.taxId;
       _active = _$v.active;
       _hasPicture = _$v.hasPicture;
+      _isImageLocal = _$v.isImageLocal;
       _isDraft = _$v.isDraft;
       _color = _$v.color;
       _isCurrentUpdate = _$v.isCurrentUpdate;
@@ -290,6 +303,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
             taxId: taxId,
             active: active,
             hasPicture: hasPicture,
+            isImageLocal: isImageLocal,
             isDraft: isDraft,
             color: color,
             isCurrentUpdate: isCurrentUpdate,

@@ -117,7 +117,7 @@ class _FlipperAppState extends State<FlipperApp> {
       assert(token != null);
       if (token != null) {
         Logger.d("Push Messaging token: $token");
-        print(token);
+
         store.dispatch(UpdateUserTokenAction(token, store));
       }
     });

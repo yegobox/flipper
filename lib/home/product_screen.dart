@@ -75,13 +75,11 @@ class _ProductScreenState extends State<ProductScreen> {
                       return Text("");
                     }
                     if (_filter_key != null && _filter_key != '') {
-                      print(_filter_key);
                       productfilter = products.data
                           .where((element) => element.name
                               .toUpperCase()
                               .contains(_filter_key.toUpperCase()))
                           .toList();
-                      print(productfilter);
                     } else {
                       productfilter = products.data;
                     }

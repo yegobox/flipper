@@ -4,6 +4,7 @@ import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/flipper_color.dart';
+import 'package:flipper/model/image.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/tax.dart';
@@ -245,6 +246,13 @@ class CategoryAction {
   final Category category;
 
   CategoryAction({this.category});
+}
+
+@immutable
+class ImagePreview {
+  final ImageP image;
+
+  ImagePreview({this.image});
 }
 
 @immutable

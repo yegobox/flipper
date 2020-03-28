@@ -5,6 +5,7 @@ import 'package:flipper/home/add_note_screen.dart';
 import 'package:flipper/home/add_product_screen.dart';
 import 'package:flipper/home/add_unit_type.dart';
 import 'package:flipper/home/add_variation_screen.dart';
+import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper/home/cart/cart_details_screen.dart';
 import 'package:flipper/home/category/create_category_input_screen.dart';
 import 'package:flipper/home/edit_item_title.dart';
@@ -17,7 +18,7 @@ import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/selling/change_quantity_selling.dart';
 import 'package:flipper/home/setting_up_application_screen.dart';
-import 'package:flipper/home/take_picture_screen.dart';
+
 import 'package:flipper/home/transactions/transaction_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
@@ -61,9 +62,6 @@ class $Router {
 
   @MaterialRoute(fullscreenDialog: true)
   EditItemTitle editItemTitle;
-
-  @MaterialRoute(fullscreenDialog: true)
-  TakePictureScreen takePictureScreen;
 
   @MaterialRoute(fullscreenDialog: true)
   AddVariationScreen addVariationScreen;
@@ -119,4 +117,7 @@ class $Router {
   TenderScreen tenderScreen;
 
   Subscription subscription;
+
+  @MaterialRoute(fullscreenDialog: true)
+  CameraPreview cameraPreview;
 }

@@ -22,7 +22,9 @@ dependencies:
   url_launcher: ^5.4.2
   flutter_svg: ^0.17.2
   #for sending emails, sync etc...
-  cron: ^0.2.2
+  # cron: ^0.2.2  //I replaced it with background_fetch I think it is better.
+  background_fetch: ^0.5.5
+  flutter_uploader: ^1.2.0
   fluttercouch:
     git:
       url: https://github.com/yegobox/fluttercouch.git
@@ -58,8 +60,8 @@ dependencies:
   flutter_redux: ^0.6.0
   flutter_masked_text: ^0.8.0
   built_value: ^7.0.9
-  image_picker: ^0.6.3+4
-  transparent_image: ^1.0.0
+  image_picker: ^0.6.4
+  # transparent_image: ^1.0.0
   firebase_analytics: ^5.0.11
   built_collection: ^4.3.2
   flutter_date_pickers: ^0.0.6
@@ -69,10 +71,13 @@ dependencies:
   #    git:
   #      url: git://github.com/janoodleFTW/media_picker_builder.git
   #      ref: master
+  # abandoned this flutter_native_image now use flutter_image_compress
   #  flutter_native_image:
   #    git:
   #      url: https://github.com/btastic/flutter_native_image.git
   #      ref: fix/ios_compression
+  flutter_image_compress: ^0.6.5+1
+ 
   #  pinch_zoom_image: ^0.2.5
   # TODO: the flutter_platform_widgets: 0.20.3-beta.1 is the only version mathing beta channel please do not change
   flutter_platform_widgets: 0.20.3-beta.1

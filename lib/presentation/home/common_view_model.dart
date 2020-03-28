@@ -11,6 +11,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
+import 'package:flipper/model/image.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
@@ -115,6 +116,9 @@ abstract class CommonViewModel
   @nullable
   Total get total;
 
+  @nullable
+  ImageP get image;
+
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
@@ -169,6 +173,7 @@ abstract class CommonViewModel
         ..variant = store.state.variant?.toBuilder()
         ..branches = store.state.branches
         ..tmpItem = store.state.tmpItem?.toBuilder()
+        ..image = store.state.image?.toBuilder()
         ..branch = store.state.branch?.toBuilder(),
     );
   }

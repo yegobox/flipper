@@ -20,6 +20,10 @@ abstract class Product implements Built<Product, ProductBuilder> {
   bool get active;
   @nullable
   bool get hasPicture;
+
+  @nullable
+  bool get isImageLocal;
+
   @nullable
   bool get isDraft;
   @nullable

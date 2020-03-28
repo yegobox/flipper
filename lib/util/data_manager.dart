@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
@@ -9,6 +10,8 @@ import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
+import 'package:flipper/util/upload_response.dart';
+import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,6 +22,57 @@ class DataManager extends CouchBase {
   static String description;
   static String sku;
   static String name;
+
+  static Future startUploading(
+      {String storagePath,
+      String fileName,
+      Store<AppState> store,
+      String productId}) async {
+    final uploader = FlutterUploader();
+
+    await uploader.enqueue(
+        url: "https://test.flipper.rw/api/upload",
+        files: [
+          FileItem(
+              filename: fileName, savedDir: storagePath, fieldname: "image")
+        ], // required: list of files that you want to upload
+        method: UploadMethod.POST,
+        headers: {"Authorization": "Bearer  " + store.state.user.token},
+        data: {"product_id": store.state.user.token},
+        showNotification:
+            true, // send local notification (android only) for upload status
+        tag: "Backup products images..."); // unique tag for upload task
+
+    uploader.progress.listen((progress) {
+      //... code to handle progress
+      print("uploadProgress:" + progress.toString());
+    });
+    uploader.result.listen((result) async {
+      final uploadResponse = uploadResponseFromJson(result.response);
+      ProductTableData product = await store.state.database.productDao
+          .getItemById(productId: productId);
+
+      await store.state.database.productDao.updateProduct(
+          product.copyWith(picture: uploadResponse.url, isImageLocal: false));
+
+      List<ProductImageTableData> p = await store.state.database.productImageDao
+          .getByid(productId: productId);
+      for (var i = 0; i < p.length; i++) {
+        store.state.database.productImageDao.deleteImageProduct(p[i]);
+      }
+      return dispatchProduct(store, product);
+    }, onError: (ex, stacktrace) {
+      print("error" + stacktrace.toString());
+    });
+  }
+
+  static Future<bool> isInternetAvailable() async {
+    final result = await InternetAddress.lookup('google.com');
+    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
 
   static Future updateVariation({
     VariationTableData variation,
@@ -227,6 +281,10 @@ class DataManager extends CouchBase {
       ),
     );
 
+    return dispatchProduct(store, product);
+  }
+
+  static dispatchProduct(Store<AppState> store, ProductTableData product) {
     return store.dispatch(
       TempProduct(
         product: Product(
@@ -235,6 +293,7 @@ class DataManager extends CouchBase {
             ..isDraft = product.isDraft
             ..taxId = product.taxId
             ..description = product.description
+            ..isImageLocal = product.isImageLocal
             ..picture = product.picture
             ..hasPicture = product.hasPicture
             ..active = product.active

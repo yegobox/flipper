@@ -21,9 +21,7 @@ class UserRepository {
   Future<void> updateUserToken(String token, Store<AppState> store) async {
     //get current user
     UserTableData user_exist = await store.state.database.userDao.getUser();
-    if (user_exist == null) {
-      //todo: update flipper so it can send the notification accordingly.
-      print('token:' + token);
+    if (user_exist != null) {
       store.state.database.userDao
           .updateUser(user_exist.copyWith(token: token));
     }

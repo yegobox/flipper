@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
@@ -112,18 +114,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     SizedBox(
                       height: 10,
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Router.navigator.pushNamed(Router.editItemTitle);
-                      },
-                      child: Container(
-                        height: 80,
-                        width: 80,
-                        color: vm.currentColor != null
-                            ? HexColor(vm.currentColor.hexCode)
-                            : HexColor("#ee5253"),
-                      ),
-                    ),
+                    buildImageHolder(vm, context),
                     Text(
                       S.of(context).newItem,
                       style: GoogleFonts.lato(
@@ -205,6 +196,93 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  GestureDetector buildImageHolder(CommonViewModel vm, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Router.navigator.pushNamed(Router.editItemTitle,
+            arguments: EditItemTitleArguments(productId: vm.tmpItem.id));
+      },
+      child: !vm.tmpItem.hasPicture
+          ? Container(
+              height: 80,
+              width: 80,
+              color: vm.currentColor != null
+                  ? HexColor(vm.currentColor.hexCode)
+                  : HexColor("#ee5253"),
+            )
+          : vm.tmpItem.isImageLocal
+              ? Stack(
+                  children: <Widget>[
+                    Container(
+                      width: 80,
+                      height: 80,
+                      child: Image.file(
+                        File(vm.tmpItem.picture),
+                        frameBuilder: (BuildContext context, Widget child,
+                            int frame, bool wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded) {
+                            return child;
+                          }
+                          return AnimatedOpacity(
+                            child: child,
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.easeOut,
+                          );
+                        },
+                        height: 80,
+                        width: 80,
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                    buildCloseButton(context, vm)
+                  ],
+                )
+              : Stack(
+                  children: <Widget>[
+                    Container(
+                      width: 80,
+                      height: 80,
+                      child: Image.network(
+                        vm.tmpItem.picture,
+                        frameBuilder: (BuildContext context, Widget child,
+                            int frame, bool wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded) {
+                            return child;
+                          }
+                          return AnimatedOpacity(
+                            child: child,
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.easeOut,
+                          );
+                        },
+                        height: 80,
+                        width: 80,
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                    buildCloseButton(context, vm)
+                  ],
+                ),
+    );
+  }
+
+  IconButton buildCloseButton(BuildContext context, CommonViewModel vm) {
+    return IconButton(
+      alignment: Alignment.topLeft,
+      icon: Icon(Icons.close),
+      color: Colors.white,
+      onPressed: () async {
+        final store = StoreProvider.of<AppState>(context);
+        ProductTableData product = await store.state.database.productDao
+            .getItemById(productId: vm.tmpItem.id);
+        store.state.database.productDao
+            .updateProduct(product.copyWith(picture: ''));
       },
     );
   }

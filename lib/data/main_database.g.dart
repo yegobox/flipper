@@ -2189,6 +2189,7 @@ class ProductTableData extends DataClass
   final String picture;
   final bool active;
   final bool hasPicture;
+  final bool isImageLocal;
   final bool isDraft;
   final bool isCurrentUpdate;
   final String description;
@@ -2207,6 +2208,7 @@ class ProductTableData extends DataClass
       @required this.picture,
       @required this.active,
       @required this.hasPicture,
+      @required this.isImageLocal,
       @required this.isDraft,
       @required this.isCurrentUpdate,
       this.description,
@@ -2237,6 +2239,8 @@ class ProductTableData extends DataClass
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}active']),
       hasPicture: boolType
           .mapFromDatabaseResponse(data['${effectivePrefix}has_picture']),
+      isImageLocal: boolType
+          .mapFromDatabaseResponse(data['${effectivePrefix}is_image_local']),
       isDraft:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_draft']),
       isCurrentUpdate: boolType
@@ -2271,6 +2275,7 @@ class ProductTableData extends DataClass
       picture: serializer.fromJson<String>(json['picture']),
       active: serializer.fromJson<bool>(json['active']),
       hasPicture: serializer.fromJson<bool>(json['hasPicture']),
+      isImageLocal: serializer.fromJson<bool>(json['isImageLocal']),
       isDraft: serializer.fromJson<bool>(json['isDraft']),
       isCurrentUpdate: serializer.fromJson<bool>(json['isCurrentUpdate']),
       description: serializer.fromJson<String>(json['description']),
@@ -2294,6 +2299,7 @@ class ProductTableData extends DataClass
       'picture': serializer.toJson<String>(picture),
       'active': serializer.toJson<bool>(active),
       'hasPicture': serializer.toJson<bool>(hasPicture),
+      'isImageLocal': serializer.toJson<bool>(isImageLocal),
       'isDraft': serializer.toJson<bool>(isDraft),
       'isCurrentUpdate': serializer.toJson<bool>(isCurrentUpdate),
       'description': serializer.toJson<String>(description),
@@ -2324,6 +2330,9 @@ class ProductTableData extends DataClass
       hasPicture: hasPicture == null && nullToAbsent
           ? const Value.absent()
           : Value(hasPicture),
+      isImageLocal: isImageLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isImageLocal),
       isDraft: isDraft == null && nullToAbsent
           ? const Value.absent()
           : Value(isDraft),
@@ -2365,6 +2374,7 @@ class ProductTableData extends DataClass
           String picture,
           bool active,
           bool hasPicture,
+          bool isImageLocal,
           bool isDraft,
           bool isCurrentUpdate,
           String description,
@@ -2383,6 +2393,7 @@ class ProductTableData extends DataClass
         picture: picture ?? this.picture,
         active: active ?? this.active,
         hasPicture: hasPicture ?? this.hasPicture,
+        isImageLocal: isImageLocal ?? this.isImageLocal,
         isDraft: isDraft ?? this.isDraft,
         isCurrentUpdate: isCurrentUpdate ?? this.isCurrentUpdate,
         description: description ?? this.description,
@@ -2404,6 +2415,7 @@ class ProductTableData extends DataClass
           ..write('picture: $picture, ')
           ..write('active: $active, ')
           ..write('hasPicture: $hasPicture, ')
+          ..write('isImageLocal: $isImageLocal, ')
           ..write('isDraft: $isDraft, ')
           ..write('isCurrentUpdate: $isCurrentUpdate, ')
           ..write('description: $description, ')
@@ -2433,29 +2445,31 @@ class ProductTableData extends DataClass
                       $mrjc(
                           hasPicture.hashCode,
                           $mrjc(
-                              isDraft.hashCode,
+                              isImageLocal.hashCode,
                               $mrjc(
-                                  isCurrentUpdate.hashCode,
+                                  isDraft.hashCode,
                                   $mrjc(
-                                      description.hashCode,
+                                      isCurrentUpdate.hashCode,
                                       $mrjc(
-                                          color.hashCode,
+                                          description.hashCode,
                                           $mrjc(
-                                              businessId.hashCode,
+                                              color.hashCode,
                                               $mrjc(
-                                                  supplierId.hashCode,
+                                                  businessId.hashCode,
                                                   $mrjc(
-                                                      categoryId.hashCode,
+                                                      supplierId.hashCode,
                                                       $mrjc(
-                                                          taxId.hashCode,
+                                                          categoryId.hashCode,
                                                           $mrjc(
-                                                              createdAt
-                                                                  .hashCode,
+                                                              taxId.hashCode,
                                                               $mrjc(
-                                                                  updatedAt
+                                                                  createdAt
                                                                       .hashCode,
-                                                                  deletedAt
-                                                                      .hashCode)))))))))))))))));
+                                                                  $mrjc(
+                                                                      updatedAt
+                                                                          .hashCode,
+                                                                      deletedAt
+                                                                          .hashCode))))))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -2466,6 +2480,7 @@ class ProductTableData extends DataClass
           other.picture == this.picture &&
           other.active == this.active &&
           other.hasPicture == this.hasPicture &&
+          other.isImageLocal == this.isImageLocal &&
           other.isDraft == this.isDraft &&
           other.isCurrentUpdate == this.isCurrentUpdate &&
           other.description == this.description &&
@@ -2486,6 +2501,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
   final Value<String> picture;
   final Value<bool> active;
   final Value<bool> hasPicture;
+  final Value<bool> isImageLocal;
   final Value<bool> isDraft;
   final Value<bool> isCurrentUpdate;
   final Value<String> description;
@@ -2504,6 +2520,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     this.picture = const Value.absent(),
     this.active = const Value.absent(),
     this.hasPicture = const Value.absent(),
+    this.isImageLocal = const Value.absent(),
     this.isDraft = const Value.absent(),
     this.isCurrentUpdate = const Value.absent(),
     this.description = const Value.absent(),
@@ -2523,6 +2540,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     @required String picture,
     @required bool active,
     @required bool hasPicture,
+    this.isImageLocal = const Value.absent(),
     @required bool isDraft,
     @required bool isCurrentUpdate,
     this.description = const Value.absent(),
@@ -2550,6 +2568,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       Value<String> picture,
       Value<bool> active,
       Value<bool> hasPicture,
+      Value<bool> isImageLocal,
       Value<bool> isDraft,
       Value<bool> isCurrentUpdate,
       Value<String> description,
@@ -2568,6 +2587,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       picture: picture ?? this.picture,
       active: active ?? this.active,
       hasPicture: hasPicture ?? this.hasPicture,
+      isImageLocal: isImageLocal ?? this.isImageLocal,
       isDraft: isDraft ?? this.isDraft,
       isCurrentUpdate: isCurrentUpdate ?? this.isCurrentUpdate,
       description: description ?? this.description,
@@ -2655,6 +2675,17 @@ class $ProductTableTable extends ProductTable
       $tableName,
       false,
     );
+  }
+
+  final VerificationMeta _isImageLocalMeta =
+      const VerificationMeta('isImageLocal');
+  GeneratedBoolColumn _isImageLocal;
+  @override
+  GeneratedBoolColumn get isImageLocal =>
+      _isImageLocal ??= _constructIsImageLocal();
+  GeneratedBoolColumn _constructIsImageLocal() {
+    return GeneratedBoolColumn('is_image_local', $tableName, false,
+        defaultValue: Constant(true));
   }
 
   final VerificationMeta _isDraftMeta = const VerificationMeta('isDraft');
@@ -2792,6 +2823,7 @@ class $ProductTableTable extends ProductTable
         picture,
         active,
         hasPicture,
+        isImageLocal,
         isDraft,
         isCurrentUpdate,
         description,
@@ -2846,6 +2878,12 @@ class $ProductTableTable extends ProductTable
           hasPicture.isAcceptableValue(d.hasPicture.value, _hasPictureMeta));
     } else if (isInserting) {
       context.missing(_hasPictureMeta);
+    }
+    if (d.isImageLocal.present) {
+      context.handle(
+          _isImageLocalMeta,
+          isImageLocal.isAcceptableValue(
+              d.isImageLocal.value, _isImageLocalMeta));
     }
     if (d.isDraft.present) {
       context.handle(_isDraftMeta,
@@ -2932,6 +2970,9 @@ class $ProductTableTable extends ProductTable
     }
     if (d.hasPicture.present) {
       map['has_picture'] = Variable<bool, BoolType>(d.hasPicture.value);
+    }
+    if (d.isImageLocal.present) {
+      map['is_image_local'] = Variable<bool, BoolType>(d.isImageLocal.value);
     }
     if (d.isDraft.present) {
       map['is_draft'] = Variable<bool, BoolType>(d.isDraft.value);
@@ -9140,6 +9181,208 @@ class $BranchProductTableTable extends BranchProductTable
   }
 }
 
+class ProductImageTableData extends DataClass
+    implements Insertable<ProductImageTableData> {
+  final int id;
+  final String localPath;
+  final String productId;
+  ProductImageTableData(
+      {@required this.id, @required this.localPath, this.productId});
+  factory ProductImageTableData.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
+    return ProductImageTableData(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      localPath: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}local_path']),
+      productId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}product_id']),
+    );
+  }
+  factory ProductImageTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return ProductImageTableData(
+      id: serializer.fromJson<int>(json['id']),
+      localPath: serializer.fromJson<String>(json['localPath']),
+      productId: serializer.fromJson<String>(json['productId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'localPath': serializer.toJson<String>(localPath),
+      'productId': serializer.toJson<String>(productId),
+    };
+  }
+
+  @override
+  ProductImageTableCompanion createCompanion(bool nullToAbsent) {
+    return ProductImageTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      localPath: localPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localPath),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+    );
+  }
+
+  ProductImageTableData copyWith(
+          {int id, String localPath, String productId}) =>
+      ProductImageTableData(
+        id: id ?? this.id,
+        localPath: localPath ?? this.localPath,
+        productId: productId ?? this.productId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('ProductImageTableData(')
+          ..write('id: $id, ')
+          ..write('localPath: $localPath, ')
+          ..write('productId: $productId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      $mrjf($mrjc(id.hashCode, $mrjc(localPath.hashCode, productId.hashCode)));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is ProductImageTableData &&
+          other.id == this.id &&
+          other.localPath == this.localPath &&
+          other.productId == this.productId);
+}
+
+class ProductImageTableCompanion
+    extends UpdateCompanion<ProductImageTableData> {
+  final Value<int> id;
+  final Value<String> localPath;
+  final Value<String> productId;
+  const ProductImageTableCompanion({
+    this.id = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.productId = const Value.absent(),
+  });
+  ProductImageTableCompanion.insert({
+    this.id = const Value.absent(),
+    @required String localPath,
+    this.productId = const Value.absent(),
+  }) : localPath = Value(localPath);
+  ProductImageTableCompanion copyWith(
+      {Value<int> id, Value<String> localPath, Value<String> productId}) {
+    return ProductImageTableCompanion(
+      id: id ?? this.id,
+      localPath: localPath ?? this.localPath,
+      productId: productId ?? this.productId,
+    );
+  }
+}
+
+class $ProductImageTableTable extends ProductImageTable
+    with TableInfo<$ProductImageTableTable, ProductImageTableData> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $ProductImageTableTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _localPathMeta = const VerificationMeta('localPath');
+  GeneratedTextColumn _localPath;
+  @override
+  GeneratedTextColumn get localPath => _localPath ??= _constructLocalPath();
+  GeneratedTextColumn _constructLocalPath() {
+    return GeneratedTextColumn(
+      'local_path',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _productIdMeta = const VerificationMeta('productId');
+  GeneratedTextColumn _productId;
+  @override
+  GeneratedTextColumn get productId => _productId ??= _constructProductId();
+  GeneratedTextColumn _constructProductId() {
+    return GeneratedTextColumn(
+      'product_id',
+      $tableName,
+      true,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, localPath, productId];
+  @override
+  $ProductImageTableTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'product_image_table';
+  @override
+  final String actualTableName = 'product_image_table';
+  @override
+  VerificationContext validateIntegrity(ProductImageTableCompanion d,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    if (d.id.present) {
+      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    }
+    if (d.localPath.present) {
+      context.handle(_localPathMeta,
+          localPath.isAcceptableValue(d.localPath.value, _localPathMeta));
+    } else if (isInserting) {
+      context.missing(_localPathMeta);
+    }
+    if (d.productId.present) {
+      context.handle(_productIdMeta,
+          productId.isAcceptableValue(d.productId.value, _productIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ProductImageTableData map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return ProductImageTableData.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  Map<String, Variable> entityToSql(ProductImageTableCompanion d) {
+    final map = <String, Variable>{};
+    if (d.id.present) {
+      map['id'] = Variable<int, IntType>(d.id.value);
+    }
+    if (d.localPath.present) {
+      map['local_path'] = Variable<String, StringType>(d.localPath.value);
+    }
+    if (d.productId.present) {
+      map['product_id'] = Variable<String, StringType>(d.productId.value);
+    }
+    return map;
+  }
+
+  @override
+  $ProductImageTableTable createAlias(String alias) {
+    return $ProductImageTableTable(_db, alias);
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $UserTableTable _userTable;
@@ -9190,6 +9433,9 @@ abstract class _$Database extends GeneratedDatabase {
   $BranchProductTableTable _branchProductTable;
   $BranchProductTableTable get branchProductTable =>
       _branchProductTable ??= $BranchProductTableTable(this);
+  $ProductImageTableTable _productImageTable;
+  $ProductImageTableTable get productImageTable =>
+      _productImageTable ??= $ProductImageTableTable(this);
   UserDao _userDao;
   UserDao get userDao => _userDao ??= UserDao(this as Database);
   TokenDao _tokenDao;
@@ -9229,6 +9475,9 @@ abstract class _$Database extends GeneratedDatabase {
   BranchProductDao _branchProductDao;
   BranchProductDao get branchProductDao =>
       _branchProductDao ??= BranchProductDao(this as Database);
+  ProductImageDao _productImageDao;
+  ProductImageDao get productImageDao =>
+      _productImageDao ??= ProductImageDao(this as Database);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
@@ -9252,6 +9501,7 @@ abstract class _$Database extends GeneratedDatabase {
         actionsTable,
         reasonTable,
         taxTable,
-        branchProductTable
+        branchProductTable,
+        productImageTable
       ];
 }

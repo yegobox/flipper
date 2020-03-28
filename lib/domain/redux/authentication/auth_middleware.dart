@@ -1,3 +1,4 @@
+import 'package:background_fetch/background_fetch.dart';
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/branch_repository.dart';
@@ -75,6 +76,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await createAppActions(store);
     await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
+    await store.state.couch.syncRemoteToLocal(store: store);
+    heartBeatSync(store: store);
   };
 }
 
@@ -97,6 +100,56 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   return true;
 }
 
+heartBeatSync({Store<AppState> store}) {
+  BackgroundFetch.configure(
+      BackgroundFetchConfig(
+          minimumFetchInterval: 15,
+          stopOnTerminate: false,
+          enableHeadless: false,
+          requiresBatteryNotLow: false,
+          startOnBoot: true), (String taskId) async {
+    switch (taskId) {
+      case 'uploader':
+        bool internetAvailable = await DataManager.isInternetAvailable();
+        if (internetAvailable) {
+          List<ProductImageTableData> images =
+              await store.state.database.productImageDao.getImageProducts();
+          if (images.length > 0) {
+            for (var i = 0; i < images.length; i++) {
+              String fileName = images[i].localPath.split('/').removeLast();
+              String storagePath =
+                  images[i].localPath.replaceAll('/' + fileName, '');
+              await DataManager.startUploading(
+                store: store,
+                fileName: fileName,
+                productId: images[i].productId,
+                storagePath: storagePath,
+              );
+            }
+          }
+        }
+        //sync again this time it might be necessary.
+        store.state.couch.syncLocalToRemote(store: store);
+        break;
+      default:
+        print("Default fetch task");
+    }
+
+    BackgroundFetch.finish(taskId);
+  });
+
+// Step 2:  Schedule a custom "oneshot" task "com.transistorsoft.customtask" to execute 5000ms from now.
+  BackgroundFetch.scheduleTask(
+    TaskConfig(
+      taskId: "uploader",
+      delay: 15 * 60 * 1000, // <-- milliseconds
+      periodic: true,
+      startOnBoot: true,
+      stopOnTerminate: false,
+    ),
+  );
+}
+
 _getCurrentLocation({Store<AppState> store}) async {
   var geolocator = Geolocator();
   var locationOptions =
@@ -113,8 +166,6 @@ _getCurrentLocation({Store<AppState> store}) async {
 //        idLocal: businessTableData.idLocal,
 //        longitude: location.longitude,
 //        latitude: location.latitude));
-
-    await store.state.couch.syncRemoteToLocal(store: store);
   });
 }
 
