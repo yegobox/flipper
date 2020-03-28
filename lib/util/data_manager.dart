@@ -38,7 +38,7 @@ class DataManager extends CouchBase {
         ], // required: list of files that you want to upload
         method: UploadMethod.POST,
         headers: {"Authorization": "Bearer  " + store.state.user.token},
-        data: {"product_id": store.state.user.token},
+        data: {"product_id": productId},
         showNotification:
             true, // send local notification (android only) for upload status
         tag: "Backup products images..."); // unique tag for upload task
@@ -50,7 +50,7 @@ class DataManager extends CouchBase {
     uploader.result.listen((result) async {
       final uploadResponse = uploadResponseFromJson(result.response);
       ProductTableData product = await store.state.database.productDao
-          .getItemById(productId: productId);
+          .getItemById(productId: uploadResponse.productId);
 
       await store.state.database.productDao.updateProduct(
           product.copyWith(picture: uploadResponse.url, isImageLocal: false));
