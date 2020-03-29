@@ -40,10 +40,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 }
 
                 return StreamBuilder(
-                    stream: null,
+                    stream: null, //TODO: now load transactions here.
                     builder: (context, transactions) {
                       if (transactions.data == null) {
-                        return Text("");
+                        return Center(child: Text("No Transaction"));
                       }
                       return ListView(
                         children: ListTile.divideTiles(
