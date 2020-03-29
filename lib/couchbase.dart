@@ -670,6 +670,7 @@ class CouchBase extends Model with Fluttercouch {
         ProductTableData productData = ProductTableData(
             businessId: doc.getList('products')[i]['businessId'].toString(),
             active: doc.getList('products')[i]['active'],
+            isImageLocal: false,
             name: doc.getList('products')[i]['name'],
             id: doc.getList('products')[i]['id'],
             color: doc.getList('products')[i]['color'],

@@ -9,6 +9,7 @@ class ReportScreen extends StatefulWidget {
   _ReportScreenState createState() => _ReportScreenState();
 }
 
+//TODO: work on report
 class _ReportScreenState extends State<ReportScreen> {
   double tabLenght = 50.0;
   @override
@@ -36,7 +37,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       onPressed: () {
                         Router.navigator.pushNamed(Router.dateScreen);
                       },
-                      child: Text("Date"),
+                      child: Text("From Date"),
                     ),
                   ),
                   Tabs(tabLenght: tabLenght)
