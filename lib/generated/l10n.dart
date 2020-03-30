@@ -337,7 +337,7 @@ class S {
 
   String get flipperPointofSale {
     return Intl.message(
-      'Flipper Point of Sale',
+      'A business app',
       name: 'flipperPointofSale',
       desc: '',
       args: [],

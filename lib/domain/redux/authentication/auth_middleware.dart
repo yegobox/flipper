@@ -102,8 +102,8 @@ heartBeatSync({Store<AppState> store}) {
       BackgroundFetchConfig(
           minimumFetchInterval: 15,
           stopOnTerminate: false,
-          enableHeadless: false,
-          requiresBatteryNotLow: false,
+          enableHeadless: true,
+          requiresBatteryNotLow: true,
           startOnBoot: true), (String taskId) async {
     switch (taskId) {
       case 'uploader':
@@ -140,7 +140,9 @@ heartBeatSync({Store<AppState> store}) {
       taskId: "uploader",
       delay: 15 * 60 * 1000, // <-- milliseconds
       periodic: true,
+      enableHeadless: true,
       startOnBoot: true,
+      requiresBatteryNotLow: true,
       stopOnTerminate: false,
     ),
   );

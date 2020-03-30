@@ -39,7 +39,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "editItem" : MessageLookupByLibrary.simpleMessage("Edit Item"),
     "editUnitType" : MessageLookupByLibrary.simpleMessage("Edit Unit"),
     "editVariation" : MessageLookupByLibrary.simpleMessage("Edit Variation"),
-    "flipperPointofSale" : MessageLookupByLibrary.simpleMessage("Flipper Point of Sale"),
+    "flipperPointofSale" : MessageLookupByLibrary.simpleMessage("A business app"),
     "inStock" : MessageLookupByLibrary.simpleMessage("in Stock"),
     "interactandgrowyourbusiness" : MessageLookupByLibrary.simpleMessage("Interact and  grow your business"),
     "items" : MessageLookupByLibrary.simpleMessage("Items"),

@@ -136,25 +136,34 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
             branchId: store.state.branch.id,
             variantId: store.state.cartItem.id);
 
+    ProductTableData product = await store.state.database.productDao
+        .getItemById(productId: stock.productId);
+
+    VariationTableData variant = await store.state.database.variationDao
+        .getVariationById(variantId: store.state.cartItem.id);
+
     await generalRepository.insertOrUpdateCart(
       store,
       //ignore: missing_required_param
       OrderDetailTableData(
-          branchId: store.state.branch.id,
-          quantity: store.state.currentIncrement ?? 1,
-          variantName: store.state.cartItem.name,
-          discountAmount: 0,
-          discountRate: 0,
-          subTotal: stock.retailPrice * store.state.currentIncrement,
-          taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
-                  store.state.defaultTax.percentage.toInt()) /
-              100,
-          taxRate: store.state.defaultTax.percentage.toInt(),
-          note: 'note',
-          unit: store.state.cartItem.unit,
-          orderId: store.state.order.id.toString(),
-          variationId: store.state.cartItem.id,
-          id: store.state.cartItem.id),
+        branchId: store.state.branch.id,
+        quantity: store.state.currentIncrement.toDouble() ?? 1.0,
+        variantName: store.state.cartItem.name,
+        discountAmount: 0,
+        stockId: stock.id,
+        productName: product.name,
+        discountRate: 0,
+        subTotal: stock.retailPrice * store.state.currentIncrement,
+        taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
+                store.state.defaultTax.percentage.toInt()) /
+            100,
+        taxRate: store.state.defaultTax.percentage.toInt(),
+        note: 'note',
+        unit: variant.unit,
+        orderId: store.state.order.id.toString(),
+        variationId: store.state.cartItem.id,
+        id: store.state.cartItem.id,
+      ),
     );
   };
 }
