@@ -119,6 +119,9 @@ abstract class CommonViewModel
   @nullable
   ImageP get image;
 
+  @nullable
+  String get note;
+
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
@@ -173,6 +176,7 @@ abstract class CommonViewModel
         ..variant = store.state.variant?.toBuilder()
         ..branches = store.state.branches
         ..tmpItem = store.state.tmpItem?.toBuilder()
+        ..note = store.state.note
         ..image = store.state.image?.toBuilder()
         ..branch = store.state.branch?.toBuilder(),
     );

@@ -1198,7 +1198,7 @@ class CouchBase extends Model with Fluttercouch {
         'supplierId': orders[i].supplierId,
         'subTotal': orders[i].subTotal,
         'supplierInvoiceNumber': orders[i].supplierInvoiceNumber,
-        'deliverDate': orders[i].deliverDate,
+        'deliverDate': orders[i].deliverDate.toIso8601String(),
         'taxRate': orders[i].taxRate,
         'taxAmount': orders[i].taxAmount,
         'count': orders[i].count,

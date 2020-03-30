@@ -274,7 +274,7 @@ class DataManager extends CouchBase {
         variation: Variation(
           (v) => v
             ..productId = variant.productId
-            ..sku = variant.sku
+            ..sku = variant.sku 
             ..name = variant.name
             ..id = variant.id,
         ),

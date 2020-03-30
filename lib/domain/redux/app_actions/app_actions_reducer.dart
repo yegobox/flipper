@@ -35,6 +35,7 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, CustomItem>(_onCustomItem),
   TypedReducer<AppState, DefaultTax>(_onDefaultTax),
   TypedReducer<AppState, ImagePreview>(_onImagePreview),
+  TypedReducer<AppState, Note>(_onNote),
 ];
 AppState _onAppActions(AppState state, AppAction action) {
   return state.rebuild((a) => a..action = action.actions.toBuilder());
@@ -185,4 +186,8 @@ AppState _onDefaultTax(AppState state, DefaultTax action) {
 
 AppState _onImagePreview(AppState state, ImagePreview action) {
   return state.rebuild((a) => a..image = action.image.toBuilder());
+}
+
+AppState _onNote(AppState state, Note action) {
+  return state.rebuild((a) => a..note = action.note);
 }

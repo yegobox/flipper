@@ -21,6 +21,16 @@ class _TenderScreenState extends State<TenderScreen> {
   bool _isEmpty = true;
   bool _hasErrors = false;
 
+  bool _isButtonDisabled;
+  int _customerChangeDue;
+
+  @override
+  void initState() {
+    super.initState();
+    _isButtonDisabled = true;
+    _customerChangeDue = 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = _hasErrors
@@ -54,13 +64,23 @@ class _TenderScreenState extends State<TenderScreen> {
               child: Form(
                 child: TextFormField(
                   autofocus: true,
+                  onChanged: (value) {
+                    if (int.parse(value) > widget.cashReceived) {
+                      setState(() {
+                        _isButtonDisabled = false;
+                        _customerChangeDue =
+                            int.parse(value) - widget.cashReceived;
+                      });
+                    } else {
+                      setState(() {
+                        _isButtonDisabled = true;
+                      });
+                    }
+                  },
                   keyboardType: TextInputType.number,
                   enabled: true,
                   style: GoogleFonts.lato(fontStyle: FontStyle.normal),
                   decoration: InputDecoration(
-                    // focusedBorder: OutlineInputBorder(
-                    //   borderSide: BorderSide(color: Colors.green),
-                    // ),
                     hintText: "FRW" + widget.cashReceived.toString(),
                   ).applyDefaults(theme),
                 ),
@@ -72,23 +92,14 @@ class _TenderScreenState extends State<TenderScreen> {
           ),
           Center(
             child: Container(
-                color: Colors.blue,
+                color: _isButtonDisabled ? Color(0xFFE3F2FD) : Colors.blue,
                 child: SizedBox(
                   width: 380,
                   height: 50,
                   child: FlatButton(
                     color: Colors.blue,
-                    onPressed: () {
-                      StoreProvider.of<AppState>(context).dispatch(
-                        SavePayment(
-                          note: "note",
-                          cashReceived: widget.cashReceived,
-                        ),
-                      );
-
-                      Router.navigator.pushNamedAndRemoveUntil(
-                          Router.dashboard, (route) => false);
-                    },
+                    disabledColor: Color(0xFFE3F2FD),
+                    onPressed: _handleTender(),
                     child: Text(
                       S.of(context).tender,
                       style: TextStyle(color: Colors.white),
@@ -99,5 +110,24 @@ class _TenderScreenState extends State<TenderScreen> {
         ],
       ),
     );
+  }
+
+  Function _handleTender() {
+    if (_isButtonDisabled) {
+      return null;
+    } else {
+      return () {
+        StoreProvider.of<AppState>(context).dispatch(
+          SavePayment(
+            note: "note",
+            customerChangeDue: _customerChangeDue,
+            cashReceived: widget.cashReceived,
+          ),
+        );
+
+        Router.navigator
+            .pushNamedAndRemoveUntil(Router.dashboard, (route) => false);
+      };
+    }
   }
 }

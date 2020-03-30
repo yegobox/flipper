@@ -1,5 +1,5 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/home/widget/flipper_input.dart';
+import 'package:flipper/home/widget/note_input.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +24,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       body: Column(
         children: <Widget>[
           Center(
-            child: FlipperInput(
+            child: NoteInput(
               hint: "Add Note",
             ),
           )

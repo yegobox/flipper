@@ -77,7 +77,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   ? S.of(context).noSale
                                   : S.of(context).currentSale +
                                       "[" +
-                                      quantity.toString() +
+                                      quantity.toInt().toString() +
                                       "]",
                               style: GoogleFonts.lato(
                                   fontStyle: FontStyle.normal,

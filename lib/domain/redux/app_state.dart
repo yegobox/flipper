@@ -153,6 +153,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   ImageP get image;
 
   @nullable
+  String get note;
+
+  @nullable
   InAppNotification get inAppNotification;
 
   AppState._();

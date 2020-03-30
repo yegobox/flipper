@@ -96,6 +96,8 @@ class _$AppState extends AppState {
   @override
   final ImageP image;
   @override
+  final String note;
+  @override
   final InAppNotification inAppNotification;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
@@ -146,6 +148,7 @@ class _$AppState extends AppState {
       this.couchDbClient,
       this.fcmToken,
       this.image,
+      this.note,
       this.inAppNotification})
       : super._() {
     if (database == null) {
@@ -220,6 +223,7 @@ class _$AppState extends AppState {
         couchDbClient == other.couchDbClient &&
         fcmToken == other.fcmToken &&
         image == other.image &&
+        note == other.note &&
         inAppNotification == other.inAppNotification;
   }
 
@@ -243,25 +247,25 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode),
-                                                                                currentColor.hashCode),
-                                                                            variant.hashCode),
-                                                                        itemVariations.hashCode),
-                                                                    currentActiveSaleProduct.hashCode),
-                                                                currentActiveSaleVariant.hashCode),
-                                                            cartItem.hashCode),
-                                                        items.hashCode),
-                                                    currentIncrement.hashCode),
-                                                carts.hashCode),
-                                            cartQuantities.hashCode),
-                                        order.hashCode),
-                                    keypad.hashCode),
-                                tmpItem.hashCode),
-                            total.hashCode),
-                        defaultTax.hashCode),
-                    couchDbClient.hashCode),
-                fcmToken.hashCode),
-            image.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode),
+                                                                                variant.hashCode),
+                                                                            itemVariations.hashCode),
+                                                                        currentActiveSaleProduct.hashCode),
+                                                                    currentActiveSaleVariant.hashCode),
+                                                                cartItem.hashCode),
+                                                            items.hashCode),
+                                                        currentIncrement.hashCode),
+                                                    carts.hashCode),
+                                                cartQuantities.hashCode),
+                                            order.hashCode),
+                                        keypad.hashCode),
+                                    tmpItem.hashCode),
+                                total.hashCode),
+                            defaultTax.hashCode),
+                        couchDbClient.hashCode),
+                    fcmToken.hashCode),
+                image.hashCode),
+            note.hashCode),
         inAppNotification.hashCode));
   }
 
@@ -312,6 +316,7 @@ class _$AppState extends AppState {
           ..add('couchDbClient', couchDbClient)
           ..add('fcmToken', fcmToken)
           ..add('image', image)
+          ..add('note', note)
           ..add('inAppNotification', inAppNotification))
         .toString();
   }
@@ -516,6 +521,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ImagePBuilder get image => _$this._image ??= new ImagePBuilder();
   set image(ImagePBuilder image) => _$this._image = image;
 
+  String _note;
+  String get note => _$this._note;
+  set note(String note) => _$this._note = note;
+
   InAppNotificationBuilder _inAppNotification;
   InAppNotificationBuilder get inAppNotification =>
       _$this._inAppNotification ??= new InAppNotificationBuilder();
@@ -570,6 +579,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _couchDbClient = _$v.couchDbClient?.toBuilder();
       _fcmToken = _$v.fcmToken;
       _image = _$v.image?.toBuilder();
+      _note = _$v.note;
       _inAppNotification = _$v.inAppNotification?.toBuilder();
       _$v = null;
     }
@@ -639,6 +649,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               couchDbClient: _couchDbClient?.build(),
               fcmToken: fcmToken,
               image: _image?.build(),
+              note: note,
               inAppNotification: _inAppNotification?.build());
     } catch (_) {
       String _$failedField;
@@ -716,6 +727,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
         _$failedField = 'image';
         _image?.build();
+
         _$failedField = 'inAppNotification';
         _inAppNotification?.build();
       } catch (e) {

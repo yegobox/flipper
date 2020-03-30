@@ -181,6 +181,7 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
         store,
         order.copyWith(
             status: 'completed',
+            customerChangeDue: action.customerChangeDue,
             orderNote: action.note,
             cashReceived: action.cashReceived));
 

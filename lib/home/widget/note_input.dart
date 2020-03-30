@@ -1,14 +1,14 @@
+import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/util/data_manager.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class FlipperInput extends StatelessWidget {
+class NoteInput extends StatelessWidget {
   final String _hint;
   final String validationMessage;
-  const FlipperInput({
+  const NoteInput({
     String hint,
     this.validationMessage,
     Key key,
@@ -36,9 +36,7 @@ class FlipperInput extends StatelessWidget {
               },
               onChanged: (note) async {
                 final store = StoreProvider.of<AppState>(context);
-                final order =
-                    await vm.database.orderDao.getOrderById(vm.order.id);
-                DataManager.updateOrder(store, order.copyWith(orderNote: note));
+                store.dispatch(Note(note: note));
               },
               decoration: InputDecoration(hintText: _hint ?? ""),
             ),

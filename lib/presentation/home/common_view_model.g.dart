@@ -79,6 +79,8 @@ class _$CommonViewModel extends CommonViewModel {
   final Total total;
   @override
   final ImageP image;
+  @override
+  final String note;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
       (new CommonViewModelBuilder()..update(updates)).build();
@@ -119,7 +121,8 @@ class _$CommonViewModel extends CommonViewModel {
       this.couchDbClient,
       this.currentActiveSaleVariant,
       this.total,
-      this.image})
+      this.image,
+      this.note})
       : super._() {
     if (hasUser == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'hasUser');
@@ -200,7 +203,8 @@ class _$CommonViewModel extends CommonViewModel {
         couchDbClient == other.couchDbClient &&
         currentActiveSaleVariant == other.currentActiveSaleVariant &&
         total == other.total &&
-        image == other.image;
+        image == other.image &&
+        note == other.note;
   }
 
   @override
@@ -223,26 +227,26 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode),
-                                                                                variant.hashCode),
-                                                                            items.hashCode),
-                                                                        currentIncrement.hashCode),
-                                                                    currentActiveSaleProduct.hashCode),
-                                                                database.hashCode),
-                                                            couch.hashCode),
-                                                        carts.hashCode),
-                                                    cartQuantities.hashCode),
-                                                order.hashCode),
-                                            user.hashCode),
-                                        keypad.hashCode),
-                                    customUnit.hashCode),
-                                customItem.hashCode),
-                            tempCategoryId.hashCode),
-                        tmpItem.hashCode),
-                    couchDbClient.hashCode),
-                currentActiveSaleVariant.hashCode),
-            total.hashCode),
-        image.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode),
+                                                                                items.hashCode),
+                                                                            currentIncrement.hashCode),
+                                                                        currentActiveSaleProduct.hashCode),
+                                                                    database.hashCode),
+                                                                couch.hashCode),
+                                                            carts.hashCode),
+                                                        cartQuantities.hashCode),
+                                                    order.hashCode),
+                                                user.hashCode),
+                                            keypad.hashCode),
+                                        customUnit.hashCode),
+                                    customItem.hashCode),
+                                tempCategoryId.hashCode),
+                            tmpItem.hashCode),
+                        couchDbClient.hashCode),
+                    currentActiveSaleVariant.hashCode),
+                total.hashCode),
+            image.hashCode),
+        note.hashCode));
   }
 
   @override
@@ -283,7 +287,8 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('couchDbClient', couchDbClient)
           ..add('currentActiveSaleVariant', currentActiveSaleVariant)
           ..add('total', total)
-          ..add('image', image))
+          ..add('image', image)
+          ..add('note', note))
         .toString();
   }
 }
@@ -453,6 +458,10 @@ class CommonViewModelBuilder
   ImagePBuilder get image => _$this._image ??= new ImagePBuilder();
   set image(ImagePBuilder image) => _$this._image = image;
 
+  String _note;
+  String get note => _$this._note;
+  set note(String note) => _$this._note = note;
+
   CommonViewModelBuilder();
 
   CommonViewModelBuilder get _$this {
@@ -493,6 +502,7 @@ class CommonViewModelBuilder
       _currentActiveSaleVariant = _$v.currentActiveSaleVariant?.toBuilder();
       _total = _$v.total?.toBuilder();
       _image = _$v.image?.toBuilder();
+      _note = _$v.note;
       _$v = null;
     }
     return this;
@@ -552,7 +562,8 @@ class CommonViewModelBuilder
               couchDbClient: _couchDbClient?.build(),
               currentActiveSaleVariant: _currentActiveSaleVariant?.build(),
               total: _total?.build(),
-              image: _image?.build());
+              image: _image?.build(),
+              note: note);
     } catch (_) {
       String _$failedField;
       try {

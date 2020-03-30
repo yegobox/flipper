@@ -26,9 +26,6 @@ class _$Variation extends Variation {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
     }
-    if (sku == null) {
-      throw new BuiltValueNullFieldError('Variation', 'sku');
-    }
     if (productId == null) {
       throw new BuiltValueNullFieldError('Variation', 'productId');
     }

@@ -54,7 +54,11 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                       Router.navigator.pushNamed(Router.addNoteScreen);
                     },
                     child: Text(
-                      "Add a note",
+                      vm.note == null
+                          ? "Add a note"
+                          : vm.note.length > 4
+                              ? vm.note.substring(0, 4)
+                              : vm.note,
                       style: GoogleFonts.lato(
                           fontStyle: FontStyle.normal,
                           color: AppTheme.addAnote.accentColor,
