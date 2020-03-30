@@ -36,13 +36,15 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Align(
                     alignment: Alignment.center,
                     child: StreamBuilder(
-                      stream: vm.database.cartDao
+                      stream: vm.database.orderDetailDao
                           .getCartsStream(vm.order.id.toString()),
                       builder: (context,
-                          AsyncSnapshot<List<OrderDetailData>> orderDetail) {
+                          AsyncSnapshot<List<OrderDetailTableData>>
+                              orderDetail) {
                         var quantity = orderDetail.data == null
                             ? 0
-                            : orderDetail.data.fold(0, (a, b) => a + b.count);
+                            : orderDetail.data
+                                .fold(0, (a, b) => a + b.quantity);
                         return FlatButton(
                           onPressed: () {
                             List<Cart> cart = [];
@@ -51,7 +53,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 Cart((c) => c
                                       ..id = orderDetail.data[i].id
                                       ..branchId = orderDetail.data[i].branchId
-                                      ..count = orderDetail.data[i].count
+                                      ..quantity =
+                                          orderDetail.data[i].quantity.toInt()
                                       ..variationName =
                                           orderDetail.data[i].variantName
                                       ..variationId =

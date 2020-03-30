@@ -139,14 +139,12 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
     await generalRepository.insertOrUpdateCart(
       store,
       //ignore: missing_required_param
-      OrderDetailData(
+      OrderDetailTableData(
           branchId: store.state.branch.id,
-          count: store.state.currentIncrement ?? 1,
+          quantity: store.state.currentIncrement ?? 1,
           variantName: store.state.cartItem.name,
-          price: stock.retailPrice,
           discountAmount: 0,
           discountRate: 0,
-          quantity: store.state.currentIncrement.toDouble(),
           subTotal: stock.retailPrice * store.state.currentIncrement,
           taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
                   store.state.defaultTax.percentage.toInt()) /
@@ -177,8 +175,11 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
             orderNote: action.note,
             cashReceived: action.cashReceived));
 
+    //update orderdetails
     DataManager.createTemporalOrder(generalRepository, store);
 
     DataManager.createTempProduct(store, 'custom-product');
+
+    store.state.couch.syncOrderLRemote(store);
   };
 }

@@ -1,11 +1,11 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cart_dao.dart';
+part of 'order_detail_dao.dart';
 
 // **************************************************************************
 // DaoGenerator
 // **************************************************************************
 
-mixin _$CartDaoMixin on DatabaseAccessor<Database> {
-  $OrderDetailTable get orderDetail => db.orderDetail;
+mixin _$OrderDetailDaoMixin on DatabaseAccessor<Database> {
+  $OrderDetailTableTable get orderDetailTable => db.orderDetailTable;
 }

@@ -5442,45 +5442,46 @@ class $StockHistoryTableTable extends StockHistoryTable
   }
 }
 
-class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
+class OrderDetailTableData extends DataClass
+    implements Insertable<OrderDetailTableData> {
   final int idLocal;
   final String id;
   final String branchId;
-  final int count;
   final int discountRate;
   final int discountAmount;
   final String unit;
   final String note;
   final int taxRate;
-  final double price;
   final double taxAmount;
   final double quantity;
   final double subTotal;
   final String orderId;
+  final String stockId;
   final String variationId;
   final String variantName;
+  final String productName;
   final DateTime createdAt;
   final DateTime updatedAt;
-  OrderDetailData(
+  OrderDetailTableData(
       {@required this.idLocal,
       @required this.id,
       @required this.branchId,
-      @required this.count,
       @required this.discountRate,
       @required this.discountAmount,
       @required this.unit,
       @required this.note,
       @required this.taxRate,
-      @required this.price,
       @required this.taxAmount,
       @required this.quantity,
       @required this.subTotal,
       @required this.orderId,
+      @required this.stockId,
       @required this.variationId,
       @required this.variantName,
+      @required this.productName,
       this.createdAt,
       this.updatedAt});
-  factory OrderDetailData.fromData(
+  factory OrderDetailTableData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -5488,13 +5489,12 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
     final stringType = db.typeSystem.forDartType<String>();
     final doubleType = db.typeSystem.forDartType<double>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
-    return OrderDetailData(
+    return OrderDetailTableData(
       idLocal:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}id_local']),
       id: stringType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       branchId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
-      count: intType.mapFromDatabaseResponse(data['${effectivePrefix}count']),
       discountRate: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}discount_rate']),
       discountAmount: intType
@@ -5503,8 +5503,6 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
       note: stringType.mapFromDatabaseResponse(data['${effectivePrefix}note']),
       taxRate:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}tax_rate']),
-      price:
-          doubleType.mapFromDatabaseResponse(data['${effectivePrefix}price']),
       taxAmount: doubleType
           .mapFromDatabaseResponse(data['${effectivePrefix}tax_amount']),
       quantity: doubleType
@@ -5513,36 +5511,40 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}sub_total']),
       orderId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}order_id']),
+      stockId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}stock_id']),
       variationId: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}variation_id']),
       variantName: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}variant_name']),
+      productName: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}product_name']),
       createdAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       updatedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
-  factory OrderDetailData.fromJson(Map<String, dynamic> json,
+  factory OrderDetailTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return OrderDetailData(
+    return OrderDetailTableData(
       idLocal: serializer.fromJson<int>(json['idLocal']),
       id: serializer.fromJson<String>(json['id']),
       branchId: serializer.fromJson<String>(json['branchId']),
-      count: serializer.fromJson<int>(json['count']),
       discountRate: serializer.fromJson<int>(json['discountRate']),
       discountAmount: serializer.fromJson<int>(json['discountAmount']),
       unit: serializer.fromJson<String>(json['unit']),
       note: serializer.fromJson<String>(json['note']),
       taxRate: serializer.fromJson<int>(json['taxRate']),
-      price: serializer.fromJson<double>(json['price']),
       taxAmount: serializer.fromJson<double>(json['taxAmount']),
       quantity: serializer.fromJson<double>(json['quantity']),
       subTotal: serializer.fromJson<double>(json['subTotal']),
       orderId: serializer.fromJson<String>(json['orderId']),
+      stockId: serializer.fromJson<String>(json['stockId']),
       variationId: serializer.fromJson<String>(json['variationId']),
       variantName: serializer.fromJson<String>(json['variantName']),
+      productName: serializer.fromJson<String>(json['productName']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -5554,27 +5556,27 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
       'idLocal': serializer.toJson<int>(idLocal),
       'id': serializer.toJson<String>(id),
       'branchId': serializer.toJson<String>(branchId),
-      'count': serializer.toJson<int>(count),
       'discountRate': serializer.toJson<int>(discountRate),
       'discountAmount': serializer.toJson<int>(discountAmount),
       'unit': serializer.toJson<String>(unit),
       'note': serializer.toJson<String>(note),
       'taxRate': serializer.toJson<int>(taxRate),
-      'price': serializer.toJson<double>(price),
       'taxAmount': serializer.toJson<double>(taxAmount),
       'quantity': serializer.toJson<double>(quantity),
       'subTotal': serializer.toJson<double>(subTotal),
       'orderId': serializer.toJson<String>(orderId),
+      'stockId': serializer.toJson<String>(stockId),
       'variationId': serializer.toJson<String>(variationId),
       'variantName': serializer.toJson<String>(variantName),
+      'productName': serializer.toJson<String>(productName),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   @override
-  OrderDetailCompanion createCompanion(bool nullToAbsent) {
-    return OrderDetailCompanion(
+  OrderDetailTableCompanion createCompanion(bool nullToAbsent) {
+    return OrderDetailTableCompanion(
       idLocal: idLocal == null && nullToAbsent
           ? const Value.absent()
           : Value(idLocal),
@@ -5582,8 +5584,6 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
       branchId: branchId == null && nullToAbsent
           ? const Value.absent()
           : Value(branchId),
-      count:
-          count == null && nullToAbsent ? const Value.absent() : Value(count),
       discountRate: discountRate == null && nullToAbsent
           ? const Value.absent()
           : Value(discountRate),
@@ -5595,8 +5595,6 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
       taxRate: taxRate == null && nullToAbsent
           ? const Value.absent()
           : Value(taxRate),
-      price:
-          price == null && nullToAbsent ? const Value.absent() : Value(price),
       taxAmount: taxAmount == null && nullToAbsent
           ? const Value.absent()
           : Value(taxAmount),
@@ -5609,12 +5607,18 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
       orderId: orderId == null && nullToAbsent
           ? const Value.absent()
           : Value(orderId),
+      stockId: stockId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stockId),
       variationId: variationId == null && nullToAbsent
           ? const Value.absent()
           : Value(variationId),
       variantName: variantName == null && nullToAbsent
           ? const Value.absent()
           : Value(variantName),
+      productName: productName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productName),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -5624,64 +5628,64 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
     );
   }
 
-  OrderDetailData copyWith(
+  OrderDetailTableData copyWith(
           {int idLocal,
           String id,
           String branchId,
-          int count,
           int discountRate,
           int discountAmount,
           String unit,
           String note,
           int taxRate,
-          double price,
           double taxAmount,
           double quantity,
           double subTotal,
           String orderId,
+          String stockId,
           String variationId,
           String variantName,
+          String productName,
           DateTime createdAt,
           DateTime updatedAt}) =>
-      OrderDetailData(
+      OrderDetailTableData(
         idLocal: idLocal ?? this.idLocal,
         id: id ?? this.id,
         branchId: branchId ?? this.branchId,
-        count: count ?? this.count,
         discountRate: discountRate ?? this.discountRate,
         discountAmount: discountAmount ?? this.discountAmount,
         unit: unit ?? this.unit,
         note: note ?? this.note,
         taxRate: taxRate ?? this.taxRate,
-        price: price ?? this.price,
         taxAmount: taxAmount ?? this.taxAmount,
         quantity: quantity ?? this.quantity,
         subTotal: subTotal ?? this.subTotal,
         orderId: orderId ?? this.orderId,
+        stockId: stockId ?? this.stockId,
         variationId: variationId ?? this.variationId,
         variantName: variantName ?? this.variantName,
+        productName: productName ?? this.productName,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
   @override
   String toString() {
-    return (StringBuffer('OrderDetailData(')
+    return (StringBuffer('OrderDetailTableData(')
           ..write('idLocal: $idLocal, ')
           ..write('id: $id, ')
           ..write('branchId: $branchId, ')
-          ..write('count: $count, ')
           ..write('discountRate: $discountRate, ')
           ..write('discountAmount: $discountAmount, ')
           ..write('unit: $unit, ')
           ..write('note: $note, ')
           ..write('taxRate: $taxRate, ')
-          ..write('price: $price, ')
           ..write('taxAmount: $taxAmount, ')
           ..write('quantity: $quantity, ')
           ..write('subTotal: $subTotal, ')
           ..write('orderId: $orderId, ')
+          ..write('stockId: $stockId, ')
           ..write('variationId: $variationId, ')
           ..write('variantName: $variantName, ')
+          ..write('productName: $productName, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -5696,32 +5700,32 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
           $mrjc(
               branchId.hashCode,
               $mrjc(
-                  count.hashCode,
+                  discountRate.hashCode,
                   $mrjc(
-                      discountRate.hashCode,
+                      discountAmount.hashCode,
                       $mrjc(
-                          discountAmount.hashCode,
+                          unit.hashCode,
                           $mrjc(
-                              unit.hashCode,
+                              note.hashCode,
                               $mrjc(
-                                  note.hashCode,
+                                  taxRate.hashCode,
                                   $mrjc(
-                                      taxRate.hashCode,
+                                      taxAmount.hashCode,
                                       $mrjc(
-                                          price.hashCode,
+                                          quantity.hashCode,
                                           $mrjc(
-                                              taxAmount.hashCode,
+                                              subTotal.hashCode,
                                               $mrjc(
-                                                  quantity.hashCode,
+                                                  orderId.hashCode,
                                                   $mrjc(
-                                                      subTotal.hashCode,
+                                                      stockId.hashCode,
                                                       $mrjc(
-                                                          orderId.hashCode,
+                                                          variationId.hashCode,
                                                           $mrjc(
-                                                              variationId
+                                                              variantName
                                                                   .hashCode,
                                                               $mrjc(
-                                                                  variantName
+                                                                  productName
                                                                       .hashCode,
                                                                   $mrjc(
                                                                       createdAt
@@ -5731,147 +5735,147 @@ class OrderDetailData extends DataClass implements Insertable<OrderDetailData> {
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
-      (other is OrderDetailData &&
+      (other is OrderDetailTableData &&
           other.idLocal == this.idLocal &&
           other.id == this.id &&
           other.branchId == this.branchId &&
-          other.count == this.count &&
           other.discountRate == this.discountRate &&
           other.discountAmount == this.discountAmount &&
           other.unit == this.unit &&
           other.note == this.note &&
           other.taxRate == this.taxRate &&
-          other.price == this.price &&
           other.taxAmount == this.taxAmount &&
           other.quantity == this.quantity &&
           other.subTotal == this.subTotal &&
           other.orderId == this.orderId &&
+          other.stockId == this.stockId &&
           other.variationId == this.variationId &&
           other.variantName == this.variantName &&
+          other.productName == this.productName &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
-class OrderDetailCompanion extends UpdateCompanion<OrderDetailData> {
+class OrderDetailTableCompanion extends UpdateCompanion<OrderDetailTableData> {
   final Value<int> idLocal;
   final Value<String> id;
   final Value<String> branchId;
-  final Value<int> count;
   final Value<int> discountRate;
   final Value<int> discountAmount;
   final Value<String> unit;
   final Value<String> note;
   final Value<int> taxRate;
-  final Value<double> price;
   final Value<double> taxAmount;
   final Value<double> quantity;
   final Value<double> subTotal;
   final Value<String> orderId;
+  final Value<String> stockId;
   final Value<String> variationId;
   final Value<String> variantName;
+  final Value<String> productName;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  const OrderDetailCompanion({
+  const OrderDetailTableCompanion({
     this.idLocal = const Value.absent(),
     this.id = const Value.absent(),
     this.branchId = const Value.absent(),
-    this.count = const Value.absent(),
     this.discountRate = const Value.absent(),
     this.discountAmount = const Value.absent(),
     this.unit = const Value.absent(),
     this.note = const Value.absent(),
     this.taxRate = const Value.absent(),
-    this.price = const Value.absent(),
     this.taxAmount = const Value.absent(),
     this.quantity = const Value.absent(),
     this.subTotal = const Value.absent(),
     this.orderId = const Value.absent(),
+    this.stockId = const Value.absent(),
     this.variationId = const Value.absent(),
     this.variantName = const Value.absent(),
+    this.productName = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
-  OrderDetailCompanion.insert({
+  OrderDetailTableCompanion.insert({
     this.idLocal = const Value.absent(),
     @required String id,
     @required String branchId,
-    @required int count,
     @required int discountRate,
     @required int discountAmount,
     @required String unit,
     @required String note,
     @required int taxRate,
-    @required double price,
     @required double taxAmount,
     @required double quantity,
     @required double subTotal,
     @required String orderId,
+    @required String stockId,
     @required String variationId,
     @required String variantName,
+    @required String productName,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   })  : id = Value(id),
         branchId = Value(branchId),
-        count = Value(count),
         discountRate = Value(discountRate),
         discountAmount = Value(discountAmount),
         unit = Value(unit),
         note = Value(note),
         taxRate = Value(taxRate),
-        price = Value(price),
         taxAmount = Value(taxAmount),
         quantity = Value(quantity),
         subTotal = Value(subTotal),
         orderId = Value(orderId),
+        stockId = Value(stockId),
         variationId = Value(variationId),
-        variantName = Value(variantName);
-  OrderDetailCompanion copyWith(
+        variantName = Value(variantName),
+        productName = Value(productName);
+  OrderDetailTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
       Value<String> branchId,
-      Value<int> count,
       Value<int> discountRate,
       Value<int> discountAmount,
       Value<String> unit,
       Value<String> note,
       Value<int> taxRate,
-      Value<double> price,
       Value<double> taxAmount,
       Value<double> quantity,
       Value<double> subTotal,
       Value<String> orderId,
+      Value<String> stockId,
       Value<String> variationId,
       Value<String> variantName,
+      Value<String> productName,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt}) {
-    return OrderDetailCompanion(
+    return OrderDetailTableCompanion(
       idLocal: idLocal ?? this.idLocal,
       id: id ?? this.id,
       branchId: branchId ?? this.branchId,
-      count: count ?? this.count,
       discountRate: discountRate ?? this.discountRate,
       discountAmount: discountAmount ?? this.discountAmount,
       unit: unit ?? this.unit,
       note: note ?? this.note,
       taxRate: taxRate ?? this.taxRate,
-      price: price ?? this.price,
       taxAmount: taxAmount ?? this.taxAmount,
       quantity: quantity ?? this.quantity,
       subTotal: subTotal ?? this.subTotal,
       orderId: orderId ?? this.orderId,
+      stockId: stockId ?? this.stockId,
       variationId: variationId ?? this.variationId,
       variantName: variantName ?? this.variantName,
+      productName: productName ?? this.productName,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
 
-class $OrderDetailTable extends OrderDetail
-    with TableInfo<$OrderDetailTable, OrderDetailData> {
+class $OrderDetailTableTable extends OrderDetailTable
+    with TableInfo<$OrderDetailTableTable, OrderDetailTableData> {
   final GeneratedDatabase _db;
   final String _alias;
-  $OrderDetailTable(this._db, [this._alias]);
+  $OrderDetailTableTable(this._db, [this._alias]);
   final VerificationMeta _idLocalMeta = const VerificationMeta('idLocal');
   GeneratedIntColumn _idLocal;
   @override
@@ -5900,18 +5904,6 @@ class $OrderDetailTable extends OrderDetail
   GeneratedTextColumn _constructBranchId() {
     return GeneratedTextColumn(
       'branch_id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _countMeta = const VerificationMeta('count');
-  GeneratedIntColumn _count;
-  @override
-  GeneratedIntColumn get count => _count ??= _constructCount();
-  GeneratedIntColumn _constructCount() {
-    return GeneratedIntColumn(
-      'count',
       $tableName,
       false,
     );
@@ -5981,18 +5973,6 @@ class $OrderDetailTable extends OrderDetail
     );
   }
 
-  final VerificationMeta _priceMeta = const VerificationMeta('price');
-  GeneratedRealColumn _price;
-  @override
-  GeneratedRealColumn get price => _price ??= _constructPrice();
-  GeneratedRealColumn _constructPrice() {
-    return GeneratedRealColumn(
-      'price',
-      $tableName,
-      false,
-    );
-  }
-
   final VerificationMeta _taxAmountMeta = const VerificationMeta('taxAmount');
   GeneratedRealColumn _taxAmount;
   @override
@@ -6041,6 +6021,18 @@ class $OrderDetailTable extends OrderDetail
     );
   }
 
+  final VerificationMeta _stockIdMeta = const VerificationMeta('stockId');
+  GeneratedTextColumn _stockId;
+  @override
+  GeneratedTextColumn get stockId => _stockId ??= _constructStockId();
+  GeneratedTextColumn _constructStockId() {
+    return GeneratedTextColumn(
+      'stock_id',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _variationIdMeta =
       const VerificationMeta('variationId');
   GeneratedTextColumn _variationId;
@@ -6064,6 +6056,20 @@ class $OrderDetailTable extends OrderDetail
   GeneratedTextColumn _constructVariantName() {
     return GeneratedTextColumn(
       'variant_name',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _productNameMeta =
+      const VerificationMeta('productName');
+  GeneratedTextColumn _productName;
+  @override
+  GeneratedTextColumn get productName =>
+      _productName ??= _constructProductName();
+  GeneratedTextColumn _constructProductName() {
+    return GeneratedTextColumn(
+      'product_name',
       $tableName,
       false,
     );
@@ -6095,30 +6101,30 @@ class $OrderDetailTable extends OrderDetail
         idLocal,
         id,
         branchId,
-        count,
         discountRate,
         discountAmount,
         unit,
         note,
         taxRate,
-        price,
         taxAmount,
         quantity,
         subTotal,
         orderId,
+        stockId,
         variationId,
         variantName,
+        productName,
         createdAt,
         updatedAt
       ];
   @override
-  $OrderDetailTable get asDslTable => this;
+  $OrderDetailTableTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'order_detail';
+  String get $tableName => _alias ?? 'order_detail_table';
   @override
-  final String actualTableName = 'order_detail';
+  final String actualTableName = 'order_detail_table';
   @override
-  VerificationContext validateIntegrity(OrderDetailCompanion d,
+  VerificationContext validateIntegrity(OrderDetailTableCompanion d,
       {bool isInserting = false}) {
     final context = VerificationContext();
     if (d.idLocal.present) {
@@ -6135,12 +6141,6 @@ class $OrderDetailTable extends OrderDetail
           branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
-    }
-    if (d.count.present) {
-      context.handle(
-          _countMeta, count.isAcceptableValue(d.count.value, _countMeta));
-    } else if (isInserting) {
-      context.missing(_countMeta);
     }
     if (d.discountRate.present) {
       context.handle(
@@ -6176,12 +6176,6 @@ class $OrderDetailTable extends OrderDetail
     } else if (isInserting) {
       context.missing(_taxRateMeta);
     }
-    if (d.price.present) {
-      context.handle(
-          _priceMeta, price.isAcceptableValue(d.price.value, _priceMeta));
-    } else if (isInserting) {
-      context.missing(_priceMeta);
-    }
     if (d.taxAmount.present) {
       context.handle(_taxAmountMeta,
           taxAmount.isAcceptableValue(d.taxAmount.value, _taxAmountMeta));
@@ -6206,6 +6200,12 @@ class $OrderDetailTable extends OrderDetail
     } else if (isInserting) {
       context.missing(_orderIdMeta);
     }
+    if (d.stockId.present) {
+      context.handle(_stockIdMeta,
+          stockId.isAcceptableValue(d.stockId.value, _stockIdMeta));
+    } else if (isInserting) {
+      context.missing(_stockIdMeta);
+    }
     if (d.variationId.present) {
       context.handle(_variationIdMeta,
           variationId.isAcceptableValue(d.variationId.value, _variationIdMeta));
@@ -6217,6 +6217,12 @@ class $OrderDetailTable extends OrderDetail
           variantName.isAcceptableValue(d.variantName.value, _variantNameMeta));
     } else if (isInserting) {
       context.missing(_variantNameMeta);
+    }
+    if (d.productName.present) {
+      context.handle(_productNameMeta,
+          productName.isAcceptableValue(d.productName.value, _productNameMeta));
+    } else if (isInserting) {
+      context.missing(_productNameMeta);
     }
     if (d.createdAt.present) {
       context.handle(_createdAtMeta,
@@ -6232,13 +6238,13 @@ class $OrderDetailTable extends OrderDetail
   @override
   Set<GeneratedColumn> get $primaryKey => {idLocal};
   @override
-  OrderDetailData map(Map<String, dynamic> data, {String tablePrefix}) {
+  OrderDetailTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
-    return OrderDetailData.fromData(data, _db, prefix: effectivePrefix);
+    return OrderDetailTableData.fromData(data, _db, prefix: effectivePrefix);
   }
 
   @override
-  Map<String, Variable> entityToSql(OrderDetailCompanion d) {
+  Map<String, Variable> entityToSql(OrderDetailTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
       map['id_local'] = Variable<int, IntType>(d.idLocal.value);
@@ -6248,9 +6254,6 @@ class $OrderDetailTable extends OrderDetail
     }
     if (d.branchId.present) {
       map['branch_id'] = Variable<String, StringType>(d.branchId.value);
-    }
-    if (d.count.present) {
-      map['count'] = Variable<int, IntType>(d.count.value);
     }
     if (d.discountRate.present) {
       map['discount_rate'] = Variable<int, IntType>(d.discountRate.value);
@@ -6267,9 +6270,6 @@ class $OrderDetailTable extends OrderDetail
     if (d.taxRate.present) {
       map['tax_rate'] = Variable<int, IntType>(d.taxRate.value);
     }
-    if (d.price.present) {
-      map['price'] = Variable<double, RealType>(d.price.value);
-    }
     if (d.taxAmount.present) {
       map['tax_amount'] = Variable<double, RealType>(d.taxAmount.value);
     }
@@ -6282,11 +6282,17 @@ class $OrderDetailTable extends OrderDetail
     if (d.orderId.present) {
       map['order_id'] = Variable<String, StringType>(d.orderId.value);
     }
+    if (d.stockId.present) {
+      map['stock_id'] = Variable<String, StringType>(d.stockId.value);
+    }
     if (d.variationId.present) {
       map['variation_id'] = Variable<String, StringType>(d.variationId.value);
     }
     if (d.variantName.present) {
       map['variant_name'] = Variable<String, StringType>(d.variantName.value);
+    }
+    if (d.productName.present) {
+      map['product_name'] = Variable<String, StringType>(d.productName.value);
     }
     if (d.createdAt.present) {
       map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
@@ -6298,8 +6304,8 @@ class $OrderDetailTable extends OrderDetail
   }
 
   @override
-  $OrderDetailTable createAlias(String alias) {
-    return $OrderDetailTable(_db, alias);
+  $OrderDetailTableTable createAlias(String alias) {
+    return $OrderDetailTableTable(_db, alias);
   }
 }
 
@@ -9133,8 +9139,9 @@ abstract class _$Database extends GeneratedDatabase {
   $StockHistoryTableTable _stockHistoryTable;
   $StockHistoryTableTable get stockHistoryTable =>
       _stockHistoryTable ??= $StockHistoryTableTable(this);
-  $OrderDetailTable _orderDetail;
-  $OrderDetailTable get orderDetail => _orderDetail ??= $OrderDetailTable(this);
+  $OrderDetailTableTable _orderDetailTable;
+  $OrderDetailTableTable get orderDetailTable =>
+      _orderDetailTable ??= $OrderDetailTableTable(this);
   $OrderTableTable _orderTable;
   $OrderTableTable get orderTable => _orderTable ??= $OrderTableTable(this);
   $ColorTableTable _colorTable;
@@ -9176,8 +9183,9 @@ abstract class _$Database extends GeneratedDatabase {
       _stockHistoryDao ??= StockHistoryDao(this as Database);
   StockDao _stockDao;
   StockDao get stockDao => _stockDao ??= StockDao(this as Database);
-  CartDao _cartDao;
-  CartDao get cartDao => _cartDao ??= CartDao(this as Database);
+  OrderDetailDao _orderDetailDao;
+  OrderDetailDao get orderDetailDao =>
+      _orderDetailDao ??= OrderDetailDao(this as Database);
   OrderDao _orderDao;
   OrderDao get orderDao => _orderDao ??= OrderDao(this as Database);
   ColorDao _colorDao;
@@ -9210,7 +9218,7 @@ abstract class _$Database extends GeneratedDatabase {
         variationTable,
         stockTable,
         stockHistoryTable,
-        orderDetail,
+        orderDetailTable,
         orderTable,
         colorTable,
         actionsTable,

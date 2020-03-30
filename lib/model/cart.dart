@@ -7,7 +7,7 @@ abstract class Cart implements Built<Cart, CartBuilder> {
 
   String get id;
 
-  int get count;
+  int get quantity;
 
   String get variationId;
 

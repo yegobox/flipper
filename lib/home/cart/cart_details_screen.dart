@@ -50,7 +50,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
     for (var i = 0; i < carts.length; i++) {
       list.add(ListTile(
         title: Text(
-          carts[i].parentName + " × " + carts[i].count.toString(),
+          carts[i].parentName + " × " + carts[i].quantity.toString(),
           style: TextStyle(color: Colors.black),
         ),
         subtitle: Padding(
@@ -66,9 +66,9 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
                 if (snapshot.data == null) {
                   return Text("");
                 }
-                return Text(
-                    (snapshot.data[0].retailPrice * carts[i].count).toString() +
-                        " RWF");
+                return Text((snapshot.data[0].retailPrice * carts[i].quantity)
+                        .toString() +
+                    " RWF");
               }),
         ),
       ));
@@ -92,7 +92,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
     for (var i = 0; i < carts.length; i++) {
       final data = await store.state.database.stockDao.getStockByVariantId(
           variantId: carts[i].variationId, branchId: store.state.branch.id);
-      total += (data.retailPrice.toInt() * carts[i].count).toInt();
+      total += (data.retailPrice.toInt() * carts[i].quantity).toInt();
     }
     setState(() {
       _total = total;

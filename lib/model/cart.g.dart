@@ -12,7 +12,7 @@ class _$Cart extends Cart {
   @override
   final String id;
   @override
-  final int count;
+  final int quantity;
   @override
   final String variationId;
   @override
@@ -30,7 +30,7 @@ class _$Cart extends Cart {
   _$Cart._(
       {this.parentName,
       this.id,
-      this.count,
+      this.quantity,
       this.variationId,
       this.createdAt,
       this.updatedAt,
@@ -43,8 +43,8 @@ class _$Cart extends Cart {
     if (id == null) {
       throw new BuiltValueNullFieldError('Cart', 'id');
     }
-    if (count == null) {
-      throw new BuiltValueNullFieldError('Cart', 'count');
+    if (quantity == null) {
+      throw new BuiltValueNullFieldError('Cart', 'quantity');
     }
     if (variationId == null) {
       throw new BuiltValueNullFieldError('Cart', 'variationId');
@@ -70,7 +70,7 @@ class _$Cart extends Cart {
     return other is Cart &&
         parentName == other.parentName &&
         id == other.id &&
-        count == other.count &&
+        quantity == other.quantity &&
         variationId == other.variationId &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
@@ -86,7 +86,7 @@ class _$Cart extends Cart {
                 $jc(
                     $jc(
                         $jc($jc($jc(0, parentName.hashCode), id.hashCode),
-                            count.hashCode),
+                            quantity.hashCode),
                         variationId.hashCode),
                     createdAt.hashCode),
                 updatedAt.hashCode),
@@ -99,7 +99,7 @@ class _$Cart extends Cart {
     return (newBuiltValueToStringHelper('Cart')
           ..add('parentName', parentName)
           ..add('id', id)
-          ..add('count', count)
+          ..add('quantity', quantity)
           ..add('variationId', variationId)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
@@ -120,9 +120,9 @@ class CartBuilder implements Builder<Cart, CartBuilder> {
   String get id => _$this._id;
   set id(String id) => _$this._id = id;
 
-  int _count;
-  int get count => _$this._count;
-  set count(int count) => _$this._count = count;
+  int _quantity;
+  int get quantity => _$this._quantity;
+  set quantity(int quantity) => _$this._quantity = quantity;
 
   String _variationId;
   String get variationId => _$this._variationId;
@@ -151,7 +151,7 @@ class CartBuilder implements Builder<Cart, CartBuilder> {
     if (_$v != null) {
       _parentName = _$v.parentName;
       _id = _$v.id;
-      _count = _$v.count;
+      _quantity = _$v.quantity;
       _variationId = _$v.variationId;
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
@@ -181,7 +181,7 @@ class CartBuilder implements Builder<Cart, CartBuilder> {
         new _$Cart._(
             parentName: parentName,
             id: id,
-            count: count,
+            quantity: quantity,
             variationId: variationId,
             createdAt: createdAt,
             updatedAt: updatedAt,

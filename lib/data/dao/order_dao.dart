@@ -1,10 +1,10 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/data/order_detail_table.dart';
+import 'package:flipper/data/order_table.dart';
 import 'package:moor/moor.dart';
 
 part 'order_dao.g.dart';
 
-@UseDao(tables: [OrderDetail])
+@UseDao(tables: [OrderTable])
 class OrderDao extends DatabaseAccessor<Database> with _$OrderDaoMixin {
   final Database db;
 

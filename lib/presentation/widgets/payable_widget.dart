@@ -35,8 +35,9 @@ class _PayableWidgetState extends State<PayableWidget> {
           color: HexColor(FlipperColors.blue),
           child: StreamBuilder(
             //always take the current order Id which should always be an a draft order.
-            stream: vm.database.cartDao.getCartsStream(vm.order.id.toString()),
-            builder: (context, AsyncSnapshot<List<OrderDetailData>> cart) {
+            stream: vm.database.orderDetailDao
+                .getCartsStream(vm.order.id.toString()),
+            builder: (context, AsyncSnapshot<List<OrderDetailTableData>> cart) {
               int cashReceived = 0;
               if (cart.data != null) {
                 cashReceived = _total;
@@ -93,24 +94,24 @@ class _PayableWidgetState extends State<PayableWidget> {
     );
   }
 
-  void _getPayable(List<OrderDetailData> carts, context) async {
+  void _getPayable(List<OrderDetailTableData> carts, context) async {
     final store = StoreProvider.of<AppState>(context);
     int total = 0;
     for (var i = 0; i < carts.length; i++) {
       final stock = await store.state.database.stockDao.getStockByVariantId(
           variantId: carts[i].variationId, branchId: store.state.branch.id);
 
-      total += (stock.retailPrice.toInt() * carts[i].count).toInt();
+      total += (stock.retailPrice.toInt() * carts[i].quantity).toInt();
     }
     _total = total;
   }
 
   void _getOrderCart() async {
     final orderId = StoreProvider.of<AppState>(context).state.order.id;
-    List<OrderDetailData> carts = await StoreProvider.of<AppState>(context)
+    List<OrderDetailTableData> carts = await StoreProvider.of<AppState>(context)
         .state
         .database
-        .cartDao
+        .orderDetailDao
         .getCarts(orderId.toString());
 
     _getPayable(carts, context);

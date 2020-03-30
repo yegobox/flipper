@@ -147,8 +147,8 @@ class GeneralRepository {
     return store.state.database.variationDao.getItemVariations(productId);
   }
 
-  Stream<List<OrderDetailData>> getCarts(Store<AppState> store) {
-    return store.state.database.cartDao
+  Stream<List<OrderDetailTableData>> getCarts(Store<AppState> store) {
+    return store.state.database.orderDetailDao
         .getCartsStream(store.state.order.id.toString());
   }
 
@@ -175,17 +175,18 @@ class GeneralRepository {
   }
 
   Future<bool> insertOrUpdateCart(
-      Store<AppState> store, OrderDetailData data) async {
-    OrderDetailData existingCart = await store.state.database.cartDao
+      Store<AppState> store, OrderDetailTableData data) async {
+    OrderDetailTableData existingCart = await store
+        .state.database.orderDetailDao
         .getExistingCartItem(data.variationId);
     if (existingCart == null) {
-      store.state.database.cartDao.insert(
+      store.state.database.orderDetailDao.insert(
         data.copyWith(
           quantity: store.state.currentIncrement.toDouble(),
           subTotal: data.subTotal, //ask ganza what is a subtotal
           id: data.id,
           taxAmount: data.taxAmount, //get current active tax rate * amount /100
-          price: data.price, //get it we can have it from this item
+
           taxRate: data.taxRate, //get the current active tax rate
           unit: data.unit, //get unit of this item sold should hav it.
           note: data.note, //keep it lik this.
@@ -196,7 +197,7 @@ class GeneralRepository {
       );
       return true;
     } else {
-      store.state.database.cartDao.updateCart(
+      store.state.database.orderDetailDao.updateCart(
         data.copyWith(
           id: existingCart.id,
           idLocal: existingCart.idLocal,

@@ -10,10 +10,10 @@ import 'package:flipper/data/color_table.dart';
 import 'package:flipper/data/dao/actions_dao.dart';
 import 'package:flipper/data/dao/branch_dao.dart';
 import 'package:flipper/data/dao/business_dao.dart';
-import 'package:flipper/data/dao/cart_dao.dart';
 import 'package:flipper/data/dao/category_dao.dart';
 import 'package:flipper/data/dao/color_dao.dart';
 import 'package:flipper/data/dao/history_dao.dart';
+import 'package:flipper/data/dao/order_detail_dao.dart';
 import 'package:flipper/data/dao/product_dao.dart';
 import 'package:flipper/data/dao/order_dao.dart';
 import 'package:flipper/data/dao/product_image_dao.dart';
@@ -73,7 +73,7 @@ LazyDatabase _openConnection() {
   VariationTable,
   StockTable,
   StockHistoryTable,
-  OrderDetail,
+  OrderDetailTable,
   OrderTable,
   ColorTable,
   ActionsTable,
@@ -93,9 +93,8 @@ LazyDatabase _openConnection() {
   ProductDao,
   StockHistoryDao,
   StockDao,
-  CartDao,
+  OrderDetailDao,
   OrderDao,
-  //TODO(richard): create orderDetailDao.
   ColorDao,
   ActionsDao,
   TaxDao,
