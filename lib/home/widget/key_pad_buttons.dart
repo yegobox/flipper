@@ -9,7 +9,6 @@ import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class KeyPadButtons extends StatefulWidget {
   KeyPadButtons({Key key}) : super(key: key);
@@ -98,8 +97,7 @@ class SingleKey extends StatelessWidget {
             );
             Product cartItem = Product(
               (b) => b
-                ..id = variants[0]
-                    .id //we expect that this product should have 1 default variant to use while selling.
+                ..id = variants[0].id
                 ..name = vm.tmpItem.name
                 ..categoryId = vm.tmpItem.categoryId
                 ..unit = 'custom',

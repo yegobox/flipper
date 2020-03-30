@@ -977,6 +977,8 @@ class CouchBase extends Model with Fluttercouch {
         await syncProductsLRemote(store);
         await syncStockLRemote(store);
         await syncBranchProductLRemote(store);
+        await syncOrderDetailLRemote(store);
+        await syncOrdersLRemote(store);
     }
   }
 
@@ -1127,14 +1129,103 @@ class CouchBase extends Model with Fluttercouch {
   }
 
   Future syncOrderLRemote(Store<AppState> store) async {
+    await syncOrderDetailLRemote(store);
+    await syncOrdersLRemote(store);
+    //sync stock too.
+    await syncStockLRemote(store);
+  }
+
+  Future syncOrderDetailLRemote(Store<AppState> store) async {
+    List<OrderDetailTableData> orderDetails =
+        await store.state.database.orderDetailDao.getCarts();
+
+    Document orderDetail = await getDocumentWithId(
+        'orderDetails_' + store.state.userId.toString());
+
+    List mapOrderDetail = [];
+    for (var i = 0; i < orderDetails.length; i++) {
+      Map map = {
+        'id': orderDetails[i].id,
+        'branchId': orderDetails[i].branchId,
+        'discountRate': orderDetails[i].discountRate,
+        'discountAmount': orderDetails[i].discountAmount,
+        'note': orderDetails[i].note,
+        'taxRate': orderDetails[i].taxRate,
+        'taxAmount': orderDetails[i].taxAmount,
+        'quantity': orderDetails[i].quantity,
+        'subTotal': orderDetails[i].subTotal,
+        'orderId': orderDetails[i].orderId,
+        'stockId': orderDetails[i].stockId,
+        'variationId': orderDetails[i].variationId,
+        'variantName': orderDetails[i].variantName,
+        'productName': orderDetails[i].productName,
+        'unit': orderDetails[i].unit,
+        'createdAt': orderDetails[i].createdAt.toIso8601String(),
+        'updatedAt': orderDetails[i].updatedAt == null
+            ? DateTime.now().toIso8601String()
+            : orderDetails[i].updatedAt.toIso8601String(),
+      };
+      mapOrderDetail.add(map);
+    }
+
+    orderDetail
+        .toMutable()
+        .setList('orderDetails', mapOrderDetail)
+        // .setList('channels', [store.state.userId.toString()])
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'orderDetails_' + store.state.userId.toString());
+    await saveDocumentWithId(
+        'orderDetails_' + store.state.userId.toString(), orderDetail);
+  }
+
+  Future syncOrdersLRemote(Store<AppState> store) async {
     List<OrderTableData> orders =
         await store.state.database.orderDao.getOrders();
 
-    //TODO(richard): work in progress syncing this.
-    //get orderDetails
+    Document order =
+        await getDocumentWithId('orders_' + store.state.userId.toString());
 
-    //sync stock too.
-    await syncStockLRemote(store);
+    List mapOrders = [];
+    for (var i = 0; i < orders.length; i++) {
+      Map map = {
+        'id': orders[i].id,
+        'userId': orders[i].userId,
+        'branchId': orders[i].branchId,
+        'deviceId': orders[i].deviceId,
+        'currency': orders[i].currency,
+        'reference': orders[i].reference,
+        'orderNUmber': orders[i].orderNUmber,
+        'supplierId': orders[i].supplierId,
+        'subTotal': orders[i].subTotal,
+        'supplierInvoiceNumber': orders[i].supplierInvoiceNumber,
+        'deliverDate': orders[i].deliverDate,
+        'taxRate': orders[i].taxRate,
+        'taxAmount': orders[i].taxAmount,
+        'count': orders[i].count,
+        'variantName': orders[i].variantName,
+        'discountRate': orders[i].discountRate,
+        'discountAmount': orders[i].discountAmount,
+        'cashReceived': orders[i].cashReceived,
+        'saleTotal': orders[i].saleTotal,
+        'customerSaving': orders[i].customerSaving,
+        'paymentId': orders[i].paymentId,
+        'orderNote': orders[i].orderNote,
+        'isDraft': orders[i].isDraft,
+        'status': orders[i].status,
+        'orderType': orders[i].orderType,
+        'customerChangeDue': orders[i].customerChangeDue
+      };
+      mapOrders.add(map);
+    }
+
+    order
+        .toMutable()
+        .setList('orders', mapOrders)
+        // .setList('channels', [store.state.userId.toString()])
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'orders_' + store.state.userId.toString());
+
+    await saveDocumentWithId('orders_' + store.state.userId.toString(), order);
   }
 
   Future syncBusinessLRemote(Store<AppState> store) async {

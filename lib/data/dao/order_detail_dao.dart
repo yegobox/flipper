@@ -22,7 +22,9 @@ class OrderDetailDao extends DatabaseAccessor<Database>
         .watch();
   }
 
-  Future<List<OrderDetailTableData>> getCarts(String orderId) {
+  Future<List<OrderDetailTableData>> getCarts() =>
+      select(db.orderDetailTable).get();
+  Future<List<OrderDetailTableData>> getCart(String orderId) {
     return (select(db.orderDetailTable)
           ..orderBy(
               [(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])
