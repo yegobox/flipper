@@ -9,12 +9,14 @@ import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
+import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/report.dart';
 import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/user.dart';
@@ -122,6 +124,12 @@ abstract class CommonViewModel
   @nullable
   String get note;
 
+  @nullable
+  DateFilter get dateFilter;
+
+  @nullable
+  Report get report;
+
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
@@ -170,6 +178,8 @@ abstract class CommonViewModel
         ..tempCategoryId = store.state.tempCategoryId
         ..customItem = store.state.customItem?.toBuilder()
         ..couchDbClient = store.state.couchDbClient?.toBuilder()
+        ..dateFilter = store.state.dateFilter?.toBuilder()
+        ..report = store.state.report?.toBuilder()
         ..currentActiveSaleVariant =
             store.state.currentActiveSaleVariant?.toBuilder()
         ..total = store.state.total?.toBuilder()

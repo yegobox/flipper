@@ -1,7 +1,8 @@
 import 'package:moor/moor.dart';
 
 class BranchTable extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get idLocal => integer().autoIncrement()();
+  TextColumn get id => text()();
   TextColumn get name => text()();
   BoolColumn get isActive => boolean().withDefault(Constant(false))();
 

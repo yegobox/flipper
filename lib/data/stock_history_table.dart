@@ -9,7 +9,6 @@ class StockHistoryTable extends Table {
   TextColumn get id => text()();
 
   TextColumn get reason => text()();
-//  TextColumn get channel => text().nullable()();
 
   TextColumn get stockId => text()();
 

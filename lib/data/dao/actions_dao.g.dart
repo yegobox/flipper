@@ -7,5 +7,5 @@ part of 'actions_dao.dart';
 // **************************************************************************
 
 mixin _$ActionsDaoMixin on DatabaseAccessor<Database> {
-  $ActionsTableTable get actionsTable => db.actionsTable;
+  $ActionsTableTable get actionsTable => attachedDatabase.actionsTable;
 }

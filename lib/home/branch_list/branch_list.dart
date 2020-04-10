@@ -122,23 +122,23 @@ class _BranchListState extends State<BranchList> {
                 ),
                 dense: true,
               ),
-              ListTile(
-                leading: FlatButton(
-                  onPressed: () {
-                    Router.navigator.pushNamed(Router.transactionScreen);
-                  },
-                  child: Text(
-                    "Transactions",
-                    style: GoogleFonts.lato(
-                      fontStyle: FontStyle.normal,
-                      color: AppTheme.branchList.accentColor,
-                      fontSize:
-                          AppTheme.branchList.textTheme.bodyText1.fontSize,
-                    ),
-                  ),
-                ),
-                dense: true,
-              ),
+//              ListTile(
+//                leading: FlatButton(
+//                  onPressed: () {
+//                    Router.navigator.pushNamed(Router.transactionScreen);
+//                  },
+//                  child: Text(
+//                    "Transactions",
+//                    style: GoogleFonts.lato(
+//                      fontStyle: FontStyle.normal,
+//                      color: AppTheme.branchList.accentColor,
+//                      fontSize:
+//                          AppTheme.branchList.textTheme.bodyText1.fontSize,
+//                    ),
+//                  ),
+//                ),
+//                dense: true,
+//              ),
               SizedBox(
                 height: 425,
               ),

@@ -1,10 +1,10 @@
+import 'dart:io' as Io;
 import 'dart:io';
 
 import 'package:flipper/data/actions_table.dart';
 import 'package:flipper/data/branch.dart';
 import 'package:flipper/data/business.dart';
 import 'package:flipper/data/business_user.dart';
-
 import 'package:flipper/data/category_table.dart';
 import 'package:flipper/data/color_table.dart';
 import 'package:flipper/data/dao/actions_dao.dart';
@@ -13,9 +13,9 @@ import 'package:flipper/data/dao/business_dao.dart';
 import 'package:flipper/data/dao/category_dao.dart';
 import 'package:flipper/data/dao/color_dao.dart';
 import 'package:flipper/data/dao/history_dao.dart';
+import 'package:flipper/data/dao/order_dao.dart';
 import 'package:flipper/data/dao/order_detail_dao.dart';
 import 'package:flipper/data/dao/product_dao.dart';
-import 'package:flipper/data/dao/order_dao.dart';
 import 'package:flipper/data/dao/product_image_dao.dart';
 import 'package:flipper/data/dao/products/branch_product_dao.dart';
 import 'package:flipper/data/dao/reason_dao.dart';
@@ -38,6 +38,7 @@ import 'package:flipper/data/token.dart';
 import 'package:flipper/data/unit_table.dart';
 import 'package:flipper/data/user.dart';
 import 'package:flipper/data/variation_table.dart';
+import 'package:flipper/listeners/table_listeners.dart';
 import 'package:moor/moor.dart';
 import 'package:moor_ffi/moor_ffi.dart';
 import 'package:path/path.dart' as p;
@@ -53,13 +54,25 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     // put the database file, called db.sqlite here, into the documents folder
     // for your app.
+
     final dbFolder = await getApplicationDocumentsDirectory();
 
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
+    //development codes: todo: comment this code in production
+    var dir = await getExternalStorageDirectory();
+    var testdir = await new Io.Directory('${dir.path}/database-development')
+        .create(recursive: true);
+
+//    print(testdir);
+
+    final file = File(p.join(testdir.path, 'db.sqlite'));
+    //done development code : todo: end of code to be commented
+
+//    final file = File(p.join(dbFolder.path, 'db.sqlite')); //todo: uncomment this code in production.
     return VmDatabase(file);
   });
 }
 
+//'/storage/emulated/0/Android/data/rw.flipper/files/database-development'
 @UseMoor(tables: [
   UserTable,
   BusinessTable,
@@ -100,7 +113,8 @@ LazyDatabase _openConnection() {
   TaxDao,
   ReasonDao,
   BranchProductDao,
-  ProductImageDao
+  ProductImageDao,
+  Listner
 ])
 class Database extends _$Database {
   Database() : super(_openConnection());

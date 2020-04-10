@@ -7,5 +7,5 @@ part of 'category_dao.dart';
 // **************************************************************************
 
 mixin _$CategoryDaoMixin on DatabaseAccessor<Database> {
-  $BranchTableTable get branchTable => db.branchTable;
+  $BranchTableTable get branchTable => attachedDatabase.branchTable;
 }

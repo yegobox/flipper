@@ -15,6 +15,11 @@ class DateScreen extends StatefulWidget {
 class _DateScreenState extends State<DateScreen> with TickerProviderStateMixin {
   int _selectedTab;
 
+  DateTime startOfPeriod;
+  DateTime endOfPeriod;
+  DateTime firstDate;
+  DateTime lastDate;
+
   final List<Widget> datePickers = <Widget>[
     RangePickerPage(
       events: events,
@@ -26,6 +31,11 @@ class _DateScreenState extends State<DateScreen> with TickerProviderStateMixin {
     super.initState();
 
     _selectedTab = 0;
+    startOfPeriod = firstDate;
+    endOfPeriod = lastDate;
+
+    print(startOfPeriod);
+    print(endOfPeriod);
   }
 
   @override
@@ -49,10 +59,4 @@ class _DateScreenState extends State<DateScreen> with TickerProviderStateMixin {
 
 final List<Event> events = [
   Event(DateTime.now(), "Today event"),
-  Event(DateTime.now().subtract(Duration(days: 3)), "Ev1"),
-  Event(DateTime.now().subtract(Duration(days: 13)), "Ev2"),
-  Event(DateTime.now().subtract(Duration(days: 30)), "Ev3"),
-  Event(DateTime.now().add(Duration(days: 3)), "Ev4"),
-  Event(DateTime.now().add(Duration(days: 13)), "Ev5"),
-  Event(DateTime.now().add(Duration(days: 30)), "Ev6"),
 ];

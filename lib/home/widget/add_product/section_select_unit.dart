@@ -38,8 +38,8 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
             child: GestureDetector(
               onTap: () {
                 Router.navigator.pushNamed(Router.addUnitType,
-                    arguments:
-                        AddUnitTypeScreenArguments(productId: vm.tmpItem.id));
+                    arguments: AddUnitTypeScreenArguments(
+                        productId: vm.tmpItem.productId));
               },
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),

@@ -7,6 +7,6 @@ part of 'product_dao.dart';
 // **************************************************************************
 
 mixin _$ProductDaoMixin on DatabaseAccessor<Database> {
-  $ProductTableTable get productTable => db.productTable;
-  $VariationTableTable get variationTable => db.variationTable;
+  $ProductTableTable get productTable => attachedDatabase.productTable;
+  $VariationTableTable get variationTable => attachedDatabase.variationTable;
 }

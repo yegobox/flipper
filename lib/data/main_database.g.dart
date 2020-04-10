@@ -371,28 +371,28 @@ class $UserTableTable extends UserTable
   Map<String, Variable> entityToSql(UserTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.userId.present) {
-      map['user_id'] = Variable<int, IntType>(d.userId.value);
+      map['user_id'] = Variable<int>(d.userId.value);
     }
     if (d.username.present) {
-      map['username'] = Variable<String, StringType>(d.username.value);
+      map['username'] = Variable<String>(d.username.value);
     }
     if (d.token.present) {
-      map['token'] = Variable<String, StringType>(d.token.value);
+      map['token'] = Variable<String>(d.token.value);
     }
     if (d.email.present) {
-      map['email'] = Variable<String, StringType>(d.email.value);
+      map['email'] = Variable<String>(d.email.value);
     }
     if (d.avatar.present) {
-      map['avatar'] = Variable<String, StringType>(d.avatar.value);
+      map['avatar'] = Variable<String>(d.avatar.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -1042,49 +1042,49 @@ class $BusinessTableTable extends BusinessTable
   Map<String, Variable> entityToSql(BusinessTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.active.present) {
-      map['active'] = Variable<bool, BoolType>(d.active.value);
+      map['active'] = Variable<bool>(d.active.value);
     }
     if (d.userId.present) {
-      map['user_id'] = Variable<String, StringType>(d.userId.value);
+      map['user_id'] = Variable<String>(d.userId.value);
     }
     if (d.typeId.present) {
-      map['type_id'] = Variable<String, StringType>(d.typeId.value);
+      map['type_id'] = Variable<String>(d.typeId.value);
     }
     if (d.categoryId.present) {
-      map['category_id'] = Variable<String, StringType>(d.categoryId.value);
+      map['category_id'] = Variable<String>(d.categoryId.value);
     }
     if (d.country.present) {
-      map['country'] = Variable<String, StringType>(d.country.value);
+      map['country'] = Variable<String>(d.country.value);
     }
     if (d.currency.present) {
-      map['currency'] = Variable<String, StringType>(d.currency.value);
+      map['currency'] = Variable<String>(d.currency.value);
     }
     if (d.timeZone.present) {
-      map['time_zone'] = Variable<String, StringType>(d.timeZone.value);
+      map['time_zone'] = Variable<String>(d.timeZone.value);
     }
     if (d.longitude.present) {
-      map['longitude'] = Variable<double, RealType>(d.longitude.value);
+      map['longitude'] = Variable<double>(d.longitude.value);
     }
     if (d.latitude.present) {
-      map['latitude'] = Variable<double, RealType>(d.latitude.value);
+      map['latitude'] = Variable<double>(d.latitude.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -1096,7 +1096,8 @@ class $BusinessTableTable extends BusinessTable
 }
 
 class BranchTableData extends DataClass implements Insertable<BranchTableData> {
-  final int id;
+  final int idLocal;
+  final String id;
   final String name;
   final bool isActive;
   final String businessId;
@@ -1104,7 +1105,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   final DateTime updatedAt;
   final String deletedAt;
   BranchTableData(
-      {@required this.id,
+      {@required this.idLocal,
+      @required this.id,
       @required this.name,
       @required this.isActive,
       @required this.businessId,
@@ -1120,7 +1122,9 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
     final boolType = db.typeSystem.forDartType<bool>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return BranchTableData(
-      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      idLocal:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}id_local']),
+      id: stringType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       isActive:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
@@ -1138,7 +1142,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return BranchTableData(
-      id: serializer.fromJson<int>(json['id']),
+      idLocal: serializer.fromJson<int>(json['idLocal']),
+      id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       businessId: serializer.fromJson<String>(json['businessId']),
@@ -1151,7 +1156,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'idLocal': serializer.toJson<int>(idLocal),
+      'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'isActive': serializer.toJson<bool>(isActive),
       'businessId': serializer.toJson<String>(businessId),
@@ -1164,6 +1170,9 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   @override
   BranchTableCompanion createCompanion(bool nullToAbsent) {
     return BranchTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       isActive: isActive == null && nullToAbsent
@@ -1185,7 +1194,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   }
 
   BranchTableData copyWith(
-          {int id,
+          {int idLocal,
+          String id,
           String name,
           bool isActive,
           String businessId,
@@ -1193,6 +1203,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           DateTime updatedAt,
           String deletedAt}) =>
       BranchTableData(
+        idLocal: idLocal ?? this.idLocal,
         id: id ?? this.id,
         name: name ?? this.name,
         isActive: isActive ?? this.isActive,
@@ -1204,6 +1215,7 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
   @override
   String toString() {
     return (StringBuffer('BranchTableData(')
+          ..write('idLocal: $idLocal, ')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('isActive: $isActive, ')
@@ -1217,19 +1229,22 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
 
   @override
   int get hashCode => $mrjf($mrjc(
-      id.hashCode,
+      idLocal.hashCode,
       $mrjc(
-          name.hashCode,
+          id.hashCode,
           $mrjc(
-              isActive.hashCode,
+              name.hashCode,
               $mrjc(
-                  businessId.hashCode,
-                  $mrjc(createdAt.hashCode,
-                      $mrjc(updatedAt.hashCode, deletedAt.hashCode)))))));
+                  isActive.hashCode,
+                  $mrjc(
+                      businessId.hashCode,
+                      $mrjc(createdAt.hashCode,
+                          $mrjc(updatedAt.hashCode, deletedAt.hashCode))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is BranchTableData &&
+          other.idLocal == this.idLocal &&
           other.id == this.id &&
           other.name == this.name &&
           other.isActive == this.isActive &&
@@ -1240,7 +1255,8 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
 }
 
 class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
-  final Value<int> id;
+  final Value<int> idLocal;
+  final Value<String> id;
   final Value<String> name;
   final Value<bool> isActive;
   final Value<String> businessId;
@@ -1248,6 +1264,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
   final Value<DateTime> updatedAt;
   final Value<String> deletedAt;
   const BranchTableCompanion({
+    this.idLocal = const Value.absent(),
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -1257,17 +1274,20 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
     this.deletedAt = const Value.absent(),
   });
   BranchTableCompanion.insert({
-    this.id = const Value.absent(),
+    this.idLocal = const Value.absent(),
+    @required String id,
     @required String name,
     this.isActive = const Value.absent(),
     @required String businessId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
-  })  : name = Value(name),
+  })  : id = Value(id),
+        name = Value(name),
         businessId = Value(businessId);
   BranchTableCompanion copyWith(
-      {Value<int> id,
+      {Value<int> idLocal,
+      Value<String> id,
       Value<String> name,
       Value<bool> isActive,
       Value<String> businessId,
@@ -1275,6 +1295,7 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
       Value<DateTime> updatedAt,
       Value<String> deletedAt}) {
     return BranchTableCompanion(
+      idLocal: idLocal ?? this.idLocal,
       id: id ?? this.id,
       name: name ?? this.name,
       isActive: isActive ?? this.isActive,
@@ -1291,13 +1312,25 @@ class $BranchTableTable extends BranchTable
   final GeneratedDatabase _db;
   final String _alias;
   $BranchTableTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  GeneratedIntColumn _id;
+  final VerificationMeta _idLocalMeta = const VerificationMeta('idLocal');
+  GeneratedIntColumn _idLocal;
   @override
-  GeneratedIntColumn get id => _id ??= _constructId();
-  GeneratedIntColumn _constructId() {
-    return GeneratedIntColumn('id', $tableName, false,
+  GeneratedIntColumn get idLocal => _idLocal ??= _constructIdLocal();
+  GeneratedIntColumn _constructIdLocal() {
+    return GeneratedIntColumn('id_local', $tableName, false,
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedTextColumn _id;
+  @override
+  GeneratedTextColumn get id => _id ??= _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _nameMeta = const VerificationMeta('name');
@@ -1364,8 +1397,16 @@ class $BranchTableTable extends BranchTable
   }
 
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, name, isActive, businessId, createdAt, updatedAt, deletedAt];
+  List<GeneratedColumn> get $columns => [
+        idLocal,
+        id,
+        name,
+        isActive,
+        businessId,
+        createdAt,
+        updatedAt,
+        deletedAt
+      ];
   @override
   $BranchTableTable get asDslTable => this;
   @override
@@ -1376,8 +1417,14 @@ class $BranchTableTable extends BranchTable
   VerificationContext validateIntegrity(BranchTableCompanion d,
       {bool isInserting = false}) {
     final context = VerificationContext();
+    if (d.idLocal.present) {
+      context.handle(_idLocalMeta,
+          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+    }
     if (d.id.present) {
       context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (d.name.present) {
       context.handle(
@@ -1411,7 +1458,7 @@ class $BranchTableTable extends BranchTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {idLocal};
   @override
   BranchTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
@@ -1421,26 +1468,29 @@ class $BranchTableTable extends BranchTable
   @override
   Map<String, Variable> entityToSql(BranchTableCompanion d) {
     final map = <String, Variable>{};
+    if (d.idLocal.present) {
+      map['id_local'] = Variable<int>(d.idLocal.value);
+    }
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.isActive.present) {
-      map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
+      map['is_active'] = Variable<bool>(d.isActive.value);
     }
     if (d.businessId.present) {
-      map['business_id'] = Variable<String, StringType>(d.businessId.value);
+      map['business_id'] = Variable<String>(d.businessId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -1750,22 +1800,22 @@ class $UnitTableTable extends UnitTable
   Map<String, Variable> entityToSql(UnitTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.value.present) {
-      map['value'] = Variable<String, StringType>(d.value.value);
+      map['value'] = Variable<String>(d.value.value);
     }
     if (d.focused.present) {
-      map['focused'] = Variable<bool, BoolType>(d.focused.value);
+      map['focused'] = Variable<bool>(d.focused.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -2149,28 +2199,28 @@ class $CategoryTableTable extends CategoryTable
   Map<String, Variable> entityToSql(CategoryTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.focused.present) {
-      map['focused'] = Variable<bool, BoolType>(d.focused.value);
+      map['focused'] = Variable<bool>(d.focused.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
+      map['branch_id'] = Variable<String>(d.branchId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -2954,59 +3004,58 @@ class $ProductTableTable extends ProductTable
   Map<String, Variable> entityToSql(ProductTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.picture.present) {
-      map['picture'] = Variable<String, StringType>(d.picture.value);
+      map['picture'] = Variable<String>(d.picture.value);
     }
     if (d.active.present) {
-      map['active'] = Variable<bool, BoolType>(d.active.value);
+      map['active'] = Variable<bool>(d.active.value);
     }
     if (d.hasPicture.present) {
-      map['has_picture'] = Variable<bool, BoolType>(d.hasPicture.value);
+      map['has_picture'] = Variable<bool>(d.hasPicture.value);
     }
     if (d.isImageLocal.present) {
-      map['is_image_local'] = Variable<bool, BoolType>(d.isImageLocal.value);
+      map['is_image_local'] = Variable<bool>(d.isImageLocal.value);
     }
     if (d.isDraft.present) {
-      map['is_draft'] = Variable<bool, BoolType>(d.isDraft.value);
+      map['is_draft'] = Variable<bool>(d.isDraft.value);
     }
     if (d.isCurrentUpdate.present) {
-      map['is_current_update'] =
-          Variable<bool, BoolType>(d.isCurrentUpdate.value);
+      map['is_current_update'] = Variable<bool>(d.isCurrentUpdate.value);
     }
     if (d.description.present) {
-      map['description'] = Variable<String, StringType>(d.description.value);
+      map['description'] = Variable<String>(d.description.value);
     }
     if (d.color.present) {
-      map['color'] = Variable<String, StringType>(d.color.value);
+      map['color'] = Variable<String>(d.color.value);
     }
     if (d.businessId.present) {
-      map['business_id'] = Variable<String, StringType>(d.businessId.value);
+      map['business_id'] = Variable<String>(d.businessId.value);
     }
     if (d.supplierId.present) {
-      map['supplier_id'] = Variable<String, StringType>(d.supplierId.value);
+      map['supplier_id'] = Variable<String>(d.supplierId.value);
     }
     if (d.categoryId.present) {
-      map['category_id'] = Variable<String, StringType>(d.categoryId.value);
+      map['category_id'] = Variable<String>(d.categoryId.value);
     }
     if (d.taxId.present) {
-      map['tax_id'] = Variable<String, StringType>(d.taxId.value);
+      map['tax_id'] = Variable<String>(d.taxId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -3234,16 +3283,16 @@ class $TokenTableTable extends TokenTable
   Map<String, Variable> entityToSql(TokenTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.token.present) {
-      map['token'] = Variable<String, StringType>(d.token.value);
+      map['token'] = Variable<String>(d.token.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -3513,19 +3562,19 @@ class $BusinessUserTableTable extends BusinessUserTable
   Map<String, Variable> entityToSql(BusinessUserTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.userId.present) {
-      map['user_id'] = Variable<String, StringType>(d.userId.value);
+      map['user_id'] = Variable<String>(d.userId.value);
     }
     if (d.businessId.present) {
-      map['business_id'] = Variable<String, StringType>(d.businessId.value);
+      map['business_id'] = Variable<String>(d.businessId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -3743,16 +3792,16 @@ class $TabsTableTable extends TabsTable
   Map<String, Variable> entityToSql(TabsTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.tab.present) {
-      map['tab'] = Variable<int, IntType>(d.tab.value);
+      map['tab'] = Variable<int>(d.tab.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -4207,34 +4256,34 @@ class $VariationTableTable extends VariationTable
   Map<String, Variable> entityToSql(VariationTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.sku.present) {
-      map['sku'] = Variable<String, StringType>(d.sku.value);
+      map['sku'] = Variable<String>(d.sku.value);
     }
     if (d.unit.present) {
-      map['unit'] = Variable<String, StringType>(d.unit.value);
+      map['unit'] = Variable<String>(d.unit.value);
     }
     if (d.productId.present) {
-      map['product_id'] = Variable<String, StringType>(d.productId.value);
+      map['product_id'] = Variable<String>(d.productId.value);
     }
     if (d.isActive.present) {
-      map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
+      map['is_active'] = Variable<bool>(d.isActive.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -4252,6 +4301,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
   final int lowStock;
   final bool canTrackingStock;
   final bool showLowStockAlert;
+  final String action;
   final bool isActive;
   final double supplyPrice;
   final double retailPrice;
@@ -4268,6 +4318,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       this.lowStock,
       @required this.canTrackingStock,
       @required this.showLowStockAlert,
+      @required this.action,
       this.isActive,
       this.supplyPrice,
       this.retailPrice,
@@ -4298,6 +4349,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           data['${effectivePrefix}can_tracking_stock']),
       showLowStockAlert: boolType.mapFromDatabaseResponse(
           data['${effectivePrefix}show_low_stock_alert']),
+      action:
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}action']),
       isActive:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
       supplyPrice: doubleType
@@ -4328,6 +4381,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       lowStock: serializer.fromJson<int>(json['lowStock']),
       canTrackingStock: serializer.fromJson<bool>(json['canTrackingStock']),
       showLowStockAlert: serializer.fromJson<bool>(json['showLowStockAlert']),
+      action: serializer.fromJson<String>(json['action']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       supplyPrice: serializer.fromJson<double>(json['supplyPrice']),
       retailPrice: serializer.fromJson<double>(json['retailPrice']),
@@ -4349,6 +4403,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       'lowStock': serializer.toJson<int>(lowStock),
       'canTrackingStock': serializer.toJson<bool>(canTrackingStock),
       'showLowStockAlert': serializer.toJson<bool>(showLowStockAlert),
+      'action': serializer.toJson<String>(action),
       'isActive': serializer.toJson<bool>(isActive),
       'supplyPrice': serializer.toJson<double>(supplyPrice),
       'retailPrice': serializer.toJson<double>(retailPrice),
@@ -4380,6 +4435,8 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       showLowStockAlert: showLowStockAlert == null && nullToAbsent
           ? const Value.absent()
           : Value(showLowStockAlert),
+      action:
+          action == null && nullToAbsent ? const Value.absent() : Value(action),
       isActive: isActive == null && nullToAbsent
           ? const Value.absent()
           : Value(isActive),
@@ -4417,6 +4474,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           int lowStock,
           bool canTrackingStock,
           bool showLowStockAlert,
+          String action,
           bool isActive,
           double supplyPrice,
           double retailPrice,
@@ -4433,6 +4491,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
         lowStock: lowStock ?? this.lowStock,
         canTrackingStock: canTrackingStock ?? this.canTrackingStock,
         showLowStockAlert: showLowStockAlert ?? this.showLowStockAlert,
+        action: action ?? this.action,
         isActive: isActive ?? this.isActive,
         supplyPrice: supplyPrice ?? this.supplyPrice,
         retailPrice: retailPrice ?? this.retailPrice,
@@ -4452,6 +4511,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           ..write('lowStock: $lowStock, ')
           ..write('canTrackingStock: $canTrackingStock, ')
           ..write('showLowStockAlert: $showLowStockAlert, ')
+          ..write('action: $action, ')
           ..write('isActive: $isActive, ')
           ..write('supplyPrice: $supplyPrice, ')
           ..write('retailPrice: $retailPrice, ')
@@ -4479,23 +4539,26 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
                       $mrjc(
                           showLowStockAlert.hashCode,
                           $mrjc(
-                              isActive.hashCode,
+                              action.hashCode,
                               $mrjc(
-                                  supplyPrice.hashCode,
+                                  isActive.hashCode,
                                   $mrjc(
-                                      retailPrice.hashCode,
+                                      supplyPrice.hashCode,
                                       $mrjc(
-                                          variantId.hashCode,
+                                          retailPrice.hashCode,
                                           $mrjc(
-                                              branchId.hashCode,
+                                              variantId.hashCode,
                                               $mrjc(
-                                                  productId.hashCode,
+                                                  branchId.hashCode,
                                                   $mrjc(
-                                                      createdAt.hashCode,
+                                                      productId.hashCode,
                                                       $mrjc(
-                                                          updatedAt.hashCode,
-                                                          deletedAt
-                                                              .hashCode)))))))))))))));
+                                                          createdAt.hashCode,
+                                                          $mrjc(
+                                                              updatedAt
+                                                                  .hashCode,
+                                                              deletedAt
+                                                                  .hashCode))))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -4506,6 +4569,7 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           other.lowStock == this.lowStock &&
           other.canTrackingStock == this.canTrackingStock &&
           other.showLowStockAlert == this.showLowStockAlert &&
+          other.action == this.action &&
           other.isActive == this.isActive &&
           other.supplyPrice == this.supplyPrice &&
           other.retailPrice == this.retailPrice &&
@@ -4524,6 +4588,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
   final Value<int> lowStock;
   final Value<bool> canTrackingStock;
   final Value<bool> showLowStockAlert;
+  final Value<String> action;
   final Value<bool> isActive;
   final Value<double> supplyPrice;
   final Value<double> retailPrice;
@@ -4540,6 +4605,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
     this.lowStock = const Value.absent(),
     this.canTrackingStock = const Value.absent(),
     this.showLowStockAlert = const Value.absent(),
+    this.action = const Value.absent(),
     this.isActive = const Value.absent(),
     this.supplyPrice = const Value.absent(),
     this.retailPrice = const Value.absent(),
@@ -4557,6 +4623,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
     this.lowStock = const Value.absent(),
     this.canTrackingStock = const Value.absent(),
     this.showLowStockAlert = const Value.absent(),
+    this.action = const Value.absent(),
     this.isActive = const Value.absent(),
     this.supplyPrice = const Value.absent(),
     this.retailPrice = const Value.absent(),
@@ -4577,6 +4644,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
       Value<int> lowStock,
       Value<bool> canTrackingStock,
       Value<bool> showLowStockAlert,
+      Value<String> action,
       Value<bool> isActive,
       Value<double> supplyPrice,
       Value<double> retailPrice,
@@ -4593,6 +4661,7 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
       lowStock: lowStock ?? this.lowStock,
       canTrackingStock: canTrackingStock ?? this.canTrackingStock,
       showLowStockAlert: showLowStockAlert ?? this.showLowStockAlert,
+      action: action ?? this.action,
       isActive: isActive ?? this.isActive,
       supplyPrice: supplyPrice ?? this.supplyPrice,
       retailPrice: retailPrice ?? this.retailPrice,
@@ -4672,6 +4741,15 @@ class $StockTableTable extends StockTable
   GeneratedBoolColumn _constructShowLowStockAlert() {
     return GeneratedBoolColumn('show_low_stock_alert', $tableName, false,
         defaultValue: Constant(false));
+  }
+
+  final VerificationMeta _actionMeta = const VerificationMeta('action');
+  GeneratedTextColumn _action;
+  @override
+  GeneratedTextColumn get action => _action ??= _constructAction();
+  GeneratedTextColumn _constructAction() {
+    return GeneratedTextColumn('action', $tableName, false,
+        defaultValue: Constant('ADD'));
   }
 
   final VerificationMeta _isActiveMeta = const VerificationMeta('isActive');
@@ -4779,6 +4857,7 @@ class $StockTableTable extends StockTable
         lowStock,
         canTrackingStock,
         showLowStockAlert,
+        action,
         isActive,
         supplyPrice,
         retailPrice,
@@ -4829,6 +4908,10 @@ class $StockTableTable extends StockTable
           _showLowStockAlertMeta,
           showLowStockAlert.isAcceptableValue(
               d.showLowStockAlert.value, _showLowStockAlertMeta));
+    }
+    if (d.action.present) {
+      context.handle(
+          _actionMeta, action.isAcceptableValue(d.action.value, _actionMeta));
     }
     if (d.isActive.present) {
       context.handle(_isActiveMeta,
@@ -4887,51 +4970,52 @@ class $StockTableTable extends StockTable
   Map<String, Variable> entityToSql(StockTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.currentStock.present) {
-      map['current_stock'] = Variable<int, IntType>(d.currentStock.value);
+      map['current_stock'] = Variable<int>(d.currentStock.value);
     }
     if (d.lowStock.present) {
-      map['low_stock'] = Variable<int, IntType>(d.lowStock.value);
+      map['low_stock'] = Variable<int>(d.lowStock.value);
     }
     if (d.canTrackingStock.present) {
-      map['can_tracking_stock'] =
-          Variable<bool, BoolType>(d.canTrackingStock.value);
+      map['can_tracking_stock'] = Variable<bool>(d.canTrackingStock.value);
     }
     if (d.showLowStockAlert.present) {
-      map['show_low_stock_alert'] =
-          Variable<bool, BoolType>(d.showLowStockAlert.value);
+      map['show_low_stock_alert'] = Variable<bool>(d.showLowStockAlert.value);
+    }
+    if (d.action.present) {
+      map['action'] = Variable<String>(d.action.value);
     }
     if (d.isActive.present) {
-      map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
+      map['is_active'] = Variable<bool>(d.isActive.value);
     }
     if (d.supplyPrice.present) {
-      map['supply_price'] = Variable<double, RealType>(d.supplyPrice.value);
+      map['supply_price'] = Variable<double>(d.supplyPrice.value);
     }
     if (d.retailPrice.present) {
-      map['retail_price'] = Variable<double, RealType>(d.retailPrice.value);
+      map['retail_price'] = Variable<double>(d.retailPrice.value);
     }
     if (d.variantId.present) {
-      map['variant_id'] = Variable<String, StringType>(d.variantId.value);
+      map['variant_id'] = Variable<String>(d.variantId.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
+      map['branch_id'] = Variable<String>(d.branchId.value);
     }
     if (d.productId.present) {
-      map['product_id'] = Variable<String, StringType>(d.productId.value);
+      map['product_id'] = Variable<String>(d.productId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -5404,34 +5488,34 @@ class $StockHistoryTableTable extends StockHistoryTable
   Map<String, Variable> entityToSql(StockHistoryTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.quantity.present) {
-      map['quantity'] = Variable<int, IntType>(d.quantity.value);
+      map['quantity'] = Variable<int>(d.quantity.value);
     }
     if (d.note.present) {
-      map['note'] = Variable<String, StringType>(d.note.value);
+      map['note'] = Variable<String>(d.note.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.reason.present) {
-      map['reason'] = Variable<String, StringType>(d.reason.value);
+      map['reason'] = Variable<String>(d.reason.value);
     }
     if (d.stockId.present) {
-      map['stock_id'] = Variable<String, StringType>(d.stockId.value);
+      map['stock_id'] = Variable<String>(d.stockId.value);
     }
     if (d.variantId.present) {
-      map['variant_id'] = Variable<String, StringType>(d.variantId.value);
+      map['variant_id'] = Variable<String>(d.variantId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -6247,58 +6331,58 @@ class $OrderDetailTableTable extends OrderDetailTable
   Map<String, Variable> entityToSql(OrderDetailTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
+      map['branch_id'] = Variable<String>(d.branchId.value);
     }
     if (d.discountRate.present) {
-      map['discount_rate'] = Variable<int, IntType>(d.discountRate.value);
+      map['discount_rate'] = Variable<int>(d.discountRate.value);
     }
     if (d.discountAmount.present) {
-      map['discount_amount'] = Variable<int, IntType>(d.discountAmount.value);
+      map['discount_amount'] = Variable<int>(d.discountAmount.value);
     }
     if (d.unit.present) {
-      map['unit'] = Variable<String, StringType>(d.unit.value);
+      map['unit'] = Variable<String>(d.unit.value);
     }
     if (d.note.present) {
-      map['note'] = Variable<String, StringType>(d.note.value);
+      map['note'] = Variable<String>(d.note.value);
     }
     if (d.taxRate.present) {
-      map['tax_rate'] = Variable<int, IntType>(d.taxRate.value);
+      map['tax_rate'] = Variable<int>(d.taxRate.value);
     }
     if (d.taxAmount.present) {
-      map['tax_amount'] = Variable<double, RealType>(d.taxAmount.value);
+      map['tax_amount'] = Variable<double>(d.taxAmount.value);
     }
     if (d.quantity.present) {
-      map['quantity'] = Variable<double, RealType>(d.quantity.value);
+      map['quantity'] = Variable<double>(d.quantity.value);
     }
     if (d.subTotal.present) {
-      map['sub_total'] = Variable<double, RealType>(d.subTotal.value);
+      map['sub_total'] = Variable<double>(d.subTotal.value);
     }
     if (d.orderId.present) {
-      map['order_id'] = Variable<String, StringType>(d.orderId.value);
+      map['order_id'] = Variable<String>(d.orderId.value);
     }
     if (d.stockId.present) {
-      map['stock_id'] = Variable<String, StringType>(d.stockId.value);
+      map['stock_id'] = Variable<String>(d.stockId.value);
     }
     if (d.variationId.present) {
-      map['variation_id'] = Variable<String, StringType>(d.variationId.value);
+      map['variation_id'] = Variable<String>(d.variationId.value);
     }
     if (d.variantName.present) {
-      map['variant_name'] = Variable<String, StringType>(d.variantName.value);
+      map['variant_name'] = Variable<String>(d.variantName.value);
     }
     if (d.productName.present) {
-      map['product_name'] = Variable<String, StringType>(d.productName.value);
+      map['product_name'] = Variable<String>(d.productName.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -7443,91 +7527,89 @@ class $OrderTableTable extends OrderTable
   Map<String, Variable> entityToSql(OrderTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.userId.present) {
-      map['user_id'] = Variable<int, IntType>(d.userId.value);
+      map['user_id'] = Variable<int>(d.userId.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
+      map['branch_id'] = Variable<String>(d.branchId.value);
     }
     if (d.deviceId.present) {
-      map['device_id'] = Variable<String, StringType>(d.deviceId.value);
+      map['device_id'] = Variable<String>(d.deviceId.value);
     }
     if (d.currency.present) {
-      map['currency'] = Variable<String, StringType>(d.currency.value);
+      map['currency'] = Variable<String>(d.currency.value);
     }
     if (d.reference.present) {
-      map['reference'] = Variable<String, StringType>(d.reference.value);
+      map['reference'] = Variable<String>(d.reference.value);
     }
     if (d.orderNUmber.present) {
-      map['order_n_umber'] = Variable<int, IntType>(d.orderNUmber.value);
+      map['order_n_umber'] = Variable<int>(d.orderNUmber.value);
     }
     if (d.supplierId.present) {
-      map['supplier_id'] = Variable<int, IntType>(d.supplierId.value);
+      map['supplier_id'] = Variable<int>(d.supplierId.value);
     }
     if (d.subTotal.present) {
-      map['sub_total'] = Variable<int, IntType>(d.subTotal.value);
+      map['sub_total'] = Variable<int>(d.subTotal.value);
     }
     if (d.supplierInvoiceNumber.present) {
       map['supplier_invoice_number'] =
-          Variable<int, IntType>(d.supplierInvoiceNumber.value);
+          Variable<int>(d.supplierInvoiceNumber.value);
     }
     if (d.deliverDate.present) {
-      map['deliver_date'] =
-          Variable<DateTime, DateTimeType>(d.deliverDate.value);
+      map['deliver_date'] = Variable<DateTime>(d.deliverDate.value);
     }
     if (d.orderDate.present) {
-      map['order_date'] = Variable<DateTime, DateTimeType>(d.orderDate.value);
+      map['order_date'] = Variable<DateTime>(d.orderDate.value);
     }
     if (d.taxRate.present) {
-      map['tax_rate'] = Variable<int, IntType>(d.taxRate.value);
+      map['tax_rate'] = Variable<int>(d.taxRate.value);
     }
     if (d.taxAmount.present) {
-      map['tax_amount'] = Variable<int, IntType>(d.taxAmount.value);
+      map['tax_amount'] = Variable<int>(d.taxAmount.value);
     }
     if (d.count.present) {
-      map['count'] = Variable<int, IntType>(d.count.value);
+      map['count'] = Variable<int>(d.count.value);
     }
     if (d.variantName.present) {
-      map['variant_name'] = Variable<String, StringType>(d.variantName.value);
+      map['variant_name'] = Variable<String>(d.variantName.value);
     }
     if (d.discountRate.present) {
-      map['discount_rate'] = Variable<int, IntType>(d.discountRate.value);
+      map['discount_rate'] = Variable<int>(d.discountRate.value);
     }
     if (d.discountAmount.present) {
-      map['discount_amount'] = Variable<int, IntType>(d.discountAmount.value);
+      map['discount_amount'] = Variable<int>(d.discountAmount.value);
     }
     if (d.cashReceived.present) {
-      map['cash_received'] = Variable<int, IntType>(d.cashReceived.value);
+      map['cash_received'] = Variable<int>(d.cashReceived.value);
     }
     if (d.saleTotal.present) {
-      map['sale_total'] = Variable<int, IntType>(d.saleTotal.value);
+      map['sale_total'] = Variable<int>(d.saleTotal.value);
     }
     if (d.customerSaving.present) {
-      map['customer_saving'] = Variable<int, IntType>(d.customerSaving.value);
+      map['customer_saving'] = Variable<int>(d.customerSaving.value);
     }
     if (d.paymentId.present) {
-      map['payment_id'] = Variable<int, IntType>(d.paymentId.value);
+      map['payment_id'] = Variable<int>(d.paymentId.value);
     }
     if (d.orderNote.present) {
-      map['order_note'] = Variable<String, StringType>(d.orderNote.value);
+      map['order_note'] = Variable<String>(d.orderNote.value);
     }
     if (d.isDraft.present) {
-      map['is_draft'] = Variable<bool, BoolType>(d.isDraft.value);
+      map['is_draft'] = Variable<bool>(d.isDraft.value);
     }
     if (d.status.present) {
-      map['status'] = Variable<String, StringType>(d.status.value);
+      map['status'] = Variable<String>(d.status.value);
     }
     if (d.orderType.present) {
-      map['order_type'] = Variable<String, StringType>(d.orderType.value);
+      map['order_type'] = Variable<String>(d.orderType.value);
     }
     if (d.customerChangeDue.present) {
-      map['customer_change_due'] =
-          Variable<int, IntType>(d.customerChangeDue.value);
+      map['customer_change_due'] = Variable<int>(d.customerChangeDue.value);
     }
     return map;
   }
@@ -7715,13 +7797,13 @@ class $ColorTableTable extends ColorTable
   Map<String, Variable> entityToSql(ColorTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.isActive.present) {
-      map['is_active'] = Variable<bool, BoolType>(d.isActive.value);
+      map['is_active'] = Variable<bool>(d.isActive.value);
     }
     return map;
   }
@@ -7910,13 +7992,13 @@ class $ActionsTableTable extends ActionsTable
   Map<String, Variable> entityToSql(ActionsTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.isLocked.present) {
-      map['is_locked'] = Variable<bool, BoolType>(d.isLocked.value);
+      map['is_locked'] = Variable<bool>(d.isLocked.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     return map;
   }
@@ -8219,22 +8301,22 @@ class $ReasonTableTable extends ReasonTable
   Map<String, Variable> entityToSql(ReasonTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.action.present) {
-      map['action'] = Variable<String, StringType>(d.action.value);
+      map['action'] = Variable<String>(d.action.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String, StringType>(d.deletedAt.value);
+      map['deleted_at'] = Variable<String>(d.deletedAt.value);
     }
     return map;
   }
@@ -8625,28 +8707,28 @@ class $TaxTableTable extends TaxTable
   Map<String, Variable> entityToSql(TaxTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
+      map['name'] = Variable<String>(d.name.value);
     }
     if (d.isDefault.present) {
-      map['is_default'] = Variable<bool, BoolType>(d.isDefault.value);
+      map['is_default'] = Variable<bool>(d.isDefault.value);
     }
     if (d.percentage.present) {
-      map['percentage'] = Variable<double, RealType>(d.percentage.value);
+      map['percentage'] = Variable<double>(d.percentage.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.businessId.present) {
-      map['business_id'] = Variable<String, StringType>(d.businessId.value);
+      map['business_id'] = Variable<String>(d.businessId.value);
     }
     if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime, DateTimeType>(d.createdAt.value);
+      map['created_at'] = Variable<DateTime>(d.createdAt.value);
     }
     if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime, DateTimeType>(d.updatedAt.value);
+      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
     }
     return map;
   }
@@ -8885,16 +8967,16 @@ class $BranchProductTableTable extends BranchProductTable
   Map<String, Variable> entityToSql(BranchProductTableCompanion d) {
     final map = <String, Variable>{};
     if (d.idLocal.present) {
-      map['id_local'] = Variable<int, IntType>(d.idLocal.value);
+      map['id_local'] = Variable<int>(d.idLocal.value);
     }
     if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
+      map['id'] = Variable<String>(d.id.value);
     }
     if (d.productId.present) {
-      map['product_id'] = Variable<String, StringType>(d.productId.value);
+      map['product_id'] = Variable<String>(d.productId.value);
     }
     if (d.branchId.present) {
-      map['branch_id'] = Variable<String, StringType>(d.branchId.value);
+      map['branch_id'] = Variable<String>(d.branchId.value);
     }
     return map;
   }
@@ -9090,13 +9172,13 @@ class $ProductImageTableTable extends ProductImageTable
   Map<String, Variable> entityToSql(ProductImageTableCompanion d) {
     final map = <String, Variable>{};
     if (d.id.present) {
-      map['id'] = Variable<int, IntType>(d.id.value);
+      map['id'] = Variable<int>(d.id.value);
     }
     if (d.localPath.present) {
-      map['local_path'] = Variable<String, StringType>(d.localPath.value);
+      map['local_path'] = Variable<String>(d.localPath.value);
     }
     if (d.productId.present) {
-      map['product_id'] = Variable<String, StringType>(d.productId.value);
+      map['product_id'] = Variable<String>(d.productId.value);
     }
     return map;
   }
@@ -9202,6 +9284,8 @@ abstract class _$Database extends GeneratedDatabase {
   ProductImageDao _productImageDao;
   ProductImageDao get productImageDao =>
       _productImageDao ??= ProductImageDao(this as Database);
+  Listner _listner;
+  Listner get listner => _listner ??= Listner(this as Database);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override

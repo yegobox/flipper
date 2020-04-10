@@ -44,6 +44,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
     };
+
     await store.state.couch.createBranch(_mapBranch);
     store.dispatch(VerifyAuthenticationState());
   };

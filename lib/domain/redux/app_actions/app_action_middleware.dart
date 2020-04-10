@@ -3,7 +3,6 @@ import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -134,13 +133,13 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
     StockTableData stock = await store.state.database.stockDao
         .getStockByVariantId(
             branchId: store.state.branch.id,
-            variantId: store.state.cartItem.id);
+            variantId: store.state.cartItem.productId);
 
     ProductTableData product = await store.state.database.productDao
         .getItemById(productId: stock.productId);
 
     VariationTableData variant = await store.state.database.variationDao
-        .getVariationById(variantId: store.state.cartItem.id);
+        .getVariationById(variantId: store.state.cartItem.productId);
 
     await generalRepository.insertOrUpdateCart(
       store,
@@ -158,11 +157,11 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
                 store.state.defaultTax.percentage.toInt()) /
             100,
         taxRate: store.state.defaultTax.percentage.toInt(),
-        note: 'note',
+        note: store.state.note ?? 'default',
         unit: variant.unit,
         orderId: store.state.order.id.toString(),
-        variationId: store.state.cartItem.id,
-        id: store.state.cartItem.id,
+        variationId: variant.id,
+        id: Uuid().v1(),
       ),
     );
   };
@@ -178,12 +177,18 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
         await store.state.database.orderDao.getOrderById(store.state.order.id);
 
     DataManager.updateOrder(
-        store,
-        order.copyWith(
-            status: 'completed',
-            customerChangeDue: action.customerChangeDue,
-            orderNote: action.note,
-            cashReceived: action.cashReceived));
+      store,
+      order.copyWith(
+        status: 'completed',
+        customerChangeDue: action.customerChangeDue,
+        orderNote: action.note,
+        cashReceived: action.cashReceived,
+      ),
+    );
+
+    //TODO:update the quantity of stock.
+    //get this order details using this orderId
+    //get variantId then update the stock current quantity minus the orderDetail quantity
 
     //update orderdetails
     DataManager.createTemporalOrder(generalRepository, store);

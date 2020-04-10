@@ -7,6 +7,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
+import 'package:flipper/util/enums.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -137,6 +138,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
   Future _createVariant(CommonViewModel vm, BuildContext context) async {
     VariationTableData variation = await vm.database.variationDao
         .getVariationById(variantId: vm.variant.id);
+
     final store = StoreProvider.of<AppState>(context);
 
     await DataManager.updateVariation(
@@ -155,23 +157,25 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         sku: DateTime.now().year.toString() + Uuid().v1().substring(0, 4),
         unit: '',
         createdAt: DateTime.now(),
-        productId: vm.tmpItem.id,
+        productId: vm.tmpItem.productId,
       ),
     );
     VariationTableData variant = await vm.database.variationDao
         .getVariationByIdLocal(variantId: variantId);
 
     await vm.database.stockDao.insert(
+      //ignore:missing_required_param
       StockTableData(
         canTrackingStock: false,
         retailPrice: _retailPrice,
         supplyPrice: _supplyPrice,
         lowStock: 0,
-        productId: vm.tmpItem.id,
+        productId: vm.tmpItem.productId,
         showLowStockAlert: false,
         currentStock: 0,
         variantId: variant.id,
         isActive: true,
+        action: Defaults.ADD.toString(),
         id: Uuid().v1(),
         branchId: vm.branch.id,
         createdAt: DateTime.now(),

@@ -7,5 +7,6 @@ part of 'product_image_dao.dart';
 // **************************************************************************
 
 mixin _$ProductImageDaoMixin on DatabaseAccessor<Database> {
-  $ProductImageTableTable get productImageTable => db.productImageTable;
+  $ProductImageTableTable get productImageTable =>
+      attachedDatabase.productImageTable;
 }

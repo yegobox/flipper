@@ -81,6 +81,10 @@ class _$CommonViewModel extends CommonViewModel {
   final ImageP image;
   @override
   final String note;
+  @override
+  final DateFilter dateFilter;
+  @override
+  final Report report;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
       (new CommonViewModelBuilder()..update(updates)).build();
@@ -122,7 +126,9 @@ class _$CommonViewModel extends CommonViewModel {
       this.currentActiveSaleVariant,
       this.total,
       this.image,
-      this.note})
+      this.note,
+      this.dateFilter,
+      this.report})
       : super._() {
     if (hasUser == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'hasUser');
@@ -204,7 +210,9 @@ class _$CommonViewModel extends CommonViewModel {
         currentActiveSaleVariant == other.currentActiveSaleVariant &&
         total == other.total &&
         image == other.image &&
-        note == other.note;
+        note == other.note &&
+        dateFilter == other.dateFilter &&
+        report == other.report;
   }
 
   @override
@@ -227,26 +235,26 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode),
-                                                                                items.hashCode),
-                                                                            currentIncrement.hashCode),
-                                                                        currentActiveSaleProduct.hashCode),
-                                                                    database.hashCode),
-                                                                couch.hashCode),
-                                                            carts.hashCode),
-                                                        cartQuantities.hashCode),
-                                                    order.hashCode),
-                                                user.hashCode),
-                                            keypad.hashCode),
-                                        customUnit.hashCode),
-                                    customItem.hashCode),
-                                tempCategoryId.hashCode),
-                            tmpItem.hashCode),
-                        couchDbClient.hashCode),
-                    currentActiveSaleVariant.hashCode),
-                total.hashCode),
-            image.hashCode),
-        note.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode), items.hashCode), currentIncrement.hashCode),
+                                                                                currentActiveSaleProduct.hashCode),
+                                                                            database.hashCode),
+                                                                        couch.hashCode),
+                                                                    carts.hashCode),
+                                                                cartQuantities.hashCode),
+                                                            order.hashCode),
+                                                        user.hashCode),
+                                                    keypad.hashCode),
+                                                customUnit.hashCode),
+                                            customItem.hashCode),
+                                        tempCategoryId.hashCode),
+                                    tmpItem.hashCode),
+                                couchDbClient.hashCode),
+                            currentActiveSaleVariant.hashCode),
+                        total.hashCode),
+                    image.hashCode),
+                note.hashCode),
+            dateFilter.hashCode),
+        report.hashCode));
   }
 
   @override
@@ -288,7 +296,9 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('currentActiveSaleVariant', currentActiveSaleVariant)
           ..add('total', total)
           ..add('image', image)
-          ..add('note', note))
+          ..add('note', note)
+          ..add('dateFilter', dateFilter)
+          ..add('report', report))
         .toString();
   }
 }
@@ -462,6 +472,16 @@ class CommonViewModelBuilder
   String get note => _$this._note;
   set note(String note) => _$this._note = note;
 
+  DateFilterBuilder _dateFilter;
+  DateFilterBuilder get dateFilter =>
+      _$this._dateFilter ??= new DateFilterBuilder();
+  set dateFilter(DateFilterBuilder dateFilter) =>
+      _$this._dateFilter = dateFilter;
+
+  ReportBuilder _report;
+  ReportBuilder get report => _$this._report ??= new ReportBuilder();
+  set report(ReportBuilder report) => _$this._report = report;
+
   CommonViewModelBuilder();
 
   CommonViewModelBuilder get _$this {
@@ -503,6 +523,8 @@ class CommonViewModelBuilder
       _total = _$v.total?.toBuilder();
       _image = _$v.image?.toBuilder();
       _note = _$v.note;
+      _dateFilter = _$v.dateFilter?.toBuilder();
+      _report = _$v.report?.toBuilder();
       _$v = null;
     }
     return this;
@@ -563,7 +585,9 @@ class CommonViewModelBuilder
               currentActiveSaleVariant: _currentActiveSaleVariant?.build(),
               total: _total?.build(),
               image: _image?.build(),
-              note: note);
+              note: note,
+              dateFilter: _dateFilter?.build(),
+              report: _report?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -621,6 +645,11 @@ class CommonViewModelBuilder
         _total?.build();
         _$failedField = 'image';
         _image?.build();
+
+        _$failedField = 'dateFilter';
+        _dateFilter?.build();
+        _$failedField = 'report';
+        _report?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'CommonViewModel', _$failedField, e.toString());

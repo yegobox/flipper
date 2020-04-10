@@ -99,6 +99,10 @@ class _$AppState extends AppState {
   final String note;
   @override
   final InAppNotification inAppNotification;
+  @override
+  final DateFilter dateFilter;
+  @override
+  final Report report;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
       (new AppStateBuilder()..update(updates)).build();
@@ -149,7 +153,9 @@ class _$AppState extends AppState {
       this.fcmToken,
       this.image,
       this.note,
-      this.inAppNotification})
+      this.inAppNotification,
+      this.dateFilter,
+      this.report})
       : super._() {
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
@@ -224,7 +230,9 @@ class _$AppState extends AppState {
         fcmToken == other.fcmToken &&
         image == other.image &&
         note == other.note &&
-        inAppNotification == other.inAppNotification;
+        inAppNotification == other.inAppNotification &&
+        dateFilter == other.dateFilter &&
+        report == other.report;
   }
 
   @override
@@ -247,26 +255,26 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode),
-                                                                                variant.hashCode),
-                                                                            itemVariations.hashCode),
-                                                                        currentActiveSaleProduct.hashCode),
-                                                                    currentActiveSaleVariant.hashCode),
-                                                                cartItem.hashCode),
-                                                            items.hashCode),
-                                                        currentIncrement.hashCode),
-                                                    carts.hashCode),
-                                                cartQuantities.hashCode),
-                                            order.hashCode),
-                                        keypad.hashCode),
-                                    tmpItem.hashCode),
-                                total.hashCode),
-                            defaultTax.hashCode),
-                        couchDbClient.hashCode),
-                    fcmToken.hashCode),
-                image.hashCode),
-            note.hashCode),
-        inAppNotification.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode),
+                                                                                currentActiveSaleProduct.hashCode),
+                                                                            currentActiveSaleVariant.hashCode),
+                                                                        cartItem.hashCode),
+                                                                    items.hashCode),
+                                                                currentIncrement.hashCode),
+                                                            carts.hashCode),
+                                                        cartQuantities.hashCode),
+                                                    order.hashCode),
+                                                keypad.hashCode),
+                                            tmpItem.hashCode),
+                                        total.hashCode),
+                                    defaultTax.hashCode),
+                                couchDbClient.hashCode),
+                            fcmToken.hashCode),
+                        image.hashCode),
+                    note.hashCode),
+                inAppNotification.hashCode),
+            dateFilter.hashCode),
+        report.hashCode));
   }
 
   @override
@@ -317,7 +325,9 @@ class _$AppState extends AppState {
           ..add('fcmToken', fcmToken)
           ..add('image', image)
           ..add('note', note)
-          ..add('inAppNotification', inAppNotification))
+          ..add('inAppNotification', inAppNotification)
+          ..add('dateFilter', dateFilter)
+          ..add('report', report))
         .toString();
   }
 }
@@ -531,6 +541,16 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   set inAppNotification(InAppNotificationBuilder inAppNotification) =>
       _$this._inAppNotification = inAppNotification;
 
+  DateFilterBuilder _dateFilter;
+  DateFilterBuilder get dateFilter =>
+      _$this._dateFilter ??= new DateFilterBuilder();
+  set dateFilter(DateFilterBuilder dateFilter) =>
+      _$this._dateFilter = dateFilter;
+
+  ReportBuilder _report;
+  ReportBuilder get report => _$this._report ??= new ReportBuilder();
+  set report(ReportBuilder report) => _$this._report = report;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -581,6 +601,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _image = _$v.image?.toBuilder();
       _note = _$v.note;
       _inAppNotification = _$v.inAppNotification?.toBuilder();
+      _dateFilter = _$v.dateFilter?.toBuilder();
+      _report = _$v.report?.toBuilder();
       _$v = null;
     }
     return this;
@@ -650,7 +672,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               fcmToken: fcmToken,
               image: _image?.build(),
               note: note,
-              inAppNotification: _inAppNotification?.build());
+              inAppNotification: _inAppNotification?.build(),
+              dateFilter: _dateFilter?.build(),
+              report: _report?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -730,6 +754,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
         _$failedField = 'inAppNotification';
         _inAppNotification?.build();
+        _$failedField = 'dateFilter';
+        _dateFilter?.build();
+        _$failedField = 'report';
+        _report?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'AppState', _$failedField, e.toString());

@@ -25,12 +25,14 @@ class MultipleVariantViewWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
-        onPop: () {},
+        onPop: () {
+          Router.navigator.pop();
+        },
         disableButton: false,
         showActionButton: true,
         actionButtonName: S.of(context).add,
         title: vm.currentActiveSaleProduct == null
-            ? null
+            ? ''
             : vm.currentActiveSaleProduct.name +
                 " " +
                 vm.total?.value.toString(),
@@ -99,7 +101,8 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
       Product cartItem = Product(
         (b) => b
-          ..id = v.id
+          ..productId = v
+              .id //keep variation id Did it intentionally! so we can use it instead of productId
           ..name = v.name
           ..unit = v.unit
           ..count = vm.currentIncrement,

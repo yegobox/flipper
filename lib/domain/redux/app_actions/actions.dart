@@ -3,10 +3,12 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
+import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/report.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
@@ -317,6 +319,20 @@ class Total {
   final int total;
 
   Total({this.total});
+}
+
+@immutable
+class DateFilters {
+  final DateFilter dateFilter;
+
+  DateFilters({this.dateFilter});
+}
+
+@immutable
+class ReportAction {
+  final Report report;
+
+  ReportAction({this.report});
 }
 
 class CleanTotal {}

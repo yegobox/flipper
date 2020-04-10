@@ -7,5 +7,5 @@ part of 'tax_dao.dart';
 // **************************************************************************
 
 mixin _$TaxDaoMixin on DatabaseAccessor<Database> {
-  $TaxTableTable get taxTable => db.taxTable;
+  $TaxTableTable get taxTable => attachedDatabase.taxTable;
 }

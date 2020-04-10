@@ -9,6 +9,9 @@ class StockTable extends Table {
 
   BoolColumn get showLowStockAlert => boolean().withDefault(Constant(false))();
 
+  // a field to help in updating stockHistory table this field is not required by other apps.
+  TextColumn get action => text().withDefault(Constant('ADD'))();
+
   //this column is not global i.e should not be shared to other apps.
   BoolColumn get isActive =>
       boolean().nullable().withDefault(Constant(false))();

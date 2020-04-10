@@ -67,9 +67,13 @@ class DataManager extends CouchBase {
   }
 
   static Future<bool> isInternetAvailable() async {
-    final result = await InternetAddress.lookup('google.com');
-    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      return true;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+    } catch (e) {
+      return false;
     }
     return false;
   }
@@ -112,12 +116,12 @@ class DataManager extends CouchBase {
     for (var i = 0; i < stocks.length; i++) {
       VariationTableData variant = await store.state.database.variationDao
           .getVariationById(variantId: stocks[i].variantId);
-      //TODO(richard): update couch for a deletion.
+
       await store.state.database.variationDao.deleteVariation(variant);
 
       await store.state.database.stockDao.deleteStock(stocks[i]);
     }
-    //TODO(richard): update couch for a deletion.
+
     await store.state.database.productDao.deleteItem(product);
     store.state.couch.syncLocalToRemote(store: store);
   }
@@ -274,7 +278,7 @@ class DataManager extends CouchBase {
         variation: Variation(
           (v) => v
             ..productId = variant.productId
-            ..sku = variant.sku 
+            ..sku = variant.sku
             ..name = variant.name
             ..id = variant.id,
         ),
@@ -301,7 +305,7 @@ class DataManager extends CouchBase {
             ..businessId = product.businessId
             ..supplierId = product.supplierId
             ..categoryId = product.categoryId
-            ..id = product.id
+            ..productId = product.id
             ..name = product.name
             ..color = product.color,
         ),

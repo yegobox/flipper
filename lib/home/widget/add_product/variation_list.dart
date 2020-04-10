@@ -90,7 +90,7 @@ class _VariationListState extends State<VariationList> {
             if (snapshot.data == null) {
               return Text("");
             }
-            return snapshot.data != 0
+            return snapshot.data.length > 1
                 ? _buildVariationsList(snapshot.data, vm)
                 : Text("");
           },

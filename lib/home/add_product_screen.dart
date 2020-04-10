@@ -79,11 +79,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = _hasErrors
-        ? AppTheme.inputDecorationErrorTheme
-        : (_isEmpty
-            ? AppTheme.inputDecorationEmptyTheme
-            : AppTheme.inputDecorationFilledTheme);
+
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
@@ -180,10 +176,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         ),
                       ),
                     ),
-                    RetailPriceWidget(),
-                    SupplyPriceWidget(),
+                    RetailPriceWidget(
+                      vm: vm,
+                    ),
+                    SupplyPriceWidget(
+                      vm: vm,
+                    ),
                     SkuField(),
-                    VariationList(productId: vm.tmpItem.id),
+                    VariationList(productId: vm.tmpItem.productId),
                     AddVariant(
                       onPressedCallback: () {
                         createVariant(vm);
@@ -204,7 +204,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return GestureDetector(
       onTap: () {
         Router.navigator.pushNamed(Router.editItemTitle,
-            arguments: EditItemTitleArguments(productId: vm.tmpItem.id));
+            arguments: EditItemTitleArguments(productId: vm.tmpItem.productId));
       },
       child: !vm.tmpItem.hasPicture
           ? Container(
@@ -280,12 +280,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
       onPressed: () async {
         final store = StoreProvider.of<AppState>(context);
         ProductTableData product = await store.state.database.productDao
-            .getItemById(productId: vm.tmpItem.id);
+            .getItemById(productId: vm.tmpItem.productId);
         store.state.database.productDao
             .updateProduct(product.copyWith(picture: '', hasPicture: false));
 
         ProductTableData updatedProduct = await store.state.database.productDao
-            .getItemById(productId: vm.tmpItem.id);
+            .getItemById(productId: vm.tmpItem.productId);
 
         DataManager.dispatchProduct(store, updatedProduct);
       },
@@ -353,7 +353,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
     final store = StoreProvider.of<AppState>(context);
 
     await updateProduct(
-        productId: vm.tmpItem.id, categoryId: store.state.category.id, vm: vm);
+        productId: vm.tmpItem.productId,
+        categoryId: store.state.category.id,
+        vm: vm);
     VariationTableData variation = await vm.database.variationDao
         .getVariationById(variantId: vm.variant.id);
 
@@ -365,7 +367,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       retailPrice: DataManager.retailPrice ?? 0.0,
     );
 
-    await vm.couch.syncProduct(vm.tmpItem.id, store);
+    await vm.couch.syncProduct(vm.tmpItem.productId, store);
 
     await resetSaveButtonStatus(vm);
 

@@ -153,7 +153,7 @@ class _ProductsViewState extends State<ProductsView> {
             ..hasPicture = products[i].hasPicture
             ..active = products[i].active
             ..picture = products[i].picture
-            ..id = products[i].id,
+            ..productId = products[i].id,
         ),
       ),
     );
@@ -202,7 +202,7 @@ class _ProductsViewState extends State<ProductsView> {
             ..supplierId = products[i].supplierId
             ..categoryId = products[i].categoryId
             ..businessId = products[i].businessId
-            ..id = products[i].id,
+            ..productId = products[i].id,
         ),
       ),
     );

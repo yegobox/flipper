@@ -171,7 +171,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      //TODO(richard): make sure location permission is not denied or error is handled popper.
+
       double lat = _position == null ? 0 : _position.latitude;
       double long = _position == null ? 0 : _position.longitude;
 
@@ -199,7 +199,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..name = widget.name,
       );
       final store = StoreProvider.of<AppState>(context);
-      StoreProvider.of<AppState>(context).state.couch.getDocumentByQuery(store);
+
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));

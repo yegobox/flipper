@@ -1,7 +1,10 @@
+import 'package:flipper/domain/redux/app_actions/actions.dart';
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/reports/date_widget/event.dart';
+import 'package:flipper/model/date_filter.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_date_pickers/flutter_date_pickers.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 class RangePickerPage extends StatefulWidget {
   final List<Event> events;
@@ -81,8 +84,14 @@ class _RangePickerPageState extends State<RangePickerPage> {
   }
 
   void _onSelectedDateChanged(DatePeriod newPeriod) {
+    final store = StoreProvider.of<AppState>(context);
     setState(() {
       _selectedPeriod = newPeriod;
+
+      store.dispatch(DateFilters(
+          dateFilter: DateFilter((date) => date
+            ..startDate = _selectedPeriod.start.toIso8601String()
+            ..endDate = _selectedPeriod.end.toIso8601String())));
     });
   }
 

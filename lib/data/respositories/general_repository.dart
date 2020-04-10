@@ -161,13 +161,6 @@ class GeneralRepository {
     }
   }
 
-  Future<List<StockTableData>> getItemFromStockByItemId(
-      Store<AppState> store, int itemId) async {
-    Manager.deprecatedNotification();
-    // return await store.state.database.stockDao.getItemFromStockByItemId(
-    //     branchId: store.state.branch.id, variantId: itemId);
-  }
-
   Future<List<VariationTableData>> getVariationsByItems(
       Store<AppState> store, String productId) async {
     return await store.state.database.variationDao
@@ -178,7 +171,8 @@ class GeneralRepository {
       Store<AppState> store, OrderDetailTableData data) async {
     OrderDetailTableData existingCart = await store
         .state.database.orderDetailDao
-        .getExistingCartItem(data.variationId);
+        .getExistingCartItem(variationId: data.variationId);
+
     if (existingCart == null) {
       store.state.database.orderDetailDao.insert(
         data.copyWith(
@@ -186,12 +180,12 @@ class GeneralRepository {
           subTotal: data.subTotal, //ask ganza what is a subtotal
           id: data.id,
           taxAmount: data.taxAmount, //get current active tax rate * amount /100
-
           taxRate: data.taxRate, //get the current active tax rate
           unit: data.unit, //get unit of this item sold should hav it.
           note: data.note, //keep it lik this.
           discountAmount: data.discountAmount,
           discountRate: data.discountRate,
+          updatedAt: DateTime.now(),
           createdAt: DateTime.now(),
         ),
       );
@@ -201,6 +195,7 @@ class GeneralRepository {
         data.copyWith(
           id: existingCart.id,
           idLocal: existingCart.idLocal,
+          createdAt: DateTime.now(), //always keep today's date for the order .
           updatedAt: DateTime.now(),
         ),
       );

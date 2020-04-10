@@ -7,5 +7,5 @@ part of 'branch_dao.dart';
 // **************************************************************************
 
 mixin _$BranchDaoMixin on DatabaseAccessor<Database> {
-  $BranchTableTable get branchTable => db.branchTable;
+  $BranchTableTable get branchTable => attachedDatabase.branchTable;
 }

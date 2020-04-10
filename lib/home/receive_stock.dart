@@ -4,6 +4,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/util/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:uuid/uuid.dart';
@@ -102,21 +103,26 @@ class _ReceiveStockInputWidgetState extends State<ReceiveStockInputWidget> {
 
     await vm.database.stockDao.updateStock(
       stock.copyWith(
-          updatedAt: DateTime.now(),
-          currentStock: quantity.toInt(),
-          idLocal: stock.idLocal),
+        updatedAt: DateTime.now(),
+        action: Defaults.RECEIVE.toString(),
+        currentStock: quantity.toInt(),
+        idLocal: stock.idLocal,
+      ),
     );
 
     if (history == null) {
-      await vm.database.stockHistoryDao.insert(StockHistoryTableData(
-          quantity: quantity.toInt(),
-          variantId: widget.variantId,
-          id: Uuid().v1(),
-          note: 'Received ' + quantity.toString() + 'qty',
-          reason: 'Received',
-          stockId: stock.id,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now()));
+      await vm.database.stockHistoryDao.insert(
+        //ignore:missing_required_param
+        StockHistoryTableData(
+            quantity: quantity.toInt(),
+            variantId: widget.variantId,
+            id: Uuid().v1(),
+            note: 'Received ' + quantity.toString() + 'qty',
+            reason: 'Received',
+            stockId: stock.id,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()),
+      );
     } else {
       await vm.database.stockHistoryDao
           .updateHistory(history.copyWith(quantity: quantity.toInt()));

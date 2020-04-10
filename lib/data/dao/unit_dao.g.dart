@@ -7,5 +7,5 @@ part of 'unit_dao.dart';
 // **************************************************************************
 
 mixin _$UnitDaoMixin on DatabaseAccessor<Database> {
-  $UnitTableTable get unitTable => db.unitTable;
+  $UnitTableTable get unitTable => attachedDatabase.unitTable;
 }

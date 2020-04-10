@@ -36,6 +36,8 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, DefaultTax>(_onDefaultTax),
   TypedReducer<AppState, ImagePreview>(_onImagePreview),
   TypedReducer<AppState, Note>(_onNote),
+  TypedReducer<AppState, DateFilters>(_onDateFilter),
+  TypedReducer<AppState, ReportAction>(onReport),
 ];
 AppState _onAppActions(AppState state, AppAction action) {
   return state.rebuild((a) => a..action = action.actions.toBuilder());
@@ -167,7 +169,6 @@ AppState _onCategory(AppState state, CategoryAction action) {
   return state.rebuild((a) => a..category = action.category.toBuilder());
 }
 
-//fixme: delete this when no longer in use keep _onTempItem
 AppState _onCustomItem(AppState state, CustomItem action) {
   return state.rebuild((a) => a..customItem = action.item.toBuilder());
 }
@@ -190,4 +191,12 @@ AppState _onImagePreview(AppState state, ImagePreview action) {
 
 AppState _onNote(AppState state, Note action) {
   return state.rebuild((a) => a..note = action.note);
+}
+
+AppState _onDateFilter(AppState state, DateFilters action) {
+  return state.rebuild((a) => a..dateFilter = action.dateFilter?.toBuilder());
+}
+
+AppState onReport(AppState state, ReportAction action) {
+  return state.rebuild((a) => a..report = action.report?.toBuilder());
 }

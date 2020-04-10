@@ -21,7 +21,7 @@ class _SkuFieldState extends State<SkuField> {
       builder: (context, vm) {
         return StreamBuilder(
           stream: vm.database.variationDao
-              .getVariationByNameStream("Regular", vm.tmpItem.id),
+              .getVariationByNameStream("Regular", vm.tmpItem.productId),
           builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             if (snapshot.data == null) {
               return Text("");

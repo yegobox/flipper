@@ -88,7 +88,7 @@ class SingleKey extends StatelessWidget {
             final store = StoreProvider.of<AppState>(context);
             List<VariationTableData> variants = await store
                 .state.database.variationDao
-                .getVariantByProductId(productId: vm.tmpItem.id);
+                .getVariantByProductId(productId: vm.tmpItem.productId);
 
             StoreProvider.of<AppState>(context).dispatch(
               IncrementAction(
@@ -97,11 +97,13 @@ class SingleKey extends StatelessWidget {
             );
             Product cartItem = Product(
               (b) => b
-                ..id = variants[0].id
+                ..productId = variants[0]
+                    .id //done intentionally so we can use it while saving cart or orderDetail.
                 ..name = vm.tmpItem.name
                 ..categoryId = vm.tmpItem.categoryId
                 ..unit = 'custom',
             );
+            print(cartItem);
             StoreProvider.of<AppState>(context).dispatch(
               AddItemToCartAction(cartItem: cartItem),
             );
@@ -110,7 +112,7 @@ class SingleKey extends StatelessWidget {
                 StoreProvider.of<AppState>(context).state.branch.id;
             List<StockTableData> stocks = await store.state.database.stockDao
                 .getStockByProductId(
-                    branchId: branchId, productId: vm.tmpItem.id);
+                    branchId: branchId, productId: vm.tmpItem.productId);
 
             for (var i = 0; i < stocks.length; i++) {
               await store.state.database.stockDao.updateStock(stocks[i]

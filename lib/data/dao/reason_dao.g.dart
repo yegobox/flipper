@@ -7,5 +7,5 @@ part of 'reason_dao.dart';
 // **************************************************************************
 
 mixin _$ReasonDaoMixin on DatabaseAccessor<Database> {
-  $ReasonTableTable get reasonTable => db.reasonTable;
+  $ReasonTableTable get reasonTable => attachedDatabase.reasonTable;
 }

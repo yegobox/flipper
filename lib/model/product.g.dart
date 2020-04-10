@@ -10,7 +10,7 @@ class _$Product extends Product {
   @override
   final String name;
   @override
-  final String id;
+  final String productId;
   @override
   final String description;
   @override
@@ -49,7 +49,7 @@ class _$Product extends Product {
 
   _$Product._(
       {this.name,
-      this.id,
+      this.productId,
       this.description,
       this.picture,
       this.taxId,
@@ -70,8 +70,8 @@ class _$Product extends Product {
     if (name == null) {
       throw new BuiltValueNullFieldError('Product', 'name');
     }
-    if (id == null) {
-      throw new BuiltValueNullFieldError('Product', 'id');
+    if (productId == null) {
+      throw new BuiltValueNullFieldError('Product', 'productId');
     }
   }
 
@@ -87,7 +87,7 @@ class _$Product extends Product {
     if (identical(other, this)) return true;
     return other is Product &&
         name == other.name &&
-        id == other.id &&
+        productId == other.productId &&
         description == other.description &&
         picture == other.picture &&
         taxId == other.taxId &&
@@ -129,7 +129,7 @@ class _$Product extends Product {
                                                                             0,
                                                                             name
                                                                                 .hashCode),
-                                                                        id
+                                                                        productId
                                                                             .hashCode),
                                                                     description
                                                                         .hashCode),
@@ -155,7 +155,7 @@ class _$Product extends Product {
   String toString() {
     return (newBuiltValueToStringHelper('Product')
           ..add('name', name)
-          ..add('id', id)
+          ..add('productId', productId)
           ..add('description', description)
           ..add('picture', picture)
           ..add('taxId', taxId)
@@ -183,9 +183,9 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
-  String _id;
-  String get id => _$this._id;
-  set id(String id) => _$this._id = id;
+  String _productId;
+  String get productId => _$this._productId;
+  set productId(String productId) => _$this._productId = productId;
 
   String _description;
   String get description => _$this._description;
@@ -257,7 +257,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   ProductBuilder get _$this {
     if (_$v != null) {
       _name = _$v.name;
-      _id = _$v.id;
+      _productId = _$v.productId;
       _description = _$v.description;
       _picture = _$v.picture;
       _taxId = _$v.taxId;
@@ -297,7 +297,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
     final _$result = _$v ??
         new _$Product._(
             name: name,
-            id: id,
+            productId: productId,
             description: description,
             picture: picture,
             taxId: taxId,

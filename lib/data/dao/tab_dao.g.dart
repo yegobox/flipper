@@ -7,5 +7,5 @@ part of 'tab_dao.dart';
 // **************************************************************************
 
 mixin _$TabsDaoMixin on DatabaseAccessor<Database> {
-  $TabsTableTable get tabsTable => db.tabsTable;
+  $TabsTableTable get tabsTable => attachedDatabase.tabsTable;
 }

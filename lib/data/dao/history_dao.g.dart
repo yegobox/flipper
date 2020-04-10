@@ -7,5 +7,6 @@ part of 'history_dao.dart';
 // **************************************************************************
 
 mixin _$StockHistoryDaoMixin on DatabaseAccessor<Database> {
-  $StockHistoryTableTable get stockHistoryTable => db.stockHistoryTable;
+  $StockHistoryTableTable get stockHistoryTable =>
+      attachedDatabase.stockHistoryTable;
 }

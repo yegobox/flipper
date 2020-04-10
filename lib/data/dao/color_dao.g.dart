@@ -7,5 +7,5 @@ part of 'color_dao.dart';
 // **************************************************************************
 
 mixin _$ColorDaoMixin on DatabaseAccessor<Database> {
-  $ColorTableTable get colorTable => db.colorTable;
+  $ColorTableTable get colorTable => attachedDatabase.colorTable;
 }

@@ -32,7 +32,7 @@ class OrderDetailDao extends DatabaseAccessor<Database>
         .get();
   }
 
-  Future<OrderDetailTableData> getExistingCartItem(String variationId) {
+  Future<OrderDetailTableData> getExistingCartItem({String variationId}) {
     return (select(db.orderDetailTable)
           ..where((t) => t.variationId.equals(variationId)))
         .getSingle();

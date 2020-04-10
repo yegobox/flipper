@@ -7,5 +7,5 @@ part of 'variation_dao.dart';
 // **************************************************************************
 
 mixin _$VariationDaoMixin on DatabaseAccessor<Database> {
-  $VariationTableTable get variationTable => db.variationTable;
+  $VariationTableTable get variationTable => attachedDatabase.variationTable;
 }

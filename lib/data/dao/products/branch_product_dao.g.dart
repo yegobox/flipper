@@ -7,5 +7,6 @@ part of 'branch_product_dao.dart';
 // **************************************************************************
 
 mixin _$BranchProductDaoMixin on DatabaseAccessor<Database> {
-  $BranchProductTableTable get branchProductTable => db.branchProductTable;
+  $BranchProductTableTable get branchProductTable =>
+      attachedDatabase.branchProductTable;
 }

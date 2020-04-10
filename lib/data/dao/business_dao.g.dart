@@ -7,5 +7,5 @@ part of 'business_dao.dart';
 // **************************************************************************
 
 mixin _$BusinessDaoMixin on DatabaseAccessor<Database> {
-  $BusinessTableTable get businessTable => db.businessTable;
+  $BusinessTableTable get businessTable => attachedDatabase.businessTable;
 }

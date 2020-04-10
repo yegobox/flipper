@@ -268,6 +268,7 @@ class CouchBase extends Model with Fluttercouch {
 
   Future syncRemoteToLocal({Store<AppState> store}) async {
     //load branch products
+
     await syncBranchProductRLocal(store);
 
     //load products
@@ -283,6 +284,8 @@ class CouchBase extends Model with Fluttercouch {
     await syncCategoriesRLocal(store);
     //done loading category
 
+    //sync branch
+    await syncBranchRLocal(store);
     //load business.
     await syncBusinessRLocal(store);
 
@@ -340,6 +343,7 @@ class CouchBase extends Model with Fluttercouch {
             supplyPrice: stocks.getList('stocks')[i]['supplyPrice'].toDouble(),
             retailPrice: stocks.getList('stocks')[i]['retailPrice'].toDouble(),
             lowStock: stocks.getList('stocks')[i]['lowStock'],
+            action: stocks.getList('stocks')[i]['action'],
             variantId: stocks.getList('stocks')[i]['variantId'],
             branchId: stocks.getList('stocks')[i]['branchId'],
             productId: stocks.getList('stocks')[i]['productId'],
@@ -353,8 +357,9 @@ class CouchBase extends Model with Fluttercouch {
         if (stock == null) {
           await store.state.database.stockDao.insert(branchProductData);
         } else {
-          await store.state.database.stockDao.updateStock(branchProductData
-              .copyWith(idLocal: stock.idLocal, isActive: false));
+          await store.state.database.stockDao.updateStock(
+              branchProductData.copyWith(
+                  idLocal: stock.idLocal, isActive: false, action: 'NONE'));
         }
       }
     }
@@ -386,6 +391,33 @@ class CouchBase extends Model with Fluttercouch {
         } else {
           await store.state.database.variationDao.updateVariation(
               variationData.copyWith(idLocal: variation.idLocal));
+        }
+      }
+    }
+  }
+
+  Future syncBranchRLocal(Store<AppState> store) async {
+    Document branch =
+        await getDocumentWithId('branches_' + store.state.userId.toString());
+
+    if (branch.getList('branches') != null) {
+      for (var i = 0; i < branch.getList('branches').length; i++) {
+        BranchTableData brachi = await store.state.database.branchDao
+            .getBranchById(branchId: branch.getList('branches')[i]['id']);
+
+        BranchTableData businessTableData = BranchTableData(
+          id: branch.getList('branches')[i]['id'],
+          name: branch.getList('branches')[i]['name'],
+          isActive: branch.getList('branches')[i]['isActive'] ?? false,
+          businessId: branch.getList('branches')[i]['businessId'],
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        if (brachi == null) {
+          await store.state.database.branchDao.insert(businessTableData);
+        } else {
+          await store.state.database.branchDao.updateBranch(
+              businessTableData.copyWith(idLocal: brachi.idLocal));
         }
       }
     }
@@ -801,9 +833,7 @@ class CouchBase extends Model with Fluttercouch {
             .getList(branch_)[i]['businessId']
             .toString() //TODO(richard): remove toString() when desktop set it as string
         ..createdAt = doc.getList(branch_)[i]['createdAt']
-        ..mapLatitude = doc
-            .getList(branch_)[i]['mapLatitude']
-            .toString() //TODO(richard):remove casting
+        ..mapLatitude = doc.getList(branch_)[i]['mapLatitude'].toString()
         ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
         ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
         ..updatedAt = doc.getList(branch_)[i]['updatedAt']));
@@ -1032,7 +1062,6 @@ class CouchBase extends Model with Fluttercouch {
         'branchId': stocks[i].branchId,
         'productId': stocks[i].productId,
         'createdAt': DateTime.now().toIso8601String(),
-        //TODO(richard): this line of code
         'updatedAt': DateTime.now().toIso8601String(),
       };
       mapTypeListStocks.add(map);
@@ -1160,10 +1189,8 @@ class CouchBase extends Model with Fluttercouch {
         'variantName': orderDetails[i].variantName,
         'productName': orderDetails[i].productName,
         'unit': orderDetails[i].unit,
-        'createdAt': orderDetails[i].createdAt.toIso8601String(),
-        'updatedAt': orderDetails[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : orderDetails[i].updatedAt.toIso8601String(),
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
       };
       mapOrderDetail.add(map);
     }
@@ -1372,5 +1399,67 @@ class CouchBase extends Model with Fluttercouch {
       'branchId': branchProduct.branchId
     };
     await createBranchProduct(_mapBranchProduct);
+  }
+
+  //database listners, provide listners for database then sync
+  //the data being touched or inserted this is the most effective way
+  //of syncing small database changes so we can avoid 1MB constraints of couchDB.
+  dbListner({Store<AppState> store}) {
+    store.state.database.listner.streamUpdate().listen((stock) {
+      if (stock != null && stock.action != 'NONE') {
+        insertHistory(store, stock);
+      }
+    });
+
+    store.state.database.listner.streamInsert().listen((stock) {
+      if (stock.action != 'NONE') {
+        insertHistory(store, stock);
+      }
+    });
+
+    //now sync them.
+    store.state.database.listner.listenOnStockHistory().listen((history) {
+      partialSyncHistory(history: history);
+    });
+  }
+
+  void insertHistory(Store<AppState> store, StockTableData stock) {
+    store.state.database.stockHistoryDao.insert(
+      //ignore:missing_required_param
+      StockHistoryTableData(
+        id: Uuid().v1(),
+        note: stock.action + stock.currentStock.toString() + 'qty',
+        reason: stock.action,
+        stockId: stock.id,
+        variantId: stock.variantId,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        quantity: stock.currentStock,
+      ),
+    );
+  }
+
+  partialSyncHistory(
+      {StockHistoryTableData history, Store<AppState> store}) async {
+    Document histo = await getDocumentWithId(
+        'stockHistory_' + store.state.userId.toString());
+    List mapHistory = [];
+    Map map = {
+      'id': history.id,
+      'stockId': history.id,
+      'reason': history.reason,
+      'variantId': history.variantId,
+      'note': history.note,
+      'quantity': history.quantity,
+    };
+    mapHistory.add(map);
+    histo
+        .toMutable()
+        .setList('stockHistory', mapHistory)
+        // .setList('channels', [store.state.userId.toString()])
+        .setString('uid', Uuid().v1())
+        .setString('_id', 'stockHistory_' + store.state.userId.toString());
+    await saveDocumentWithId(
+        'stockHistory_' + store.state.userId.toString(), histo);
   }
 }
