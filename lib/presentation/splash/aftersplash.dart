@@ -81,8 +81,7 @@ class AfterSplash extends StatelessWidget {
                             if (result.isNotEmpty &&
                                 result[0].rawAddress.isNotEmpty) {
                               var url =
-                                  'https://test.yegobox.com/oauth/authorize?' +
-                                      query.toString();
+                                  'https://test.flipper.rw/register';
                               if (await canLaunch(url)) {
                                 //await launch(url);
                                 Router.navigator.pushNamed(Router.webView,
@@ -152,8 +151,7 @@ class AfterSplash extends StatelessWidget {
                                 if (result.isNotEmpty &&
                                     result[0].rawAddress.isNotEmpty) {
                                   var url =
-                                      'https://test.yegobox.com/oauth/authorize?' +
-                                          query.toString();
+                                      'https://test.flipper.rw/login' ;
                                   if (await canLaunch(url)) {
                                     //await launch(url);
                                     Router.navigator.pushNamed(Router.webView,

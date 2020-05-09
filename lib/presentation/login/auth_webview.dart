@@ -145,9 +145,9 @@ class _AuthWebViewState extends State<AuthWebView> {
   Widget build(BuildContext context) {
     return WebviewScaffold(
       url: widget.url,
-      appBar: new AppBar(
-        backgroundColor: HexColor("#955be9"),
-      ),
+      // appBar: new AppBar(
+      //   backgroundColor: HexColor("#955be9"),
+      // ),
     );
   }
 }
