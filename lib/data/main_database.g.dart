@@ -50,6 +50,36 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<int>(userId);
+    }
+    if (!nullToAbsent || username != null) {
+      map['username'] = Variable<String>(username);
+    }
+    if (!nullToAbsent || token != null) {
+      map['token'] = Variable<String>(token);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
+    if (!nullToAbsent || avatar != null) {
+      map['avatar'] = Variable<String>(avatar);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory UserTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -77,30 +107,6 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  UserTableCompanion createCompanion(bool nullToAbsent) {
-    return UserTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      userId:
-          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
-      username: username == null && nullToAbsent
-          ? const Value.absent()
-          : Value(username),
-      token:
-          token == null && nullToAbsent ? const Value.absent() : Value(token),
-      email:
-          email == null && nullToAbsent ? const Value.absent() : Value(email),
-      avatar:
-          avatar == null && nullToAbsent ? const Value.absent() : Value(avatar),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   UserTableData copyWith(
@@ -193,6 +199,28 @@ class UserTableCompanion extends UpdateCompanion<UserTableData> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : userId = Value(userId);
+  static Insertable<UserTableData> custom({
+    Expression<int> id,
+    Expression<int> userId,
+    Expression<String> username,
+    Expression<String> token,
+    Expression<String> email,
+    Expression<String> avatar,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (username != null) 'username': username,
+      if (token != null) 'token': token,
+      if (email != null) 'email': email,
+      if (avatar != null) 'avatar': avatar,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   UserTableCompanion copyWith(
       {Value<int> id,
       Value<int> userId,
@@ -212,6 +240,36 @@ class UserTableCompanion extends UpdateCompanion<UserTableData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (username.present) {
+      map['username'] = Variable<String>(username.value);
+    }
+    if (token.present) {
+      map['token'] = Variable<String>(token.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (avatar.present) {
+      map['avatar'] = Variable<String>(avatar.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -320,41 +378,42 @@ class $UserTableTable extends UserTable
   @override
   final String actualTableName = 'user_table';
   @override
-  VerificationContext validateIntegrity(UserTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<UserTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.userId.present) {
-      context.handle(
-          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id'], _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
-    if (d.username.present) {
+    if (data.containsKey('username')) {
       context.handle(_usernameMeta,
-          username.isAcceptableValue(d.username.value, _usernameMeta));
+          username.isAcceptableOrUnknown(data['username'], _usernameMeta));
     }
-    if (d.token.present) {
+    if (data.containsKey('token')) {
       context.handle(
-          _tokenMeta, token.isAcceptableValue(d.token.value, _tokenMeta));
+          _tokenMeta, token.isAcceptableOrUnknown(data['token'], _tokenMeta));
     }
-    if (d.email.present) {
+    if (data.containsKey('email')) {
       context.handle(
-          _emailMeta, email.isAcceptableValue(d.email.value, _emailMeta));
+          _emailMeta, email.isAcceptableOrUnknown(data['email'], _emailMeta));
     }
-    if (d.avatar.present) {
-      context.handle(
-          _avatarMeta, avatar.isAcceptableValue(d.avatar.value, _avatarMeta));
+    if (data.containsKey('avatar')) {
+      context.handle(_avatarMeta,
+          avatar.isAcceptableOrUnknown(data['avatar'], _avatarMeta));
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -365,36 +424,6 @@ class $UserTableTable extends UserTable
   UserTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return UserTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(UserTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.userId.present) {
-      map['user_id'] = Variable<int>(d.userId.value);
-    }
-    if (d.username.present) {
-      map['username'] = Variable<String>(d.username.value);
-    }
-    if (d.token.present) {
-      map['token'] = Variable<String>(d.token.value);
-    }
-    if (d.email.present) {
-      map['email'] = Variable<String>(d.email.value);
-    }
-    if (d.avatar.present) {
-      map['avatar'] = Variable<String>(d.avatar.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -476,6 +505,57 @@ class BusinessTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || active != null) {
+      map['active'] = Variable<bool>(active);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || typeId != null) {
+      map['type_id'] = Variable<String>(typeId);
+    }
+    if (!nullToAbsent || categoryId != null) {
+      map['category_id'] = Variable<String>(categoryId);
+    }
+    if (!nullToAbsent || country != null) {
+      map['country'] = Variable<String>(country);
+    }
+    if (!nullToAbsent || currency != null) {
+      map['currency'] = Variable<String>(currency);
+    }
+    if (!nullToAbsent || timeZone != null) {
+      map['time_zone'] = Variable<String>(timeZone);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory BusinessTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -517,50 +597,6 @@ class BusinessTableData extends DataClass
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  BusinessTableCompanion createCompanion(bool nullToAbsent) {
-    return BusinessTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      active:
-          active == null && nullToAbsent ? const Value.absent() : Value(active),
-      userId:
-          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
-      typeId:
-          typeId == null && nullToAbsent ? const Value.absent() : Value(typeId),
-      categoryId: categoryId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(categoryId),
-      country: country == null && nullToAbsent
-          ? const Value.absent()
-          : Value(country),
-      currency: currency == null && nullToAbsent
-          ? const Value.absent()
-          : Value(currency),
-      timeZone: timeZone == null && nullToAbsent
-          ? const Value.absent()
-          : Value(timeZone),
-      longitude: longitude == null && nullToAbsent
-          ? const Value.absent()
-          : Value(longitude),
-      latitude: latitude == null && nullToAbsent
-          ? const Value.absent()
-          : Value(latitude),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   BusinessTableData copyWith(
@@ -723,6 +759,42 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
         name = Value(name),
         userId = Value(userId),
         typeId = Value(typeId);
+  static Insertable<BusinessTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<String> name,
+    Expression<bool> active,
+    Expression<String> userId,
+    Expression<String> typeId,
+    Expression<String> categoryId,
+    Expression<String> country,
+    Expression<String> currency,
+    Expression<String> timeZone,
+    Expression<double> longitude,
+    Expression<double> latitude,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (active != null) 'active': active,
+      if (userId != null) 'user_id': userId,
+      if (typeId != null) 'type_id': typeId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (country != null) 'country': country,
+      if (currency != null) 'currency': currency,
+      if (timeZone != null) 'time_zone': timeZone,
+      if (longitude != null) 'longitude': longitude,
+      if (latitude != null) 'latitude': latitude,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   BusinessTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -756,6 +828,57 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (typeId.present) {
+      map['type_id'] = Variable<String>(typeId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (country.present) {
+      map['country'] = Variable<String>(country.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (timeZone.present) {
+      map['time_zone'] = Variable<String>(timeZone.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -957,75 +1080,78 @@ class $BusinessTableTable extends BusinessTable
   @override
   final String actualTableName = 'business_table';
   @override
-  VerificationContext validateIntegrity(BusinessTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<BusinessTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.active.present) {
-      context.handle(
-          _activeMeta, active.isAcceptableValue(d.active.value, _activeMeta));
+    if (data.containsKey('active')) {
+      context.handle(_activeMeta,
+          active.isAcceptableOrUnknown(data['active'], _activeMeta));
     }
-    if (d.userId.present) {
-      context.handle(
-          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id'], _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
-    if (d.typeId.present) {
-      context.handle(
-          _typeIdMeta, typeId.isAcceptableValue(d.typeId.value, _typeIdMeta));
+    if (data.containsKey('type_id')) {
+      context.handle(_typeIdMeta,
+          typeId.isAcceptableOrUnknown(data['type_id'], _typeIdMeta));
     } else if (isInserting) {
       context.missing(_typeIdMeta);
     }
-    if (d.categoryId.present) {
-      context.handle(_categoryIdMeta,
-          categoryId.isAcceptableValue(d.categoryId.value, _categoryIdMeta));
+    if (data.containsKey('category_id')) {
+      context.handle(
+          _categoryIdMeta,
+          categoryId.isAcceptableOrUnknown(
+              data['category_id'], _categoryIdMeta));
     }
-    if (d.country.present) {
+    if (data.containsKey('country')) {
       context.handle(_countryMeta,
-          country.isAcceptableValue(d.country.value, _countryMeta));
+          country.isAcceptableOrUnknown(data['country'], _countryMeta));
     }
-    if (d.currency.present) {
+    if (data.containsKey('currency')) {
       context.handle(_currencyMeta,
-          currency.isAcceptableValue(d.currency.value, _currencyMeta));
+          currency.isAcceptableOrUnknown(data['currency'], _currencyMeta));
     }
-    if (d.timeZone.present) {
+    if (data.containsKey('time_zone')) {
       context.handle(_timeZoneMeta,
-          timeZone.isAcceptableValue(d.timeZone.value, _timeZoneMeta));
+          timeZone.isAcceptableOrUnknown(data['time_zone'], _timeZoneMeta));
     }
-    if (d.longitude.present) {
+    if (data.containsKey('longitude')) {
       context.handle(_longitudeMeta,
-          longitude.isAcceptableValue(d.longitude.value, _longitudeMeta));
+          longitude.isAcceptableOrUnknown(data['longitude'], _longitudeMeta));
     }
-    if (d.latitude.present) {
+    if (data.containsKey('latitude')) {
       context.handle(_latitudeMeta,
-          latitude.isAcceptableValue(d.latitude.value, _latitudeMeta));
+          latitude.isAcceptableOrUnknown(data['latitude'], _latitudeMeta));
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -1036,57 +1162,6 @@ class $BusinessTableTable extends BusinessTable
   BusinessTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return BusinessTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(BusinessTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.active.present) {
-      map['active'] = Variable<bool>(d.active.value);
-    }
-    if (d.userId.present) {
-      map['user_id'] = Variable<String>(d.userId.value);
-    }
-    if (d.typeId.present) {
-      map['type_id'] = Variable<String>(d.typeId.value);
-    }
-    if (d.categoryId.present) {
-      map['category_id'] = Variable<String>(d.categoryId.value);
-    }
-    if (d.country.present) {
-      map['country'] = Variable<String>(d.country.value);
-    }
-    if (d.currency.present) {
-      map['currency'] = Variable<String>(d.currency.value);
-    }
-    if (d.timeZone.present) {
-      map['time_zone'] = Variable<String>(d.timeZone.value);
-    }
-    if (d.longitude.present) {
-      map['longitude'] = Variable<double>(d.longitude.value);
-    }
-    if (d.latitude.present) {
-      map['latitude'] = Variable<double>(d.latitude.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -1138,6 +1213,36 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || isActive != null) {
+      map['is_active'] = Variable<bool>(isActive);
+    }
+    if (!nullToAbsent || businessId != null) {
+      map['business_id'] = Variable<String>(businessId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory BranchTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -1165,32 +1270,6 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  BranchTableCompanion createCompanion(bool nullToAbsent) {
-    return BranchTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      isActive: isActive == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isActive),
-      businessId: businessId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(businessId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   BranchTableData copyWith(
@@ -1285,6 +1364,28 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
   })  : id = Value(id),
         name = Value(name),
         businessId = Value(businessId);
+  static Insertable<BranchTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<String> name,
+    Expression<bool> isActive,
+    Expression<String> businessId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (isActive != null) 'is_active': isActive,
+      if (businessId != null) 'business_id': businessId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   BranchTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -1304,6 +1405,36 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (businessId.present) {
+      map['business_id'] = Variable<String>(businessId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -1414,45 +1545,48 @@ class $BranchTableTable extends BranchTable
   @override
   final String actualTableName = 'branch_table';
   @override
-  VerificationContext validateIntegrity(BranchTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<BranchTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.isActive.present) {
+    if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
-          isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
+          isActive.isAcceptableOrUnknown(data['is_active'], _isActiveMeta));
     }
-    if (d.businessId.present) {
-      context.handle(_businessIdMeta,
-          businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
+    if (data.containsKey('business_id')) {
+      context.handle(
+          _businessIdMeta,
+          businessId.isAcceptableOrUnknown(
+              data['business_id'], _businessIdMeta));
     } else if (isInserting) {
       context.missing(_businessIdMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -1463,36 +1597,6 @@ class $BranchTableTable extends BranchTable
   BranchTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return BranchTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(BranchTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.isActive.present) {
-      map['is_active'] = Variable<bool>(d.isActive.value);
-    }
-    if (d.businessId.present) {
-      map['business_id'] = Variable<String>(d.businessId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -1536,6 +1640,30 @@ class UnitTableData extends DataClass implements Insertable<UnitTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<String>(value);
+    }
+    if (!nullToAbsent || focused != null) {
+      map['focused'] = Variable<bool>(focused);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory UnitTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -1559,25 +1687,6 @@ class UnitTableData extends DataClass implements Insertable<UnitTableData> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  UnitTableCompanion createCompanion(bool nullToAbsent) {
-    return UnitTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      value:
-          value == null && nullToAbsent ? const Value.absent() : Value(value),
-      focused: focused == null && nullToAbsent
-          ? const Value.absent()
-          : Value(focused),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   UnitTableData copyWith(
@@ -1654,6 +1763,24 @@ class UnitTableCompanion extends UpdateCompanion<UnitTableData> {
   })  : name = Value(name),
         value = Value(value),
         focused = Value(focused);
+  static Insertable<UnitTableData> custom({
+    Expression<int> id,
+    Expression<String> name,
+    Expression<String> value,
+    Expression<bool> focused,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (value != null) 'value': value,
+      if (focused != null) 'focused': focused,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   UnitTableCompanion copyWith(
       {Value<int> id,
       Value<String> name,
@@ -1669,6 +1796,30 @@ class UnitTableCompanion extends UpdateCompanion<UnitTableData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (focused.present) {
+      map['focused'] = Variable<bool>(focused.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -1753,37 +1904,38 @@ class $UnitTableTable extends UnitTable
   @override
   final String actualTableName = 'unit_table';
   @override
-  VerificationContext validateIntegrity(UnitTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<UnitTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.value.present) {
+    if (data.containsKey('value')) {
       context.handle(
-          _valueMeta, value.isAcceptableValue(d.value.value, _valueMeta));
+          _valueMeta, value.isAcceptableOrUnknown(data['value'], _valueMeta));
     } else if (isInserting) {
       context.missing(_valueMeta);
     }
-    if (d.focused.present) {
+    if (data.containsKey('focused')) {
       context.handle(_focusedMeta,
-          focused.isAcceptableValue(d.focused.value, _focusedMeta));
+          focused.isAcceptableOrUnknown(data['focused'], _focusedMeta));
     } else if (isInserting) {
       context.missing(_focusedMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -1794,30 +1946,6 @@ class $UnitTableTable extends UnitTable
   UnitTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return UnitTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(UnitTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.value.present) {
-      map['value'] = Variable<String>(d.value.value);
-    }
-    if (d.focused.present) {
-      map['focused'] = Variable<bool>(d.focused.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -1870,6 +1998,36 @@ class CategoryTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || focused != null) {
+      map['focused'] = Variable<bool>(focused);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || branchId != null) {
+      map['branch_id'] = Variable<String>(branchId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory CategoryTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -1897,32 +2055,6 @@ class CategoryTableData extends DataClass
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  CategoryTableCompanion createCompanion(bool nullToAbsent) {
-    return CategoryTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      focused: focused == null && nullToAbsent
-          ? const Value.absent()
-          : Value(focused),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      branchId: branchId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(branchId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   CategoryTableData copyWith(
@@ -2018,6 +2150,28 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
         id = Value(id),
         name = Value(name),
         branchId = Value(branchId);
+  static Insertable<CategoryTableData> custom({
+    Expression<int> idLocal,
+    Expression<bool> focused,
+    Expression<String> id,
+    Expression<String> name,
+    Expression<String> branchId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (focused != null) 'focused': focused,
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (branchId != null) 'branch_id': branchId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   CategoryTableCompanion copyWith(
       {Value<int> idLocal,
       Value<bool> focused,
@@ -2037,6 +2191,36 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (focused.present) {
+      map['focused'] = Variable<bool>(focused.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (branchId.present) {
+      map['branch_id'] = Variable<String>(branchId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -2142,47 +2326,48 @@ class $CategoryTableTable extends CategoryTable
   @override
   final String actualTableName = 'category_table';
   @override
-  VerificationContext validateIntegrity(CategoryTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<CategoryTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.focused.present) {
+    if (data.containsKey('focused')) {
       context.handle(_focusedMeta,
-          focused.isAcceptableValue(d.focused.value, _focusedMeta));
+          focused.isAcceptableOrUnknown(data['focused'], _focusedMeta));
     } else if (isInserting) {
       context.missing(_focusedMeta);
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.branchId.present) {
+    if (data.containsKey('branch_id')) {
       context.handle(_branchIdMeta,
-          branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
+          branchId.isAcceptableOrUnknown(data['branch_id'], _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -2193,36 +2378,6 @@ class $CategoryTableTable extends CategoryTable
   CategoryTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return CategoryTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(CategoryTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.focused.present) {
-      map['focused'] = Variable<bool>(d.focused.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.branchId.present) {
-      map['branch_id'] = Variable<String>(d.branchId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -2315,6 +2470,66 @@ class ProductTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(picture);
+    }
+    if (!nullToAbsent || active != null) {
+      map['active'] = Variable<bool>(active);
+    }
+    if (!nullToAbsent || hasPicture != null) {
+      map['has_picture'] = Variable<bool>(hasPicture);
+    }
+    if (!nullToAbsent || isImageLocal != null) {
+      map['is_image_local'] = Variable<bool>(isImageLocal);
+    }
+    if (!nullToAbsent || isDraft != null) {
+      map['is_draft'] = Variable<bool>(isDraft);
+    }
+    if (!nullToAbsent || isCurrentUpdate != null) {
+      map['is_current_update'] = Variable<bool>(isCurrentUpdate);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || businessId != null) {
+      map['business_id'] = Variable<String>(businessId);
+    }
+    if (!nullToAbsent || supplierId != null) {
+      map['supplier_id'] = Variable<String>(supplierId);
+    }
+    if (!nullToAbsent || categoryId != null) {
+      map['category_id'] = Variable<String>(categoryId);
+    }
+    if (!nullToAbsent || taxId != null) {
+      map['tax_id'] = Variable<String>(taxId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory ProductTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -2362,59 +2577,6 @@ class ProductTableData extends DataClass
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  ProductTableCompanion createCompanion(bool nullToAbsent) {
-    return ProductTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      picture: picture == null && nullToAbsent
-          ? const Value.absent()
-          : Value(picture),
-      active:
-          active == null && nullToAbsent ? const Value.absent() : Value(active),
-      hasPicture: hasPicture == null && nullToAbsent
-          ? const Value.absent()
-          : Value(hasPicture),
-      isImageLocal: isImageLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isImageLocal),
-      isDraft: isDraft == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isDraft),
-      isCurrentUpdate: isCurrentUpdate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isCurrentUpdate),
-      description: description == null && nullToAbsent
-          ? const Value.absent()
-          : Value(description),
-      color:
-          color == null && nullToAbsent ? const Value.absent() : Value(color),
-      businessId: businessId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(businessId),
-      supplierId: supplierId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(supplierId),
-      categoryId: categoryId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(categoryId),
-      taxId:
-          taxId == null && nullToAbsent ? const Value.absent() : Value(taxId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   ProductTableData copyWith(
@@ -2611,6 +2773,48 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
         isCurrentUpdate = Value(isCurrentUpdate),
         businessId = Value(businessId),
         supplierId = Value(supplierId);
+  static Insertable<ProductTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<String> name,
+    Expression<String> picture,
+    Expression<bool> active,
+    Expression<bool> hasPicture,
+    Expression<bool> isImageLocal,
+    Expression<bool> isDraft,
+    Expression<bool> isCurrentUpdate,
+    Expression<String> description,
+    Expression<String> color,
+    Expression<String> businessId,
+    Expression<String> supplierId,
+    Expression<String> categoryId,
+    Expression<String> taxId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (picture != null) 'picture': picture,
+      if (active != null) 'active': active,
+      if (hasPicture != null) 'has_picture': hasPicture,
+      if (isImageLocal != null) 'is_image_local': isImageLocal,
+      if (isDraft != null) 'is_draft': isDraft,
+      if (isCurrentUpdate != null) 'is_current_update': isCurrentUpdate,
+      if (description != null) 'description': description,
+      if (color != null) 'color': color,
+      if (businessId != null) 'business_id': businessId,
+      if (supplierId != null) 'supplier_id': supplierId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (taxId != null) 'tax_id': taxId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   ProductTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -2650,6 +2854,66 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(picture.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (hasPicture.present) {
+      map['has_picture'] = Variable<bool>(hasPicture.value);
+    }
+    if (isImageLocal.present) {
+      map['is_image_local'] = Variable<bool>(isImageLocal.value);
+    }
+    if (isDraft.present) {
+      map['is_draft'] = Variable<bool>(isDraft.value);
+    }
+    if (isCurrentUpdate.present) {
+      map['is_current_update'] = Variable<bool>(isCurrentUpdate.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (businessId.present) {
+      map['business_id'] = Variable<String>(businessId.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<String>(supplierId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (taxId.present) {
+      map['tax_id'] = Variable<String>(taxId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -2893,101 +3157,112 @@ class $ProductTableTable extends ProductTable
   @override
   final String actualTableName = 'product_table';
   @override
-  VerificationContext validateIntegrity(ProductTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<ProductTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.picture.present) {
+    if (data.containsKey('picture')) {
       context.handle(_pictureMeta,
-          picture.isAcceptableValue(d.picture.value, _pictureMeta));
+          picture.isAcceptableOrUnknown(data['picture'], _pictureMeta));
     } else if (isInserting) {
       context.missing(_pictureMeta);
     }
-    if (d.active.present) {
-      context.handle(
-          _activeMeta, active.isAcceptableValue(d.active.value, _activeMeta));
+    if (data.containsKey('active')) {
+      context.handle(_activeMeta,
+          active.isAcceptableOrUnknown(data['active'], _activeMeta));
     } else if (isInserting) {
       context.missing(_activeMeta);
     }
-    if (d.hasPicture.present) {
-      context.handle(_hasPictureMeta,
-          hasPicture.isAcceptableValue(d.hasPicture.value, _hasPictureMeta));
+    if (data.containsKey('has_picture')) {
+      context.handle(
+          _hasPictureMeta,
+          hasPicture.isAcceptableOrUnknown(
+              data['has_picture'], _hasPictureMeta));
     } else if (isInserting) {
       context.missing(_hasPictureMeta);
     }
-    if (d.isImageLocal.present) {
+    if (data.containsKey('is_image_local')) {
       context.handle(
           _isImageLocalMeta,
-          isImageLocal.isAcceptableValue(
-              d.isImageLocal.value, _isImageLocalMeta));
+          isImageLocal.isAcceptableOrUnknown(
+              data['is_image_local'], _isImageLocalMeta));
     }
-    if (d.isDraft.present) {
+    if (data.containsKey('is_draft')) {
       context.handle(_isDraftMeta,
-          isDraft.isAcceptableValue(d.isDraft.value, _isDraftMeta));
+          isDraft.isAcceptableOrUnknown(data['is_draft'], _isDraftMeta));
     } else if (isInserting) {
       context.missing(_isDraftMeta);
     }
-    if (d.isCurrentUpdate.present) {
+    if (data.containsKey('is_current_update')) {
       context.handle(
           _isCurrentUpdateMeta,
-          isCurrentUpdate.isAcceptableValue(
-              d.isCurrentUpdate.value, _isCurrentUpdateMeta));
+          isCurrentUpdate.isAcceptableOrUnknown(
+              data['is_current_update'], _isCurrentUpdateMeta));
     } else if (isInserting) {
       context.missing(_isCurrentUpdateMeta);
     }
-    if (d.description.present) {
-      context.handle(_descriptionMeta,
-          description.isAcceptableValue(d.description.value, _descriptionMeta));
-    }
-    if (d.color.present) {
+    if (data.containsKey('description')) {
       context.handle(
-          _colorMeta, color.isAcceptableValue(d.color.value, _colorMeta));
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description'], _descriptionMeta));
     }
-    if (d.businessId.present) {
-      context.handle(_businessIdMeta,
-          businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color'], _colorMeta));
+    }
+    if (data.containsKey('business_id')) {
+      context.handle(
+          _businessIdMeta,
+          businessId.isAcceptableOrUnknown(
+              data['business_id'], _businessIdMeta));
     } else if (isInserting) {
       context.missing(_businessIdMeta);
     }
-    if (d.supplierId.present) {
-      context.handle(_supplierIdMeta,
-          supplierId.isAcceptableValue(d.supplierId.value, _supplierIdMeta));
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+          _supplierIdMeta,
+          supplierId.isAcceptableOrUnknown(
+              data['supplier_id'], _supplierIdMeta));
     } else if (isInserting) {
       context.missing(_supplierIdMeta);
     }
-    if (d.categoryId.present) {
-      context.handle(_categoryIdMeta,
-          categoryId.isAcceptableValue(d.categoryId.value, _categoryIdMeta));
-    }
-    if (d.taxId.present) {
+    if (data.containsKey('category_id')) {
       context.handle(
-          _taxIdMeta, taxId.isAcceptableValue(d.taxId.value, _taxIdMeta));
+          _categoryIdMeta,
+          categoryId.isAcceptableOrUnknown(
+              data['category_id'], _categoryIdMeta));
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('tax_id')) {
+      context.handle(
+          _taxIdMeta, taxId.isAcceptableOrUnknown(data['tax_id'], _taxIdMeta));
+    }
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -2998,66 +3273,6 @@ class $ProductTableTable extends ProductTable
   ProductTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return ProductTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(ProductTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.picture.present) {
-      map['picture'] = Variable<String>(d.picture.value);
-    }
-    if (d.active.present) {
-      map['active'] = Variable<bool>(d.active.value);
-    }
-    if (d.hasPicture.present) {
-      map['has_picture'] = Variable<bool>(d.hasPicture.value);
-    }
-    if (d.isImageLocal.present) {
-      map['is_image_local'] = Variable<bool>(d.isImageLocal.value);
-    }
-    if (d.isDraft.present) {
-      map['is_draft'] = Variable<bool>(d.isDraft.value);
-    }
-    if (d.isCurrentUpdate.present) {
-      map['is_current_update'] = Variable<bool>(d.isCurrentUpdate.value);
-    }
-    if (d.description.present) {
-      map['description'] = Variable<String>(d.description.value);
-    }
-    if (d.color.present) {
-      map['color'] = Variable<String>(d.color.value);
-    }
-    if (d.businessId.present) {
-      map['business_id'] = Variable<String>(d.businessId.value);
-    }
-    if (d.supplierId.present) {
-      map['supplier_id'] = Variable<String>(d.supplierId.value);
-    }
-    if (d.categoryId.present) {
-      map['category_id'] = Variable<String>(d.categoryId.value);
-    }
-    if (d.taxId.present) {
-      map['tax_id'] = Variable<String>(d.taxId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -3093,6 +3308,24 @@ class TokenTableData extends DataClass implements Insertable<TokenTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || token != null) {
+      map['token'] = Variable<String>(token);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory TokenTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3112,21 +3345,6 @@ class TokenTableData extends DataClass implements Insertable<TokenTableData> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  TokenTableCompanion createCompanion(bool nullToAbsent) {
-    return TokenTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      token:
-          token == null && nullToAbsent ? const Value.absent() : Value(token),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   TokenTableData copyWith(
@@ -3178,6 +3396,20 @@ class TokenTableCompanion extends UpdateCompanion<TokenTableData> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : token = Value(token);
+  static Insertable<TokenTableData> custom({
+    Expression<int> id,
+    Expression<String> token,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (token != null) 'token': token,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   TokenTableCompanion copyWith(
       {Value<int> id,
       Value<String> token,
@@ -3189,6 +3421,24 @@ class TokenTableCompanion extends UpdateCompanion<TokenTableData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (token.present) {
+      map['token'] = Variable<String>(token.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -3248,25 +3498,26 @@ class $TokenTableTable extends TokenTable
   @override
   final String actualTableName = 'token_table';
   @override
-  VerificationContext validateIntegrity(TokenTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<TokenTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.token.present) {
+    if (data.containsKey('token')) {
       context.handle(
-          _tokenMeta, token.isAcceptableValue(d.token.value, _tokenMeta));
+          _tokenMeta, token.isAcceptableOrUnknown(data['token'], _tokenMeta));
     } else if (isInserting) {
       context.missing(_tokenMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -3277,24 +3528,6 @@ class $TokenTableTable extends TokenTable
   TokenTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return TokenTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(TokenTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.token.present) {
-      map['token'] = Variable<String>(d.token.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -3335,6 +3568,27 @@ class BusinessUserTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || businessId != null) {
+      map['business_id'] = Variable<String>(businessId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory BusinessUserTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3356,24 +3610,6 @@ class BusinessUserTableData extends DataClass
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  BusinessUserTableCompanion createCompanion(bool nullToAbsent) {
-    return BusinessUserTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      userId:
-          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
-      businessId: businessId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(businessId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   BusinessUserTableData copyWith(
@@ -3440,6 +3676,22 @@ class BusinessUserTableCompanion
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
+  static Insertable<BusinessUserTableData> custom({
+    Expression<int> id,
+    Expression<String> userId,
+    Expression<String> businessId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (businessId != null) 'business_id': businessId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   BusinessUserTableCompanion copyWith(
       {Value<int> id,
       Value<String> userId,
@@ -3453,6 +3705,27 @@ class BusinessUserTableCompanion
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (businessId.present) {
+      map['business_id'] = Variable<String>(businessId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -3525,27 +3798,31 @@ class $BusinessUserTableTable extends BusinessUserTable
   @override
   final String actualTableName = 'business_user_table';
   @override
-  VerificationContext validateIntegrity(BusinessUserTableCompanion d,
+  VerificationContext validateIntegrity(
+      Insertable<BusinessUserTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.userId.present) {
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id'], _userIdMeta));
+    }
+    if (data.containsKey('business_id')) {
       context.handle(
-          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
+          _businessIdMeta,
+          businessId.isAcceptableOrUnknown(
+              data['business_id'], _businessIdMeta));
     }
-    if (d.businessId.present) {
-      context.handle(_businessIdMeta,
-          businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
-    }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -3556,27 +3833,6 @@ class $BusinessUserTableTable extends BusinessUserTable
   BusinessUserTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return BusinessUserTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(BusinessUserTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.userId.present) {
-      map['user_id'] = Variable<String>(d.userId.value);
-    }
-    if (d.businessId.present) {
-      map['business_id'] = Variable<String>(d.businessId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -3606,6 +3862,24 @@ class TabsTableData extends DataClass implements Insertable<TabsTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || tab != null) {
+      map['tab'] = Variable<int>(tab);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory TabsTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3625,20 +3899,6 @@ class TabsTableData extends DataClass implements Insertable<TabsTableData> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  TabsTableCompanion createCompanion(bool nullToAbsent) {
-    return TabsTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      tab: tab == null && nullToAbsent ? const Value.absent() : Value(tab),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   TabsTableData copyWith(
@@ -3690,6 +3950,20 @@ class TabsTableCompanion extends UpdateCompanion<TabsTableData> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
+  static Insertable<TabsTableData> custom({
+    Expression<int> id,
+    Expression<int> tab,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tab != null) 'tab': tab,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   TabsTableCompanion copyWith(
       {Value<int> id,
       Value<int> tab,
@@ -3701,6 +3975,24 @@ class TabsTableCompanion extends UpdateCompanion<TabsTableData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (tab.present) {
+      map['tab'] = Variable<int>(tab.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -3760,22 +4052,24 @@ class $TabsTableTable extends TabsTable
   @override
   final String actualTableName = 'tabs_table';
   @override
-  VerificationContext validateIntegrity(TabsTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<TabsTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.tab.present) {
-      context.handle(_tabMeta, tab.isAcceptableValue(d.tab.value, _tabMeta));
+    if (data.containsKey('tab')) {
+      context.handle(
+          _tabMeta, tab.isAcceptableOrUnknown(data['tab'], _tabMeta));
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -3786,24 +4080,6 @@ class $TabsTableTable extends TabsTable
   TabsTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return TabsTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(TabsTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.tab.present) {
-      map['tab'] = Variable<int>(d.tab.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -3862,6 +4138,42 @@ class VariationTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || sku != null) {
+      map['sku'] = Variable<String>(sku);
+    }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
+    if (!nullToAbsent || isActive != null) {
+      map['is_active'] = Variable<bool>(isActive);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory VariationTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3893,34 +4205,6 @@ class VariationTableData extends DataClass
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  VariationTableCompanion createCompanion(bool nullToAbsent) {
-    return VariationTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      sku: sku == null && nullToAbsent ? const Value.absent() : Value(sku),
-      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
-      productId: productId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(productId),
-      isActive: isActive == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isActive),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   VariationTableData copyWith(
@@ -4035,6 +4319,32 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
   })  : id = Value(id),
         name = Value(name),
         productId = Value(productId);
+  static Insertable<VariationTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<String> name,
+    Expression<String> sku,
+    Expression<String> unit,
+    Expression<String> productId,
+    Expression<bool> isActive,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (sku != null) 'sku': sku,
+      if (unit != null) 'unit': unit,
+      if (productId != null) 'product_id': productId,
+      if (isActive != null) 'is_active': isActive,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   VariationTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -4058,6 +4368,42 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (sku.present) {
+      map['sku'] = Variable<String>(sku.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -4194,52 +4540,54 @@ class $VariationTableTable extends VariationTable
   @override
   final String actualTableName = 'variation_table';
   @override
-  VerificationContext validateIntegrity(VariationTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<VariationTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.sku.present) {
-      context.handle(_skuMeta, sku.isAcceptableValue(d.sku.value, _skuMeta));
-    }
-    if (d.unit.present) {
+    if (data.containsKey('sku')) {
       context.handle(
-          _unitMeta, unit.isAcceptableValue(d.unit.value, _unitMeta));
+          _skuMeta, sku.isAcceptableOrUnknown(data['sku'], _skuMeta));
     }
-    if (d.productId.present) {
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit'], _unitMeta));
+    }
+    if (data.containsKey('product_id')) {
       context.handle(_productIdMeta,
-          productId.isAcceptableValue(d.productId.value, _productIdMeta));
+          productId.isAcceptableOrUnknown(data['product_id'], _productIdMeta));
     } else if (isInserting) {
       context.missing(_productIdMeta);
     }
-    if (d.isActive.present) {
+    if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
-          isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
+          isActive.isAcceptableOrUnknown(data['is_active'], _isActiveMeta));
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -4250,42 +4598,6 @@ class $VariationTableTable extends VariationTable
   VariationTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return VariationTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(VariationTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.sku.present) {
-      map['sku'] = Variable<String>(d.sku.value);
-    }
-    if (d.unit.present) {
-      map['unit'] = Variable<String>(d.unit.value);
-    }
-    if (d.productId.present) {
-      map['product_id'] = Variable<String>(d.productId.value);
-    }
-    if (d.isActive.present) {
-      map['is_active'] = Variable<bool>(d.isActive.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -4371,6 +4683,60 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || currentStock != null) {
+      map['current_stock'] = Variable<int>(currentStock);
+    }
+    if (!nullToAbsent || lowStock != null) {
+      map['low_stock'] = Variable<int>(lowStock);
+    }
+    if (!nullToAbsent || canTrackingStock != null) {
+      map['can_tracking_stock'] = Variable<bool>(canTrackingStock);
+    }
+    if (!nullToAbsent || showLowStockAlert != null) {
+      map['show_low_stock_alert'] = Variable<bool>(showLowStockAlert);
+    }
+    if (!nullToAbsent || action != null) {
+      map['action'] = Variable<String>(action);
+    }
+    if (!nullToAbsent || isActive != null) {
+      map['is_active'] = Variable<bool>(isActive);
+    }
+    if (!nullToAbsent || supplyPrice != null) {
+      map['supply_price'] = Variable<double>(supplyPrice);
+    }
+    if (!nullToAbsent || retailPrice != null) {
+      map['retail_price'] = Variable<double>(retailPrice);
+    }
+    if (!nullToAbsent || variantId != null) {
+      map['variant_id'] = Variable<String>(variantId);
+    }
+    if (!nullToAbsent || branchId != null) {
+      map['branch_id'] = Variable<String>(branchId);
+    }
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory StockTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -4414,57 +4780,6 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  StockTableCompanion createCompanion(bool nullToAbsent) {
-    return StockTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      currentStock: currentStock == null && nullToAbsent
-          ? const Value.absent()
-          : Value(currentStock),
-      lowStock: lowStock == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lowStock),
-      canTrackingStock: canTrackingStock == null && nullToAbsent
-          ? const Value.absent()
-          : Value(canTrackingStock),
-      showLowStockAlert: showLowStockAlert == null && nullToAbsent
-          ? const Value.absent()
-          : Value(showLowStockAlert),
-      action:
-          action == null && nullToAbsent ? const Value.absent() : Value(action),
-      isActive: isActive == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isActive),
-      supplyPrice: supplyPrice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(supplyPrice),
-      retailPrice: retailPrice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(retailPrice),
-      variantId: variantId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variantId),
-      branchId: branchId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(branchId),
-      productId: productId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(productId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   StockTableData copyWith(
@@ -4637,6 +4952,44 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
         variantId = Value(variantId),
         branchId = Value(branchId),
         productId = Value(productId);
+  static Insertable<StockTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<int> currentStock,
+    Expression<int> lowStock,
+    Expression<bool> canTrackingStock,
+    Expression<bool> showLowStockAlert,
+    Expression<String> action,
+    Expression<bool> isActive,
+    Expression<double> supplyPrice,
+    Expression<double> retailPrice,
+    Expression<String> variantId,
+    Expression<String> branchId,
+    Expression<String> productId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (currentStock != null) 'current_stock': currentStock,
+      if (lowStock != null) 'low_stock': lowStock,
+      if (canTrackingStock != null) 'can_tracking_stock': canTrackingStock,
+      if (showLowStockAlert != null) 'show_low_stock_alert': showLowStockAlert,
+      if (action != null) 'action': action,
+      if (isActive != null) 'is_active': isActive,
+      if (supplyPrice != null) 'supply_price': supplyPrice,
+      if (retailPrice != null) 'retail_price': retailPrice,
+      if (variantId != null) 'variant_id': variantId,
+      if (branchId != null) 'branch_id': branchId,
+      if (productId != null) 'product_id': productId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   StockTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -4672,6 +5025,60 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (currentStock.present) {
+      map['current_stock'] = Variable<int>(currentStock.value);
+    }
+    if (lowStock.present) {
+      map['low_stock'] = Variable<int>(lowStock.value);
+    }
+    if (canTrackingStock.present) {
+      map['can_tracking_stock'] = Variable<bool>(canTrackingStock.value);
+    }
+    if (showLowStockAlert.present) {
+      map['show_low_stock_alert'] = Variable<bool>(showLowStockAlert.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (supplyPrice.present) {
+      map['supply_price'] = Variable<double>(supplyPrice.value);
+    }
+    if (retailPrice.present) {
+      map['retail_price'] = Variable<double>(retailPrice.value);
+    }
+    if (variantId.present) {
+      map['variant_id'] = Variable<String>(variantId.value);
+    }
+    if (branchId.present) {
+      map['branch_id'] = Variable<String>(branchId.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -4875,85 +5282,90 @@ class $StockTableTable extends StockTable
   @override
   final String actualTableName = 'stock_table';
   @override
-  VerificationContext validateIntegrity(StockTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<StockTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.currentStock.present) {
+    if (data.containsKey('current_stock')) {
       context.handle(
           _currentStockMeta,
-          currentStock.isAcceptableValue(
-              d.currentStock.value, _currentStockMeta));
+          currentStock.isAcceptableOrUnknown(
+              data['current_stock'], _currentStockMeta));
     }
-    if (d.lowStock.present) {
+    if (data.containsKey('low_stock')) {
       context.handle(_lowStockMeta,
-          lowStock.isAcceptableValue(d.lowStock.value, _lowStockMeta));
+          lowStock.isAcceptableOrUnknown(data['low_stock'], _lowStockMeta));
     }
-    if (d.canTrackingStock.present) {
+    if (data.containsKey('can_tracking_stock')) {
       context.handle(
           _canTrackingStockMeta,
-          canTrackingStock.isAcceptableValue(
-              d.canTrackingStock.value, _canTrackingStockMeta));
+          canTrackingStock.isAcceptableOrUnknown(
+              data['can_tracking_stock'], _canTrackingStockMeta));
     }
-    if (d.showLowStockAlert.present) {
+    if (data.containsKey('show_low_stock_alert')) {
       context.handle(
           _showLowStockAlertMeta,
-          showLowStockAlert.isAcceptableValue(
-              d.showLowStockAlert.value, _showLowStockAlertMeta));
+          showLowStockAlert.isAcceptableOrUnknown(
+              data['show_low_stock_alert'], _showLowStockAlertMeta));
     }
-    if (d.action.present) {
-      context.handle(
-          _actionMeta, action.isAcceptableValue(d.action.value, _actionMeta));
+    if (data.containsKey('action')) {
+      context.handle(_actionMeta,
+          action.isAcceptableOrUnknown(data['action'], _actionMeta));
     }
-    if (d.isActive.present) {
+    if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
-          isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
+          isActive.isAcceptableOrUnknown(data['is_active'], _isActiveMeta));
     }
-    if (d.supplyPrice.present) {
-      context.handle(_supplyPriceMeta,
-          supplyPrice.isAcceptableValue(d.supplyPrice.value, _supplyPriceMeta));
+    if (data.containsKey('supply_price')) {
+      context.handle(
+          _supplyPriceMeta,
+          supplyPrice.isAcceptableOrUnknown(
+              data['supply_price'], _supplyPriceMeta));
     }
-    if (d.retailPrice.present) {
-      context.handle(_retailPriceMeta,
-          retailPrice.isAcceptableValue(d.retailPrice.value, _retailPriceMeta));
+    if (data.containsKey('retail_price')) {
+      context.handle(
+          _retailPriceMeta,
+          retailPrice.isAcceptableOrUnknown(
+              data['retail_price'], _retailPriceMeta));
     }
-    if (d.variantId.present) {
+    if (data.containsKey('variant_id')) {
       context.handle(_variantIdMeta,
-          variantId.isAcceptableValue(d.variantId.value, _variantIdMeta));
+          variantId.isAcceptableOrUnknown(data['variant_id'], _variantIdMeta));
     } else if (isInserting) {
       context.missing(_variantIdMeta);
     }
-    if (d.branchId.present) {
+    if (data.containsKey('branch_id')) {
       context.handle(_branchIdMeta,
-          branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
+          branchId.isAcceptableOrUnknown(data['branch_id'], _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
-    if (d.productId.present) {
+    if (data.containsKey('product_id')) {
       context.handle(_productIdMeta,
-          productId.isAcceptableValue(d.productId.value, _productIdMeta));
+          productId.isAcceptableOrUnknown(data['product_id'], _productIdMeta));
     } else if (isInserting) {
       context.missing(_productIdMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -4964,60 +5376,6 @@ class $StockTableTable extends StockTable
   StockTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return StockTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(StockTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.currentStock.present) {
-      map['current_stock'] = Variable<int>(d.currentStock.value);
-    }
-    if (d.lowStock.present) {
-      map['low_stock'] = Variable<int>(d.lowStock.value);
-    }
-    if (d.canTrackingStock.present) {
-      map['can_tracking_stock'] = Variable<bool>(d.canTrackingStock.value);
-    }
-    if (d.showLowStockAlert.present) {
-      map['show_low_stock_alert'] = Variable<bool>(d.showLowStockAlert.value);
-    }
-    if (d.action.present) {
-      map['action'] = Variable<String>(d.action.value);
-    }
-    if (d.isActive.present) {
-      map['is_active'] = Variable<bool>(d.isActive.value);
-    }
-    if (d.supplyPrice.present) {
-      map['supply_price'] = Variable<double>(d.supplyPrice.value);
-    }
-    if (d.retailPrice.present) {
-      map['retail_price'] = Variable<double>(d.retailPrice.value);
-    }
-    if (d.variantId.present) {
-      map['variant_id'] = Variable<String>(d.variantId.value);
-    }
-    if (d.branchId.present) {
-      map['branch_id'] = Variable<String>(d.branchId.value);
-    }
-    if (d.productId.present) {
-      map['product_id'] = Variable<String>(d.productId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -5077,6 +5435,42 @@ class StockHistoryTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || quantity != null) {
+      map['quantity'] = Variable<int>(quantity);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || stockId != null) {
+      map['stock_id'] = Variable<String>(stockId);
+    }
+    if (!nullToAbsent || variantId != null) {
+      map['variant_id'] = Variable<String>(variantId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory StockHistoryTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -5108,37 +5502,6 @@ class StockHistoryTableData extends DataClass
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  StockHistoryTableCompanion createCompanion(bool nullToAbsent) {
-    return StockHistoryTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      quantity: quantity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(quantity),
-      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      reason:
-          reason == null && nullToAbsent ? const Value.absent() : Value(reason),
-      stockId: stockId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(stockId),
-      variantId: variantId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variantId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   StockHistoryTableData copyWith(
@@ -5257,6 +5620,32 @@ class StockHistoryTableCompanion
         reason = Value(reason),
         stockId = Value(stockId),
         variantId = Value(variantId);
+  static Insertable<StockHistoryTableData> custom({
+    Expression<int> idLocal,
+    Expression<int> quantity,
+    Expression<String> note,
+    Expression<String> id,
+    Expression<String> reason,
+    Expression<String> stockId,
+    Expression<String> variantId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (quantity != null) 'quantity': quantity,
+      if (note != null) 'note': note,
+      if (id != null) 'id': id,
+      if (reason != null) 'reason': reason,
+      if (stockId != null) 'stock_id': stockId,
+      if (variantId != null) 'variant_id': variantId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   StockHistoryTableCompanion copyWith(
       {Value<int> idLocal,
       Value<int> quantity,
@@ -5280,6 +5669,42 @@ class StockHistoryTableCompanion
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (stockId.present) {
+      map['stock_id'] = Variable<String>(stockId.value);
+    }
+    if (variantId.present) {
+      map['variant_id'] = Variable<String>(variantId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -5419,59 +5844,61 @@ class $StockHistoryTableTable extends StockHistoryTable
   @override
   final String actualTableName = 'stock_history_table';
   @override
-  VerificationContext validateIntegrity(StockHistoryTableCompanion d,
+  VerificationContext validateIntegrity(
+      Insertable<StockHistoryTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.quantity.present) {
+    if (data.containsKey('quantity')) {
       context.handle(_quantityMeta,
-          quantity.isAcceptableValue(d.quantity.value, _quantityMeta));
+          quantity.isAcceptableOrUnknown(data['quantity'], _quantityMeta));
     } else if (isInserting) {
       context.missing(_quantityMeta);
     }
-    if (d.note.present) {
+    if (data.containsKey('note')) {
       context.handle(
-          _noteMeta, note.isAcceptableValue(d.note.value, _noteMeta));
+          _noteMeta, note.isAcceptableOrUnknown(data['note'], _noteMeta));
     } else if (isInserting) {
       context.missing(_noteMeta);
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.reason.present) {
-      context.handle(
-          _reasonMeta, reason.isAcceptableValue(d.reason.value, _reasonMeta));
+    if (data.containsKey('reason')) {
+      context.handle(_reasonMeta,
+          reason.isAcceptableOrUnknown(data['reason'], _reasonMeta));
     } else if (isInserting) {
       context.missing(_reasonMeta);
     }
-    if (d.stockId.present) {
+    if (data.containsKey('stock_id')) {
       context.handle(_stockIdMeta,
-          stockId.isAcceptableValue(d.stockId.value, _stockIdMeta));
+          stockId.isAcceptableOrUnknown(data['stock_id'], _stockIdMeta));
     } else if (isInserting) {
       context.missing(_stockIdMeta);
     }
-    if (d.variantId.present) {
+    if (data.containsKey('variant_id')) {
       context.handle(_variantIdMeta,
-          variantId.isAcceptableValue(d.variantId.value, _variantIdMeta));
+          variantId.isAcceptableOrUnknown(data['variant_id'], _variantIdMeta));
     } else if (isInserting) {
       context.missing(_variantIdMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -5482,42 +5909,6 @@ class $StockHistoryTableTable extends StockHistoryTable
   StockHistoryTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return StockHistoryTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(StockHistoryTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.quantity.present) {
-      map['quantity'] = Variable<int>(d.quantity.value);
-    }
-    if (d.note.present) {
-      map['note'] = Variable<String>(d.note.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.reason.present) {
-      map['reason'] = Variable<String>(d.reason.value);
-    }
-    if (d.stockId.present) {
-      map['stock_id'] = Variable<String>(d.stockId.value);
-    }
-    if (d.variantId.present) {
-      map['variant_id'] = Variable<String>(d.variantId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -5609,6 +6000,66 @@ class OrderDetailTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || branchId != null) {
+      map['branch_id'] = Variable<String>(branchId);
+    }
+    if (!nullToAbsent || discountRate != null) {
+      map['discount_rate'] = Variable<int>(discountRate);
+    }
+    if (!nullToAbsent || discountAmount != null) {
+      map['discount_amount'] = Variable<int>(discountAmount);
+    }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || taxRate != null) {
+      map['tax_rate'] = Variable<int>(taxRate);
+    }
+    if (!nullToAbsent || taxAmount != null) {
+      map['tax_amount'] = Variable<double>(taxAmount);
+    }
+    if (!nullToAbsent || quantity != null) {
+      map['quantity'] = Variable<double>(quantity);
+    }
+    if (!nullToAbsent || subTotal != null) {
+      map['sub_total'] = Variable<double>(subTotal);
+    }
+    if (!nullToAbsent || orderId != null) {
+      map['order_id'] = Variable<String>(orderId);
+    }
+    if (!nullToAbsent || stockId != null) {
+      map['stock_id'] = Variable<String>(stockId);
+    }
+    if (!nullToAbsent || variationId != null) {
+      map['variation_id'] = Variable<String>(variationId);
+    }
+    if (!nullToAbsent || variantName != null) {
+      map['variant_name'] = Variable<String>(variantName);
+    }
+    if (!nullToAbsent || productName != null) {
+      map['product_name'] = Variable<String>(productName);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory OrderDetailTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -5656,60 +6107,6 @@ class OrderDetailTableData extends DataClass
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  OrderDetailTableCompanion createCompanion(bool nullToAbsent) {
-    return OrderDetailTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      branchId: branchId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(branchId),
-      discountRate: discountRate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(discountRate),
-      discountAmount: discountAmount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(discountAmount),
-      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
-      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
-      taxRate: taxRate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(taxRate),
-      taxAmount: taxAmount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(taxAmount),
-      quantity: quantity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(quantity),
-      subTotal: subTotal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(subTotal),
-      orderId: orderId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(orderId),
-      stockId: stockId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(stockId),
-      variationId: variationId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variationId),
-      variantName: variantName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variantName),
-      productName: productName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(productName),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   OrderDetailTableData copyWith(
@@ -5913,6 +6310,48 @@ class OrderDetailTableCompanion extends UpdateCompanion<OrderDetailTableData> {
         variationId = Value(variationId),
         variantName = Value(variantName),
         productName = Value(productName);
+  static Insertable<OrderDetailTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<String> branchId,
+    Expression<int> discountRate,
+    Expression<int> discountAmount,
+    Expression<String> unit,
+    Expression<String> note,
+    Expression<int> taxRate,
+    Expression<double> taxAmount,
+    Expression<double> quantity,
+    Expression<double> subTotal,
+    Expression<String> orderId,
+    Expression<String> stockId,
+    Expression<String> variationId,
+    Expression<String> variantName,
+    Expression<String> productName,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (branchId != null) 'branch_id': branchId,
+      if (discountRate != null) 'discount_rate': discountRate,
+      if (discountAmount != null) 'discount_amount': discountAmount,
+      if (unit != null) 'unit': unit,
+      if (note != null) 'note': note,
+      if (taxRate != null) 'tax_rate': taxRate,
+      if (taxAmount != null) 'tax_amount': taxAmount,
+      if (quantity != null) 'quantity': quantity,
+      if (subTotal != null) 'sub_total': subTotal,
+      if (orderId != null) 'order_id': orderId,
+      if (stockId != null) 'stock_id': stockId,
+      if (variationId != null) 'variation_id': variationId,
+      if (variantName != null) 'variant_name': variantName,
+      if (productName != null) 'product_name': productName,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   OrderDetailTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -5952,6 +6391,66 @@ class OrderDetailTableCompanion extends UpdateCompanion<OrderDetailTableData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (branchId.present) {
+      map['branch_id'] = Variable<String>(branchId.value);
+    }
+    if (discountRate.present) {
+      map['discount_rate'] = Variable<int>(discountRate.value);
+    }
+    if (discountAmount.present) {
+      map['discount_amount'] = Variable<int>(discountAmount.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (taxRate.present) {
+      map['tax_rate'] = Variable<int>(taxRate.value);
+    }
+    if (taxAmount.present) {
+      map['tax_amount'] = Variable<double>(taxAmount.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
+    if (subTotal.present) {
+      map['sub_total'] = Variable<double>(subTotal.value);
+    }
+    if (orderId.present) {
+      map['order_id'] = Variable<String>(orderId.value);
+    }
+    if (stockId.present) {
+      map['stock_id'] = Variable<String>(stockId.value);
+    }
+    if (variationId.present) {
+      map['variation_id'] = Variable<String>(variationId.value);
+    }
+    if (variantName.present) {
+      map['variant_name'] = Variable<String>(variantName.value);
+    }
+    if (productName.present) {
+      map['product_name'] = Variable<String>(productName.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -6208,113 +6707,121 @@ class $OrderDetailTableTable extends OrderDetailTable
   @override
   final String actualTableName = 'order_detail_table';
   @override
-  VerificationContext validateIntegrity(OrderDetailTableCompanion d,
+  VerificationContext validateIntegrity(
+      Insertable<OrderDetailTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.branchId.present) {
+    if (data.containsKey('branch_id')) {
       context.handle(_branchIdMeta,
-          branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
+          branchId.isAcceptableOrUnknown(data['branch_id'], _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
-    if (d.discountRate.present) {
+    if (data.containsKey('discount_rate')) {
       context.handle(
           _discountRateMeta,
-          discountRate.isAcceptableValue(
-              d.discountRate.value, _discountRateMeta));
+          discountRate.isAcceptableOrUnknown(
+              data['discount_rate'], _discountRateMeta));
     } else if (isInserting) {
       context.missing(_discountRateMeta);
     }
-    if (d.discountAmount.present) {
+    if (data.containsKey('discount_amount')) {
       context.handle(
           _discountAmountMeta,
-          discountAmount.isAcceptableValue(
-              d.discountAmount.value, _discountAmountMeta));
+          discountAmount.isAcceptableOrUnknown(
+              data['discount_amount'], _discountAmountMeta));
     } else if (isInserting) {
       context.missing(_discountAmountMeta);
     }
-    if (d.unit.present) {
+    if (data.containsKey('unit')) {
       context.handle(
-          _unitMeta, unit.isAcceptableValue(d.unit.value, _unitMeta));
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit'], _unitMeta));
     } else if (isInserting) {
       context.missing(_unitMeta);
     }
-    if (d.note.present) {
+    if (data.containsKey('note')) {
       context.handle(
-          _noteMeta, note.isAcceptableValue(d.note.value, _noteMeta));
+          _noteMeta, note.isAcceptableOrUnknown(data['note'], _noteMeta));
     } else if (isInserting) {
       context.missing(_noteMeta);
     }
-    if (d.taxRate.present) {
+    if (data.containsKey('tax_rate')) {
       context.handle(_taxRateMeta,
-          taxRate.isAcceptableValue(d.taxRate.value, _taxRateMeta));
+          taxRate.isAcceptableOrUnknown(data['tax_rate'], _taxRateMeta));
     } else if (isInserting) {
       context.missing(_taxRateMeta);
     }
-    if (d.taxAmount.present) {
+    if (data.containsKey('tax_amount')) {
       context.handle(_taxAmountMeta,
-          taxAmount.isAcceptableValue(d.taxAmount.value, _taxAmountMeta));
+          taxAmount.isAcceptableOrUnknown(data['tax_amount'], _taxAmountMeta));
     } else if (isInserting) {
       context.missing(_taxAmountMeta);
     }
-    if (d.quantity.present) {
+    if (data.containsKey('quantity')) {
       context.handle(_quantityMeta,
-          quantity.isAcceptableValue(d.quantity.value, _quantityMeta));
+          quantity.isAcceptableOrUnknown(data['quantity'], _quantityMeta));
     } else if (isInserting) {
       context.missing(_quantityMeta);
     }
-    if (d.subTotal.present) {
+    if (data.containsKey('sub_total')) {
       context.handle(_subTotalMeta,
-          subTotal.isAcceptableValue(d.subTotal.value, _subTotalMeta));
+          subTotal.isAcceptableOrUnknown(data['sub_total'], _subTotalMeta));
     } else if (isInserting) {
       context.missing(_subTotalMeta);
     }
-    if (d.orderId.present) {
+    if (data.containsKey('order_id')) {
       context.handle(_orderIdMeta,
-          orderId.isAcceptableValue(d.orderId.value, _orderIdMeta));
+          orderId.isAcceptableOrUnknown(data['order_id'], _orderIdMeta));
     } else if (isInserting) {
       context.missing(_orderIdMeta);
     }
-    if (d.stockId.present) {
+    if (data.containsKey('stock_id')) {
       context.handle(_stockIdMeta,
-          stockId.isAcceptableValue(d.stockId.value, _stockIdMeta));
+          stockId.isAcceptableOrUnknown(data['stock_id'], _stockIdMeta));
     } else if (isInserting) {
       context.missing(_stockIdMeta);
     }
-    if (d.variationId.present) {
-      context.handle(_variationIdMeta,
-          variationId.isAcceptableValue(d.variationId.value, _variationIdMeta));
+    if (data.containsKey('variation_id')) {
+      context.handle(
+          _variationIdMeta,
+          variationId.isAcceptableOrUnknown(
+              data['variation_id'], _variationIdMeta));
     } else if (isInserting) {
       context.missing(_variationIdMeta);
     }
-    if (d.variantName.present) {
-      context.handle(_variantNameMeta,
-          variantName.isAcceptableValue(d.variantName.value, _variantNameMeta));
+    if (data.containsKey('variant_name')) {
+      context.handle(
+          _variantNameMeta,
+          variantName.isAcceptableOrUnknown(
+              data['variant_name'], _variantNameMeta));
     } else if (isInserting) {
       context.missing(_variantNameMeta);
     }
-    if (d.productName.present) {
-      context.handle(_productNameMeta,
-          productName.isAcceptableValue(d.productName.value, _productNameMeta));
+    if (data.containsKey('product_name')) {
+      context.handle(
+          _productNameMeta,
+          productName.isAcceptableOrUnknown(
+              data['product_name'], _productNameMeta));
     } else if (isInserting) {
       context.missing(_productNameMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -6325,66 +6832,6 @@ class $OrderDetailTableTable extends OrderDetailTable
   OrderDetailTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return OrderDetailTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(OrderDetailTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.branchId.present) {
-      map['branch_id'] = Variable<String>(d.branchId.value);
-    }
-    if (d.discountRate.present) {
-      map['discount_rate'] = Variable<int>(d.discountRate.value);
-    }
-    if (d.discountAmount.present) {
-      map['discount_amount'] = Variable<int>(d.discountAmount.value);
-    }
-    if (d.unit.present) {
-      map['unit'] = Variable<String>(d.unit.value);
-    }
-    if (d.note.present) {
-      map['note'] = Variable<String>(d.note.value);
-    }
-    if (d.taxRate.present) {
-      map['tax_rate'] = Variable<int>(d.taxRate.value);
-    }
-    if (d.taxAmount.present) {
-      map['tax_amount'] = Variable<double>(d.taxAmount.value);
-    }
-    if (d.quantity.present) {
-      map['quantity'] = Variable<double>(d.quantity.value);
-    }
-    if (d.subTotal.present) {
-      map['sub_total'] = Variable<double>(d.subTotal.value);
-    }
-    if (d.orderId.present) {
-      map['order_id'] = Variable<String>(d.orderId.value);
-    }
-    if (d.stockId.present) {
-      map['stock_id'] = Variable<String>(d.stockId.value);
-    }
-    if (d.variationId.present) {
-      map['variation_id'] = Variable<String>(d.variationId.value);
-    }
-    if (d.variantName.present) {
-      map['variant_name'] = Variable<String>(d.variantName.value);
-    }
-    if (d.productName.present) {
-      map['product_name'] = Variable<String>(d.productName.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -6516,6 +6963,96 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
           data['${effectivePrefix}customer_change_due']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<int>(userId);
+    }
+    if (!nullToAbsent || branchId != null) {
+      map['branch_id'] = Variable<String>(branchId);
+    }
+    if (!nullToAbsent || deviceId != null) {
+      map['device_id'] = Variable<String>(deviceId);
+    }
+    if (!nullToAbsent || currency != null) {
+      map['currency'] = Variable<String>(currency);
+    }
+    if (!nullToAbsent || reference != null) {
+      map['reference'] = Variable<String>(reference);
+    }
+    if (!nullToAbsent || orderNUmber != null) {
+      map['order_n_umber'] = Variable<int>(orderNUmber);
+    }
+    if (!nullToAbsent || supplierId != null) {
+      map['supplier_id'] = Variable<int>(supplierId);
+    }
+    if (!nullToAbsent || subTotal != null) {
+      map['sub_total'] = Variable<int>(subTotal);
+    }
+    if (!nullToAbsent || supplierInvoiceNumber != null) {
+      map['supplier_invoice_number'] = Variable<int>(supplierInvoiceNumber);
+    }
+    if (!nullToAbsent || deliverDate != null) {
+      map['deliver_date'] = Variable<DateTime>(deliverDate);
+    }
+    if (!nullToAbsent || orderDate != null) {
+      map['order_date'] = Variable<DateTime>(orderDate);
+    }
+    if (!nullToAbsent || taxRate != null) {
+      map['tax_rate'] = Variable<int>(taxRate);
+    }
+    if (!nullToAbsent || taxAmount != null) {
+      map['tax_amount'] = Variable<int>(taxAmount);
+    }
+    if (!nullToAbsent || count != null) {
+      map['count'] = Variable<int>(count);
+    }
+    if (!nullToAbsent || variantName != null) {
+      map['variant_name'] = Variable<String>(variantName);
+    }
+    if (!nullToAbsent || discountRate != null) {
+      map['discount_rate'] = Variable<int>(discountRate);
+    }
+    if (!nullToAbsent || discountAmount != null) {
+      map['discount_amount'] = Variable<int>(discountAmount);
+    }
+    if (!nullToAbsent || cashReceived != null) {
+      map['cash_received'] = Variable<int>(cashReceived);
+    }
+    if (!nullToAbsent || saleTotal != null) {
+      map['sale_total'] = Variable<int>(saleTotal);
+    }
+    if (!nullToAbsent || customerSaving != null) {
+      map['customer_saving'] = Variable<int>(customerSaving);
+    }
+    if (!nullToAbsent || paymentId != null) {
+      map['payment_id'] = Variable<int>(paymentId);
+    }
+    if (!nullToAbsent || orderNote != null) {
+      map['order_note'] = Variable<String>(orderNote);
+    }
+    if (!nullToAbsent || isDraft != null) {
+      map['is_draft'] = Variable<bool>(isDraft);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    if (!nullToAbsent || orderType != null) {
+      map['order_type'] = Variable<String>(orderType);
+    }
+    if (!nullToAbsent || customerChangeDue != null) {
+      map['customer_change_due'] = Variable<int>(customerChangeDue);
+    }
+    return map;
+  }
+
   factory OrderTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -6584,91 +7121,6 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
       'orderType': serializer.toJson<String>(orderType),
       'customerChangeDue': serializer.toJson<int>(customerChangeDue),
     };
-  }
-
-  @override
-  OrderTableCompanion createCompanion(bool nullToAbsent) {
-    return OrderTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      userId:
-          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
-      branchId: branchId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(branchId),
-      deviceId: deviceId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deviceId),
-      currency: currency == null && nullToAbsent
-          ? const Value.absent()
-          : Value(currency),
-      reference: reference == null && nullToAbsent
-          ? const Value.absent()
-          : Value(reference),
-      orderNUmber: orderNUmber == null && nullToAbsent
-          ? const Value.absent()
-          : Value(orderNUmber),
-      supplierId: supplierId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(supplierId),
-      subTotal: subTotal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(subTotal),
-      supplierInvoiceNumber: supplierInvoiceNumber == null && nullToAbsent
-          ? const Value.absent()
-          : Value(supplierInvoiceNumber),
-      deliverDate: deliverDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deliverDate),
-      orderDate: orderDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(orderDate),
-      taxRate: taxRate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(taxRate),
-      taxAmount: taxAmount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(taxAmount),
-      count:
-          count == null && nullToAbsent ? const Value.absent() : Value(count),
-      variantName: variantName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variantName),
-      discountRate: discountRate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(discountRate),
-      discountAmount: discountAmount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(discountAmount),
-      cashReceived: cashReceived == null && nullToAbsent
-          ? const Value.absent()
-          : Value(cashReceived),
-      saleTotal: saleTotal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(saleTotal),
-      customerSaving: customerSaving == null && nullToAbsent
-          ? const Value.absent()
-          : Value(customerSaving),
-      paymentId: paymentId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(paymentId),
-      orderNote: orderNote == null && nullToAbsent
-          ? const Value.absent()
-          : Value(orderNote),
-      isDraft: isDraft == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isDraft),
-      status:
-          status == null && nullToAbsent ? const Value.absent() : Value(status),
-      orderType: orderType == null && nullToAbsent
-          ? const Value.absent()
-          : Value(orderType),
-      customerChangeDue: customerChangeDue == null && nullToAbsent
-          ? const Value.absent()
-          : Value(customerChangeDue),
-    );
   }
 
   OrderTableData copyWith(
@@ -6935,6 +7387,69 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
   })  : id = Value(id),
         userId = Value(userId),
         branchId = Value(branchId);
+  static Insertable<OrderTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<int> userId,
+    Expression<String> branchId,
+    Expression<String> deviceId,
+    Expression<String> currency,
+    Expression<String> reference,
+    Expression<int> orderNUmber,
+    Expression<int> supplierId,
+    Expression<int> subTotal,
+    Expression<int> supplierInvoiceNumber,
+    Expression<DateTime> deliverDate,
+    Expression<DateTime> orderDate,
+    Expression<int> taxRate,
+    Expression<int> taxAmount,
+    Expression<int> count,
+    Expression<String> variantName,
+    Expression<int> discountRate,
+    Expression<int> discountAmount,
+    Expression<int> cashReceived,
+    Expression<int> saleTotal,
+    Expression<int> customerSaving,
+    Expression<int> paymentId,
+    Expression<String> orderNote,
+    Expression<bool> isDraft,
+    Expression<String> status,
+    Expression<String> orderType,
+    Expression<int> customerChangeDue,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (branchId != null) 'branch_id': branchId,
+      if (deviceId != null) 'device_id': deviceId,
+      if (currency != null) 'currency': currency,
+      if (reference != null) 'reference': reference,
+      if (orderNUmber != null) 'order_n_umber': orderNUmber,
+      if (supplierId != null) 'supplier_id': supplierId,
+      if (subTotal != null) 'sub_total': subTotal,
+      if (supplierInvoiceNumber != null)
+        'supplier_invoice_number': supplierInvoiceNumber,
+      if (deliverDate != null) 'deliver_date': deliverDate,
+      if (orderDate != null) 'order_date': orderDate,
+      if (taxRate != null) 'tax_rate': taxRate,
+      if (taxAmount != null) 'tax_amount': taxAmount,
+      if (count != null) 'count': count,
+      if (variantName != null) 'variant_name': variantName,
+      if (discountRate != null) 'discount_rate': discountRate,
+      if (discountAmount != null) 'discount_amount': discountAmount,
+      if (cashReceived != null) 'cash_received': cashReceived,
+      if (saleTotal != null) 'sale_total': saleTotal,
+      if (customerSaving != null) 'customer_saving': customerSaving,
+      if (paymentId != null) 'payment_id': paymentId,
+      if (orderNote != null) 'order_note': orderNote,
+      if (isDraft != null) 'is_draft': isDraft,
+      if (status != null) 'status': status,
+      if (orderType != null) 'order_type': orderType,
+      if (customerChangeDue != null) 'customer_change_due': customerChangeDue,
+    });
+  }
+
   OrderTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -6995,6 +7510,97 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
       orderType: orderType ?? this.orderType,
       customerChangeDue: customerChangeDue ?? this.customerChangeDue,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (branchId.present) {
+      map['branch_id'] = Variable<String>(branchId.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (reference.present) {
+      map['reference'] = Variable<String>(reference.value);
+    }
+    if (orderNUmber.present) {
+      map['order_n_umber'] = Variable<int>(orderNUmber.value);
+    }
+    if (supplierId.present) {
+      map['supplier_id'] = Variable<int>(supplierId.value);
+    }
+    if (subTotal.present) {
+      map['sub_total'] = Variable<int>(subTotal.value);
+    }
+    if (supplierInvoiceNumber.present) {
+      map['supplier_invoice_number'] =
+          Variable<int>(supplierInvoiceNumber.value);
+    }
+    if (deliverDate.present) {
+      map['deliver_date'] = Variable<DateTime>(deliverDate.value);
+    }
+    if (orderDate.present) {
+      map['order_date'] = Variable<DateTime>(orderDate.value);
+    }
+    if (taxRate.present) {
+      map['tax_rate'] = Variable<int>(taxRate.value);
+    }
+    if (taxAmount.present) {
+      map['tax_amount'] = Variable<int>(taxAmount.value);
+    }
+    if (count.present) {
+      map['count'] = Variable<int>(count.value);
+    }
+    if (variantName.present) {
+      map['variant_name'] = Variable<String>(variantName.value);
+    }
+    if (discountRate.present) {
+      map['discount_rate'] = Variable<int>(discountRate.value);
+    }
+    if (discountAmount.present) {
+      map['discount_amount'] = Variable<int>(discountAmount.value);
+    }
+    if (cashReceived.present) {
+      map['cash_received'] = Variable<int>(cashReceived.value);
+    }
+    if (saleTotal.present) {
+      map['sale_total'] = Variable<int>(saleTotal.value);
+    }
+    if (customerSaving.present) {
+      map['customer_saving'] = Variable<int>(customerSaving.value);
+    }
+    if (paymentId.present) {
+      map['payment_id'] = Variable<int>(paymentId.value);
+    }
+    if (orderNote.present) {
+      map['order_note'] = Variable<String>(orderNote.value);
+    }
+    if (isDraft.present) {
+      map['is_draft'] = Variable<bool>(isDraft.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (orderType.present) {
+      map['order_type'] = Variable<String>(orderType.value);
+    }
+    if (customerChangeDue.present) {
+      map['customer_change_due'] = Variable<int>(customerChangeDue.value);
+    }
+    return map;
   }
 }
 
@@ -7380,137 +7986,146 @@ class $OrderTableTable extends OrderTable
   @override
   final String actualTableName = 'order_table';
   @override
-  VerificationContext validateIntegrity(OrderTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<OrderTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.userId.present) {
-      context.handle(
-          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id'], _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
-    if (d.branchId.present) {
+    if (data.containsKey('branch_id')) {
       context.handle(_branchIdMeta,
-          branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
+          branchId.isAcceptableOrUnknown(data['branch_id'], _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
-    if (d.deviceId.present) {
+    if (data.containsKey('device_id')) {
       context.handle(_deviceIdMeta,
-          deviceId.isAcceptableValue(d.deviceId.value, _deviceIdMeta));
+          deviceId.isAcceptableOrUnknown(data['device_id'], _deviceIdMeta));
     }
-    if (d.currency.present) {
+    if (data.containsKey('currency')) {
       context.handle(_currencyMeta,
-          currency.isAcceptableValue(d.currency.value, _currencyMeta));
+          currency.isAcceptableOrUnknown(data['currency'], _currencyMeta));
     }
-    if (d.reference.present) {
+    if (data.containsKey('reference')) {
       context.handle(_referenceMeta,
-          reference.isAcceptableValue(d.reference.value, _referenceMeta));
+          reference.isAcceptableOrUnknown(data['reference'], _referenceMeta));
     }
-    if (d.orderNUmber.present) {
-      context.handle(_orderNUmberMeta,
-          orderNUmber.isAcceptableValue(d.orderNUmber.value, _orderNUmberMeta));
+    if (data.containsKey('order_n_umber')) {
+      context.handle(
+          _orderNUmberMeta,
+          orderNUmber.isAcceptableOrUnknown(
+              data['order_n_umber'], _orderNUmberMeta));
     }
-    if (d.supplierId.present) {
-      context.handle(_supplierIdMeta,
-          supplierId.isAcceptableValue(d.supplierId.value, _supplierIdMeta));
+    if (data.containsKey('supplier_id')) {
+      context.handle(
+          _supplierIdMeta,
+          supplierId.isAcceptableOrUnknown(
+              data['supplier_id'], _supplierIdMeta));
     }
-    if (d.subTotal.present) {
+    if (data.containsKey('sub_total')) {
       context.handle(_subTotalMeta,
-          subTotal.isAcceptableValue(d.subTotal.value, _subTotalMeta));
+          subTotal.isAcceptableOrUnknown(data['sub_total'], _subTotalMeta));
     }
-    if (d.supplierInvoiceNumber.present) {
+    if (data.containsKey('supplier_invoice_number')) {
       context.handle(
           _supplierInvoiceNumberMeta,
-          supplierInvoiceNumber.isAcceptableValue(
-              d.supplierInvoiceNumber.value, _supplierInvoiceNumberMeta));
+          supplierInvoiceNumber.isAcceptableOrUnknown(
+              data['supplier_invoice_number'], _supplierInvoiceNumberMeta));
     }
-    if (d.deliverDate.present) {
-      context.handle(_deliverDateMeta,
-          deliverDate.isAcceptableValue(d.deliverDate.value, _deliverDateMeta));
-    }
-    if (d.orderDate.present) {
-      context.handle(_orderDateMeta,
-          orderDate.isAcceptableValue(d.orderDate.value, _orderDateMeta));
-    }
-    if (d.taxRate.present) {
-      context.handle(_taxRateMeta,
-          taxRate.isAcceptableValue(d.taxRate.value, _taxRateMeta));
-    }
-    if (d.taxAmount.present) {
-      context.handle(_taxAmountMeta,
-          taxAmount.isAcceptableValue(d.taxAmount.value, _taxAmountMeta));
-    }
-    if (d.count.present) {
+    if (data.containsKey('deliver_date')) {
       context.handle(
-          _countMeta, count.isAcceptableValue(d.count.value, _countMeta));
+          _deliverDateMeta,
+          deliverDate.isAcceptableOrUnknown(
+              data['deliver_date'], _deliverDateMeta));
     }
-    if (d.variantName.present) {
-      context.handle(_variantNameMeta,
-          variantName.isAcceptableValue(d.variantName.value, _variantNameMeta));
+    if (data.containsKey('order_date')) {
+      context.handle(_orderDateMeta,
+          orderDate.isAcceptableOrUnknown(data['order_date'], _orderDateMeta));
     }
-    if (d.discountRate.present) {
+    if (data.containsKey('tax_rate')) {
+      context.handle(_taxRateMeta,
+          taxRate.isAcceptableOrUnknown(data['tax_rate'], _taxRateMeta));
+    }
+    if (data.containsKey('tax_amount')) {
+      context.handle(_taxAmountMeta,
+          taxAmount.isAcceptableOrUnknown(data['tax_amount'], _taxAmountMeta));
+    }
+    if (data.containsKey('count')) {
+      context.handle(
+          _countMeta, count.isAcceptableOrUnknown(data['count'], _countMeta));
+    }
+    if (data.containsKey('variant_name')) {
+      context.handle(
+          _variantNameMeta,
+          variantName.isAcceptableOrUnknown(
+              data['variant_name'], _variantNameMeta));
+    }
+    if (data.containsKey('discount_rate')) {
       context.handle(
           _discountRateMeta,
-          discountRate.isAcceptableValue(
-              d.discountRate.value, _discountRateMeta));
+          discountRate.isAcceptableOrUnknown(
+              data['discount_rate'], _discountRateMeta));
     }
-    if (d.discountAmount.present) {
+    if (data.containsKey('discount_amount')) {
       context.handle(
           _discountAmountMeta,
-          discountAmount.isAcceptableValue(
-              d.discountAmount.value, _discountAmountMeta));
+          discountAmount.isAcceptableOrUnknown(
+              data['discount_amount'], _discountAmountMeta));
     }
-    if (d.cashReceived.present) {
+    if (data.containsKey('cash_received')) {
       context.handle(
           _cashReceivedMeta,
-          cashReceived.isAcceptableValue(
-              d.cashReceived.value, _cashReceivedMeta));
+          cashReceived.isAcceptableOrUnknown(
+              data['cash_received'], _cashReceivedMeta));
     }
-    if (d.saleTotal.present) {
+    if (data.containsKey('sale_total')) {
       context.handle(_saleTotalMeta,
-          saleTotal.isAcceptableValue(d.saleTotal.value, _saleTotalMeta));
+          saleTotal.isAcceptableOrUnknown(data['sale_total'], _saleTotalMeta));
     }
-    if (d.customerSaving.present) {
+    if (data.containsKey('customer_saving')) {
       context.handle(
           _customerSavingMeta,
-          customerSaving.isAcceptableValue(
-              d.customerSaving.value, _customerSavingMeta));
+          customerSaving.isAcceptableOrUnknown(
+              data['customer_saving'], _customerSavingMeta));
     }
-    if (d.paymentId.present) {
+    if (data.containsKey('payment_id')) {
       context.handle(_paymentIdMeta,
-          paymentId.isAcceptableValue(d.paymentId.value, _paymentIdMeta));
+          paymentId.isAcceptableOrUnknown(data['payment_id'], _paymentIdMeta));
     }
-    if (d.orderNote.present) {
+    if (data.containsKey('order_note')) {
       context.handle(_orderNoteMeta,
-          orderNote.isAcceptableValue(d.orderNote.value, _orderNoteMeta));
+          orderNote.isAcceptableOrUnknown(data['order_note'], _orderNoteMeta));
     }
-    if (d.isDraft.present) {
+    if (data.containsKey('is_draft')) {
       context.handle(_isDraftMeta,
-          isDraft.isAcceptableValue(d.isDraft.value, _isDraftMeta));
+          isDraft.isAcceptableOrUnknown(data['is_draft'], _isDraftMeta));
     }
-    if (d.status.present) {
-      context.handle(
-          _statusMeta, status.isAcceptableValue(d.status.value, _statusMeta));
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status'], _statusMeta));
     }
-    if (d.orderType.present) {
+    if (data.containsKey('order_type')) {
       context.handle(_orderTypeMeta,
-          orderType.isAcceptableValue(d.orderType.value, _orderTypeMeta));
+          orderType.isAcceptableOrUnknown(data['order_type'], _orderTypeMeta));
     }
-    if (d.customerChangeDue.present) {
+    if (data.containsKey('customer_change_due')) {
       context.handle(
           _customerChangeDueMeta,
-          customerChangeDue.isAcceptableValue(
-              d.customerChangeDue.value, _customerChangeDueMeta));
+          customerChangeDue.isAcceptableOrUnknown(
+              data['customer_change_due'], _customerChangeDueMeta));
     }
     return context;
   }
@@ -7521,97 +8136,6 @@ class $OrderTableTable extends OrderTable
   OrderTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return OrderTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(OrderTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.userId.present) {
-      map['user_id'] = Variable<int>(d.userId.value);
-    }
-    if (d.branchId.present) {
-      map['branch_id'] = Variable<String>(d.branchId.value);
-    }
-    if (d.deviceId.present) {
-      map['device_id'] = Variable<String>(d.deviceId.value);
-    }
-    if (d.currency.present) {
-      map['currency'] = Variable<String>(d.currency.value);
-    }
-    if (d.reference.present) {
-      map['reference'] = Variable<String>(d.reference.value);
-    }
-    if (d.orderNUmber.present) {
-      map['order_n_umber'] = Variable<int>(d.orderNUmber.value);
-    }
-    if (d.supplierId.present) {
-      map['supplier_id'] = Variable<int>(d.supplierId.value);
-    }
-    if (d.subTotal.present) {
-      map['sub_total'] = Variable<int>(d.subTotal.value);
-    }
-    if (d.supplierInvoiceNumber.present) {
-      map['supplier_invoice_number'] =
-          Variable<int>(d.supplierInvoiceNumber.value);
-    }
-    if (d.deliverDate.present) {
-      map['deliver_date'] = Variable<DateTime>(d.deliverDate.value);
-    }
-    if (d.orderDate.present) {
-      map['order_date'] = Variable<DateTime>(d.orderDate.value);
-    }
-    if (d.taxRate.present) {
-      map['tax_rate'] = Variable<int>(d.taxRate.value);
-    }
-    if (d.taxAmount.present) {
-      map['tax_amount'] = Variable<int>(d.taxAmount.value);
-    }
-    if (d.count.present) {
-      map['count'] = Variable<int>(d.count.value);
-    }
-    if (d.variantName.present) {
-      map['variant_name'] = Variable<String>(d.variantName.value);
-    }
-    if (d.discountRate.present) {
-      map['discount_rate'] = Variable<int>(d.discountRate.value);
-    }
-    if (d.discountAmount.present) {
-      map['discount_amount'] = Variable<int>(d.discountAmount.value);
-    }
-    if (d.cashReceived.present) {
-      map['cash_received'] = Variable<int>(d.cashReceived.value);
-    }
-    if (d.saleTotal.present) {
-      map['sale_total'] = Variable<int>(d.saleTotal.value);
-    }
-    if (d.customerSaving.present) {
-      map['customer_saving'] = Variable<int>(d.customerSaving.value);
-    }
-    if (d.paymentId.present) {
-      map['payment_id'] = Variable<int>(d.paymentId.value);
-    }
-    if (d.orderNote.present) {
-      map['order_note'] = Variable<String>(d.orderNote.value);
-    }
-    if (d.isDraft.present) {
-      map['is_draft'] = Variable<bool>(d.isDraft.value);
-    }
-    if (d.status.present) {
-      map['status'] = Variable<String>(d.status.value);
-    }
-    if (d.orderType.present) {
-      map['order_type'] = Variable<String>(d.orderType.value);
-    }
-    if (d.customerChangeDue.present) {
-      map['customer_change_due'] = Variable<int>(d.customerChangeDue.value);
-    }
-    return map;
   }
 
   @override
@@ -7640,6 +8164,21 @@ class ColorTableData extends DataClass implements Insertable<ColorTableData> {
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}is_active']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || isActive != null) {
+      map['is_active'] = Variable<bool>(isActive);
+    }
+    return map;
+  }
+
   factory ColorTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -7657,17 +8196,6 @@ class ColorTableData extends DataClass implements Insertable<ColorTableData> {
       'name': serializer.toJson<String>(name),
       'isActive': serializer.toJson<bool>(isActive),
     };
-  }
-
-  @override
-  ColorTableCompanion createCompanion(bool nullToAbsent) {
-    return ColorTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      isActive: isActive == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isActive),
-    );
   }
 
   ColorTableData copyWith({int id, String name, bool isActive}) =>
@@ -7712,6 +8240,18 @@ class ColorTableCompanion extends UpdateCompanion<ColorTableData> {
     @required String name,
     this.isActive = const Value.absent(),
   }) : name = Value(name);
+  static Insertable<ColorTableData> custom({
+    Expression<int> id,
+    Expression<String> name,
+    Expression<bool> isActive,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (isActive != null) 'is_active': isActive,
+    });
+  }
+
   ColorTableCompanion copyWith(
       {Value<int> id, Value<String> name, Value<bool> isActive}) {
     return ColorTableCompanion(
@@ -7719,6 +8259,21 @@ class ColorTableCompanion extends UpdateCompanion<ColorTableData> {
       name: name ?? this.name,
       isActive: isActive ?? this.isActive,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    return map;
   }
 }
 
@@ -7766,21 +8321,22 @@ class $ColorTableTable extends ColorTable
   @override
   final String actualTableName = 'color_table';
   @override
-  VerificationContext validateIntegrity(ColorTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<ColorTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.isActive.present) {
+    if (data.containsKey('is_active')) {
       context.handle(_isActiveMeta,
-          isActive.isAcceptableValue(d.isActive.value, _isActiveMeta));
+          isActive.isAcceptableOrUnknown(data['is_active'], _isActiveMeta));
     }
     return context;
   }
@@ -7791,21 +8347,6 @@ class $ColorTableTable extends ColorTable
   ColorTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return ColorTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(ColorTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.isActive.present) {
-      map['is_active'] = Variable<bool>(d.isActive.value);
-    }
-    return map;
   }
 
   @override
@@ -7835,6 +8376,21 @@ class ActionsTableData extends DataClass
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || isLocked != null) {
+      map['is_locked'] = Variable<bool>(isLocked);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    return map;
+  }
+
   factory ActionsTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -7852,17 +8408,6 @@ class ActionsTableData extends DataClass
       'isLocked': serializer.toJson<bool>(isLocked),
       'name': serializer.toJson<String>(name),
     };
-  }
-
-  @override
-  ActionsTableCompanion createCompanion(bool nullToAbsent) {
-    return ActionsTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      isLocked: isLocked == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isLocked),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-    );
   }
 
   ActionsTableData copyWith({int id, bool isLocked, String name}) =>
@@ -7907,6 +8452,18 @@ class ActionsTableCompanion extends UpdateCompanion<ActionsTableData> {
     this.isLocked = const Value.absent(),
     @required String name,
   }) : name = Value(name);
+  static Insertable<ActionsTableData> custom({
+    Expression<int> id,
+    Expression<bool> isLocked,
+    Expression<String> name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (isLocked != null) 'is_locked': isLocked,
+      if (name != null) 'name': name,
+    });
+  }
+
   ActionsTableCompanion copyWith(
       {Value<int> id, Value<bool> isLocked, Value<String> name}) {
     return ActionsTableCompanion(
@@ -7914,6 +8471,21 @@ class ActionsTableCompanion extends UpdateCompanion<ActionsTableData> {
       isLocked: isLocked ?? this.isLocked,
       name: name ?? this.name,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (isLocked.present) {
+      map['is_locked'] = Variable<bool>(isLocked.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
   }
 }
 
@@ -7961,19 +8533,20 @@ class $ActionsTableTable extends ActionsTable
   @override
   final String actualTableName = 'actions_table';
   @override
-  VerificationContext validateIntegrity(ActionsTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<ActionsTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.isLocked.present) {
+    if (data.containsKey('is_locked')) {
       context.handle(_isLockedMeta,
-          isLocked.isAcceptableValue(d.isLocked.value, _isLockedMeta));
+          isLocked.isAcceptableOrUnknown(data['is_locked'], _isLockedMeta));
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
@@ -7986,21 +8559,6 @@ class $ActionsTableTable extends ActionsTable
   ActionsTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return ActionsTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(ActionsTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.isLocked.present) {
-      map['is_locked'] = Variable<bool>(d.isLocked.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    return map;
   }
 
   @override
@@ -8043,6 +8601,30 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || action != null) {
+      map['action'] = Variable<String>(action);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<String>(deletedAt);
+    }
+    return map;
+  }
+
   factory ReasonTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -8066,25 +8648,6 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<String>(deletedAt),
     };
-  }
-
-  @override
-  ReasonTableCompanion createCompanion(bool nullToAbsent) {
-    return ReasonTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      action:
-          action == null && nullToAbsent ? const Value.absent() : Value(action),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      deletedAt: deletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(deletedAt),
-    );
   }
 
   ReasonTableData copyWith(
@@ -8160,6 +8723,24 @@ class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
     this.deletedAt = const Value.absent(),
   })  : name = Value(name),
         action = Value(action);
+  static Insertable<ReasonTableData> custom({
+    Expression<int> id,
+    Expression<String> name,
+    Expression<String> action,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+    Expression<String> deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (action != null) 'action': action,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
   ReasonTableCompanion copyWith(
       {Value<int> id,
       Value<String> name,
@@ -8175,6 +8756,30 @@ class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<String>(deletedAt.value);
+    }
+    return map;
   }
 }
 
@@ -8256,35 +8861,36 @@ class $ReasonTableTable extends ReasonTable
   @override
   final String actualTableName = 'reason_table';
   @override
-  VerificationContext validateIntegrity(ReasonTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<ReasonTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.action.present) {
-      context.handle(
-          _actionMeta, action.isAcceptableValue(d.action.value, _actionMeta));
+    if (data.containsKey('action')) {
+      context.handle(_actionMeta,
+          action.isAcceptableOrUnknown(data['action'], _actionMeta));
     } else if (isInserting) {
       context.missing(_actionMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
-    if (d.deletedAt.present) {
+    if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableValue(d.deletedAt.value, _deletedAtMeta));
+          deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
     return context;
   }
@@ -8295,30 +8901,6 @@ class $ReasonTableTable extends ReasonTable
   ReasonTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return ReasonTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(ReasonTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.action.present) {
-      map['action'] = Variable<String>(d.action.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    if (d.deletedAt.present) {
-      map['deleted_at'] = Variable<String>(d.deletedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -8370,6 +8952,36 @@ class TaxTableData extends DataClass implements Insertable<TaxTableData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || isDefault != null) {
+      map['is_default'] = Variable<bool>(isDefault);
+    }
+    if (!nullToAbsent || percentage != null) {
+      map['percentage'] = Variable<double>(percentage);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || businessId != null) {
+      map['business_id'] = Variable<String>(businessId);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
   factory TaxTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -8397,32 +9009,6 @@ class TaxTableData extends DataClass implements Insertable<TaxTableData> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
-  }
-
-  @override
-  TaxTableCompanion createCompanion(bool nullToAbsent) {
-    return TaxTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      isDefault: isDefault == null && nullToAbsent
-          ? const Value.absent()
-          : Value(isDefault),
-      percentage: percentage == null && nullToAbsent
-          ? const Value.absent()
-          : Value(percentage),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      businessId: businessId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(businessId),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-    );
   }
 
   TaxTableData copyWith(
@@ -8518,6 +9104,28 @@ class TaxTableCompanion extends UpdateCompanion<TaxTableData> {
         isDefault = Value(isDefault),
         id = Value(id),
         businessId = Value(businessId);
+  static Insertable<TaxTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> name,
+    Expression<bool> isDefault,
+    Expression<double> percentage,
+    Expression<String> id,
+    Expression<String> businessId,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (name != null) 'name': name,
+      if (isDefault != null) 'is_default': isDefault,
+      if (percentage != null) 'percentage': percentage,
+      if (id != null) 'id': id,
+      if (businessId != null) 'business_id': businessId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
   TaxTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> name,
@@ -8537,6 +9145,36 @@ class TaxTableCompanion extends UpdateCompanion<TaxTableData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (percentage.present) {
+      map['percentage'] = Variable<double>(percentage.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (businessId.present) {
+      map['business_id'] = Variable<String>(businessId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
   }
 }
 
@@ -8650,47 +9288,52 @@ class $TaxTableTable extends TaxTable
   @override
   final String actualTableName = 'tax_table';
   @override
-  VerificationContext validateIntegrity(TaxTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<TaxTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.isDefault.present) {
+    if (data.containsKey('is_default')) {
       context.handle(_isDefaultMeta,
-          isDefault.isAcceptableValue(d.isDefault.value, _isDefaultMeta));
+          isDefault.isAcceptableOrUnknown(data['is_default'], _isDefaultMeta));
     } else if (isInserting) {
       context.missing(_isDefaultMeta);
     }
-    if (d.percentage.present) {
-      context.handle(_percentageMeta,
-          percentage.isAcceptableValue(d.percentage.value, _percentageMeta));
+    if (data.containsKey('percentage')) {
+      context.handle(
+          _percentageMeta,
+          percentage.isAcceptableOrUnknown(
+              data['percentage'], _percentageMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.businessId.present) {
-      context.handle(_businessIdMeta,
-          businessId.isAcceptableValue(d.businessId.value, _businessIdMeta));
+    if (data.containsKey('business_id')) {
+      context.handle(
+          _businessIdMeta,
+          businessId.isAcceptableOrUnknown(
+              data['business_id'], _businessIdMeta));
     } else if (isInserting) {
       context.missing(_businessIdMeta);
     }
-    if (d.createdAt.present) {
+    if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
-          createdAt.isAcceptableValue(d.createdAt.value, _createdAtMeta));
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
     }
-    if (d.updatedAt.present) {
+    if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableValue(d.updatedAt.value, _updatedAtMeta));
+          updatedAt.isAcceptableOrUnknown(data['updated_at'], _updatedAtMeta));
     }
     return context;
   }
@@ -8701,36 +9344,6 @@ class $TaxTableTable extends TaxTable
   TaxTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return TaxTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(TaxTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String>(d.name.value);
-    }
-    if (d.isDefault.present) {
-      map['is_default'] = Variable<bool>(d.isDefault.value);
-    }
-    if (d.percentage.present) {
-      map['percentage'] = Variable<double>(d.percentage.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.businessId.present) {
-      map['business_id'] = Variable<String>(d.businessId.value);
-    }
-    if (d.createdAt.present) {
-      map['created_at'] = Variable<DateTime>(d.createdAt.value);
-    }
-    if (d.updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(d.updatedAt.value);
-    }
-    return map;
   }
 
   @override
@@ -8766,6 +9379,24 @@ class BranchProductTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}branch_id']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || idLocal != null) {
+      map['id_local'] = Variable<int>(idLocal);
+    }
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
+    if (!nullToAbsent || branchId != null) {
+      map['branch_id'] = Variable<String>(branchId);
+    }
+    return map;
+  }
+
   factory BranchProductTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -8785,22 +9416,6 @@ class BranchProductTableData extends DataClass
       'productId': serializer.toJson<String>(productId),
       'branchId': serializer.toJson<String>(branchId),
     };
-  }
-
-  @override
-  BranchProductTableCompanion createCompanion(bool nullToAbsent) {
-    return BranchProductTableCompanion(
-      idLocal: idLocal == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idLocal),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      productId: productId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(productId),
-      branchId: branchId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(branchId),
-    );
   }
 
   BranchProductTableData copyWith(
@@ -8855,6 +9470,20 @@ class BranchProductTableCompanion
   })  : id = Value(id),
         productId = Value(productId),
         branchId = Value(branchId);
+  static Insertable<BranchProductTableData> custom({
+    Expression<int> idLocal,
+    Expression<String> id,
+    Expression<String> productId,
+    Expression<String> branchId,
+  }) {
+    return RawValuesInsertable({
+      if (idLocal != null) 'id_local': idLocal,
+      if (id != null) 'id': id,
+      if (productId != null) 'product_id': productId,
+      if (branchId != null) 'branch_id': branchId,
+    });
+  }
+
   BranchProductTableCompanion copyWith(
       {Value<int> idLocal,
       Value<String> id,
@@ -8866,6 +9495,24 @@ class BranchProductTableCompanion
       productId: productId ?? this.productId,
       branchId: branchId ?? this.branchId,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idLocal.present) {
+      map['id_local'] = Variable<int>(idLocal.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (branchId.present) {
+      map['branch_id'] = Variable<String>(branchId.value);
+    }
+    return map;
   }
 }
 
@@ -8928,27 +9575,29 @@ class $BranchProductTableTable extends BranchProductTable
   @override
   final String actualTableName = 'branch_product_table';
   @override
-  VerificationContext validateIntegrity(BranchProductTableCompanion d,
+  VerificationContext validateIntegrity(
+      Insertable<BranchProductTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.idLocal.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_local')) {
       context.handle(_idLocalMeta,
-          idLocal.isAcceptableValue(d.idLocal.value, _idLocalMeta));
+          idLocal.isAcceptableOrUnknown(data['id_local'], _idLocalMeta));
     }
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.productId.present) {
+    if (data.containsKey('product_id')) {
       context.handle(_productIdMeta,
-          productId.isAcceptableValue(d.productId.value, _productIdMeta));
+          productId.isAcceptableOrUnknown(data['product_id'], _productIdMeta));
     } else if (isInserting) {
       context.missing(_productIdMeta);
     }
-    if (d.branchId.present) {
+    if (data.containsKey('branch_id')) {
       context.handle(_branchIdMeta,
-          branchId.isAcceptableValue(d.branchId.value, _branchIdMeta));
+          branchId.isAcceptableOrUnknown(data['branch_id'], _branchIdMeta));
     } else if (isInserting) {
       context.missing(_branchIdMeta);
     }
@@ -8961,24 +9610,6 @@ class $BranchProductTableTable extends BranchProductTable
   BranchProductTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return BranchProductTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(BranchProductTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.idLocal.present) {
-      map['id_local'] = Variable<int>(d.idLocal.value);
-    }
-    if (d.id.present) {
-      map['id'] = Variable<String>(d.id.value);
-    }
-    if (d.productId.present) {
-      map['product_id'] = Variable<String>(d.productId.value);
-    }
-    if (d.branchId.present) {
-      map['branch_id'] = Variable<String>(d.branchId.value);
-    }
-    return map;
   }
 
   @override
@@ -9008,6 +9639,21 @@ class ProductImageTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}product_id']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || localPath != null) {
+      map['local_path'] = Variable<String>(localPath);
+    }
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
+    return map;
+  }
+
   factory ProductImageTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -9025,19 +9671,6 @@ class ProductImageTableData extends DataClass
       'localPath': serializer.toJson<String>(localPath),
       'productId': serializer.toJson<String>(productId),
     };
-  }
-
-  @override
-  ProductImageTableCompanion createCompanion(bool nullToAbsent) {
-    return ProductImageTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      localPath: localPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(localPath),
-      productId: productId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(productId),
-    );
   }
 
   ProductImageTableData copyWith(
@@ -9084,6 +9717,18 @@ class ProductImageTableCompanion
     @required String localPath,
     this.productId = const Value.absent(),
   }) : localPath = Value(localPath);
+  static Insertable<ProductImageTableData> custom({
+    Expression<int> id,
+    Expression<String> localPath,
+    Expression<String> productId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (localPath != null) 'local_path': localPath,
+      if (productId != null) 'product_id': productId,
+    });
+  }
+
   ProductImageTableCompanion copyWith(
       {Value<int> id, Value<String> localPath, Value<String> productId}) {
     return ProductImageTableCompanion(
@@ -9091,6 +9736,21 @@ class ProductImageTableCompanion
       localPath: localPath ?? this.localPath,
       productId: productId ?? this.productId,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    return map;
   }
 }
 
@@ -9141,21 +9801,23 @@ class $ProductImageTableTable extends ProductImageTable
   @override
   final String actualTableName = 'product_image_table';
   @override
-  VerificationContext validateIntegrity(ProductImageTableCompanion d,
+  VerificationContext validateIntegrity(
+      Insertable<ProductImageTableData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (d.localPath.present) {
+    if (data.containsKey('local_path')) {
       context.handle(_localPathMeta,
-          localPath.isAcceptableValue(d.localPath.value, _localPathMeta));
+          localPath.isAcceptableOrUnknown(data['local_path'], _localPathMeta));
     } else if (isInserting) {
       context.missing(_localPathMeta);
     }
-    if (d.productId.present) {
+    if (data.containsKey('product_id')) {
       context.handle(_productIdMeta,
-          productId.isAcceptableValue(d.productId.value, _productIdMeta));
+          productId.isAcceptableOrUnknown(data['product_id'], _productIdMeta));
     }
     return context;
   }
@@ -9166,21 +9828,6 @@ class $ProductImageTableTable extends ProductImageTable
   ProductImageTableData map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return ProductImageTableData.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(ProductImageTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<int>(d.id.value);
-    }
-    if (d.localPath.present) {
-      map['local_path'] = Variable<String>(d.localPath.value);
-    }
-    if (d.productId.present) {
-      map['product_id'] = Variable<String>(d.productId.value);
-    }
-    return map;
   }
 
   @override
