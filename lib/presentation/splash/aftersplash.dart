@@ -351,17 +351,15 @@ class AfterSplash extends StatelessWidget {
     var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     Widget child;
-    if (landscape == true) {
+    if (landscape) 
       child = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[aspectLogoLandiscape(context), aspectButtonLandascape(context)],
       );
-    } else {
+     if(!landscape) 
       child = Wrap(
         children: <Widget>[aspectLogoPortrait(context), aspectButtonPortrait(context)],
       );
-    }
-
     return Scaffold(
       body: child,
     );
