@@ -13,59 +13,88 @@ import 'package:query_params/query_params.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AfterSplash extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    //remove anykeyboard that might have initialized from some pages.
-    // FocusScopeNode currentFocus = FocusScope.of(context);
-    // if (!currentFocus.hasPrimaryFocus) {
-    //   currentFocus.unfocus();
-    // }
-    return Scaffold(
-      body: Wrap(
-        children: <Widget>[
-          AspectRatio(
-            aspectRatio: 2 / 2,
-            child: Container(
-              color: HexColor("#955be9"),
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    height: 80,
-                  ),
-                  Container(
-                    height: 60,
-                    child: Image.asset("assets/graphics/logo.png"),
-                  ),
-                  Container(
-                    height: 40,
-                  ),
-                  Text(
-                    S.of(context).flipperPointofSale,
-                    style: TextStyle(color: Colors.white, fontSize: 40),
-                  ),
-                  Text(
-                    S.of(context).interactandgrowyourbusiness,
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  )
-                ],
+  aspectButtonPortrait(context) => AspectRatio(
+        aspectRatio: 2 / 2,
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children: <Widget>[
+              Container(
+                height: 20,
               ),
-            ),
-          ),
-          AspectRatio(
-            aspectRatio: 2 / 2,
-            child: Container(
-              color: Colors.white,
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    height: 20,
-                  ),
-                  Container(
+              Container(
+                color: Colors.blue,
+                child: SizedBox(
+                  width: 380,
+                  height: 60,
+                  child: FlatButton(
+                    onPressed: () async {
+                      URLQueryParams query = new URLQueryParams();
+                      query.append('client_id', "49");
+                      query.append('redirect_uri',
+                          "https://test.flipper.rw/auth/callback");
+                      query.append('response_type', "code");
+                      query.append('scope', "");
+                      query.append('state', "");
+
+                      try {
+                        final result =
+                            await InternetAddress.lookup('google.com');
+                        if (result.isNotEmpty &&
+                            result[0].rawAddress.isNotEmpty) {
+                          var url = 'https://test.flipper.rw/register';
+                          if (await canLaunch(url)) {
+                            Router.navigator.pushNamed(Router.webView,
+                                arguments: AuthWebViewArguments(
+                                    url: url, authType: 'register'));
+                          } else {
+                            Fluttertoast.showToast(
+                                msg: "There is a problem launching login url",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIos: 1,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                fontSize: 16.0);
+                          }
+                        }
+                      } on SocketException catch (_) {
+                        Fluttertoast.showToast(
+                            msg: "you are not connected to internet",
+                            toastLength: Toast.LENGTH_LONG,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIos: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0);
+                      }
+                    },
                     color: Colors.blue,
-                    child: SizedBox(
-                      width: 380,
-                      height: 60,
-                      child: FlatButton(
+                    child: Text(
+                      S.of(context).createAccount,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 20,
+              ),
+              Container(
+                color: Colors.white,
+                child: SizedBox(
+                  width: 380,
+                  height: 60,
+                  child: StoreConnector<AppState, CommonViewModel>(
+                    distinct: true,
+                    converter: CommonViewModel.fromStore,
+                    builder: (context, vm) {
+                      return OutlineButton(
+                        color: Colors.blue,
+                        child: Text(
+                          S.of(context).signIn,
+                          style: TextStyle(color: Colors.blue),
+                        ),
                         onPressed: () async {
                           URLQueryParams query = new URLQueryParams();
                           query.append('client_id', "49");
@@ -80,13 +109,11 @@ class AfterSplash extends StatelessWidget {
                                 await InternetAddress.lookup('google.com');
                             if (result.isNotEmpty &&
                                 result[0].rawAddress.isNotEmpty) {
-                              var url =
-                                  'https://test.flipper.rw/register';
+                              var url = 'https://test.flipper.rw/login';
                               if (await canLaunch(url)) {
-                                //await launch(url);
                                 Router.navigator.pushNamed(Router.webView,
                                     arguments: AuthWebViewArguments(
-                                        url: url, authType: 'register'));
+                                        url: url, authType: 'login'));
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
@@ -101,7 +128,66 @@ class AfterSplash extends StatelessWidget {
                             }
                           } on SocketException catch (_) {
                             Fluttertoast.showToast(
-                                msg: "you are not connected to internet",
+                                msg: "There is no internet",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIos: 1,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                fontSize: 16.0);
+                            return;
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Container(
+                height: 10,
+              ),
+            ],
+          ),
+        ),
+      );
+
+  aspectButtonLandascape(context) => AspectRatio(
+        aspectRatio: 5 / 1,
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children: <Widget>[
+              Container(
+                height: 20,
+              ),
+              Container(
+                color: Colors.blue,
+                child: SizedBox(
+                  width: 380,
+                  height: 60,
+                  child: FlatButton(
+                    onPressed: () async {
+                      URLQueryParams query = new URLQueryParams();
+                      query.append('client_id', "49");
+                      query.append('redirect_uri',
+                          "https://test.flipper.rw/auth/callback");
+                      query.append('response_type', "code");
+                      query.append('scope', "");
+                      query.append('state', "");
+
+                      try {
+                        final result =
+                            await InternetAddress.lookup('google.com');
+                        if (result.isNotEmpty &&
+                            result[0].rawAddress.isNotEmpty) {
+                          var url = 'https://test.flipper.rw/register';
+                          if (await canLaunch(url)) {
+                            Router.navigator.pushNamed(Router.webView,
+                                arguments: AuthWebViewArguments(
+                                    url: url, authType: 'register'));
+                          } else {
+                            Fluttertoast.showToast(
+                                msg: "There is a problem launching login url",
                                 toastLength: Toast.LENGTH_LONG,
                                 gravity: ToastGravity.BOTTOM,
                                 timeInSecForIos: 1,
@@ -109,114 +195,175 @@ class AfterSplash extends StatelessWidget {
                                 textColor: Colors.white,
                                 fontSize: 16.0);
                           }
-                        },
-                        color: Colors.blue,
-                        child: Text(
-                          S.of(context).createAccount,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
+                        }
+                      } on SocketException catch (_) {
+                        Fluttertoast.showToast(
+                            msg: "you are not connected to internet",
+                            toastLength: Toast.LENGTH_LONG,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIos: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0);
+                      }
+                    },
+                    color: Colors.blue,
+                    child: Text(
+                      S.of(context).createAccount,
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  Container(
-                    height: 20,
-                  ),
-                  Container(
-                    color: Colors.white,
-                    child: SizedBox(
-                      width: 380,
-                      height: 60,
-                      child: StoreConnector<AppState, CommonViewModel>(
-                        distinct: true,
-                        converter: CommonViewModel.fromStore,
-                        builder: (context, vm) {
-                          return OutlineButton(
-                            color: Colors.blue,
-                            child: Text(
-                              S.of(context).signIn,
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                            onPressed: () async {
-                              URLQueryParams query = new URLQueryParams();
-                              query.append('client_id', "49");
-                              query.append('redirect_uri',
-                                  "https://test.flipper.rw/auth/callback");
-                              query.append('response_type', "code");
-                              query.append('scope', "");
-                              query.append('state', "");
+                ),
+              ),
+              Container(
+                height: 20,
+              ),
+              Container(
+                color: Colors.white,
+                child: SizedBox(
+                  width: 380,
+                  height: 60,
+                  child: StoreConnector<AppState, CommonViewModel>(
+                    distinct: true,
+                    converter: CommonViewModel.fromStore,
+                    builder: (context, vm) {
+                      return OutlineButton(
+                        color: Colors.blue,
+                        child: Text(
+                          S.of(context).signIn,
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                        onPressed: () async {
+                          URLQueryParams query = new URLQueryParams();
+                          query.append('client_id', "49");
+                          query.append('redirect_uri',
+                              "https://test.flipper.rw/auth/callback");
+                          query.append('response_type', "code");
+                          query.append('scope', "");
+                          query.append('state', "");
 
-                              try {
-                                final result =
-                                    await InternetAddress.lookup('google.com');
-                                if (result.isNotEmpty &&
-                                    result[0].rawAddress.isNotEmpty) {
-                                  var url =
-                                      'https://test.flipper.rw/login' ;
-                                  if (await canLaunch(url)) {
-                                    //await launch(url);
-                                    Router.navigator.pushNamed(Router.webView,
-                                        arguments: AuthWebViewArguments(
-                                            url: url, authType: 'login'));
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        msg:
-                                            "There is a problem launching login url",
-                                        toastLength: Toast.LENGTH_LONG,
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIos: 1,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0);
-                                  }
-                                }
-                              } on SocketException catch (_) {
+                          try {
+                            final result =
+                                await InternetAddress.lookup('google.com');
+                            if (result.isNotEmpty &&
+                                result[0].rawAddress.isNotEmpty) {
+                              var url = 'https://test.flipper.rw/login';
+                              if (await canLaunch(url)) {
+                                Router.navigator.pushNamed(Router.webView,
+                                    arguments: AuthWebViewArguments(
+                                        url: url, authType: 'login'));
+                              } else {
                                 Fluttertoast.showToast(
-                                    msg: "There is no internet",
+                                    msg:
+                                        "There is a problem launching login url",
                                     toastLength: Toast.LENGTH_LONG,
                                     gravity: ToastGravity.BOTTOM,
                                     timeInSecForIos: 1,
                                     backgroundColor: Colors.red,
                                     textColor: Colors.white,
                                     fontSize: 16.0);
-                                return;
                               }
-                            },
-                          );
+                            }
+                          } on SocketException catch (_) {
+                            Fluttertoast.showToast(
+                                msg: "There is no internet",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIos: 1,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                fontSize: 16.0);
+                            return;
+                          }
                         },
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  Container(
-                    height: 10,
-                  ),
-//TODO(richard): implement learn about flipper ASAP.
-//                  Container(
-//                    color: Colors.white,
-//                    child: SizedBox(
-//                      width: 380,
-//                      height: 60,
-//                      child: FlatButton(
-//                        child: Text(
-//                          S.of(context).learnaboutFlipper,
-//                          style: TextStyle(color: Colors.black54, fontSize: 20),
-//                        ),
-//                        onPressed: () async {
-//                          var url = 'https://yegobox.com';
-//                          if (await canLaunch(url)) {
-//                            await launch(url);
-//                          } else {
-//                            throw 'Could not launch $url';
-//                          }
-//                        },
-//                      ),
-//                    ),
-//                  )
-                ],
+                ),
               ),
-            ),
-          )
-        ],
-      ),
+              Container(
+                height: 10,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      aspectLogoPortrait(context) => AspectRatio(
+        aspectRatio: 2 / 2,
+        child: Container(
+          color: HexColor("#955be9"),
+          child: Column(
+            children: <Widget>[
+              Container(
+                height: 80,
+              ),
+              Container(
+                height: 60,
+                child: Image.asset("assets/graphics/logo.png"),
+              ),
+              Container(
+                height: 40,
+              ),
+              Text(
+                S.of(context).flipperPointofSale,
+                style: TextStyle(color: Colors.white, fontSize: 40),
+              ),
+              Text(
+                S.of(context).interactandgrowyourbusiness,
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              )
+            ],
+          ),
+        ),
+      );
+  aspectLogoLandiscape(context) => AspectRatio(
+        aspectRatio: 3 / 1,
+        child: Container(
+          color: HexColor("#955be9"),
+          child: Column(
+            children: <Widget>[
+              Container(
+                height: 80,
+              ),
+              Container(
+                height: 60,
+                child: Image.asset("assets/graphics/logo.png"),
+              ),
+              Container(
+                height: 40,
+              ),
+              Text(
+                S.of(context).flipperPointofSale,
+                style: TextStyle(color: Colors.white, fontSize: 40),
+              ),
+              Text(
+                S.of(context).interactandgrowyourbusiness,
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              )
+            ],
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    Widget child;
+    if (landscape == true) {
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[aspectLogoLandiscape(context), aspectButtonLandascape(context)],
+      );
+    } else {
+      child = Wrap(
+        children: <Widget>[aspectLogoPortrait(context), aspectButtonPortrait(context)],
+      );
+    }
+
+    return Scaffold(
+      body: child,
     );
   }
 }
