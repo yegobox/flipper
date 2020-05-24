@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/user.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -50,8 +48,8 @@ class _AuthWebViewState extends State<AuthWebView> {
     _onUrlChanged =
         flutterWebviewPlugin.onUrlChanged.listen((String url) async {
       if (mounted) {
-        //TODO(richard): change the url on production env.
-        if (url.startsWith("https://test.flipper.rw/authorized?")) {
+        
+        if (url.startsWith("https://flipper.rw/authorized?")) {
           RegExp accessToken = new RegExp("personal_token=(.*)");
           var token = accessToken.firstMatch(url)?.group(1);
 
@@ -74,7 +72,7 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           final store = StoreProvider.of<AppState>(context);
 
-          //store credentials: TODO(richard): load the bellow credential from api
+          
           final storage = new FlutterSecureStorage();
           await storage.write(key: "sync_url", value: "enexus.rw:4984");
           await storage.write(key: "sync_database", value: "lagrace");
@@ -126,14 +124,14 @@ class _AuthWebViewState extends State<AuthWebView> {
               );
             } else if (widget.authType == 'login') {
               //this is to just check subscription will work??
-              // Router.navigator.pushNamed(Router.subscription,
-              //     arguments: SubscriptionArguments(
-              //         name: _name.split('&')[0].replaceAll('%20', ' '),
-              //         email: _email.split('&')[0],
-              //         token: token.split('&')[0],
-              //         authType: widget.authType,
-              //         avatar: _avatar.split('&')[0]));
-              store.dispatch(VerifyAuthenticationState());
+              Router.navigator.pushNamed(Router.subscription,
+                  arguments: SubscriptionArguments(
+                      name: _name.split('&')[0].replaceAll('%20', ' '),
+                      email: _email.split('&')[0],
+                      token: token.split('&')[0],
+                      authType: widget.authType,
+                      avatar: _avatar.split('&')[0]));
+              // store.dispatch(VerifyAuthenticationState());
             }
           }
         }
@@ -144,10 +142,7 @@ class _AuthWebViewState extends State<AuthWebView> {
   @override
   Widget build(BuildContext context) {
     return WebviewScaffold(
-      url: widget.url,
-      // appBar: new AppBar(
-      //   backgroundColor: HexColor("#955be9"),
-      // ),
+      url: widget.url
     );
   }
 }

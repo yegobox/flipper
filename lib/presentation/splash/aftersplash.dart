@@ -3,14 +3,18 @@ import 'dart:io';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/HexColor.dart';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:query_params/query_params.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flipper/presentation/splash/popup.dart';
+import 'package:flipper/presentation/splash/popup_content.dart';
 
 class AfterSplash extends StatelessWidget {
   aspectButtonPortrait(context) => AspectRatio(
@@ -44,9 +48,7 @@ class AfterSplash extends StatelessWidget {
                             result[0].rawAddress.isNotEmpty) {
                           var url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
-                            Router.navigator.pushNamed(Router.webView,
-                                arguments: AuthWebViewArguments(
-                                    url: url, authType: 'register'));
+                              showPopup(context, AuthWebView(authType: 'register',url: url,), 'Cool login');
                           } else {
                             Fluttertoast.showToast(
                                 msg: "There is a problem launching login url",
@@ -111,9 +113,7 @@ class AfterSplash extends StatelessWidget {
                                 result[0].rawAddress.isNotEmpty) {
                               var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
-                                Router.navigator.pushNamed(Router.webView,
-                                    arguments: AuthWebViewArguments(
-                                        url: url, authType: 'login'));
+                                 showPopup(context, AuthWebView(authType: 'login',url: url,), 'Cool login');
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
@@ -182,9 +182,7 @@ class AfterSplash extends StatelessWidget {
                             result[0].rawAddress.isNotEmpty) {
                           var url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
-                            Router.navigator.pushNamed(Router.webView,
-                                arguments: AuthWebViewArguments(
-                                    url: url, authType: 'register'));
+                            showPopup(context, AuthWebView(authType: 'register',url: url,), 'Cool login');
                           } else {
                             Fluttertoast.showToast(
                                 msg: "There is a problem launching login url",
@@ -242,15 +240,15 @@ class AfterSplash extends StatelessWidget {
                           query.append('scope', "");
                           query.append('state', "");
                           try {
-                            final result =
+                            final insInternetAvailable =
                                 await InternetAddress.lookup('google.com');
-                            if (result.isNotEmpty &&
-                                result[0].rawAddress.isNotEmpty) {
+                            if (insInternetAvailable.isNotEmpty &&
+                                insInternetAvailable[0].rawAddress.isNotEmpty) {
                               var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
-                                Router.navigator.pushNamed(Router.webView,
-                                    arguments: AuthWebViewArguments(
-                                        url: url, authType: 'login'));
+                               
+                                showPopup(context, AuthWebView(authType: 'login',url: url,), 'Cool login');
+
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
@@ -360,6 +358,32 @@ class AfterSplash extends StatelessWidget {
       );
     return Scaffold(
       body: child,
+    );
+  }
+
+   Widget _popupBody() {
+     final flutterWebviewPlugin = new FlutterWebviewPlugin();
+     
+    return Container(
+      child: Text('This is a popup window'),
+    );
+  }
+   showPopup(BuildContext context, Widget widget, String title,
+      {BuildContext popupContext}) {
+    Navigator.push(
+      context,
+      PopupLayout(
+        top: 30,
+        left: 30,
+        right: 30,
+        bottom: 50,
+        child: PopupContent(
+          content: Scaffold(
+            resizeToAvoidBottomPadding: false,
+            body: widget,
+          ),
+        ),
+      ),
     );
   }
 }
