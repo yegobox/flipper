@@ -1,6 +1,6 @@
 name: customappbar
 description: custom app bar for flipper app.
-version: 0.0.3
+version: 1.0.0
 homepage: "https://yegobox.com"
 
 environment:
@@ -9,9 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  apptheme: ^0.0.1
-  flipper_ui: ^0.0.2
-  google_fonts: ^0.3.10
+  apptheme: ^1.0.0
+  flipper_ui: ^1.0.0
+  google_fonts:  ^1.1.0
     
 dev_dependencies:
   flutter_test:

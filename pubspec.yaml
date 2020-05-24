@@ -86,7 +86,7 @@ dependencies:
   flutter_linkify: ^3.1.0
   uuid: 2.0.4
   timezone: ^0.5.6
-  google_fonts: ^0.3.10
+  
   #  built_collection: ^4.2.2
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -114,7 +114,10 @@ dependency_overrides:
       path: sqlparser
 
   #local package
-  customappbar: ^0.0.3
+  google_fonts:  ^1.1.0
+  customappbar: ^1.0.0
+  flipper_ui: ^1.0.0
+  apptheme: ^1.0.0
   subscription:
     path: ./packages/subscription
 
