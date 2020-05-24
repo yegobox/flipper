@@ -13,7 +13,7 @@ class PopupLayout extends ModalRoute {
   Duration get transitionDuration => Duration(milliseconds: 300);
 
   @override
-  bool get opaque => false;
+  bool get opaque => false; 
 
   @override
   bool get barrierDismissible => true;
