@@ -32,7 +32,7 @@ class AfterSplash extends StatelessWidget {
                       URLQueryParams query = new URLQueryParams();
                       query.append('client_id', "49");
                       query.append('redirect_uri',
-                          "https://test.flipper.rw/auth/callback");
+                          "https://flipper.rw/auth/callback");
                       query.append('response_type', "code");
                       query.append('scope', "");
                       query.append('state', "");
@@ -42,7 +42,7 @@ class AfterSplash extends StatelessWidget {
                             await InternetAddress.lookup('google.com');
                         if (result.isNotEmpty &&
                             result[0].rawAddress.isNotEmpty) {
-                          var url = 'https://test.flipper.rw/register';
+                          var url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
                             Router.navigator.pushNamed(Router.webView,
                                 arguments: AuthWebViewArguments(
@@ -99,7 +99,7 @@ class AfterSplash extends StatelessWidget {
                           URLQueryParams query = new URLQueryParams();
                           query.append('client_id', "49");
                           query.append('redirect_uri',
-                              "https://test.flipper.rw/auth/callback");
+                              "https://flipper.rw/auth/callback");
                           query.append('response_type', "code");
                           query.append('scope', "");
                           query.append('state', "");
@@ -109,7 +109,7 @@ class AfterSplash extends StatelessWidget {
                                 await InternetAddress.lookup('google.com');
                             if (result.isNotEmpty &&
                                 result[0].rawAddress.isNotEmpty) {
-                              var url = 'https://test.flipper.rw/login';
+                              var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
                                 Router.navigator.pushNamed(Router.webView,
                                     arguments: AuthWebViewArguments(
@@ -170,7 +170,7 @@ class AfterSplash extends StatelessWidget {
                       URLQueryParams query = new URLQueryParams();
                       query.append('client_id', "49");
                       query.append('redirect_uri',
-                          "https://test.flipper.rw/auth/callback");
+                          "https://flipper.rw/auth/callback");
                       query.append('response_type', "code");
                       query.append('scope', "");
                       query.append('state', "");
@@ -180,7 +180,7 @@ class AfterSplash extends StatelessWidget {
                             await InternetAddress.lookup('google.com');
                         if (result.isNotEmpty &&
                             result[0].rawAddress.isNotEmpty) {
-                          var url = 'https://test.flipper.rw/register';
+                          var url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
                             Router.navigator.pushNamed(Router.webView,
                                 arguments: AuthWebViewArguments(
@@ -237,17 +237,16 @@ class AfterSplash extends StatelessWidget {
                           URLQueryParams query = new URLQueryParams();
                           query.append('client_id', "49");
                           query.append('redirect_uri',
-                              "https://test.flipper.rw/auth/callback");
+                              "https://flipper.rw/auth/callback");
                           query.append('response_type', "code");
                           query.append('scope', "");
                           query.append('state', "");
-
                           try {
                             final result =
                                 await InternetAddress.lookup('google.com');
                             if (result.isNotEmpty &&
                                 result[0].rawAddress.isNotEmpty) {
-                              var url = 'https://test.flipper.rw/login';
+                              var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
                                 Router.navigator.pushNamed(Router.webView,
                                     arguments: AuthWebViewArguments(
@@ -348,8 +347,7 @@ class AfterSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
-
+  var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
     Widget child;
     if (landscape) 
       child = Column(
