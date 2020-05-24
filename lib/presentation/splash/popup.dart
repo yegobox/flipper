@@ -16,7 +16,7 @@ class PopupLayout extends ModalRoute {
   bool get opaque => false;
 
   @override
-  bool get barrierDismissible => false;
+  bool get barrierDismissible => true;
 
   @override
   Color get barrierColor =>
@@ -69,10 +69,11 @@ class PopupLayout extends ModalRoute {
   Widget _buildOverlayContent(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
-          bottom: this.bottom,
-          left: this.left,
-          right: this.right,
-          top: this.top),
+        bottom: this.bottom,
+        left: this.left,
+        right: this.right,
+        top: this.top,
+      ),
       child: child,
     );
   }

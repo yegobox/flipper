@@ -35,8 +35,8 @@ class AfterSplash extends StatelessWidget {
                     onPressed: () async {
                       URLQueryParams query = new URLQueryParams();
                       query.append('client_id', "49");
-                      query.append('redirect_uri',
-                          "https://flipper.rw/auth/callback");
+                      query.append(
+                          'redirect_uri', "https://flipper.rw/auth/callback");
                       query.append('response_type', "code");
                       query.append('scope', "");
                       query.append('state', "");
@@ -48,7 +48,13 @@ class AfterSplash extends StatelessWidget {
                             result[0].rawAddress.isNotEmpty) {
                           var url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
-                              showPopup(context, AuthWebView(authType: 'register',url: url,), 'Cool login');
+                            showPopup(
+                                context,
+                                AuthWebView(
+                                  authType: 'register',
+                                  url: url,
+                                ),
+                                );
                           } else {
                             Fluttertoast.showToast(
                                 msg: "There is a problem launching login url",
@@ -113,7 +119,13 @@ class AfterSplash extends StatelessWidget {
                                 result[0].rawAddress.isNotEmpty) {
                               var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
-                                 showPopup(context, AuthWebView(authType: 'login',url: url,), 'Cool login');
+                                showPopup(
+                                    context,
+                                    AuthWebView(
+                                      authType: 'login',
+                                      url: url,
+                                    ),
+                                    );
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
@@ -169,8 +181,8 @@ class AfterSplash extends StatelessWidget {
                     onPressed: () async {
                       URLQueryParams query = new URLQueryParams();
                       query.append('client_id', "49");
-                      query.append('redirect_uri',
-                          "https://flipper.rw/auth/callback");
+                      query.append(
+                          'redirect_uri', "https://flipper.rw/auth/callback");
                       query.append('response_type', "code");
                       query.append('scope', "");
                       query.append('state', "");
@@ -182,7 +194,12 @@ class AfterSplash extends StatelessWidget {
                             result[0].rawAddress.isNotEmpty) {
                           var url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
-                            showPopup(context, AuthWebView(authType: 'register',url: url,), 'Cool login');
+                            showPopup(
+                                context,
+                                AuthWebView(
+                                  authType: 'register',
+                                  url: url,
+                                ),);
                           } else {
                             Fluttertoast.showToast(
                                 msg: "There is a problem launching login url",
@@ -246,9 +263,12 @@ class AfterSplash extends StatelessWidget {
                                 insInternetAvailable[0].rawAddress.isNotEmpty) {
                               var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
-                               
-                                showPopup(context, AuthWebView(authType: 'login',url: url,), 'Cool login');
-
+                                showPopup(
+                                    context,
+                                    AuthWebView(
+                                      authType: 'login',
+                                      url: url,
+                                    ),);
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
@@ -286,7 +306,7 @@ class AfterSplash extends StatelessWidget {
         ),
       );
 
-      aspectLogoPortrait(context) => AspectRatio(
+  aspectLogoPortrait(context) => AspectRatio(
         aspectRatio: 2 / 2,
         child: Container(
           color: HexColor("#955be9"),
@@ -345,30 +365,29 @@ class AfterSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
     Widget child;
-    if (landscape) 
+    if (landscape)
       child = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[aspectLogoLandiscape(context), aspectButtonLandascape(context)],
+        children: <Widget>[
+          aspectLogoLandiscape(context),
+          aspectButtonLandascape(context)
+        ],
       );
-     if(!landscape) 
+    if (!landscape)
       child = Wrap(
-        children: <Widget>[aspectLogoPortrait(context), aspectButtonPortrait(context)],
+        children: <Widget>[
+          aspectLogoPortrait(context),
+          aspectButtonPortrait(context)
+        ],
       );
     return Scaffold(
       body: child,
     );
   }
 
-   Widget _popupBody() {
-     final flutterWebviewPlugin = new FlutterWebviewPlugin();
-     
-    return Container(
-      child: Text('This is a popup window'),
-    );
-  }
-   showPopup(BuildContext context, Widget widget, String title,
+  showPopup(BuildContext context, Widget widget,
       {BuildContext popupContext}) {
     Navigator.push(
       context,
