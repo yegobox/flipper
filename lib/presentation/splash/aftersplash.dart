@@ -322,9 +322,11 @@ class AfterSplash extends StatelessWidget {
               Container(
                 height: 40,
               ),
-              Text(
-                S.of(context).flipperPointofSale,
-                style: TextStyle(color: Colors.white, fontSize: 40),
+              Center(
+                child: Text(
+                  S.of(context).flipperPointofSale,
+                  style: TextStyle(color: Colors.white, fontSize: 40),
+                ),
               ),
               Text(
                 S.of(context).interactandgrowyourbusiness,

@@ -8,8 +8,12 @@ import 'intl/messages_all.dart';
 // Made by Localizely
 // **************************************************************************
 
+// ignore_for_file: non_constant_identifier_names, lines_longer_than_80_chars
+
 class S {
   S();
+  
+  static S current;
   
   static const AppLocalizationDelegate delegate =
     AppLocalizationDelegate();
@@ -19,7 +23,9 @@ class S {
     final localeName = Intl.canonicalizedLocale(name); 
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
-      return S();
+      S.current = S();
+      
+      return S.current;
     });
   } 
 
@@ -27,6 +33,7 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
+  /// `Save`
   String get save {
     return Intl.message(
       'Save',
@@ -36,6 +43,7 @@ class S {
     );
   }
 
+  /// `Unit Type`
   String get unityType {
     return Intl.message(
       'Unit Type',
@@ -45,6 +53,7 @@ class S {
     );
   }
 
+  /// `Category`
   String get category {
     return Intl.message(
       'Category',
@@ -54,6 +63,7 @@ class S {
     );
   }
 
+  /// `Create Item`
   String get createItem {
     return Intl.message(
       'Create Item',
@@ -63,6 +73,7 @@ class S {
     );
   }
 
+  /// `Sign up`
   String get signup {
     return Intl.message(
       'Sign up',
@@ -72,6 +83,7 @@ class S {
     );
   }
 
+  /// `Create Category`
   String get createCategory {
     return Intl.message(
       'Create Category',
@@ -81,6 +93,7 @@ class S {
     );
   }
 
+  /// `Add Variation`
   String get addVariation {
     return Intl.message(
       'Add Variation',
@@ -90,6 +103,7 @@ class S {
     );
   }
 
+  /// `Name`
   String get name {
     return Intl.message(
       'Name',
@@ -99,6 +113,7 @@ class S {
     );
   }
 
+  /// `Price`
   String get price {
     return Intl.message(
       'Price',
@@ -108,6 +123,7 @@ class S {
     );
   }
 
+  /// `SKU`
   String get sKU {
     return Intl.message(
       'SKU',
@@ -117,6 +133,7 @@ class S {
     );
   }
 
+  /// `Stock`
   String get stock {
     return Intl.message(
       'Stock',
@@ -126,6 +143,7 @@ class S {
     );
   }
 
+  /// `Leave the price blank to enter at the time of sale.`
   String get leavePriceBlank {
     return Intl.message(
       'Leave the price blank to enter at the time of sale.',
@@ -135,6 +153,7 @@ class S {
     );
   }
 
+  /// `Receive Stock`
   String get receiveStock {
     return Intl.message(
       'Receive Stock',
@@ -144,6 +163,7 @@ class S {
     );
   }
 
+  /// `Add Stock`
   String get addStock {
     return Intl.message(
       'Add Stock',
@@ -153,6 +173,7 @@ class S {
     );
   }
 
+  /// `Reedeem Rewards`
   String get reedeemRewards {
     return Intl.message(
       'Reedeem Rewards',
@@ -162,6 +183,7 @@ class S {
     );
   }
 
+  /// `Create new`
   String get createNew {
     return Intl.message(
       'Create new',
@@ -171,6 +193,7 @@ class S {
     );
   }
 
+  /// `Create new`
   String get createAccount {
     return Intl.message(
       'Create new',
@@ -180,6 +203,7 @@ class S {
     );
   }
 
+  /// `New Item`
   String get newItem {
     return Intl.message(
       'New Item',
@@ -189,6 +213,7 @@ class S {
     );
   }
 
+  /// `Select Category`
   String get selectCategory {
     return Intl.message(
       'Select Category',
@@ -198,6 +223,7 @@ class S {
     );
   }
 
+  /// `PRICE AND INVENTORY`
   String get priceAndInventory {
     return Intl.message(
       'PRICE AND INVENTORY',
@@ -207,6 +233,7 @@ class S {
     );
   }
 
+  /// `Unit Type`
   String get unity_type {
     return Intl.message(
       'Unit Type',
@@ -216,6 +243,7 @@ class S {
     );
   }
 
+  /// `Per Item`
   String get perItem {
     return Intl.message(
       'Per Item',
@@ -225,6 +253,7 @@ class S {
     );
   }
 
+  /// `All Items`
   String get allItems {
     return Intl.message(
       'All Items',
@@ -234,6 +263,7 @@ class S {
     );
   }
 
+  /// `Description`
   String get description {
     return Intl.message(
       'Description',
@@ -243,6 +273,7 @@ class S {
     );
   }
 
+  /// `in Stock`
   String get inStock {
     return Intl.message(
       'in Stock',
@@ -252,6 +283,7 @@ class S {
     );
   }
 
+  /// `Add`
   String get add {
     return Intl.message(
       'Add',
@@ -261,6 +293,7 @@ class S {
     );
   }
 
+  /// `Quantity`
   String get quantity {
     return Intl.message(
       'Quantity',
@@ -270,6 +303,7 @@ class S {
     );
   }
 
+  /// `Notes`
   String get notes {
     return Intl.message(
       'Notes',
@@ -279,6 +313,7 @@ class S {
     );
   }
 
+  /// `supply Price`
   String get supplyPrice {
     return Intl.message(
       'supply Price',
@@ -288,6 +323,7 @@ class S {
     );
   }
 
+  /// `No Sale`
   String get noSale {
     return Intl.message(
       'No Sale',
@@ -297,6 +333,7 @@ class S {
     );
   }
 
+  /// `Cost Price`
   String get costPrice {
     return Intl.message(
       'Cost Price',
@@ -306,6 +343,7 @@ class S {
     );
   }
 
+  /// `Retail Price`
   String get retailPrice {
     return Intl.message(
       'Retail Price',
@@ -315,6 +353,7 @@ class S {
     );
   }
 
+  /// `Items`
   String get items {
     return Intl.message(
       'Items',
@@ -324,6 +363,7 @@ class S {
     );
   }
 
+  /// `Current Sale`
   String get currentSale {
     return Intl.message(
       'Current Sale',
@@ -333,6 +373,7 @@ class S {
     );
   }
 
+  /// `Be in control of your business`
   String get flipperPointofSale {
     return Intl.message(
       'Be in control of your business',
@@ -342,6 +383,7 @@ class S {
     );
   }
 
+  /// `Interact and  grow your business`
   String get interactandgrowyourbusiness {
     return Intl.message(
       'Interact and  grow your business',
@@ -351,6 +393,7 @@ class S {
     );
   }
 
+  /// `Sign in`
   String get signIn {
     return Intl.message(
       'Sign in',
@@ -360,6 +403,7 @@ class S {
     );
   }
 
+  /// `Comming soon`
   String get commingSoon {
     return Intl.message(
       'Comming soon',
@@ -369,6 +413,7 @@ class S {
     );
   }
 
+  /// `Learn about Flipper.`
   String get learnaboutFlipper {
     return Intl.message(
       'Learn about Flipper.',
@@ -378,6 +423,7 @@ class S {
     );
   }
 
+  /// `You need to provide category for your product`
   String get youNeedCategoryOfYourProduct {
     return Intl.message(
       'You need to provide category for your product',
@@ -387,6 +433,7 @@ class S {
     );
   }
 
+  /// `You need to provide name for your product`
   String get youNeedNameOfYourProduct {
     return Intl.message(
       'You need to provide name for your product',
@@ -396,6 +443,7 @@ class S {
     );
   }
 
+  /// `Branch from which you operate in should be set, try to logout and log in again.`
   String get branchError {
     return Intl.message(
       'Branch from which you operate in should be set, try to logout and log in again.',
@@ -405,6 +453,7 @@ class S {
     );
   }
 
+  /// `Edit Item`
   String get editItem {
     return Intl.message(
       'Edit Item',
@@ -414,6 +463,7 @@ class S {
     );
   }
 
+  /// `Edit Category`
   String get editCategory {
     return Intl.message(
       'Edit Category',
@@ -423,6 +473,7 @@ class S {
     );
   }
 
+  /// `Edit Unit`
   String get editUnitType {
     return Intl.message(
       'Edit Unit',
@@ -432,6 +483,7 @@ class S {
     );
   }
 
+  /// `Subscribe`
   String get subscribe {
     return Intl.message(
       'Subscribe',
@@ -441,6 +493,7 @@ class S {
     );
   }
 
+  /// `Pay`
   String get pay {
     return Intl.message(
       'Pay',
@@ -450,6 +503,7 @@ class S {
     );
   }
 
+  /// `Edit Variation`
   String get editVariation {
     return Intl.message(
       'Edit Variation',
@@ -459,6 +513,7 @@ class S {
     );
   }
 
+  /// `Select Unit`
   String get selectUnit {
     return Intl.message(
       'Select Unit',
@@ -468,6 +523,7 @@ class S {
     );
   }
 
+  /// `Tender`
   String get tender {
     return Intl.message(
       'Tender',
