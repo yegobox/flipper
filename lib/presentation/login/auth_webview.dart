@@ -104,13 +104,17 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           //check if a user belongs to a subscription then do.
           if (_subs.split('&')[0] == 'null') {
-            Router.navigator.pushNamed(Router.subscription,
-                arguments: SubscriptionArguments(
-                    name: _name.split('&')[0].replaceAll('%20', ' '),
-                    email: _email.split('&')[0],
-                    token: token.split('&')[0],
-                    authType: widget.authType,
-                    avatar: _avatar.split('&')[0]));
+            // Router.navigator.pushNamed(Router.subscription,
+            //     arguments: SubscriptionArguments(
+            //         name: _name.split('&')[0].replaceAll('%20', ' '),
+            //         email: _email.split('&')[0],
+            //         token: token.split('&')[0],
+            //         authType: widget.authType,
+            //         avatar: _avatar.split('&')[0]));
+
+            // skipped the subscription check.
+
+            store.dispatch(VerifyAuthenticationState());
           } else {
             if (widget.authType == 'register') {
               Router.navigator.pushNamed(
@@ -124,14 +128,14 @@ class _AuthWebViewState extends State<AuthWebView> {
               );
             } else if (widget.authType == 'login') {
               //this is to just check subscription will work??
-              Router.navigator.pushNamed(Router.subscription,
-                  arguments: SubscriptionArguments(
-                      name: _name.split('&')[0].replaceAll('%20', ' '),
-                      email: _email.split('&')[0],
-                      token: token.split('&')[0],
-                      authType: widget.authType,
-                      avatar: _avatar.split('&')[0]));
-              // store.dispatch(VerifyAuthenticationState());
+              // Router.navigator.pushNamed(Router.subscription,
+              //     arguments: SubscriptionArguments(
+              //         name: _name.split('&')[0].replaceAll('%20', ' '),
+              //         email: _email.split('&')[0],
+              //         token: token.split('&')[0],
+              //         authType: widget.authType,
+              //         avatar: _avatar.split('&')[0]));
+              store.dispatch(VerifyAuthenticationState());
             }
           }
         }

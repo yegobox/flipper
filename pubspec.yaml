@@ -11,7 +11,7 @@ description: flipper business app.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.32
+version: 1.5.33
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
@@ -177,9 +177,12 @@ flutter:
         - asset: fonts/Heebo-Regular.ttf
 flutter_intl:
   enabled: true
-# 1.5.32
+# 1.5.33
 #  flutter packages pub run build_runner watch --delete-conflicting-outputs
 #  rw.flipper
-# flutter build appbundle  --build-number 1.5.32
+# flutter build appbundle --build-name=1.5.33  --build-number=1533
 # Db on device for debugging purpose: This PC\Pixel\Internal shared storage\Android\data\rw.flipper\files\database-development
+
+# icon
+# flutter pub run flutter_launcher_icons:main 
 
