@@ -1,5 +1,11 @@
-analyzer:
+# analyzer:
 #    plugins:
 #      - moor
 #    exclude:
 #      - "**/*.g.dart"
+#    enable-experiment:
+#     - non-nullable
+
+analyzer:
+    - enable-experiment:
+        - non-nullable

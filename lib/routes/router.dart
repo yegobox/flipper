@@ -25,7 +25,7 @@ import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/presentation/business/create_business_screen.dart';
 import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/home/dash_board.dart';
-import 'package:flipper/presentation/login/auth_webview.dart';
+// import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
@@ -101,8 +101,8 @@ class $Router {
 
   TransactionScreen transactionScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  AuthWebView webView;
+  // @MaterialRoute(fullscreenDialog: true)
+  // AuthWebView webView;
 
   @MaterialRoute(fullscreenDialog: true)
   ReportScreen reportScreen;

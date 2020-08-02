@@ -80,6 +80,29 @@ class UserTableData extends DataClass implements Insertable<UserTableData> {
     return map;
   }
 
+  UserTableCompanion toCompanion(bool nullToAbsent) {
+    return UserTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      username: username == null && nullToAbsent
+          ? const Value.absent()
+          : Value(username),
+      token:
+          token == null && nullToAbsent ? const Value.absent() : Value(token),
+      email:
+          email == null && nullToAbsent ? const Value.absent() : Value(email),
+      avatar:
+          avatar == null && nullToAbsent ? const Value.absent() : Value(avatar),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
   factory UserTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -270,6 +293,21 @@ class UserTableCompanion extends UpdateCompanion<UserTableData> {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTableCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('username: $username, ')
+          ..write('token: $token, ')
+          ..write('email: $email, ')
+          ..write('avatar: $avatar, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -554,6 +592,49 @@ class BusinessTableData extends DataClass
       map['deleted_at'] = Variable<String>(deletedAt);
     }
     return map;
+  }
+
+  BusinessTableCompanion toCompanion(bool nullToAbsent) {
+    return BusinessTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      active:
+          active == null && nullToAbsent ? const Value.absent() : Value(active),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      typeId:
+          typeId == null && nullToAbsent ? const Value.absent() : Value(typeId),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
+      country: country == null && nullToAbsent
+          ? const Value.absent()
+          : Value(country),
+      currency: currency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currency),
+      timeZone: timeZone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timeZone),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
   }
 
   factory BusinessTableData.fromJson(Map<String, dynamic> json,
@@ -879,6 +960,28 @@ class BusinessTableCompanion extends UpdateCompanion<BusinessTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BusinessTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('active: $active, ')
+          ..write('userId: $userId, ')
+          ..write('typeId: $typeId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('country: $country, ')
+          ..write('currency: $currency, ')
+          ..write('timeZone: $timeZone, ')
+          ..write('longitude: $longitude, ')
+          ..write('latitude: $latitude, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -1243,6 +1346,31 @@ class BranchTableData extends DataClass implements Insertable<BranchTableData> {
     return map;
   }
 
+  BranchTableCompanion toCompanion(bool nullToAbsent) {
+    return BranchTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      isActive: isActive == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isActive),
+      businessId: businessId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(businessId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
   factory BranchTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -1435,6 +1563,21 @@ class BranchTableCompanion extends UpdateCompanion<BranchTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BranchTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('isActive: $isActive, ')
+          ..write('businessId: $businessId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -1664,6 +1807,24 @@ class UnitTableData extends DataClass implements Insertable<UnitTableData> {
     return map;
   }
 
+  UnitTableCompanion toCompanion(bool nullToAbsent) {
+    return UnitTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      value:
+          value == null && nullToAbsent ? const Value.absent() : Value(value),
+      focused: focused == null && nullToAbsent
+          ? const Value.absent()
+          : Value(focused),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
   factory UnitTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -1820,6 +1981,19 @@ class UnitTableCompanion extends UpdateCompanion<UnitTableData> {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UnitTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('value: $value, ')
+          ..write('focused: $focused, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -2028,6 +2202,31 @@ class CategoryTableData extends DataClass
     return map;
   }
 
+  CategoryTableCompanion toCompanion(bool nullToAbsent) {
+    return CategoryTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      focused: focused == null && nullToAbsent
+          ? const Value.absent()
+          : Value(focused),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      branchId: branchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
   factory CategoryTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -2221,6 +2420,21 @@ class CategoryTableCompanion extends UpdateCompanion<CategoryTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('focused: $focused, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('branchId: $branchId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -2528,6 +2742,58 @@ class ProductTableData extends DataClass
       map['deleted_at'] = Variable<String>(deletedAt);
     }
     return map;
+  }
+
+  ProductTableCompanion toCompanion(bool nullToAbsent) {
+    return ProductTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      picture: picture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(picture),
+      active:
+          active == null && nullToAbsent ? const Value.absent() : Value(active),
+      hasPicture: hasPicture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hasPicture),
+      isImageLocal: isImageLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isImageLocal),
+      isDraft: isDraft == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isDraft),
+      isCurrentUpdate: isCurrentUpdate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isCurrentUpdate),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
+      businessId: businessId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(businessId),
+      supplierId: supplierId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplierId),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
+      taxId:
+          taxId == null && nullToAbsent ? const Value.absent() : Value(taxId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
   }
 
   factory ProductTableData.fromJson(Map<String, dynamic> json,
@@ -2914,6 +3180,31 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('picture: $picture, ')
+          ..write('active: $active, ')
+          ..write('hasPicture: $hasPicture, ')
+          ..write('isImageLocal: $isImageLocal, ')
+          ..write('isDraft: $isDraft, ')
+          ..write('isCurrentUpdate: $isCurrentUpdate, ')
+          ..write('description: $description, ')
+          ..write('color: $color, ')
+          ..write('businessId: $businessId, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('taxId: $taxId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -3326,6 +3617,20 @@ class TokenTableData extends DataClass implements Insertable<TokenTableData> {
     return map;
   }
 
+  TokenTableCompanion toCompanion(bool nullToAbsent) {
+    return TokenTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      token:
+          token == null && nullToAbsent ? const Value.absent() : Value(token),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
   factory TokenTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3439,6 +3744,17 @@ class TokenTableCompanion extends UpdateCompanion<TokenTableData> {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TokenTableCompanion(')
+          ..write('id: $id, ')
+          ..write('token: $token, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -3589,6 +3905,23 @@ class BusinessUserTableData extends DataClass
     return map;
   }
 
+  BusinessUserTableCompanion toCompanion(bool nullToAbsent) {
+    return BusinessUserTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      businessId: businessId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(businessId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
   factory BusinessUserTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3726,6 +4059,18 @@ class BusinessUserTableCompanion
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BusinessUserTableCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('businessId: $businessId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -3880,6 +4225,19 @@ class TabsTableData extends DataClass implements Insertable<TabsTableData> {
     return map;
   }
 
+  TabsTableCompanion toCompanion(bool nullToAbsent) {
+    return TabsTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      tab: tab == null && nullToAbsent ? const Value.absent() : Value(tab),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
   factory TabsTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -3993,6 +4351,17 @@ class TabsTableCompanion extends UpdateCompanion<TabsTableData> {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TabsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('tab: $tab, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -4172,6 +4541,33 @@ class VariationTableData extends DataClass
       map['deleted_at'] = Variable<String>(deletedAt);
     }
     return map;
+  }
+
+  VariationTableCompanion toCompanion(bool nullToAbsent) {
+    return VariationTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      sku: sku == null && nullToAbsent ? const Value.absent() : Value(sku),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+      isActive: isActive == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isActive),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
   }
 
   factory VariationTableData.fromJson(Map<String, dynamic> json,
@@ -4404,6 +4800,23 @@ class VariationTableCompanion extends UpdateCompanion<VariationTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VariationTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('sku: $sku, ')
+          ..write('unit: $unit, ')
+          ..write('productId: $productId, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -4735,6 +5148,56 @@ class StockTableData extends DataClass implements Insertable<StockTableData> {
       map['deleted_at'] = Variable<String>(deletedAt);
     }
     return map;
+  }
+
+  StockTableCompanion toCompanion(bool nullToAbsent) {
+    return StockTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      currentStock: currentStock == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentStock),
+      lowStock: lowStock == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lowStock),
+      canTrackingStock: canTrackingStock == null && nullToAbsent
+          ? const Value.absent()
+          : Value(canTrackingStock),
+      showLowStockAlert: showLowStockAlert == null && nullToAbsent
+          ? const Value.absent()
+          : Value(showLowStockAlert),
+      action:
+          action == null && nullToAbsent ? const Value.absent() : Value(action),
+      isActive: isActive == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isActive),
+      supplyPrice: supplyPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplyPrice),
+      retailPrice: retailPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retailPrice),
+      variantId: variantId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variantId),
+      branchId: branchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchId),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
   }
 
   factory StockTableData.fromJson(Map<String, dynamic> json,
@@ -5079,6 +5542,29 @@ class StockTableCompanion extends UpdateCompanion<StockTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('currentStock: $currentStock, ')
+          ..write('lowStock: $lowStock, ')
+          ..write('canTrackingStock: $canTrackingStock, ')
+          ..write('showLowStockAlert: $showLowStockAlert, ')
+          ..write('action: $action, ')
+          ..write('isActive: $isActive, ')
+          ..write('supplyPrice: $supplyPrice, ')
+          ..write('retailPrice: $retailPrice, ')
+          ..write('variantId: $variantId, ')
+          ..write('branchId: $branchId, ')
+          ..write('productId: $productId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -5471,6 +5957,36 @@ class StockHistoryTableData extends DataClass
     return map;
   }
 
+  StockHistoryTableCompanion toCompanion(bool nullToAbsent) {
+    return StockHistoryTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      reason:
+          reason == null && nullToAbsent ? const Value.absent() : Value(reason),
+      stockId: stockId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stockId),
+      variantId: variantId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variantId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
   factory StockHistoryTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -5705,6 +6221,23 @@ class StockHistoryTableCompanion
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockHistoryTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('quantity: $quantity, ')
+          ..write('note: $note, ')
+          ..write('id: $id, ')
+          ..write('reason: $reason, ')
+          ..write('stockId: $stockId, ')
+          ..write('variantId: $variantId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -6058,6 +6591,59 @@ class OrderDetailTableData extends DataClass
       map['updated_at'] = Variable<DateTime>(updatedAt);
     }
     return map;
+  }
+
+  OrderDetailTableCompanion toCompanion(bool nullToAbsent) {
+    return OrderDetailTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      branchId: branchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchId),
+      discountRate: discountRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountRate),
+      discountAmount: discountAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountAmount),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      taxRate: taxRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxRate),
+      taxAmount: taxAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxAmount),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
+      subTotal: subTotal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subTotal),
+      orderId: orderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderId),
+      stockId: stockId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stockId),
+      variationId: variationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variationId),
+      variantName: variantName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variantName),
+      productName: productName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productName),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
   }
 
   factory OrderDetailTableData.fromJson(Map<String, dynamic> json,
@@ -6451,6 +7037,31 @@ class OrderDetailTableCompanion extends UpdateCompanion<OrderDetailTableData> {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OrderDetailTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('branchId: $branchId, ')
+          ..write('discountRate: $discountRate, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('unit: $unit, ')
+          ..write('note: $note, ')
+          ..write('taxRate: $taxRate, ')
+          ..write('taxAmount: $taxAmount, ')
+          ..write('quantity: $quantity, ')
+          ..write('subTotal: $subTotal, ')
+          ..write('orderId: $orderId, ')
+          ..write('stockId: $stockId, ')
+          ..write('variationId: $variationId, ')
+          ..write('variantName: $variantName, ')
+          ..write('productName: $productName, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -7053,6 +7664,90 @@ class OrderTableData extends DataClass implements Insertable<OrderTableData> {
     return map;
   }
 
+  OrderTableCompanion toCompanion(bool nullToAbsent) {
+    return OrderTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      branchId: branchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchId),
+      deviceId: deviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deviceId),
+      currency: currency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currency),
+      reference: reference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reference),
+      orderNUmber: orderNUmber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderNUmber),
+      supplierId: supplierId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplierId),
+      subTotal: subTotal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subTotal),
+      supplierInvoiceNumber: supplierInvoiceNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplierInvoiceNumber),
+      deliverDate: deliverDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliverDate),
+      orderDate: orderDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderDate),
+      taxRate: taxRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxRate),
+      taxAmount: taxAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxAmount),
+      count:
+          count == null && nullToAbsent ? const Value.absent() : Value(count),
+      variantName: variantName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variantName),
+      discountRate: discountRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountRate),
+      discountAmount: discountAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discountAmount),
+      cashReceived: cashReceived == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cashReceived),
+      saleTotal: saleTotal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(saleTotal),
+      customerSaving: customerSaving == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerSaving),
+      paymentId: paymentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentId),
+      orderNote: orderNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderNote),
+      isDraft: isDraft == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isDraft),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      orderType: orderType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderType),
+      customerChangeDue: customerChangeDue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerChangeDue),
+    );
+  }
+
   factory OrderTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -7601,6 +8296,41 @@ class OrderTableCompanion extends UpdateCompanion<OrderTableData> {
       map['customer_change_due'] = Variable<int>(customerChangeDue.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OrderTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('branchId: $branchId, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('currency: $currency, ')
+          ..write('reference: $reference, ')
+          ..write('orderNUmber: $orderNUmber, ')
+          ..write('supplierId: $supplierId, ')
+          ..write('subTotal: $subTotal, ')
+          ..write('supplierInvoiceNumber: $supplierInvoiceNumber, ')
+          ..write('deliverDate: $deliverDate, ')
+          ..write('orderDate: $orderDate, ')
+          ..write('taxRate: $taxRate, ')
+          ..write('taxAmount: $taxAmount, ')
+          ..write('count: $count, ')
+          ..write('variantName: $variantName, ')
+          ..write('discountRate: $discountRate, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('cashReceived: $cashReceived, ')
+          ..write('saleTotal: $saleTotal, ')
+          ..write('customerSaving: $customerSaving, ')
+          ..write('paymentId: $paymentId, ')
+          ..write('orderNote: $orderNote, ')
+          ..write('isDraft: $isDraft, ')
+          ..write('status: $status, ')
+          ..write('orderType: $orderType, ')
+          ..write('customerChangeDue: $customerChangeDue')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -8179,6 +8909,16 @@ class ColorTableData extends DataClass implements Insertable<ColorTableData> {
     return map;
   }
 
+  ColorTableCompanion toCompanion(bool nullToAbsent) {
+    return ColorTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      isActive: isActive == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isActive),
+    );
+  }
+
   factory ColorTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -8274,6 +9014,16 @@ class ColorTableCompanion extends UpdateCompanion<ColorTableData> {
       map['is_active'] = Variable<bool>(isActive.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ColorTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -8391,6 +9141,16 @@ class ActionsTableData extends DataClass
     return map;
   }
 
+  ActionsTableCompanion toCompanion(bool nullToAbsent) {
+    return ActionsTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      isLocked: isLocked == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isLocked),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+    );
+  }
+
   factory ActionsTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -8486,6 +9246,16 @@ class ActionsTableCompanion extends UpdateCompanion<ActionsTableData> {
       map['name'] = Variable<String>(name.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ActionsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('isLocked: $isLocked, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -8623,6 +9393,24 @@ class ReasonTableData extends DataClass implements Insertable<ReasonTableData> {
       map['deleted_at'] = Variable<String>(deletedAt);
     }
     return map;
+  }
+
+  ReasonTableCompanion toCompanion(bool nullToAbsent) {
+    return ReasonTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      action:
+          action == null && nullToAbsent ? const Value.absent() : Value(action),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
   }
 
   factory ReasonTableData.fromJson(Map<String, dynamic> json,
@@ -8780,6 +9568,19 @@ class ReasonTableCompanion extends UpdateCompanion<ReasonTableData> {
       map['deleted_at'] = Variable<String>(deletedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReasonTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('action: $action, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -8982,6 +9783,31 @@ class TaxTableData extends DataClass implements Insertable<TaxTableData> {
     return map;
   }
 
+  TaxTableCompanion toCompanion(bool nullToAbsent) {
+    return TaxTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      isDefault: isDefault == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isDefault),
+      percentage: percentage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(percentage),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      businessId: businessId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(businessId),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
   factory TaxTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -9175,6 +10001,21 @@ class TaxTableCompanion extends UpdateCompanion<TaxTableData> {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaxTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('name: $name, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('percentage: $percentage, ')
+          ..write('id: $id, ')
+          ..write('businessId: $businessId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -9397,6 +10238,21 @@ class BranchProductTableData extends DataClass
     return map;
   }
 
+  BranchProductTableCompanion toCompanion(bool nullToAbsent) {
+    return BranchProductTableCompanion(
+      idLocal: idLocal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLocal),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+      branchId: branchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchId),
+    );
+  }
+
   factory BranchProductTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -9513,6 +10369,17 @@ class BranchProductTableCompanion
       map['branch_id'] = Variable<String>(branchId.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BranchProductTableCompanion(')
+          ..write('idLocal: $idLocal, ')
+          ..write('id: $id, ')
+          ..write('productId: $productId, ')
+          ..write('branchId: $branchId')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -9654,6 +10521,18 @@ class ProductImageTableData extends DataClass
     return map;
   }
 
+  ProductImageTableCompanion toCompanion(bool nullToAbsent) {
+    return ProductImageTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      localPath: localPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localPath),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+    );
+  }
+
   factory ProductImageTableData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
@@ -9751,6 +10630,16 @@ class ProductImageTableCompanion
       map['product_id'] = Variable<String>(productId.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductImageTableCompanion(')
+          ..write('id: $id, ')
+          ..write('localPath: $localPath, ')
+          ..write('productId: $productId')
+          ..write(')'))
+        .toString();
   }
 }
 

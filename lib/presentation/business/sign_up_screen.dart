@@ -198,8 +198,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..token = widget.token
           ..name = widget.name,
       );
-      final store = StoreProvider.of<AppState>(context);
-
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));

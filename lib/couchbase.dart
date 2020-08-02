@@ -774,9 +774,6 @@ class CouchBase extends Model with Fluttercouch {
   }
 
   Future<dynamic> queryEmail(Store<AppState> store, String email) async {
-    Query query = QueryBuilder.select([SelectResult.all()])
-        .from(store.state.couchDbClient.name)
-        .where(Expression.property("_id").equalTo(Expression.string('users')));
     // ResultSet results = await query.execute();
   }
 
@@ -1335,7 +1332,6 @@ class CouchBase extends Model with Fluttercouch {
         'channel': store.state.userId.toString(),
         'unit': variations[i].unit,
         'createdAt': variations[i].createdAt.toIso8601String(),
-        'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'SKU': variations[i].sku,
         '_id': 'variants_' + store.state.userId.toString(),

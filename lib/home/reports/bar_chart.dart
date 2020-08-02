@@ -73,7 +73,7 @@ class BarChartReportState extends State<BarChartReport> {
                   }
                 },
               ),
-              leftTitles: const SideTitles(showTitles: false),
+              leftTitles:  SideTitles(showTitles: false),
             ),
             borderData: FlBorderData(
               show: false,
