@@ -38,7 +38,7 @@ dependencies:
   fl_chart: ^0.11.0
   # Firebase dependencies
   firebase_core: ^0.4.4+2
-  # flutter_webview_plugin: ^0.3.11
+  flutter_webview_plugin: ^0.3.11
   firebase_messaging: ^6.0.12
   firebase_crashlytics: ^0.1.3+3
   http: ^0.12.0+4
