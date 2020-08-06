@@ -95,16 +95,7 @@ class _FlipperAppState extends State<FlipperApp> {
       ShouldLoadBusiness(),
     );
     _firebaseMessaging.configure(
-      onBackgroundMessage: backgroundMessageHandler,
-      onMessage: (Map<String, dynamic> message) async {
-        store.dispatch(OnPushNotificationReceivedAction(message));
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        store.dispatch(OnPushNotificationOpenAction(message));
-      },
-      onResume: (Map<String, dynamic> message) async {
-        store.dispatch(OnPushNotificationOpenAction(message));
-      },
+      onBackgroundMessage: backgroundMessageHandler
     );
     _firebaseMessaging.requestNotificationPermissions(
         const IosNotificationSettings(sound: true, badge: true, alert: true));
@@ -120,11 +111,23 @@ class _FlipperAppState extends State<FlipperApp> {
         store.dispatch(UpdateUserTokenAction(token, store));
       }
     });
+    _firebaseMessaging.subscribeToTopic('all');
   }
 
   @override
   Widget build(BuildContext context) {
     // ignore: always_specify_types
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        store.dispatch(OnPushNotificationReceivedAction(message));
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        store.dispatch(OnPushNotificationOpenAction(message));
+      },
+      onResume: (Map<String, dynamic> message) async {
+        store.dispatch(OnPushNotificationOpenAction(message));
+      },
+    );
     return StoreProvider(
       store: store,
       child: MaterialApp(

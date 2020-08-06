@@ -329,7 +329,7 @@ class AfterSplash extends StatelessWidget {
               const Padding(
                 padding:  EdgeInsets.all(8.0),
                 child: Text(
-                  'Flippers',
+                  'Flipper',
                   style: TextStyle(color: Colors.white, fontSize: 40),
                 ),
               ),
