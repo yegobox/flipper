@@ -18,6 +18,13 @@ dev_dependencies:
     sdk: flutter
   
 flutter:
+  plugin:
+    platforms:
+      android:
+        package: rw.flipper.subscription
+        pluginClass: Subscription
+      ios:
+        pluginClass: Subscription
 
 # flutter pub publish --dry-run
 # flutter pub publish

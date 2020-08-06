@@ -53,7 +53,8 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
             bottomSpacer: 120,
             action: Column(
               children: <Widget>[
-                Text("Let's get started"),
+                // ignore: prefer_const_literals_to_create_immutables
+                const Text("Let's get started"),
                 Text("Sign up for flipper and yegobox is fast and free"),
                 Text("No commitment or long-term contracts.")
               ],
@@ -69,7 +70,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
-                    Text("ACCOUNT INFORMATION"),
+                    const Text("ACCOUNT INFORMATION"),
                     Center(
                       child: Container(
                         width: 300,
@@ -107,6 +108,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
     );
   }
 
+  // ignore: always_declare_return_types
   _handleFormSubmit() {
     StoreProvider.of<AppState>(context).dispatch(ResetAppAction());
     if (_formKey.currentState.validate()) {

@@ -18,7 +18,7 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
   Widget build(BuildContext context) {
     TextEditingController _controller = new TextEditingControllerWorkaroud(
         text: widget.vm.currentIncrement == null
-            ? "1"
+            ? '1'
             : widget.vm.currentIncrement.toString());
     return ListTile(
       dense: true,

@@ -21,7 +21,7 @@ class _PayableWidgetState extends State<PayableWidget> {
   @override
   Widget build(BuildContext context) {
     var payable = new MoneyMaskedTextController(
-        leftSymbol: '\RWF ', decimalSeparator: ".", thousandSeparator: ",");
+        leftSymbol: '\RWF ', decimalSeparator: '.', thousandSeparator: ',');
     payable.updateValue(0);
 
     _getOrderCart();
@@ -65,7 +65,7 @@ class _PayableWidgetState extends State<PayableWidget> {
                             child: Row(
                               children: <Widget>[
                                 Text(
-                                  "Charge  ",
+                                  'Charge  ',
                                   style: GoogleFonts.lato(
                                       fontStyle: FontStyle.normal,
                                       color: AppTheme.payableTheme.accentColor,

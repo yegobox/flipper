@@ -1,7 +1,7 @@
 
-import "package:flutter/services.dart";
+import 'package:flutter/services.dart';
 
-const MethodChannel channel = MethodChannel("de.janoodle.timy/permission");
+const MethodChannel channel = MethodChannel('de.janoodle.timy/permission');
 
 /// Obtain the status for storage/photos permissions
 ///
@@ -13,15 +13,15 @@ Future<bool> getStoragePermission() async {
 //  if (Platform.isIOS) {
 //    final status = await IOSPermissionChannel.requestPermission(
 //        permissionType: PermissionType.Photos);
-//    Logger.d("Photo permission status: $status");
-//    return (status == "AUTHORIZED") ? true : false;
+//    Logger.d('Photo permission status: $status');
+//    return (status == 'AUTHORIZED') ? true : false;
 //  } else if (Platform.isAndroid) {
 //    final result = await AndroidPermissionChannel.requestPermission(
 //        permissionType: PermissionType.Photos);
-//    Logger.d("Photo permission status: $result");
+//    Logger.d('Photo permission status: $result');
 //    return result;
 //  }
-//  Logger.e("Invalid platform", s: StackTrace.current);
+//  Logger.e('Invalid platform', s: StackTrace.current);
 //  return false;
 }
 
@@ -37,12 +37,12 @@ Future<bool> getCameraPermission() async {
 //  if (Platform.isIOS) {
 //    final status = await IOSPermissionChannel.requestPermission(
 //        permissionType: PermissionType.Camera);
-//    Logger.w("Photo permission status: $status");
-//    return (status == "AUTHORIZED") ? true : false;
+//    Logger.w('Photo permission status: $status');
+//    return (status == 'AUTHORIZED') ? true : false;
 //  } else if (Platform.isAndroid) {
-//    // Android does not need permissions to use camera as "Intent"
+//    // Android does not need permissions to use camera as 'Intent'
 //    return true;
 //  }
-//  Logger.e("Invalid platform", s: StackTrace.current);
+//  Logger.e('Invalid platform', s: StackTrace.current);
 //  return false;
 }

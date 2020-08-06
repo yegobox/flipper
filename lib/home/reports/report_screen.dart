@@ -112,7 +112,7 @@ class _ReportScreenState extends State<ReportScreen>
                           onPressed: () {
                             Router.navigator.pushNamed(Router.dateScreen);
                           },
-                          child: Text("From Date"),
+                          child: Text('From Date'),
                         ),
                       ),
                       Tabs(

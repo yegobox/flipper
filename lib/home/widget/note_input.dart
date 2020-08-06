@@ -38,7 +38,7 @@ class NoteInput extends StatelessWidget {
                 final store = StoreProvider.of<AppState>(context);
                 store.dispatch(Note(note: note));
               },
-              decoration: InputDecoration(hintText: _hint ?? ""),
+              decoration: InputDecoration(hintText: _hint ?? ''),
             ),
           ),
         );

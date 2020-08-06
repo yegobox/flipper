@@ -43,7 +43,7 @@ class _ViewProductsScreenState extends State<ViewProductsScreen> {
                   builder: (context,
                       AsyncSnapshot<List<ProductTableData>> products) {
                     if (products.data == null) {
-                      return Text("");
+                      return Text('');
                     }
                     return ProductsView(
                       context: context,

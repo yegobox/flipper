@@ -11,6 +11,6 @@ class OnBottomSheetChanged {
 
   @override
   String toString() {
-    return "OnBranchLoaded{OnBottomSheetChanged: $sheet}";
+    return 'OnBranchLoaded{OnBottomSheetChanged: $sheet}';
   }
 }

@@ -1,4 +1,4 @@
-import "package:built_value/built_value.dart";
+import 'package:built_value/built_value.dart';
 
 part 'branch.g.dart';
 
@@ -41,26 +41,26 @@ class RSVPHelper {
   static String stringOf(RSVP rsvp) {
     switch (rsvp) {
       case RSVP.YES:
-        return "YES";
+        return 'YES';
       case RSVP.MAYBE:
-        return "MAYBE";
+        return 'MAYBE';
       case RSVP.NO:
-        return "NO";
+        return 'NO';
       case RSVP.UNSET:
       default:
-        return "UNSET";
+        return 'UNSET';
     }
   }
 
   static RSVP valueOf(String string) {
     switch (string) {
-      case "YES":
+      case 'YES':
         return RSVP.YES;
-      case "MAYBE":
+      case 'MAYBE':
         return RSVP.MAYBE;
-      case "NO":
+      case 'NO':
         return RSVP.NO;
-      case "UNSET":
+      case 'UNSET':
       default:
         return RSVP.UNSET;
     }
@@ -73,18 +73,18 @@ class ChannelVisibilityHelper {
   static String stringOf(ChannelVisibility visibility) {
     switch (visibility) {
       case ChannelVisibility.OPEN:
-        return "OPEN";
+        return 'OPEN';
       case ChannelVisibility.CLOSED:
-        return "CLOSED";
+        return 'CLOSED';
     }
     return null;
   }
 
   static ChannelVisibility valueOf(String string) {
     switch (string) {
-      case "OPEN":
+      case 'OPEN':
         return ChannelVisibility.OPEN;
-      case "CLOSED":
+      case 'CLOSED':
         return ChannelVisibility.CLOSED;
     }
     return null;
@@ -97,18 +97,18 @@ class ChannelTypeHelper {
   static String stringOf(ChannelType type) {
     switch (type) {
       case ChannelType.EVENT:
-        return "EVENT";
+        return 'EVENT';
       case ChannelType.TOPIC:
-        return "TOPIC";
+        return 'TOPIC';
     }
     return null;
   }
 
   static ChannelType valueOf(String string) {
     switch (string) {
-      case "EVENT":
+      case 'EVENT':
         return ChannelType.EVENT;
-      case "TOPIC":
+      case 'TOPIC':
         return ChannelType.TOPIC;
     }
     return null;

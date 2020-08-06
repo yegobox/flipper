@@ -48,7 +48,7 @@ class _ProductsViewState extends State<ProductsView> {
 
     for (var i = 0; i < products.length; i++) {
       if (products[i] != null &&
-          products[i].name != "custom" &&
+          products[i].name != 'custom' &&
           products[i].name != 'tmp' &&
           products[i].name != 'custom-product' &&
           products[i].name != 'custom-product-test') {
@@ -95,16 +95,16 @@ class _ProductsViewState extends State<ProductsView> {
                 builder:
                     (context, AsyncSnapshot<List<StockTableData>> snapshot) {
                   if (snapshot.data == null) {
-                    return Text("");
+                    return Text('');
                   }
 
                   return snapshot.data.length == 1
                       ? Text(
-                          "RWF " + snapshot.data[0].retailPrice.toString(),
+                          'RWF ' + snapshot.data[0].retailPrice.toString(),
                           style: TextStyle(color: Colors.black),
                         )
                       : Text(
-                          snapshot.data.length.toString() + " Prices",
+                          snapshot.data.length.toString() + ' Prices',
                           style: TextStyle(color: Colors.black),
                         );
                 },

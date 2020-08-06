@@ -31,21 +31,21 @@ class DataManager extends CouchBase {
     final uploader = FlutterUploader();
 
     await uploader.enqueue(
-        url: "https://test.flipper.rw/api/upload",
+        url: 'https://test.flipper.rw/api/upload',
         files: [
           FileItem(
-              filename: fileName, savedDir: storagePath, fieldname: "image")
+              filename: fileName, savedDir: storagePath, fieldname: 'image')
         ], // required: list of files that you want to upload
         method: UploadMethod.POST,
-        headers: {"Authorization": "Bearer  " + store.state.user.token},
-        data: {"product_id": productId},
+        headers: {'Authorization': 'Bearer  ' + store.state.user.token},
+        data: {'product_id': productId},
         showNotification:
             true, // send local notification (android only) for upload status
-        tag: "Backup products images..."); // unique tag for upload task
+        tag: 'Backup products images...'); // unique tag for upload task
 
     uploader.progress.listen((progress) {
       //... code to handle progress
-      print("uploadProgress:" + progress.toString());
+      print('uploadProgress:' + progress.toString());
     });
     uploader.result.listen((result) async {
       final uploadResponse = uploadResponseFromJson(result.response);
@@ -62,7 +62,7 @@ class DataManager extends CouchBase {
       }
       return dispatchProduct(store, product);
     }, onError: (ex, stacktrace) {
-      print("error" + stacktrace.toString());
+      print('error' + stacktrace.toString());
     });
   }
 
@@ -174,7 +174,7 @@ class DataManager extends CouchBase {
     if (store.state.branch == null) return null;
     CategoryTableData category =
         await store.state.database.categoryDao.getCategoryByNameBranchId(
-      "custom",
+      'custom',
       store.state.branch.id,
     );
 
@@ -193,7 +193,7 @@ class DataManager extends CouchBase {
         ProductTableData(
           name: productName,
           categoryId: category?.id,
-          color: "#955be9",
+          color: '#955be9',
           active: true,
           hasPicture: false,
           isCurrentUpdate: false,

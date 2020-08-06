@@ -1,4 +1,4 @@
-import "package:built_value/built_value.dart";
+import 'package:built_value/built_value.dart';
 
 part 'in_app_notification.g.dart';
 

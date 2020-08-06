@@ -29,7 +29,7 @@ class _TakePictureScreenState extends State {
 
         _initCameraController(cameras[selectedCameraIdx]).then((void v) {});
       } else {
-        //print("No camera available");
+        //print('No camera available');
       }
     }).catchError((err) {
       //print('Error: $err.code\nError Message: $err.message');
@@ -152,7 +152,7 @@ class _TakePictureScreenState extends State {
             color: Colors.blueGrey,
             icon: Icon(_getCameraLensIcon(lensDirection)),
             label: Text(
-                "${lensDirection.toString().substring(lensDirection.toString().indexOf('.') + 1)}")),
+                '${lensDirection.toString().substring(lensDirection.toString().indexOf('.') + 1)}')),
       ),
     );
   }

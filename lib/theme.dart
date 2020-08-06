@@ -1,5 +1,5 @@
 import 'package:flipper/util/HexColor.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
 class AppTheme {
   static const pixelMultiplier = 1.0;
@@ -7,15 +7,15 @@ class AppTheme {
   static const avatarSize = 36.0 * pixelMultiplier;
   static const appBarSize = 44.0;
 
-  static const fontFamilyPoppinsExtraBold = "Poppins-ExtraBold";
-  static const fontFamilyPoppinsRegular = "Poppins-Regular";
-  static const fontFamilyEdmondsansRegular = "Edmondsans-Regular";
-  static const fontFamilyEdmondsansMedium = "Edmondsans-Medium";
-  static const fontFamilyHeeboThin = "Heboo-Regular";
+  static const fontFamilyPoppinsExtraBold = 'Poppins-ExtraBold';
+  static const fontFamilyPoppinsRegular = 'Poppins-Regular';
+  static const fontFamilyEdmondsansRegular = 'Edmondsans-Regular';
+  static const fontFamilyEdmondsansMedium = 'Edmondsans-Medium';
+  static const fontFamilyHeeboThin = 'Heboo-Regular';
 
   static const colorDarkBlue = Color.fromRGBO(23, 38, 157, 1.0);
   static const colorDarkBlueFont = Color.fromRGBO(4, 24, 138, 1.0);
-  static final colorDarkBlueImageSelection = HexColor("#04188A");
+  static final colorDarkBlueImageSelection = HexColor('#04188A');
   static const colorDarkGreen = Color.fromRGBO(33, 127, 125, 1.0);
   static const colorLightGreen = Color.fromRGBO(207, 244, 234, 1.0);
   static const colorMintGreen = Color.fromRGBO(54, 207, 166, 1.0);
@@ -92,7 +92,7 @@ class AppTheme {
       primaryColor: Colors.black,
       accentColor: Colors.black,
       textTheme: TextTheme(
-        bodyText1: TextStyle(fontSize: 40, fontFamily: "Heebo-Thin"),
+        bodyText1: TextStyle(fontSize: 40, fontFamily: 'Heebo-Thin'),
       ),
     );
   }
@@ -129,7 +129,7 @@ class AppTheme {
     );
   }
 
-  static const fontFamily = "Heebo-Thin";
+  static const fontFamily = 'Heebo-Thin';
 
   /// Calendar
 

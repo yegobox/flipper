@@ -1155,7 +1155,7 @@ class $BusinessTableTable extends BusinessTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -1667,7 +1667,7 @@ class $BranchTableTable extends BranchTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -1757,9 +1757,9 @@ class UnitTableData extends DataClass implements Insertable<UnitTableData> {
   final DateTime updatedAt;
   UnitTableData(
       {@required this.id,
-      @required this.name,
+      this.name,
       @required this.value,
-      @required this.focused,
+      this.focused,
       this.createdAt,
       this.updatedAt});
   factory UnitTableData.fromData(
@@ -1916,14 +1916,12 @@ class UnitTableCompanion extends UpdateCompanion<UnitTableData> {
   });
   UnitTableCompanion.insert({
     this.id = const Value.absent(),
-    @required String name,
+    this.name = const Value.absent(),
     @required String value,
-    @required bool focused,
+    this.focused = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  })  : name = Value(name),
-        value = Value(value),
-        focused = Value(focused);
+  }) : value = Value(value);
   static Insertable<UnitTableData> custom({
     Expression<int> id,
     Expression<String> name,
@@ -2019,7 +2017,7 @@ class $UnitTableTable extends UnitTable
     return GeneratedTextColumn(
       'name',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -2043,7 +2041,7 @@ class $UnitTableTable extends UnitTable
     return GeneratedBoolColumn(
       'focused',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -2088,8 +2086,6 @@ class $UnitTableTable extends UnitTable
     if (data.containsKey('name')) {
       context.handle(
           _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
     }
     if (data.containsKey('value')) {
       context.handle(
@@ -2100,8 +2096,6 @@ class $UnitTableTable extends UnitTable
     if (data.containsKey('focused')) {
       context.handle(_focusedMeta,
           focused.isAcceptableOrUnknown(data['focused'], _focusedMeta));
-    } else if (isInserting) {
-      context.missing(_focusedMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
@@ -2527,7 +2521,7 @@ class $CategoryTableTable extends CategoryTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -3339,7 +3333,7 @@ class $ProductTableTable extends ProductTable
   GeneratedTextColumn get color => _color ??= _constructColor();
   GeneratedTextColumn _constructColor() {
     return GeneratedTextColumn('color', $tableName, true,
-        defaultValue: Constant("#03bafc"));
+        defaultValue: Constant('#03bafc'));
   }
 
   final VerificationMeta _businessIdMeta = const VerificationMeta('businessId');
@@ -3417,7 +3411,7 @@ class $ProductTableTable extends ProductTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -4930,7 +4924,7 @@ class $VariationTableTable extends VariationTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -5739,7 +5733,7 @@ class $StockTableTable extends StockTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -6354,7 +6348,7 @@ class $StockHistoryTableTable extends StockHistoryTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override
@@ -8652,7 +8646,7 @@ class $OrderTableTable extends OrderTable
   GeneratedTextColumn get status => _status ??= _constructStatus();
   GeneratedTextColumn _constructStatus() {
     return GeneratedTextColumn('status', $tableName, false,
-        defaultValue: Constant("draft"));
+        defaultValue: Constant('draft'));
   }
 
   final VerificationMeta _orderTypeMeta = const VerificationMeta('orderType');
@@ -8661,7 +8655,7 @@ class $OrderTableTable extends OrderTable
   GeneratedTextColumn get orderType => _orderType ??= _constructOrderType();
   GeneratedTextColumn _constructOrderType() {
     return GeneratedTextColumn('order_type', $tableName, false,
-        defaultValue: Constant("sales"));
+        defaultValue: Constant('sales'));
   }
 
   final VerificationMeta _customerChangeDueMeta =
@@ -9649,7 +9643,7 @@ class $ReasonTableTable extends ReasonTable
   GeneratedTextColumn get deletedAt => _deletedAt ??= _constructDeletedAt();
   GeneratedTextColumn _constructDeletedAt() {
     return GeneratedTextColumn('deleted_at', $tableName, true,
-        defaultValue: Constant("null"));
+        defaultValue: Constant('null'));
   }
 
   @override

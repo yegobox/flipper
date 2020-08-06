@@ -1,12 +1,12 @@
-//import "dart:async";
+//import 'dart:async';
 //
-//import "package:built_collection/built_collection.dart";
+//import 'package:built_collection/built_collection.dart';
 //
-//import "package:flutter/cupertino.dart";
-//import "package:flutter/material.dart";
-//import "package:flutter_platform_widgets/flutter_platform_widgets.dart";
-//import "package:flutter_redux/flutter_redux.dart";
-//import "package:redux/redux.dart";
+//import 'package:flutter/cupertino.dart';
+//import 'package:flutter/material.dart';
+//import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+//import 'package:flutter_redux/flutter_redux.dart';
+//import 'package:redux/redux.dart';
 //
 //class CreateEventScreen extends StatefulWidget {
 //  @override
@@ -62,7 +62,7 @@
 //      appBar: CommonAppBar(
 //        title: _buildTitle(context),
 //        action: FlatButton(
-//            key: Key("Create"),
+//            key: Key('Create'),
 //            child: Text(
 //              _buildSaveButtonText(context),
 //              style: AppTheme.buttonTextStyle,
@@ -100,7 +100,7 @@
 //        right: AppTheme.appMargin / 2,
 //      ),
 //      child: DateFormField(
-//        key: Key("EventDate"),
+//        key: Key('EventDate'),
 //        labelText: CirclesLocalizations.of(context).eventFormDate,
 //        controller: _dateController,
 //        validator: (value) {
@@ -123,7 +123,7 @@
 //        right: AppTheme.appMargin,
 //      ),
 //      child: TimeFormField(
-//        key: Key("EventTime"),
+//        key: Key('EventTime'),
 //        labelText: CirclesLocalizations.of(context).eventFormTime,
 //        controller: _timeController,
 //        validator: (_) => null,
@@ -158,7 +158,7 @@
 //        right: AppTheme.appMargin,
 //      ),
 //      child: ColorLabelTextFormField(
-//        key: Key("Purpose"),
+//        key: Key('Purpose'),
 //        labelText: CirclesLocalizations.of(context).eventFormPurpose,
 //        helperText: CirclesLocalizations.of(context).eventFormPurposeHelper,
 //        controller: _purposeController,
@@ -203,7 +203,7 @@
 //        right: AppTheme.appMargin,
 //      ),
 //      child: ErrorLabelTextFormField(
-//          key: Key("TopicName"),
+//          key: Key('TopicName'),
 //          maxCharacters: 30,
 //          labelText: CirclesLocalizations.of(context).eventFormName,
 //          helperText:
@@ -251,7 +251,7 @@
 //          Container(
 //              width: _switchWidth,
 //              child: PlatformSwitch(
-//                key: Key("Visibility"),
+//                key: Key('Visibility'),
 //                value: _visibility == ChannelVisibility.OPEN,
 //                onChanged: (bool value) {
 //                  FocusScope.of(context).unfocus();
@@ -276,7 +276,7 @@
 //          Padding(
 //            padding: const EdgeInsets.all(AppTheme.appMargin),
 //            child: Image.asset(
-//              "assets/graphics/channel/details_padlock.png",
+//              'assets/graphics/channel/details_padlock.png',
 //              height: 36,
 //            ),
 //          ),
@@ -293,7 +293,7 @@
 //  }
 //
 //  void _selectUser(User user) {
-//    Logger.d("Selected user: $user");
+//    Logger.d('Selected user: $user');
 //    setState(() {
 //      if (_selectedUsers.contains(user.uid)) {
 //        _selectedUsers.remove(user.uid);
@@ -341,7 +341,7 @@
 //    if (_visibility == ChannelVisibility.CLOSED) {
 //      members = _selectedUsers.toList();
 //      if (members.length == 0) {
-//        Logger.w("Members list is empty. Select at least one member");
+//        Logger.w('Members list is empty. Select at least one member');
 //        _showAlert(
 //          context,
 //          CirclesLocalizations.of(context).channelCreateTitle,
@@ -374,7 +374,7 @@
 //      Channel((c) => c
 //        ..type = ChannelType.EVENT
 //        ..name = _nameController.text
-//        ..description = _purposeController.text ?? ""
+//        ..description = _purposeController.text ?? ''
 //        ..venue = _venueController.text
 //        ..startDate = _calculateStartDate()
 //        ..hasStartTime = _timeController.value != null
@@ -409,7 +409,7 @@
 //    final provider = StoreProvider.of<AppState>(context);
 //    provider.dispatch(EditChannelAction(
 //      _editChannel.rebuild((c) => c
-//        ..description = _purposeController.text ?? ""
+//        ..description = _purposeController.text ?? ''
 //        ..venue = _venueController.text
 //        ..startDate = _calculateStartDate()
 //        ..hasStartTime = _timeController.value != null),

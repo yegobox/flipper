@@ -1,6 +1,6 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 final branchReducers = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, OnBranchLoaded>(_onBranchLoaded),

@@ -21,7 +21,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     if (status == PermissionStatus.granted) {
       final permission = Permission((p) => p
         ..checked = false
-        ..type = "Location");
+        ..type = 'Location');
       store.dispatch(OnCheckedPermission(permission: permission));
     } else {
       Map<PermissionGroup, PermissionStatus> status = await PermissionHandler()
@@ -31,7 +31,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
           PermissionStatus.granted) {
         final permission = Permission((p) => p
           ..checked = false
-          ..type = "Location");
+          ..type = 'Location');
         store.dispatch(OnCheckedPermission(permission: permission));
       }
     }

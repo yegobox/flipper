@@ -85,7 +85,7 @@ class _WeekPickerPageState extends State<WeekPickerPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  "Selected date styles",
+                  'Selected date styles',
                   style: Theme.of(context).textTheme.subhead,
                 ),
                 _stylesBlock(),
@@ -106,21 +106,21 @@ class _WeekPickerPageState extends State<WeekPickerPage> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           ColorSelectorBtn(
-              title: "Start",
+              title: 'Start',
               color: selectedPeriodStartColor,
               showDialogFunction: _showSelectedStartColorDialog),
           SizedBox(
             width: 12.0,
           ),
           ColorSelectorBtn(
-              title: "Middle",
+              title: 'Middle',
               color: selectedPeriodMiddleColor,
               showDialogFunction: _showSelectedMiddleColorDialog),
           SizedBox(
             width: 12.0,
           ),
           ColorSelectorBtn(
-              title: "End",
+              title: 'End',
               color: selectedPeriodLastColor,
               showDialogFunction: _showSelectedEndColorDialog),
         ],
@@ -135,13 +135,13 @@ class _WeekPickerPageState extends State<WeekPickerPage> {
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.only(top: 8.0),
-          child: Text("Selected: $_selectedDate"),
+          child: Text('Selected: $_selectedDate'),
         ),
         _selectedPeriod != null
             ? Column(children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
-                  child: Text("Selected period boundaries:"),
+                  child: Text('Selected period boundaries:'),
                 ),
                 Text(_selectedPeriod.start.toString()),
                 Text(_selectedPeriod.end.toString()),
@@ -201,7 +201,7 @@ class _WeekPickerPageState extends State<WeekPickerPage> {
   }
 
   void _onSelectionError(Object e) {
-    if (e is UnselectablePeriodException) print("catch error: $e");
+    if (e is UnselectablePeriodException) print('catch error: $e');
   }
 
   bool _isSelectableCustom(DateTime day) {

@@ -63,7 +63,7 @@ class LinearPercentIndicator extends StatefulWidget {
       this.alignment = MainAxisAlignment.start})
       : super(key: key) {
     if (percent < 0.0 || percent > 1.0) {
-      throw new Exception("Percent value must be a double between 0.0 and 1.0");
+      throw new Exception('Percent value must be a double between 0.0 and 1.0');
     }
   }
 

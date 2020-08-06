@@ -21,10 +21,10 @@ class _SkuFieldState extends State<SkuField> {
       builder: (context, vm) {
         return StreamBuilder(
           stream: vm.database.variationDao
-              .getVariationByNameStream("Regular", vm.tmpItem.productId),
+              .getVariationByNameStream('Regular', vm.tmpItem.productId),
           builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             if (snapshot.data == null) {
-              return Text("");
+              return Text('');
             }
             return snapshot.data == null
                 ? Center(
@@ -38,11 +38,11 @@ class _SkuFieldState extends State<SkuField> {
                           });
                         },
                         decoration: InputDecoration(
-                            hintText: "SKU", focusColor: Colors.blue),
+                            hintText: 'SKU', focusColor: Colors.blue),
                       ),
                     ),
                   )
-                : Text("");
+                : Text('');
           },
         );
       },

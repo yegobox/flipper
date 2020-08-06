@@ -18,7 +18,7 @@ class _CameraPreviewState extends State<CameraPreview> {
         onPop: () {
           Router.navigator.pop();
         },
-        title: "Preview",
+        title: 'Preview',
         icon: Icons.keyboard_backspace,
         multi: 3,
         bottomSpacer: 52,

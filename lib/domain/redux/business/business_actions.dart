@@ -30,7 +30,7 @@ class WithBusiness {
   WithBusiness(this.business);
   @override
   String toString() {
-    return "CreateBusiness{CreateBusiness: $business}";
+    return 'CreateBusiness{CreateBusiness: $business}';
   }
 }
 
@@ -54,6 +54,6 @@ class OnBusinessLoaded {
 
   @override
   String toString() {
-    return "OnBranchLoaded{OnHintLoaded: $business}";
+    return 'OnBranchLoaded{OnHintLoaded: $business}';
   }
 }

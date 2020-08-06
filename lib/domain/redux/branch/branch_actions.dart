@@ -24,7 +24,7 @@ class OnBranchLoaded {
 
   @override
   String toString() {
-    return "OnBranchLoaded{OnBranchLoaded: $branches}";
+    return 'OnBranchLoaded{OnBranchLoaded: $branches}';
   }
 }
 
@@ -36,6 +36,6 @@ class OnHintLoaded {
 
   @override
   String toString() {
-    return "OnBranchLoaded{OnHintLoaded: $hint}";
+    return 'OnBranchLoaded{OnHintLoaded: $hint}';
   }
 }

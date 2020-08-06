@@ -33,7 +33,7 @@ class _AllItemScreenState extends State<AllItemScreen> {
                 Router.navigator.pushNamed(Router.viewItemsScreen);
               },
               child: ListTile(
-                title: Text("All Items", style: TextStyle(color: Colors.black)),
+                title: Text('All Items', style: TextStyle(color: Colors.black)),
                 trailing: Wrap(
                   children: <Widget>[Icon(Icons.arrow_forward_ios)],
                 ),
@@ -43,7 +43,7 @@ class _AllItemScreenState extends State<AllItemScreen> {
               onTap: () {},
               child: ListTile(
                 title:
-                    Text("Categories", style: TextStyle(color: Colors.black)),
+                    Text('Categories', style: TextStyle(color: Colors.black)),
                 trailing: Wrap(
                   children: <Widget>[Icon(Icons.arrow_forward_ios)],
                 ),
@@ -52,7 +52,7 @@ class _AllItemScreenState extends State<AllItemScreen> {
             GestureDetector(
               onTap: () {},
               child: ListTile(
-                title: Text("Units", style: TextStyle(color: Colors.black)),
+                title: Text('Units', style: TextStyle(color: Colors.black)),
                 trailing: Wrap(
                   children: <Widget>[Icon(Icons.arrow_forward_ios)],
                 ),

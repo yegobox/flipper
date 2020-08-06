@@ -24,7 +24,7 @@ class ProductWidget extends StatelessWidget {
           decoration: InputDecoration(
             contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
             prefixIcon: Icon(Icons.search),
-            hintText: "Search product",
+            hintText: 'Search product',
             border: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.blueAccent, width: 0.0),
                 borderRadius: BorderRadius.circular(0.0)),

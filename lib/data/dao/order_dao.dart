@@ -14,7 +14,7 @@ class OrderDao extends DatabaseAccessor<Database> with _$OrderDaoMixin {
       into(db.orderTable).insert(order);
 
   Future<OrderTableData> getExistingDraftOrder() {
-    return (select(db.orderTable)..where((t) => t.status.equals("draft")))
+    return (select(db.orderTable)..where((t) => t.status.equals('draft')))
         .getSingle();
   }
 

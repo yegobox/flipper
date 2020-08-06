@@ -32,7 +32,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
               Router.navigator.pop();
             },
             disableButton: false,
-            title: "Receive stock",
+            title: 'Receive stock',
             onPressedCallback: () {
               Router.navigator.pop();
             },
@@ -54,7 +54,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                       builder: (context,
                           AsyncSnapshot<List<StockTableData>> snapshot) {
                         if (snapshot.data == null) {
-                          return Text("");
+                          return Text('');
                         } else {
                           return ReceiveStockInputWidget(
                             variantId: widget.variationId,
@@ -67,7 +67,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                     height: 20,
                   ),
                   Text(
-                      "Inventory tracking will be enabled by\n default for items with stock count. To turn \n tracking off, visit your flipper Dashboard")
+                      'Inventory tracking will be enabled by\n default for items with stock count. To turn \n tracking off, visit your flipper Dashboard')
                 ],
               ),
             ),
@@ -144,7 +144,7 @@ class _ReceiveStockInputWidgetState extends State<ReceiveStockInputWidget> {
         }
       },
       decoration: InputDecoration(
-        hintText: "Add Stock",
+        hintText: 'Add Stock',
         focusColor: Colors.blue,
       ),
     );

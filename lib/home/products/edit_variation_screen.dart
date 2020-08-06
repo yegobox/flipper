@@ -56,7 +56,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
               .getVariantByItemIdStream(widget.variationId),
           builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             if (snapshot.data == null) {
-              return Text("");
+              return Text('');
             }
 
             return Scaffold(
@@ -114,7 +114,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                           AsyncSnapshot<List<ProductTableData>>
                                               snapshot) {
                                         if (snapshot.data == null) {
-                                          return Text("None");
+                                          return Text('None');
                                         }
                                         return StreamBuilder(
                                             stream: vm.database.unitDao
@@ -125,7 +125,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                                         List<UnitTableData>>
                                                     snapshot) {
                                               if (snapshot.data == null) {
-                                                return Text("");
+                                                return Text('');
                                               }
                                               return Text(
                                                   snapshot.data[0].name);
@@ -160,7 +160,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           width: 300,
                           child: TextFormField(
                             initialValue: snapshot.data[0].sku,
-                            style: TextStyle(color: HexColor("#2d3436")),
+                            style: TextStyle(color: HexColor('#2d3436')),
                             validator: Validators.isValid,
                             onChanged: (_sku) {
                               if (_sku != '') {
@@ -169,7 +169,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                             },
                             decoration: InputDecoration(
                                 hintText: S.of(context).sKU,
-                                focusColor: HexColor("#0984e3")),
+                                focusColor: HexColor('#0984e3')),
                           ),
                         ),
                         Text(S.of(context).leavePriceBlank),
@@ -188,7 +188,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                 _closeAndDelete(context);
                               }
                             },
-                            child: Text("Delete Item",
+                            child: Text('Delete Item',
                                 style: TextStyle(
                                     color: _deleteCount == 1
                                         ? Colors.white
@@ -250,7 +250,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                   width: 300,
                   child: TextFormField(
                     initialValue: snapshot.data[0].supplyPrice.toString(),
-                    style: TextStyle(color: HexColor("#2d3436")),
+                    style: TextStyle(color: HexColor('#2d3436')),
                     validator: Validators.isValid,
                     onChanged: (cost) {
                       if (cost != '') {
@@ -259,7 +259,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                     },
                     decoration: InputDecoration(
                         hintText: S.of(context).sKU,
-                        focusColor: HexColor("#0984e3")),
+                        focusColor: HexColor('#0984e3')),
                   ),
                 );
               }
@@ -296,7 +296,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                   width: 300,
                   child: TextFormField(
                     initialValue: snapshot.data[0].retailPrice.toString(),
-                    style: TextStyle(color: HexColor("#2d3436")),
+                    style: TextStyle(color: HexColor('#2d3436')),
                     validator: Validators.isValid,
                     onChanged: (price) {
                       if (price != '') {
@@ -305,7 +305,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                     },
                     decoration: InputDecoration(
                         hintText: S.of(context).sKU,
-                        focusColor: HexColor("#0984e3")),
+                        focusColor: HexColor('#0984e3')),
                   ),
                 );
               }

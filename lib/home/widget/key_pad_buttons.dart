@@ -48,15 +48,15 @@ class _KeyPadButtonsState extends State<KeyPadButtons> {
       );
     }
     widget.add(SingleKey(
-      keypadValue: "0",
+      keypadValue: '0',
       vm: vm,
     ));
     widget.add(SingleKey(
-      keypadValue: "C",
+      keypadValue: 'C',
       vm: vm,
     ));
     widget.add(SingleKey(
-      keypadValue: "+",
+      keypadValue: '+',
       vm: vm,
     ));
     return widget;
@@ -80,11 +80,11 @@ class SingleKey extends StatelessWidget {
         enableFeedback: false,
         onTap: () async {
           HapticFeedback.vibrate();
-          if (keypadValue == "C") {
+          if (keypadValue == 'C') {
             StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
             return;
           }
-          if (keypadValue == "+") {
+          if (keypadValue == '+') {
             final store = StoreProvider.of<AppState>(context);
             List<VariationTableData> variants = await store
                 .state.database.variationDao
@@ -130,7 +130,7 @@ class SingleKey extends StatelessWidget {
                   ..amount = vm.keypad == null
                       ? int.parse(keypadValue)
                       : int.parse(vm.keypad.amount.toString() + keypadValue)
-                  ..note = "note"),
+                  ..note = 'note'),
               ),
             );
           }

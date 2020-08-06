@@ -18,10 +18,10 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
-import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -132,7 +132,7 @@ heartBeatSync({Store<AppState> store}) {
         store.state.couch.syncLocalToRemote(store: store);
         break;
       default:
-        print("Default fetch task");
+        print('Default fetch task');
     }
 
     BackgroundFetch.finish(taskId);
@@ -140,7 +140,7 @@ heartBeatSync({Store<AppState> store}) {
 
   BackgroundFetch.scheduleTask(
     TaskConfig(
-      taskId: "uploader",
+      taskId: 'uploader',
       delay: 15 * 60 * 1000, // <-- milliseconds
       periodic: true,
       enableHeadless: true,
@@ -235,14 +235,14 @@ void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
 Future generateAppColors(
     GeneralRepository generalRepository, Store<AppState> store) async {
   List<String> colors = [
-    "#d63031",
-    "#0984e3",
-    "#e84393",
-    "#2d3436",
-    "#6c5ce7",
-    "#74b9ff",
-    "#ff7675",
-    "#a29bfe"
+    '#d63031',
+    '#0984e3',
+    '#e84393',
+    '#2d3436',
+    '#6c5ce7',
+    '#74b9ff',
+    '#ff7675',
+    '#a29bfe'
   ];
   //insert default colors for the app
   for (var i = 0; i < 8; i++) {
@@ -339,7 +339,7 @@ Future getBusinesses(
               ..name = businesses[i].name
               ..type = BusinessType.NORMAL
               ..hexColor = FlipperColors.defaultBusinessColor
-              ..image = "image_null",
+              ..image = 'image_null',
           ),
         ),
       );
@@ -370,7 +370,7 @@ void Function(
       await userRepository.logOut(store);
       store.dispatch(OnLogoutSuccess());
     } catch (e) {
-      Logger.w("Failed logout", e: e);
+      Logger.w('Failed logout', e: e);
       store.dispatch(OnLogoutFail(e));
     }
   };

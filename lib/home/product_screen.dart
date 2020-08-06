@@ -56,7 +56,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           },
                           style: GoogleFonts.lato(fontStyle: FontStyle.normal),
                           decoration: InputDecoration(
-                            hintText: "Search",
+                            hintText: 'Search',
                           ).applyDefaults(theme),
                         ),
                       )
@@ -72,7 +72,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       AsyncSnapshot<List<ProductTableData>> products) {
                     List<ProductTableData> productfilter;
                     if (products.data == null) {
-                      return Text("");
+                      return Text('');
                     }
                     if (_filter_key != null && _filter_key != '') {
                       productfilter = products.data

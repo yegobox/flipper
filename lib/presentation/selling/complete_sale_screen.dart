@@ -36,13 +36,13 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
             ),
             Center(
               child: Text(
-                "RWF" + widget.cashReceived.toString(),
+                'RWF' + widget.cashReceived.toString(),
                 style: GoogleFonts.lato(fontStyle: FontStyle.normal),
               ),
             ),
             Center(
               child: Text(
-                "Select Payment Type Below",
+                'Select Payment Type Below',
                 style: GoogleFonts.lato(fontStyle: FontStyle.normal),
               ),
             ),
@@ -57,7 +57,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
               },
               child: ListTile(
                 leading: Text(
-                  "Cash",
+                  'Cash',
                   style: GoogleFonts.lato(fontStyle: FontStyle.normal),
                 ),
                 trailing: Wrap(

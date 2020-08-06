@@ -1,4 +1,4 @@
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';

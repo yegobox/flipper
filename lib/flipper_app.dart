@@ -39,30 +39,31 @@ Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) {
   }
 
   // Or do other work.
+  throw 422;
+
 }
 
 class FlipperApp extends StatefulWidget {
-  FlipperApp({Key key}) : super(key: key);
-
   @override
   _FlipperAppState createState() => _FlipperAppState();
 }
 
 class _FlipperAppState extends State<FlipperApp> {
-  static FirebaseAnalytics analytics = new FirebaseAnalytics();
+  static FirebaseAnalytics analytics =  FirebaseAnalytics();
   static FirebaseAnalyticsObserver observer =
-      new FirebaseAnalyticsObserver(analytics: analytics);
+      FirebaseAnalyticsObserver(analytics: analytics);
   Store<AppState> store;
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-  static final _navigatorKey = GlobalKey<NavigatorState>();
-  final userRepo = UserRepository();
-  final businessRepo = BusinessRepository();
-  final branchRepo = BranchRepository();
-  final generalRepo = GeneralRepository();
+  static final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final UserRepository userRepo = UserRepository();
+  final BusinessRepository businessRepo = BusinessRepository();
+  final BranchRepository branchRepo = BranchRepository();
+  final GeneralRepository generalRepo = GeneralRepository();
 
   @override
+  // ignore: avoid_void_async
   void didChangeDependencies() async {
     super.didChangeDependencies();
     await store.state.couch.syncRemoteToLocal(store: store);
@@ -109,12 +110,12 @@ class _FlipperAppState extends State<FlipperApp> {
         const IosNotificationSettings(sound: true, badge: true, alert: true));
     _firebaseMessaging.onIosSettingsRegistered
         .listen((IosNotificationSettings settings) {
-      Logger.d("Settings registered: $settings");
+      Logger.d('Settings registered: $settings');
     });
     _firebaseMessaging.getToken().then((String token) {
       assert(token != null);
       if (token != null) {
-        Logger.d("Push Messaging token: $token");
+        Logger.d('Push Messaging token: $token');
 
         store.dispatch(UpdateUserTokenAction(token, store));
       }
@@ -123,14 +124,16 @@ class _FlipperAppState extends State<FlipperApp> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: always_specify_types
     return StoreProvider(
       store: store,
       child: MaterialApp(
         navigatorObservers: <NavigatorObserver>[observer],
         debugShowCheckedModeBanner: false,
+        // ignore: prefer_const_literals_to_create_immutables, always_specify_types
         localizationsDelegates: [S.delegate],
         supportedLocales: S.delegate.supportedLocales,
-        title: "Flipper",
+        title: 'Flipper',
         theme: AppTheme.theme,
         navigatorKey: Router.navigator.key,
         initialRoute: Router.splashScreen,

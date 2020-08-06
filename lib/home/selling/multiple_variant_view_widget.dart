@@ -34,7 +34,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
         title: vm.currentActiveSaleProduct == null
             ? ''
             : vm.currentActiveSaleProduct.name +
-                " " +
+                ' ' +
                 vm.total?.value.toString(),
         onPressedCallback: () {
           _saveCart(vm, context);
@@ -80,8 +80,8 @@ class MultipleVariantViewWidget extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.fromLTRB(20, 20, 0, 0),
       leading: Text(vm.currentActiveSaleProduct == null
-          ? "CHOOSE ONE"
-          : vm.currentActiveSaleProduct.name + " CHOOSE ONE"),
+          ? 'CHOOSE ONE'
+          : vm.currentActiveSaleProduct.name + ' CHOOSE ONE'),
     );
   }
 
@@ -130,7 +130,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
         title: Align(
           alignment: Alignment.topRight,
           child: Text(
-            "FRW " + stocks[i].retailPrice.toString(),
+            'FRW ' + stocks[i].retailPrice.toString(),
             style: TextStyle(
               color: Colors.black,
             ),
@@ -142,7 +142,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
             builder:
                 (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
               if (snapshot.data == null || snapshot.data.length == 0) {
-                return Text("");
+                return Text('');
               }
               return Text(
                 snapshot.data[0].name,

@@ -1,10 +1,16 @@
 # flipper
 
-A business application.
+A new Flutter project.
 
-## What is flipper?
-Flipper is a business app (android,ios,web and desktop) developed and maintained by team from yegobox.
-it's main intend is to be used in business daily activity such as selling,transacting
-schooling etc...
-we have opensourced it for other forks to help us bring it to life.
-if you could help us with documentation we welcome your help send us email dev@yegobox.com
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+
+For help getting started with Flutter, view our
+[online documentation](https://flutter.dev/docs), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

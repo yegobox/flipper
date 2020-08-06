@@ -62,7 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       builder: (context, vm) {
         return Scaffold(
           appBar: CommonAppBar(
-            title: "",
+            title: '',
             showActionButton: true,
             disableButton: false,
             actionButtonName: S.of(context).signup,

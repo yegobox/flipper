@@ -22,8 +22,8 @@ class button extends StatelessWidget {
       height: 52,
       child: Container(
         color: _disableButton != null && _disableButton
-            ? HexColor("#b2bec3")
-            : HexColor("#0984e3"),
+            ? HexColor('#b2bec3')
+            : HexColor('#0984e3'),
         child: FlatButton(
           onPressed: _disableButton ? null : _onPressedCallback,
           child: Text(

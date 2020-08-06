@@ -36,7 +36,7 @@ class CreateOptionsWidget extends StatelessWidget {
                           Router.navigator.pushNamed(Router.addItemScreen);
                         },
                         child: Text(
-                          "Create Item",
+                          'Create Item',
                           style: AppTheme.createItem,
                         ),
                       ),
@@ -50,7 +50,7 @@ class CreateOptionsWidget extends StatelessWidget {
                       child: OutlineButton(
                         onPressed: () {},
                         child: Text(
-                          "Create Discount",
+                          'Create Discount',
                           style: AppTheme.createDiscount,
                         ),
                       ),
@@ -62,7 +62,7 @@ class CreateOptionsWidget extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: FlatButton(
                         child: Text(
-                          "Dismiss",
+                          'Dismiss',
                           style: AppTheme.dismiss,
                         ),
                         onPressed: () {
@@ -83,6 +83,6 @@ class CreateOptionsWidget extends StatelessWidget {
   //create a temporal product with default regular variant to be updated along the way while creating the product
   //if such product with tmp name exist return it.
   Future _createTemporalItem(CommonViewModel vm, BuildContext context) async {
-    DataManager.createTempProduct(StoreProvider.of<AppState>(context), "tmp");
+    DataManager.createTempProduct(StoreProvider.of<AppState>(context), 'tmp');
   }
 }

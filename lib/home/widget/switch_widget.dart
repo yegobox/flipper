@@ -39,8 +39,8 @@ class LiteRollingSwitch extends StatefulWidget {
 
   LiteRollingSwitch(
       {this.value = false,
-      this.textOff = "Off",
-      this.textOn = "On",
+      this.textOff = 'Off',
+      this.textOn = 'On',
       this.textSize = 14.0,
       this.colorOn = Colors.green,
       this.colorOff = Colors.red,

@@ -50,23 +50,23 @@ class _AuthWebViewState extends State<AuthWebView> {
         flutterWebviewPlugin.onUrlChanged.listen((String url) async {
       if (mounted) {
         
-        if (url.startsWith("https://flipper.rw/authorized?")) {
-          RegExp accessToken = new RegExp("personal_token=(.*)");
+        if (url.startsWith('https://flipper.rw/authorized?')) {
+          RegExp accessToken = new RegExp('personal_token=(.*)');
           var token = accessToken.firstMatch(url)?.group(1);
 
-          RegExp name = new RegExp("name=(.*)");
+          RegExp name = new RegExp('name=(.*)');
           var _name = name.firstMatch(url)?.group(1);
 
-          RegExp email = new RegExp("email=(.*)");
+          RegExp email = new RegExp('email=(.*)');
           var _email = email.firstMatch(url)?.group(1);
 
-          RegExp avatar = new RegExp("avatar=(.*)");
+          RegExp avatar = new RegExp('avatar=(.*)');
           var _avatar = avatar.firstMatch(url)?.group(1);
 
-          RegExp userId = new RegExp("id=(.*)");
+          RegExp userId = new RegExp('id=(.*)');
           var _userId = userId.firstMatch(url)?.group(1);
 
-          RegExp subs = new RegExp("subscription=(.*)");
+          RegExp subs = new RegExp('subscription=(.*)');
           var _subs = subs.firstMatch(url)?.group(1);
 
           flutterWebviewPlugin.close();
@@ -75,10 +75,10 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           
           final storage = new FlutterSecureStorage();
-          await storage.write(key: "sync_url", value: "enexus.rw:4984");
-          await storage.write(key: "sync_database", value: "lagrace");
-          await storage.write(key: "db_username", value: "Administrator");
-          await storage.write(key: "db_password", value: "password");
+          await storage.write(key: 'sync_url', value: 'enexus.rw:4984');
+          await storage.write(key: 'sync_database', value: 'lagrace');
+          await storage.write(key: 'db_username', value: 'Administrator');
+          await storage.write(key: 'db_password', value: 'password');
           //done saving credentials.
           User user = User(
             (user) => user

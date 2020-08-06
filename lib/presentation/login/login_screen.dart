@@ -14,7 +14,7 @@ class LoginScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: Text("Flipper inc", style: TextStyle(color: Colors.black)),
+        title: Text('Flipper inc', style: TextStyle(color: Colors.black)),
       ),
       body: Container(
         child: Column(
@@ -49,7 +49,7 @@ class _LoginFormState extends State<_LoginForm> {
     };
 
     final submitButton = AuthButton(
-        buttonText: "Login with yegobox?", onPressedCallback: submitCallback);
+        buttonText: 'Login with yegobox?', onPressedCallback: submitCallback);
 
     return Form(
       child: Column(

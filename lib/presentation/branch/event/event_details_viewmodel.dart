@@ -1,7 +1,7 @@
-//import "package:built_collection/built_collection.dart";
-//import "package:built_value/built_value.dart";
-//import "package:flutter/cupertino.dart" as prefix0;
-//import "package:redux/redux.dart";
+//import 'package:built_collection/built_collection.dart';
+//import 'package:built_value/built_value.dart';
+//import 'package:flutter/cupertino.dart' as prefix0;
+//import 'package:redux/redux.dart';
 //
 //// ignore: prefer_double_quotes
 //part 'event_details_viewmodel.g.dart';
@@ -74,7 +74,7 @@
 //      ..eventDate = dateString
 //      ..eventTime = timeString
 //      ..canChangeRsvp = channel.startDate.isAfter(DateTime.now())
-//      ..venue = channel.venue ?? "");
+//      ..venue = channel.venue ?? '');
 //  }
 //
 //  // Allow to edit if:
@@ -117,14 +117,14 @@
 //
 //  static String _parseDate(context, Channel channel) {
 //    if (channel.startDate == null) {
-//      return "";
+//      return '';
 //    }
 //    return formatDate(context, channel.startDate);
 //  }
 //
 //  static String _parseTime(prefix0.BuildContext context, Channel channel) {
 //    if (channel.hasStartTime != null && !channel.hasStartTime) {
-//      return "";
+//      return '';
 //    }
 //    return formatTime(context, channel.startDate);
 //  }

@@ -49,19 +49,19 @@ class _ReportViewState extends State<ReportView> {
       leading: Wrap(
         children: <Widget>[
           Text(
-            "SALES SUMMARY",
+            'SALES SUMMARY',
           ),
           SizedBox(
             width: 2,
           ),
-          Text(":"),
+          Text(':'),
           SizedBox(
             width: 2,
           ),
-          Text("OVERVIEW")
+          Text('OVERVIEW')
         ],
       ),
-      // title: Text("he"),
+      // title: Text('he'),
     ));
 
     list.add(ListTile(
@@ -75,20 +75,20 @@ class _ReportViewState extends State<ReportView> {
               fontSize: AppTheme.addProduct.textTheme.bodyText1.fontSize,
             ),
           ),
-          Text("Gross profit")
+          Text('Gross profit')
         ],
       ),
       trailing: Column(
         children: <Widget>[
           Text(
-            "FRw " + widget.netProfit.toString(),
+            'FRw ' + widget.netProfit.toString(),
             style: GoogleFonts.lato(
               fontStyle: FontStyle.normal,
               color: AppTheme.addProduct.accentColor,
               fontSize: AppTheme.addProduct.textTheme.bodyText1.fontSize,
             ),
           ),
-          Text("Net profit")
+          Text('Net profit')
         ],
       ),
     ));
@@ -107,11 +107,11 @@ class _ReportViewState extends State<ReportView> {
         leading: Wrap(
           children: <Widget>[
             Text(
-              "Gross SALES",
+              'Gross SALES',
             )
           ],
         ),
-        // title: Text("he"),
+        // title: Text('he'),
       ),
     );
 
@@ -127,7 +127,7 @@ class _ReportViewState extends State<ReportView> {
           left: 20,
         ),
         child: Text(
-          "$month $todayDay,$year",
+          '$month $todayDay,$year',
           style: GoogleFonts.lato(
             fontStyle: FontStyle.normal,
             color: AppTheme.addProduct.accentColor,
@@ -143,7 +143,7 @@ class _ReportViewState extends State<ReportView> {
           left: 20,
         ),
         child: Text(
-          "FRw " + widget.grossProfit.toString(),
+          'FRw ' + widget.grossProfit.toString(),
           style: GoogleFonts.lato(
             fontStyle: FontStyle.normal,
             color: AppTheme.addProduct.accentColor,
@@ -159,43 +159,43 @@ class _ReportViewState extends State<ReportView> {
     //todo: should think of how to show this graph need more clear idea...
     switch (tm.month) {
       case 1:
-        return "January";
+        return 'January';
         break;
       case 2:
-        return "February";
+        return 'February';
         break;
       case 3:
-        return "March";
+        return 'March';
         break;
       case 4:
-        return "April";
+        return 'April';
         break;
       case 5:
-        return "May";
+        return 'May';
         break;
       case 6:
-        return "June";
+        return 'June';
         break;
       case 7:
-        return "July";
+        return 'July';
         break;
       case 8:
-        return "August";
+        return 'August';
         break;
       case 9:
-        return "September";
+        return 'September';
         break;
       case 10:
-        return "October";
+        return 'October';
         break;
       case 11:
-        return "November";
+        return 'November';
         break;
       case 12:
-        return "December";
+        return 'December';
         break;
       default:
-        return "";
+        return '';
     }
   }
 }

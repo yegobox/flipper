@@ -19,11 +19,11 @@ class SubscriptionError {
 
   factory SubscriptionError.fromJson(Map<String, dynamic> json) =>
       SubscriptionError(
-        message: Message.fromJson(json["message"]),
+        message: Message.fromJson(json['message']),
       );
 
   Map<String, dynamic> toJson() => {
-        "message": message.toJson(),
+        'message': message.toJson(),
       };
 }
 
@@ -39,15 +39,15 @@ class Message {
   });
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
-        status: json["status"],
-        message: json["message"],
-        data: Data.fromJson(json["data"]),
+        status: json['status'],
+        message: json['message'],
+        data: Data.fromJson(json['data']),
       );
 
   Map<String, dynamic> toJson() => {
-        "status": status,
-        "message": message,
-        "data": data.toJson(),
+        'status': status,
+        'message': message,
+        'data': data.toJson(),
       };
 }
 
@@ -59,10 +59,10 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        message: json["message"],
+        message: json['message'],
       );
 
   Map<String, dynamic> toJson() => {
-        "message": message,
+        'message': message,
       };
 }

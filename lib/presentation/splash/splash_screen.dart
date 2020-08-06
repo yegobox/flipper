@@ -24,11 +24,11 @@ class _SplashScreenState extends State<SplashScreen> {
               AspectRatio(
                 aspectRatio: 2 / 3,
                 child: Container(
-                  color: HexColor("#955be9"),
+                  color: HexColor('#955be9'),
                   child: Center(
                     child: Container(
                       height: 60,
-                      child: Image.asset("assets/graphics/logo.png"),
+                      child: Image.asset('assets/graphics/logo.png'),
                     ),
                   ),
                 ),
@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
               AspectRatio(
                 aspectRatio: 2 / 2,
                 child: Container(
-                  color: HexColor("#955be9"),
+                  color: HexColor('#955be9'),
                 ),
               )
             ],

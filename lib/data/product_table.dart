@@ -1,6 +1,6 @@
 import 'package:moor/moor.dart';
 
-// @DataClassName("items")
+// @DataClassName('items')
 class ProductTable extends Table {
   IntColumn get idLocal => integer().autoIncrement()();
   TextColumn get id => text()();
@@ -15,7 +15,7 @@ class ProductTable extends Table {
   BoolColumn get isCurrentUpdate => boolean()();
   TextColumn get description => text().nullable()();
 
-  TextColumn get color => text().withDefault(Constant("#03bafc")).nullable()();
+  TextColumn get color => text().withDefault(Constant('#03bafc')).nullable()();
 
   TextColumn get businessId => text()();
 
@@ -28,5 +28,5 @@ class ProductTable extends Table {
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();
 
-  TextColumn get deletedAt => text().withDefault(Constant("null")).nullable()();
+  TextColumn get deletedAt => text().withDefault(Constant('null')).nullable()();
 }

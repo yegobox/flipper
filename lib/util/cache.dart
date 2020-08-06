@@ -1,4 +1,4 @@
-import "dart:collection";
+import 'dart:collection';
 
 /// Basic Cache based on first-in-first-out
 ///
@@ -6,7 +6,7 @@ import "dart:collection";
 /// removing the older values.
 ///
 /// Uses a simple [Queue] to store keys, and start removing the first ones
-/// in a "first in-first out" manner, until the queue is smaller than the max
+/// in a 'first in-first out' manner, until the queue is smaller than the max
 /// [size].
 ///
 /// This cache can be used for storing in memory thumbnails and similar.

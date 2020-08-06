@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/presentation/settings/privacy_settings_button.dart';
 import 'package:flipper/routes/router.gr.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -12,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
           Router.navigator.pop();
         },
         disableButton: false,
-        title: "Setting",
+        title: 'Setting',
       ),
       body: ListView(
         children: <Widget>[

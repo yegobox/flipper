@@ -237,7 +237,7 @@ class GeneralRepository {
     return await store.state.database.orderDao.insert(
       //ignore: missing_required_param
       OrderTableData(
-        status: "draft",
+        status: 'draft',
         branchId: store.state.branch.id,
         id: Uuid().v1(),
         currency: 'RWF', //TODO(richard): change dummy
@@ -252,8 +252,8 @@ class GeneralRepository {
         deliverDate: DateTime.now(),
         discountAmount: 0,
         discountRate: 0,
-        orderNote: "none",
-        variantName: "custom",
+        orderNote: 'none',
+        variantName: 'custom',
         count: 1,
         orderNUmber: 0,
         paymentId: 0,

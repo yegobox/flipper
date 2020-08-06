@@ -69,7 +69,7 @@ class _MonthPickerPageState extends State<MonthPickerPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  "Selected date styles",
+                  'Selected date styles',
                   style: Theme.of(context).textTheme.subhead,
                 ),
                 Padding(
@@ -78,7 +78,7 @@ class _MonthPickerPageState extends State<MonthPickerPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       ColorSelectorBtn(
-                        title: "Text",
+                        title: 'Text',
                         color: selectedDateStyleColor,
                         showDialogFunction: _showSelectedDateDialog,
                         colorBtnSize: 42.0,
@@ -87,7 +87,7 @@ class _MonthPickerPageState extends State<MonthPickerPage> {
                         width: 12.0,
                       ),
                       ColorSelectorBtn(
-                        title: "Background",
+                        title: 'Background',
                         color: selectedSingleDateDecorationColor,
                         showDialogFunction: _showSelectedBackgroundColorDialog,
                         colorBtnSize: 42.0,
@@ -95,7 +95,7 @@ class _MonthPickerPageState extends State<MonthPickerPage> {
                     ],
                   ),
                 ),
-                Text("Selected: $_selectedDate")
+                Text('Selected: $_selectedDate')
               ],
             ),
           ),

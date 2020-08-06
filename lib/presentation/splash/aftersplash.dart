@@ -5,8 +5,8 @@ import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/util/HexColor.dart';
-import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:query_params/query_params.dart';
@@ -15,7 +15,8 @@ import 'package:flipper/presentation/splash/popup.dart';
 import 'package:flipper/presentation/splash/popup_content.dart';
 
 class AfterSplash extends StatelessWidget {
-  aspectButtonPortrait(context) => AspectRatio(
+  // ignore: always_specify_types
+  AspectRatio aspectButtonPortrait(context) => AspectRatio(
         aspectRatio: 2 / 2,
         child: Container(
           color: Colors.white,
@@ -31,31 +32,31 @@ class AfterSplash extends StatelessWidget {
                   height: 60,
                   child: FlatButton(
                     onPressed: () async {
-                      URLQueryParams query = new URLQueryParams();
-                      query.append('client_id', "49");
+                      final URLQueryParams query = URLQueryParams();
+                      query.append('client_id', '49');
                       query.append(
-                          'redirect_uri', "https://flipper.rw/auth/callback");
-                      query.append('response_type', "code");
-                      query.append('scope', "");
-                      query.append('state', "");
+                          'redirect_uri', 'https://flipper.rw/auth/callback');
+                      query.append('response_type', 'code');
+                      query.append('scope', '');
+                      query.append('state', '');
 
                       try {
-                        final result =
+                        final List<InternetAddress> result =
                             await InternetAddress.lookup('google.com');
                         if (result.isNotEmpty &&
                             result[0].rawAddress.isNotEmpty) {
-                          var url = 'https://flipper.rw/register';
+                          const String url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
                             showPopup(
-                                context,
-                                AuthWebView(
-                                  authType: 'register',
-                                  url: url,
-                                ),
-                                );
+                              context,
+                              AuthWebView(
+                                authType: 'register',
+                                url: url,
+                              ),
+                            );
                           } else {
                             Fluttertoast.showToast(
-                                msg: "There is a problem launching login url",
+                                msg: 'There is a problem launching login url',
                                 toastLength: Toast.LENGTH_LONG,
                                 gravity: ToastGravity.BOTTOM,
                                 timeInSecForIos: 1,
@@ -66,7 +67,7 @@ class AfterSplash extends StatelessWidget {
                         }
                       } on SocketException catch (_) {
                         Fluttertoast.showToast(
-                            msg: "you are not connected to internet",
+                            msg: 'you are not connected to internet',
                             toastLength: Toast.LENGTH_LONG,
                             gravity: ToastGravity.BOTTOM,
                             timeInSecForIos: 1,
@@ -78,7 +79,7 @@ class AfterSplash extends StatelessWidget {
                     color: Colors.blue,
                     child: Text(
                       S.of(context).createAccount,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -99,16 +100,18 @@ class AfterSplash extends StatelessWidget {
                         color: Colors.blue,
                         child: Text(
                           S.of(context).signIn,
-                          style: TextStyle(color: Colors.blue),
+                          style: const TextStyle(color: Colors.blue),
                         ),
                         onPressed: () async {
-                          URLQueryParams query = new URLQueryParams();
-                          query.append('client_id', "49");
-                          query.append('redirect_uri',
-                              "https://flipper.rw/auth/callback");
-                          query.append('response_type', "code");
-                          query.append('scope', "");
-                          query.append('state', "");
+                          final URLQueryParams query = URLQueryParams();
+                          query.append('client_id', '49');
+                         
+                          query.append(
+                          'redirect_uri', 'https://flipper.rw/auth/callback');
+
+                          query.append('response_type', 'code');
+                          query.append('scope', '');
+                          query.append('state', '');
 
                           try {
                             final result =
@@ -118,16 +121,16 @@ class AfterSplash extends StatelessWidget {
                               var url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
                                 showPopup(
-                                    context,
-                                    AuthWebView(
-                                      authType: 'login',
-                                      url: url,
-                                    ),
-                                    );
+                                  context,
+                                  AuthWebView(
+                                    authType: 'login',
+                                    url: url,
+                                  ),
+                                );
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
-                                        "There is a problem launching login url",
+                                        'There is a problem launching login url',
                                     toastLength: Toast.LENGTH_LONG,
                                     gravity: ToastGravity.BOTTOM,
                                     timeInSecForIos: 1,
@@ -138,7 +141,7 @@ class AfterSplash extends StatelessWidget {
                             }
                           } on SocketException catch (_) {
                             Fluttertoast.showToast(
-                                msg: "There is no internet",
+                                msg: 'There is no internet',
                                 toastLength: Toast.LENGTH_LONG,
                                 gravity: ToastGravity.BOTTOM,
                                 timeInSecForIos: 1,
@@ -161,7 +164,8 @@ class AfterSplash extends StatelessWidget {
         ),
       );
 
-  aspectButtonLandascape(context) => AspectRatio(
+      // ignore: always_specify_types
+      AspectRatio aspectButtonLandascape(context) => AspectRatio(
         aspectRatio: 5 / 1,
         child: Container(
           color: Colors.white,
@@ -177,30 +181,31 @@ class AfterSplash extends StatelessWidget {
                   height: 60,
                   child: FlatButton(
                     onPressed: () async {
-                      URLQueryParams query = new URLQueryParams();
-                      query.append('client_id', "49");
+                      final URLQueryParams query = URLQueryParams();
+                      query.append('client_id', '49');
                       query.append(
-                          'redirect_uri', "https://flipper.rw/auth/callback");
-                      query.append('response_type', "code");
-                      query.append('scope', "");
-                      query.append('state', "");
+                          'redirect_uri', 'https://flipper.rw/auth/callback');
+                      query.append('response_type', 'code');
+                      query.append('scope', '');
+                      query.append('state', '');
 
                       try {
-                        final result =
+                        final List<InternetAddress> result =
                             await InternetAddress.lookup('google.com');
                         if (result.isNotEmpty &&
                             result[0].rawAddress.isNotEmpty) {
-                          var url = 'https://flipper.rw/register';
+                          const String url = 'https://flipper.rw/register';
                           if (await canLaunch(url)) {
                             showPopup(
-                                context,
-                                AuthWebView(
-                                  authType: 'register',
-                                  url: url,
-                                ),);
+                              context,
+                              AuthWebView(
+                                authType: 'register',
+                                url: url,
+                              ),
+                            );
                           } else {
                             Fluttertoast.showToast(
-                                msg: "There is a problem launching login url",
+                                msg: 'There is a problem launching login url',
                                 toastLength: Toast.LENGTH_LONG,
                                 gravity: ToastGravity.BOTTOM,
                                 timeInSecForIos: 1,
@@ -211,7 +216,7 @@ class AfterSplash extends StatelessWidget {
                         }
                       } on SocketException catch (_) {
                         Fluttertoast.showToast(
-                            msg: "you are not connected to internet",
+                            msg: 'you are not connected to internet',
                             toastLength: Toast.LENGTH_LONG,
                             gravity: ToastGravity.BOTTOM,
                             timeInSecForIos: 1,
@@ -223,7 +228,7 @@ class AfterSplash extends StatelessWidget {
                     color: Colors.blue,
                     child: Text(
                       S.of(context).createAccount,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -239,38 +244,39 @@ class AfterSplash extends StatelessWidget {
                   child: StoreConnector<AppState, CommonViewModel>(
                     distinct: true,
                     converter: CommonViewModel.fromStore,
-                    builder: (context, vm) {
+                    builder: (BuildContext context, CommonViewModel vm) {
                       return OutlineButton(
                         color: Colors.blue,
                         child: Text(
                           S.of(context).signIn,
-                          style: TextStyle(color: Colors.blue),
+                          style: const TextStyle(color: Colors.blue),
                         ),
                         onPressed: () async {
-                          URLQueryParams query = new URLQueryParams();
-                          query.append('client_id', "49");
+                          final URLQueryParams query = URLQueryParams();
+                          query.append('client_id', '49');
                           query.append('redirect_uri',
-                              "https://flipper.rw/auth/callback");
-                          query.append('response_type', "code");
-                          query.append('scope', "");
-                          query.append('state', "");
+                              'https://flipper.rw/auth/callback');
+                          query.append('response_type', 'code');
+                          query.append('scope', '');
+                          query.append('state', '');
                           try {
-                            final insInternetAvailable =
+                            final List<InternetAddress> insInternetAvailable =
                                 await InternetAddress.lookup('google.com');
                             if (insInternetAvailable.isNotEmpty &&
                                 insInternetAvailable[0].rawAddress.isNotEmpty) {
-                              var url = 'https://flipper.rw/login';
+                              const String url = 'https://flipper.rw/login';
                               if (await canLaunch(url)) {
                                 showPopup(
-                                    context,
-                                    AuthWebView(
-                                      authType: 'login',
-                                      url: url,
-                                    ),);
+                                  context,
+                                  AuthWebView(
+                                    authType: 'login',
+                                    url: url,
+                                  ),
+                                );
                               } else {
                                 Fluttertoast.showToast(
                                     msg:
-                                        "There is a problem launching login url",
+                                        'There is a problem launching login url',
                                     toastLength: Toast.LENGTH_LONG,
                                     gravity: ToastGravity.BOTTOM,
                                     timeInSecForIos: 1,
@@ -281,7 +287,7 @@ class AfterSplash extends StatelessWidget {
                             }
                           } on SocketException catch (_) {
                             Fluttertoast.showToast(
-                                msg: "There is no internet",
+                                msg: 'There is no internet',
                                 toastLength: Toast.LENGTH_LONG,
                                 gravity: ToastGravity.BOTTOM,
                                 timeInSecForIos: 1,
@@ -304,10 +310,10 @@ class AfterSplash extends StatelessWidget {
         ),
       );
 
-  aspectLogoPortrait(context) => AspectRatio(
+  AspectRatio aspectLogoPortrait(context) => AspectRatio(
         aspectRatio: 2 / 2,
         child: Container(
-          color: HexColor("#955be9"),
+          color: HexColor('#955be9'),
           child: Column(
             children: <Widget>[
               Container(
@@ -315,29 +321,30 @@ class AfterSplash extends StatelessWidget {
               ),
               Container(
                 height: 60,
-                child: Image.asset("assets/graphics/logo.png"),
+                child: Image.asset('assets/graphics/logo.png'),
               ),
               Container(
                 height: 40,
               ),
-              Center(
+              const Padding(
+                padding:  EdgeInsets.all(8.0),
                 child: Text(
-                  S.of(context).flipperPointofSale,
+                  'Flipper',
                   style: TextStyle(color: Colors.white, fontSize: 40),
                 ),
               ),
               Text(
                 S.of(context).interactandgrowyourbusiness,
-                style: TextStyle(color: Colors.white, fontSize: 20),
+                style: const TextStyle(color: Colors.white, fontSize: 20),
               )
             ],
           ),
         ),
       );
-  aspectLogoLandiscape(context) => AspectRatio(
+      AspectRatio aspectLogoLandiscape(context) => AspectRatio(
         aspectRatio: 3 / 1,
         child: Container(
-          color: HexColor("#955be9"),
+          color: HexColor('#955be9'),
           child: Column(
             children: <Widget>[
               Container(
@@ -345,18 +352,21 @@ class AfterSplash extends StatelessWidget {
               ),
               Container(
                 height: 60,
-                child: Image.asset("assets/graphics/logo.png"),
+                child: Image.asset('assets/graphics/logo.png'),
               ),
               Container(
                 height: 40,
               ),
-              Text(
-                S.of(context).flipperPointofSale,
-                style: TextStyle(color: Colors.white, fontSize: 40),
+              const Padding(
+                padding:  EdgeInsets.all(8.0),
+                child: Text(
+                  'B',
+                  style: TextStyle(color: Colors.white, fontSize: 40),
+                ),
               ),
               Text(
                 S.of(context).interactandgrowyourbusiness,
-                style: TextStyle(color: Colors.white, fontSize: 20),
+                style: const TextStyle(color: Colors.white, fontSize: 20),
               )
             ],
           ),
@@ -365,7 +375,7 @@ class AfterSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var landscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool landscape = MediaQuery.of(context).orientation == Orientation.landscape;
     Widget child;
     if (landscape)
       child = Column(
@@ -387,8 +397,7 @@ class AfterSplash extends StatelessWidget {
     );
   }
 
-  showPopup(BuildContext context, Widget widget,
-      {BuildContext popupContext}) {
+  showPopup(BuildContext context, Widget widget, {BuildContext popupContext}) {
     Navigator.push(
       context,
       PopupLayout(

@@ -30,7 +30,7 @@ class _RetailPriceWidgetState extends State<RetailPriceWidget> {
                 vm: widget.vm,
               );
             }
-            return Text("");
+            return Text('');
           },
         );
       },

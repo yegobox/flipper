@@ -21,7 +21,7 @@ class _AddVariantState extends State<AddVariant> {
         height: 50,
         width: 340,
         child: OutlineButton(
-          color: HexColor("#ecf0f1"),
+          color: HexColor('#ecf0f1'),
           child: Text(S.of(context).addVariation),
           onPressed: widget._onPressedCallback,
         ),

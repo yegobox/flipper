@@ -19,13 +19,13 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
           Router.navigator.pop();
         },
         disableButton: false,
-        title: "Add Note",
+        title: 'Add Note',
       ),
       body: Column(
         children: <Widget>[
           Center(
             child: NoteInput(
-              hint: "Add Note",
+              hint: 'Add Note',
             ),
           )
         ],

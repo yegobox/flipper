@@ -1,5 +1,5 @@
-import "package:flutter/cupertino.dart";
-import "package:flutter/material.dart";
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class EventDetails extends StatelessWidget {
   const EventDetails({
@@ -12,7 +12,7 @@ class EventDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text("I am event details"),
+      child: Text('I am event details'),
     );
 
 //    return StoreConnector<AppState, EventDetailsViewModel>(
@@ -96,7 +96,7 @@ class EventDetails extends StatelessWidget {
 //        image: DecorationImage(
 //          colorFilter: ColorFilter.mode(
 //              Color.fromRGBO(255, 255, 255, 0.1), BlendMode.modulate),
-//          image: AssetImage("assets/graphics/visual_twist_white_petrol.png"),
+//          image: AssetImage('assets/graphics/visual_twist_white_petrol.png'),
 //          fit: BoxFit.cover,
 //        ),
 //      ),
@@ -244,7 +244,7 @@ class EventDetails extends StatelessWidget {
 //        Padding(
 //          padding: const EdgeInsets.all(AppTheme.appMargin),
 //          child: Image.asset(
-//            "assets/graphics/channel/details_date.png",
+//            'assets/graphics/channel/details_date.png',
 //            height: _Style.iconSize,
 //          ),
 //        ),
@@ -278,7 +278,7 @@ class EventDetails extends StatelessWidget {
 //          Padding(
 //            padding: const EdgeInsets.all(AppTheme.appMargin),
 //            child: Image.asset(
-//              "assets/graphics/channel/details_location.png",
+//              'assets/graphics/channel/details_location.png',
 //              height: _Style.iconSize,
 //            ),
 //          ),
@@ -300,7 +300,7 @@ class EventDetails extends StatelessWidget {
 //            Padding(
 //              padding: const EdgeInsets.all(AppTheme.appMargin),
 //              child: Image.asset(
-//                "assets/graphics/channel/details_padlock.png",
+//                'assets/graphics/channel/details_padlock.png',
 //                height: _Style.iconSize,
 //              ),
 //            ),
@@ -327,7 +327,7 @@ class EventDetails extends StatelessWidget {
 //        Padding(
 //          padding: const EdgeInsets.all(AppTheme.appMargin),
 //          child: Image.asset(
-//            "assets/graphics/channel/details_members.png",
+//            'assets/graphics/channel/details_members.png',
 //            height: _Style.iconSize,
 //          ),
 //        ),

@@ -11,10 +11,10 @@ class CardFrontLayout {
   Color textColor;
 
   CardFrontLayout(
-      {this.bankName = "",
-      this.cardNumber = "",
-      this.cardExpiry = "",
-      this.cardHolderName = "",
+      {this.bankName = '',
+      this.cardNumber = '',
+      this.cardExpiry = '',
+      this.cardHolderName = '',
       this.cardTypeIcon,
       this.cardWidth = 0,
       this.cardHeight = 0,
@@ -78,7 +78,7 @@ class CardFrontLayout {
                           style: TextStyle(
                               color: textColor,
                               fontWeight: FontWeight.w500,
-                              fontFamily: "MavenPro",
+                              fontFamily: 'MavenPro',
                               fontSize: 22),
                         ),
                         SizedBox(
@@ -89,10 +89,10 @@ class CardFrontLayout {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              "Exp. Date",
+                              'Exp. Date',
                               style: TextStyle(
                                   color: textColor,
-                                  fontFamily: "MavenPro",
+                                  fontFamily: 'MavenPro',
                                   fontSize: 15),
                             ),
                             SizedBox(
@@ -100,12 +100,12 @@ class CardFrontLayout {
                             ),
                             Text(
                               cardExpiry == null || cardExpiry.isEmpty
-                                  ? "MM/YY"
+                                  ? 'MM/YY'
                                   : cardExpiry,
                               style: TextStyle(
                                   color: textColor,
                                   fontWeight: FontWeight.w500,
-                                  fontFamily: "MavenPro",
+                                  fontFamily: 'MavenPro',
                                   fontSize: 16),
                             ),
                           ],
@@ -115,12 +115,12 @@ class CardFrontLayout {
                         ),
                         Text(
                           cardHolderName == null || cardHolderName.isEmpty
-                              ? "Card Holder"
+                              ? 'Card Holder'
                               : cardHolderName,
                           style: TextStyle(
                               color: textColor,
                               fontWeight: FontWeight.w500,
-                              fontFamily: "MavenPro",
+                              fontFamily: 'MavenPro',
                               fontSize: 17),
                         ),
                       ],

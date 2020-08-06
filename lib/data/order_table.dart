@@ -27,7 +27,7 @@ class OrderTable extends Table {
   IntColumn get paymentId => integer().nullable()();
   TextColumn get orderNote => text().nullable()();
   BoolColumn get isDraft => boolean().withDefault(Constant(true))();
-  TextColumn get status => text().withDefault(Constant("draft"))();
-  TextColumn get orderType => text().withDefault(Constant("sales"))();
+  TextColumn get status => text().withDefault(Constant('draft'))();
+  TextColumn get orderType => text().withDefault(Constant('sales'))();
   IntColumn get customerChangeDue => integer().nullable()();
 }

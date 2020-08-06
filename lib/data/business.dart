@@ -18,5 +18,5 @@ class BusinessTable extends Table {
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime).nullable()();
   DateTimeColumn get updatedAt => dateTime().nullable()();
-  TextColumn get deletedAt => text().withDefault(Constant("null")).nullable()();
+  TextColumn get deletedAt => text().withDefault(Constant('null')).nullable()();
 }

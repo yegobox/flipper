@@ -58,5 +58,5 @@ class _DateScreenState extends State<DateScreen> with TickerProviderStateMixin {
 }
 
 final List<Event> events = [
-  Event(DateTime.now(), "Today event"),
+  Event(DateTime.now(), 'Today event'),
 ];

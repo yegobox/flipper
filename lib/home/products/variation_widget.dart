@@ -40,7 +40,7 @@ class _VariationWidgetState extends State<VariationWidget> {
                 branchId: widget.vm.branch.id, productId: '001'),
             builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
               if (snapshot.data == null) {
-                return Text("");
+                return Text('');
               }
               return Column(
                 children:
@@ -59,13 +59,13 @@ class _VariationWidgetState extends State<VariationWidget> {
         leading: Icon(
           Icons.dehaze,
         ),
-        subtitle: Text("${name}\nRWF${snapshot.data[i].retailPrice}"),
+        subtitle: Text('${name}\nRWF${snapshot.data[i].retailPrice}'),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
           FlatButton(
             child: Text(
               snapshot.data == null
                   ? S.of(context).receiveStock
-                  : "${snapshot.data[i].currentStock}" + S.of(context).inStock,
+                  : '${snapshot.data[i].currentStock}' + S.of(context).inStock,
             ),
             onPressed: () {
               Router.navigator.pushNamed(Router.receiveStock);

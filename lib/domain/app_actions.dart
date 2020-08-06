@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import "package:meta/meta.dart";
+import 'package:meta/meta.dart';
 
 /// Actions are payloads of information that send data from your application to
 /// your store. They are the only source of information for the store.
@@ -10,7 +10,7 @@ import "package:meta/meta.dart";
 class ConnectToDataSource {
   @override
   String toString() {
-    return "ConnectToDataSource{}";
+    return 'ConnectToDataSource{}';
   }
 }
 
@@ -30,6 +30,6 @@ class OnProductLoaded {
 
   @override
   String toString() {
-    return "SelectGroup{groupId: $userId}";
+    return 'SelectGroup{groupId: $userId}';
   }
 }

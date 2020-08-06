@@ -29,7 +29,7 @@ class _ChangeQuantityForSellingState extends State<ChangeQuantityForSelling> {
                   branchId: vm.branch.id, productId: widget.productId),
               builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
                 if (snapshot.data == null) {
-                  return Text("");
+                  return Text('');
                 }
                 return MultipleVariantViewWidget(
                   stocks: snapshot.data,

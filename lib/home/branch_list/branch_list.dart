@@ -38,7 +38,7 @@ class _BranchListState extends State<BranchList> {
             child: Row(
               children: <Widget>[
                 SvgPicture.asset(
-                  "assets/graphics/arrow-up-right.svg",
+                  'assets/graphics/arrow-up-right.svg',
                   allowDrawingOutsideViewBox: true,
                   color: Colors.white,
                 ),
@@ -77,7 +77,7 @@ class _BranchListState extends State<BranchList> {
                 leading: FlatButton(
                   onPressed: () {},
                   child: Text(
-                    "Checkout",
+                    'Checkout',
                     style: GoogleFonts.lato(
                       fontStyle: FontStyle.normal,
                       color: AppTheme.branchList.accentColor,
@@ -94,7 +94,7 @@ class _BranchListState extends State<BranchList> {
                     Router.navigator.pushNamed(Router.reportScreen);
                   },
                   child: Text(
-                    "Report",
+                    'Report',
                     style: GoogleFonts.lato(
                       fontStyle: FontStyle.normal,
                       color: AppTheme.branchList.accentColor,
@@ -111,7 +111,7 @@ class _BranchListState extends State<BranchList> {
                     Router.navigator.pushNamed(Router.allItemScreen);
                   },
                   child: Text(
-                    "Items  ",
+                    'Items  ',
                     style: GoogleFonts.lato(
                       fontStyle: FontStyle.normal,
                       color: AppTheme.branchList.accentColor,
@@ -128,7 +128,7 @@ class _BranchListState extends State<BranchList> {
 //                    Router.navigator.pushNamed(Router.transactionScreen);
 //                  },
 //                  child: Text(
-//                    "Transactions",
+//                    'Transactions',
 //                    style: GoogleFonts.lato(
 //                      fontStyle: FontStyle.normal,
 //                      color: AppTheme.branchList.accentColor,
@@ -145,14 +145,14 @@ class _BranchListState extends State<BranchList> {
               Container(
                 width: 237,
                 height: 70,
-                color: HexColor("#3f3f44"),
+                color: HexColor('#3f3f44'),
                 child: ListTile(
                   leading: SvgPicture.asset(
-                    "assets/graphics/settings.svg",
+                    'assets/graphics/settings.svg',
                     semanticsLabel: 'Checkout',
                   ),
                   title: Text(
-                    "Settings",
+                    'Settings',
                     style: GoogleFonts.lato(
                       fontStyle: FontStyle.normal,
                       color: AppTheme.branchList.accentColor,
@@ -170,5 +170,5 @@ class _BranchListState extends State<BranchList> {
 }
 
 class _Style {
-  static const fontFamily = "Heboo-Regular";
+  static const fontFamily = 'Heboo-Regular';
 }

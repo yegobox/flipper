@@ -17,7 +17,7 @@ class _DescriptionWidgetState extends State<DescriptionWidget> {
         child: TextFormField(
           style: TextStyle(color: Colors.black),
           decoration:
-              InputDecoration(hintText: "Description", focusColor: Colors.blue),
+              InputDecoration(hintText: 'Description', focusColor: Colors.blue),
           onChanged: (description) {
             setState(() {
               DataManager.description = description;

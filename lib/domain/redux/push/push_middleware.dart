@@ -1,13 +1,13 @@
-import "dart:io";
+import 'dart:io';
 
-import "package:firebase_messaging/firebase_messaging.dart";
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/push/push_actions.dart';
 import 'package:flipper/model/in_app_notification.dart';
 import 'package:flipper/util/logger.dart';
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 List<Middleware<AppState>> createPushMiddleware(
   UserRepository userRespository,
@@ -33,7 +33,7 @@ void Function(
     try {
       await userRepository.updateUserToken(action.token, store);
     } catch (e) {
-      Logger.e("Failed to update token", e: e, s: StackTrace.current);
+      Logger.e('Failed to update token', e: e, s: StackTrace.current);
     }
   };
 }
@@ -51,7 +51,7 @@ void Function(
       //   await userRepository.updateUserToken(store.state.fcmToken);
       // }
     } catch (e) {
-      Logger.e("Failed to update token", e: e, s: StackTrace.current);
+      Logger.e('Failed to update token', e: e, s: StackTrace.current);
     }
   };
 }
@@ -69,13 +69,13 @@ void Function(
       if (message == null) {
         return;
       }
-      final notification = message["notification"];
+      final notification = message['notification'];
       final inAppNotification =
-          InAppNotification((n) => n..message = notification["body"]);
+          InAppNotification((n) => n..message = notification['body']);
 
       store.dispatch(ShowPushNotificationAction(inAppNotification));
     } catch (e) {
-      Logger.e("Failed to display push notification",
+      Logger.e('Failed to display push notification',
           e: e, s: StackTrace.current);
     }
   };
@@ -83,39 +83,39 @@ void Function(
 
 Map<String, dynamic> _verifyedMessage(
     Map<String, dynamic> message, Store<AppState> store) {
-  var notification = message["notification"];
-  var data = message["data"];
+  var notification = message['notification'];
+  var data = message['data'];
 
   // Necessary because the payload format is different per platform
   // See: https://github.com/flutter/flutter/issues/29027
   if (Platform.isIOS) {
     data = message;
-    final aps = (data != null) ? data["aps"] : null;
-    notification = (aps != null) ? aps["alert"] : null;
+    final aps = (data != null) ? data['aps'] : null;
+    notification = (aps != null) ? aps['alert'] : null;
   }
 
-  final results = {"data": 'delete-after', "notification": notification};
+  final results = {'data': 'delete-after', 'notification': notification};
 
-  // final results = {"data": data, "notification": notification};
+  // final results = {'data': data, 'notification': notification};
 
   if (notification == null) {
     // there was  || data == null here but removed it for fast testing
-    Logger.d("Empty message payload");
+    Logger.d('Empty message payload');
     return null;
   }
 
-  // final groupId = data["groupId"];
-  // final channelId = data["channelId"];
+  // final groupId = data['groupId'];
+  // final channelId = data['channelId'];
 
   // if (groupId == null || channelId == null) {
-  //   Logger.d("Missing properties channelId and groupId");
+  //   Logger.d('Missing properties channelId and groupId');
   //   return null;
   // }
 
-  // final messageType = data["type"];
+  // final messageType = data['type'];
 
-  // if (messageType != "message") {
-  //   Logger.d("No action required for type: $messageType");
+  // if (messageType != 'message') {
+  //   Logger.d('No action required for type: $messageType');
   //   return null;
   // }
 

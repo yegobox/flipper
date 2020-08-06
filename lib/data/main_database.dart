@@ -39,8 +39,9 @@ import 'package:flipper/data/unit_table.dart';
 import 'package:flipper/data/user.dart';
 import 'package:flipper/data/variation_table.dart';
 import 'package:flipper/listeners/table_listeners.dart';
+import 'package:moor/ffi.dart';
 import 'package:moor/moor.dart';
-import 'package:moor_ffi/moor_ffi.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -49,26 +50,35 @@ import 'dao/user_dao.dart';
 
 part 'main_database.g.dart';
 
+
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
     // put the database file, called db.sqlite here, into the documents folder
     // for your app.
 
-    final dbFolder = await getApplicationDocumentsDirectory();
+    final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
 
     //development codes: todo: comment this code in production
-    var dir = await getExternalStorageDirectory();
-    var testdir = await new Io.Directory('${dir.path}/database-development')
+    final Io.Directory dir = await getExternalStorageDirectory();
+    final Io.Directory testdir = await Io.Directory('${dir.path}/database-development')
         .create(recursive: true);
 
 //    print(testdir);
 
-    final file = File(p.join(testdir.path, 'db.sqlite'));
+    // final Io.File file = File(p.join(testdir.path, 'db.sqlite'));
     //done development code : todo: end of code to be commented
 
 //    final file = File(p.join(dbFolder.path, 'db.sqlite')); //todo: uncomment this code in production.
-    return VmDatabase(file);
+    // return VmDatabase(file);
+   return LazyDatabase(() async {
+       final Io.File file = File(p.join(testdir.path, 'db.sqlite'));
+      // ignore: avoid_slow_async_io
+      if (!await file.exists()) {
+        // copy the file from an asset, or network, or any other source
+      }
+      return VmDatabase(file);
+    });
   });
 }
 
@@ -124,7 +134,8 @@ class Database extends _$Database {
   MigrationStrategy get migration {
     return MigrationStrategy(
       beforeOpen: (details) async {
-        customStatement('PRAGMA foreign_keys = ON');
+        // this line is errorring.
+        // customStatement('PRAGMA foreign_keys = ON');
       },
       onUpgrade: (Migrator migrator, from, to) async {
         // if (from == 1) {

@@ -32,14 +32,14 @@ class _VariationListState extends State<VariationList> {
                     builder: (context,
                         AsyncSnapshot<List<StockTableData>> snapshot) {
                       if (snapshot.data == null) {
-                        return Text("");
+                        return Text('');
                       }
                       return ListTile(
                         leading: Icon(
                           Icons.dehaze,
                         ),
                         subtitle: Text(
-                            "${variations[i].name} \nRWF ${snapshot.data[0].retailPrice}"),
+                            '${variations[i].name} \nRWF ${snapshot.data[0].retailPrice}'),
                         trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -49,7 +49,7 @@ class _VariationListState extends State<VariationList> {
                                       ? S.of(context).receiveStock
                                       : snapshot.data[0].currentStock
                                               .toString() +
-                                          " " +
+                                          ' ' +
                                           S.of(context).inStock,
                                 ),
                                 onPressed: () {
@@ -88,11 +88,11 @@ class _VariationListState extends State<VariationList> {
               .getItemVariationsByItemId(widget.productId),
           builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             if (snapshot.data == null) {
-              return Text("");
+              return Text('');
             }
             return snapshot.data.length > 1
                 ? _buildVariationsList(snapshot.data, vm)
-                : Text("");
+                : Text('');
           },
         );
       },

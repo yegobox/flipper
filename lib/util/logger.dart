@@ -1,7 +1,7 @@
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import "package:flutter/foundation.dart";
-import "package:flutter/material.dart";
-import "package:intl/intl.dart";
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:redux/redux.dart';
 
 /// Run this before starting app
@@ -78,7 +78,7 @@ class LoggerMiddleware<State> implements MiddlewareClass<State> {
   void call(Store<State> store, action, NextDispatcher next) {
     next(action);
 
-    Logger.d("Middleware: { ${action.runtimeType} }");
+    Logger.d('Middleware: { ${action.runtimeType} }');
   }
 }
 
@@ -95,7 +95,7 @@ abstract class LoggerClient {
 
 /// Debug logger that just prints to console
 class DebugLoggerClient implements LoggerClient {
-  static final dateFormat = DateFormat("HH:mm:ss.SSS", "en_US");
+  static final dateFormat = DateFormat('HH:mm:ss.SSS', 'en_US');
   String _timestamp() {
     return dateFormat.format(DateTime.now());
   }
@@ -115,14 +115,14 @@ class DebugLoggerClient implements LoggerClient {
         }
         break;
       case LogLevel.warning:
-        debugPrint("${_timestamp()} [WARNING]  $message");
+        debugPrint('${_timestamp()} [WARNING]  $message');
         if (e != null) {
           debugPrint(e.toString());
           debugPrint(s.toString() ?? StackTrace.current.toString());
         }
         break;
       case LogLevel.error:
-        debugPrint("${_timestamp()} [ERROR]  $message");
+        debugPrint('${_timestamp()} [ERROR]  $message');
         if (e != null) {
           debugPrint(e.toString());
         }
@@ -145,21 +145,21 @@ class DebugLoggerClient implements LoggerClient {
 //     final instance = Crashlytics.instance;
 //     switch (level) {
 //       case LogLevel.debug:
-//         instance.log("[DEBUG] $message");
+//         instance.log('[DEBUG] $message');
 //         if (e != null) {
 //           instance.log(e.toString());
 //           instance.log(s ?? StackTrace.current.toString());
 //         }
 //         break;
 //       case LogLevel.warning:
-//         instance.log("[WARNING] $message");
+//         instance.log('[WARNING] $message');
 //         if (e != null) {
 //           instance.log(e.toString());
 //           instance.log(s ?? StackTrace.current.toString());
 //         }
 //         break;
 //       case LogLevel.error:
-//         instance.log("[ERROR] $message");
+//         instance.log('[ERROR] $message');
 //         // Always report a non-fatal for errors
 //         if (e != null) {
 //           instance.recordError(e, s);

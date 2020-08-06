@@ -22,7 +22,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       List<CategoryTableData> categories, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
     for (var i = 0; i < categories.length; i++) {
-      if (categories[i].name != "custom") {
+      if (categories[i].name != 'custom') {
         list.add(
           GestureDetector(
             onTap: () {
@@ -89,12 +89,12 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               GestureDetector(
                 onTap: () {
                   StoreProvider.of<AppState>(context).dispatch(
-                    CreateEmptyTempCategoryAction(name: "tmp"),
+                    CreateEmptyTempCategoryAction(name: 'tmp'),
                   );
                   Router.navigator.pushNamed(Router.createCategoryInputScreen);
                 },
                 child: ListTile(
-                  title: Text("Create Category",
+                  title: Text('Create Category',
                       style: TextStyle(color: Colors.black)),
                   trailing: Wrap(
                     children: <Widget>[Icon(Icons.arrow_forward_ios)],

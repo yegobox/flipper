@@ -19,12 +19,12 @@ class UploadResponse {
   });
 
   factory UploadResponse.fromJson(Map<String, dynamic> json) => UploadResponse(
-        url: json["url"],
-        productId: json["product_id"],
+        url: json['url'],
+        productId: json['product_id'],
       );
 
   Map<String, dynamic> toJson() => {
-        "url": url,
-        "product_id": productId,
+        'url': url,
+        'product_id': productId,
       };
 }

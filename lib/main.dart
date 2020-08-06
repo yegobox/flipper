@@ -18,5 +18,6 @@ void main() {
   //   DeviceOrientation.portraitUp,
   //   DeviceOrientation.portraitDown,
   // ]);
+
   runApp(FlipperApp());
 }

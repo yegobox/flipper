@@ -2,7 +2,7 @@ name: subscription
 description: A new Flutter package project.
 version: 0.0.1
 author:
-homepage:
+# homepage:
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -18,8 +18,16 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
+
 # The following section is specific to Flutter.
 flutter:
+  plugin:
+    platforms:
+      android:
+        package: rw.flipper.subscription
+        pluginClass: Subscription
+      ios:
+        pluginClass: Subscription
 
   # To add assets to your package, add an assets section, like this:
   # assets:

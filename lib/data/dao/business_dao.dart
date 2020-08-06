@@ -30,7 +30,7 @@ class BusinessDao extends DatabaseAccessor<Database> with _$BusinessDaoMixin {
   Stream<List<UserBusiness>> watchAllTasks() {
     // Wrap the whole select statement in parenthesis
     return (select(db.businessTable)
-          // Statements like orderBy and where return void => the need to use a cascading ".." operator
+          // Statements like orderBy and where return void => the need to use a cascading '..' operator
           ..orderBy(
             ([
               // Primary sorting by due date

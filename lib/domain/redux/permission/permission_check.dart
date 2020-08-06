@@ -8,7 +8,7 @@ class OnCheckedPermission {
 
   @override
   String toString() {
-    return "OnCheckingPermission{OnCheckingPermission: $permission}";
+    return 'OnCheckingPermission{OnCheckingPermission: $permission}';
   }
 }
 
@@ -20,6 +20,6 @@ class CheckPermission {
 
   @override
   String toString() {
-    return "CheckPermission{CheckPermission: $checking}";
+    return 'CheckPermission{CheckPermission: $checking}';
   }
 }

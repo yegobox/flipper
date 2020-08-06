@@ -108,7 +108,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                     Container(
                       width: 300,
                       child: TextFormField(
-                        style: TextStyle(color: HexColor("#2d3436")),
+                        style: TextStyle(color: HexColor('#2d3436')),
                         validator: Validators.isValid,
                         onChanged: (sku) {
                           if (sku == '' || sku == null) {
@@ -121,7 +121,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                         },
                         decoration: InputDecoration(
                             hintText: S.of(context).sKU,
-                            focusColor: HexColor("#0984e3")),
+                            focusColor: HexColor('#0984e3')),
                       ),
                     ),
                     Text(S.of(context).leavePriceBlank)

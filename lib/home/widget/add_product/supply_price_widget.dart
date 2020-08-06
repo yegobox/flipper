@@ -31,7 +31,7 @@ class _SupplyPriceWidgetState extends State<SupplyPriceWidget> {
                 vm: widget.vm,
               );
             }
-            return Text("");
+            return Text('');
           },
         );
       },

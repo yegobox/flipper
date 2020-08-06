@@ -25,7 +25,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             onPop: () {
               Router.navigator.pop();
             },
-            title: "Transactions",
+            title: 'Transactions',
             showActionButton: false,
             onPressedCallback: () async {},
             icon: Icons.close,
@@ -36,14 +36,14 @@ class _TransactionScreenState extends State<TransactionScreen> {
               stream: vm.database.orderDao.getOrdersStream(),
               builder: (context, AsyncSnapshot<List<OrderTableData>> snapshot) {
                 if (snapshot.data == null) {
-                  return Text("");
+                  return Text('');
                 }
 
                 return StreamBuilder(
                     stream: null, //TODO: now load transactions here.
                     builder: (context, transactions) {
                       if (transactions.data == null) {
-                        return Center(child: Text("No Transaction"));
+                        return Center(child: Text('No Transaction'));
                       }
                       return ListView(
                         children: ListTile.divideTiles(
@@ -74,8 +74,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
         width: 50,
         child: Text(data.cashReceived.toString()),
       ),
-      title: Text("B"),
-      trailing: Text("C"),
+      title: Text('B'),
+      trailing: Text('C'),
       dense: true,
     );
   }

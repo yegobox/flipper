@@ -40,7 +40,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
             onPop: () {
               Router.navigator.pop();
             },
-            title: "Edit item Tile",
+            title: 'Edit item Tile',
             icon: Icons.keyboard_backspace,
             multi: 3,
             bottomSpacer: 52,
@@ -75,7 +75,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
                                         filled: true,
                                         fillColor: HexColor(
                                             vm.currentColor == null
-                                                ? "#0984e3"
+                                                ? '#0984e3'
                                                 : vm.currentColor.hexCode),
                                         focusedBorder: OutlineInputBorder(
                                           borderSide:
@@ -114,7 +114,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
                                         ),
                             ),
                           ),
-                          Text("New Item")
+                          Text('New Item')
                         ],
                       ),
                     ),
@@ -125,7 +125,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
                 padding: const EdgeInsets.fromLTRB(28.0, 0, 0, 28.0),
                 child: Align(
                   alignment: Alignment.topLeft,
-                  child: Text("CHOOSE LABEL COLOR"),
+                  child: Text('CHOOSE LABEL COLOR'),
                 ),
               ),
               StreamBuilder(
@@ -147,7 +147,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
                 padding: const EdgeInsets.fromLTRB(28.0, 0, 0, 28.0),
                 child: Align(
                   alignment: Alignment.topLeft,
-                  child: Text("PHOTO LABEL"),
+                  child: Text('PHOTO LABEL'),
                 ),
               ),
               Padding(
@@ -160,8 +160,8 @@ class _EditItemTitleState extends State<EditItemTitle> {
                         height: 50,
                         width: 180,
                         child: OutlineButton(
-                          color: HexColor("#ecf0f1"),
-                          child: Text("Choose Photo"),
+                          color: HexColor('#ecf0f1'),
+                          child: Text('Choose Photo'),
                           onPressed: () async {
                             File image = await ImagePicker.pickImage(
                                 source: ImageSource.gallery);
@@ -177,8 +177,8 @@ class _EditItemTitleState extends State<EditItemTitle> {
                         height: 50,
                         width: 180,
                         child: OutlineButton(
-                          color: HexColor("#ecf0f1"),
-                          child: Text("Take Photo"),
+                          color: HexColor('#ecf0f1'),
+                          child: Text('Take Photo'),
                           onPressed: () async {
                             File image = await ImagePicker.pickImage(
                                 source: ImageSource.camera);
@@ -203,9 +203,9 @@ class _EditItemTitleState extends State<EditItemTitle> {
       final store = StoreProvider.of<AppState>(context);
 
       String targetPath = (await getTemporaryDirectory()).path +
-          "/" +
+          '/' +
           DateTime.now().toIso8601String() +
-          ".jpg";
+          '.jpg';
 
       File compresedFile = await compress(image, targetPath);
 
@@ -307,7 +307,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
                     )
                   : Visibility(
                       visible: false,
-                      child: Text(""),
+                      child: Text(''),
                     )
             ],
           ),

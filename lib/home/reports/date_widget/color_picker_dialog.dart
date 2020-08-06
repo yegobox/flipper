@@ -27,7 +27,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       contentPadding: const EdgeInsets.all(6.0),
-      title: Text("Color picker"),
+      title: Text('Color picker'),
       content: MaterialColorPicker(
         selectedColor: _mainColor,
         allowShades: false,

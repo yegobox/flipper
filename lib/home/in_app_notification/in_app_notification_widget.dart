@@ -1,7 +1,7 @@
-import "dart:async";
+import 'dart:async';
 
 import 'package:flipper/theme.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
 import 'in_app_notification_viewmodel.dart';
 
@@ -88,7 +88,7 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                 borderRadius: BorderRadius.all(Radius.circular(8)),
                 image: DecorationImage(
                   //TODO(richard): replace with a notification designed icon.
-                  image: AssetImage("assets/graphics/visual_twist.png"),
+                  image: AssetImage('assets/graphics/visual_twist.png'),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -101,14 +101,14 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                     Row(
                       children: <Widget>[
                         Image.asset(
-                          "assets/graphics/icon_notification.png",
+                          'assets/graphics/icon_notification.png',
                           height: 16,
                         ),
                         Expanded(
                           child: Padding(
                               padding: const EdgeInsets.only(left: 8.0),
                               child: Text(
-                                "Busines: Branch",
+                                'Busines: Branch',
                                 overflow: TextOverflow.ellipsis,
                                 style: AppTheme.notificationTitle,
                               )),
@@ -116,7 +116,7 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                       ],
                     ),
                     Text(
-                      "Richie: ${widget._vm.inAppNotification.message}",
+                      'Richie: ${widget._vm.inAppNotification.message}',
                       overflow: TextOverflow.ellipsis,
                       style: AppTheme.notificationBody,
                     )

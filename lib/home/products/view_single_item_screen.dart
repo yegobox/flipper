@@ -78,7 +78,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
             builder:
                 (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
               if (snapshot.data == null) {
-                return Text("");
+                return Text('');
               }
 
               return WillPopScope(
@@ -144,7 +144,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   tForm.name = name;
                                 },
                                 decoration: InputDecoration(
-                                    hintText: "Name", focusColor: Colors.black),
+                                    hintText: 'Name', focusColor: Colors.black),
                               ),
                             ),
                           ),
@@ -244,10 +244,10 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                                       List<ProductTableData>>
                                                   item) {
                                             if (item.data == null) {
-                                              return Text("");
+                                              return Text('');
                                             }
                                             if (item.data.length == 0) {
-                                              return Text("");
+                                              return Text('');
                                             }
 
                                             return StreamBuilder(
@@ -259,7 +259,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                                             List<UnitTableData>>
                                                         unit) {
                                                   if (unit.data == null) {
-                                                    return Text("");
+                                                    return Text('');
                                                   }
                                                   return Text(
                                                       unit.data[0].name);
@@ -281,7 +281,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               height: 50,
                               width: 340,
                               child: OutlineButton(
-                                color: HexColor("#ecf0f1"),
+                                color: HexColor('#ecf0f1'),
                                 child: Text(S.of(context).addVariation),
                                 onPressed: () async {
                                   _getSaveStatus();
@@ -300,8 +300,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                             contentPadding: EdgeInsets.fromLTRB(40, 10, 40, 0),
                             trailing: ToggleButtons(
                               children: <Widget>[
-                                Text("18%"),
-                                Text("0%"),
+                                Text('18%'),
+                                Text('0%'),
                               ],
                               isSelected: _selections,
                               onPressed: (int index) {
@@ -330,7 +330,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                   _closeAndDelete(context);
                                 }
                               },
-                              child: Text("Delete Item",
+                              child: Text('Delete Item',
                                   style: TextStyle(
                                       color: _deleteCount == 1
                                           ? Colors.white
@@ -387,7 +387,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
             vm.database.categoryDao.getCategoryByIdStream(item[0].categoryId),
         builder: (context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
           if (snapshot.data == null) {
-            return Text("");
+            return Text('');
           }
           return Text(snapshot.data[0].name);
         });

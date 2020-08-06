@@ -4,7 +4,7 @@ import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -76,9 +76,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                               orderDetail.data == null || quantity == 0
                                   ? S.of(context).noSale
                                   : S.of(context).currentSale +
-                                      "[" +
+                                      '[' +
                                       quantity.toInt().toString() +
-                                      "]",
+                                      ']',
                               style: GoogleFonts.lato(
                                   fontStyle: FontStyle.normal,
                                   color: AppTheme.currentSale.accentColor,
@@ -114,7 +114,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               overflow: Overflow.visible,
               children: <Widget>[
                 Image.asset(
-                  "assets/graphics/menu_icon.png", //TODO(richard): change it to our icon later.
+                  'assets/graphics/menu_icon.png', //TODO(richard): change it to our icon later.
                   width: 25,
                   height: 25,
                 ),
@@ -126,7 +126,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 12,
                     width: 12,
                     child: Image.asset(
-                      "assets/graphics/updates_indicator_white.png",
+                      'assets/graphics/updates_indicator_white.png',
                     ),
                   ),
                 ),

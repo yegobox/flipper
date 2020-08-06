@@ -1,7 +1,7 @@
-import "package:built_value/built_value.dart";
+import 'package:built_value/built_value.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/branch.dart';
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 part 'main_screen_viewmodel.g.dart';
 

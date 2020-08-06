@@ -8,7 +8,7 @@ import 'package:flipper/home/product_screen.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/presentation/widgets/payable_widget.dart';
 import 'package:flipper/util/HexColor.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           Expanded(
             child: Container(
-              color: HexColor("#95cbe8"),
+              color: HexColor('#95cbe8'),
               // child: ProductScreen(),
               child: DefaultTabController(
                 initialIndex: widget.vm.tab,

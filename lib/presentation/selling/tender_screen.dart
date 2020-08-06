@@ -81,7 +81,7 @@ class _TenderScreenState extends State<TenderScreen> {
                   enabled: true,
                   style: GoogleFonts.lato(fontStyle: FontStyle.normal),
                   decoration: InputDecoration(
-                    hintText: "FRW" + widget.cashReceived.toString(),
+                    hintText: 'FRW' + widget.cashReceived.toString(),
                   ).applyDefaults(theme),
                 ),
               ),
@@ -119,7 +119,7 @@ class _TenderScreenState extends State<TenderScreen> {
       return () {
         StoreProvider.of<AppState>(context).dispatch(
           SavePayment(
-            note: "note",
+            note: 'note',
             customerChangeDue: _customerChangeDue,
             cashReceived: widget.cashReceived,
           ),

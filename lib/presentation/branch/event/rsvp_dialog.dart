@@ -1,6 +1,6 @@
 //
 //import 'package:flipper/model/branch.dart';
-//import "package:flutter/material.dart";
+//import 'package:flutter/material.dart';
 //
 //showDialogRsvp(context, RSVP rsvp) {
 //  showDialog(
@@ -21,17 +21,17 @@
 //String _rsvpIcon(RSVP rsvp) {
 //  switch (rsvp) {
 //    case RSVP.YES:
-//      return "assets/graphics/channel/rsvp/rsvp_yes_large.png";
+//      return 'assets/graphics/channel/rsvp/rsvp_yes_large.png';
 //      break;
 //    case RSVP.MAYBE:
-//      return "assets/graphics/channel/rsvp/rsvp_maybe_large.png";
+//      return 'assets/graphics/channel/rsvp/rsvp_maybe_large.png';
 //      break;
 //    case RSVP.NO:
-//      return "assets/graphics/channel/rsvp/rsvp_no_large.png";
+//      return 'assets/graphics/channel/rsvp/rsvp_no_large.png';
 //      break;
 //    case RSVP.UNSET:
 //    default:
-//      return "";
+//      return '';
 //      break;
 //  }
 //}

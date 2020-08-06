@@ -1,8 +1,8 @@
-import "dart:async";
+import 'dart:async';
 
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/user.dart';
-import "package:meta/meta.dart";
+import 'package:meta/meta.dart';
 
 // Authentication
 class VerifyAuthenticationState {}
@@ -26,7 +26,7 @@ class OnAuthenticated {
 
   @override
   String toString() {
-    return "OnAuthenticated{user: $user}";
+    return 'OnAuthenticated{user: $user}';
   }
 }
 
@@ -37,7 +37,7 @@ class OnLogoutSuccess {
 
   @override
   String toString() {
-    return "LogOut{user: null}";
+    return 'LogOut{user: null}';
   }
 }
 
@@ -48,7 +48,7 @@ class Unauthenticated {
 
   @override
   String toString() {
-    return "OnLogoutFail{There was an error logging in: $error}";
+    return 'OnLogoutFail{There was an error logging in: $error}';
   }
 }
 
@@ -59,7 +59,7 @@ class OnLogoutFail {
 
   @override
   String toString() {
-    return "OnLogoutFail{There was an error logging in: $error}";
+    return 'OnLogoutFail{There was an error logging in: $error}';
   }
 }
 

@@ -1,5 +1,5 @@
-import "package:flutter/widgets.dart";
-import "package:flutter_platform_widgets/flutter_platform_widgets.dart";
+import 'package:flutter/widgets.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 enum AccessResourceType { CAMERA, STORAGE }
 
@@ -8,11 +8,11 @@ showNoAccessAlert({
   BuildContext context,
 }) {
   final dialog = PlatformAlertDialog(
-    title: Text("No access"),
-    content: Text("Camera"),
+    title: Text('No access'),
+    content: Text('Camera'),
     actions: <Widget>[
       PlatformDialogAction(
-          child: PlatformText("Ok"),
+          child: PlatformText('Ok'),
           onPressed: () {
             Navigator.pop(context);
           }),

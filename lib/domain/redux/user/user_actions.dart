@@ -1,7 +1,7 @@
-import "dart:async";
+import 'dart:async';
 
 import 'package:flipper/model/user.dart';
-import "package:meta/meta.dart";
+import 'package:meta/meta.dart';
 
 @immutable
 class UsersUpdateAction {

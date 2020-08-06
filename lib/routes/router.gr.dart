@@ -32,6 +32,7 @@ import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/transactions/transaction_screen.dart';
+import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
@@ -64,6 +65,7 @@ class Router {
   static const editCategoryScreen = '/edit-category-screen';
   static const editUnitType = '/edit-unit-type';
   static const transactionScreen = '/transaction-screen';
+  static const webView = '/web-view';
   static const reportScreen = '/report-screen';
   static const dateScreen = '/date-screen';
   static const compleSaleScreen = '/comple-sale-screen';
@@ -328,6 +330,20 @@ class Router {
           builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
+      case Router.webView:
+        if (hasInvalidArgs<AuthWebViewArguments>(args)) {
+          return misTypedArgsRoute<AuthWebViewArguments>(args);
+        }
+        final typedArgs =
+            args as AuthWebViewArguments ?? AuthWebViewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AuthWebView(
+              key: typedArgs.key,
+              url: typedArgs.url,
+              authType: typedArgs.authType),
+          settings: settings,
+          fullscreenDialog: true,
+        );
       case Router.reportScreen:
         return MaterialPageRoute<dynamic>(
           builder: (_) => ReportScreen(),
@@ -500,6 +516,14 @@ class EditUnitTypeScreenArguments {
   final Key key;
   final String itemId;
   EditUnitTypeScreenArguments({this.key, @required this.itemId});
+}
+
+//AuthWebView arguments holder class
+class AuthWebViewArguments {
+  final Key key;
+  final String url;
+  final String authType;
+  AuthWebViewArguments({this.key, this.url, this.authType});
 }
 
 //DateScreen arguments holder class

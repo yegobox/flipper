@@ -1,7 +1,7 @@
-//import "dart:async";
+//import 'dart:async';
 //
-//import "package:flutter/material.dart";
-//import "package:flutter_redux/flutter_redux.dart";
+//import 'package:flutter/material.dart';
+//import 'package:flutter_redux/flutter_redux.dart';
 //
 //import '../../../flipper_localization.dart';
 //import '../../../theme.dart';
@@ -22,7 +22,7 @@
 //        image: DecorationImage(
 //          colorFilter: ColorFilter.mode(
 //              Color.fromRGBO(255, 255, 255, 0.1), BlendMode.modulate),
-//          image: AssetImage("assets/graphics/visual_twist_white_petrol.png"),
+//          image: AssetImage('assets/graphics/visual_twist_white_petrol.png'),
 //          fit: BoxFit.cover,
 //        ),
 //      ),

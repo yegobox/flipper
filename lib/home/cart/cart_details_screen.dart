@@ -31,7 +31,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
             onPop: () {
               Router.navigator.pop();
             },
-            title: "Total RWF " + _total.toString(),
+            title: 'Total RWF ' + _total.toString(),
             disableButton: false,
             showActionButton: true,
             actionButtonName: S.of(context).add,
@@ -50,7 +50,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
     for (var i = 0; i < carts.length; i++) {
       list.add(ListTile(
         title: Text(
-          carts[i].parentName + " × " + carts[i].quantity.toString(),
+          carts[i].parentName + ' × ' + carts[i].quantity.toString(),
           style: TextStyle(color: Colors.black),
         ),
         subtitle: Padding(
@@ -64,11 +64,11 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
                   branchId: vm.branch.id, productId: carts[i].variationId),
               builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
                 if (snapshot.data == null) {
-                  return Text("");
+                  return Text('');
                 }
                 return Text((snapshot.data[0].retailPrice * carts[i].quantity)
                         .toString() +
-                    " RWF");
+                    ' RWF');
               }),
         ),
       ));
@@ -80,7 +80,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
       ),
       trailing: Padding(
         padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-        child: Text("RWF " + _total.toString()),
+        child: Text('RWF ' + _total.toString()),
       ),
     ));
     return list;

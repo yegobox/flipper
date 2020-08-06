@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 import '../app_state.dart';
 

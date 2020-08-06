@@ -83,7 +83,7 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
                   .dispatch(PersistFocusedUnitAction());
 
               StoreProvider.of<AppState>(context).dispatch(AppAction(
-                  actions: AppActions((a) => a..name = "showLoader")));
+                  actions: AppActions((a) => a..name = 'showLoader')));
             },
             icon: Icons.close,
             multi: 3,
@@ -93,7 +93,7 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
               stream: vm.database.unitDao.getUnitsStream(),
               builder: (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
                 if (snapshot.data == null) {
-                  return Text("");
+                  return Text('');
                 }
 
                 return ListView(

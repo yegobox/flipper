@@ -1,8 +1,8 @@
-import "package:built_value/built_value.dart";
+import 'package:built_value/built_value.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/push/push_actions.dart';
 import 'package:flipper/model/in_app_notification.dart';
-import "package:redux/redux.dart";
+import 'package:redux/redux.dart';
 
 part 'in_app_notification_viewmodel.g.dart';
 

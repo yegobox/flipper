@@ -23,7 +23,7 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         var moneyFormat = new MoneyMaskedTextController(
-            leftSymbol: '\RWF', decimalSeparator: ".", thousandSeparator: ",");
+            leftSymbol: '\RWF', decimalSeparator: '.', thousandSeparator: ',');
 
         double cleanValue = 0;
         cleanValue = vm.keypad == null ? 0 : vm.keypad.amount.toDouble();
@@ -55,7 +55,7 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                     },
                     child: Text(
                       vm.note == null
-                          ? "Add a note"
+                          ? 'Add a note'
                           : vm.note.length > 4
                               ? vm.note.substring(0, 4)
                               : vm.note,

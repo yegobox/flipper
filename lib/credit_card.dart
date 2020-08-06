@@ -25,7 +25,7 @@ class CreditCard extends StatefulWidget {
   final double width;
   final double height;
 
-  CreditCard(
+  const CreditCard(
       {Key key,
       this.cardNumber,
       this.cardExpiry,
@@ -61,10 +61,10 @@ class _CreditCardState extends State<CreditCard>
 
   @override
   void initState() {
-    _controller = new AnimationController(
-        duration: new Duration(milliseconds: 1000), vsync: this);
+    _controller = AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
 
-    _moveToBack = new TweenSequence<double>([
+    _moveToBack = TweenSequence<double>([
       TweenSequenceItem<double>(
           tween: Tween<double>(begin: 0.0, end: pi / 2)
               .chain(CurveTween(curve: Curves.easeInBack)),
@@ -73,7 +73,7 @@ class _CreditCardState extends State<CreditCard>
           tween: ConstantTween<double>(pi / 2), weight: 50.0)
     ]).animate(_controller);
 
-    _moveToFront = new TweenSequence<double>(
+    _moveToFront = TweenSequence<double>(
       [
         TweenSequenceItem<double>(
           tween: ConstantTween<double>(pi / 2),
@@ -129,13 +129,14 @@ class _CreditCardState extends State<CreditCard>
 
   Widget _buildFrontCard() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       width: cardWidth,
       height: cardHeight,
       decoration: BoxDecoration(
         boxShadow: widget.showShadow
+            // ignore: always_specify_types
             ? [
-                BoxShadow(
+                const BoxShadow(
                   color: Colors.black,
                   blurRadius: 12.0,
                   spreadRadius: 0.2,
@@ -145,6 +146,7 @@ class _CreditCardState extends State<CreditCard>
                   ),
                 )
               ]
+            // ignore: always_specify_types
             : [],
       ),
       child: ClipRRect(
@@ -176,13 +178,14 @@ class _CreditCardState extends State<CreditCard>
 
   Widget _buildBackCard() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       width: cardWidth,
       height: cardHeight,
       decoration: BoxDecoration(
         boxShadow: widget.showShadow
+            // ignore: always_specify_types
             ? [
-                BoxShadow(
+                const BoxShadow(
                   color: Colors.black45,
                   blurRadius: 12.0,
                   spreadRadius: 0.2,
@@ -192,6 +195,7 @@ class _CreditCardState extends State<CreditCard>
                   ),
                 )
               ]
+            // ignore: always_specify_types
             : [],
       ),
       child: ClipRRect(
@@ -220,7 +224,8 @@ class AwesomeCard extends StatelessWidget {
   final Animation<double> animation;
   final Widget child;
 
-  AwesomeCard({@required this.animation, @required this.child});
+  // ignore: sort_constructors_first
+  const AwesomeCard({@required this.animation, @required this.child});
 
   @override
   Widget build(BuildContext context) {

@@ -5,8 +5,8 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
-import "package:flutter/material.dart";
-import "package:flutter_redux/flutter_redux.dart";
+import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 class BusinessList extends StatefulWidget {
 //  final Function(DrawerState) stateChangeCallback;
@@ -62,7 +62,7 @@ class _BusinessListState extends State<BusinessList> {
           children: <Widget>[
             _Style.defaultPadding,
             _GroupSettingsButton(
-                Image.asset("assets/graphics/drawer/create_topic.png"), () {
+                Image.asset('assets/graphics/drawer/create_topic.png'), () {
               //TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
               if (widget.vm.businesses.length >= 3) {
                 //TODO(richard):show a toast here that we can not create additional business...
@@ -82,7 +82,7 @@ class _BusinessListState extends State<BusinessList> {
         children: <Widget>[
           _Style.defaultPadding,
           _GroupSettingsButton(
-            Image.asset("assets/graphics/drawer/account.png"),
+            Image.asset('assets/graphics/drawer/account.png'),
             () {
               // _openUserAccount(context);
               //TODO(richard): implement logout.
@@ -130,7 +130,7 @@ class _BusinessListState extends State<BusinessList> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: HexColor("#130f1f"),
+      color: HexColor('#130f1f'),
       child: Column(
         children: <Widget>[
           _buildFirstSectionFlipperLogo(context),
@@ -188,7 +188,7 @@ class _GroupButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _circleColor = HexColor(
-        "#f5a623"); //TODO(richard): make this color comes from setting in v.2
+        '#f5a623'); //TODO(richard): make this color comes from setting in v.2
     final _groupText = business.name.substring(0, 1).toUpperCase();
 
     if (business.active) {
@@ -216,7 +216,7 @@ class _GroupButton extends StatelessWidget {
 
 _selectableListItem({
   Color color = Colors.white,
-  String text = "",
+  String text = '',
   Widget userIcon,
   Function action,
   bool updateIndicatorVisible = false,
@@ -254,7 +254,7 @@ _selectableListItem({
             width: _Style.circleUnreadIndicatorWidth,
             child: ClipOval(
               child: Container(
-                color: HexColor("#44bd32"),
+                color: HexColor('#44bd32'),
                 height: 20.0, // height of the button
                 width: 20.0, // width of the button
               ),

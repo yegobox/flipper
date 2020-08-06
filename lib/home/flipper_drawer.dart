@@ -1,6 +1,6 @@
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/util/HexColor.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
 import 'branch_list/branch_list.dart';
 import 'business_list/business_list.dart';
@@ -29,7 +29,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     return Drawer(
       elevation: 0,
       child: Container(
-        color: HexColor("#211a36"),
+        color: HexColor('#211a36'),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

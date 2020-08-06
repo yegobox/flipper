@@ -136,7 +136,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             await updateNameField(name, vm);
                           },
                           decoration: InputDecoration(
-                            hintText: "Name",
+                            hintText: 'Name',
                             focusColor: Colors.black,
                           ),
                         ),
@@ -212,7 +212,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               width: 80,
               color: vm.currentColor != null
                   ? HexColor(vm.currentColor.hexCode)
-                  : HexColor("#ee5253"),
+                  : HexColor('#ee5253'),
             )
           : vm.tmpItem.isImageLocal
               ? Stack(
