@@ -1,0 +1,27 @@
+name: apptheme
+description: A new Flutter package project.
+version: 1.0.0
+
+
+homepage: "https://yegobox.com"
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: rw.flipper.subscription
+        pluginClass: Subscription
+      ios:
+        pluginClass: Subscription
+
