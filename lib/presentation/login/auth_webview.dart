@@ -49,7 +49,6 @@ class _AuthWebViewState extends State<AuthWebView> {
     _onUrlChanged =
         flutterWebviewPlugin.onUrlChanged.listen((String url) async {
       if (mounted) {
-        
         if (url.startsWith('https://flipper.rw/authorized?')) {
           RegExp accessToken = new RegExp('personal_token=(.*)');
           var token = accessToken.firstMatch(url)?.group(1);
@@ -73,7 +72,6 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           final store = StoreProvider.of<AppState>(context);
 
-          
           final storage = new FlutterSecureStorage();
           await storage.write(key: 'sync_url', value: 'enexus.rw:4984');
           await storage.write(key: 'sync_database', value: 'lagrace');
@@ -89,19 +87,18 @@ class _AuthWebViewState extends State<AuthWebView> {
               ..token = token.split('&')[0]
               ..name = _name.split('&')[0].replaceAll('%20', ' '),
           );
+          store.dispatch(WithUser(user: user));
 
           store.dispatch(UserID(userId: int.parse(_userId.split('&')[0])));
-          UserTableData user_exist =
+          UserTableData userExist =
               await store.state.database.userDao.getUser();
-          if (user_exist == null) {
+          if (userExist == null) {
             await store.state.database.userDao.insertUser(UserTableData(
                 username: _name.split('&')[0].replaceAll('%20', ' '),
                 email: _email.split('&')[0],
                 token: token.split('&')[0],
                 userId: int.parse(_userId.split('&')[0])));
           }
-
-          store.dispatch(WithUser(user: user));
 
           //check if a user belongs to a subscription then do.
           if (_subs.split('&')[0] == 'null') {
@@ -146,8 +143,6 @@ class _AuthWebViewState extends State<AuthWebView> {
 
   @override
   Widget build(BuildContext context) {
-    return WebviewScaffold(
-      url: widget.url
-    );
+    return WebviewScaffold(url: widget.url);
   }
 }

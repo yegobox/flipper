@@ -64,6 +64,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
 
+    print('heart beat sync::');
+
     await isUserCurrentlyLoggedIn(store);
     TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
@@ -152,14 +154,14 @@ heartBeatSync({Store<AppState> store}) {
 }
 
 _getCurrentLocation({Store<AppState> store}) async {
-  var geolocator = Geolocator();
+  var geoLocator = Geolocator();
   var locationOptions =
       LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
 
   if (store.state.currentActiveBusiness == null) return;
   BusinessTableData businessTableData = await store.state.database.businessDao
       .getBusinesById(id: store.state.currentActiveBusiness.id);
-  geolocator
+  geoLocator
       .getPositionStream(locationOptions)
       .listen((Position location) async {
     //time to update data....
@@ -347,7 +349,15 @@ Future getBusinesses(
   }
 
   if (businesses.length == 0) {
-    Router.navigator.pushNamed(Router.afterSplash);
+    Router.navigator.pushNamed(
+      Router.signUpScreen,
+      arguments: SignUpScreenArguments(
+        name: store.state.user.name,
+        avatar: 'avatar',
+        email: store.state.user.email,
+        token: store.state.user.token,
+      ),
+    );
   } else if (store.state.userId == null) {
     Router.navigator.pushNamed(Router.afterSplash);
   } else {

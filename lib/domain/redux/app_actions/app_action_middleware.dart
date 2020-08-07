@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
+// ignore: non_constant_identifier_names
 List<Middleware<AppState>> AppActionMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
   GeneralRepository generalRepository,
