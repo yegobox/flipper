@@ -20,6 +20,7 @@ import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:redux/redux.dart';
 
@@ -349,17 +350,30 @@ Future getBusinesses(
   }
 
   if (businesses.length == 0) {
-    Router.navigator.pushNamed(
-      Router.signUpScreen,
-      arguments: SignUpScreenArguments(
-        name: store.state.user.name,
-        avatar: 'avatar',
-        email: store.state.user.email,
-        token: store.state.user.token,
-      ),
-    );
+    if (store.state.user != null) {
+      Router.navigator.pushNamed(
+        Router.signUpScreen,
+        arguments: SignUpScreenArguments(
+          name: store.state.user.name,
+          avatar: 'avatar',
+          email: store.state.user.email,
+          token: store.state.user.token,
+        ),
+      );
+    } else {
+      Router.navigator.pushNamed(Router.afterSplash);
+    }
   } else if (store.state.userId == null) {
     Router.navigator.pushNamed(Router.afterSplash);
+    Fluttertoast.showToast(
+      msg: 'There was internal error try again',
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIos: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));
     Router.navigator.pushNamed(Router.dashboard);

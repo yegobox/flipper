@@ -1,10 +1,14 @@
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
-import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class BranchList extends StatefulWidget {
   final CommonViewModel vm;
@@ -16,6 +20,8 @@ class BranchList extends StatefulWidget {
 
 class _BranchListState extends State<BranchList> {
   String _value;
+
+  String _scanBarcode;
 
   // ignore: non_constant_identifier_names
   DropdownButton _BranchItem() => DropdownButton<String>(
@@ -61,6 +67,39 @@ class _BranchListState extends State<BranchList> {
         value: _value,
         isExpanded: true,
       );
+
+  Future<void> desktopLogin({BuildContext context, String code}) async {
+    final store = StoreProvider.of<AppState>(context);
+    final response = await http.post('https://flipper.rw/api/ws', body: {
+      'code': code,
+      'token': store.state.user.token
+    }, headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer  ${store.state.user.token}',
+    });
+  }
+
+  Future<void> scanQR(BuildContext context) async {
+    String barcodeScanRes;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+          "#ff6666", "Cancel", true, ScanMode.QR);
+      print(barcodeScanRes);
+    } on PlatformException {
+      barcodeScanRes = 'Failed to get platform version.';
+    }
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    setState(() {
+      _scanBarcode = barcodeScanRes;
+      desktopLogin(context: context, code: barcodeScanRes);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,45 +161,20 @@ class _BranchListState extends State<BranchList> {
                 ),
                 dense: true,
               ),
-//              ListTile(
-//                leading: FlatButton(
-//                  onPressed: () {
-//                    Router.navigator.pushNamed(Router.transactionScreen);
-//                  },
-//                  child: Text(
-//                    'Transactions',
-//                    style: GoogleFonts.lato(
-//                      fontStyle: FontStyle.normal,
-//                      color: AppTheme.branchList.accentColor,
-//                      fontSize:
-//                          AppTheme.branchList.textTheme.bodyText1.fontSize,
-//                    ),
-//                  ),
-//                ),
-//                dense: true,
-//              ),
               SizedBox(
                 height: 425,
               ),
-              Container(
-                width: 237,
-                height: 70,
-                color: HexColor('#3f3f44'),
-                child: ListTile(
-                  leading: SvgPicture.asset(
-                    'assets/graphics/settings.svg',
-                    semanticsLabel: 'Checkout',
+              FlatButton(
+                onPressed: () {
+                  scanQR(context);
+                },
+                child: Text(
+                  'Desktop login',
+                  style: GoogleFonts.lato(
+                    fontStyle: FontStyle.normal,
+                    color: AppTheme.branchList.accentColor,
+                    fontSize: AppTheme.branchList.textTheme.bodyText1.fontSize,
                   ),
-                  title: Text(
-                    'Settings',
-                    style: GoogleFonts.lato(
-                      fontStyle: FontStyle.normal,
-                      color: AppTheme.branchList.accentColor,
-                      fontSize:
-                          AppTheme.branchList.textTheme.bodyText1.fontSize,
-                    ),
-                  ),
-                  dense: true,
                 ),
               )
             ],

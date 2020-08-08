@@ -18,7 +18,6 @@ import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/selling/change_quantity_selling.dart';
 import 'package:flipper/home/setting_up_application_screen.dart';
-
 import 'package:flipper/home/transactions/transaction_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
@@ -26,7 +25,6 @@ import 'package:flipper/presentation/business/create_business_screen.dart';
 import 'package:flipper/presentation/business/sign_up_screen.dart';
 import 'package:flipper/presentation/home/dash_board.dart';
 import 'package:flipper/presentation/login/auth_webview.dart';
-// import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
@@ -112,7 +110,7 @@ class $Router {
   DateScreen dateScreen;
 
   @MaterialRoute(fullscreenDialog: true)
-  CompleteSaleScreen compleSaleScreen;
+  CompleteSaleScreen completeSaleScreen;
 
   @MaterialRoute(fullscreenDialog: true)
   TenderScreen tenderScreen;

@@ -73,8 +73,9 @@ class _AuthWebViewState extends State<AuthWebView> {
           final store = StoreProvider.of<AppState>(context);
 
           final storage = new FlutterSecureStorage();
-          await storage.write(key: 'sync_url', value: 'enexus.rw:4984');
-          await storage.write(key: 'sync_database', value: 'lagrace');
+          await storage.write(
+              key: 'sync_url', value: 'https://yegobox.com:4984');
+          await storage.write(key: 'sync_database', value: 'main');
           await storage.write(key: 'db_username', value: 'Administrator');
           await storage.write(key: 'db_password', value: 'password');
           //done saving credentials.

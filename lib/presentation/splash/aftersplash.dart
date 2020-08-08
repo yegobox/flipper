@@ -4,6 +4,8 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/presentation/login/auth_webview.dart';
+import 'package:flipper/presentation/splash/popup.dart';
+import 'package:flipper/presentation/splash/popup_content.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -11,8 +13,6 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:query_params/query_params.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flipper/presentation/splash/popup.dart';
-import 'package:flipper/presentation/splash/popup_content.dart';
 
 class AfterSplash extends StatelessWidget {
   // ignore: always_specify_types
@@ -105,9 +105,9 @@ class AfterSplash extends StatelessWidget {
                         onPressed: () async {
                           final URLQueryParams query = URLQueryParams();
                           query.append('client_id', '49');
-                         
-                          query.append(
-                          'redirect_uri', 'https://flipper.rw/auth/callback');
+
+                          query.append('redirect_uri',
+                              'https://flipper.rw/auth/callback');
 
                           query.append('response_type', 'code');
                           query.append('scope', '');
@@ -164,8 +164,8 @@ class AfterSplash extends StatelessWidget {
         ),
       );
 
-      // ignore: always_specify_types
-      AspectRatio aspectButtonLandascape(context) => AspectRatio(
+  // ignore: always_specify_types
+  AspectRatio aspectButtonLandascape(context) => AspectRatio(
         aspectRatio: 5 / 1,
         child: Container(
           color: Colors.white,
@@ -216,13 +216,14 @@ class AfterSplash extends StatelessWidget {
                         }
                       } on SocketException catch (_) {
                         Fluttertoast.showToast(
-                            msg: 'you are not connected to internet',
-                            toastLength: Toast.LENGTH_LONG,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIos: 1,
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
-                            fontSize: 16.0);
+                          msg: 'There is no internet',
+                          toastLength: Toast.LENGTH_LONG,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIos: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
                       }
                     },
                     color: Colors.blue,
@@ -327,7 +328,7 @@ class AfterSplash extends StatelessWidget {
                 height: 40,
               ),
               const Padding(
-                padding:  EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: Text(
                   'Flipper',
                   style: TextStyle(color: Colors.white, fontSize: 40),
@@ -341,7 +342,7 @@ class AfterSplash extends StatelessWidget {
           ),
         ),
       );
-      AspectRatio aspectLogoLandiscape(context) => AspectRatio(
+  AspectRatio aspectLogoLandiscape(context) => AspectRatio(
         aspectRatio: 3 / 1,
         child: Container(
           color: HexColor('#955be9'),
@@ -358,7 +359,7 @@ class AfterSplash extends StatelessWidget {
                 height: 40,
               ),
               const Padding(
-                padding:  EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: Text(
                   'B',
                   style: TextStyle(color: Colors.white, fontSize: 40),
@@ -375,7 +376,8 @@ class AfterSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool landscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool landscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     Widget child;
     if (landscape)
       child = Column(
