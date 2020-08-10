@@ -39,7 +39,6 @@ import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/subscription.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
-import 'package:flipper/home/bar_code/scanner_screen.dart';
 
 class Router {
   static const splashScreen = '/';
@@ -69,11 +68,10 @@ class Router {
   static const webView = '/web-view';
   static const reportScreen = '/report-screen';
   static const dateScreen = '/date-screen';
-  static const compleSaleScreen = '/comple-sale-screen';
+  static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
   static const subscription = '/subscription';
   static const cameraPreview = '/camera-preview';
-  static const scannerScreen = '/scanner-screen';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -363,7 +361,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.compleSaleScreen:
+      case Router.completeSaleScreen:
         if (hasInvalidArgs<CompleteSaleScreenArguments>(args)) {
           return misTypedArgsRoute<CompleteSaleScreenArguments>(args);
         }
@@ -412,12 +410,6 @@ class Router {
         return MaterialPageRoute<dynamic>(
           builder: (_) =>
               CameraPreview(key: typedArgs.key, image: typedArgs.image),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Router.scannerScreen:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ScannerScreen(),
           settings: settings,
           fullscreenDialog: true,
         );

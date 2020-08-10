@@ -50,7 +50,6 @@ import 'dao/user_dao.dart';
 
 part 'main_database.g.dart';
 
-
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
@@ -58,27 +57,21 @@ LazyDatabase _openConnection() {
     // for your app.
 
     final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
-
+    // final dbFolder = await getDatabasesPath();
     //development codes: todo: comment this code in production
-    final Io.Directory dir = await getExternalStorageDirectory();
-    final Io.Directory testdir = await Io.Directory('${dir.path}/database-development')
-        .create(recursive: true);
-
-//    print(testdir);
+    // final Io.Directory dir = await getExternalStorageDirectory();
+    // final Io.Directory testdir = await Io.Directory('${dir.path}/database-development')
+    //     .create(recursive: true);
 
     // final Io.File file = File(p.join(testdir.path, 'db.sqlite'));
     //done development code : todo: end of code to be commented
 
-//    final file = File(p.join(dbFolder.path, 'db.sqlite')); //todo: uncomment this code in production.
+    //final file = File(p.join(dbFolder.path, 'db.sqlite')); //todo: uncomment this code in production.
     // return VmDatabase(file);
-   return LazyDatabase(() async {
-       final Io.File file = File(p.join(testdir.path, 'db.sqlite'));
-      // ignore: avoid_slow_async_io
-      if (!await file.exists()) {
-        // copy the file from an asset, or network, or any other source
-      }
-      return VmDatabase(file);
-    });
+
+    final Io.File file = File(p.join(dbFolder.path, 'db.sqlite'));
+    // if (!await file.exists()) {}
+    return VmDatabase(file);
   });
 }
 

@@ -53,7 +53,7 @@ class _PayableWidgetState extends State<PayableWidget> {
                       color: HexColor(FlipperColors.blue),
                       onPressed: () {
                         Router.navigator.pushNamed(
-                          Router.compleSaleScreen,
+                          Router.completeSaleScreen,
                           arguments: CompleteSaleScreenArguments(
                             cashReceived: cashReceived,
                           ),

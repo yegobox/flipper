@@ -11,7 +11,7 @@ description: flipper business app.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.35
+version: 1.5.38
 
 environment:
   sdk: '>=2.10.0-3.0.dev.flutter-363c72111d <3.0.0'
@@ -37,7 +37,7 @@ dependencies:
   charts_flutter: ^0.9.0
   fl_chart: ^0.11.0
   # Firebase dependencies
-  firebase_core: ^0.4.5
+#  firebase_core: ^0.4.5
   flutter_webview_plugin: ^0.3.11
   firebase_messaging: ^6.0.16
 #  TODO: learn more if crashlytics is not causing us trouble.
@@ -186,7 +186,7 @@ flutter_intl:
 # 1.5.33
 #  flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
 #  rw.flipper
-# flutter build appbundle --build-name=1.5.35  --build-number=1535
+# flutter build appbundle --build-name=1.5.38  --build-number=1538
 # Db on device for debugging purpose: This PC\Pixel\Internal shared storage\Android\data\rw.flipper\files\database-development
 
 # icon
