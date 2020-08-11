@@ -56,20 +56,22 @@ LazyDatabase _openConnection() {
     // put the database file, called db.sqlite here, into the documents folder
     // for your app.
 
-    final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
+    final Io.Directory dbFolder = await getExternalStorageDirectory();
+
+    // final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
     // final dbFolder = await getDatabasesPath();
     //development codes: todo: comment this code in production
     // final Io.Directory dir = await getExternalStorageDirectory();
-    // final Io.Directory testdir = await Io.Directory('${dir.path}/database-development')
+    final Io.Directory dir = Io.Directory('${dbFolder.path}/flipper');
     //     .create(recursive: true);
 
-    // final Io.File file = File(p.join(testdir.path, 'db.sqlite'));
+    // final Io.File file = File(p.join(dir.path, 'db.sqlite'));
     //done development code : todo: end of code to be commented
 
     //final file = File(p.join(dbFolder.path, 'db.sqlite')); //todo: uncomment this code in production.
     // return VmDatabase(file);
 
-    final Io.File file = File(p.join(dbFolder.path, 'db.sqlite'));
+    final Io.File file = File(p.join(dir.path, 'db.sqlite'));
     // if (!await file.exists()) {}
     return VmDatabase(file);
   });

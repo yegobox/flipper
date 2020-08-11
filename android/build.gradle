@@ -16,7 +16,7 @@ buildscript {
         classpath 'com.google.gms:google-services:4.3.3'
         // Add fabric classpath
 //        todo: learn more if I need this as it may cause app crash.
-//        classpath 'io.fabric.tools:gradle:1.26.1'
+       classpath 'io.fabric.tools:gradle:1.26.1'
     }
 }
 

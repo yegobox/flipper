@@ -1,4 +1,5 @@
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flipper/debug.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,6 @@ void main() {
   //   DeviceOrientation.portraitUp,
   //   DeviceOrientation.portraitDown,
   // ]);
-
-  runApp(FlipperApp());
+ 
+  runApp(Debug());
 }
