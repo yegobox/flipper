@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
+import 'package:flipper/debug.dart';
 import 'package:flipper/home/add_category_screen.dart';
 import 'package:flipper/home/add_note_screen.dart';
 import 'package:flipper/home/add_product_screen.dart';
@@ -119,4 +120,8 @@ class $Router {
 
   @MaterialRoute(fullscreenDialog: true)
   CameraPreview cameraPreview;
+
+  @MaterialRoute(fullscreenDialog: true)
+  Debug debug;
+
 }

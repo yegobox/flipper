@@ -177,7 +177,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ..itemVariations = ListBuilder()
     ..items = ListBuilder()
     ..businesses = List<Business>()
-    ..branches = List<Branch>());
+    ..branches = List<Branch>()
+    );
 
   AppState clear() {
     // Add here anything else that also needs to be carried over.

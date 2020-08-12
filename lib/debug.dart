@@ -11,7 +11,7 @@ class _DebugState extends State<Debug> {
   @override
   Widget build(BuildContext context) {
     return Container(
-       child: Center(child: Container(child: Text("46"),)),
+       child: Center(child: Container(child: Text("66"),)),
     );
   }
 }

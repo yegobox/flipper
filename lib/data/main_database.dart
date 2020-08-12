@@ -50,19 +50,20 @@ import 'dao/user_dao.dart';
 
 part 'main_database.g.dart';
 
+
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
     // put the database file, called db.sqlite here, into the documents folder
     // for your app.
 
-    final Io.Directory dbFolder = await getExternalStorageDirectory();
+    final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
 
     // final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
     // final dbFolder = await getDatabasesPath();
     //development codes: todo: comment this code in production
     // final Io.Directory dir = await getExternalStorageDirectory();
-    final Io.Directory dir = Io.Directory('${dbFolder.path}/flipper');
+    // final Io.Directory dir = await Io.Directory('${dbFolder.path}/flipper')
     //     .create(recursive: true);
 
     // final Io.File file = File(p.join(dir.path, 'db.sqlite'));
@@ -71,7 +72,8 @@ LazyDatabase _openConnection() {
     //final file = File(p.join(dbFolder.path, 'db.sqlite')); //todo: uncomment this code in production.
     // return VmDatabase(file);
 
-    final Io.File file = File(p.join(dir.path, 'db.sqlite'));
+
+    final Io.File file = File(p.join(dbFolder.path, 'db.sqlite'));
     // if (!await file.exists()) {}
     return VmDatabase(file);
   });

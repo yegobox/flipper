@@ -2,10 +2,14 @@
     package="rw.flipper"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-     -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+    
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
          In most cases you can leave this as-is, but you if you want to provide
@@ -14,6 +18,7 @@
 <!--    android:name="io.flutter.app.FlutterApplication"-->
 <!--  android:name=".Application" -->
     <application
+        android:usesCleartextTraffic="true"
         android:name="io.flutter.app.FlutterApplication"
         android:label="flipper"
         tools:replace="icon, label"

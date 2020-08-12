@@ -39,7 +39,7 @@ Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) {
   }
 
   // Or do other work.
-  throw 422;
+  // throw 422;
 
 }
 
@@ -94,6 +94,7 @@ class _FlipperAppState extends State<FlipperApp> {
     store.dispatch(
       ShouldLoadBusiness(),
     );
+
     _firebaseMessaging.configure(
       onBackgroundMessage: backgroundMessageHandler
     );
@@ -139,7 +140,7 @@ class _FlipperAppState extends State<FlipperApp> {
         title: 'Flipper',
         theme: AppTheme.theme,
         navigatorKey: Router.navigator.key,
-        initialRoute: Router.splashScreen,
+        initialRoute: Router.afterSplash,
         onGenerateRoute: Router.onGenerateRoute,
       ),
     );
