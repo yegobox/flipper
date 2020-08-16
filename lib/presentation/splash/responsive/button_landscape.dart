@@ -58,26 +58,11 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                             ),
                           );
                         } else {
-                          Fluttertoast.showToast(
-                              msg: 'There is a problem launching login url',
-                              toastLength: Toast.LENGTH_LONG,
-                              gravity: ToastGravity.BOTTOM,
-                              timeInSecForIos: 1,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                              fontSize: 16.0);
+                          print('There is a problem launching login url');
                         }
                       }
                     } on SocketException catch (_) {
-                      Fluttertoast.showToast(
-                        msg: 'There is no internet',
-                        toastLength: Toast.LENGTH_LONG,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIos: 1,
-                        backgroundColor: Colors.red,
-                        textColor: Colors.white,
-                        fontSize: 16.0,
-                      );
+                      print('There is no internet');
                     }
                   },
                   color: Colors.blue,
@@ -103,14 +88,8 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                     style: const TextStyle(color: Colors.blue),
                   ),
                   onPressed: () {
-                    Fluttertoast.showToast(
-                        msg: 'Got a Here 1...',
-                        toastLength: Toast.LENGTH_LONG,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIos: 1,
-                        backgroundColor: Colors.red,
-                        textColor: Colors.white,
-                        fontSize: 16.0);
+                   print('First signins');
+
 
                     // final URLQueryParams query = URLQueryParams();
                     // query.append('client_id', '49');

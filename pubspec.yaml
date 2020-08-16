@@ -88,7 +88,7 @@ dev_dependencies:
   moor_generator: ^3.0.0
   flutter_test:
     sdk: flutter
-
+  analyzer: '0.39.14'
   build_runner: ^1.7.4
   auto_route_generator: ^0.3.2
   built_value_generator:

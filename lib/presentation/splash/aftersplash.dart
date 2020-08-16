@@ -19,6 +19,7 @@ class AfterSplash extends StatelessWidget {
           LandscapeButton(),
         ],
       );
+      
     if (!landscape)
       child = Wrap(
         children: <Widget>[
