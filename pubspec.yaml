@@ -13,14 +13,14 @@ description: flipper business app.
 version: 1.5.78
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^5.5.0
   flutter_svg: ^0.18.0
-  background_fetch: ^0.6.0
+  # background_fetch: 
   flutter_uploader: ^1.2.0
   fluttercouch: ^1.0.0-dev.1
   # fluttercouch:
@@ -36,13 +36,13 @@ dependencies:
   fl_chart: ^0.11.0
   # Firebase dependencies
   # social sign in
-  google_sign_in: "^4.5.1"
-  firebase_auth: ^0.18.0
+  # google_sign_in: "^4.5.1"
+  # firebase_auth: ^0.18.0
   # end social signin
   firebase_core: ^0.5.0
   firebase_analytics: ^5.0.11
   firebase_messaging: ^6.0.16
-  cloud_firestore: ^0.14.0
+  # cloud_firestore: ^0.14.0
   # end of firebase dependency 
   flutter_webview_plugin: ^0.3.11
   http: ^0.12.0+4
@@ -86,7 +86,9 @@ dependencies:
   customappbar: ^1.0.0
   flipper_ui: ^1.0.0
   apptheme: ^1.0.0
- 
+  rubber: ^0.4.0
+  shared_preferences: 0.5.2
+
   flutter_localizations:
     sdk: flutter
 

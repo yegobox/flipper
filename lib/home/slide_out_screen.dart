@@ -27,7 +27,7 @@ class _SlideOutScreenState extends State<SlideOutScreen>
   @override
   void initState() {
     super.initState();
-
+    
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),

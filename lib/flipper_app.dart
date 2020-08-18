@@ -16,6 +16,7 @@ import 'package:flipper/theme.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:redux/redux.dart';
 
 import 'data/respositories/business_repository.dart';
@@ -30,17 +31,18 @@ import 'domain/redux/push/push_middleware.dart';
 Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) {
   if (message.containsKey('data')) {
     // Handle data message
+    // ignore: unused_local_variable
     final dynamic data = message['data'];
   }
 
   if (message.containsKey('notification')) {
     // Handle notification message
+    // ignore: unused_local_variable
     final dynamic notification = message['notification'];
   }
 
   // Or do other work.
-  // throw 422;
-
+  throw 422;
 }
 
 class FlipperApp extends StatefulWidget {
@@ -49,14 +51,15 @@ class FlipperApp extends StatefulWidget {
 }
 
 class _FlipperAppState extends State<FlipperApp> {
-  static FirebaseAnalytics analytics =  FirebaseAnalytics();
+  static FirebaseAnalytics analytics = FirebaseAnalytics();
   static FirebaseAnalyticsObserver observer =
       FirebaseAnalyticsObserver(analytics: analytics);
   Store<AppState> store;
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-  static final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> _navigatorKey =
+      GlobalKey<NavigatorState>();
   final UserRepository userRepo = UserRepository();
   final BusinessRepository businessRepo = BusinessRepository();
   final BranchRepository branchRepo = BranchRepository();
@@ -95,9 +98,7 @@ class _FlipperAppState extends State<FlipperApp> {
       ShouldLoadBusiness(),
     );
 
-    _firebaseMessaging.configure(
-      onBackgroundMessage: backgroundMessageHandler
-    );
+    _firebaseMessaging.configure(onBackgroundMessage: backgroundMessageHandler);
     _firebaseMessaging.requestNotificationPermissions(
         const IosNotificationSettings(sound: true, badge: true, alert: true));
     _firebaseMessaging.onIosSettingsRegistered
@@ -117,6 +118,11 @@ class _FlipperAppState extends State<FlipperApp> {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle headerTextStyle =
+        GoogleFonts.nunitoSans(fontWeight: FontWeight.bold);
+    final TextStyle mainTextStyle =
+        GoogleFonts.nunitoSans(fontWeight: FontWeight.bold);
+
     // ignore: always_specify_types
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
@@ -138,11 +144,97 @@ class _FlipperAppState extends State<FlipperApp> {
         localizationsDelegates: [S.delegate],
         supportedLocales: S.delegate.supportedLocales,
         title: 'Flipper',
-        theme: AppTheme.theme,
+        theme: buildLightThemeData(mainTextStyle, headerTextStyle),
+        darkTheme: buildDarkThemeData(mainTextStyle, headerTextStyle),
         navigatorKey: Routing.navigator.key,
         initialRoute: Routing.afterSplash,
         onGenerateRoute: Routing.onGenerateRoute,
       ),
     );
+  }
+
+  ThemeData buildLightThemeData(TextStyle mainTextStyle, TextStyle headerTextStyle) {
+    return ThemeData(
+        primarySwatch: Colors.deepOrange,
+        toggleableActiveColor: Colors.deepOrangeAccent,
+        accentColor: Colors.deepOrangeAccent,
+        cursorColor: Colors.deepOrangeAccent,
+        textSelectionColor: Colors.orangeAccent[100],
+        textSelectionHandleColor: Colors.deepOrangeAccent,
+        brightness: Brightness.light,
+        popupMenuTheme: PopupMenuThemeData(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
+        cardTheme: CardTheme(
+            elevation: 2.0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
+        dialogTheme: DialogTheme(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
+        textTheme: TextTheme(
+          headline1: mainTextStyle,
+          headline2: mainTextStyle,
+          headline3: mainTextStyle,
+          headline4: headerTextStyle.copyWith(
+              color: Colors.deepOrangeAccent, fontSize: 18),
+          headline5: headerTextStyle.copyWith(fontSize: 24),
+          headline6: mainTextStyle,
+          subtitle1: mainTextStyle,
+          subtitle2: mainTextStyle,
+          bodyText1: mainTextStyle,
+          bodyText2: mainTextStyle,
+          button: mainTextStyle,
+          caption: mainTextStyle,
+          overline: mainTextStyle,
+        ),
+      );
+  }
+
+  ThemeData buildDarkThemeData(TextStyle mainTextStyle, TextStyle headerTextStyle) {
+    return ThemeData(
+        primarySwatch: Colors.orange,
+        toggleableActiveColor: Colors.orangeAccent,
+        accentColor: Colors.orangeAccent,
+        cursorColor: Colors.orangeAccent,
+        textSelectionColor: Colors.deepOrangeAccent,
+        textSelectionHandleColor: Colors.orangeAccent,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        cardColor: const Color(0xFF272727),
+        canvasColor: const Color(0xFF323232),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: Color(0xFF323232),
+          contentTextStyle: TextStyle(color: Colors.white),
+          actionTextColor: Colors.orangeAccent,
+        ),
+        popupMenuTheme: PopupMenuThemeData(
+            color: const Color(0xFF323232),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
+        cardTheme: CardTheme(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
+        dialogTheme: DialogTheme(
+            backgroundColor: const Color(0xFF323232),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
+        textTheme: TextTheme(
+          headline1: mainTextStyle,
+          headline2: mainTextStyle,
+          headline3: mainTextStyle,
+          headline4: headerTextStyle.copyWith(
+              color: Colors.orangeAccent, fontSize: 18),
+          headline5: headerTextStyle.copyWith(fontSize: 24),
+          headline6: mainTextStyle,
+          subtitle1: mainTextStyle,
+          subtitle2: mainTextStyle,
+          bodyText1: mainTextStyle,
+          bodyText2: mainTextStyle,
+          button: mainTextStyle,
+          caption: mainTextStyle,
+          overline: mainTextStyle,
+        ),
+      );
   }
 }

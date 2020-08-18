@@ -1,5 +1,16 @@
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const String _themeModeKey = 'THEME_OPTION';
+
+Future<ThemeMode> getThemeMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final int themeModeIndex = prefs.containsKey(_themeModeKey)
+        ? prefs.getInt(_themeModeKey)
+        : ThemeMode.system.index;
+    return ThemeMode.values[themeModeIndex];
+}
 
 class AppTheme {
   static const pixelMultiplier = 1.0;

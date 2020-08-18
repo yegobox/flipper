@@ -7,7 +7,7 @@ class TextEditingControllerWorkaroud extends TextEditingController {
     int offset = caretPosition != null ? caretPosition : newText.length;
     value = value.copyWith(
         text: newText,
-        selection: TextSelection.collapsed(offset: offset),
+        // selection: TextSelection.collapsed(offset: offset),
         composing: TextRange.empty);
   }
 }
