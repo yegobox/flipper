@@ -37,7 +37,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
             width: 300,
             child: GestureDetector(
               onTap: () {
-                Router.navigator.pushNamed(Router.addUnitType,
+                Routing.navigator.pushNamed(Routing.addUnitType,
                     arguments: AddUnitTypeScreenArguments(
                         productId: vm.tmpItem.productId));
               },

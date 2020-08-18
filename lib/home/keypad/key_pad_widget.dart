@@ -51,7 +51,7 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                   ),
                   leading: FlatButton(
                     onPressed: () {
-                      Router.navigator.pushNamed(Router.addNoteScreen);
+                      Routing.navigator.pushNamed(Routing.addNoteScreen);
                     },
                     child: Text(
                       vm.note == null

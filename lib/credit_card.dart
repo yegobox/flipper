@@ -62,7 +62,7 @@ class _CreditCardState extends State<CreditCard>
   @override
   void initState() {
     _controller = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
+        duration: const Duration(milliseconds: 1000));
 
     _moveToBack = TweenSequence<double>([
       TweenSequenceItem<double>(

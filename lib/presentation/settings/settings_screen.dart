@@ -9,7 +9,7 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Router.navigator.pop();
+          Routing.navigator.pop();
         },
         disableButton: false,
         title: 'Setting',

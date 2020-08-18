@@ -62,7 +62,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
             return Scaffold(
               appBar: CommonAppBar(
                 onPop: () {
-                  Router.navigator.pop();
+                  Routing.navigator.pop();
                 },
                 title: S.of(context).editVariation,
                 showActionButton: true,
@@ -70,7 +70,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                 actionButtonName: S.of(context).save,
                 onPressedCallback: () async {
                   updateVariation(snapshot.data[0], context);
-                  Router.navigator.pop(true);
+                  Routing.navigator.pop(true);
                 },
                 icon: Icons.close,
                 multi: 3,
@@ -94,8 +94,8 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           width: 300,
                           child: GestureDetector(
                             onTap: () {
-                              // Router.navigator.pushNamed(
-                              //   Router.addUnitType,
+                              // Routing.navigator.pushNamed(
+                              //   Routing.addUnitType,
                               //   arguments: AddUnitTypeScreenArguments(
                               //     itemId: widget.productId,
                               //   ),
@@ -317,6 +317,6 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
   void _closeAndDelete(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
     // Util.deleteVariant(store, widget.variationId);
-    Router.navigator.pop(true);
+    Routing.navigator.pop(true);
   }
 }

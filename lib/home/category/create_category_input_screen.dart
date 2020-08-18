@@ -26,7 +26,7 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: S.of(context).createCategory,
             icon: Icons.keyboard_backspace,

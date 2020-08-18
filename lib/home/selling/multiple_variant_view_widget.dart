@@ -26,7 +26,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Router.navigator.pop();
+          Routing.navigator.pop();
         },
         disableButton: false,
         showActionButton: true,
@@ -162,6 +162,6 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
   void _saveCart(CommonViewModel vm, context) {
     StoreProvider.of<AppState>(context).dispatch(SaveCart());
-    Router.navigator.maybePop();
+    Routing.navigator.maybePop();
   }
 }

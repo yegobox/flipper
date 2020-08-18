@@ -139,9 +139,9 @@ class _FlipperAppState extends State<FlipperApp> {
         supportedLocales: S.delegate.supportedLocales,
         title: 'Flipper',
         theme: AppTheme.theme,
-        navigatorKey: Router.navigator.key,
-        initialRoute: Router.afterSplash,
-        onGenerateRoute: Router.onGenerateRoute,
+        navigatorKey: Routing.navigator.key,
+        initialRoute: Routing.afterSplash,
+        onGenerateRoute: Routing.onGenerateRoute,
       ),
     );
   }

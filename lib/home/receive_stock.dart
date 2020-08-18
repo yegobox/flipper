@@ -29,12 +29,12 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             disableButton: false,
             title: 'Receive stock',
             onPressedCallback: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             showActionButton: true,
             actionButtonName: S.of(context).save,

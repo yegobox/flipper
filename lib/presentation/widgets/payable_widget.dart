@@ -52,8 +52,8 @@ class _PayableWidgetState extends State<PayableWidget> {
                   FlatButton(
                       color: HexColor(FlipperColors.blue),
                       onPressed: () {
-                        Router.navigator.pushNamed(
-                          Router.completeSaleScreen,
+                        Routing.navigator.pushNamed(
+                          Routing.completeSaleScreen,
                           arguments: CompleteSaleScreenArguments(
                             cashReceived: cashReceived,
                           ),

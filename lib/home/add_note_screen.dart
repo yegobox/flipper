@@ -16,7 +16,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Router.navigator.pop();
+          Routing.navigator.pop();
         },
         disableButton: false,
         title: 'Add Note',

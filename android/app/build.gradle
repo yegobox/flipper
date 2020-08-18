@@ -44,6 +44,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        multiDexEnabled true
         applicationId "rw.flipper"
         minSdkVersion 23
         targetSdkVersion 30
@@ -81,6 +82,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.google.firebase:firebase-messaging:20.2.4'
     // implementation('com.google.android.gms:play-services-base:17.0.0'){force = true}
+     implementation 'com.android.support:multidex:2.0.1'
 }
 
 //apply plugin: 'io.fabric'

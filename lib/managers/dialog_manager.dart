@@ -36,6 +36,6 @@ class Manager {
   }
 
   static dismissDialog() {
-    Router.navigator.pop();
+    Routing.navigator.pop();
   }
 }

@@ -23,7 +23,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: 'Transactions',
             showActionButton: false,

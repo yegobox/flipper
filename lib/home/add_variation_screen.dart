@@ -48,7 +48,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: S.of(context).addVariation,
             showActionButton: true,
@@ -56,7 +56,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
             actionButtonName: S.of(context).save,
             onPressedCallback: () async {
               await _createVariant(vm, context);
-              Router.navigator.maybePop();
+              Routing.navigator.maybePop();
             },
             icon: Icons.close,
             multi: 3,

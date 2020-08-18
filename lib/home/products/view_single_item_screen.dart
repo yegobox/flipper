@@ -48,11 +48,11 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   _closeAndDelete(BuildContext context) async {
     final store = StoreProvider.of<AppState>(context);
     await DataManager.deleteProduct(store: store, productId: widget.productId);
-    Router.navigator.pop();
+    Routing.navigator.pop();
   }
 
   Future<bool> _onWillPop() async {
-    Router.navigator.pop(true);
+    Routing.navigator.pop(true);
     return true;
   }
 
@@ -86,7 +86,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                 child: Scaffold(
                   appBar: CommonAppBar(
                     onPop: () {
-                      Router.navigator.pop();
+                      Routing.navigator.pop();
                     },
                     title: S.of(context).editItem,
                     disableButton: _actions == null ? true : _actions.isLocked,
@@ -108,7 +108,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Router.navigator.pushNamed(Router.editItemTitle);
+                              Routing.navigator.pushNamed(Routing.editItemTitle);
                             },
                             child: Container(
                                 height: 80,
@@ -153,8 +153,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: GestureDetector(
                                 onTap: () {
-                                  Router.navigator.pushNamed(
-                                    Router.editCategoryScreen,
+                                  Routing.navigator.pushNamed(
+                                    Routing.editCategoryScreen,
                                     arguments: EditCategoryScreenArguments(
                                       productId: widget.productId,
                                     ),
@@ -224,8 +224,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: GestureDetector(
                                 onTap: () {
-                                  Router.navigator.pushNamed(
-                                      Router.editUnitType,
+                                  Routing.navigator.pushNamed(
+                                      Routing.editUnitType,
                                       arguments: EditUnitTypeScreenArguments(
                                           itemId: widget.productId));
                                 },
@@ -289,8 +289,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                     vm.database.actionsDao.updateAction(
                                         _actions.copyWith(isLocked: true));
 
-                                    Router.navigator
-                                        .pushNamed(Router.addVariationScreen);
+                                    Routing.navigator
+                                        .pushNamed(Routing.addVariationScreen);
                                   }
                                 },
                               ),
@@ -414,7 +414,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
       ),
     );
     await store.state.couch.syncLocalToRemote(store: store);
-    Router.navigator.pop();
+    Routing.navigator.pop();
   }
 }
 

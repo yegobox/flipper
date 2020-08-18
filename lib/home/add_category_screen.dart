@@ -68,7 +68,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             showActionButton: false,
             title: S.of(context).category,
@@ -91,7 +91,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                   StoreProvider.of<AppState>(context).dispatch(
                     CreateEmptyTempCategoryAction(name: 'tmp'),
                   );
-                  Router.navigator.pushNamed(Router.createCategoryInputScreen);
+                  Routing.navigator.pushNamed(Routing.createCategoryInputScreen);
                 },
                 child: ListTile(
                   title: Text('Create Category',

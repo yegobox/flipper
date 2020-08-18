@@ -34,7 +34,7 @@ import 'package:flipper/presentation/splash/splash_screen.dart';
 import 'package:flipper/presentation/subscription.dart';
 
 @MaterialAutoRouter()
-class $Router {
+class $Routing {
   @initial
   SplashScreen splashScreen;
   DashBoard dashboard;
@@ -116,7 +116,7 @@ class $Router {
   @MaterialRoute(fullscreenDialog: true)
   TenderScreen tenderScreen;
 
-  Subscription subscription;
+  // Subscription subscription;
 
   @MaterialRoute(fullscreenDialog: true)
   CameraPreview cameraPreview;

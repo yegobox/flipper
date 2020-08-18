@@ -127,7 +127,7 @@ class _ProductsViewState extends State<ProductsView> {
 
     dispatchCurrentProductVariants(context, variants, products, i);
 
-    Router.navigator.pushNamed(Router.editQuantityItemScreen,
+    Routing.navigator.pushNamed(Routing.editQuantityItemScreen,
         arguments:
             ChangeQuantityForSellingArguments(productId: products[i].id));
   }
@@ -206,8 +206,8 @@ class _ProductsViewState extends State<ProductsView> {
         ),
       ),
     );
-    Router.navigator.pushNamed(
-      Router.viewSingleItem,
+    Routing.navigator.pushNamed(
+      Routing.viewSingleItem,
       arguments: ViewSingleItemScreenArguments(
         productId: products[i].id,
         itemName: products[i].name,

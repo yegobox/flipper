@@ -96,7 +96,7 @@ class _ReportScreenState extends State<ReportScreen>
             child: Scaffold(
               appBar: CommonAppBar(
                 onPop: () {
-                  Router.navigator.pop();
+                  Routing.navigator.pop();
                 },
                 title: 'Report',
                 disableButton: false,
@@ -110,7 +110,7 @@ class _ReportScreenState extends State<ReportScreen>
                       Center(
                         child: FlatButton(
                           onPressed: () {
-                            Router.navigator.pushNamed(Router.dateScreen);
+                            Routing.navigator.pushNamed(Routing.dateScreen);
                           },
                           child: Text('From Date'),
                         ),

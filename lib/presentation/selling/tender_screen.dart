@@ -42,7 +42,7 @@ class _TenderScreenState extends State<TenderScreen> {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Router.navigator.pop();
+          Routing.navigator.pop();
         },
         disableButton: false,
         showActionButton: false,
@@ -125,8 +125,8 @@ class _TenderScreenState extends State<TenderScreen> {
           ),
         );
 
-        Router.navigator
-            .pushNamedAndRemoveUntil(Router.dashboard, (route) => false);
+        Routing.navigator
+            .pushNamedAndRemoveUntil(Routing.dashboard, (route) => false);
       };
     }
   }

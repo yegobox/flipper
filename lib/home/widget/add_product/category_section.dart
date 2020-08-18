@@ -49,7 +49,7 @@ class _CategorySectionState extends State<CategorySection> {
             width: 300,
             child: GestureDetector(
               onTap: () {
-                Router.navigator.pushNamed(Router.addCategoryScreen);
+                Routing.navigator.pushNamed(Routing.addCategoryScreen);
               },
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),

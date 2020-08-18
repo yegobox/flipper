@@ -26,8 +26,8 @@ class _VariationWidgetState extends State<VariationWidget> {
     return ListView(children: <Widget>[
       GestureDetector(
         onTap: () {
-          Router.navigator.pushNamed(
-            Router.editVariationScreen,
+          Routing.navigator.pushNamed(
+            Routing.editVariationScreen,
             //TODO(richard): work on this.
             // arguments: EditVariationScreenArguments(
             //   variationId: widget.variation.id,
@@ -68,7 +68,7 @@ class _VariationWidgetState extends State<VariationWidget> {
                   : '${snapshot.data[i].currentStock}' + S.of(context).inStock,
             ),
             onPressed: () {
-              Router.navigator.pushNamed(Router.receiveStock);
+              Routing.navigator.pushNamed(Routing.receiveStock);
             },
           )
         ]),

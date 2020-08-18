@@ -38,7 +38,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: 'Edit item Tile',
             icon: Icons.keyboard_backspace,

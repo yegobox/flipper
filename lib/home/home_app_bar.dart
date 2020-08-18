@@ -63,8 +63,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     ),
                               );
                             }
-                            Router.navigator.pushNamed(
-                              Router.cartDetailsScreen,
+                            Routing.navigator.pushNamed(
+                              Routing.cartDetailsScreen,
                               arguments: CartDetailsScreenArguments(
                                 carts: cart,
                               ),

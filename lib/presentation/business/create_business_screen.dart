@@ -38,7 +38,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: "",
             disableButton: false,

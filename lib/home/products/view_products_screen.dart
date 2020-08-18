@@ -25,7 +25,7 @@ class _ViewProductsScreenState extends State<ViewProductsScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: S.of(context).allItems,
             showActionButton: false,

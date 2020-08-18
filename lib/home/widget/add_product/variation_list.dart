@@ -53,8 +53,8 @@ class _VariationListState extends State<VariationList> {
                                           S.of(context).inStock,
                                 ),
                                 onPressed: () {
-                                  Router.navigator.pushNamed(
-                                    Router.receiveStock,
+                                  Routing.navigator.pushNamed(
+                                    Routing.receiveStock,
                                     arguments: ReceiveStockScreenArguments(
                                       variationId: variations[i].id,
                                     ),

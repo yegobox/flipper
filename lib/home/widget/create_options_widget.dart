@@ -33,7 +33,7 @@ class CreateOptionsWidget extends StatelessWidget {
                         onPressed: () async {
                           //create a temp item that can be deleted anytime on discard
                           await _createTemporalItem(vm, context);
-                          Router.navigator.pushNamed(Router.addItemScreen);
+                          Routing.navigator.pushNamed(Routing.addItemScreen);
                         },
                         child: Text(
                           'Create Item',
@@ -66,7 +66,7 @@ class CreateOptionsWidget extends StatelessWidget {
                           style: AppTheme.dismiss,
                         ),
                         onPressed: () {
-                          Router.navigator.pop();
+                          Routing.navigator.pop();
                         },
                       ),
                     ),

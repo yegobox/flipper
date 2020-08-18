@@ -38,7 +38,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool _hasErrors = false;
 
   _onClose(BuildContext context) async {
-    Router.navigator.pop(true);
+    Routing.navigator.pop(true);
   }
 
   Future<bool> _onWillPop() async {
@@ -55,7 +55,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             actions: <Widget>[
               new FlatButton(
-                onPressed: () => Router.navigator.pop(false),
+                onPressed: () => Routing.navigator.pop(false),
                 child: new Text('No'),
               ),
               new FlatButton(
@@ -89,14 +89,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
           child: Scaffold(
             appBar: CommonAppBar(
               onPop: () {
-                Router.navigator.pop();
+                Routing.navigator.pop();
               },
               title: S.of(context).createItem,
               disableButton: _actions == null ? true : _actions.isLocked,
               showActionButton: true,
               onPressedCallback: () async {
                 await _handleCreateItem(vm);
-                Router.navigator.pop(true);
+                Routing.navigator.pop(true);
               },
               actionButtonName: S.of(context).save,
               icon: Icons.close,
@@ -203,7 +203,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   GestureDetector buildImageHolder(CommonViewModel vm, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Router.navigator.pushNamed(Router.editItemTitle,
+        Routing.navigator.pushNamed(Routing.editItemTitle,
             arguments: EditItemTitleArguments(productId: vm.tmpItem.productId));
       },
       child: !vm.tmpItem.hasPicture
@@ -327,7 +327,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (_actions != null) {
       vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
 
-      Router.navigator.pushNamed(Router.addVariationScreen,
+      Routing.navigator.pushNamed(Routing.addVariationScreen,
           arguments: AddVariationScreenArguments(
               retailPrice: DataManager.retailPrice,
               supplyPrice: DataManager.supplyPrice));

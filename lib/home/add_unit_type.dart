@@ -72,7 +72,7 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: S.of(context).editUnitType,
             showActionButton: true,

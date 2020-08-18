@@ -16,7 +16,7 @@ class _AllItemScreenState extends State<AllItemScreen> {
     return Scaffold(
         appBar: CommonAppBar(
           onPop: () {
-            Router.navigator.pop();
+            Routing.navigator.pop();
           },
           title: S.of(context).items,
           showActionButton: false,
@@ -30,7 +30,7 @@ class _AllItemScreenState extends State<AllItemScreen> {
           children: <Widget>[
             GestureDetector(
               onTap: () {
-                Router.navigator.pushNamed(Router.viewItemsScreen);
+                Routing.navigator.pushNamed(Routing.viewItemsScreen);
               },
               child: ListTile(
                 title: Text('All Items', style: TextStyle(color: Colors.black)),

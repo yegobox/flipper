@@ -351,8 +351,8 @@ Future getBusinesses(
 
   if (businesses.length == 0) {
     if (store.state.user != null) {
-      Router.navigator.pushNamed(
-        Router.signUpScreen,
+      Routing.navigator.pushNamed(
+        Routing.signUpScreen,
         arguments: SignUpScreenArguments(
           name: store.state.user.name,
           avatar: 'avatar',
@@ -361,10 +361,10 @@ Future getBusinesses(
         ),
       );
     } else {
-      Router.navigator.pushNamed(Router.afterSplash);
+      Routing.navigator.pushNamed(Routing.afterSplash);
     }
   } else if (store.state.userId == null) {
-    Router.navigator.pushNamed(Router.afterSplash);
+    Routing.navigator.pushNamed(Routing.afterSplash);
     Fluttertoast.showToast(
       msg: 'There was internal error try again',
       toastLength: Toast.LENGTH_LONG,
@@ -376,7 +376,7 @@ Future getBusinesses(
     );
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));
-    Router.navigator.pushNamed(Router.dashboard);
+    Routing.navigator.pushNamed(Routing.dashboard);
   }
 }
 

@@ -29,7 +29,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Router.navigator.pop();
+              Routing.navigator.pop();
             },
             title: 'Total RWF ' + _total.toString(),
             disableButton: false,

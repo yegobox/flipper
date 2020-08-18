@@ -103,7 +103,7 @@ class _AuthWebViewState extends State<AuthWebView> {
 
           //check if a user belongs to a subscription then do.
           if (_subs.split('&')[0] == 'null') {
-            // Router.navigator.pushNamed(Router.subscription,
+            // Routing.navigator.pushNamed(Routing.subscription,
             //     arguments: SubscriptionArguments(
             //         name: _name.split('&')[0].replaceAll('%20', ' '),
             //         email: _email.split('&')[0],
@@ -116,8 +116,8 @@ class _AuthWebViewState extends State<AuthWebView> {
             store.dispatch(VerifyAuthenticationState());
           } else {
             if (widget.authType == 'register') {
-              Router.navigator.pushNamed(
-                Router.signUpScreen,
+              Routing.navigator.pushNamed(
+                Routing.signUpScreen,
                 arguments: SignUpScreenArguments(
                   name: _name.split('&')[0].replaceAll('%20', ''),
                   avatar: _avatar.split('&')[0],
@@ -127,7 +127,7 @@ class _AuthWebViewState extends State<AuthWebView> {
               );
             } else if (widget.authType == 'login') {
               //this is to just check subscription will work??
-              // Router.navigator.pushNamed(Router.subscription,
+              // Routing.navigator.pushNamed(Routing.subscription,
               //     arguments: SubscriptionArguments(
               //         name: _name.split('&')[0].replaceAll('%20', ' '),
               //         email: _email.split('&')[0],

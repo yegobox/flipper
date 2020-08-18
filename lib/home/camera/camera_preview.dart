@@ -16,7 +16,7 @@ class _CameraPreviewState extends State<CameraPreview> {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Router.navigator.pop();
+          Routing.navigator.pop();
         },
         title: 'Preview',
         icon: Icons.keyboard_backspace,

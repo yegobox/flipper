@@ -37,11 +37,10 @@ import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
-import 'package:flipper/presentation/subscription.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper/debug.dart';
 
-class Router {
+class Routing {
   static const splashScreen = '/';
   static const dashboard = '/dashboard';
   static const afterSplash = '/after-splash';
@@ -71,14 +70,13 @@ class Router {
   static const dateScreen = '/date-screen';
   static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
-  static const subscription = '/subscription';
   static const cameraPreview = '/camera-preview';
   static const debug = '/debug';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
     switch (settings.name) {
-      case Router.splashScreen:
+      case Routing.splashScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -87,7 +85,7 @@ class Router {
           builder: (_) => SplashScreen(key: typedArgs),
           settings: settings,
         );
-      case Router.dashboard:
+      case Routing.dashboard:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -96,13 +94,13 @@ class Router {
           builder: (_) => DashBoard(key: typedArgs),
           settings: settings,
         );
-      case Router.afterSplash:
+      case Routing.afterSplash:
         return MaterialPageRoute<dynamic>(
           builder: (_) => AfterSplash(),
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.addNoteScreen:
+      case Routing.addNoteScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -112,13 +110,13 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.settingUpApplicationScreen:
+      case Routing.settingUpApplicationScreen:
         return MaterialPageRoute<dynamic>(
           builder: (_) => SettingUpApplicationScreen(),
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.signUpScreen:
+      case Routing.signUpScreen:
         if (hasInvalidArgs<SignUpScreenArguments>(args)) {
           return misTypedArgsRoute<SignUpScreenArguments>(args);
         }
@@ -135,7 +133,7 @@ class Router {
           transitionsBuilder: TransitionsBuilders.slideLeft,
           transitionDuration: Duration(milliseconds: 200),
         );
-      case Router.createBusiness:
+      case Routing.createBusiness:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -145,7 +143,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.addItemScreen:
+      case Routing.addItemScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -155,7 +153,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.editItemTitle:
+      case Routing.editItemTitle:
         if (hasInvalidArgs<EditItemTitleArguments>(args)) {
           return misTypedArgsRoute<EditItemTitleArguments>(args);
         }
@@ -167,7 +165,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.addVariationScreen:
+      case Routing.addVariationScreen:
         if (hasInvalidArgs<AddVariationScreenArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<AddVariationScreenArguments>(args);
@@ -181,7 +179,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.addUnitType:
+      case Routing.addUnitType:
         if (hasInvalidArgs<AddUnitTypeScreenArguments>(args)) {
           return misTypedArgsRoute<AddUnitTypeScreenArguments>(args);
         }
@@ -193,7 +191,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.addCategoryScreen:
+      case Routing.addCategoryScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -203,7 +201,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.createCategoryInputScreen:
+      case Routing.createCategoryInputScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -213,7 +211,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.receiveStock:
+      case Routing.receiveStock:
         if (hasInvalidArgs<ReceiveStockScreenArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<ReceiveStockScreenArguments>(args);
@@ -224,7 +222,7 @@ class Router {
               key: typedArgs.key, variationId: typedArgs.variationId),
           settings: settings,
         );
-      case Router.editQuantityItemScreen:
+      case Routing.editQuantityItemScreen:
         if (hasInvalidArgs<ChangeQuantityForSellingArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<ChangeQuantityForSellingArguments>(args);
@@ -236,7 +234,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.cartDetailsScreen:
+      case Routing.cartDetailsScreen:
         if (hasInvalidArgs<CartDetailsScreenArguments>(args)) {
           return misTypedArgsRoute<CartDetailsScreenArguments>(args);
         }
@@ -248,7 +246,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.allItemScreen:
+      case Routing.allItemScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -258,7 +256,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.viewItemsScreen:
+      case Routing.viewItemsScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -267,12 +265,12 @@ class Router {
           builder: (_) => ViewProductsScreen(key: typedArgs),
           settings: settings,
         );
-      case Router.login:
+      case Routing.login:
         return MaterialPageRoute<dynamic>(
           builder: (_) => LoginScreen(),
           settings: settings,
         );
-      case Router.viewSingleItem:
+      case Routing.viewSingleItem:
         if (hasInvalidArgs<ViewSingleItemScreenArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<ViewSingleItemScreenArguments>(args);
@@ -287,7 +285,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.editVariationScreen:
+      case Routing.editVariationScreen:
         if (hasInvalidArgs<EditVariationScreenArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<EditVariationScreenArguments>(args);
@@ -301,7 +299,7 @@ class Router {
               unitId: typedArgs.unitId),
           settings: settings,
         );
-      case Router.editCategoryScreen:
+      case Routing.editCategoryScreen:
         if (hasInvalidArgs<EditCategoryScreenArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<EditCategoryScreenArguments>(args);
@@ -312,7 +310,7 @@ class Router {
               key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
         );
-      case Router.editUnitType:
+      case Routing.editUnitType:
         if (hasInvalidArgs<EditUnitTypeScreenArguments>(args,
             isRequired: true)) {
           return misTypedArgsRoute<EditUnitTypeScreenArguments>(args);
@@ -323,7 +321,7 @@ class Router {
               EditUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
         );
-      case Router.transactionScreen:
+      case Routing.transactionScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -332,7 +330,7 @@ class Router {
           builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
-      case Router.webView:
+      case Routing.webView:
         if (hasInvalidArgs<AuthWebViewArguments>(args)) {
           return misTypedArgsRoute<AuthWebViewArguments>(args);
         }
@@ -346,13 +344,13 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.reportScreen:
+      case Routing.reportScreen:
         return MaterialPageRoute<dynamic>(
           builder: (_) => ReportScreen(),
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.dateScreen:
+      case Routing.dateScreen:
         if (hasInvalidArgs<DateScreenArguments>(args)) {
           return misTypedArgsRoute<DateScreenArguments>(args);
         }
@@ -363,7 +361,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.completeSaleScreen:
+      case Routing.completeSaleScreen:
         if (hasInvalidArgs<CompleteSaleScreenArguments>(args)) {
           return misTypedArgsRoute<CompleteSaleScreenArguments>(args);
         }
@@ -375,7 +373,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.tenderScreen:
+      case Routing.tenderScreen:
         if (hasInvalidArgs<TenderScreenArguments>(args)) {
           return misTypedArgsRoute<TenderScreenArguments>(args);
         }
@@ -387,23 +385,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.subscription:
-        if (hasInvalidArgs<SubscriptionArguments>(args)) {
-          return misTypedArgsRoute<SubscriptionArguments>(args);
-        }
-        final typedArgs =
-            args as SubscriptionArguments ?? SubscriptionArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => Subscription(
-              key: typedArgs.key,
-              name: typedArgs.name,
-              avatar: typedArgs.avatar,
-              email: typedArgs.email,
-              token: typedArgs.token,
-              authType: typedArgs.authType),
-          settings: settings,
-        );
-      case Router.cameraPreview:
+      case Routing.cameraPreview:
         if (hasInvalidArgs<CameraPreviewArguments>(args)) {
           return misTypedArgsRoute<CameraPreviewArguments>(args);
         }
@@ -415,7 +397,7 @@ class Router {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Router.debug:
+      case Routing.debug:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
@@ -557,23 +539,6 @@ class TenderScreenArguments {
   final Key key;
   final int cashReceived;
   TenderScreenArguments({this.key, this.cashReceived});
-}
-
-//Subscription arguments holder class
-class SubscriptionArguments {
-  final Key key;
-  final String name;
-  final String avatar;
-  final String email;
-  final String token;
-  final String authType;
-  SubscriptionArguments(
-      {this.key,
-      this.name,
-      this.avatar,
-      this.email,
-      this.token,
-      this.authType});
 }
 
 //CameraPreview arguments holder class

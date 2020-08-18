@@ -17,7 +17,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Router.navigator.pop();
+          Routing.navigator.pop();
         },
         disableButton: false,
         showActionButton: true,
@@ -51,7 +51,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
             ),
             GestureDetector(
               onTap: () {
-                Router.navigator.pushNamed(Router.tenderScreen,
+                Routing.navigator.pushNamed(Routing.tenderScreen,
                     arguments: TenderScreenArguments(
                         cashReceived: widget.cashReceived));
               },
