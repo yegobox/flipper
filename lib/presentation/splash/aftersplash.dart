@@ -5,7 +5,15 @@ import 'package:flipper/presentation/splash/responsive/portrait_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class AfterSplash extends StatelessWidget {
+class AfterSplash extends StatefulWidget {
+  @override
+  _AfterSplashState createState() => _AfterSplashState();
+}
+
+class _AfterSplashState extends State<AfterSplash> {
+  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+  VoidCallback _showBottomSheetCallback;
+  
   @override
   Widget build(BuildContext context) {
     final bool landscape =

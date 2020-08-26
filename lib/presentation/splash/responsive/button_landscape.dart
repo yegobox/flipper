@@ -4,9 +4,8 @@ import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/presentation/splash/popup.dart';
 import 'package:flipper/presentation/splash/popup_content.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:query_params/query_params.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LandscapeButton extends StatefulWidget {
@@ -35,35 +34,7 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                 height: 60,
                 child: FlatButton(
                   onPressed: () async {
-                    final URLQueryParams query = URLQueryParams();
-                    query.append('client_id', '49');
-                    query.append(
-                        'redirect_uri', 'https://flipper.rw/auth/callback');
-                    query.append('response_type', 'code');
-                    query.append('scope', '');
-                    query.append('state', '');
-
-                    try {
-                      final List<InternetAddress> result =
-                          await InternetAddress.lookup('google.com');
-                      if (result.isNotEmpty &&
-                          result[0].rawAddress.isNotEmpty) {
-                        const String url = 'https://flipper.rw/register';
-                        if (await canLaunch(url)) {
-                          showPopup(
-                            context,
-                            AuthWebView(
-                              authType: 'register',
-                              url: url,
-                            ),
-                          );
-                        } else {
-                          print('There is a problem launching login url');
-                        }
-                      }
-                    } on SocketException catch (_) {
-                      print('There is no internet');
-                    }
+                    // implement the login with phone.
                   },
                   color: Colors.blue,
                   child: Text(
@@ -76,6 +47,7 @@ class _LandscapeButtonState extends State<LandscapeButton> {
             Container(
               height: 20,
             ),
+            
             Container(
               color: Colors.white,
               child: SizedBox(
@@ -88,53 +60,7 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                     style: const TextStyle(color: Colors.blue),
                   ),
                   onPressed: () {
-                   print('First signins');
-
-
-                    // final URLQueryParams query = URLQueryParams();
-                    // query.append('client_id', '49');
-                    // query.append('redirect_uri',
-                    //     'https://flipper.rw/auth/callback');
-                    // query.append('response_type', 'code');
-                    // query.append('scope', '');
-                    // query.append('state', '');
-                    // try {
-                    //   final List<InternetAddress> insInternetAvailable =
-                    //       await InternetAddress.lookup('google.com');
-                    //   if (insInternetAvailable.isNotEmpty &&
-                    //       insInternetAvailable[0].rawAddress.isNotEmpty) {
-                    //     const String url = 'https://flipper.rw/login';
-                    //     if (await canLaunch(url)) {
-                    //       showPopup(
-                    //         context,
-                    //         AuthWebView(
-                    //           authType: 'login',
-                    //           url: url,
-                    //         ),
-                    //       );
-                    //     } else {
-                    //       Fluttertoast.showToast(
-                    //           msg:
-                    //               'There is a problem launching login url',
-                    //           toastLength: Toast.LENGTH_LONG,
-                    //           gravity: ToastGravity.BOTTOM,
-                    //           timeInSecForIos: 1,
-                    //           backgroundColor: Colors.red,
-                    //           textColor: Colors.white,
-                    //           fontSize: 16.0);
-                    //     }
-                    //   }
-                    // } on SocketException catch (_) {
-                    //   Fluttertoast.showToast(
-                    //       msg: 'There is no internet',
-                    //       toastLength: Toast.LENGTH_LONG,
-                    //       gravity: ToastGravity.BOTTOM,
-                    //       timeInSecForIos: 1,
-                    //       backgroundColor: Colors.red,
-                    //       textColor: Colors.white,
-                    //       fontSize: 16.0);
-                    //   return;
-                    // }
+                    Routing.navigator.pushNamed(Routing.flipperLogin);
                   },
                 ),
               ),

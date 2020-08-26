@@ -10,7 +10,7 @@ void main() async {
   // FlutterError.onError = Crashlytics.instance.recordFlutterError;
   configureLogger();
   WidgetsFlutterBinding.ensureInitialized();
-  //  final ThemeMode themeMode = await getThemeMode();
+   final ThemeMode themeMode = await getThemeMode();
   // SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top]);
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light
   //     .copyWith(systemNavigationBarColor: Colors.white));
@@ -20,5 +20,5 @@ void main() async {
   //   DeviceOrientation.portraitUp,
   //   DeviceOrientation.portraitDown,
   // ]);
-  runApp(FlipperApp());
+  runApp(FlipperApp(themeMode));
 }

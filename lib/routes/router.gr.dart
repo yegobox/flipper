@@ -32,11 +32,11 @@ import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
 import 'package:flipper/home/transactions/transaction_screen.dart';
-import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
+import 'package:flipper_login/login.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper/debug.dart';
 
@@ -65,11 +65,11 @@ class Routing {
   static const editCategoryScreen = '/edit-category-screen';
   static const editUnitType = '/edit-unit-type';
   static const transactionScreen = '/transaction-screen';
-  static const webView = '/web-view';
   static const reportScreen = '/report-screen';
   static const dateScreen = '/date-screen';
   static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
+  static const flipperLogin = '/flipper-login';
   static const cameraPreview = '/camera-preview';
   static const debug = '/debug';
   static final navigator = ExtendedNavigator();
@@ -330,20 +330,6 @@ class Routing {
           builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
-      case Routing.webView:
-        if (hasInvalidArgs<AuthWebViewArguments>(args)) {
-          return misTypedArgsRoute<AuthWebViewArguments>(args);
-        }
-        final typedArgs =
-            args as AuthWebViewArguments ?? AuthWebViewArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => AuthWebView(
-              key: typedArgs.key,
-              url: typedArgs.url,
-              authType: typedArgs.authType),
-          settings: settings,
-          fullscreenDialog: true,
-        );
       case Routing.reportScreen:
         return MaterialPageRoute<dynamic>(
           builder: (_) => ReportScreen(),
@@ -382,6 +368,12 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) => TenderScreen(
               key: typedArgs.key, cashReceived: typedArgs.cashReceived),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Routing.flipperLogin:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => Login(),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -510,14 +502,6 @@ class EditUnitTypeScreenArguments {
   final Key key;
   final String itemId;
   EditUnitTypeScreenArguments({this.key, @required this.itemId});
-}
-
-//AuthWebView arguments holder class
-class AuthWebViewArguments {
-  final Key key;
-  final String url;
-  final String authType;
-  AuthWebViewArguments({this.key, this.url, this.authType});
 }
 
 //DateScreen arguments holder class

@@ -12,7 +12,6 @@ import 'package:flipper/domain/redux/user/user_middleware.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/selling/selling_middleware.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/theme.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -46,11 +45,21 @@ Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) {
 }
 
 class FlipperApp extends StatefulWidget {
+  const FlipperApp(this._themeMode);
+  final ThemeMode _themeMode;
+ 
   @override
-  _FlipperAppState createState() => _FlipperAppState();
+  State createState() {
+    return FlipperAppState(_themeMode);
+  }
+ 
 }
 
-class _FlipperAppState extends State<FlipperApp> {
+class FlipperAppState extends State<FlipperApp> {
+
+  FlipperAppState(this.themeMode);
+  ThemeMode themeMode;
+
   static FirebaseAnalytics analytics = FirebaseAnalytics();
   static FirebaseAnalyticsObserver observer =
       FirebaseAnalyticsObserver(analytics: analytics);

@@ -31,7 +31,7 @@ import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
-import 'package:flipper/presentation/subscription.dart';
+import 'package:flipper_login/login.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -101,8 +101,8 @@ class $Routing {
 
   TransactionScreen transactionScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  AuthWebView webView;
+  // @MaterialRoute(fullscreenDialog: true)
+  // AuthWebView webView;
 
   @MaterialRoute(fullscreenDialog: true)
   ReportScreen reportScreen;
@@ -115,6 +115,9 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   TenderScreen tenderScreen;
+
+  @MaterialRoute(fullscreenDialog: true)
+  Login flipperLogin;
 
   // Subscription subscription;
 

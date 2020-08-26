@@ -12,70 +12,36 @@ description: flipper business app.
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 1.5.78
 
+
 environment:
-  sdk: ">=2.2.0 <3.0.0"
+  sdk: ">=2.9.1 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher: ^5.5.0
-  flutter_svg: ^0.18.0
-  # background_fetch: 
-  flutter_uploader: ^1.2.0
-  fluttercouch: ^0.5.0
-  # fluttercouch:
-  #   git:
-  #     url: https://github.com/yegobox/fluttercouch.git
-  #     ref: master
-  scoped_model: ^1.0.1
+  url_launcher: ^5.0.2
+  flutter_svg: ^0.18.0 
 
-  strings: ^0.1.2
-  flutter_secure_storage: ^3.3.1+1
-  auto_route: ^0.3.1
-  charts_flutter: ^0.9.0
-  fl_chart: ^0.11.0
-  # Firebase dependencies
-  # social sign in
-  # google_sign_in: "^4.5.1"
-  # firebase_auth: ^0.18.0
-  # end social signin
-  firebase_core: ^0.5.0
-  firebase_analytics: ^5.0.11
-  firebase_messaging: ^6.0.16
-  # cloud_firestore: ^0.14.0
-  # end of firebase dependency 
-  flutter_webview_plugin: ^0.3.11
-  http: ^0.12.0+4
-  path_provider: 1.6.11
-  path: ^1.6.4
-  json_annotation: ^3.0.1
-  cached_network_image: 1.1.3
+ 
   geolocator: ^5.3.0
-  query_params: ^0.6.1
-  random_string: ^2.0.1
   permission_handler: ^4.3.0
   flutter_circular_chart: ^0.1.0
-  fluttertoast: ^3.1.3
   redux: ^4.0.0
-  camera: 0.5.8+2
   flutter_redux: ^0.6.0
   flutter_masked_text: ^0.8.0
   built_value: ^7.0.9
   image_picker: ^0.6.4
-  # transparent_image: ^1.0.0
   built_collection: ^4.3.2
   flutter_date_pickers: ^0.0.6
   flutter_material_color_picker: ^0.0.5
   flutter_image_compress: ^0.6.5+1
-  #  pinch_zoom_image: ^0.2.5
   flutter_platform_widgets: 0.20.3-beta.1
-  flutter_linkify: ^3.1.0
   uuid: 2.0.4
   timezone: ^0.5.6
-  flutter_barcode_scanner: ^1.0.1
+  flutter_barcode_scanner: 
   moor: ^3.0.0
   sqlite3_flutter_libs:
-  sqflite: ^1.1.7 # Still used to obtain the database location
+  sqflite: ^1.1.7 
   #  built_collection: ^4.2.2
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -88,22 +54,46 @@ dependencies:
   apptheme: ^1.0.0
   rubber: ^0.4.0
   shared_preferences: 0.5.2
-
-  flutter_localizations:
-    sdk: flutter
+  # background_fetch: 0.6.0
+  # flutter_uploader: ^1.2.0 
+  fluttercouch:
+    git:
+      url: git://github.com/oltrenuovefrontiere/fluttercouch.git
+      ref: master
+  # Firebase dependencies
+  # social sign in
+  # google_sign_in: "^4.5.1"
+  # firebase_auth: ^0.18.0
+  # end social signin
+  firebase_core: ^0.5.0
+  firebase_messaging: ^6.0.16
+  firebase_analytics: ^5.0.11
+  # cloud_firestore: ^0.14.0
+  # end of firebase dependency 
+  camera: 0.5.8+2
+  flipper_login:
+    path:
+      './packages/flipper_login'
+  scoped_model:
+  sms_autofill: ^1.2.3
+  wifi_info_plugin: ^1.0.6
+  flutter_bluetooth_serial: ^0.2.2
+  flutter_scan_bluetooth: ^1.1.0
+  fl_chart:
+  flutter_uploader:
 
 dev_dependencies:
   moor_generator: ^3.0.0
   flutter_test:
     sdk: flutter
-  analyzer: '0.39.15'
+  analyzer: '0.39.14'
   build_runner: ^1.10.1
   auto_route_generator: ^0.3.2
   built_value_generator:
   test: ^1.6.1
   mockito: ^4.1.1
-
   flutter_launcher_icons: ^0.7.4
+  
 
 flutter_icons:
   android: true
@@ -125,15 +115,9 @@ flutter:
     - assets/graphics/drawer/
 
   fonts:
-    - family: Heebo-Black
+    - family: Montserrat
       fonts:
-        - asset: fonts/Heebo-Black.ttf
-    - family: Heebo-Thin
-      fonts:
-        - asset: fonts/Heebo-Thin.ttf
-    - family: Heboo-Regular
-      fonts:
-        - asset: fonts/Heebo-Regular.ttf
+        - asset: assets/fonts/Montserrat-Regular.ttf
 flutter_intl:
   enabled: true
 
