@@ -16,6 +16,7 @@ class CustomButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap ?? null,
         child: Container(
+
           decoration: BoxDecoration(boxShadow: [
             BoxShadow(
                 color: grey.withOpacity(0.3),

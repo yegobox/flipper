@@ -76,9 +76,9 @@ dependencies:
       './packages/flipper_login'
   scoped_model:
   sms_autofill: ^1.2.3
-  wifi_info_plugin: ^1.0.6
-  flutter_bluetooth_serial: ^0.2.2
-  flutter_scan_bluetooth: ^1.1.0
+#  wifi_info_plugin: ^1.0.6
+#  flutter_bluetooth_serial: ^0.2.2
+#  flutter_scan_bluetooth: ^1.1.0
   fl_chart:
   flutter_uploader:
 

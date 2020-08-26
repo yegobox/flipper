@@ -18,8 +18,8 @@
 <!--    android:name="io.flutter.app.FlutterApplication"-->
 <!--  android:name=".Application" -->
     <application
+        android:name=".Application"
         android:usesCleartextTraffic="true"
-        android:name="io.flutter.app.FlutterApplication"
         android:label="flipper"
         tools:replace="icon, label"
         android:icon="@mipmap/ic_launcher">

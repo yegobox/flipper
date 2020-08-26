@@ -1,16 +1,12 @@
-import 'dart:io';
-
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/splash/popup.dart';
 import 'package:flipper/presentation/splash/popup_content.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
 class ButtonPortrait extends StatefulWidget {
-  const ButtonPortrait({
-    Key key,
-  }) : super(key: key);
-
+  const ButtonPortrait({Key key, this.showBottomSheetCallback})
+      : super(key: key);
+  final VoidCallback showBottomSheetCallback;
   @override
   _ButtonPortraitState createState() => _ButtonPortraitState();
 }
@@ -33,10 +29,7 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
                 width: 380,
                 height: 60,
                 child: FlatButton(
-                  onPressed: () async {
-                    // implement register.
-                     Routing.navigator.pushNamed(Routing.flipperLogin);
-                  },
+                  onPressed: widget.showBottomSheetCallback,
                   color: Colors.blue,
                   child: Text(
                     S.of(context).createAccount,
@@ -59,9 +52,7 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
                     S.of(context).signIn,
                     style: const TextStyle(color: Colors.blue),
                   ),
-                  onPressed: () {
-                    Routing.navigator.pushNamed(Routing.flipperLogin);
-                  },
+                  onPressed: widget.showBottomSheetCallback,
                 ),
               ),
             ),

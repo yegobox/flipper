@@ -1,16 +1,11 @@
-import 'dart:io';
-
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/presentation/login/auth_webview.dart';
 import 'package:flipper/presentation/splash/popup.dart';
 import 'package:flipper/presentation/splash/popup_content.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class LandscapeButton extends StatefulWidget {
-  const LandscapeButton({Key key}) : super(key: key);
-
+  LandscapeButton({Key key, this.showBottomSheetCallback}) : super(key: key);
+  final VoidCallback showBottomSheetCallback;
   @override
   _LandscapeButtonState createState() => _LandscapeButtonState();
 }
@@ -33,9 +28,7 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                 width: 380,
                 height: 60,
                 child: FlatButton(
-                  onPressed: () async {
-                    // implement the login with phone.
-                  },
+                  onPressed: widget.showBottomSheetCallback,
                   color: Colors.blue,
                   child: Text(
                     S.of(context).createAccount,
@@ -47,7 +40,6 @@ class _LandscapeButtonState extends State<LandscapeButton> {
             Container(
               height: 20,
             ),
-            
             Container(
               color: Colors.white,
               child: SizedBox(
@@ -59,9 +51,7 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                     S.of(context).signIn,
                     style: const TextStyle(color: Colors.blue),
                   ),
-                  onPressed: () {
-                    Routing.navigator.pushNamed(Routing.flipperLogin);
-                  },
+                  onPressed: widget.showBottomSheetCallback,
                 ),
               ),
             ),

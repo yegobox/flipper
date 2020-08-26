@@ -14,7 +14,6 @@ dependencies:
   firebase_core: "^0.5.0"
   firebase_auth: "^0.18.0+1"
   flutter_blue: ^0.7.1+1
-  device_info: ^0.4.0+4
   flutter_scan_bluetooth: ^1.1.0
   wifi_info_plugin: ^1.0.6
   flutter_bluetooth_serial: ^0.2.2
