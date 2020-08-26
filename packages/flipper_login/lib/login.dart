@@ -23,8 +23,12 @@ class HexColor extends Color {
 
 
 class Login extends StatefulWidget {
+  Login({Key key}) : super(key: key);
+
+  
   @override
   _LoginState createState() => _LoginState();
+ 
 }
 
 class _LoginState extends State<Login> {

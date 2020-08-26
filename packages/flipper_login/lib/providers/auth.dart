@@ -51,6 +51,7 @@ class AuthProvider with ChangeNotifier {
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
 
+//    VoidCallback _showBottomSheetCallback;
 
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
       this.verificationId = verId;
@@ -73,13 +74,9 @@ class AuthProvider with ChangeNotifier {
               },
               verificationFailed: (exceptio) {
                 print('${exceptio.message} + something is wrong');
-              })
-          .then(
-            (value) => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => OtpPage(phone: number,)),
-            ),
-          );
+              }).then((value) => {
+              //todo: dispatch action to close a model.
+      });
     } catch (e) {
       handleError(e, context);
       errorMessage = e.toString();
