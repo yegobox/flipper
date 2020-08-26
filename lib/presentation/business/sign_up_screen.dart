@@ -189,7 +189,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..type = BusinessType.NORMAL,
       );
 
-      User user = User(
+      FUser user = FUser(
         (user) => user
           ..email = widget.email
           ..active = true

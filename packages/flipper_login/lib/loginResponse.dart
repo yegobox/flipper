@@ -13,6 +13,7 @@ class LoginResponse {
         this.token,
         this.email,
         this.name,
+        this.newUser,
         this.avatar,
         this.id,
         this.subscription,
@@ -22,6 +23,7 @@ class LoginResponse {
     String token;
     String email;
     String name;
+    bool newUser;
     dynamic avatar;
     int id;
     dynamic subscription;
@@ -31,6 +33,7 @@ class LoginResponse {
         token: json["token"],
         email: json["email"],
         name: json["name"],
+        newUser: json["newUser"],
         avatar: json["avatar"],
         id: json["id"],
         subscription: json["subscription"],
@@ -41,6 +44,7 @@ class LoginResponse {
         "token": token,
         "email": email,
         "name": name,
+        "newUser": newUser,
         "avatar": avatar,
         "id": id,
         "subscription": subscription,

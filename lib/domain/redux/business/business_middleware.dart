@@ -31,10 +31,10 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     if (store.state.business != null) {
-      User user = await store.state.couch.getDocumentByDocId(
+      FUser user = await store.state.couch.getDocumentByDocId(
           docId: 'user_' + store.state.userId.toString(),
           store: store,
-          T: User);
+          T: FUser);
 
       String businessId = Uuid().v1();
       Map _mapBusiness = {

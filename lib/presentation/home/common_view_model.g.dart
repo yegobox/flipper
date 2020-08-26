@@ -60,7 +60,7 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Order order;
   @override
-  final User user;
+  final FUser user;
   @override
   final KeyPad keypad;
   @override

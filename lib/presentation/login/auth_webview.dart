@@ -81,12 +81,12 @@
 //           //done saving credentials.
 //           User user = User(
 //             (user) => user
-              // ..email = _email.split('&')[0]
-              // ..active = true
-              // ..createdAt = DateTime.now().toIso8601String()
-              // ..updatedAt = DateTime.now().toIso8601String()
-              // ..token = token.split('&')[0]
-              // ..name = _name.split('&')[0].replaceAll('%20', ' '),
+//               ..email = _email.split('&')[0]
+//               ..active = true
+//               ..createdAt = DateTime.now().toIso8601String()
+//               ..updatedAt = DateTime.now().toIso8601String()
+//               ..token = token.split('&')[0]
+//               ..name = _name.split('&')[0].replaceAll('%20', ' '),
 //           );
 //           store.dispatch(WithUser(user: user));
 
@@ -127,13 +127,13 @@
 //               );
 //             } else if (widget.authType == 'login') {
 //               //this is to just check subscription will work??
-//               // Routing.navigator.pushNamed(Routing.subscription,
-//               //     arguments: SubscriptionArguments(
-//               //         name: _name.split('&')[0].replaceAll('%20', ' '),
-//               //         email: _email.split('&')[0],
-//               //         token: token.split('&')[0],
-//               //         authType: widget.authType,
-//               //         avatar: _avatar.split('&')[0]));
+//                Routing.navigator.pushNamed(Routing.subscription,
+//                    arguments: SubscriptionArguments(
+//                        name: _name.split('&')[0].replaceAll('%20', ' '),
+//                        email: _email.split('&')[0],
+//                        token: token.split('&')[0],
+//                        authType: widget.authType,
+//                        avatar: _avatar.split('&')[0]));
 //               store.dispatch(VerifyAuthenticationState());
 //             }
 //           }

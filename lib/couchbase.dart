@@ -20,7 +20,7 @@ class CouchBase extends Model with Fluttercouch {
   Document docExample;
   MutableDocument _doc = MutableDocument();
   Query query;
- 
+
   CouchBase({bool shouldInitDb}) {
     if (shouldInitDb) {
       initPlatformState();
@@ -410,7 +410,8 @@ class CouchBase extends Model with Fluttercouch {
           isActive: branch.getList('branches')[i]['isActive'] ?? false,
           businessId: branch.getList('branches')[i]['businessId'],
           createdAt: DateTime.now(),
-          updatedAt: DateTime.now(), idLocal: 1,
+          updatedAt: DateTime.now(),
+          idLocal: 1,
         );
         if (brachi == null) {
           await store.state.database.branchDao.insert(businessTableData);
@@ -776,8 +777,8 @@ class CouchBase extends Model with Fluttercouch {
     // ResultSet results = await query.execute();
   }
 
-  User buildUserModel(Document doc, Store<AppState> store) {
-    return User(
+  FUser buildUserModel(Document doc, Store<AppState> store) {
+    return FUser(
       (u) => u
         ..id = doc.getString('id')
         ..email = doc.getString('email')

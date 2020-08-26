@@ -29,10 +29,10 @@ class _AfterSplashState extends State<AfterSplash> {
     _scaffoldKey.currentState
         .showBottomSheet(
           (context) {
-            return new Container(
+            return Container(
               color: Colors.white,
               height: 300.0,
-              child: new Center(
+              child: Center(
                 child: Login(),
               ),
             );

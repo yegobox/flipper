@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:flipper/model/user.dart';
 
-
 // App user
-StreamSubscription<User> userUpdateSubscription;
+StreamSubscription<FUser> userUpdateSubscription;
 // List of users of the current selected group
-StreamSubscription<List<User>> groupUsersSubscription;
-
+StreamSubscription<List<FUser>> groupUsersSubscription;
 
 /// Cancels all active subscriptions
 ///

@@ -34,9 +34,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     final auth = new AuthProvider();
     return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        body: SingleChildScrollView(
+      child: SingleChildScrollView(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             SizedBox(
               height: 30,
@@ -112,7 +110,7 @@ class _LoginState extends State<Login> {
             )
           ]),
         ),
-      ),
+
     );
   }
 }

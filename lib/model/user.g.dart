@@ -6,7 +6,7 @@ part of 'user.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$User extends User {
+class _$User extends FUser {
   @override
   final String id;
   @override
@@ -49,7 +49,7 @@ class _$User extends User {
   }
 
   @override
-  User rebuild(void Function(UserBuilder) updates) =>
+  FUser rebuild(void Function(UserBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -58,7 +58,7 @@ class _$User extends User {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is User &&
+    return other is FUser &&
         id == other.id &&
         email == other.email &&
         active == other.active &&
@@ -96,7 +96,7 @@ class _$User extends User {
   }
 }
 
-class UserBuilder implements Builder<User, UserBuilder> {
+class UserBuilder implements Builder<FUser, UserBuilder> {
   _$User _$v;
 
   String _id;
@@ -144,7 +144,7 @@ class UserBuilder implements Builder<User, UserBuilder> {
   }
 
   @override
-  void replace(User other) {
+  void replace(FUser other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }

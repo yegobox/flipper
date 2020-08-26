@@ -30,7 +30,7 @@ part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
-  User get user;
+  FUser get user;
 
   @nullable
   int get userId;
@@ -68,7 +68,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   BuiltList<Unit> get units;
 
   @nullable
-  BuiltList<User> get users;
+  BuiltList<FUser> get users;
 
   @nullable
   int get focusedUnit;
@@ -177,8 +177,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     ..itemVariations = ListBuilder()
     ..items = ListBuilder()
     ..businesses = List<Business>()
-    ..branches = List<Branch>()
-    );
+    ..branches = List<Branch>());
 
   AppState clear() {
     // Add here anything else that also needs to be carried over.

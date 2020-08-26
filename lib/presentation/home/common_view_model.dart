@@ -93,7 +93,7 @@ abstract class CommonViewModel
   Order get order;
 
   @nullable
-  User get user;
+  FUser get user;
 
   @nullable
   KeyPad get keypad;

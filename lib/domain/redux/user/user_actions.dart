@@ -5,28 +5,28 @@ import 'package:meta/meta.dart';
 
 @immutable
 class UsersUpdateAction {
-  final List<User> users;
+  final List<FUser> users;
 
   const UsersUpdateAction(this.users);
 }
 
 @immutable
 class OnUserUpdateAction {
-  final User user;
+  final FUser user;
 
   const OnUserUpdateAction(this.user);
 }
 
 @immutable
 class WithUsers {
-  final List<User> users;
+  final List<FUser> users;
 
   WithUsers({this.users});
 }
 
 @immutable
 class WithUser {
-  final User user;
+  final FUser user;
 
   const WithUser({this.user});
 }
@@ -40,7 +40,7 @@ class UserID {
 
 @immutable
 class CreateUser {
-  final User user;
+  final FUser user;
 
   const CreateUser(this.user);
 }
@@ -54,7 +54,7 @@ class UpdateUserLocaleAction {
 
 @immutable
 class UpdateUserAction {
-  final User user;
+  final FUser user;
   final Completer completer;
 
   const UpdateUserAction(this.user, this.completer);

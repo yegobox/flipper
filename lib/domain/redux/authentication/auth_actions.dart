@@ -20,7 +20,7 @@ class LogIn {
 
 @immutable
 class OnAuthenticated {
-  final User user;
+  final FUser user;
 
   const OnAuthenticated({@required this.user});
 

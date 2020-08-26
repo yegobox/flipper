@@ -8,7 +8,7 @@ part of 'app_state.dart';
 
 class _$AppState extends AppState {
   @override
-  final User user;
+  final FUser user;
   @override
   final int userId;
   @override
@@ -34,7 +34,7 @@ class _$AppState extends AppState {
   @override
   final BuiltList<Unit> units;
   @override
-  final BuiltList<User> users;
+  final BuiltList<FUser> users;
   @override
   final int focusedUnit;
   @override
@@ -391,9 +391,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ListBuilder<Unit> get units => _$this._units ??= new ListBuilder<Unit>();
   set units(ListBuilder<Unit> units) => _$this._units = units;
 
-  ListBuilder<User> _users;
-  ListBuilder<User> get users => _$this._users ??= new ListBuilder<User>();
-  set users(ListBuilder<User> users) => _$this._users = users;
+  ListBuilder<FUser> _users;
+  ListBuilder<FUser> get users => _$this._users ??= new ListBuilder<FUser>();
+  set users(ListBuilder<FUser> users) => _$this._users = users;
 
   int _focusedUnit;
   int get focusedUnit => _$this._focusedUnit;

@@ -6,10 +6,16 @@ import 'package:flipper_login/providers/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:flipper/domain/redux/app_state.dart';
 import 'helpers/style.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flipper/model/user.dart';
 import 'providers/auth.dart';
 import 'widgets/custom_button.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/data/main_database.dart';
 import 'widgets/custom_text.dart';
 
 StreamController<String> otp = StreamController<String>();
@@ -66,7 +72,6 @@ class _OtpPageState extends State<OtpPage> with CodeAutoFill {
                   TextSpan(text: " set to your SMS"),
                 ], style: TextStyle(color: black))),
             SizedBox(height: 10),
-//            CustomText( "Error here", color: red,),
             Padding(
               padding: const EdgeInsets.only(left:12, right: 12, bottom: 12),
               child: Container(
@@ -115,13 +120,13 @@ class _OtpPageState extends State<OtpPage> with CodeAutoFill {
                     if (_verificationId.isEmpty) {
                       return;
                     }
-                    if(number.value.isEmpty){
+                    if(number.text.isEmpty){
                       return;
                     }
                     final Auth.AuthCredential credential =
                     Auth.PhoneAuthProvider.credential(
                       verificationId: _verificationId,
-                      smsCode: number.value,
+                      smsCode: number.text,
                     );
                     Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
                     await auth.signInWithCredential(credential);
@@ -137,7 +142,41 @@ class _OtpPageState extends State<OtpPage> with CodeAutoFill {
                       });
 
                       final loginResponse = loginResponseFromJson(response.body);
+                      final store = StoreProvider.of<AppState>(context);
                       print(loginResponse);
+                      FUser user = FUser(
+                            (user) => user
+                          ..email = loginResponse.email
+                          ..active = true
+                          ..createdAt = DateTime.now().toIso8601String()
+                          ..updatedAt = DateTime.now().toIso8601String()
+                          ..token = loginResponse.token
+                          ..name = loginResponse.name,
+                      );
+                      store.dispatch(WithUser(user: user));
+                      store.dispatch(UserID(userId: loginResponse.id));
+                      UserTableData userExist =
+                      await store.state.database.userDao.getUser();
+                      if (userExist == null) {
+                               await store.state.database.userDao.insertUser(UserTableData(
+                                   username: loginResponse.name,
+                                   email: loginResponse.email,
+                                   token: loginResponse.token,
+                                   userId: loginResponse.id,),);
+                             }
+                      if(loginResponse.newUser){
+                        Routing.navigator.pushNamed(
+                          Routing.signUpScreen,
+                          arguments: SignUpScreenArguments(
+                            name: loginResponse.name,
+                            avatar: loginResponse.avatar,
+                            email: loginResponse.email,
+                            token: loginResponse.token,
+                          ),
+                        );
+                      }else{
+                        store.dispatch(VerifyAuthenticationState()); //todo check subscription later refere to auth_webview.dart
+                      }
                     }
                   },
                   child: Text(

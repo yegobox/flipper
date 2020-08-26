@@ -20,7 +20,6 @@ import 'package:flipper/util/flitter_color.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:redux/redux.dart';
 
@@ -87,7 +86,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   UserTableData user = await store.state.database.userDao.getUser();
   if (user != null) {
-    User u = User(
+    FUser u = FUser(
       (p) => p
         ..email = user.email
         ..active = true
