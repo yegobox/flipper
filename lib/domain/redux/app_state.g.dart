@@ -103,6 +103,12 @@ class _$AppState extends AppState {
   final DateFilter dateFilter;
   @override
   final Report report;
+  @override
+  final String navigate;
+  @override
+  final String phone;
+  @override
+  final String otpcode;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
       (new AppStateBuilder()..update(updates)).build();
@@ -155,7 +161,10 @@ class _$AppState extends AppState {
       this.note,
       this.inAppNotification,
       this.dateFilter,
-      this.report})
+      this.report,
+      this.navigate,
+      this.phone,
+      this.otpcode})
       : super._() {
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
@@ -232,7 +241,10 @@ class _$AppState extends AppState {
         note == other.note &&
         inAppNotification == other.inAppNotification &&
         dateFilter == other.dateFilter &&
-        report == other.report;
+        report == other.report &&
+        navigate == other.navigate &&
+        phone == other.phone &&
+        otpcode == other.otpcode;
   }
 
   @override
@@ -255,26 +267,26 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode),
-                                                                                currentActiveSaleProduct.hashCode),
-                                                                            currentActiveSaleVariant.hashCode),
-                                                                        cartItem.hashCode),
-                                                                    items.hashCode),
-                                                                currentIncrement.hashCode),
-                                                            carts.hashCode),
-                                                        cartQuantities.hashCode),
-                                                    order.hashCode),
-                                                keypad.hashCode),
-                                            tmpItem.hashCode),
-                                        total.hashCode),
-                                    defaultTax.hashCode),
-                                couchDbClient.hashCode),
-                            fcmToken.hashCode),
-                        image.hashCode),
-                    note.hashCode),
-                inAppNotification.hashCode),
-            dateFilter.hashCode),
-        report.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode), currentActiveSaleProduct.hashCode), currentActiveSaleVariant.hashCode), cartItem.hashCode),
+                                                                                items.hashCode),
+                                                                            currentIncrement.hashCode),
+                                                                        carts.hashCode),
+                                                                    cartQuantities.hashCode),
+                                                                order.hashCode),
+                                                            keypad.hashCode),
+                                                        tmpItem.hashCode),
+                                                    total.hashCode),
+                                                defaultTax.hashCode),
+                                            couchDbClient.hashCode),
+                                        fcmToken.hashCode),
+                                    image.hashCode),
+                                note.hashCode),
+                            inAppNotification.hashCode),
+                        dateFilter.hashCode),
+                    report.hashCode),
+                navigate.hashCode),
+            phone.hashCode),
+        otpcode.hashCode));
   }
 
   @override
@@ -327,7 +339,10 @@ class _$AppState extends AppState {
           ..add('note', note)
           ..add('inAppNotification', inAppNotification)
           ..add('dateFilter', dateFilter)
-          ..add('report', report))
+          ..add('report', report)
+          ..add('navigate', navigate)
+          ..add('phone', phone)
+          ..add('otpcode', otpcode))
         .toString();
   }
 }
@@ -335,9 +350,9 @@ class _$AppState extends AppState {
 class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   _$AppState _$v;
 
-  UserBuilder _user;
-  UserBuilder get user => _$this._user ??= new UserBuilder();
-  set user(UserBuilder user) => _$this._user = user;
+  FUserBuilder _user;
+  FUserBuilder get user => _$this._user ??= new FUserBuilder();
+  set user(FUserBuilder user) => _$this._user = user;
 
   int _userId;
   int get userId => _$this._userId;
@@ -551,6 +566,18 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ReportBuilder get report => _$this._report ??= new ReportBuilder();
   set report(ReportBuilder report) => _$this._report = report;
 
+  String _navigate;
+  String get navigate => _$this._navigate;
+  set navigate(String navigate) => _$this._navigate = navigate;
+
+  String _phone;
+  String get phone => _$this._phone;
+  set phone(String phone) => _$this._phone = phone;
+
+  String _otpcode;
+  String get otpcode => _$this._otpcode;
+  set otpcode(String otpcode) => _$this._otpcode = otpcode;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -603,6 +630,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _inAppNotification = _$v.inAppNotification?.toBuilder();
       _dateFilter = _$v.dateFilter?.toBuilder();
       _report = _$v.report?.toBuilder();
+      _navigate = _$v.navigate;
+      _phone = _$v.phone;
+      _otpcode = _$v.otpcode;
       _$v = null;
     }
     return this;
@@ -674,7 +704,10 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               note: note,
               inAppNotification: _inAppNotification?.build(),
               dateFilter: _dateFilter?.build(),
-              report: _report?.build());
+              report: _report?.build(),
+              navigate: navigate,
+              phone: phone,
+              otpcode: otpcode);
     } catch (_) {
       String _$failedField;
       try {

@@ -1,10 +1,14 @@
+import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/presentation/splash/responsive/button_landscape.dart';
 import 'package:flipper/presentation/splash/responsive/button_portrait.dart';
 import 'package:flipper/presentation/splash/responsive/logo_landscape.dart';
 import 'package:flipper/presentation/splash/responsive/portrait_logo.dart';
 import 'package:flipper_login/login.dart';
+import 'package:flipper_login/otp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 class AfterSplash extends StatefulWidget {
   @override
@@ -14,17 +18,36 @@ class AfterSplash extends StatefulWidget {
 class _AfterSplashState extends State<AfterSplash> {
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
   // ignore: unused_field
-  VoidCallback _showBottomSheetCallback;
+  VoidCallback _showLoginBottomSheet;
+  VoidCallback _optSheet;
 
   @override
   void initState() {
     super.initState();
-    _showBottomSheetCallback = _showBottomSheet;
+    _showLoginBottomSheet = _showBottomSheet;
+    _optSheet = _showOtpBottomSheet;
+  }
+
+  void _showOtpBottomSheet({String phone, String verificationCode}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => {
+          _scaffoldKey.currentState.showBottomSheet((context) {
+            return Container(
+              color: Colors.white,
+              height: 300.0,
+              child: Center(
+                child: OtpPage(
+                  phone: phone,
+                  verificationId: verificationCode,
+                ),
+              ),
+            );
+          })
+        });
   }
 
   void _showBottomSheet() {
     setState(() {
-      _showBottomSheetCallback = null; //make bottomSheet not clickable
+      _showLoginBottomSheet = null; //make bottomSheet not clickable
     });
     _scaffoldKey.currentState
         .showBottomSheet(
@@ -49,7 +72,7 @@ class _AfterSplashState extends State<AfterSplash> {
         .whenComplete(() {
           if (mounted) {
             setState(() {
-              _showBottomSheetCallback =
+              _showLoginBottomSheet =
                   _showBottomSheet; //is still in three then keep showing it.
             });
           }
@@ -66,7 +89,7 @@ class _AfterSplashState extends State<AfterSplash> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           LandscapeLogo(),
-          LandscapeButton(showBottomSheetCallback: _showBottomSheetCallback),
+          LandscapeButton(showBottomSheetCallback: _showLoginBottomSheet),
         ],
       );
 
@@ -74,13 +97,21 @@ class _AfterSplashState extends State<AfterSplash> {
       child = Wrap(
         children: <Widget>[
           PortraitLogo(),
-          ButtonPortrait(showBottomSheetCallback: _showBottomSheetCallback),
+          ButtonPortrait(showBottomSheetCallback: _showLoginBottomSheet),
         ],
       );
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      key: _scaffoldKey,
-      body: child,
-    );
+    return StoreConnector<AppState, CommonViewModel>(
+        distinct: true,
+        converter: CommonViewModel.fromStore,
+        builder: (context, vm) {
+          if (vm.navigate == 'otp') {
+            _showOtpBottomSheet(phone: vm.phone, verificationCode: vm.otpcode);
+          }
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            key: _scaffoldKey,
+            body: child,
+          );
+        });
   }
 }

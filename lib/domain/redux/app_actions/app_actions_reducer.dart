@@ -38,6 +38,8 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, Note>(_onNote),
   TypedReducer<AppState, DateFilters>(_onDateFilter),
   TypedReducer<AppState, ReportAction>(onReport),
+  TypedReducer<AppState, NavigateOtp>(onNavigate),
+  TypedReducer<AppState, OtpCode>(onOtpCode),
 ];
 AppState _onAppActions(AppState state, AppAction action) {
   return state.rebuild((a) => a..action = action.actions.toBuilder());
@@ -199,4 +201,14 @@ AppState _onDateFilter(AppState state, DateFilters action) {
 
 AppState onReport(AppState state, ReportAction action) {
   return state.rebuild((a) => a..report = action.report?.toBuilder());
+}
+
+AppState onNavigate(AppState state, NavigateOtp action) {
+  return state.rebuild((a) => a
+    ..phone = action.phone
+    ..navigate = action.navigate);
+}
+
+AppState onOtpCode(AppState state, OtpCode action) {
+  return state.rebuild((a) => a..otpcode = action.otpcode);
 }

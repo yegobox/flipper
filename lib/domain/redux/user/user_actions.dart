@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flipper/model/user.dart';
+import 'package:flipper/model/fuser.dart';
 import 'package:meta/meta.dart';
 
 @immutable

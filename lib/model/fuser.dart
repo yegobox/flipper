@@ -1,8 +1,8 @@
 import 'package:built_value/built_value.dart';
 
-part 'user.g.dart';
+part 'fuser.g.dart';
 
-abstract class FUser implements Built<FUser, UserBuilder> {
+abstract class FUser implements Built<FUser, FUserBuilder> {
   @nullable
   String get id;
 
@@ -21,7 +21,7 @@ abstract class FUser implements Built<FUser, UserBuilder> {
 
   FUser._();
 
-  factory FUser([void Function(UserBuilder) updates]) = _$User;
+  factory FUser([void Function(FUserBuilder) updates]) = _$FUser;
 }
 
 class UserHelper {

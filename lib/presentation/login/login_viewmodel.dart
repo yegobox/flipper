@@ -1,6 +1,5 @@
 import 'package:built_value/built_value.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/user.dart';
 import 'package:redux/redux.dart';
 
 part 'login_viewmodel.g.dart';

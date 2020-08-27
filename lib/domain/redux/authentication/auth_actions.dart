@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/order.dart';
-import 'package:flipper/model/user.dart';
 import 'package:meta/meta.dart';
 
 // Authentication

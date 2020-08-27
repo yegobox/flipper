@@ -10,6 +10,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
+import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/in_app_notification.dart';
@@ -23,7 +24,6 @@ import 'package:flipper/model/sheet.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/model/user.dart';
 import 'package:flipper/model/variation.dart';
 
 part 'app_state.g.dart';
@@ -165,6 +165,15 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   @nullable
   Report get report;
+
+  @nullable
+  String get navigate;
+
+  @nullable
+  String get phone;
+
+  @nullable
+  String get otpcode;
 
   AppState._();
   factory AppState([void Function(AppStateBuilder) updates]) = _$AppState;

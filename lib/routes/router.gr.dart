@@ -372,8 +372,12 @@ class Routing {
           fullscreenDialog: true,
         );
       case Routing.flipperLogin:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => Login(),
+          builder: (_) => Login(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );

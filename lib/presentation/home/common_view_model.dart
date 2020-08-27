@@ -11,6 +11,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
+import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/key_pad.dart';
@@ -19,7 +20,6 @@ import 'package:flipper/model/product.dart';
 import 'package:flipper/model/report.dart';
 import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/model/user.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:redux/redux.dart';
 
@@ -130,6 +130,15 @@ abstract class CommonViewModel
   @nullable
   Report get report;
 
+  @nullable
+  String get navigate;
+
+  @nullable
+  String get phone;
+
+  @nullable
+  String get otpcode;
+
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
@@ -187,6 +196,9 @@ abstract class CommonViewModel
         ..branches = store.state.branches
         ..tmpItem = store.state.tmpItem?.toBuilder()
         ..note = store.state.note
+        ..otpcode = store.state.otpcode
+        ..navigate = store.state.navigate
+        ..phone = store.state.phone
         ..image = store.state.image?.toBuilder()
         ..branch = store.state.branch?.toBuilder(),
     );

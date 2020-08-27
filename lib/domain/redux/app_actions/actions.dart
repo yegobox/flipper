@@ -335,4 +335,21 @@ class ReportAction {
   ReportAction({this.report});
 }
 
+@immutable
+class NavigateOtp {
+  final String navigate;
+  final String phone;
+
+  NavigateOtp({this.navigate, this.phone});
+}
+
+@immutable
+class OtpCode {
+  final String otpcode;
+
+  OtpCode({this.otpcode});
+}
+
+
+
 class CleanTotal {}

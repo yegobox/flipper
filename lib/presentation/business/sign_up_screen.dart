@@ -7,7 +7,7 @@ import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/model/business.dart';
-import 'package:flipper/model/user.dart';
+import 'package:flipper/model/fuser.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/validators.dart';

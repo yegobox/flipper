@@ -1,13 +1,13 @@
 import 'dart:async';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_login/helpers/user.dart';
-
-
+import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:flipper/domain/redux/app_state.dart';
 import '../otp.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 StreamController<String> controller = StreamController<String>();
 Stream loginStream = controller.stream;
@@ -32,7 +32,6 @@ class AuthProvider with ChangeNotifier {
 
   AuthProvider();
 
-//  getter
 
   Status get status => _status;
   FirebaseUser get user => _user;
@@ -51,11 +50,11 @@ class AuthProvider with ChangeNotifier {
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
 
-//    VoidCallback _showBottomSheetCallback;
+    final store = StoreProvider.of<AppState>(context);
 
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
       this.verificationId = verId;
-      controller.add(verificationId);
+      store.dispatch(OtpCode(otpcode: verificationId));
     };
     try {
       await _auth
@@ -75,7 +74,9 @@ class AuthProvider with ChangeNotifier {
               verificationFailed: (exceptio) {
                 print('${exceptio.message} + something is wrong');
               }).then((value) => {
-              //todo: dispatch action to close a model.
+
+          store.dispatch(NavigateOtp(navigate: 'otp',phone: number))
+          //todo: dispatch action to close a model.
       });
     } catch (e) {
       handleError(e, context);

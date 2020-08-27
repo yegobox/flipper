@@ -13,7 +13,7 @@ import 'package:redux/redux.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:uuid/uuid.dart';
 
-import 'model/user.dart';
+import 'model/fuser.dart';
 
 class CouchBase extends Model with Fluttercouch {
   String databaseName;
