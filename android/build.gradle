@@ -9,14 +9,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath 'com.android.tools.build:gradle:3.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.android.tools.build:gradle:4.0.1'
-        // Add the google services classpath
         classpath 'com.google.gms:google-services:4.3.3'
-        // Add fabric classpath
-//        todo: learn more if I need this as it may cause app crash.
-       classpath 'io.fabric.tools:gradle:1.28.0'
+        classpath 'io.fabric.tools:gradle:1.28.0'
     }
 }
 
@@ -25,15 +21,6 @@ allprojects {
         google()
         jcenter()
     }
-
-    // configurations.all {
-    //     resolutionStrategy {
-    //     force 'com.google.guava:listenablefuture:1.0'
-    //     force 'com.google.guava:guava:26.0-android'
-        
-    //     }
-    // }
-  
 }
 
 rootProject.buildDir = '../build'

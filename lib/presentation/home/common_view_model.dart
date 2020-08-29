@@ -1,6 +1,5 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/app_action.dart';
@@ -8,7 +7,6 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
-import 'package:flipper/model/couch_db_client_instance.dart';
 import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/fuser.dart';
@@ -82,7 +80,7 @@ abstract class CommonViewModel
 
   Database get database;
 
-  CouchBase get couch;
+  // CouchBase get couch;
 
   BuiltList<Cart> get carts;
 
@@ -110,8 +108,8 @@ abstract class CommonViewModel
   @nullable
   Product get tmpItem;
 
-  @nullable
-  CouchDbClient get couchDbClient;
+  // @nullable
+  // CouchDbClient get couchDbClient;
   @nullable
   Variation get currentActiveSaleVariant;
 
@@ -175,7 +173,6 @@ abstract class CommonViewModel
         ..appAction = store.state.action?.toBuilder()
         ..currentBusiness = store.state.currentActiveBusiness?.toBuilder()
         ..database = store.state.database
-        ..couch = store.state.couch
         ..hint = store.state.hint?.toBuilder()
         ..carts = store.state.carts.toBuilder()
         ..cartQuantities = store.state.cartQuantities
@@ -186,7 +183,6 @@ abstract class CommonViewModel
         ..customUnit = store.state.customUnit?.toBuilder()
         ..tempCategoryId = store.state.tempCategoryId
         ..customItem = store.state.customItem?.toBuilder()
-        ..couchDbClient = store.state.couchDbClient?.toBuilder()
         ..dateFilter = store.state.dateFilter?.toBuilder()
         ..report = store.state.report?.toBuilder()
         ..currentActiveSaleVariant =

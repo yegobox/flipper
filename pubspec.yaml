@@ -10,7 +10,7 @@ description: flipper business app.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.78
+version: 1.5.102
 
 
 environment:
@@ -56,10 +56,6 @@ dependencies:
   shared_preferences: 0.5.2
   # background_fetch: 0.6.0
   # flutter_uploader: ^1.2.0 
-  fluttercouch:
-   git:
-     url: git://github.com/oltrenuovefrontiere/fluttercouch.git
-     ref: master
   # Firebase dependencies
   # social sign in
   # google_sign_in: "^4.5.1"
@@ -76,11 +72,12 @@ dependencies:
       './packages/flipper_login'
   scoped_model:
   sms_autofill: ^1.2.3
-#  wifi_info_plugin: ^1.0.6
-#  flutter_bluetooth_serial: ^0.2.2
-#  flutter_scan_bluetooth: ^1.1.0
   fl_chart:
   flutter_uploader:
+  fluttercouch:
+   git:
+     url: git://github.com/oltrenuovefrontiere/fluttercouch.git
+     ref: master
   # couchbase_lite:
   #   git:
   #     url: https://github.com/SaltechSystems/couchbase_lite.git
@@ -118,6 +115,7 @@ flutter:
     - assets/card_provider/
     - assets/graphics/drawer/
 
+
   fonts:
     - family: Montserrat
       fonts:
@@ -129,11 +127,15 @@ flutter_intl:
 #  flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
 #  rw.flipper
 # app bundle
-# flutter build appbundle --build-name=1.5.78  --build-number=1578
+# flutter build appbundle --build-name=1.5.92  --build-number=1592
 # app apk
-# flutter build apk --build-name=1.5.78  --build-number=1578
+# flutter build apk --build-name=1.5.102  --build-number=15102
 # Db on device for debugging purpose: This PC\Pixel\Internal shared storage\Android\data\rw.flipper\files\database-development
 
 # icon
+# fixing issue when building release app is not working. reference:https://issuetracker.google.com/issues/158753935
 # flutter pub run flutter_launcher_icons:main
+# flutter run --debug
+# flutter run --profile
+# flutter run --release
 

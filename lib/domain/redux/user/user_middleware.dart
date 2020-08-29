@@ -36,7 +36,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'updatedAt': DateTime.now().toIso8601String(),
         'email': user.email
       };
-      await store.state.couch.createUser(mapUser);
+      //TODO: uncomment this.
+      // await store.state.couch.createUser(mapUser);
       store.dispatch(UserID(userId: store.state.userId));
       store.dispatch(CreateBusinessOnSignUp());
     }

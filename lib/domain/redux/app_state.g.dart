@@ -54,8 +54,6 @@ class _$AppState extends AppState {
   @override
   final Database database;
   @override
-  final CouchBase couch;
-  @override
   final int tempCategoryId;
   @override
   final Unit currentUnit;
@@ -89,8 +87,6 @@ class _$AppState extends AppState {
   final Total total;
   @override
   final Tax defaultTax;
-  @override
-  final CouchDbClient couchDbClient;
   @override
   final String fcmToken;
   @override
@@ -137,7 +133,6 @@ class _$AppState extends AppState {
       this.business,
       this.hint,
       this.database,
-      this.couch,
       this.tempCategoryId,
       this.currentUnit,
       this.currentColor,
@@ -155,7 +150,6 @@ class _$AppState extends AppState {
       this.tmpItem,
       this.total,
       this.defaultTax,
-      this.couchDbClient,
       this.fcmToken,
       this.image,
       this.note,
@@ -168,9 +162,6 @@ class _$AppState extends AppState {
       : super._() {
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
-    }
-    if (couch == null) {
-      throw new BuiltValueNullFieldError('AppState', 'couch');
     }
     if (itemVariations == null) {
       throw new BuiltValueNullFieldError('AppState', 'itemVariations');
@@ -217,7 +208,6 @@ class _$AppState extends AppState {
         business == other.business &&
         hint == other.hint &&
         database == other.database &&
-        couch == other.couch &&
         tempCategoryId == other.tempCategoryId &&
         currentUnit == other.currentUnit &&
         currentColor == other.currentColor &&
@@ -235,7 +225,6 @@ class _$AppState extends AppState {
         tmpItem == other.tmpItem &&
         total == other.total &&
         defaultTax == other.defaultTax &&
-        couchDbClient == other.couchDbClient &&
         fcmToken == other.fcmToken &&
         image == other.image &&
         note == other.note &&
@@ -267,17 +256,17 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), couch.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode), currentActiveSaleProduct.hashCode), currentActiveSaleVariant.hashCode), cartItem.hashCode),
-                                                                                items.hashCode),
-                                                                            currentIncrement.hashCode),
-                                                                        carts.hashCode),
-                                                                    cartQuantities.hashCode),
-                                                                order.hashCode),
-                                                            keypad.hashCode),
-                                                        tmpItem.hashCode),
-                                                    total.hashCode),
-                                                defaultTax.hashCode),
-                                            couchDbClient.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode), currentActiveSaleProduct.hashCode), currentActiveSaleVariant.hashCode),
+                                                                                cartItem.hashCode),
+                                                                            items.hashCode),
+                                                                        currentIncrement.hashCode),
+                                                                    carts.hashCode),
+                                                                cartQuantities.hashCode),
+                                                            order.hashCode),
+                                                        keypad.hashCode),
+                                                    tmpItem.hashCode),
+                                                total.hashCode),
+                                            defaultTax.hashCode),
                                         fcmToken.hashCode),
                                     image.hashCode),
                                 note.hashCode),
@@ -315,7 +304,6 @@ class _$AppState extends AppState {
           ..add('business', business)
           ..add('hint', hint)
           ..add('database', database)
-          ..add('couch', couch)
           ..add('tempCategoryId', tempCategoryId)
           ..add('currentUnit', currentUnit)
           ..add('currentColor', currentColor)
@@ -333,7 +321,6 @@ class _$AppState extends AppState {
           ..add('tmpItem', tmpItem)
           ..add('total', total)
           ..add('defaultTax', defaultTax)
-          ..add('couchDbClient', couchDbClient)
           ..add('fcmToken', fcmToken)
           ..add('image', image)
           ..add('note', note)
@@ -448,10 +435,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   Database get database => _$this._database;
   set database(Database database) => _$this._database = database;
 
-  CouchBase _couch;
-  CouchBase get couch => _$this._couch;
-  set couch(CouchBase couch) => _$this._couch = couch;
-
   int _tempCategoryId;
   int get tempCategoryId => _$this._tempCategoryId;
   set tempCategoryId(int tempCategoryId) =>
@@ -532,12 +515,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   TaxBuilder get defaultTax => _$this._defaultTax ??= new TaxBuilder();
   set defaultTax(TaxBuilder defaultTax) => _$this._defaultTax = defaultTax;
 
-  CouchDbClientBuilder _couchDbClient;
-  CouchDbClientBuilder get couchDbClient =>
-      _$this._couchDbClient ??= new CouchDbClientBuilder();
-  set couchDbClient(CouchDbClientBuilder couchDbClient) =>
-      _$this._couchDbClient = couchDbClient;
-
   String _fcmToken;
   String get fcmToken => _$this._fcmToken;
   set fcmToken(String fcmToken) => _$this._fcmToken = fcmToken;
@@ -605,7 +582,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _business = _$v.business?.toBuilder();
       _hint = _$v.hint?.toBuilder();
       _database = _$v.database;
-      _couch = _$v.couch;
       _tempCategoryId = _$v.tempCategoryId;
       _currentUnit = _$v.currentUnit?.toBuilder();
       _currentColor = _$v.currentColor?.toBuilder();
@@ -623,7 +599,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _tmpItem = _$v.tmpItem?.toBuilder();
       _total = _$v.total?.toBuilder();
       _defaultTax = _$v.defaultTax?.toBuilder();
-      _couchDbClient = _$v.couchDbClient?.toBuilder();
       _fcmToken = _$v.fcmToken;
       _image = _$v.image?.toBuilder();
       _note = _$v.note;
@@ -680,7 +655,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               business: _business?.build(),
               hint: _hint?.build(),
               database: database,
-              couch: couch,
               tempCategoryId: tempCategoryId,
               currentUnit: _currentUnit?.build(),
               currentColor: _currentColor?.build(),
@@ -698,7 +672,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               tmpItem: _tmpItem?.build(),
               total: _total?.build(),
               defaultTax: _defaultTax?.build(),
-              couchDbClient: _couchDbClient?.build(),
               fcmToken: fcmToken,
               image: _image?.build(),
               note: note,
@@ -779,8 +752,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _total?.build();
         _$failedField = 'defaultTax';
         _defaultTax?.build();
-        _$failedField = 'couchDbClient';
-        _couchDbClient?.build();
 
         _$failedField = 'image';
         _image?.build();

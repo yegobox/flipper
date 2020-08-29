@@ -31,61 +31,62 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     if (store.state.business != null) {
-      FUser user = await store.state.couch.getDocumentByDocId(
-          docId: 'user_' + store.state.userId.toString(),
-          store: store,
-          T: FUser);
+      //TODO: uncomment this.
+      // FUser user = await store.state.couch.getDocumentByDocId(
+      //     docId: 'user_' + store.state.userId.toString(),
+      //     store: store,
+      //     T: FUser);
 
-      String businessId = Uuid().v1();
-      Map _mapBusiness = {
-        'active': true,
-        '_id': 'business_' + store.state.userId.toString(),
-        'categoryId': '10', //pet store a default id when signup on mobile
-        'channel': store.state.userId.toString(),
-        'typeId': '1', //pet store a default id when signup on mobile
-        'businessUrl': '',
-        'country': 'Rwanda',
-        'currency': 'RWF',
-        'id': businessId,
-        'name': store.state.business.name,
-        'timeZone': '',
-        'userId': user.id,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
-      };
+      // String businessId = Uuid().v1();
+      // Map _mapBusiness = {
+      //   'active': true,
+      //   '_id': 'business_' + store.state.userId.toString(),
+      //   'categoryId': '10', //pet store a default id when signup on mobile
+      //   'channel': store.state.userId.toString(),
+      //   'typeId': '1', //pet store a default id when signup on mobile
+      //   'businessUrl': '',
+      //   'country': 'Rwanda',
+      //   'currency': 'RWF',
+      //   'id': businessId,
+      //   'name': store.state.business.name,
+      //   'timeZone': '',
+      //   'userId': user.id,
+      //   'createdAt': DateTime.now().toIso8601String(),
+      //   'updatedAt': DateTime.now().toIso8601String(),
+      // };
 
-      await store.state.couch.createBusiness(_mapBusiness);
+      // await store.state.couch.createBusiness(_mapBusiness);
 
-      Map _notTax = {
-        'active': true,
-        '_id': 'taxes_' + store.state.userId.toString(),
-        'channel': store.state.userId.toString(),
-        'businessId': businessId,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
-        'id': Uuid().v1(),
-        'isDefault': false,
-        'name': 'No Tax',
-        'percentage': 0,
-      };
+      // Map _notTax = {
+      //   'active': true,
+      //   '_id': 'taxes_' + store.state.userId.toString(),
+      //   'channel': store.state.userId.toString(),
+      //   'businessId': businessId,
+      //   'createdAt': DateTime.now().toIso8601String(),
+      //   'updatedAt': DateTime.now().toIso8601String(),
+      //   'id': Uuid().v1(),
+      //   'isDefault': false,
+      //   'name': 'No Tax',
+      //   'percentage': 0,
+      // };
 
-      await store.state.couch.createTax(_notTax);
-      Map vat = {
-        'active': true,
-        '_id': 'taxes_' + store.state.userId.toString(),
-        'channel': store.state.userId.toString(),
-        'businessId': businessId,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
-        'id': Uuid().v1(),
-        'isDefault': true,
-        'name': 'Vat',
-        'percentage': 18,
-      };
-      await store.state.couch.createTax(vat);
-      store.dispatch(BusinessId(businessId));
+      // await store.state.couch.createTax(_notTax);
+      // Map vat = {
+      //   'active': true,
+      //   '_id': 'taxes_' + store.state.userId.toString(),
+      //   'channel': store.state.userId.toString(),
+      //   'businessId': businessId,
+      //   'createdAt': DateTime.now().toIso8601String(),
+      //   'updatedAt': DateTime.now().toIso8601String(),
+      //   'id': Uuid().v1(),
+      //   'isDefault': true,
+      //   'name': 'Vat',
+      //   'percentage': 18,
+      // };
+      // await store.state.couch.createTax(vat);
+      // store.dispatch(BusinessId(businessId));
 
-      store.dispatch(BusinessCreated());
+      // store.dispatch(BusinessCreated());
     }
   };
 }

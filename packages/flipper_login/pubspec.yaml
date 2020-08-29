@@ -13,13 +13,7 @@ dependencies:
     sdk: flutter
   firebase_core: "^0.5.0"
   firebase_auth: "^0.18.0+1"
-  flutter_blue: ^0.7.1+1
-  flutter_scan_bluetooth: ^1.1.0
-  wifi_info_plugin: ^1.0.6
-  flutter_bluetooth_serial: ^0.2.2
   sms_autofill: ^1.2.3
-  # redux: ^4.0.0
-  # flutter_redux: ^0.6.0
 
 dev_dependencies:
   flutter_test:

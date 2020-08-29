@@ -37,7 +37,7 @@ class OtpPage extends StatelessWidget {
               text: TextSpan(children: [
                 TextSpan(text: "Please enter"),
                 TextSpan(text: " Otp", style: TextStyle(color: Colors.blue.shade900)),
-                TextSpan(text: " set to your SMS"),
+                TextSpan(text: " sent to your SMS"),
               ], style: TextStyle(color: black),),),),
             SizedBox(height: 10),
             Padding(

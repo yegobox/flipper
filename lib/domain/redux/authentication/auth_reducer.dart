@@ -23,5 +23,5 @@ AppState _onOrderCreated(AppState state, OrderCreated action) {
 }
 
 AppState _onDbLoaded(AppState state, OnDbLoaded action) {
-  return state.rebuild((a) => a.couchDbClient.name = action.name);
+  // return state.rebuild((a) => a.couchDbClient.name = action.name);
 }

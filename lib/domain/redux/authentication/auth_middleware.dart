@@ -75,11 +75,13 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await createAppActions(store);
     await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
-    await store.state.couch.syncRemoteToLocal(store: store);
+    //TODO: uncomment this.
+    // await store.state.couch.syncRemoteToLocal(store: store);
     heartBeatSync(store: store);
 
     //listen for Sqlite Db change.
-    store.state.couch.dbListner(store: store);
+    //TODO: uncomment this.
+    // store.state.couch.dbListner(store: store);
   };
 }
 

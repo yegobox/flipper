@@ -1,13 +1,12 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
-import 'package:flipper/model/couch_db_client_instance.dart';
+
 import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/fuser.dart';
@@ -96,7 +95,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   Database get database;
 
-  CouchBase get couch;
 
   @nullable
   int get tempCategoryId;
@@ -145,8 +143,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   Tax get defaultTax;
 
-  @nullable
-  CouchDbClient get couchDbClient;
 
   @nullable
   String get fcmToken;
@@ -180,7 +176,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   factory AppState.init() => AppState((a) => a
     ..database = Database()
-    ..couch = CouchBase(shouldInitDb: true)
     ..units = ListBuilder()
     ..carts = ListBuilder()
     ..itemVariations = ListBuilder()

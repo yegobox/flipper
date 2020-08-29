@@ -195,7 +195,7 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
     DataManager.createTemporalOrder(generalRepository, store);
 
     DataManager.createTempProduct(store, 'custom-product');
-
-    store.state.couch.syncOrderLRemote(store);
+    //TODO: uncomment this.
+    // store.state.couch.syncOrderLRemote(store);
   };
 }

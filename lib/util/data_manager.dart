@@ -123,7 +123,8 @@ class DataManager extends CouchBase {
     }
 
     await store.state.database.productDao.deleteItem(product);
-    store.state.couch.syncLocalToRemote(store: store);
+    //TODO: uncomment this.
+    // store.state.couch.syncLocalToRemote(store: store);
   }
 
   static createTemporalOrder(

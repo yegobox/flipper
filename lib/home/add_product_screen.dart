@@ -367,7 +367,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       retailPrice: DataManager.retailPrice ?? 0.0,
     );
 
-    await vm.couch.syncProduct(vm.tmpItem.productId, store);
+    //todo: uncomment this soon.
+    //await vm.couch.syncProduct(vm.tmpItem.productId, store);
 
     await resetSaveButtonStatus(vm);
 
