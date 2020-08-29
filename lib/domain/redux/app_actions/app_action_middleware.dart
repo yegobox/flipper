@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
@@ -195,7 +196,7 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
     DataManager.createTemporalOrder(generalRepository, store);
 
     DataManager.createTempProduct(store, 'custom-product');
-    //TODO: uncomment this.
-    // store.state.couch.syncOrderLRemote(store);
+    
+    AppDatabase.instance.syncOrderLRemote(store);
   };
 }

@@ -1,11 +1,10 @@
-// import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 
-void main() async {
-  // Crashlytics.instance.enableInDevMode = true;
+Future<void> main() async {
+   // Crashlytics.instance.enableInDevMode = true;
   // FlutterError.onError = Crashlytics.instance.recordFlutterError;
   configureLogger();
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,3 +21,6 @@ void main() async {
   await Firebase.initializeApp();
   runApp(FlipperApp());
 }
+
+
+

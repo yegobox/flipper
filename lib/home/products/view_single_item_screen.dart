@@ -1,4 +1,5 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
@@ -401,7 +402,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
       tax = await store.state.database.taxDao.getByName(
           name: 'Vat', businessId: store.state.currentActiveBusiness.id);
     }
-    ProductTableData product =
+    final ProductTableData product =
         await vm.database.productDao.getItemById(productId: widget.productId);
 
     vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
@@ -413,8 +414,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
         updatedAt: DateTime.now(),
       ),
     );
-    //TODO: uncomment this.
-    // await store.state.couch.syncLocalToRemote(store: store);
+    await AppDatabase.instance.syncLocalToRemote(store: store);
     Routing.navigator.pop();
   }
 }

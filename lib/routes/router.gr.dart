@@ -36,9 +36,7 @@ import 'package:flipper/home/reports/report_screen.dart';
 import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
-import 'package:flipper_login/login.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
-import 'package:flipper/debug.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -69,9 +67,7 @@ class Routing {
   static const dateScreen = '/date-screen';
   static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
-  static const flipperLogin = '/flipper-login';
   static const cameraPreview = '/camera-preview';
-  static const debug = '/debug';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -371,16 +367,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.flipperLogin:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => Login(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
       case Routing.cameraPreview:
         if (hasInvalidArgs<CameraPreviewArguments>(args)) {
           return misTypedArgsRoute<CameraPreviewArguments>(args);
@@ -390,16 +376,6 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) =>
               CameraPreview(key: typedArgs.key, image: typedArgs.image),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.debug:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => Debug(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );

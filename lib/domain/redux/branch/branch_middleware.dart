@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/branch_repository.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
@@ -44,8 +45,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
     };
-    //TODO: uncomment this.
-    // await store.state.couch.createBranch(_mapBranch);
+    AppDatabase.instance.createBranch(_mapBranch);
     store.dispatch(VerifyAuthenticationState());
   };
 }

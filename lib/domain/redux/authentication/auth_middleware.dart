@@ -8,6 +8,7 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
+import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
@@ -61,13 +62,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   GeneralRepository generalRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
-  return (store, action, next) async {
+  return (Store<AppState> store, action, next) async {
     next(action);
 
-    print('heart beat sync::');
-
     await isUserCurrentlyLoggedIn(store);
-    TabsTableData tab = await generalRepository.getTab(store);
+    final TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
 
     await getBusinesses(store, generalRepository);
@@ -75,13 +74,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await createAppActions(store);
     await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
-    //TODO: uncomment this.
-    // await store.state.couch.syncRemoteToLocal(store: store);
+    
+    await AppDatabase.instance.syncRemoteToLocal(store: store);
     heartBeatSync(store: store);
 
-    //listen for Sqlite Db change.
-    //TODO: uncomment this.
-    // store.state.couch.dbListner(store: store);
+    AppDatabase.instance.dbListner(store: store);
   };
 }
 
@@ -169,7 +166,7 @@ _getCurrentLocation({Store<AppState> store}) async {
       .listen((Position location) async {
     //time to update data....
     if (businessTableData != null) {
-      store.state.database.businessDao.updateBusiness(
+      await store.state.database.businessDao.updateBusiness(
           businessTableData.copyWith(
               idLocal: businessTableData.idLocal,
               longitude: location.longitude,
@@ -178,9 +175,10 @@ _getCurrentLocation({Store<AppState> store}) async {
   });
 }
 
+
 Future<List<Branch>> getBranches(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  List<Branch> branches = await CouchBase(shouldInitDb: false)
+  List<Branch> branches = await AppDatabase.instance
       .getDocumentByDocId(
           docId: 'branches_' + store.state.userId.toString(),
           store: store,
@@ -294,11 +292,11 @@ Future createSystemStockReasons(Store<AppState> store) async {
   }
 }
 
-Future createAppActions(Store<AppState> store) async {
-  ActionsTableData actionAction =
+Future<void> createAppActions(Store<AppState> store) async {
+  final ActionsTableData actionAction =
       await store.state.database.actionsDao.getActionBy('save');
 
-  ActionsTableData saveItem =
+  final ActionsTableData saveItem =
       await store.state.database.actionsDao.getActionBy('saveItem');
   if (saveItem == null) {
     await store.state.database.actionsDao.insert(
@@ -312,16 +310,16 @@ Future createAppActions(Store<AppState> store) async {
   }
 }
 
-Future createTemporalOrder(
+Future<void> createTemporalOrder(
     GeneralRepository generalRepository, Store<AppState> store) async {
   if (store.state.branch == null) return;
   if (store.state.userId == null) return;
   DataManager.createTemporalOrder(generalRepository, store);
 }
 
-Future getBusinesses(
+Future<void> getBusinesses(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  List<Business> businesses = await CouchBase(shouldInitDb: false)
+  final List<Business> businesses = await AppDatabase.instance
       .getDocumentByDocId(
           docId: 'business_' + store.state.userId.toString(),
           store: store,
@@ -330,7 +328,7 @@ Future getBusinesses(
   await getBranches(store, generalRepository);
   await createTemporalOrder(generalRepository, store);
 
-  for (var i = 0; i < businesses.length; i++) {
+  for (int i = 0; i < businesses.length; i++) {
     if (businesses[i].active) {
       store.dispatch(
         ActiveBusinessAction(
@@ -351,7 +349,7 @@ Future getBusinesses(
     }
   }
 
-  if (businesses.length == 0) {
+  if (businesses.isEmpty) {
     if (store.state.user != null) {
       Routing.navigator.pushNamed(
         Routing.signUpScreen,
@@ -367,15 +365,6 @@ Future getBusinesses(
     }
   } else if (store.state.userId == null) {
     Routing.navigator.pushNamed(Routing.afterSplash);
-    // Fluttertoast.showToast(
-    //   msg: 'There was internal error try again',
-    //   toastLength: Toast.LENGTH_LONG,
-    //   gravity: ToastGravity.BOTTOM,
-    //   timeInSecForIos: 1,
-    //   backgroundColor: Colors.red,
-    //   textColor: Colors.white,
-    //   fontSize: 16.0,
-    // );
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));
     Routing.navigator.pushNamed(Routing.dashboard);

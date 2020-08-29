@@ -11,7 +11,6 @@ class OrderDetailTable extends Table {
 
   TextColumn get unit => text()();
 
-  //TODO:  this  field added by ganza canTrackStock, I got confused by it as we arleady have it somehere in stock
   //need to clarification.
   TextColumn get note => text()();
 

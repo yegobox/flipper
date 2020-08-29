@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
@@ -36,8 +37,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'updatedAt': DateTime.now().toIso8601String(),
         'email': user.email
       };
-      //TODO: uncomment this.
-      // await store.state.couch.createUser(mapUser);
+      await AppDatabase.instance.createUser(mapUser);
       store.dispatch(UserID(userId: store.state.userId));
       store.dispatch(CreateBusinessOnSignUp());
     }

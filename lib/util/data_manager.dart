@@ -15,7 +15,8 @@ import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
-class DataManager extends CouchBase {
+// ignore: avoid_classes_with_only_static_members
+class DataManager  {
   //updatable variables
   static double retailPrice = 0.0;
   static double supplyPrice = 0.0;
@@ -110,11 +111,11 @@ class DataManager extends CouchBase {
     List<StockTableData> stocks = await store.state.database.stockDao
         .getStockByProductId(
             branchId: store.state.branch.id, productId: productId);
-    ProductTableData product = await store.state.database.productDao
+    final ProductTableData product = await store.state.database.productDao
         .getProductById(productId: productId);
 
-    for (var i = 0; i < stocks.length; i++) {
-      VariationTableData variant = await store.state.database.variationDao
+    for (int i = 0; i < stocks.length; i++) {
+      final VariationTableData variant = await store.state.database.variationDao
           .getVariationById(variantId: stocks[i].variantId);
 
       await store.state.database.variationDao.deleteVariation(variant);
@@ -123,13 +124,14 @@ class DataManager extends CouchBase {
     }
 
     await store.state.database.productDao.deleteItem(product);
-    //TODO: uncomment this.
-    // store.state.couch.syncLocalToRemote(store: store);
+    
+    AppDatabase.instance.syncLocalToRemote(store: store);
   }
 
+  // ignore: always_declare_return_types
   static createTemporalOrder(
       GeneralRepository generalRepository, Store<AppState> store) async {
-    OrderTableData order =
+    final OrderTableData order =
         await generalRepository.createDraftOrderOrReturnExistingOne(store);
 
     //broadcast order to be used later when creating a sale

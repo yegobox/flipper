@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/respositories/business_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
@@ -27,66 +28,66 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   GlobalKey<NavigatorState> navigatorKey,
   BusinessRepository businessRepository,
 ) {
-  return (store, action, next) async {
+  return (Store<AppState> store, action, next) async {
     next(action);
 
     if (store.state.business != null) {
-      //TODO: uncomment this.
-      // FUser user = await store.state.couch.getDocumentByDocId(
-      //     docId: 'user_' + store.state.userId.toString(),
-      //     store: store,
-      //     T: FUser);
+     
+      final FUser user = await AppDatabase.instance.getDocumentByDocId(
+          docId: 'user_' + store.state.userId.toString(),
+          store: store,
+          T: FUser);
 
-      // String businessId = Uuid().v1();
-      // Map _mapBusiness = {
-      //   'active': true,
-      //   '_id': 'business_' + store.state.userId.toString(),
-      //   'categoryId': '10', //pet store a default id when signup on mobile
-      //   'channel': store.state.userId.toString(),
-      //   'typeId': '1', //pet store a default id when signup on mobile
-      //   'businessUrl': '',
-      //   'country': 'Rwanda',
-      //   'currency': 'RWF',
-      //   'id': businessId,
-      //   'name': store.state.business.name,
-      //   'timeZone': '',
-      //   'userId': user.id,
-      //   'createdAt': DateTime.now().toIso8601String(),
-      //   'updatedAt': DateTime.now().toIso8601String(),
-      // };
+      final String businessId = Uuid().v1();
+      final Map _mapBusiness = {
+        'active': true,
+        '_id': 'business_' + store.state.userId.toString(),
+        'categoryId': '10', //pet store a default id when signup on mobile
+        'channel': store.state.userId.toString(),
+        'typeId': '1', //pet store a default id when signup on mobile
+        'businessUrl': '',
+        'country': 'Rwanda',
+        'currency': 'RWF',
+        'id': businessId,
+        'name': store.state.business.name,
+        'timeZone': '',
+        'userId': user.id,
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
 
-      // await store.state.couch.createBusiness(_mapBusiness);
+      await AppDatabase.instance.createBusiness(_mapBusiness);
 
-      // Map _notTax = {
-      //   'active': true,
-      //   '_id': 'taxes_' + store.state.userId.toString(),
-      //   'channel': store.state.userId.toString(),
-      //   'businessId': businessId,
-      //   'createdAt': DateTime.now().toIso8601String(),
-      //   'updatedAt': DateTime.now().toIso8601String(),
-      //   'id': Uuid().v1(),
-      //   'isDefault': false,
-      //   'name': 'No Tax',
-      //   'percentage': 0,
-      // };
+      final Map _notTax = {
+        'active': true,
+        '_id': 'taxes_' + store.state.userId.toString(),
+        'channel': store.state.userId.toString(),
+        'businessId': businessId,
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+        'id': Uuid().v1(),
+        'isDefault': false,
+        'name': 'No Tax',
+        'percentage': 0,
+      };
 
-      // await store.state.couch.createTax(_notTax);
-      // Map vat = {
-      //   'active': true,
-      //   '_id': 'taxes_' + store.state.userId.toString(),
-      //   'channel': store.state.userId.toString(),
-      //   'businessId': businessId,
-      //   'createdAt': DateTime.now().toIso8601String(),
-      //   'updatedAt': DateTime.now().toIso8601String(),
-      //   'id': Uuid().v1(),
-      //   'isDefault': true,
-      //   'name': 'Vat',
-      //   'percentage': 18,
-      // };
-      // await store.state.couch.createTax(vat);
-      // store.dispatch(BusinessId(businessId));
+      await AppDatabase.instance.createTax(_notTax);
+      final Map vat = {
+        'active': true,
+        '_id': 'taxes_' + store.state.userId.toString(),
+        'channel': store.state.userId.toString(),
+        'businessId': businessId,
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+        'id': Uuid().v1(),
+        'isDefault': true,
+        'name': 'Vat',
+        'percentage': 18,
+      };
+      await AppDatabase.instance.createTax(vat);
+      store.dispatch(BusinessId(businessId));
 
-      // store.dispatch(BusinessCreated());
+      store.dispatch(BusinessCreated());
     }
   };
 }

@@ -1,4 +1,4 @@
-import 'package:flipper/generated/l10n.dart';
+
 import 'package:flipper/presentation/splash/popup.dart';
 import 'package:flipper/presentation/splash/popup_content.dart';
 import 'package:flutter/material.dart';
@@ -30,9 +30,9 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                 child: FlatButton(
                   onPressed: widget.showBottomSheetCallback,
                   color: Colors.blue,
-                  child: Text(
-                    S.of(context).createAccount,
-                    style: const TextStyle(color: Colors.white),
+                  child: const Text(
+                    'Create Account',
+                    style:  TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -47,9 +47,9 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                 height: 60,
                 child: OutlineButton(
                   color: Colors.blue,
-                  child: Text(
-                    S.of(context).signIn,
-                    style: const TextStyle(color: Colors.blue),
+                  child:const Text(
+                    'Sign in',
+                    style:  TextStyle(color: Colors.blue),
                   ),
                   onPressed: widget.showBottomSheetCallback,
                 ),

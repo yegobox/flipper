@@ -31,9 +31,9 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
                 child: FlatButton(
                   onPressed: widget.showBottomSheetCallback,
                   color: Colors.blue,
-                  child: Text(
-                    S.of(context).createAccount,
-                    style: const TextStyle(color: Colors.white),
+                  child:const Text(
+                    'Create Account',
+                    style:  TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -48,9 +48,9 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
                 height: 60,
                 child: OutlineButton(
                   color: Colors.blue,
-                  child: Text(
-                    S.of(context).signIn,
-                    style: const TextStyle(color: Colors.blue),
+                  child:const Text(
+                    'Sign in',
+                    style:  TextStyle(color: Colors.blue),
                   ),
                   onPressed: widget.showBottomSheetCallback,
                 ),

@@ -9,6 +9,7 @@ class LandscapeLogo extends StatefulWidget {
   _LandscapeLogoState createState() => _LandscapeLogoState();
 }
 
+
 class _LandscapeLogoState extends State<LandscapeLogo> {
   @override
   Widget build(BuildContext context) {
@@ -35,9 +36,9 @@ class _LandscapeLogoState extends State<LandscapeLogo> {
                   style: TextStyle(color: Colors.white, fontSize: 40),
                 ),
               ),
-              Text(
-                S.of(context).interactandgrowyourbusiness,
-                style: const TextStyle(color: Colors.white, fontSize: 20),
+              const Text(
+                'Interract and grow your business',
+                style: TextStyle(color: Colors.white, fontSize: 20),
               )
             ],
           ),

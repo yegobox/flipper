@@ -16,16 +16,14 @@ class AfterSplash extends StatefulWidget {
 }
 
 class _AfterSplashState extends State<AfterSplash> {
-  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   // ignore: unused_field
   VoidCallback _showLoginBottomSheet;
-  VoidCallback _optSheet;
 
   @override
   void initState() {
     super.initState();
     _showLoginBottomSheet = _showBottomSheet;
-    _optSheet = _showOtpBottomSheet;
   }
 
   void _showOtpBottomSheet({String phone, String verificationCode}) {
@@ -51,7 +49,7 @@ class _AfterSplashState extends State<AfterSplash> {
     });
     _scaffoldKey.currentState
         .showBottomSheet(
-          (context) {
+          (BuildContext context) {
             return Container(
               color: Colors.white,
               height: 300.0,
@@ -63,7 +61,7 @@ class _AfterSplashState extends State<AfterSplash> {
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0),
-            side: BorderSide(
+            side: const BorderSide(
               color: Colors.blue,
             ),
           ),
@@ -103,7 +101,7 @@ class _AfterSplashState extends State<AfterSplash> {
     return StoreConnector<AppState, CommonViewModel>(
         distinct: true,
         converter: CommonViewModel.fromStore,
-        builder: (context, vm) {
+        builder: (BuildContext context, CommonViewModel vm) {
           if (vm.navigate == 'otp') {
             _showOtpBottomSheet(phone: vm.phone, verificationCode: vm.otpcode);
           }

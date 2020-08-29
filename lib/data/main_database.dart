@@ -1,6 +1,4 @@
-import 'dart:io' as Io;
 import 'dart:io';
-
 import 'package:flipper/data/actions_table.dart';
 import 'package:flipper/data/branch.dart';
 import 'package:flipper/data/business.dart';
@@ -57,7 +55,7 @@ LazyDatabase _openConnection() {
     // put the database file, called db.sqlite here, into the documents folder
     // for your app.
 
-    final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
+    final dbFolder = await getApplicationDocumentsDirectory();
 
     // final Io.Directory dbFolder = await getApplicationDocumentsDirectory();
     // final dbFolder = await getDatabasesPath();
@@ -73,7 +71,7 @@ LazyDatabase _openConnection() {
     // return VmDatabase(file);
 
 
-    final Io.File file = File(p.join(dbFolder.path, 'db.sqlite'));
+    final file = File(p.join(dbFolder.path, 'db.sqlite'));
     // if (!await file.exists()) {}
     return VmDatabase(file);
   });
@@ -114,6 +112,7 @@ LazyDatabase _openConnection() {
   StockHistoryDao,
   StockDao,
   OrderDetailDao,
+
   OrderDao,
   ColorDao,
   ActionsDao,

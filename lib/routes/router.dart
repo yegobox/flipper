@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
-import 'package:flipper/debug.dart';
 import 'package:flipper/home/add_category_screen.dart';
 import 'package:flipper/home/add_note_screen.dart';
 import 'package:flipper/home/add_product_screen.dart';
@@ -31,7 +30,7 @@ import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
-import 'package:flipper_login/login.dart';
+
 
 @MaterialAutoRouter()
 class $Routing {
@@ -116,15 +115,9 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   TenderScreen tenderScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  Login flipperLogin;
-
-  // Subscription subscription;
 
   @MaterialRoute(fullscreenDialog: true)
   CameraPreview cameraPreview;
 
-  @MaterialRoute(fullscreenDialog: true)
-  Debug debug;
 
 }
