@@ -1,16 +1,37 @@
 
 import 'package:flipper/presentation/splash/popup.dart';
 import 'package:flipper/presentation/splash/popup_content.dart';
+import 'package:flipper_login/login.dart';
 import 'package:flutter/material.dart';
 
 class LandscapeButton extends StatefulWidget {
-  LandscapeButton({Key key, this.showBottomSheetCallback}) : super(key: key);
-  final VoidCallback showBottomSheetCallback;
+ const LandscapeButton({Key key}) : super(key: key);
+ 
   @override
   _LandscapeButtonState createState() => _LandscapeButtonState();
 }
 
 class _LandscapeButtonState extends State<LandscapeButton> {
+   // ignore: always_declare_return_types
+   _showModalBottomSheet(context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          child: Login(),
+          height: 300,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
@@ -28,7 +49,9 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                 width: 380,
                 height: 60,
                 child: FlatButton(
-                  onPressed: widget.showBottomSheetCallback,
+                  onPressed: (){
+                    _showModalBottomSheet(context);
+                  },
                   color: Colors.blue,
                   child: const Text(
                     'Create Account',
@@ -51,7 +74,9 @@ class _LandscapeButtonState extends State<LandscapeButton> {
                     'Sign in',
                     style:  TextStyle(color: Colors.blue),
                   ),
-                  onPressed: widget.showBottomSheetCallback,
+                  onPressed: (){
+                    _showModalBottomSheet(context);
+                  },
                 ),
               ),
             ),

@@ -23,59 +23,31 @@ class _AfterSplashState extends State<AfterSplash> {
   @override
   void initState() {
     super.initState();
-    _showLoginBottomSheet = _showBottomSheet;
+    
   }
 
   void _showOtpBottomSheet({String phone, String verificationCode}) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => {
-          _scaffoldKey.currentState.showBottomSheet((context) {
-            return Container(
-              color: Colors.white,
-              height: 300.0,
-              child: Center(
-                child: OtpPage(
-                  phone: phone,
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          child: OtpPage(
+            phone: phone,
                   verificationId: verificationCode,
-                ),
-              ),
-            );
-          })
-        });
-  }
-
-  void _showBottomSheet() {
-    setState(() {
-      _showLoginBottomSheet = null; //make bottomSheet not clickable
-    });
-    _scaffoldKey.currentState
-        .showBottomSheet(
-          (BuildContext context) {
-            return Container(
-              color: Colors.white,
-              height: 300.0,
-              child: Center(
-                child: Login(),
-              ),
-            );
-          },
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
-            side: const BorderSide(
-              color: Colors.blue,
+          ),
+          height: 300,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
             ),
           ),
-        )
-        .closed
-        .whenComplete(() {
-          if (mounted) {
-            setState(() {
-              _showLoginBottomSheet =
-                  _showBottomSheet; //is still in three then keep showing it.
-            });
-          }
-        });
+        );
+      },
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +59,10 @@ class _AfterSplashState extends State<AfterSplash> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           LandscapeLogo(),
-          LandscapeButton(showBottomSheetCallback: _showLoginBottomSheet),
+           Theme(
+            data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+            child: const LandscapeButton(),
+          )
         ],
       );
 
@@ -95,7 +70,10 @@ class _AfterSplashState extends State<AfterSplash> {
       child = Wrap(
         children: <Widget>[
           PortraitLogo(),
-          ButtonPortrait(showBottomSheetCallback: _showLoginBottomSheet),
+           Theme(
+            data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+            child: const ButtonPortrait(),
+          )
         ],
       );
     return StoreConnector<AppState, CommonViewModel>(
