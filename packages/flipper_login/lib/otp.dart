@@ -1,22 +1,16 @@
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' as Auth;
-import './loginResponse.dart';
-import 'package:flipper_login/providers/auth.dart';
-import 'package:flutter/material.dart';
-import 'package:sms_autofill/sms_autofill.dart';
-import 'package:http/http.dart' as http;
-import 'package:flipper/model/fuser.dart';
+import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'helpers/style.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flipper/model/fuser.dart';
-import 'providers/auth.dart';
-import 'widgets/custom_button.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/data/main_database.dart';
-import 'widgets/custom_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:http/http.dart' as http;
+
+import './loginResponse.dart';
+import 'helpers/style.dart';
 
 class OtpPage extends StatelessWidget {
   OtpPage({this.phone,this.verificationId});
@@ -35,11 +29,11 @@ class OtpPage extends StatelessWidget {
           children: <Widget>[
             Center(child:  RichText(
               text: TextSpan(children: [
-                TextSpan(text: "Please enter"),
-                TextSpan(text: " Otp", style: TextStyle(color: Colors.blue.shade900)),
-                TextSpan(text: " sent to your SMS"),
-              ], style: TextStyle(color: black),),),),
-            SizedBox(height: 10),
+                const TextSpan(text: 'Please enter'),
+                TextSpan(text: ' Otp', style: TextStyle(color: Colors.blue.shade900)),
+                const TextSpan(text: ' sent to your SMS'),
+              ], style: const TextStyle(color: black),),),),
+            const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.only(left:12, right: 12, bottom: 12),
               child: Container(
@@ -50,7 +44,7 @@ class OtpPage extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                           color: grey.withOpacity(0.3),
-                          offset: Offset(2, 1),
+                          offset: const Offset(2, 1),
                           blurRadius: 2
                       )
                     ]
@@ -60,13 +54,13 @@ class OtpPage extends StatelessWidget {
                   child: TextField(
                     keyboardType: TextInputType.phone,
                     controller: number,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         icon: Icon(Icons.phone_android, color: grey),
                         border: InputBorder.none,
-                        hintText: "123456",
+                        hintText: '123456',
                         hintStyle: TextStyle(
                             color: grey,
-                            fontFamily: "Sen",
+                            fontFamily: 'Sen',
                             fontSize: 18
                         )
                     ),

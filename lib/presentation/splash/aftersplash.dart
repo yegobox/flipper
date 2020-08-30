@@ -23,7 +23,6 @@ class _AfterSplashState extends State<AfterSplash> {
   @override
   void initState() {
     super.initState();
-    
   }
 
   void _showOtpBottomSheet({String phone, String verificationCode}) {
@@ -33,7 +32,7 @@ class _AfterSplashState extends State<AfterSplash> {
         return Container(
           child: OtpPage(
             phone: phone,
-                  verificationId: verificationCode,
+            verificationId: verificationCode,
           ),
           height: 300,
           decoration: const BoxDecoration(
@@ -48,7 +47,6 @@ class _AfterSplashState extends State<AfterSplash> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final bool landscape =
@@ -59,7 +57,7 @@ class _AfterSplashState extends State<AfterSplash> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           LandscapeLogo(),
-           Theme(
+          Theme(
             data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
             child: const LandscapeButton(),
           )
@@ -70,7 +68,7 @@ class _AfterSplashState extends State<AfterSplash> {
       child = Wrap(
         children: <Widget>[
           PortraitLogo(),
-           Theme(
+          Theme(
             data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
             child: const ButtonPortrait(),
           )
@@ -81,7 +79,11 @@ class _AfterSplashState extends State<AfterSplash> {
         converter: CommonViewModel.fromStore,
         builder: (BuildContext context, CommonViewModel vm) {
           if (vm.navigate == 'otp') {
-            _showOtpBottomSheet(phone: vm.phone, verificationCode: vm.otpcode);
+            WidgetsBinding.instance.addPostFrameCallback((_) => {
+                  Navigator.of(context).pop(),
+                  _showOtpBottomSheet(
+                      phone: vm.phone, verificationCode: vm.otpcode),
+                });
           }
           return Scaffold(
             backgroundColor: Colors.transparent,
