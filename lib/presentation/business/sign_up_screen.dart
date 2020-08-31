@@ -59,29 +59,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, vm) {
         return Scaffold(
           appBar: CommonAppBar(
             title: '',
             showActionButton: true,
             disableButton: false,
-            actionButtonName: S.of(context).signup,
+            actionButtonName: 'Sign Up',
             onPressedCallback: () {
               StoreProvider.of<AppState>(context).dispatch(AppAction(
-                  actions: AppActions((a) => a..name = "createBusiness")));
+                  actions: AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
             },
             icon: Icons.arrow_back,
             multi: 3,
             bottomSpacer: 120,
             action: Column(
               children: <Widget>[
-                Text("Let's get started"),
-                Text("Sign up for flipper and yegobox is fast and free"),
-                Text("No commitment or long-term contracts.")
+                const Text("Let's get started"),
+                const Text('Sign up for flipper and yegobox is fast and free'),
+                const Text('No commitment or long-term contracts.')
               ],
             ),
           ),
-          backgroundColor: HexColor("#dfe4ea"),
+          backgroundColor: HexColor('#dfe4ea'),
           body: Wrap(
             children: <Widget>[
               Container(
@@ -91,18 +91,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
-                    Text("ACCOUNT INFORMATION"),
+                    Text('ACCOUNT INFORMATION'),
                     Center(
                       child: Container(
                         width: 300,
                         child: TextFormField(
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                           validator: Validators.isValid,
-                          onChanged: (name) {
+                          onChanged: (String name) {
                             tBusiness.name = name;
                           },
-                          decoration: InputDecoration(
-                              hintText: "Business name",
+                          decoration: const InputDecoration(
+                              hintText: 'Business name',
                               focusColor: Colors.blue),
                         ),
                       ),
@@ -115,26 +115,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           keyboardType: TextInputType.emailAddress,
                           initialValue: widget.email,
                           enabled: false,
-                          style: TextStyle(color: Colors.black),
-                          onChanged: (email) {
+                          style: const TextStyle(color: Colors.black),
+                          onChanged: (String email) {
                             tBusiness.email = email;
                           },
-                          decoration: InputDecoration(hintText: "Email"),
+                          decoration: const InputDecoration(hintText: 'Email'),
                         ),
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.fromLTRB(55, 20, 0, 0),
+                      padding: const EdgeInsets.fromLTRB(55, 20, 0, 0),
                       child: Row(
                         children: <Widget>[
-                          Flexible(
+                          const Flexible(
                             child: Text(
                                 "Accept Flipper's Seller Agreement and Privacy Policy"),
                           ),
                           Radio(
-                            value: "1",
+                            value: '1',
                             groupValue:
-                                "1", //set a toggle here to accept or deny.
+                                '1', //set a toggle here to accept or deny.
                             onChanged: (String agreeTerm) {
                               tBusiness.agreeTerms = agreeTerm;
                             },
@@ -145,7 +145,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Visibility(
                       visible: false,
                       child: FlatButton(
-                        child: Text("invisible button"),
+                        child:const Text('invisible button'),
                         onPressed: vm.appAction != null &&
                                 vm.appAction.name == 'createBusiness'
                             ? _handleFormSubmit()
@@ -162,9 +162,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  _handleFormSubmit() {
+   // ignore: always_declare_return_types
+   _handleFormSubmit() {
     StoreProvider.of<AppState>(context).dispatch(
-        AppAction(actions: AppActions((a) => a..name = "showLoader")));
+        AppAction(actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
 
     if (_formKey.currentState == null) {
       return;
@@ -172,10 +173,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 
-      double lat = _position == null ? 0 : _position.latitude;
-      double long = _position == null ? 0 : _position.longitude;
+      final double lat = _position == null ? 0 : _position.latitude;
+      final double long = _position == null ? 0 : _position.longitude;
 
-      Business business = Business(
+      final Business business = Business(
         (b) => b
           ..id = Uuid().v1()
           ..name = tBusiness.name
@@ -189,8 +190,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..type = BusinessType.NORMAL,
       );
 
-      FUser user = FUser(
-        (user) => user
+      final FUser user = FUser(
+        (FUserBuilder user) => user
           ..email = widget.email
           ..active = true
           ..createdAt = DateTime.now().toIso8601String()
@@ -198,6 +199,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..token = widget.token
           ..name = widget.name,
       );
+      // TODO: submit business on remote, and branch so we wont have issue on next login
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));

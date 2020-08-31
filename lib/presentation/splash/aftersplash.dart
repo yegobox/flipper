@@ -4,6 +4,7 @@ import 'package:flipper/presentation/splash/responsive/button_landscape.dart';
 import 'package:flipper/presentation/splash/responsive/button_portrait.dart';
 import 'package:flipper/presentation/splash/responsive/logo_landscape.dart';
 import 'package:flipper/presentation/splash/responsive/portrait_logo.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_login/login.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flutter/material.dart';
@@ -16,36 +17,15 @@ class AfterSplash extends StatefulWidget {
 }
 
 class _AfterSplashState extends State<AfterSplash> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-  // ignore: unused_field
-  VoidCallback _showLoginBottomSheet;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 
   @override
   void initState() {
     super.initState();
   }
 
-  void _showOtpBottomSheet({String phone, String verificationCode}) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          child: OtpPage(
-            phone: phone,
-            verificationId: verificationCode,
-          ),
-          height: 300,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -78,13 +58,6 @@ class _AfterSplashState extends State<AfterSplash> {
         distinct: true,
         converter: CommonViewModel.fromStore,
         builder: (BuildContext context, CommonViewModel vm) {
-          if (vm.navigate == 'otp') {
-            WidgetsBinding.instance.addPostFrameCallback((_) => {
-                  Navigator.of(context).pop(),
-                  _showOtpBottomSheet(
-                      phone: vm.phone, verificationCode: vm.otpcode),
-                });
-          }
           return Scaffold(
             backgroundColor: Colors.transparent,
             key: _scaffoldKey,

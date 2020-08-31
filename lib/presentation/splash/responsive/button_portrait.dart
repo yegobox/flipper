@@ -14,8 +14,11 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
    _showModalBottomSheet(context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled:true,
       builder: (BuildContext context) {
-        return Container(
+        return Padding(
+          padding:EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child:Container(
           child: Login(),
           height: 300,
           decoration: const BoxDecoration(
@@ -25,7 +28,7 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
               topRight: Radius.circular(20),
             ),
           ),
-        );
+        ));
       },
     );
   }

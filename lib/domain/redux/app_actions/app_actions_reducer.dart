@@ -209,6 +209,7 @@ AppState onNavigate(AppState state, NavigateOtp action) {
     ..navigate = action.navigate);
 }
 
+
 AppState onOtpCode(AppState state, OtpCode action) {
-  return state.rebuild((a) => a..otpcode = action.otpcode);
+  return state.rebuild((AppStateBuilder a) => a..otpcode = action.otpcode);
 }

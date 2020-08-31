@@ -35,20 +35,20 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = new AuthProvider();
+    final AuthProvider auth =  AuthProvider();
     return SingleChildScrollView(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          SizedBox(
+          const SizedBox(
             height: 30,
           ),
 
           RichText(
               text: TextSpan(children: [
-            TextSpan(text: "Welcome to"),
-            TextSpan(text: " Flipper", style: TextStyle(color: Colors.blue.shade900)),
-            TextSpan(text: " app"),
-          ], style: TextStyle(color: black))),
-          SizedBox(height: 10),
+            const TextSpan(text: 'Welcome to'),
+            TextSpan(text: ' Flipper', style: TextStyle(color: Colors.blue.shade900)),
+            const TextSpan(text: ' app'),
+          ], style:const TextStyle(color: black))),
+          const SizedBox(height: 10),
           CustomText(text: auth.errorMessage ?? "", color: red,),
           Padding(
             padding: const EdgeInsets.only(left:12, right: 12, bottom: 12),
@@ -60,7 +60,7 @@ class _LoginState extends State<Login> {
                   boxShadow: [
                     BoxShadow(
                         color: grey.withOpacity(0.3),
-                        offset: Offset(2, 1),
+                        offset:const Offset(2, 1),
                         blurRadius: 2
                     )
                   ]
@@ -70,13 +70,13 @@ class _LoginState extends State<Login> {
                 child: TextField(
                   keyboardType: TextInputType.phone,
                   controller: number,
-                  decoration: InputDecoration(
+                  decoration:const InputDecoration(
                       icon: Icon(Icons.phone_android, color: grey),
                       border: InputBorder.none,
-                      hintText: "+250 788 3600 58",
+                      hintText: '+250 788 3600 58',
                       hintStyle: TextStyle(
                           color: grey,
-                          fontFamily: "Sen",
+                          fontFamily: 'Sen',
                           fontSize: 18
                       )
                   ),
@@ -84,12 +84,12 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
-          SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text("After entering your phone number, click on verify to authenticate yourself! Then wait up to 20 seconds to get th OTP and procede", textAlign: TextAlign.center, style: TextStyle(color: grey),),
+          const SizedBox(height: 5),
+          const Padding(
+            padding:  EdgeInsets.all(8.0),
+            child: Text('After entering your phone number, click on verify to authenticate yourself! Then wait up to 20 seconds to get th OTP and procede', textAlign: TextAlign.center, style: TextStyle(color: grey),),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
             child: SizedBox(
               width: 380,
@@ -98,14 +98,14 @@ class _LoginState extends State<Login> {
                 color: Colors.blue,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5.0),
-                    side: BorderSide(color: Colors.blue,)),
+                    side: const BorderSide(color: Colors.blue,)),
                 padding: const EdgeInsets.all(0.0),
                 onPressed: (){
                   auth.verifyPhone(context, number.text);
                 },
-                child: Text(
+                child:const Text(
                   'Verify',
-                  style: const TextStyle(color: Colors.white,fontSize: 20),
+                  style:  TextStyle(color: Colors.white,fontSize: 20),
                 ),
               ),
             ),
