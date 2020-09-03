@@ -12,26 +12,28 @@ List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
   BusinessRepository businessRepository,
 ) {
+  //
   return [
     TypedMiddleware<AppState, CreateBusinessOnSignUp>(
         _createBusiness(navigatorKey, businessRepository)),
     TypedMiddleware<AppState, CreateBusiness>(
         _createBusiness(navigatorKey, businessRepository)),
     TypedMiddleware<AppState, SetActiveBusiness>(
-        _setActive(navigatorKey, businessRepository)),
+        _switchActiveBusiness(navigatorKey, businessRepository)),
   ];
 }
+
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _createBusiness(
   GlobalKey<NavigatorState> navigatorKey,
   BusinessRepository businessRepository,
 ) {
+  // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     next(action);
 
     if (store.state.business != null) {
-      
       final String businessId = Uuid().v1();
       final Map<String, dynamic> _mapBusiness = {
         'active': true,
@@ -79,6 +81,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'name': 'Vat',
         'percentage': 18,
       };
+      // todo(richard): dispatch this tax, and on active business should load that tax.
       await AppDatabase.instance.createTax(vat);
       store.dispatch(BusinessId(businessId));
 
@@ -88,12 +91,15 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 }
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
-    _setActive(
+    _switchActiveBusiness(
   GlobalKey<NavigatorState> navigatorKey,
   BusinessRepository businessRepository,
 ) {
+  // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     next(action);
+
+      // todo(richard): on switch business please dispatch taxes, branches etc...
     if (store.state.currentActiveBusiness != null ||
         store.state.nextActiveBusiness != null) {
       //remove active from previous active business
@@ -103,7 +109,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         businessRepository.update(store, store.state.nextActiveBusiness,
             active: true);
       }
-
       if (store.state.currentActiveBusiness != null) {
         businessRepository.update(store, store.state.currentActiveBusiness,
             active: false);

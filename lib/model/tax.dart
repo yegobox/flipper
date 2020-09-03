@@ -16,6 +16,8 @@ abstract class Tax implements Built<Tax, TaxBuilder> {
   double get percentage;
   String get businessId;
 
+  // ignore: sort_constructors_first
   Tax._();
+  // ignore: sort_constructors_first
   factory Tax([void Function(TaxBuilder) updates]) = _$Tax;
 }

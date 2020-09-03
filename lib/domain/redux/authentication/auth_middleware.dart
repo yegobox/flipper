@@ -68,7 +68,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await isUserCurrentlyLoggedIn(store);
     final TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
-
+    
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
@@ -311,8 +311,12 @@ Future<void> createAppActions(Store<AppState> store) async {
 
 Future<void> createTemporalOrder(
     GeneralRepository generalRepository, Store<AppState> store) async {
-  if (store.state.branch == null) return;
-  if (store.state.userId == null) return;
+  if (store.state.branch == null) {
+    return;
+  }
+  if (store.state.userId == null) {
+    return;
+  }
   DataManager.createTemporalOrder(generalRepository, store);
 }
 
@@ -332,7 +336,7 @@ Future<void> getBusinesses(
       store.dispatch(
         ActiveBusinessAction(
           Business(
-            (b) => b
+            (BusinessBuilder b) => b
               ..id = businesses[i].id
               ..currency = businesses[i].currency
               ..typeId = businesses[i].typeId
@@ -348,7 +352,6 @@ Future<void> getBusinesses(
     }
   }
 
-  print(businesses);
   if (businesses.isEmpty) {
     if (store.state.user != null) {
       Routing.navigator.pushNamed(
@@ -379,6 +382,7 @@ void Function(
   UserRepository userRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
+  // ignore: always_specify_types
   return (store, action, next) async {
     next(action);
     try {

@@ -156,9 +156,9 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
         discountRate: 0,
         subTotal: stock.retailPrice * store.state.currentIncrement,
         taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
-                store.state.defaultTax.percentage.toInt()) /
+                (store.state.defaultTax==null?0:store.state.defaultTax.percentage.toInt())) /
             100,
-        taxRate: store.state.defaultTax.percentage.toInt(),
+        taxRate: store.state.defaultTax==null?0:store.state.defaultTax.percentage.toInt(),
         note: store.state.note ?? 'default',
         unit: variant.unit,
         orderId: store.state.order.id.toString(),
