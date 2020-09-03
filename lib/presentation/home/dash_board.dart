@@ -47,9 +47,9 @@ class _DashBoardState extends State<DashBoard> {
             distinct: true,
             converter: CommonViewModel.fromStore,
             // ignore: missing_return
-            builder: (context, vm) {
+            builder: (BuildContext context, CommonViewModel vm) {
               if (vm.hasUser) {
-                final we = Scaffold(
+                final Scaffold we = Scaffold(
                   backgroundColor: Colors.black,
                   key: _scaffoldKey,
                   body: SlideOutScreen(

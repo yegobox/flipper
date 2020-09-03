@@ -454,6 +454,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
+    if(model.isEmpty){return;}
     // ignore: always_specify_types
     final r = model[0][dbName]['stockHistory'];
 
@@ -498,6 +499,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
+    if(model.isEmpty){return;}
     final r = model[0][dbName]['stocks'];
 
     for (int i = 0; i < r.length; i++) {
@@ -545,6 +547,7 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
+    if(model.isEmpty){return;}
     final r = model[0][dbName]['variants'];
 
     for (int i = 0; i < r.length; i++) {
@@ -631,8 +634,12 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
+    
+    if(model.isEmpty){return;}
+    // ignore: always_specify_types
     final r = model[0][dbName]['businesses'];
     for (int i = 0; i < r.length; i++) {
+     
       final BusinessTableData busine =
           await store.state.database.businessDao.getBusinesById(id: r[i]['id']);
       // ignore:missing_required_param
@@ -640,7 +647,7 @@ class AppDatabase {
           active: r[i]['active'],
           name: r[i]['name'],
           id: r[i]['id'],
-          userId: r[i]['userId'],
+          userId: r[i]['userId'].toString(),
           longitude: r[i]['longitude'],
           typeId: r[i]['typeId'].toString(),
           categoryId: r[i]['categoryId'].toString(),
@@ -754,12 +761,13 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
+    if(model.isEmpty){return;}
     // ignore: always_specify_types
     final r = model[0][dbName]['taxes'];
 
     for (int i = 0; i < r.length; i++) {
       final TaxTableData tax =
-          await store.state.database.taxDao.getById(taxid: r[i][i]['id']);
+          await store.state.database.taxDao.getById(taxid: r[i]['id']);
       // ignore:missing_required_param
       final TaxTableData taxData = TaxTableData(
           id: r[i]['id'],
@@ -898,6 +906,8 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
+    if(model.isEmpty){return;}
+    // ignore: always_specify_types
     final r = model[0][dbName]['products'];
 
     for (int i = 0; i < r.length; i++) {
@@ -1033,7 +1043,7 @@ class AppDatabase {
     // ignore: always_specify_types
     final r = model[0][dbName]['branches'];
     for (int i = 0; i < r.length; i++) {
-      print(r[i]);
+      
       branch.add(Branch((BranchBuilder b) => b
         ..name = r[i]['name']
         ..id = r[i]['id']
@@ -1097,7 +1107,7 @@ class AppDatabase {
     variants
         .toMutable()
         .setList('variants', m)
-        // .setList('channels', [map['channel']])
+        .setList('channels', [map['channel']])
         .setString('uid', Uuid().v1())
         .setString('_id', map['_id']);
 

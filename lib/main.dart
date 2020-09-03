@@ -5,27 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 Future<void> main() async {
-   // Crashlytics.instance.enableInDevMode = true;
-  // FlutterError.onError = Crashlytics.instance.recordFlutterError;
+  
   configureLogger();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
+    statusBarColor: Colors.black,
+    statusBarIconBrightness: Brightness.dark,
     systemNavigationBarColor: Colors.white,
     systemNavigationBarIconBrightness: Brightness.light,
     systemNavigationBarDividerColor: Colors.transparent,
   ));
-  // final ThemeMode themeMode = await getThemeMode();
-  // SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top]);
-  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light
-  //     .copyWith(systemNavigationBarColor: Colors.white));
-  // SystemChrome.
-  // snapshot.data.fold(0, (a, b) => a + (b.count * b.price));
-  // SystemChrome.setPreferredOrientations([
-  //   DeviceOrientation.portraitUp,
-  //   DeviceOrientation.portraitDown,
-  // ]);
+ 
   await Firebase.initializeApp();
   runApp(FlipperApp());
 }

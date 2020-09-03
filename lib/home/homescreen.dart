@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
   final CommonViewModel vm;
   final bool showAppBar;
 
+  // ignore: sort_constructors_first
   const HomeScreen({
     Key key,
     @required this.sideOpenController,
@@ -29,7 +30,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   TabController _tabController;
 
@@ -45,22 +46,23 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController = TabController(vsync: this, length: 2);
 
     _tabController.addListener(() {
-      // if (_tabController.indexIsChanging) {
-      final b = TabsTableData(id: 1, tab: _tabController.index);
+      final TabsTableData b = TabsTableData(id: 1, tab: _tabController.index);
       StoreProvider.of<AppState>(context).state.database.tabsDao.updateTab(b);
     });
   }
 
   void _nextPage(int delta) {
     final int newIndex = _tabController.index + delta;
-    if (newIndex < 0 || newIndex >= _tabController.length) return;
+    if (newIndex < 0 || newIndex >= _tabController.length) {
+      return;
+    }
 
     _tabController.animateTo(newIndex);
   }
 
   @override
   Widget build(BuildContext context) {
-    //TODO(richard): handle swipe should change tab focus.
+    // TODO(richard): handle swipe should change tab focus.
     _nextPage(widget.vm.tab);
     return Scaffold(
       extendBody: true,
@@ -84,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen>
         ],
         selectedItemColor: Colors.amber[800],
         currentIndex: widget.vm.tab,
-        onTap: (num) {
+        onTap: (int num) {
           _nextPage(num == 0 ? -1 : 1);
           StoreProvider.of<AppState>(context).dispatch(CurrentTab(tab: num));
           StoreProvider.of<AppState>(context).dispatch(OnSetTab());
@@ -99,13 +101,12 @@ class _HomeScreenState extends State<HomeScreen>
           Expanded(
             child: Container(
               color: HexColor('#95cbe8'),
-              // child: ProductScreen(),
               child: DefaultTabController(
                 initialIndex: widget.vm.tab,
                 length: 2,
                 child: TabBarView(
                   controller: _tabController,
-                  children: <Widget>[Poswidget(), ProductScreen()],
+                  children: <Widget>[const Poswidget(), ProductScreen()],
                 ),
               ),
             ),

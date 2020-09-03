@@ -13,7 +13,8 @@ import 'package:redux/src/store.dart';
 
 class BranchList extends StatefulWidget {
   final CommonViewModel vm;
-  BranchList({Key key, this.vm}) : super(key: key);
+  // ignore: sort_constructors_first
+  const BranchList({Key key, this.vm}) : super(key: key);
 
   @override
   _BranchListState createState() => _BranchListState();
@@ -24,11 +25,11 @@ class _BranchListState extends State<BranchList> {
 
   String _scanBarcode;
 
-  // ignore: non_constant_identifier_names
+  // ignore: non_constant_identifier_names, always_specify_types
   DropdownButton _BranchItem() => DropdownButton<String>(
         isDense: true,
         hint: Padding(
-          padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+          padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
           child: Text(
             widget.vm.hint.name,
             textAlign: TextAlign.center,
@@ -40,6 +41,7 @@ class _BranchListState extends State<BranchList> {
           ),
         ),
         items: widget.vm.branches.map((b) {
+          // ignore: always_specify_types
           return DropdownMenuItem(
             value: b.id.toString(),
             child: Row(
@@ -49,18 +51,18 @@ class _BranchListState extends State<BranchList> {
                   allowDrawingOutsideViewBox: true,
                   color: Colors.white,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 Text(
                   b.name,
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ],
             ),
           );
         }).toList(),
-        onChanged: (value) {
+        onChanged: (String value) {
           setState(() {
             _value = value;
           });
@@ -87,7 +89,7 @@ class _BranchListState extends State<BranchList> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          "#ff6666", "Cancel", true, ScanMode.QR);
+          '#ff6666', 'Cancel', true, ScanMode.QR);
       print(barcodeScanRes);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
@@ -163,7 +165,7 @@ class _BranchListState extends State<BranchList> {
                 ),
                 dense: true,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 425,
               ),
               FlatButton(
@@ -183,8 +185,4 @@ class _BranchListState extends State<BranchList> {
           ),
         ));
   }
-}
-
-class _Style {
-  static const fontFamily = 'Heboo-Regular';
 }

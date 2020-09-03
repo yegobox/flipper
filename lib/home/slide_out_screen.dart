@@ -18,7 +18,7 @@ class SlideOutScreen extends StatefulWidget {
 
 class _SlideOutScreenState extends State<SlideOutScreen>
     with SingleTickerProviderStateMixin {
-  static const _clip = 60.0;
+  static const double _clip = 60.0;
 
   double _screenWidth;
   AnimationController _controller;
@@ -52,7 +52,7 @@ class _SlideOutScreenState extends State<SlideOutScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _screenWidth = MediaQuery.of(context).size.width;
-    final offset = _clip - _screenWidth;
+    final double offset = _clip - _screenWidth;
 
     final Animatable<RelativeRect> fabTween = RelativeRectTween(
       // Position in which the HomeScreen is fully visible
@@ -129,7 +129,7 @@ class _SlideOutScreenState extends State<SlideOutScreen>
     // required to reconfigure the GestureDetector behavior and the IgnorePointer
     return AnimatedBuilder(
       animation: _controller,
-      builder: (context, widget) {
+      builder: (BuildContext context, Widget widget) {
         return GestureDetector(
           behavior:
               // set as opaque so we can absorb the taps
