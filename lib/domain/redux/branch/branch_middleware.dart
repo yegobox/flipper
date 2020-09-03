@@ -10,7 +10,6 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
-import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBranchMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
@@ -32,14 +31,14 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     //final branchId = await branchRepo.insertBranch(store, branch);
     //create tax for this branch
-    String branchId = Uuid().v1();
-    Map _mapBranch = {
+
+    Map<String, dynamic> _mapBranch = {
       'active': true,
       'name': store.state.business.name,
       '_id': 'branches_' + store.state.userId.toString(),
       'channel': store.state.userId.toString(),
       'businessId': store.state.businessId,
-      'id': branchId,
+      'id': 'branches_' + store.state.userId.toString(),
       'mapLatitude': store.state.business.latitude ?? 0.0,
       'mapLongitude': store.state.currentColor ?? 0.0,
       'createdAt': DateTime.now().toIso8601String(),
@@ -53,18 +52,18 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _onSetBranchHint(
         GlobalKey<NavigatorState> navigatorKey, BranchRepository branchRepo) {
-  return (store, action, next) async {
-    List<BranchTableData> branches = await branchRepo.getBranches(store);
+  return (Store<AppState> store, action, next) async {
+    final List<BranchTableData> branches = await branchRepo.getBranches(store);
     if (store.state.branch == null) {
       if (branches.length == 1) {
         //we have only one branch then set it as hint
-        final _hint = Hint((h) => h
+        final Hint _hint = Hint((HintBuilder h) => h
           ..name = branches[0].name
           ..type = HintType.Branch);
         store.dispatch(OnHintLoaded(hint: _hint));
       } else {
         if (store.state.branch == null) {
-          final _hint = Hint((h) => h
+          final Hint _hint = Hint((HintBuilder h) => h
             ..name = branches[0].name
             ..type = HintType.Branch);
           store.dispatch(OnHintLoaded(hint: _hint));

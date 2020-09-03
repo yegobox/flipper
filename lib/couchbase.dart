@@ -1,16 +1,15 @@
 import 'dart:async';
 
+import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/observable_response.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/fuser.dart';
-import 'package:flipper/model/product.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flutter/services.dart';
 import 'package:redux/redux.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 import 'package:uuid/uuid.dart';
 
 import 'domain/redux/app_actions/actions.dart';
@@ -24,6 +23,7 @@ class AppDatabase {
   static final AppDatabase instance = AppDatabase._internal();
 
   String dbName = 'main';
+  // ignore: always_specify_types
   List<Future> pendingListeners = [];
   lite.ListenerToken _replicatorListenerToken;
   lite.Database database;
@@ -43,12 +43,41 @@ class AppDatabase {
     assert(map['updatedAt'] != null);
     assert(map['createdAt'] != null);
     assert(map['_id'] != null);
-    lite.Document doc = await database.document(map['_id']);
-    List m = [map];
+    // ignore: always_specify_types
+    final List<Map> m = [map];
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(map['id'])));
+    // Run the query.
+    try {
+      final lite.ResultSet result = await query.execute();
 
-    doc.toMutable().setList('branches', m).setString('uid', Uuid().v1());
-
-    return await createDocumentIfNotExists(map['_id'], map);
+      if (!result.allResults().isNotEmpty) {
+        final lite.MutableDocument mutableDoc = lite.MutableDocument()
+            .setList('branches', m)
+            .setString('id', map['id'])
+            // ignore: always_specify_types
+            .setList('channels', [map['channel']])
+            .setString('uid', Uuid().v1())
+            .setString('_id', map['_id']);
+        try {
+          await database.saveDocument(mutableDoc);
+        } on PlatformException {
+          return 'Error saving document';
+        }
+      } else {
+        //todo: deal with result return [] of them.....
+        final List<Map<String, dynamic>> model = result.map((result) {
+          // return Beer.fromMap();
+          return result.toMap();
+        }).toList();
+        print(model[2][dbName]['businesses']);
+      }
+    } on PlatformException {
+      // ignore: prefer_single_quotes
+      return "Error running the query";
+    }
   }
 
   Future<lite.Document> createDocumentIfNotExists(
@@ -112,12 +141,13 @@ class AppDatabase {
 
       final lite.Document pref =
           await createDocumentIfNotExists('MyPreference', {'theme': 'dark'});
-      _docListenerToken = database.addDocumentChangeListener(pref.id, (change) {
+      _docListenerToken = database.addDocumentChangeListener(pref.id,
+          (lite.DocumentChange change) {
         print('Document change ${change.documentID}');
       });
 
       _dbListenerToken = database.addChangeListener((dbChange) {
-        for (var change in dbChange.documentIDs) {
+        for (String change in dbChange.documentIDs) {
           print('change in id: $change');
         }
       });
@@ -180,7 +210,7 @@ class AppDatabase {
   //create lite branch
 
   Future<dynamic> createTax(Map map) async {
-    lite.Document doc = await database.document(map['_id']);
+    lite.Document doc = await database.document(map['id']);
 
     assert(map['channel'] != null);
     assert(map['name'] != null);
@@ -191,17 +221,46 @@ class AppDatabase {
     assert(map['updatedAt'] != null);
     assert(map['businessId'] != null);
 
-    final List m = [map];
-    doc.toMutable().setList('taxes', m).setString('uid', Uuid().v1());
+    // ignore: always_specify_types
+    final List<Map> m = [map];
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(map['id'])));
+    // Run the query.
+    try {
+      final lite.ResultSet result = await query.execute();
 
-    return await createDocumentIfNotExists(map['_id'], map);
+      if (!result.allResults().isNotEmpty) {
+        final lite.MutableDocument mutableDoc = lite.MutableDocument()
+            .setList('taxes', m)
+            .setString('id', map['id'])
+            // ignore: always_specify_types
+            .setList('channels', [map['channel']])
+            .setString('uid', Uuid().v1())
+            .setString('_id', map['_id']);
+        try {
+          await database.saveDocument(mutableDoc);
+        } on PlatformException {
+          return 'Error saving document';
+        }
+      } else {
+        //todo: deal with result return [] of them.....
+        final List<Map<String, dynamic>> model = result.map((result) {
+          // return Beer.fromMap();
+          return result.toMap();
+        }).toList();
+        print(model[2][dbName]['businesses']);
+      }
+    } on PlatformException {
+      // ignore: prefer_single_quotes
+      return "Error running the query";
+    }
   }
 
   //create business.
   Future<dynamic> createBusiness(Map map) async {
     //if user has business do nothing
-
-    lite.Document doc = await database.document(map['_id']);
 
     assert(map['_id'] != null);
 
@@ -220,21 +279,45 @@ class AppDatabase {
     assert(map['userId'] != null);
 
     // ignore: always_specify_types
-    final List m = [map];
-    doc
-        .toMutable()
-        .setList('businesses', m)
-        // .setList('channels', [map['channel']])
-        .setString('uid', Uuid().v1())
-        .setString('_id', map['_id']);
+    final List<Map> m = [map];
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(map['id'])));
+    // Run the query.
+    try {
+      final lite.ResultSet result = await query.execute();
 
-    // return await saveDocumentWithId(map['_id'], doc);
-    return await createDocumentIfNotExists(map['_id'], map);
+      if (!result.allResults().isNotEmpty) {
+        final lite.MutableDocument mutableDoc = lite.MutableDocument()
+            .setList('businesses', m)
+            .setString('id', map['id'])
+            // ignore: always_specify_types
+            .setList('channels', [map['channel']])
+            .setString('uid', Uuid().v1())
+            .setString('_id', map['_id']);
+        try {
+          await database.saveDocument(mutableDoc);
+        } on PlatformException {
+          return 'Error saving document';
+        }
+      } else {
+        //todo: deal with result return [] of them.....
+        final List<Map<String, dynamic>> model = result.map((result) {
+          // return Beer.fromMap();
+          return result.toMap();
+        }).toList();
+        print(model[2][dbName]['businesses']);
+      }
+    } on PlatformException {
+      // ignore: prefer_single_quotes
+      return "Error running the query";
+    }
   }
 
   //create user
   // ignore: always_specify_types
-  Future<dynamic> createUser(Map map) async {
+  Future<void> createUser(Map map) async {
     assert(map['_id'] != null);
     assert(map['name'] != null);
     assert(map['channel'] != null);
@@ -246,58 +329,77 @@ class AppDatabase {
     assert(map['createdAt'] != null);
     assert(map['updatedAt'] != null);
 
-    final lite.Document doc = await database.document(map['_id']);
+    // ignore: always_specify_types
+    final List<Map> m = [map];
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(map['id'])));
 
-    if (doc.toMutable().getString('email') != null) {
-      final lite.MutableDocument mutableDocument = doc.toMutable();
-      mutableDocument
-          .setString('id', doc.getString('id'))
-          .setString('uid', Uuid().v1())
-          .setString('_id', map['_id']);
-
-      map.forEach((key, value) {
-        if (value is int) {
-          mutableDocument.setInt(key, value);
+    // Run the query.
+    try {
+      final lite.ResultSet result = await query.execute();
+      // ignore: prefer_single_quotes
+      // print("Number of rows :: ${result.allResults().length}");
+      if (!result.allResults().isNotEmpty) {
+        final lite.MutableDocument mutableDoc = lite.MutableDocument()
+            .setList('users', m)
+            .setString('id', map['id'])
+            .setList('channels', [map['channel']])
+            .setString('uid', 'uid')
+            .setString('_id', map['_id']);
+        try {
+          await database.saveDocument(mutableDoc);
+        } on PlatformException {
+          return 'Error saving document';
         }
-        if (value is String) {
-          mutableDocument.setString(key, value);
-        }
-        if (value is bool) {
-          mutableDocument.setBoolean(key, value);
-        }
-        if (value is double) {
-          mutableDocument.setDouble(key, value);
-        }
-      });
-      // return await saveDocumentWithId(map['_id'], mutableDocument);
-      // lite.Document doc = await database.document(map['_id']);
-
-    } else {}
+      } else {
+        //todo: deal with result return [] of them.....
+        final List<Map<String, dynamic>> model =
+            result.map((lite.Result result) {
+          // return Beer.fromMap();
+          return result.toMap();
+        }).toList();
+        print(model[2][dbName]['users']);
+      }
+    } on PlatformException {
+      // ignore: prefer_single_quotes
+      return "Error running the query";
+    }
   }
 
-  Future<dynamic> getDocumentByDocId(
-      {String docId, Store<AppState> store, T}) async {
-    final lite.Document doc = await database.document(docId);
+  Future<dynamic> getDocumentByFilter(
+      {String filter, Store<AppState> store, T}) async {
+    // Create a query to fetch documents of type SDK.
+    // ignore: always_specify_types
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(filter)));
+    lite.ResultSet result;
 
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
+    }
     switch (T.toString()) {
       case 'User':
         {
-          return buildUserModel(doc, store);
+          return buildUserModel(result, store);
         }
         break;
 
       case 'Business':
         {
-          return buildBusinessModel(doc, store);
+          return buildBusinessModel(result, store);
         }
       case 'Branch':
         {
-          return buildBranchModel(doc, store);
+          return buildBranchModel(result, store);
         }
-      case 'Item':
-        {
-          return buildProduct(doc, store);
-        }
+
         break;
 
       default:
@@ -339,216 +441,271 @@ class AppDatabase {
   }
 
   Future<void> syncHistoryRLocal(Store<AppState> store) async {
-    final lite.Document stockHistories = await database
-        .document('stockHistory_' + store.state.userId.toString());
-    if(stockHistories==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'stockHistory_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (stockHistories.getList('stockHistory') != null) {
-      for (int i = 0; i < stockHistories.getList('stockHistory').length; i++) {
-        final StockHistoryTableData history = await store
-            .state.database.stockHistoryDao
-            .getById(id: stockHistories.getList('stockHistory')[i]['id']);
-        // ignore:missing_required_param
-        final StockHistoryTableData historyData = StockHistoryTableData(
-            id: stockHistories.getList('stockHistory')[i]['id'],
-            note: stockHistories.getList('stockHistory')[i]['note'],
-            quantity: stockHistories.getList('stockHistory')[i]['quantity'],
-            stockId: stockHistories.getList('stockHistory')[i]['stockId'],
-            reason: stockHistories.getList('stockHistory')[i]['reason'],
-            variantId: stockHistories.getList('stockHistory')[i]['variantId'],
-            createdAt: DateTime.parse(
-                stockHistories.getList('stockHistory')[i]['createdAt']),
-            updatedAt: DateTime.parse(
-                stockHistories.getList('stockHistory')[i]['updatedAt']));
 
-        if (history == null) {
-          await store.state.database.stockHistoryDao.insert(historyData);
-        } else {
-          await store.state.database.stockHistoryDao
-              .updateHistory(historyData.copyWith(idLocal: history.idLocal));
-        }
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final StockHistoryTableData history = await store
+          .state.database.stockHistoryDao
+          .getById(id: model[i][dbName]['stockHistory']['id']);
+      // ignore:missing_required_param
+      final StockHistoryTableData historyData = StockHistoryTableData(
+          id: model[i][dbName]['stockHistory']['id'],
+          note: model[i][dbName]['stockHistory']['note'],
+          quantity: model[i][dbName]['stockHistory']['quantity'],
+          stockId: model[i][dbName]['stockHistory']['stockId'],
+          reason: model[i][dbName]['stockHistory']['reason'],
+          variantId: model[i][dbName]['stockHistory']['variantId'],
+          createdAt:
+              DateTime.parse(model[i][dbName]['stockHistory']['createdAt']),
+          updatedAt:
+              DateTime.parse(model[i][dbName]['stockHistory']['updatedAt']));
+
+      if (history == null) {
+        await store.state.database.stockHistoryDao.insert(historyData);
+      } else {
+        await store.state.database.stockHistoryDao
+            .updateHistory(historyData.copyWith(idLocal: history.idLocal));
       }
     }
   }
 
   Future<void> syncStockRLocal(Store<AppState> store) async {
-    final lite.Document stocks =
-        await database.document('stocks_' + store.state.userId.toString());
-    if(stocks==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(
+            lite.Expression.string('stocks_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (stocks.getList('stocks') != null) {
-      for (int i = 0; i < stocks.getList('stocks').length; i++) {
-        final StockTableData stock = await store.state.database.stockDao
-            .getById(id: stocks.getList('stocks')[i]['id']);
-        // ignore:missing_required_param
-        final StockTableData branchProductData = StockTableData(
-            id: stocks.getList('stocks')[i]['id'],
-            supplyPrice: stocks.getList('stocks')[i]['supplyPrice'].toDouble(),
-            retailPrice: stocks.getList('stocks')[i]['retailPrice'].toDouble(),
-            lowStock: stocks.getList('stocks')[i]['lowStock'],
-            action: stocks.getList('stocks')[i]['action'],
-            variantId: stocks.getList('stocks')[i]['variantId'],
-            branchId: stocks.getList('stocks')[i]['branchId'],
-            productId: stocks.getList('stocks')[i]['productId'],
-            currentStock: stocks.getList('stocks')[i]['currentStock'],
-            canTrackingStock: stocks.getList('stocks')[i]['canTrackingStock'],
-            showLowStockAlert: stocks.getList('stocks')[i]['showLowStockAlert'],
-            createdAt: DateTime.parse(stocks.getList('stocks')[i]['createdAt']),
-            updatedAt:
-                DateTime.parse(stocks.getList('stocks')[i]['updatedAt']));
 
-        if (stock == null) {
-          await store.state.database.stockDao.insert(branchProductData);
-        } else {
-          await store.state.database.stockDao.updateStock(
-              branchProductData.copyWith(
-                  idLocal: stock.idLocal, isActive: false, action: 'NONE'));
-        }
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final StockTableData stock = await store.state.database.stockDao
+          .getById(id: model[i][dbName]['stocks']['id']);
+      // ignore:missing_required_param
+      final StockTableData branchProductData = StockTableData(
+          id: model[i][dbName]['stocks']['id'],
+          supplyPrice: model[i][dbName]['stocks']['supplyPrice'].toDouble(),
+          retailPrice: model[i][dbName]['stocks']['retailPrice'].toDouble(),
+          lowStock: model[i][dbName]['stocks']['lowStock'],
+          action: model[i][dbName]['stocks']['action'],
+          variantId: model[i][dbName]['stocks']['variantId'],
+          branchId: model[i][dbName]['stocks']['branchId'],
+          productId: model[i][dbName]['stocks']['productId'],
+          currentStock: model[i][dbName]['stocks']['currentStock'],
+          canTrackingStock: model[i][dbName]['stocks']['canTrackingStock'],
+          showLowStockAlert: model[i][dbName]['stocks']['showLowStockAlert'],
+          createdAt: DateTime.parse(model[i][dbName]['stocks']['createdAt']),
+          updatedAt: DateTime.parse(model[i][dbName]['stocks']['updatedAt']));
+
+      if (stock == null) {
+        await store.state.database.stockDao.insert(branchProductData);
+      } else {
+        await store.state.database.stockDao.updateStock(branchProductData
+            .copyWith(idLocal: stock.idLocal, isActive: false, action: 'NONE'));
       }
     }
   }
 
   Future<void> syncVariantsRLocal(Store<AppState> store) async {
-    final lite.Document variants =
-        await database.document('variants_' + store.state.userId.toString());
-    // return await createDocumentIfNotExists(map['_id'], map);
-    if(variants==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'variants_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (variants.getList('variants') != null) {
-      for (int i = 0; i < variants.getList('variants').length; i++) {
-        final VariationTableData variation = await store
-            .state.database.variationDao
-            .getVariationById(variantId: variants.getList('variants')[i]['id']);
-        // ignore:missing_required_param
-        final VariationTableData variationData = VariationTableData(
-            name: variants.getList('variants')[i]['name'],
-            id: variants.getList('variants')[i]['id'],
-            isActive: false,
-            sku: variants.getList('variants')[i]['SKU'],
-            productId: variants.getList('variants')[i]['productId'],
-            unit: variants.getList('variants')[i]['unit'],
-            createdAt:
-                DateTime.parse(variants.getList('variants')[i]['createdAt']),
-            updatedAt:
-                DateTime.parse(variants.getList('variants')[i]['updatedAt']));
 
-        if (variation == null) {
-          await store.state.database.variationDao.insert(variationData);
-        } else {
-          await store.state.database.variationDao.updateVariation(
-              variationData.copyWith(idLocal: variation.idLocal));
-        }
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final VariationTableData variation = await store
+          .state.database.variationDao
+          .getVariationById(variantId: model[i][dbName]['variants']['id']);
+      // ignore:missing_required_param
+      final VariationTableData variationData = VariationTableData(
+          name: model[i][dbName]['variants']['name'],
+          id: model[i][dbName]['variants']['id'],
+          isActive: false,
+          sku: model[i][dbName]['variants']['SKU'],
+          productId: model[i][dbName]['variants']['productId'],
+          unit: model[i][dbName]['variants']['unit'],
+          createdAt: DateTime.parse(model[i][dbName]['variants']['createdAt']),
+          updatedAt: DateTime.parse(model[i][dbName]['variants']['updatedAt']));
+
+      if (variation == null) {
+        await store.state.database.variationDao.insert(variationData);
+      } else {
+        await store.state.database.variationDao.updateVariation(
+            variationData.copyWith(idLocal: variation.idLocal));
       }
     }
   }
 
   Future<void> syncBranchRLocal(Store<AppState> store) async {
-    final lite.Document branch =
-        await database.document('branches_' + store.state.userId.toString());
-    if(branch ==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'branches_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (branch.getList('branches') != null) {
-      for (int i = 0; i < branch.getList('branches').length; i++) {
-        final BranchTableData brachi = await store.state.database.branchDao
-            .getBranchById(branchId: branch.getList('branches')[i]['id']);
 
-        final BranchTableData businessTableData = BranchTableData(
-          id: branch.getList('branches')[i]['id'],
-          name: branch.getList('branches')[i]['name'],
-          isActive: branch.getList('branches')[i]['isActive'] ?? false,
-          businessId: branch.getList('branches')[i]['businessId'],
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          idLocal: 1,
-        );
-        if (brachi == null) {
-          await store.state.database.branchDao.insert(businessTableData);
-        } else {
-          await store.state.database.branchDao.updateBranch(
-              businessTableData.copyWith(idLocal: brachi.idLocal));
-        }
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final BranchTableData brachi = await store.state.database.branchDao
+          .getBranchById(branchId: model[i][dbName]['branches']['id']);
+
+      final BranchTableData businessTableData = BranchTableData(
+        id: model[i][dbName]['branches']['id'],
+        name: model[i][dbName]['branches']['name'],
+        isActive: model[i][dbName]['branches']['isActive'] ?? false,
+        businessId: model[i][dbName]['branches']['businessId'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        idLocal: 1,
+      );
+      if (brachi == null) {
+        await store.state.database.branchDao.insert(businessTableData);
+      } else {
+        await store.state.database.branchDao
+            .updateBranch(businessTableData.copyWith(idLocal: brachi.idLocal));
       }
     }
   }
 
   Future<void> syncBusinessRLocal(Store<AppState> store) async {
-    final lite.Document business =
-        await database.document('business_' + store.state.userId.toString());
-        if(business ==null){
-          return;
-        }
-    // return await createDocumentIfNotExists(map['_id'], map);
-    if (business.getList('businesses') != null) {
-      for (int i = 0; i < business.getList('businesses').length; i++) {
-        final BusinessTableData busine = await store.state.database.businessDao
-            .getBusinesById(id: business.getList('businesses')[i]['id']);
-        // ignore:missing_required_param
-        final BusinessTableData businessTableData = BusinessTableData(
-            active: business.getList('businesses')[i]['active'],
-            name: business.getList('businesses')[i]['name'],
-            id: business.getList('businesses')[i]['id'],
-            userId: business.getList('businesses')[i]['userId'],
-            longitude: business.getList('businesses')[i]['longitude'],
-            typeId: business.getList('businesses')[i]['typeId'].toString(),
-            categoryId:
-                business.getList('businesses')[i]['categoryId'].toString(),
-            country: business.getList('businesses')[i]['country'],
-            timeZone: business.getList('businesses')[i]['timeZone'],
-            currency: business.getList('businesses')[i]['currency'],
-            latitude: business.getList('businesses')[i]['latitude'],
-            createdAt:
-                DateTime.parse(business.getList('businesses')[i]['createdAt']),
-            updatedAt:
-                DateTime.parse(business.getList('businesses')[i]['updatedAt']));
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'business_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
+    }
 
-        if (busine == null) {
-          await store.state.database.businessDao.insert(businessTableData);
-        } else {
-          await store.state.database.businessDao.updateBusiness(
-              businessTableData.copyWith(idLocal: busine.idLocal));
-        }
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final BusinessTableData busine = await store.state.database.businessDao
+          .getBusinesById(id: model[i][dbName]['businesses']['id']);
+      // ignore:missing_required_param
+      final BusinessTableData businessTableData = BusinessTableData(
+          active: model[i][dbName]['businesses']['active'],
+          name: model[i][dbName]['businesses']['name'],
+          id: model[i][dbName]['businesses']['id'],
+          userId: model[i][dbName]['businesses']['userId'],
+          longitude: model[i][dbName]['businesses']['longitude'],
+          typeId: model[i][dbName]['businesses']['typeId'].toString(),
+          categoryId: model[i][dbName]['businesses']['categoryId'].toString(),
+          country: model[i][dbName]['businesses']['country'],
+          timeZone: model[i][dbName]['businesses']['timeZone'],
+          currency: model[i][dbName]['businesses']['currency'],
+          latitude: model[i][dbName]['businesses']['latitude'],
+          createdAt:
+              DateTime.parse(model[i][dbName]['businesses']['createdAt']),
+          updatedAt:
+              DateTime.parse(model[i][dbName]['businesses']['updatedAt']));
+
+      if (busine == null) {
+        await store.state.database.businessDao.insert(businessTableData);
+      } else {
+        await store.state.database.businessDao.updateBusiness(
+            businessTableData.copyWith(idLocal: busine.idLocal));
       }
     }
   }
 
   Future<void> syncCategoriesRLocal(Store<AppState> store) async {
-    final lite.Document categories =
-        await database.document('categories_' + store.state.userId.toString());
-    if(categories ==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'categories_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (categories.getList('categories') != null) {
-      for (int i = 0; i < categories.getList('categories').length; i++) {
+
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    if (model.isNotEmpty) {
+      for (int i = 0; i < model.length; i++) {
         final CategoryTableData category = await store
             .state.database.categoryDao
-            .getById(id: categories.getList('categories')[i]['id']);
+            .getById(id: model[i][dbName]['categories']['id']);
         CategoryTableData categoryData;
         if (i == 1) {
           // ignore:missing_required_param
           categoryData = CategoryTableData(
-              id: categories.getList('categories')[i]['id'],
-              name: categories.getList('categories')[i]['name'],
+              id: model[i][dbName]['categories']['id'],
+              name: model[i][dbName]['categories']['name'],
               focused: true,
-              branchId: categories.getList('categories')[i]['branchId'],
-              createdAt: DateTime.parse(
-                  categories.getList('categories')[i]['createdAt']),
-              updatedAt: DateTime.parse(
-                  categories.getList('categories')[i]['updatedAt']));
+              branchId: model[i][dbName]['categories']['branchId'],
+              createdAt:
+                  DateTime.parse(model[i][dbName]['categories']['createdAt']),
+              updatedAt:
+                  DateTime.parse(model[i][dbName]['categories']['updatedAt']));
         } else {
           // ignore:missing_required_param
           categoryData = CategoryTableData(
-              id: categories.getList('categories')[i]['id'],
-              name: categories.getList('categories')[i]['name'],
+              id: model[i][dbName]['categories'][i]['id'],
+              name: model[i][dbName]['categories']['name'],
               focused: false,
-              branchId: categories.getList('categories')[i]['branchId'],
-              createdAt: DateTime.parse(
-                  categories.getList('categories')[i]['createdAt']),
-              updatedAt: DateTime.parse(
-                  categories.getList('categories')[i]['updatedAt']));
+              branchId: model[i][dbName]['categories']['branchId'],
+              createdAt:
+                  DateTime.parse(model[i][dbName]['categories']['createdAt']),
+              updatedAt:
+                  DateTime.parse(model[i][dbName]['categories']['updatedAt']));
         }
 
         if (category == null) {
@@ -582,97 +739,66 @@ class AppDatabase {
   }
 
   Future<void> syncTaxesRLocal(Store<AppState> store) async {
-    final lite.Document taxes =
-        await database.document('taxes_' + store.state.userId.toString());
-    if(taxes ==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(
+            lite.Expression.string('taxes_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (taxes.getList('taxes') != null) {
-      for (int i = 0; i < taxes.getList('taxes').length; i++) {
-        final TaxTableData tax = await store.state.database.taxDao
-            .getById(taxid: taxes.getList('taxes')[i]['id']);
-        // ignore:missing_required_param
-        final TaxTableData taxData = TaxTableData(
-            id: taxes.getList('taxes')[i]['id'],
-            name: taxes.getList('taxes')[i]['name'],
-            businessId: taxes.getList('taxes')[i]['businessId'],
-            isDefault: taxes.getList('taxes')[i]['isDefault'],
-            percentage: taxes.getList('taxes')[i]['percentage'].toDouble(),
-            createdAt: DateTime.parse(taxes.getList('taxes')[i]['createdAt']),
-            updatedAt: DateTime.parse(taxes.getList('taxes')[i]['updatedAt']));
 
-        if (tax == null) {
-          await store.state.database.taxDao.insert(taxData);
-          if (taxes.getList('taxes')[i]['isDefault']) {
-            store.dispatch(
-              DefaultTax(
-                tax: Tax((TaxBuilder t) => t
-                  ..name = taxData.name
-                  ..id = taxData.id
-                  ..isDefault = taxData.isDefault
-                  ..percentage = taxData.percentage
-                  ..businessId = taxData.businessId),
-              ),
-            );
-          }
-        } else {
-          await store.state.database.taxDao
-              .updateTax(taxData.copyWith(idLocal: tax.idLocal));
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
 
-          if (taxes.getList('taxes')[i]['isDefault']) {
-            store.dispatch(
-              DefaultTax(
-                tax: Tax((t) => t
-                  ..name = taxData.name
-                  ..id = taxData.id
-                  ..isDefault = taxData.isDefault
-                  ..percentage = taxData.percentage
-                  ..businessId = taxData.businessId),
-              ),
-            );
-          }
-        }
-      }
-    } else {
-      //create them local for sync to remote later.
-      //ignore:missing_required_param
-      if (store.state.currentActiveBusiness == null) return;
-      final TaxTableData tax = await store.state.database.taxDao.getByName(
-          businessId: store.state.currentActiveBusiness.id, name: 'Vat');
+    for (int i = 0; i < model.length; i++) {
+      final TaxTableData tax = await store.state.database.taxDao
+          .getById(taxid: model[i][dbName]['taxes'][i]['id']);
+      // ignore:missing_required_param
+      final TaxTableData taxData = TaxTableData(
+          id: model[i][dbName]['taxes']['id'],
+          name: model[i][dbName]['taxes']['name'],
+          businessId: model[i][dbName]['taxes']['businessId'],
+          isDefault: model[i][dbName]['taxes']['isDefault'],
+          percentage: model[i][dbName]['taxes']['percentage'].toDouble(),
+          createdAt: DateTime.parse(model[i][dbName]['taxes']['createdAt']),
+          updatedAt: DateTime.parse(model[i][dbName]['taxes']['updatedAt']));
+
       if (tax == null) {
-        //ignore:missing_required_param
-        final TaxTableData taxData = TaxTableData(
-            id: Uuid().v1(),
-            name: 'Vat',
-            businessId: store.state.businessId,
-            isDefault: true,
-            percentage: 18,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now());
-
-        //dispatch default tax we are using:
-        store.dispatch(
-          DefaultTax(
-            tax: Tax((TaxBuilder t) => t
-              ..name = taxData.name
-              ..id = taxData.id
-              ..isDefault = taxData.isDefault
-              ..percentage = taxData.percentage
-              ..businessId = taxData.businessId),
-          ),
-        );
         await store.state.database.taxDao.insert(taxData);
-        //ignore:missing_required_param
-        final TaxTableData noVat = TaxTableData(
-            id: Uuid().v1(),
-            name: 'No Tax',
-            businessId: store.state.businessId,
-            isDefault: true,
-            percentage: 18,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now());
+        if (model[i][dbName]['taxes']['isDefault']) {
+          store.dispatch(
+            DefaultTax(
+              tax: Tax((TaxBuilder t) => t
+                ..name = taxData.name
+                ..id = taxData.id
+                ..isDefault = taxData.isDefault
+                ..percentage = taxData.percentage
+                ..businessId = taxData.businessId),
+            ),
+          );
+        }
+      } else {
+        await store.state.database.taxDao
+            .updateTax(taxData.copyWith(idLocal: tax.idLocal));
 
-        await store.state.database.taxDao.insert(noVat);
+        if (model[i][dbName]['taxes']['isDefault']) {
+          store.dispatch(
+            DefaultTax(
+              tax: Tax((TaxBuilder t) => t
+                ..name = taxData.name
+                ..id = taxData.id
+                ..isDefault = taxData.isDefault
+                ..percentage = taxData.percentage
+                ..businessId = taxData.businessId),
+            ),
+          );
+        }
       }
     }
   }
@@ -721,9 +847,9 @@ class AppDatabase {
       {'name': 'Per Stone (st)', 'value': 'st'},
       {'name': 'Per Yard (yd)', 'value': 'yd'}
     ];
-    for (var i = 0; i < units.length; i++) {
+    for (int i = 0; i < units.length; i++) {
       //insert or update unit in table set focus to false for all.
-      UnitTableData unit = await store.state.database.unitDao
+      final UnitTableData unit = await store.state.database.unitDao
           .getUnitByName(name: units[i]['name']);
 
       UnitTableData unitTableData;
@@ -754,70 +880,89 @@ class AppDatabase {
   }
 
   Future<void> syncProductRLocal(Store<AppState> store) async {
-    final lite.Document doc =
-        await database.document('products_' + store.state.userId.toString());
-    if(doc ==null){
-      return;
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'products_' + store.state.userId.toString())));
+    lite.ResultSet result;
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
     }
-    if (doc.getList('products') != null) {
-      for (int i = 0; i < doc.getList('products').length; i++) {
-        final ProductTableData product = await store.state.database.productDao
-            .getItemById(productId: doc.getList('products')[i]['id']);
-        // ignore:missing_required_param
-        final ProductTableData productData = ProductTableData(
-            businessId: doc.getList('products')[i]['businessId'].toString(),
-            active: doc.getList('products')[i]['active'],
-            isImageLocal: false,
-            name: doc.getList('products')[i]['name'],
-            id: doc.getList('products')[i]['id'],
-            color: doc.getList('products')[i]['color'],
-            description: doc.getList('products')[i]['description'],
-            picture: doc.getList('products')[i]['picture'],
-            taxId: doc.getList('products')[i]['taxId'],
-            hasPicture: doc.getList('products')[i]['hasPicture'],
-            isDraft: doc.getList('products')[i]['isDraft'],
-            isCurrentUpdate: doc.getList('products')[i]['isCurrentUpdate'],
-            supplierId: doc.getList('products')[i]['supplierId'].toString(),
-            categoryId: doc.getList('products')[i]['categoryId'].toString(),
-            createdAt: DateTime.parse(doc.getList('products')[i]['createdAt']),
-            updatedAt: DateTime.parse(doc.getList('products')[i]['updatedAt']));
 
-        if (product == null) {
-          await store.state.database.productDao.insert(productData);
-        } else {
-          await store.state.database.productDao
-              .updateProduct(productData.copyWith(idLocal: product.idLocal));
-        }
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final ProductTableData product = await store.state.database.productDao
+          .getItemById(productId: model[i][dbName]['products']['id']);
+      // ignore:missing_required_param
+      final ProductTableData productData = ProductTableData(
+          businessId: model[i][dbName]['products']['businessId'].toString(),
+          active: model[i][dbName]['products'][i]['active'],
+          isImageLocal: false,
+          name: model[i][dbName]['products']['name'],
+          id: model[i][dbName]['products']['id'],
+          color: model[i][dbName]['products']['color'],
+          description: model[i][dbName]['products']['description'],
+          picture: model[i][dbName]['products']['picture'],
+          taxId: model[i][dbName]['products']['taxId'],
+          hasPicture: model[i][dbName]['products']['hasPicture'],
+          isDraft: model[i][dbName]['products']['isDraft'],
+          isCurrentUpdate: model[i][dbName]['products']['isCurrentUpdate'],
+          supplierId: model[i][dbName]['products']['supplierId'].toString(),
+          categoryId: model[i][dbName]['products']['categoryId'].toString(),
+          createdAt: DateTime.parse(model[i][dbName]['products']['createdAt']),
+          updatedAt: DateTime.parse(model[i][dbName]['products']['updatedAt']));
+
+      if (product == null) {
+        await store.state.database.productDao.insert(productData);
+      } else {
+        await store.state.database.productDao
+            .updateProduct(productData.copyWith(idLocal: product.idLocal));
       }
     }
   }
 
   Future<void> syncBranchProductRLocal(Store<AppState> store) async {
-    final lite.Document branchProducts = await database
-        .document('branchProducts_' + store.state.userId.toString());
-    if(branchProducts ==null){
-      return [];
-    }
-    if (branchProducts.getList('branchProducts') != null) {
-      for (int i = 0;
-          i < branchProducts.getList('branchProducts').length;
-          i++) {
-        final BranchProductTableData branchProduct = await store
-            .state.database.branchProductDao
-            .getById(id: branchProducts.getList('branchProducts')[i]['id']);
-        final BranchProductTableData branchProductData = BranchProductTableData(
-          id: branchProducts.getList('branchProducts')[i]['id'],
-          branchId: branchProducts.getList('branchProducts')[i]['branchId'],
-          productId: branchProducts.getList('branchProducts')[i]['productId'],
-          idLocal: 1,
-        );
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
+            'branchProducts_' + store.state.userId.toString())));
+    lite.ResultSet result;
 
-        if (branchProduct == null) {
-          await store.state.database.branchProductDao.insert(branchProductData);
-        } else {
-          await store.state.database.branchProductDao.updateBP(
-              branchProductData.copyWith(idLocal: branchProduct.idLocal));
-        }
+    // Run the query.
+    try {
+      result = await query.execute();
+    } on PlatformException {
+      return 'Error running the query';
+    }
+
+    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
+      final BranchProductTableData branchProduct = await store
+          .state.database.branchProductDao
+          .getById(id: model[i][dbName]['branchProducts']['id']);
+      final BranchProductTableData branchProductData = BranchProductTableData(
+        id: model[i][dbName]['branchProducts']['id'],
+        branchId: model[i][dbName]['branchProducts']['branchId'],
+        productId: model[i][dbName]['branchProducts']['productId'],
+        idLocal: 1,
+      );
+
+      if (branchProduct == null) {
+        await store.state.database.branchProductDao.insert(branchProductData);
+      } else {
+        await store.state.database.branchProductDao.updateBP(
+            branchProductData.copyWith(idLocal: branchProduct.idLocal));
       }
     }
   }
@@ -826,65 +971,68 @@ class AppDatabase {
     // ResultSet results = await query.execute();
   }
 
-  FUser buildUserModel(lite.Document doc, Store<AppState> store) {
+  FUser buildUserModel(lite.ResultSet doc, Store<AppState> store) {
+    final List<Map<String, dynamic>> model = doc.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+//    todo(richard): right now dealing with one user will support multi user in near future.
     return FUser(
       (FUserBuilder u) => u
-        ..id = doc.getString('id')
-        ..email = doc.getString('email')
-        ..name = doc.getString('name')
-        ..createdAt = doc.getString('createdAt')
-        ..updatedAt = doc.getString('createdAt')
-        ..active = doc.getBoolean('active')
-        ..token = doc.getString('token'),
+        ..id = model[0][dbName]['businesses']['name']
+        ..email = model[0][dbName]['email']
+        ..name = model[0][dbName][dbName]['name']
+        ..createdAt = model[0][dbName][dbName]['createdAt']
+        ..updatedAt = model[0][dbName][dbName]['ceatedAt']
+        ..active = model[0][dbName][dbName]['active']
+        ..token = model[0][dbName][dbName]['token'],
     );
   }
 
-  List<Business> buildBusinessModel(lite.Document doc, Store<AppState> store) {
+  List<Business> buildBusinessModel(lite.ResultSet doc, Store<AppState> store) {
     final List<Business> business = [];
-    const String business_ = 'businesses';
 
-    if ( doc == null) {
-      return business;
-    }
+    final List<Map<String, dynamic>> model = doc.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
 
-    for (int i = 0; i < doc.getList(business_).length; i++) {
+    for (int i = 0; i < model.length; i++) {
       business.add(Business((BusinessBuilder b) => b
-        ..name = doc.getList(business_)[i]['name']
-        ..id = doc.getList(business_)[i]['id']
-        ..currency = doc.getList(business_)[i]['currency']
-        ..categoryId = doc.getList(business_)[i]['categoryId'].toString()
-        ..country = doc.getList(business_)[i]['country']
-        ..userId = doc.getList(business_)[i]['userId'].toString()
-        ..active = doc.getList(business_)[i]['active']
-        ..typeId = doc.getList(business_)[i]['typeId'].toString()
-        ..userId = doc.getList(business_)[i]['userId'].toString()
-        ..timeZone = doc.getList(business_)[i]['timeZone']
-        ..businessUrl = doc.getList(business_)[i]['businessUrl']
-        ..createdAt = doc.getList(business_)[i]['country']));
+        ..name = model[i][dbName]['businesses']['name']
+        ..id = model[i][dbName]['businesses']['id']
+        ..currency = model[i][dbName]['businesses']['currency']
+        ..categoryId = model[i][dbName]['businesses']['categoryId'].toString()
+        ..country = model[i][dbName]['businesses']['country']
+        ..userId = model[i][dbName]['businesses']['userId'].toString()
+        ..active = model[1][dbName]['businesses']['active']
+        ..typeId = model[1][dbName]['businesses']['typeId'].toString()
+        ..userId = model[1][dbName]['businesses']['userId'].toString()
+        ..timeZone = model[1][dbName]['businesses']['timeZone']
+        ..businessUrl = model[1][dbName]['businesses']['businessUrl']
+        ..createdAt = model[1][dbName]['businesses']['country']));
     }
     return business;
   }
 
-  List<Product> buildProduct(lite.Document doc, Store<AppState> store) {}
-
-  List<Branch> buildBranchModel(lite.Document doc, Store<AppState> store) {
+  List<Branch> buildBranchModel(lite.ResultSet doc, Store<AppState> store) {
     final List<Branch> branch = [];
-    const String branch_ = 'branches';
-    
-    if (doc == null) {
-      return branch;
-    }
-    for (int i = 0; i < doc.getList('branches').length; i++) {
+    final List<Map<String, dynamic>> model = doc.map((lite.Result result) {
+      // return Beer.fromMap();
+      return result.toMap();
+    }).toList();
+
+    for (int i = 0; i < model.length; i++) {
       branch.add(Branch((BranchBuilder b) => b
-        ..name = doc.getList(branch_)[i]['name']
-        ..id = doc.getList(branch_)[i]['id']
-        ..active = doc.getList(branch_)[i]['active']
-        ..businessId = doc.getList(branch_)[i]['businessId'].toString()
-        ..createdAt = doc.getList(branch_)[i]['createdAt']
-        ..mapLatitude = doc.getList(branch_)[i]['mapLatitude'].toString()
-        ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
-        ..mapLongitude = doc.getList(branch_)[i]['mapLongitude'].toString()
-        ..updatedAt = doc.getList(branch_)[i]['updatedAt']));
+        ..name = model[i][dbName]['branches']['name']
+        ..id = model[i][dbName]['branches']['id']
+        ..active = model[i][dbName]['branches'][i]['active']
+        ..businessId = model[i][dbName]['branches']['businessId'].toString()
+        ..createdAt = model[i][dbName]['branches']['createdAt']
+        ..mapLatitude = model[i][dbName]['branches']['mapLatitude'].toString()
+        ..mapLongitude = model[i][dbName]['branches']['mapLongitude'].toString()
+        ..mapLongitude = model[i][dbName]['branches']['mapLongitude'].toString()
+        ..updatedAt = model[i][dbName]['branches']['updatedAt']));
     }
     return branch;
   }
@@ -892,7 +1040,7 @@ class AppDatabase {
   Future<dynamic> createProduct(Map map) async {
     assert(map['_id'] != null);
 
-    final lite.Document products = await database.document(map['_id']);
+    final lite.Document products = await database.document(map['id']);
 
     assert(map['channel'] != null);
     assert(map['name'] != null);
@@ -923,7 +1071,7 @@ class AppDatabase {
   Future<dynamic> createVariant(Map map) async {
     assert(map['_id'] != null);
 
-    final lite.Document variants = await database.document(map['_id']);
+    final lite.Document variants = await database.document(map['id']);
 
     assert(map['channel'] != null);
     assert(map['SKU'] != null);
@@ -948,29 +1096,50 @@ class AppDatabase {
   Future<dynamic> createBranchProduct(Map map) async {
     assert(map['_id'] != null);
 
-    final lite.Document branchProducts = await database.document(map['_id']);
-
     assert(map['channel'] != null);
     assert(map['productId'] != null);
     assert(map['branchId'] != null);
     assert(map['id'] != null);
 
-    List m = [map];
+    // ignore: always_specify_types
+    final List<Map> m = [map];
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(map['id'])));
+    // Run the query.
+    try {
+      final lite.ResultSet result = await query.execute();
 
-    branchProducts
-        .toMutable()
-        .setList('branchProducts', m)
-        // .setList('channels', [map['channel']])
-        .setString('uid', Uuid().v1())
-        .setString('_id', map['_id']);
-
-    return await database.saveDocument(branchProducts);
+      if (!result.allResults().isNotEmpty) {
+        final lite.MutableDocument mutableDoc = lite.MutableDocument()
+            .setList('branchProducts', m)
+            .setString('id', map['id'])
+            // ignore: always_specify_types
+            .setList('channels', [map['channel']])
+            .setString('uid', Uuid().v1())
+            .setString('_id', map['_id']);
+        try {
+          await database.saveDocument(mutableDoc);
+        } on PlatformException {
+          return 'Error saving document';
+        }
+      } else {
+        //todo: deal with result return [] of them.....
+        final List<Map<String, dynamic>> model = result.map((result) {
+          // return Beer.fromMap();
+          return result.toMap();
+        }).toList();
+        print(model[2][dbName]['businesses']);
+      }
+    } on PlatformException {
+      // ignore: prefer_single_quotes
+      return "Error running the query";
+    }
   }
 
   Future<dynamic> createStockHistory(Map map) async {
     assert(map['_id'] != null);
-
-    final lite.Document history = await database.document(map['_id']);
 
     assert(map['channel'] != null);
     assert(map['variantId'] != null);
@@ -982,22 +1151,47 @@ class AppDatabase {
     assert(map['createdAt'] != null);
     assert(map['id'] != null);
 
-    List m = [map];
+    // ignore: always_specify_types
+    final List<Map> m = [map];
+    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
+        .from(dbName)
+        .where(lite.Expression.property('id')
+            .equalTo(lite.Expression.string(map['id'])));
+    // Run the query.
+    try {
+      final lite.ResultSet result = await query.execute();
 
-    history
-        .toMutable()
-        .setList('stockHistory', m)
-        // .setList('channels', [map['channel']])
-        .setString('uid', Uuid().v1())
-        .setString('_id', map['_id']);
-
-    return await database.saveDocument(history);
+      if (!result.allResults().isNotEmpty) {
+        final lite.MutableDocument mutableDoc = lite.MutableDocument()
+            .setList('stockHistory', m)
+            .setString('id', map['id'])
+            // ignore: always_specify_types
+            .setList('channels', [map['channel']])
+            .setString('uid', Uuid().v1())
+            .setString('_id', map['_id']);
+        try {
+          await database.saveDocument(mutableDoc);
+        } on PlatformException {
+          return 'Error saving document';
+        }
+      } else {
+        //todo: deal with result return [] of them.....
+        final List<Map<String, dynamic>> model = result.map((result) {
+          // return Beer.fromMap();
+          return result.toMap();
+        }).toList();
+        print(model[2][dbName]['businesses']);
+      }
+    } on PlatformException {
+      // ignore: prefer_single_quotes
+      return "Error running the query";
+    }
   }
 
   Future<dynamic> createStock(Map map) async {
     assert(map['_id'] != null);
 
-    final lite.Document stocks = await database.document(map['_id']);
+    final lite.Document stocks = await database.document(map['id']);
 
     assert(map['channel'] != null);
     assert(map['productId'] != null);
@@ -1054,14 +1248,15 @@ class AppDatabase {
     }
   }
 
-  Future syncBranchProductLRemote(Store<AppState> store) async {
-    List<BranchProductTableData> branchProducts =
+  Future<void> syncBranchProductLRemote(Store<AppState> store) async {
+    final List<BranchProductTableData> branchProducts =
         await store.state.database.branchProductDao.branchProducts();
 
-    lite.Document bP = await database
+    final lite.Document bP = await database
         .document('branchProducts_' + store.state.userId.toString());
     // return await createDocumentIfNotExists(map['_id'], map);
 
+    // ignore: always_specify_types
     final List mapTypeListBranchProducts = [];
     for (int i = 0; i < branchProducts.length; i++) {
       final Map map = {

@@ -20,6 +20,7 @@ class SetActiveBusiness {
 class RefreshBusinessList {
   final Business updatedBusiness;
 
+  // ignore: sort_constructors_first
   RefreshBusinessList(this.updatedBusiness);
 }
 

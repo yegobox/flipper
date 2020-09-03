@@ -4,7 +4,6 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/permission/permission_check.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/fuser.dart';
@@ -68,7 +67,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             actionButtonName: 'Sign Up',
             onPressedCallback: () {
               StoreProvider.of<AppState>(context).dispatch(AppAction(
-                  actions: AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
+                  actions: AppActions(
+                      (AppActionsBuilder a) => a..name = 'createBusiness')));
             },
             icon: Icons.arrow_back,
             multi: 3,
@@ -91,7 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
-                    Text('ACCOUNT INFORMATION'),
+                    const Text('ACCOUNT INFORMATION'),
                     Center(
                       child: Container(
                         width: 300,
@@ -145,7 +145,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Visibility(
                       visible: false,
                       child: FlatButton(
-                        child:const Text('invisible button'),
+                        child: const Text('invisible button'),
                         onPressed: vm.appAction != null &&
                                 vm.appAction.name == 'createBusiness'
                             ? _handleFormSubmit()
@@ -162,10 +162,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-   // ignore: always_declare_return_types
-   _handleFormSubmit() {
-    StoreProvider.of<AppState>(context).dispatch(
-        AppAction(actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
+  // ignore: always_declare_return_types
+  _handleFormSubmit() {
+    StoreProvider.of<AppState>(context).dispatch(AppAction(
+        actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
 
     if (_formKey.currentState == null) {
       return;
@@ -176,8 +176,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final double lat = _position == null ? 0 : _position.latitude;
       final double long = _position == null ? 0 : _position.longitude;
 
+      if (tBusiness.name == null) {
+        return;
+      }
       final Business business = Business(
-        (b) => b
+        (BusinessBuilder b) => b
           ..id = Uuid().v1()
           ..name = tBusiness.name
           ..active = true
@@ -199,10 +202,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..token = widget.token
           ..name = widget.name,
       );
-      // TODO: submit business on remote, and branch so we wont have issue on next login
-      StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
+      // TODO(richard): submit business on remote, and branch so we wont have issue on next login
       StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
+      StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));
+      
+      
     }
   }
 }

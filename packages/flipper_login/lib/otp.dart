@@ -86,8 +86,9 @@ class _OtpPageState extends State<OtpPage> {
                     ),
                   ),
                   Container(
+                    width: 300,
                     child: SizedBox(
-                      width: 380,
+                      width: 300,
                       height: 60,
                       child: RaisedButton(
                         color: Colors.blue,
@@ -101,7 +102,7 @@ class _OtpPageState extends State<OtpPage> {
                           if (number.text.isEmpty) {
                             return;
                           }
-                          if (vm.otpcode.isEmpty) {
+                          if (vm.otpcode ==null) {
                             return;
                           }
 
@@ -168,6 +169,8 @@ class _OtpPageState extends State<OtpPage> {
                             store.dispatch(
                                 VerifyAuthenticationState()); //todo check subscription later refere to auth_webview.dart
 
+                          }else{
+                            //todo: notify failure of phone validation show message to re-authenticate
                           }
                         },
                         child: const Text(

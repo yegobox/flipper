@@ -24,15 +24,20 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         ..type = 'Location');
       store.dispatch(OnCheckedPermission(permission: permission));
     } else {
-      Map<PermissionGroup, PermissionStatus> status = await PermissionHandler()
-          .requestPermissions([PermissionGroup.location]);
+      try {
+        Map<PermissionGroup, PermissionStatus> status =
+            await PermissionHandler()
+                .requestPermissions([PermissionGroup.location]);
 
-      if (status[PermissionGroup.locationWhenInUse] ==
-          PermissionStatus.granted) {
-        final permission = Permission((p) => p
-          ..checked = false
-          ..type = 'Location');
-        store.dispatch(OnCheckedPermission(permission: permission));
+        if (status[PermissionGroup.locationWhenInUse] ==
+            PermissionStatus.granted) {
+          final Permission permission = Permission((p) => p
+            ..checked = false
+            ..type = 'Location');
+          store.dispatch(OnCheckedPermission(permission: permission));
+        }
+      } catch (e) {
+        print(e);
       }
     }
   };

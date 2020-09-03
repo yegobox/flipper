@@ -4,7 +4,6 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/business.dart';
-import 'package:flipper/model/fuser.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -32,14 +31,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     if (store.state.business != null) {
-     
-      final FUser user = await AppDatabase.instance.getDocumentByDocId(
-          docId: 'user_' + store.state.userId.toString(),
-          store: store,
-          T: FUser);
-
+      
       final String businessId = Uuid().v1();
-      final Map _mapBusiness = {
+      final Map<String, dynamic> _mapBusiness = {
         'active': true,
         '_id': 'business_' + store.state.userId.toString(),
         'categoryId': '10', //pet store a default id when signup on mobile
@@ -48,38 +42,39 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'businessUrl': '',
         'country': 'Rwanda',
         'currency': 'RWF',
-        'id': businessId,
+        'id': 'business_' + store.state.userId.toString(),
         'name': store.state.business.name,
         'timeZone': '',
-        'userId': user.id,
+        'userId': store.state.userId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
 
       await AppDatabase.instance.createBusiness(_mapBusiness);
 
-      final Map _notTax = {
+      // ignore: always_specify_types
+      final Map<String, dynamic> _notTax = {
         'active': true,
         '_id': 'taxes_' + store.state.userId.toString(),
         'channel': store.state.userId.toString(),
         'businessId': businessId,
         'createdAt': DateTime.now().toIso8601String(),
+        'id': 'taxes_' + store.state.userId.toString(),
         'updatedAt': DateTime.now().toIso8601String(),
-        'id': Uuid().v1(),
         'isDefault': false,
         'name': 'No Tax',
         'percentage': 0,
       };
 
       await AppDatabase.instance.createTax(_notTax);
-      final Map vat = {
+      final Map<String, dynamic> vat = {
         'active': true,
         '_id': 'taxes_' + store.state.userId.toString(),
         'channel': store.state.userId.toString(),
         'businessId': businessId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
-        'id': Uuid().v1(),
+        'id': 'taxes_' + store.state.userId.toString(),
         'isDefault': true,
         'name': 'Vat',
         'percentage': 18,
@@ -97,7 +92,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   GlobalKey<NavigatorState> navigatorKey,
   BusinessRepository businessRepository,
 ) {
-  return (store, action, next) async {
+  return (Store<AppState> store, action, next) async {
     next(action);
     if (store.state.currentActiveBusiness != null ||
         store.state.nextActiveBusiness != null) {
@@ -113,7 +108,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         businessRepository.update(store, store.state.currentActiveBusiness,
             active: false);
       }
-      final updated = Business((b) => b
+      final Business updated = Business((BusinessBuilder b) => b
         ..id = store.state.nextActiveBusiness.id
         ..name = store.state.nextActiveBusiness.name
         ..longitude = b.longitude

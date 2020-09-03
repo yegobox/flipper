@@ -8,7 +8,6 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
@@ -62,6 +61,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   GeneralRepository generalRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
+  // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     next(action);
 
@@ -74,7 +74,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await createAppActions(store);
     await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
-    
+
     await AppDatabase.instance.syncRemoteToLocal(store: store);
     heartBeatSync(store: store);
 
@@ -83,10 +83,10 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 }
 
 Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
-  UserTableData user = await store.state.database.userDao.getUser();
+  final UserTableData user = await store.state.database.userDao.getUser();
   if (user != null) {
-    FUser u = FUser(
-      (p) => p
+    final FUser u = FUser(
+      (FUserBuilder p) => p
         ..email = user.email
         ..active = true
         ..createdAt = DateTime.now().toIso8601String()
@@ -175,14 +175,12 @@ _getCurrentLocation({Store<AppState> store}) async {
   });
 }
 
-
 Future<List<Branch>> getBranches(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  List<Branch> branches = await AppDatabase.instance
-      .getDocumentByDocId(
-          docId: 'branches_' + store.state.userId.toString(),
-          store: store,
-          T: Branch);
+  List<Branch> branches = await AppDatabase.instance.getDocumentByFilter(
+      filter: 'branches_' + store.state.userId.toString(),
+      store: store,
+      T: Branch);
 
   for (var i = 0; i < branches.length; i++) {
     if (branches[i].active) {
@@ -320,8 +318,8 @@ Future<void> createTemporalOrder(
 Future<void> getBusinesses(
     Store<AppState> store, GeneralRepository generalRepository) async {
   final List<Business> businesses = await AppDatabase.instance
-      .getDocumentByDocId(
-          docId: 'business_' + store.state.userId.toString(),
+      .getDocumentByFilter(
+          filter: 'business_' + store.state.userId.toString(),
           store: store,
           T: Business);
 
@@ -349,6 +347,7 @@ Future<void> getBusinesses(
     }
   }
 
+  print(businesses);
   if (businesses.isEmpty) {
     if (store.state.user != null) {
       Routing.navigator.pushNamed(
