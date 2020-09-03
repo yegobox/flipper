@@ -32,7 +32,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     //final branchId = await branchRepo.insertBranch(store, branch);
     //create tax for this branch
 
-    Map<String, dynamic> _mapBranch = {
+    final Map<String, dynamic> _mapBranch = {
       'active': true,
       'name': store.state.business.name,
       '_id': 'branches_' + store.state.userId.toString(),

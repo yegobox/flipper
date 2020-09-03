@@ -1,6 +1,5 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -41,7 +40,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                       builder: (context,
                           AsyncSnapshot<List<OrderDetailTableData>>
                               orderDetail) {
-                        var quantity = orderDetail.data == null
+                        final quantity = orderDetail.data == null
                             ? 0
                             : orderDetail.data
                                 .fold(0, (a, b) => a + b.quantity);
@@ -74,8 +73,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                             padding: const EdgeInsets.fromLTRB(90, 0, 0, 0),
                             child: Text(
                               orderDetail.data == null || quantity == 0
-                                  ? S.of(context).noSale
-                                  : S.of(context).currentSale +
+                                  ? 'No Sale'
+                                  : 'Current Sale' +
                                       '[' +
                                       quantity.toInt().toString() +
                                       ']',

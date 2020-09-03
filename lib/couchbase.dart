@@ -72,7 +72,6 @@ class AppDatabase {
           // return Beer.fromMap();
           return result.toMap();
         }).toList();
-        print(model[2][dbName]['businesses']);
       }
     } on PlatformException {
       // ignore: prefer_single_quotes
@@ -250,7 +249,6 @@ class AppDatabase {
           // return Beer.fromMap();
           return result.toMap();
         }).toList();
-        print(model[2][dbName]['businesses']);
       }
     } on PlatformException {
       // ignore: prefer_single_quotes
@@ -307,7 +305,6 @@ class AppDatabase {
           // return Beer.fromMap();
           return result.toMap();
         }).toList();
-        print(model[2][dbName]['businesses']);
       }
     } on PlatformException {
       // ignore: prefer_single_quotes
@@ -360,7 +357,6 @@ class AppDatabase {
           // return Beer.fromMap();
           return result.toMap();
         }).toList();
-        print(model[2][dbName]['users']);
       }
     } on PlatformException {
       // ignore: prefer_single_quotes
@@ -458,22 +454,22 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
-      final StockHistoryTableData history = await store
-          .state.database.stockHistoryDao
-          .getById(id: model[i][dbName]['stockHistory']['id']);
+    // ignore: always_specify_types
+    final r = model[0][dbName]['stockHistory'];
+
+    for (int i = 0; i < r.length; i++) {
+      final StockHistoryTableData history =
+          await store.state.database.stockHistoryDao.getById(id: r[i]['id']);
       // ignore:missing_required_param
       final StockHistoryTableData historyData = StockHistoryTableData(
-          id: model[i][dbName]['stockHistory']['id'],
-          note: model[i][dbName]['stockHistory']['note'],
-          quantity: model[i][dbName]['stockHistory']['quantity'],
-          stockId: model[i][dbName]['stockHistory']['stockId'],
-          reason: model[i][dbName]['stockHistory']['reason'],
-          variantId: model[i][dbName]['stockHistory']['variantId'],
-          createdAt:
-              DateTime.parse(model[i][dbName]['stockHistory']['createdAt']),
-          updatedAt:
-              DateTime.parse(model[i][dbName]['stockHistory']['updatedAt']));
+          id: r[i]['id'],
+          note: r[i]['note'],
+          quantity: r[i]['quantity'],
+          stockId: r[i]['stockId'],
+          reason: r[i]['reason'],
+          variantId: r[i]['variantId'],
+          createdAt: DateTime.parse(r[i]['createdAt']),
+          updatedAt: DateTime.parse(r[i]['updatedAt']));
 
       if (history == null) {
         await store.state.database.stockHistoryDao.insert(historyData);
@@ -502,24 +498,26 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
-      final StockTableData stock = await store.state.database.stockDao
-          .getById(id: model[i][dbName]['stocks']['id']);
+    final r = model[0][dbName]['stocks'];
+
+    for (int i = 0; i < r.length; i++) {
+      final StockTableData stock =
+          await store.state.database.stockDao.getById(id: r[i]['id']);
       // ignore:missing_required_param
       final StockTableData branchProductData = StockTableData(
-          id: model[i][dbName]['stocks']['id'],
-          supplyPrice: model[i][dbName]['stocks']['supplyPrice'].toDouble(),
-          retailPrice: model[i][dbName]['stocks']['retailPrice'].toDouble(),
-          lowStock: model[i][dbName]['stocks']['lowStock'],
-          action: model[i][dbName]['stocks']['action'],
-          variantId: model[i][dbName]['stocks']['variantId'],
-          branchId: model[i][dbName]['stocks']['branchId'],
-          productId: model[i][dbName]['stocks']['productId'],
-          currentStock: model[i][dbName]['stocks']['currentStock'],
-          canTrackingStock: model[i][dbName]['stocks']['canTrackingStock'],
-          showLowStockAlert: model[i][dbName]['stocks']['showLowStockAlert'],
-          createdAt: DateTime.parse(model[i][dbName]['stocks']['createdAt']),
-          updatedAt: DateTime.parse(model[i][dbName]['stocks']['updatedAt']));
+          id: r[i]['id'],
+          supplyPrice: r[i]['supplyPrice'].toDouble(),
+          retailPrice: r[i]['retailPrice'].toDouble(),
+          lowStock: r[i]['lowStock'],
+          action: r[i]['action'],
+          variantId: r[i]['variantId'],
+          branchId: r[i]['branchId'],
+          productId: r[i]['productId'],
+          currentStock: r[i]['currentStock'],
+          canTrackingStock: r[i]['canTrackingStock'],
+          showLowStockAlert: r[i]['showLowStockAlert'],
+          createdAt: DateTime.parse(r[i]['createdAt']),
+          updatedAt: DateTime.parse(r[i]['updatedAt']));
 
       if (stock == null) {
         await store.state.database.stockDao.insert(branchProductData);
@@ -547,21 +545,22 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
+    final r = model[0][dbName]['variants'];
 
-    for (int i = 0; i < model.length; i++) {
+    for (int i = 0; i < r.length; i++) {
       final VariationTableData variation = await store
           .state.database.variationDao
-          .getVariationById(variantId: model[i][dbName]['variants']['id']);
+          .getVariationById(variantId: r[i]['id']);
       // ignore:missing_required_param
       final VariationTableData variationData = VariationTableData(
-          name: model[i][dbName]['variants']['name'],
-          id: model[i][dbName]['variants']['id'],
+          name: r[i]['name'],
+          id: r[i]['id'],
           isActive: false,
-          sku: model[i][dbName]['variants']['SKU'],
-          productId: model[i][dbName]['variants']['productId'],
-          unit: model[i][dbName]['variants']['unit'],
-          createdAt: DateTime.parse(model[i][dbName]['variants']['createdAt']),
-          updatedAt: DateTime.parse(model[i][dbName]['variants']['updatedAt']));
+          sku: r[i]['SKU'],
+          productId: r[i]['productId'],
+          unit: r[i]['unit'],
+          createdAt: DateTime.parse(r[i]['createdAt']),
+          updatedAt: DateTime.parse(r[i]['updatedAt']));
 
       if (variation == null) {
         await store.state.database.variationDao.insert(variationData);
@@ -590,15 +589,17 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
+    final r = model[0][dbName]['branches'];
+
+    for (int i = 0; i < r.length; i++) {
       final BranchTableData brachi = await store.state.database.branchDao
-          .getBranchById(branchId: model[i][dbName]['branches']['id']);
+          .getBranchById(branchId: r[i]['id']);
 
       final BranchTableData businessTableData = BranchTableData(
-        id: model[i][dbName]['branches']['id'],
-        name: model[i][dbName]['branches']['name'],
-        isActive: model[i][dbName]['branches']['isActive'] ?? false,
-        businessId: model[i][dbName]['branches']['businessId'],
+        id: r[i]['id'],
+        name: r[i]['name'],
+        isActive: r[i]['isActive'] ?? false,
+        businessId: r[i]['businessId'],
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         idLocal: 1,
@@ -630,26 +631,25 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
-      final BusinessTableData busine = await store.state.database.businessDao
-          .getBusinesById(id: model[i][dbName]['businesses']['id']);
+    final r = model[0][dbName]['businesses'];
+    for (int i = 0; i < r.length; i++) {
+      final BusinessTableData busine =
+          await store.state.database.businessDao.getBusinesById(id: r[i]['id']);
       // ignore:missing_required_param
       final BusinessTableData businessTableData = BusinessTableData(
-          active: model[i][dbName]['businesses']['active'],
-          name: model[i][dbName]['businesses']['name'],
-          id: model[i][dbName]['businesses']['id'],
-          userId: model[i][dbName]['businesses']['userId'],
-          longitude: model[i][dbName]['businesses']['longitude'],
-          typeId: model[i][dbName]['businesses']['typeId'].toString(),
-          categoryId: model[i][dbName]['businesses']['categoryId'].toString(),
-          country: model[i][dbName]['businesses']['country'],
-          timeZone: model[i][dbName]['businesses']['timeZone'],
-          currency: model[i][dbName]['businesses']['currency'],
-          latitude: model[i][dbName]['businesses']['latitude'],
-          createdAt:
-              DateTime.parse(model[i][dbName]['businesses']['createdAt']),
-          updatedAt:
-              DateTime.parse(model[i][dbName]['businesses']['updatedAt']));
+          active: r[i]['active'],
+          name: r[i]['name'],
+          id: r[i]['id'],
+          userId: r[i]['userId'],
+          longitude: r[i]['longitude'],
+          typeId: r[i]['typeId'].toString(),
+          categoryId: r[i]['categoryId'].toString(),
+          country: r[i]['country'],
+          timeZone: r[i]['timeZone'],
+          currency: r[i]['currency'],
+          latitude: r[i]['latitude'],
+          createdAt: DateTime.parse(r[i]['createdAt']),
+          updatedAt: DateTime.parse(r[i]['updatedAt']));
 
       if (busine == null) {
         await store.state.database.businessDao.insert(businessTableData);
@@ -679,33 +679,31 @@ class AppDatabase {
     }).toList();
 
     if (model.isNotEmpty) {
-      for (int i = 0; i < model.length; i++) {
-        final CategoryTableData category = await store
-            .state.database.categoryDao
-            .getById(id: model[i][dbName]['categories']['id']);
+      // ignore: always_specify_types
+      final r = model[0][dbName]['categories'];
+
+      for (int i = 0; i < r.length; i++) {
+        final CategoryTableData category =
+            await store.state.database.categoryDao.getById(id: r[i]['id']);
         CategoryTableData categoryData;
         if (i == 1) {
           // ignore:missing_required_param
           categoryData = CategoryTableData(
-              id: model[i][dbName]['categories']['id'],
-              name: model[i][dbName]['categories']['name'],
+              id: r[i]['id'],
+              name: r[i]['name'],
               focused: true,
-              branchId: model[i][dbName]['categories']['branchId'],
-              createdAt:
-                  DateTime.parse(model[i][dbName]['categories']['createdAt']),
-              updatedAt:
-                  DateTime.parse(model[i][dbName]['categories']['updatedAt']));
+              branchId: r[i]['branchId'],
+              createdAt: DateTime.parse(r[i]['createdAt']),
+              updatedAt: DateTime.parse(r[i]['updatedAt']));
         } else {
           // ignore:missing_required_param
           categoryData = CategoryTableData(
-              id: model[i][dbName]['categories'][i]['id'],
-              name: model[i][dbName]['categories']['name'],
+              id: r[i][i]['id'],
+              name: r[i]['name'],
               focused: false,
-              branchId: model[i][dbName]['categories']['branchId'],
-              createdAt:
-                  DateTime.parse(model[i][dbName]['categories']['createdAt']),
-              updatedAt:
-                  DateTime.parse(model[i][dbName]['categories']['updatedAt']));
+              branchId: r[i]['branchId'],
+              createdAt: DateTime.parse(r[i]['createdAt']),
+              updatedAt: DateTime.parse(r[i]['updatedAt']));
         }
 
         if (category == null) {
@@ -756,22 +754,25 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
-      final TaxTableData tax = await store.state.database.taxDao
-          .getById(taxid: model[i][dbName]['taxes'][i]['id']);
+    // ignore: always_specify_types
+    final r = model[0][dbName]['taxes'];
+
+    for (int i = 0; i < r.length; i++) {
+      final TaxTableData tax =
+          await store.state.database.taxDao.getById(taxid: r[i][i]['id']);
       // ignore:missing_required_param
       final TaxTableData taxData = TaxTableData(
-          id: model[i][dbName]['taxes']['id'],
-          name: model[i][dbName]['taxes']['name'],
-          businessId: model[i][dbName]['taxes']['businessId'],
-          isDefault: model[i][dbName]['taxes']['isDefault'],
-          percentage: model[i][dbName]['taxes']['percentage'].toDouble(),
-          createdAt: DateTime.parse(model[i][dbName]['taxes']['createdAt']),
-          updatedAt: DateTime.parse(model[i][dbName]['taxes']['updatedAt']));
+          id: r[i]['id'],
+          name: r[i]['name'],
+          businessId: r[i]['businessId'],
+          isDefault: r[i]['isDefault'],
+          percentage: r[i]['percentage'].toDouble(),
+          createdAt: DateTime.parse(r[i]['createdAt']),
+          updatedAt: DateTime.parse(r[i]['updatedAt']));
 
       if (tax == null) {
         await store.state.database.taxDao.insert(taxData);
-        if (model[i][dbName]['taxes']['isDefault']) {
+        if (r[i]['isDefault']) {
           store.dispatch(
             DefaultTax(
               tax: Tax((TaxBuilder t) => t
@@ -787,7 +788,7 @@ class AppDatabase {
         await store.state.database.taxDao
             .updateTax(taxData.copyWith(idLocal: tax.idLocal));
 
-        if (model[i][dbName]['taxes']['isDefault']) {
+        if (r[i]['isDefault']) {
           store.dispatch(
             DefaultTax(
               tax: Tax((TaxBuilder t) => t
@@ -897,27 +898,29 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
+    final r = model[0][dbName]['products'];
+
+    for (int i = 0; i < r.length; i++) {
       final ProductTableData product = await store.state.database.productDao
-          .getItemById(productId: model[i][dbName]['products']['id']);
+          .getItemById(productId: r[i]['id']);
       // ignore:missing_required_param
       final ProductTableData productData = ProductTableData(
-          businessId: model[i][dbName]['products']['businessId'].toString(),
-          active: model[i][dbName]['products'][i]['active'],
+          businessId: r[i]['businessId'].toString(),
+          active: r[i][i]['active'],
           isImageLocal: false,
-          name: model[i][dbName]['products']['name'],
-          id: model[i][dbName]['products']['id'],
-          color: model[i][dbName]['products']['color'],
-          description: model[i][dbName]['products']['description'],
-          picture: model[i][dbName]['products']['picture'],
-          taxId: model[i][dbName]['products']['taxId'],
-          hasPicture: model[i][dbName]['products']['hasPicture'],
-          isDraft: model[i][dbName]['products']['isDraft'],
-          isCurrentUpdate: model[i][dbName]['products']['isCurrentUpdate'],
-          supplierId: model[i][dbName]['products']['supplierId'].toString(),
-          categoryId: model[i][dbName]['products']['categoryId'].toString(),
-          createdAt: DateTime.parse(model[i][dbName]['products']['createdAt']),
-          updatedAt: DateTime.parse(model[i][dbName]['products']['updatedAt']));
+          name: r[i]['name'],
+          id: r[i]['id'],
+          color: r[i]['color'],
+          description: r[i]['description'],
+          picture: r[i]['picture'],
+          taxId: r[i]['taxId'],
+          hasPicture: r[i]['hasPicture'],
+          isDraft: r[i]['isDraft'],
+          isCurrentUpdate: r[i]['isCurrentUpdate'],
+          supplierId: r[i]['supplierId'].toString(),
+          categoryId: r[i]['categoryId'].toString(),
+          createdAt: DateTime.parse(r[i]['createdAt']),
+          updatedAt: DateTime.parse(r[i]['updatedAt']));
 
       if (product == null) {
         await store.state.database.productDao.insert(productData);
@@ -947,14 +950,17 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
-      final BranchProductTableData branchProduct = await store
-          .state.database.branchProductDao
-          .getById(id: model[i][dbName]['branchProducts']['id']);
+    if (model.isEmpty) return;
+    // ignore: always_specify_types
+    final r = model[0][dbName]['branchProducts'];
+
+    for (int i = 0; i < r.length; i++) {
+      final BranchProductTableData branchProduct =
+          await store.state.database.branchProductDao.getById(id: r[i]['id']);
       final BranchProductTableData branchProductData = BranchProductTableData(
-        id: model[i][dbName]['branchProducts']['id'],
-        branchId: model[i][dbName]['branchProducts']['branchId'],
-        productId: model[i][dbName]['branchProducts']['productId'],
+        id: r[i]['id'],
+        branchId: r[i]['branchId'],
+        productId: r[i]['productId'],
         idLocal: 1,
       );
 
@@ -996,43 +1002,48 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
-
-    for (int i = 0; i < model.length; i++) {
+    // ignore: always_specify_types
+    final r = model[0][dbName]['businesses'];
+    for (int i = 0; i < r.length; i++) {
       business.add(Business((BusinessBuilder b) => b
-        ..name = model[i][dbName]['businesses']['name']
-        ..id = model[i][dbName]['businesses']['id']
-        ..currency = model[i][dbName]['businesses']['currency']
-        ..categoryId = model[i][dbName]['businesses']['categoryId'].toString()
-        ..country = model[i][dbName]['businesses']['country']
-        ..userId = model[i][dbName]['businesses']['userId'].toString()
-        ..active = model[1][dbName]['businesses']['active']
-        ..typeId = model[1][dbName]['businesses']['typeId'].toString()
-        ..userId = model[1][dbName]['businesses']['userId'].toString()
-        ..timeZone = model[1][dbName]['businesses']['timeZone']
-        ..businessUrl = model[1][dbName]['businesses']['businessUrl']
-        ..createdAt = model[1][dbName]['businesses']['country']));
+        ..name = r[i]['name']
+        ..id = r[i]['id']
+        ..currency = r[i]['currency']
+        ..categoryId = r[i]['categoryId'].toString()
+        ..country = r[i]['country']
+        ..userId = r[i]['userId'].toString()
+        ..active = r[i]['active']
+        ..typeId = r[i]['typeId'].toString()
+        ..userId = r[i]['userId'].toString()
+        ..timeZone = r[i]['timeZone']
+        ..businessUrl = r[i]['businessUrl']
+        ..createdAt = r[i]['country']));
     }
     return business;
   }
 
   List<Branch> buildBranchModel(lite.ResultSet doc, Store<AppState> store) {
     final List<Branch> branch = [];
+
     final List<Map<String, dynamic>> model = doc.map((lite.Result result) {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
 
-    for (int i = 0; i < model.length; i++) {
+    // ignore: always_specify_types
+    final r = model[0][dbName]['branches'];
+    for (int i = 0; i < r.length; i++) {
+      print(r[i]);
       branch.add(Branch((BranchBuilder b) => b
-        ..name = model[i][dbName]['branches']['name']
-        ..id = model[i][dbName]['branches']['id']
-        ..active = model[i][dbName]['branches'][i]['active']
-        ..businessId = model[i][dbName]['branches']['businessId'].toString()
-        ..createdAt = model[i][dbName]['branches']['createdAt']
-        ..mapLatitude = model[i][dbName]['branches']['mapLatitude'].toString()
-        ..mapLongitude = model[i][dbName]['branches']['mapLongitude'].toString()
-        ..mapLongitude = model[i][dbName]['branches']['mapLongitude'].toString()
-        ..updatedAt = model[i][dbName]['branches']['updatedAt']));
+        ..name = r[i]['name']
+        ..id = r[i]['id']
+        ..active = r[i]['active']
+        ..businessId = r[i]['businessId'].toString()
+        ..createdAt = r[i]['createdAt']
+        ..mapLatitude = r[i]['mapLatitude'].toString()
+        ..mapLongitude = r[i]['mapLongitude'].toString()
+        ..mapLongitude = r[i]['mapLongitude'].toString()
+        ..updatedAt = r[i]['updatedAt']));
     }
     return branch;
   }
@@ -1130,7 +1141,6 @@ class AppDatabase {
           // return Beer.fromMap();
           return result.toMap();
         }).toList();
-        print(model[2][dbName]['businesses']);
       }
     } on PlatformException {
       // ignore: prefer_single_quotes
@@ -1180,7 +1190,6 @@ class AppDatabase {
           // return Beer.fromMap();
           return result.toMap();
         }).toList();
-        print(model[2][dbName]['businesses']);
       }
     } on PlatformException {
       // ignore: prefer_single_quotes
