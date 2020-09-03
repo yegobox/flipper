@@ -8,13 +8,13 @@ Future<void> main() async {
   
   configureLogger();
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.black,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.white,
-    systemNavigationBarIconBrightness: Brightness.light,
-    systemNavigationBarDividerColor: Colors.transparent,
-  ));
+  // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+  //   statusBarColor: Colors.black,
+  //   statusBarIconBrightness: Brightness.dark,
+  //   systemNavigationBarColor: Colors.white,
+  //   systemNavigationBarIconBrightness: Brightness.light,
+  //   systemNavigationBarDividerColor: Colors.transparent,
+  // ));
  
   await Firebase.initializeApp();
   runApp(FlipperApp());
