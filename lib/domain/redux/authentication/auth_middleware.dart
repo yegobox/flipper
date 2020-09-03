@@ -177,17 +177,17 @@ _getCurrentLocation({Store<AppState> store}) async {
 
 Future<List<Branch>> getBranches(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  List<Branch> branches = await AppDatabase.instance.getDocumentByFilter(
+  final List<Branch> branches = await AppDatabase.instance.getDocumentByFilter(
       filter: 'branches_' + store.state.userId.toString(),
       store: store,
       T: Branch);
 
-  for (var i = 0; i < branches.length; i++) {
+  for (int i = 0; i < branches.length; i++) {
     if (branches[i].active) {
       //set current active branch
       store.dispatch(
         OnCurrentBranchAction(
-          branch: Branch((b) => b
+          branch: Branch((BranchBuilder b) => b
             ..name = branches[i].name
             ..id = branches[i].id
             ..active = branches[i].active
@@ -211,8 +211,9 @@ Future<List<Branch>> getBranches(
 }
 
 List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
-  List<Category> categories = [];
-  categoryList.forEach((c) => {
+  final List<Category> categories = [];
+  // ignore: avoid_function_literals_in_foreach_calls
+  categoryList.forEach((CategoryTableData c) => {
         categories.add(
           Category(
             (u) => u
@@ -227,15 +228,15 @@ List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
 }
 
 void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
-  final currentTab = tab == null ? 0 : tab.tab;
+  final int currentTab = tab == null ? 0 : tab.tab;
   store.dispatch(
     CurrentTab(tab: currentTab),
   );
 }
 
-Future generateAppColors(
+Future<void> generateAppColors(
     GeneralRepository generalRepository, Store<AppState> store) async {
-  List<String> colors = [
+  final List<String> colors = [
     '#d63031',
     '#0984e3',
     '#e84393',
@@ -246,7 +247,7 @@ Future generateAppColors(
     '#a29bfe'
   ];
   //insert default colors for the app
-  for (var i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; i++) {
     //create default color items if does not exist
     await generalRepository.insertOrUpdateColor(
         store,
@@ -255,10 +256,10 @@ Future generateAppColors(
   }
 }
 
-Future createSystemStockReasons(Store<AppState> store) async {
-  List<ReasonTableData> reasons =
+Future<void> createSystemStockReasons(Store<AppState> store) async {
+  final List<ReasonTableData> reasons =
       await store.state.database.reasonDao.getReasons();
-  if (reasons.length == 0) {
+  if (reasons.isEmpty) {
     await store.state.database.reasonDao.insert(
         //ignore:missing_required_param
         ReasonTableData(name: 'Stock Received', action: 'Received'));
@@ -398,7 +399,8 @@ void Function(
   UserRepository userRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
-  return (store, action, next) async {
+  // ignore: always_specify_types
+  return (Store<AppState> store, action, next) async {
     next(action);
   };
 }
