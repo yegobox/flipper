@@ -9,6 +9,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:redux/src/store.dart';
 
 class BranchList extends StatefulWidget {
   final CommonViewModel vm;
@@ -69,8 +70,9 @@ class _BranchListState extends State<BranchList> {
       );
 
   Future<void> desktopLogin({BuildContext context, String code}) async {
-    final store = StoreProvider.of<AppState>(context);
-    final response = await http.post('https://flipper.rw/api/ws', body: {
+    final Store<AppState> store = StoreProvider.of<AppState>(context);
+    final http.Response response =
+        await http.post('https://flipper.rw/api/ws', body: {
       'code': code,
       'token': store.state.user.token
     }, headers: {
