@@ -89,6 +89,7 @@ class _BusinessListState extends State<BusinessList> {
             Image.asset('assets/graphics/drawer/account.png'),
             ()async {
               // _openUserAccount(context);
+              // TODO(richard): change the icon should be icon of logout.
               final Store<AppState> store = StoreProvider.of<AppState>(context);
               final int loggedOut = await logout(store: store);
               if(loggedOut ==1){
@@ -106,7 +107,7 @@ class _BusinessListState extends State<BusinessList> {
 
   Container _buildSecondSectionBusinessList(BuildContext context,
       // ignore: always_specify_types
-      {onClick: true, hasNotification: true, data}) {
+      {onClick = true, hasNotification = true, data}) {
     return Container(
       height: _Style.itemHeight,
       child: Padding(
