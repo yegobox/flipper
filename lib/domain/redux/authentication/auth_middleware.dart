@@ -85,6 +85,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final UserTableData user = await store.state.database.userDao.getUser();
   if (user != null) {
+    //login to couchbase
+    // ignore: always_specify_types
+    AppDatabase.instance.login(channels: [user.id.toString()]);
     final FUser u = FUser(
       (FUserBuilder p) => p
         ..email = user.email

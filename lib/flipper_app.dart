@@ -52,7 +52,6 @@ class _FlipperAppState extends State<FlipperApp> {
   @override
   void initState() {
     super.initState();
-    instance.login();
     store = Store<AppState>(
       appReducer,
       initialState: AppState.init(),
@@ -214,5 +213,10 @@ class _FlipperAppState extends State<FlipperApp> {
         overline: mainTextStyle,
       ),
     );
+  }
+  @override
+  void dispose() async {
+    await instance.logout();
+    super.dispose();
   }
 }

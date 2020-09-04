@@ -99,16 +99,16 @@ class AppDatabase {
     }
   }
 
-  Future<bool> login({String username, String password}) async {
+  Future<bool> login({String username, String password, List channels}) async {
     try {
       database = await lite.Database.initWithName(dbName);
-      // Note wss://10.lite.0.2.2:4984/my-database is for the android simulator on your local machine's couchbase database
+      // Note wss://10.0.2.2:4984/my-database is for the android simulator on your local machine's couchbase database
       final lite.ReplicatorConfiguration config =
           lite.ReplicatorConfiguration(database, 'ws://10.0.2.2:4984/main');
 
       config.replicatorType = lite.ReplicatorType.pushAndPull;
       config.continuous = true;
-      // config.channels =['1'];
+      config.channels = channels;
 
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
