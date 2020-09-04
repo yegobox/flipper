@@ -230,7 +230,7 @@ class _ProductsViewState extends State<ProductsView> {
           ),
         ),
         title: Text(
-          S.of(context).reedeemRewards,
+          'Reedeem Rewards',
           style: TextStyle(color: Colors.black),
         ),
       ),

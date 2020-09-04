@@ -92,17 +92,17 @@ class _TenderScreenState extends State<TenderScreen> {
           ),
           Center(
             child: Container(
-                color: _isButtonDisabled ? Color(0xFFE3F2FD) : Colors.blue,
+                color: _isButtonDisabled ?const Color(0xFFE3F2FD) : Colors.blue,
                 child: SizedBox(
                   width: 380,
                   height: 50,
                   child: FlatButton(
                     color: Colors.blue,
-                    disabledColor: Color(0xFFE3F2FD),
+                    disabledColor: const Color(0xFFE3F2FD),
                     onPressed: _handleTender(),
-                    child: Text(
-                      S.of(context).tender,
-                      style: TextStyle(color: Colors.white),
+                    child: const Text(
+                      'Tender',
+                      style:  TextStyle(color: Colors.white),
                     ),
                   ),
                 )),

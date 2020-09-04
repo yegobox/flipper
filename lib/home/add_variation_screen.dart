@@ -50,10 +50,10 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
             onPop: () {
               Routing.navigator.pop();
             },
-            title: S.of(context).addVariation,
+            title: 'Add Variation',
             showActionButton: true,
             disableButton: _actions == null ? true : _actions.isLocked,
-            actionButtonName: S.of(context).save,
+            actionButtonName: 'Save',
             onPressedCallback: () async {
               await _createVariant(vm, context);
               Routing.navigator.maybePop();
@@ -97,7 +97,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                             name = _name;
                           },
                           decoration: InputDecoration(
-                            hintText: S.of(context).name,
+                            hintText: 'Name',
                             focusColor: Colors.blue,
                           ),
                         ),
@@ -120,11 +120,11 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
                           }
                         },
                         decoration: InputDecoration(
-                            hintText: S.of(context).sKU,
+                            hintText: 'SKU',
                             focusColor: HexColor('#0984e3')),
                       ),
                     ),
-                    Text(S.of(context).leavePriceBlank)
+                    Text('Leave the price blank to enter at the time of sale.')
                   ],
                 )
               ],
@@ -200,7 +200,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
           }
         },
         decoration: InputDecoration(
-            hintText: S.of(context).costPrice, focusColor: Colors.blue),
+            hintText: 'Cost Price', focusColor: Colors.blue),
       ),
     );
   }
@@ -220,7 +220,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
           }
         },
         decoration: InputDecoration(
-            hintText: S.of(context).retailPrice, focusColor: Colors.blue),
+            hintText: 'Retail Price', focusColor: Colors.blue),
       ),
     );
   }

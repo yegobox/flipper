@@ -34,7 +34,7 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
             title: 'Total RWF ' + _total.toString(),
             disableButton: false,
             showActionButton: true,
-            actionButtonName: S.of(context).add,
+            actionButtonName: 'Add',
             onPressedCallback: () {},
           ),
           body: ListView(

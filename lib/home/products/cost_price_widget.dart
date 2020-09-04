@@ -53,7 +53,7 @@ class _BuildCostPriceWidgetState extends State<BuildCostPriceWidget> {
             //on typing here should save Regular Item variation
           },
           decoration: InputDecoration(
-              hintText: S.of(context).costPrice, focusColor: Colors.blue),
+              hintText: 'Cost Price', focusColor: Colors.blue),
         ),
       ),
     );

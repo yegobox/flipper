@@ -27,7 +27,7 @@ class _ViewProductsScreenState extends State<ViewProductsScreen> {
             onPop: () {
               Routing.navigator.pop();
             },
-            title: S.of(context).allItems,
+            title: 'All Items',
             showActionButton: false,
             onPressedCallback: () async {},
             icon: Icons.close,
@@ -51,7 +51,7 @@ class _ViewProductsScreenState extends State<ViewProductsScreen> {
                       data: products.data,
                       vm: vm,
                       showCreateItemOnTop: true,
-                      createButtonName: S.of(context).createItem,
+                      createButtonName: 'Create Item',
                     );
                   },
                 ),

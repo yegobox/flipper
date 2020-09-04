@@ -90,7 +90,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       vm: vm,
                       shouldSeeItem: false,
                       showCreateItemOnTop: false,
-                      createButtonName: S.of(context).createNew,
+                      createButtonName: 'Create New',
                     );
                   },
                 ),

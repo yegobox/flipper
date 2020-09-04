@@ -64,14 +64,14 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
               Routing.navigator.pop();
             },
             showActionButton: false,
-            title: S.of(context).category,
+            title: 'Category',
             icon: Icons.close,
             multi: 3,
             bottomSpacer: 52,

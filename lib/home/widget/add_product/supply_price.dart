@@ -52,7 +52,7 @@ class _SupplyPriceState extends State<SupplyPrice> {
             }
           },
           decoration: InputDecoration(
-              hintText: S.of(context).supplyPrice, focusColor: Colors.blue),
+              hintText: 'Suply Price', focusColor: Colors.blue),
         ),
       ),
     );

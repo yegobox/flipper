@@ -64,10 +64,10 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                 onPop: () {
                   Routing.navigator.pop();
                 },
-                title: S.of(context).editVariation,
+                title: 'Edit Variation',
                 showActionButton: true,
                 disableButton: snapshot.data[0].name == '' ? true : false,
-                actionButtonName: S.of(context).save,
+                actionButtonName: 'Save',
                 onPressedCallback: () async {
                   updateVariation(snapshot.data[0], context);
                   Routing.navigator.pop(true);
@@ -104,7 +104,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                             child: ListTile(
                               contentPadding:
                                   EdgeInsets.symmetric(horizontal: 0.3),
-                              leading: Text(S.of(context).unityType),
+                              leading: Text('Unit Type'),
                               trailing: Wrap(
                                 children: <Widget>[
                                   StreamBuilder(
@@ -150,7 +150,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                               }
                             },
                             decoration: InputDecoration(
-                                hintText: S.of(context).name,
+                                hintText: 'Name',
                                 focusColor: Colors.blue),
                           ),
                         ),
@@ -168,11 +168,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                               }
                             },
                             decoration: InputDecoration(
-                                hintText: S.of(context).sKU,
+                                hintText: 'SKU',
                                 focusColor: HexColor('#0984e3')),
                           ),
                         ),
-                        Text(S.of(context).leavePriceBlank),
+                        Text('Leave the price blank to enter at the time of sale.'),
                         Container(
                           height: 50,
                           color: _deleteCount == 1
@@ -242,7 +242,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                     }
                   },
                   decoration: InputDecoration(
-                      hintText: S.of(context).costPrice,
+                      hintText: 'Cost Price',
                       focusColor: Colors.blue),
                 );
               } else {
@@ -258,7 +258,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                       }
                     },
                     decoration: InputDecoration(
-                        hintText: S.of(context).sKU,
+                        hintText: 'Cost Price',
                         focusColor: HexColor('#0984e3')),
                   ),
                 );
@@ -288,7 +288,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                     }
                   },
                   decoration: InputDecoration(
-                      hintText: S.of(context).retailPrice,
+                      hintText: 'Retail Price',
                       focusColor: Colors.blue),
                 );
               } else {
@@ -304,7 +304,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                       }
                     },
                     decoration: InputDecoration(
-                        hintText: S.of(context).sKU,
+                        hintText: 'SKU',
                         focusColor: HexColor('#0984e3')),
                   ),
                 );

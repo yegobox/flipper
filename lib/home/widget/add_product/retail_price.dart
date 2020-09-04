@@ -53,7 +53,7 @@ class _RetailPriceState extends State<RetailPrice> {
             }
           },
           decoration: InputDecoration(
-              hintText: S.of(context).retailPrice, focusColor: Colors.blue),
+              hintText: 'Retail Price', focusColor: Colors.blue),
         ),
       ),
     );

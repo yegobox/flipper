@@ -64,8 +64,8 @@ class _VariationWidgetState extends State<VariationWidget> {
           FlatButton(
             child: Text(
               snapshot.data == null
-                  ? S.of(context).receiveStock
-                  : '${snapshot.data[i].currentStock}' + S.of(context).inStock,
+                  ? 'Receive Stock'
+                  : '${snapshot.data[i].currentStock}' + 'in Stock',
             ),
             onPressed: () {
               Routing.navigator.pushNamed(Routing.receiveStock);

@@ -91,14 +91,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
               onPop: () {
                 Routing.navigator.pop();
               },
-              title: S.of(context).createItem,
+              title: 'Create Item',
               disableButton: _actions == null ? true : _actions.isLocked,
               showActionButton: true,
               onPressedCallback: () async {
                 await _handleCreateItem(vm);
                 Routing.navigator.pop(true);
               },
-              actionButtonName: S.of(context).save,
+              actionButtonName:'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,
@@ -112,7 +112,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     buildImageHolder(vm, context),
                     Text(
-                      S.of(context).newItem,
+                      'New Item',
                       style: GoogleFonts.lato(
                         fontStyle: FontStyle.normal,
                         color: AppTheme.addProduct.accentColor,
@@ -153,7 +153,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       child: Container(
                         width: 300,
                         child: Text(
-                          S.of(context).priceAndInventory,
+                          'PRICE AND INVENTORY',
                           style: GoogleFonts.lato(
                             fontStyle: FontStyle.normal,
                             color: AppTheme.addProduct.accentColor,

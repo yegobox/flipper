@@ -89,13 +89,13 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                     onPop: () {
                       Routing.navigator.pop();
                     },
-                    title: S.of(context).editItem,
+                    title: 'Edit Item',
                     disableButton: _actions == null ? true : _actions.isLocked,
                     showActionButton: true,
                     onPressedCallback: () async {
                       _handleEditItem(vm);
                     },
-                    actionButtonName: S.of(context).save,
+                    actionButtonName: 'Save',
                     icon: Icons.close,
                     multi: 3,
                     bottomSpacer: 52,
@@ -118,7 +118,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                     ? widget.itemColor
                                     : vm.currentColor.hexCode)),
                           ),
-                          Text(S.of(context).newItem),
+                          Text('New Item'),
                           Center(
                             child: Container(
                               width: 300,
@@ -164,7 +164,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                 child: ListTile(
                                   contentPadding:
                                       EdgeInsets.symmetric(horizontal: 0.3),
-                                  leading: Text(S.of(context).category),
+                                  leading: Text('Category'),
                                   trailing: Wrap(
                                     children: <Widget>[
                                       StreamBuilder(
@@ -178,12 +178,12 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                           if (snapshot.data == null ||
                                               snapshot.data.length == 0) {
                                             return Text(
-                                                S.of(context).selectCategory);
+                                                'Select Category');
                                           }
                                           return snapshot.data == null ||
                                                   snapshot.data.length == 0
                                               ? Text(
-                                                  S.of(context).selectCategory)
+                                                  'Select Category')
                                               : categorySelector(
                                                   snapshot.data, vm);
                                         },
@@ -209,7 +209,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                           Center(
                             child: Container(
                               width: 300,
-                              child: Text(S.of(context).priceAndInventory),
+                              child: Text('PRICE AND INVENTORY'),
                             ),
                           ),
                           Center(
@@ -233,7 +233,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                 child: ListTile(
                                   contentPadding:
                                       EdgeInsets.symmetric(horizontal: 0.3),
-                                  leading: Text(S.of(context).unityType),
+                                  leading: Text('Unit Type'),
                                   trailing: Wrap(
                                     children: <Widget>[
                                       StreamBuilder(
@@ -283,7 +283,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 340,
                               child: OutlineButton(
                                 color: HexColor('#ecf0f1'),
-                                child: Text(S.of(context).addVariation),
+                                child: Text('Add Variation'),
                                 onPressed: () async {
                                   _getSaveStatus();
                                   if (_actions != null) {

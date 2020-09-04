@@ -18,10 +18,10 @@ class _AllItemScreenState extends State<AllItemScreen> {
           onPop: () {
             Routing.navigator.pop();
           },
-          title: S.of(context).items,
+          title: 'Items',
           showActionButton: false,
           onPressedCallback: () async {},
-          actionButtonName: S.of(context).save,
+          actionButtonName: 'Save',
           icon: Icons.close,
           multi: 1,
           bottomSpacer: 48,

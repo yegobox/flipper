@@ -74,10 +74,10 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
             onPop: () {
               Routing.navigator.pop();
             },
-            title: S.of(context).editUnitType,
+            title: 'Edit Unit',
             showActionButton: true,
             disableButton: false,
-            actionButtonName: S.of(context).save,
+            actionButtonName: 'Save',
             onPressedCallback: () {
               StoreProvider.of<AppState>(context)
                   .dispatch(PersistFocusedUnitAction());

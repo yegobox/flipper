@@ -44,7 +44,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),
                 leading: Text(
-                  S.of(context).unityType,
+                  'Unit Type',
                   style: GoogleFonts.lato(
                     fontStyle: FontStyle.normal,
                     color: AppTheme.addProduct.accentColor,
@@ -61,7 +61,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                             AsyncSnapshot<List<UnitTableData>> snapshot) {
                           if (snapshot.data == null) {
                             return Text(
-                              S.of(context).selectUnit,
+                              'Select Unit',
                               style: GoogleFonts.lato(
                                 fontStyle: FontStyle.normal,
                                 color: AppTheme.addProduct.accentColor,
@@ -73,7 +73,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                             );
                           }
                           return snapshot.data == null
-                              ? Text(S.of(context).selectUnit)
+                              ? Text('Select Unit')
                               : unitSelector(snapshot.data);
                         }),
                     Icon(Icons.arrow_forward_ios)

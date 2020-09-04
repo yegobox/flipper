@@ -22,7 +22,7 @@ class _AddVariantState extends State<AddVariant> {
         width: 340,
         child: OutlineButton(
           color: HexColor('#ecf0f1'),
-          child: Text(S.of(context).addVariation),
+          child: Text('Add Variation'),
           onPressed: widget._onPressedCallback,
         ),
       ),

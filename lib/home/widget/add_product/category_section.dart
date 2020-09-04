@@ -32,7 +32,7 @@ class _CategorySectionState extends State<CategorySection> {
         );
         return text;
       } else {
-        text = Text(S.of(context).selectCategory);
+        text = Text('Select Category');
       }
     }
     return text;
@@ -53,7 +53,7 @@ class _CategorySectionState extends State<CategorySection> {
               },
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),
-                leading: Text(S.of(context).category),
+                leading: Text('Category'),
                 trailing: Wrap(
                   children: <Widget>[
                     StreamBuilder(
@@ -61,10 +61,10 @@ class _CategorySectionState extends State<CategorySection> {
                       builder: (context,
                           AsyncSnapshot<List<CategoryTableData>> snapshot) {
                         if (snapshot.data == null) {
-                          return Text(S.of(context).selectCategory);
+                          return Text('Select Category');
                         }
                         return snapshot.data == null
-                            ? Text(S.of(context).selectCategory)
+                            ? Text('Select Category')
                             : categorySelector(snapshot.data);
                       },
                     ),

@@ -37,7 +37,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
               Routing.navigator.pop();
             },
             showActionButton: true,
-            actionButtonName: S.of(context).save,
+            actionButtonName: 'Save',
             icon: Icons.close,
             multi: 3,
             bottomSpacer: 52,

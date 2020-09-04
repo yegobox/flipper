@@ -30,7 +30,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
         },
         disableButton: false,
         showActionButton: true,
-        actionButtonName: S.of(context).add,
+        actionButtonName: 'Add',
         title: vm.currentActiveSaleProduct == null
             ? ''
             : vm.currentActiveSaleProduct.name +

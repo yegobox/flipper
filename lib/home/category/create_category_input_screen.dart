@@ -28,7 +28,7 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
             onPop: () {
               Routing.navigator.pop();
             },
-            title: S.of(context).createCategory,
+            title: 'Create Category',
             icon: Icons.keyboard_backspace,
             multi: 3,
             bottomSpacer: 52,
@@ -52,7 +52,7 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
                   );
                 },
                 decoration: InputDecoration(
-                    hintText: S.of(context).name, focusColor: Colors.blue),
+                    hintText: 'Name', focusColor: Colors.blue),
               ),
             ),
           ),

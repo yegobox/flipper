@@ -44,7 +44,7 @@ class _BuildRetailPriceWidgetState extends State<BuildRetailPriceWidget> {
           style: TextStyle(color: Colors.black),
           onChanged: (retailPrice) async {},
           decoration: InputDecoration(
-              hintText: S.of(context).retailPrice, focusColor: Colors.blue),
+              hintText: 'Retail Price', focusColor: Colors.blue),
         ),
       ),
     );

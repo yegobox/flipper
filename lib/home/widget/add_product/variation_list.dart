@@ -46,11 +46,11 @@ class _VariationListState extends State<VariationList> {
                               FlatButton(
                                 child: Text(
                                   snapshot.data[0].currentStock == 0
-                                      ? S.of(context).receiveStock
+                                      ? 'Receive Stock'
                                       : snapshot.data[0].currentStock
                                               .toString() +
                                           ' ' +
-                                          S.of(context).inStock,
+                                          'in Stock',
                                 ),
                                 onPressed: () {
                                   Routing.navigator.pushNamed(
