@@ -118,17 +118,17 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                     ? widget.itemColor
                                     : vm.currentColor.hexCode)),
                           ),
-                          Text('New Item'),
+                          const Text('New Item'),
                           Center(
                             child: Container(
                               width: 300,
                               child: TextFormField(
                                 initialValue: widget.itemName,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: Colors
-                                        .black), //TODO(richard): move this to app theme
+                                        .black), 
                                 validator: Validators.isValid,
-                                onChanged: (name) async {
+                                onChanged: (String name) async {
                                   if (name == '') {
                                     setState(() {
                                       _name = null;
@@ -144,7 +144,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
 
                                   tForm.name = name;
                                 },
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                     hintText: 'Name', focusColor: Colors.black),
                               ),
                             ),

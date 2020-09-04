@@ -18,15 +18,15 @@ class AddCategoryScreen extends StatefulWidget {
 }
 
 class _AddCategoryScreenState extends State<AddCategoryScreen> {
-  _getCategoriesWidgets(
+  Wrap _getCategoriesWidgets(
       List<CategoryTableData> categories, CommonViewModel vm) {
-    List<Widget> list = new List<Widget>();
-    for (var i = 0; i < categories.length; i++) {
+    final List<Widget> list =  <Widget>[];
+    for (int i = 0; i < categories.length; i++) {
       if (categories[i].name != 'custom') {
         list.add(
           GestureDetector(
             onTap: () {
-              for (var y = 0; y < categories.length; y++) {
+              for (int y = 0; y < categories.length; y++) {
                 vm.database.categoryDao
                     .updateCategory(categories[y].copyWith(focused: false));
               }
@@ -36,8 +36,10 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             child: ListTile(
               title: Text(
                 categories[i].name,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
+              // ignore: always_specify_types
+              // ignore: missing_required_param
               trailing: Radio(
                 value: categories[i].id,
                 groupValue: categories[i].focused ? categories[i].id : 0,
@@ -81,7 +83,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               Center(
                 child: Container(
                   width: 400,
-                  child: Divider(
+                  child: const Divider(
                     color: Colors.black,
                   ),
                 ),
@@ -91,20 +93,25 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                   StoreProvider.of<AppState>(context).dispatch(
                     CreateEmptyTempCategoryAction(name: 'tmp'),
                   );
-                  Routing.navigator.pushNamed(Routing.createCategoryInputScreen);
+                  Routing.navigator
+                      .pushNamed(Routing.createCategoryInputScreen);
                 },
                 child: ListTile(
-                  title: Text('Create Category',
+                  title: const Text('Create Category',
                       style: TextStyle(color: Colors.black)),
                   trailing: Wrap(
-                    children: <Widget>[Icon(Icons.arrow_forward_ios)],
+                    // ignore: prefer_const_literals_to_create_immutables
+                    children: <Widget>[
+                      const Icon(Icons.arrow_forward_ios),
+                    ],
                   ),
                 ),
               ),
+              // ignore: always_specify_types
               StreamBuilder(
                 stream: vm.database.categoryDao.getCategoriesStream(),
-                builder:
-                    (context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<CategoryTableData>> snapshot) {
                   if (snapshot.data == null) {
                     return Container();
                   }
