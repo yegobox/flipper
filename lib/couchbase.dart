@@ -99,7 +99,7 @@ class AppDatabase {
     }
   }
 
-  Future<bool> login({String username, String password, List channels}) async {
+  Future<bool> login({String username, String password, List<String> channels}) async {
     try {
       database = await lite.Database.initWithName(dbName);
       // Note wss://10.0.2.2:4984/my-database is for the android simulator on your local machine's couchbase database

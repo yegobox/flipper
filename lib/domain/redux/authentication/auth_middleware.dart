@@ -65,7 +65,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     next(action);
 
-    await isUserCurrentlyLoggedIn(store);
+   final bool isLoggedIn =  await isUserCurrentlyLoggedIn(store);
+   if(!isLoggedIn){
+     Routing.navigator.pushNamed(Routing.afterSplash);
+     return;
+   }
     final TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
     
@@ -87,7 +91,9 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   if (user != null) {
     //login to couchbase
     // ignore: always_specify_types
-    AppDatabase.instance.login(channels: [user.id.toString()]);
+    final List<String> channels = [];
+    channels.add(user.id.toString());
+    AppDatabase.instance.login(channels: channels);
     final FUser u = FUser(
       (FUserBuilder p) => p
         ..email = user.email
@@ -99,9 +105,10 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     );
     store.dispatch(WithUser(user: u));
     store.dispatch(UserID(userId: user.userId));
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 heartBeatSync({Store<AppState> store}) {
@@ -156,13 +163,15 @@ heartBeatSync({Store<AppState> store}) {
   // );
 }
 
-_getCurrentLocation({Store<AppState> store}) async {
-  var geoLocator = Geolocator();
-  var locationOptions =
+Future<void> _getCurrentLocation({Store<AppState> store}) async {
+  final Geolocator geoLocator = Geolocator();
+  const LocationOptions locationOptions =
       LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
 
-  if (store.state.currentActiveBusiness == null) return;
-  BusinessTableData businessTableData = await store.state.database.businessDao
+  if (store.state.currentActiveBusiness == null) {
+    return;
+  }
+  final BusinessTableData businessTableData = await store.state.database.businessDao
       .getBusinesById(id: store.state.currentActiveBusiness.id);
   geoLocator
       .getPositionStream(locationOptions)
@@ -203,7 +212,7 @@ Future<List<Branch>> getBranches(
         ),
       );
       //set branch hint
-      Hint hint = Hint((b) => b
+      final Hint hint = Hint((HintBuilder b) => b
         ..type = HintType.Branch
         ..name = branches[i].name);
       store.dispatch(OnHintLoaded(hint: hint));
@@ -219,7 +228,7 @@ List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
   categoryList.forEach((CategoryTableData c) => {
         categories.add(
           Category(
-            (u) => u
+            (CategoryBuilder u) => u
               ..name = c.name
               ..focused = c.focused
               ..branchId = u.branchId ?? 0

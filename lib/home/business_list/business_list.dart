@@ -1,5 +1,7 @@
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
+import 'package:flipper/function.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -7,10 +9,12 @@ import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/src/store.dart';
 
 class BusinessList extends StatefulWidget {
 //  final Function(DrawerState) stateChangeCallback;
   final CommonViewModel vm;
+  // ignore: sort_constructors_first
   const BusinessList({Key key, this.vm}) : super(key: key);
 
   @override
@@ -20,7 +24,7 @@ class BusinessList extends StatefulWidget {
 class _BusinessListState extends State<BusinessList> {
   bool _businessSelected = false;
 
-  _buildFirstSectionFlipperLogo(BuildContext context) {
+  Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(
         height: _Style.firstSectionHeight,
         child: Column(
@@ -41,7 +45,7 @@ class _BusinessListState extends State<BusinessList> {
                     }),
               ]),
             ),
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(
                 top: _Style.padding,
               ),
@@ -55,7 +59,7 @@ class _BusinessListState extends State<BusinessList> {
         ));
   }
 
-  _buildThirdSection(BuildContext context) {
+  Container _buildThirdSection(BuildContext context) {
     return Container(
         height: _Style.thirdSectionHeight,
         child: Column(
@@ -63,9 +67,9 @@ class _BusinessListState extends State<BusinessList> {
             _Style.defaultPadding,
             _GroupSettingsButton(
                 Image.asset('assets/graphics/drawer/create_topic.png'), () {
-              //TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
+              // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
               if (widget.vm.businesses.length >= 3) {
-                //TODO(richard):show a toast here that we can not create additional business...
+                // TODO(richard): show a toast here that we can not create additional business...
                 return;
               }
               Routing.navigator.pushNamed(Routing.createBusiness);
@@ -74,7 +78,7 @@ class _BusinessListState extends State<BusinessList> {
         ));
   }
 
-  _buildFourthSection(BuildContext context) {
+  Container _buildFourthSection(BuildContext context) {
     return Container(
       height: _Style.fourthSectionHeight,
       child: Column(
@@ -83,9 +87,15 @@ class _BusinessListState extends State<BusinessList> {
           _Style.defaultPadding,
           _GroupSettingsButton(
             Image.asset('assets/graphics/drawer/account.png'),
-            () {
+            ()async {
               // _openUserAccount(context);
-              //TODO(richard): implement logout.
+              final Store<AppState> store = StoreProvider.of<AppState>(context);
+              final int loggedOut = await logout(store: store);
+              if(loggedOut ==1){
+                store.dispatch(
+                  VerifyAuthenticationState(),
+                );
+              }
             },
           ),
           _Style.defaultPadding,
@@ -94,7 +104,8 @@ class _BusinessListState extends State<BusinessList> {
     );
   }
 
-  _buildSecondSectionBusinessList(BuildContext context,
+  Container _buildSecondSectionBusinessList(BuildContext context,
+      // ignore: always_specify_types
       {onClick: true, hasNotification: true, data}) {
     return Container(
       height: _Style.itemHeight,
@@ -103,7 +114,7 @@ class _BusinessListState extends State<BusinessList> {
             const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
         child: _GroupButton(
           data,
-          (business) {
+          (Business business) {
             StoreProvider.of<AppState>(context)
                 .dispatch(NextActiveBussiness(business));
             StoreProvider.of<AppState>(context)
@@ -117,8 +128,8 @@ class _BusinessListState extends State<BusinessList> {
   }
 
   Widget getRenderableBusinessList(List<Business> businesses) {
-    List<Widget> list = new List<Widget>();
-    for (var i = 0; i < businesses.length; i++) {
+    final List<Widget> list = <Widget>[];
+    for (int i = 0; i < businesses.length; i++) {
       list.add(_buildSecondSectionBusinessList(context,
           onClick: false, data: businesses[i]));
     }
@@ -148,6 +159,7 @@ class _GroupSettingsButton extends StatelessWidget {
   final Image image;
   final Function onPressed;
 
+  // ignore: sort_constructors_first
   const _GroupSettingsButton(
     this.image,
     this.onPressed, {
@@ -162,7 +174,7 @@ class _GroupSettingsButton extends StatelessWidget {
         child: FittedBox(
             fit: BoxFit.cover,
             child: FlatButton(
-              shape: CircleBorder(),
+              shape: const CircleBorder(),
               child: image,
               onPressed: onPressed,
             )));
@@ -175,6 +187,7 @@ class _GroupButton extends StatelessWidget {
   final bool isActive;
   final bool hasUpdates;
 
+  // ignore: sort_constructors_first
   const _GroupButton(
     this.business,
     this.onPressedCircle,
@@ -187,9 +200,9 @@ class _GroupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _circleColor = HexColor(
-        '#f5a623'); //TODO(richard): make this color comes from setting in v.2
-    final _groupText = business.name.substring(0, 1).toUpperCase();
+    final HexColor _circleColor = HexColor(
+        '#f5a623'); // TODO(richard): make this color comes from setting in v.2
+    final String _groupText = business.name.substring(0, 1).toUpperCase();
 
     if (business.active) {
       StoreProvider.of<AppState>(context)
@@ -214,7 +227,7 @@ class _GroupButton extends StatelessWidget {
   }
 }
 
-_selectableListItem({
+AnimatedContainer _selectableListItem({
   Color color = Colors.white,
   String text = '',
   Widget userIcon,
@@ -223,7 +236,7 @@ _selectableListItem({
   bool isSquareShape = false,
 }) {
   return AnimatedContainer(
-    duration: Duration(milliseconds: 100),
+    duration: const Duration(milliseconds: 100),
     width: _Style.flipperButtonWidth,
     height: _Style.flipperButtonWidth,
     decoration: BoxDecoration(
@@ -236,7 +249,7 @@ _selectableListItem({
       children: <Widget>[
         InkWell(
           child: Container(
-            alignment: Alignment(0, 0),
+            alignment: const Alignment(0, 0),
             width: _Style.flipperButtonWidth,
             height: _Style.flipperButtonWidth,
             child: userIcon == null
@@ -266,11 +279,12 @@ _selectableListItem({
   );
 }
 
+// ignore: always_specify_types
 List<Widget> _buildSelectionHighlight(isSelected, circleColor) {
   final List<Widget> widgets = [];
   if (isSelected) {
-    final highlight = ClipRRect(
-        borderRadius: BorderRadius.only(
+    final ClipRRect highlight = ClipRRect(
+        borderRadius: const BorderRadius.only(
             topRight: Radius.circular(_Style.circleHighlightBorderRadius),
             bottomRight: Radius.circular(_Style.circleHighlightBorderRadius)),
         child: Container(
@@ -281,7 +295,8 @@ List<Widget> _buildSelectionHighlight(isSelected, circleColor) {
     widgets.add(highlight);
   }
 
-  final sizedBoxSpace = SizedBox(
+  final SizedBox sizedBoxSpace = SizedBox(
+    // ignore: unnecessary_parenthesis
     width: (isSelected ? 11 : 15),
   );
 
@@ -290,20 +305,20 @@ List<Widget> _buildSelectionHighlight(isSelected, circleColor) {
 }
 
 class _Style {
-  static const flipperButtonWidth = 44.0;
+  static const double flipperButtonWidth = 44.0;
 
-  static const circleHighlightWidth = 4.0;
-  static const circleHighlightBorderRadius = 10.0;
-  static const circleUnreadIndicatorWidth = 14.0;
+  static const double circleHighlightWidth = 4.0;
+  static const double circleHighlightBorderRadius = 10.0;
+  static const double circleUnreadIndicatorWidth = 14.0;
 
-  static const separatorHeight = 2.0;
-  static const separatorWidth = 48.0;
-  static const padding = 8.0;
-  static const defaultPadding = Padding(padding: EdgeInsets.only(top: padding));
+  static const double separatorHeight = 2.0;
+  static const double separatorWidth = 48.0;
+  static const double padding = 8.0;
+  static const Padding defaultPadding = Padding(padding: EdgeInsets.only(top: padding));
 
-  static const itemHeight = 52.0;
-  static const firstSectionHeight = 100.0;
-  static const thirdSectionHeight = 60.0;
-  static const fourthSectionHeight = 180.0;
+  static const double itemHeight = 52.0;
+  static const double firstSectionHeight = 100.0;
+  static const double thirdSectionHeight = 60.0;
+  static const double fourthSectionHeight = 180.0;
 // Sum of all sections without itemHeight
 }
