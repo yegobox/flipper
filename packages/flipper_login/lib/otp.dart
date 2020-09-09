@@ -8,6 +8,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:http/http.dart' as http;
 // ignore: implementation_imports
 import 'package:redux/src/store.dart';
@@ -25,6 +26,7 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   TextEditingController number = TextEditingController();
+  bool _loading;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,11 @@ class _OtpPageState extends State<OtpPage> {
                     child: SizedBox(
                       width: 300,
                       height: 60,
-                      child: RaisedButton(
+                      child: Stack(children:[
+                        loading?RaisedButton(child:
+                          Loading(indicator: BallPulseIndicator(), size: 100.0,color: Colors.pink)
+                        ):Text(''),
+                        RaisedButton(
                         color: Colors.blue,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5.0),
@@ -177,7 +183,8 @@ class _OtpPageState extends State<OtpPage> {
                           'Proceed',
                           style: TextStyle(color: Colors.white, fontSize: 20),
                         ),
-                      ),
+                      )
+                      ]),
                     ),
                   ),
                 ],

@@ -102,17 +102,19 @@ class AppDatabase {
   Future<bool> login({String username, String password, List<String> channels}) async {
     try {
       database = await lite.Database.initWithName(dbName);
-      // Note wss://10.0.2.2:4984/my-database is for the android simulator on your local machine's couchbase database
+      // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
       final lite.ReplicatorConfiguration config =
-          lite.ReplicatorConfiguration(database, 'ws://10.0.2.2:4984/main');
+          lite.ReplicatorConfiguration(database, 'http://yegobox.com:4985/main');
 
       config.replicatorType = lite.ReplicatorType.pushAndPull;
       config.continuous = true;
       config.channels = channels;
 
+      String username = String.fromEnvironment('username');
+      String password = String.fromEnvironment('password');
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
-      config.authenticator = lite.BasicAuthenticator('admin', 'password');
+      config.authenticator = lite.BasicAuthenticator(username, password);
       replicator = lite.Replicator(config);
 
       replicator.addChangeListener((lite.ReplicatorChange event) {
@@ -454,7 +456,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return;}
+    if(model.isEmpty){return null;}
     // ignore: always_specify_types
     final r = model[0][dbName]['stockHistory'];
 
@@ -499,7 +501,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return;}
+    if(model.isEmpty){return null;}
     final r = model[0][dbName]['stocks'];
 
     for (int i = 0; i < r.length; i++) {
@@ -547,7 +549,7 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
-    if(model.isEmpty){return;}
+    if(model.isEmpty){return null;}
     final r = model[0][dbName]['variants'];
 
     for (int i = 0; i < r.length; i++) {
@@ -592,6 +594,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
+    if(model.isEmpty){return null;}
     final r = model[0][dbName]['branches'];
 
     for (int i = 0; i < r.length; i++) {
@@ -635,7 +638,7 @@ class AppDatabase {
     }).toList();
 
     
-    if(model.isEmpty){return;}
+    if(model.isEmpty){return null;}
     // ignore: always_specify_types
     final r = model[0][dbName]['businesses'];
     for (int i = 0; i < r.length; i++) {
@@ -761,7 +764,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return;}
+    if(model.isEmpty){return null;}
     // ignore: always_specify_types
     final r = model[0][dbName]['taxes'];
 
@@ -906,7 +909,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return;}
+    if(model.isEmpty){return null;}
     // ignore: always_specify_types
     final r = model[0][dbName]['products'];
 
