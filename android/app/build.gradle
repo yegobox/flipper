@@ -23,6 +23,9 @@ if (flutterVersionName == null) {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.google.gms.google-services'
+
+apply plugin: 'io.fabric'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
@@ -74,4 +77,4 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics:17.5.0'
     implementation 'com.google.firebase:firebase-messaging:20.2.4'
 }
-apply plugin: 'com.google.gms.google-services'
+// apply plugin: 'com.google.gms.google-services'

@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:http/http.dart' as http;
-// ignore: implementation_imports
+import 'package:loading/loading.dart';
 import 'package:redux/src/store.dart';
 
 import './loginResponse.dart';
@@ -26,7 +26,7 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   TextEditingController number = TextEditingController();
-  bool _loading;
+  bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,7 @@ class _OtpPageState extends State<OtpPage> {
                       width: 300,
                       height: 60,
                       child: Stack(children:[
-                        loading?RaisedButton(child:
+                        _loading?RaisedButton(child:
                           Loading(indicator: BallPulseIndicator(), size: 100.0,color: Colors.pink)
                         ):Text(''),
                         RaisedButton(
@@ -111,7 +111,9 @@ class _OtpPageState extends State<OtpPage> {
                           if (vm.otpcode ==null) {
                             return;
                           }
-
+                          setState(() {
+                            _loading = true;
+                          });
                           final Auth.AuthCredential credential =
                               Auth.PhoneAuthProvider.credential(
                             verificationId: vm.otpcode,
