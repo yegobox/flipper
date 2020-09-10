@@ -1016,6 +1016,8 @@ class AppDatabase {
       return result.toMap();
     }).toList();
     // ignore: always_specify_types
+    if(model.isEmpty){return [];}
+    // ignore: always_specify_types
     final r = model[0][dbName]['businesses'];
     for (int i = 0; i < r.length; i++) {
       business.add(Business((BusinessBuilder b) => b

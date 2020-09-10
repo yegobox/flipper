@@ -32,9 +32,9 @@ class _OtpPageState extends State<OtpPage> {
   void initState() {
     super.initState();
     proxyService.loading.listen((loading) {
-       setState(() {
-         _loading = loading;
-       });
+      setState(() {
+        _loading = loading;
+      });
     });
   }
 
@@ -96,18 +96,20 @@ class _OtpPageState extends State<OtpPage> {
                   ),
                 ),
                 Stack(
-                  children:<Widget> [
+                  children: <Widget>[
                     _loading
                         ? SizedBox(
                             width: 400,
                             height: 60,
                             child: RaisedButton(
-                                color: Colors.blue,
-                                onPressed: () {},
-                                child: Loading(
-                                    indicator: BallPulseIndicator(),
-                                    size: 50.0,
-                                    color: Colors.white)),
+                              color: Colors.blue,
+                              onPressed: () {},
+                              child: Loading(
+                                indicator: BallPulseIndicator(),
+                                size: 50.0,
+                                color: Colors.white,
+                              ),
+                            ),
                           )
                         : SizedBox(
                             width: 400,
@@ -118,7 +120,7 @@ class _OtpPageState extends State<OtpPage> {
                                   borderRadius: BorderRadius.circular(5.0),
                                   side: const BorderSide(
                                     color: Colors.blue,
-                                  )),
+                                  ),),
                               padding: const EdgeInsets.all(0.0),
                               onPressed: () async {
                                 if (number.text.isEmpty) {
