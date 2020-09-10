@@ -764,7 +764,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return null;}
+    if(model.isEmpty){return [];}
     // ignore: always_specify_types
     final r = model[0][dbName]['taxes'];
 
@@ -909,7 +909,7 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return null;}
+    if(model.isEmpty){return [];}
     // ignore: always_specify_types
     final r = model[0][dbName]['products'];
 
@@ -995,7 +995,8 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
-//    todo(richard): right now dealing with one user will support multi user in near future.
+    
+    // (richard): right now dealing with one user will support multi user in near future.
     return FUser(
       (FUserBuilder u) => u
         ..id = model[0][dbName]['businesses']['name']
@@ -1046,6 +1047,7 @@ class AppDatabase {
     }).toList();
 
     // ignore: always_specify_types
+    if(model.isEmpty){return [];}
     final r = model[0][dbName]['branches'];
     for (int i = 0; i < r.length; i++) {
       

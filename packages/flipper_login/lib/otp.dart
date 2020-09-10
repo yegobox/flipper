@@ -117,10 +117,11 @@ class _OtpPageState extends State<OtpPage> {
                             child: RaisedButton(
                               color: Colors.blue,
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5.0),
-                                  side: const BorderSide(
-                                    color: Colors.blue,
-                                  ),),
+                                borderRadius: BorderRadius.circular(5.0),
+                                side: const BorderSide(
+                                  color: Colors.blue,
+                                ),
+                              ),
                               padding: const EdgeInsets.all(0.0),
                               onPressed: () async {
                                 if (number.text.isEmpty) {
@@ -129,80 +130,84 @@ class _OtpPageState extends State<OtpPage> {
                                 if (vm.otpcode == null) {
                                   return;
                                 }
-                                proxyService.loading.add(true);
-                                final Auth.AuthCredential credential =
-                                    Auth.PhoneAuthProvider.credential(
-                                  verificationId: vm.otpcode,
-                                  smsCode: number.text,
-                                );
-                                final Auth.FirebaseAuth auth =
-                                    Auth.FirebaseAuth.instance;
-                                await auth.signInWithCredential(credential);
-                                final Auth.User currentUser = auth.currentUser;
 
-                                if (currentUser != null) {
-                                  final http.Response response = await http
-                                      .post('https://flipper.rw/open-login',
-                                          body: {
-                                        'phone_number': widget.phone
-                                      },
-                                          headers: {
-                                        'Content-Type':
-                                            'application/x-www-form-urlencoded',
-                                        'Accept': 'application/json'
-                                      });
-
-                                  final LoginResponse loginResponse =
-                                      loginResponseFromJson(response.body);
-                                  final Store<AppState> store =
-                                      StoreProvider.of<AppState>(context);
-
-                                  final FUser user = FUser(
-                                    (FUserBuilder user) => user
-                                      ..email = loginResponse.email
-                                      ..active = true
-                                      ..createdAt =
-                                          DateTime.now().toIso8601String()
-                                      ..updatedAt =
-                                          DateTime.now().toIso8601String()
-                                      ..token = loginResponse.token
-                                      ..name = loginResponse.name,
+                                try {
+                                  proxyService.loading.add(true);
+                                  final Auth.AuthCredential credential =
+                                      Auth.PhoneAuthProvider.credential(
+                                    verificationId: vm.otpcode,
+                                    smsCode: number.text,
                                   );
-                                  store.dispatch(WithUser(user: user));
-                                  store.dispatch(
-                                      UserID(userId: loginResponse.id));
-                                  final UserTableData userExist = await store
-                                      .state.database.userDao
-                                      .getUser();
-                                  if (userExist == null) {
-                                    await store.state.database.userDao
-                                        .insertUser(
-                                      UserTableData(
-                                        username: loginResponse.name,
+                                  final Auth.FirebaseAuth auth =
+                                      Auth.FirebaseAuth.instance;
+                                  await auth.signInWithCredential(credential);
+                                  final Auth.User currentUser =
+                                      auth.currentUser;
+
+                                  if (currentUser != null) {
+                                    final http.Response response = await http
+                                        .post('https://flipper.rw/open-login',
+                                            body: {
+                                          'phone_number': widget.phone
+                                        },
+                                            headers: {
+                                          'Content-Type':
+                                              'application/x-www-form-urlencoded',
+                                          'Accept': 'application/json'
+                                        });
+
+                                    final LoginResponse loginResponse =
+                                        loginResponseFromJson(response.body);
+                                    final Store<AppState> store =
+                                        StoreProvider.of<AppState>(context);
+
+                                    final FUser user = FUser(
+                                      (FUserBuilder user) => user
+                                        ..email = loginResponse.email
+                                        ..active = true
+                                        ..createdAt =
+                                            DateTime.now().toIso8601String()
+                                        ..updatedAt =
+                                            DateTime.now().toIso8601String()
+                                        ..token = loginResponse.token
+                                        ..name = loginResponse.name,
+                                    );
+                                    store.dispatch(WithUser(user: user));
+                                    store.dispatch(
+                                        UserID(userId: loginResponse.id));
+                                    final UserTableData userExist = await store
+                                        .state.database.userDao
+                                        .getUser();
+                                    if (userExist == null) {
+                                      await store.state.database.userDao
+                                          .insertUser(
+                                        UserTableData(
+                                          username: loginResponse.name,
+                                          email: loginResponse.email,
+                                          token: loginResponse.token,
+                                          userId: loginResponse.id,
+                                          id: null,
+                                        ),
+                                      );
+                                    }
+
+                                    proxyService.loading.add(false);
+                                    // TODO: fix me so I won't have to go on signup page everytime.
+                                    Routing.navigator.pushNamed(
+                                      Routing.signUpScreen,
+                                      arguments: SignUpScreenArguments(
+                                        name: loginResponse.name,
+                                        avatar: loginResponse.avatar,
                                         email: loginResponse.email,
                                         token: loginResponse.token,
-                                        userId: loginResponse.id,
-                                        id: null,
                                       ),
                                     );
+                                    store.dispatch(
+                                        VerifyAuthenticationState()); //todo check subscription later refere to auth_webview.dart
+
                                   }
-
+                                } catch (e) {
                                   proxyService.loading.add(false);
-                                  // TODO: fix me so I won't have to go on signup page everytime.
-                                  Routing.navigator.pushNamed(
-                                    Routing.signUpScreen,
-                                    arguments: SignUpScreenArguments(
-                                      name: loginResponse.name,
-                                      avatar: loginResponse.avatar,
-                                      email: loginResponse.email,
-                                      token: loginResponse.token,
-                                    ),
-                                  );
-                                  store.dispatch(
-                                      VerifyAuthenticationState()); //todo check subscription later refere to auth_webview.dart
-
-                                } else {
-                                  //todo: notify failure of phone validation show message to re-authenticate
                                 }
                               },
                               child: const Text(
