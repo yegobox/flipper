@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_login/helpers/user.dart';
+import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/src/store.dart';
 import 'package:flipper_login/otp.dart';
-
+import 'package:redux/redux.dart';
 
 StreamController<String> controller = StreamController<String>();
 
@@ -36,28 +35,34 @@ class AuthProvider  {
   AuthProvider();
 
 
+
   Status get status => _status;
   // ignore: deprecated_member_use
   FirebaseUser get user => _user;
 
   TextEditingController address = TextEditingController();
 
+  // ignore: sort_constructors_first
   AuthProvider.initialize() {}
 
+  // ignore: always_specify_types
   Future signOut() async {
     _auth.signOut();
     _status = Status.Unauthenticated;
 
+    // ignore: always_specify_types
     return Future.delayed(Duration.zero);
   }
 
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
-
+    proxyService.loading.add(true);
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
+      proxyService.loading.add(false);
       store.dispatch(OtpCode(otpcode: verId));
+      _showModalBottomSheet(context,number);
     };
     try {
       await _auth
@@ -71,17 +76,14 @@ class AuthProvider  {
               },
               verificationFailed: (FirebaseAuthException exceptio) {
                 print('${exceptio.message} + something is wrong');
-              }, codeAutoRetrievalTimeout: (String verificationId) {  }).then((value) => {
-
-        _showModalBottomSheet(context,number)
-      });
+              }, codeAutoRetrievalTimeout: (String verificationId) {  });
     } catch (e) {
       handleError(e, context);
       errorMessage = e.toString();
     }
   }
 
-  _showModalBottomSheet(context,String phone) {
+  Future<void> _showModalBottomSheet(BuildContext context,String phone) async {
     showModalBottomSheet(
       context: context,
       isScrollControlled:true,
@@ -102,7 +104,9 @@ class AuthProvider  {
       },
     );
   }
-  handleError(error, BuildContext context) {
+  // ignore: always_declare_return_types
+  // ignore: always_specify_types
+  handleError(error, BuildContext context) async {
     print(error);
     errorMessage = error.toString();
 

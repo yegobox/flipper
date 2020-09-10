@@ -122,7 +122,7 @@ class _FlipperAppState extends State<FlipperApp> {
         // theme: buildLightThemeData(mainTextStyle, headerTextStyle),
         // darkTheme: buildDarkThemeData(mainTextStyle, headerTextStyle),
         navigatorKey: Routing.navigator.key,
-        initialRoute: Routing.afterSplash,
+        initialRoute: Routing.splashScreen,
         onGenerateRoute: Routing.onGenerateRoute,
       ),
     );
