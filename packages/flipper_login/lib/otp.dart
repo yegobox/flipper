@@ -125,9 +125,11 @@ class _OtpPageState extends State<OtpPage> {
                               padding: const EdgeInsets.all(0.0),
                               onPressed: () async {
                                 if (number.text.isEmpty) {
+                                  // TODO(richard): validation error message
                                   return;
                                 }
                                 if (vm.otpcode == null) {
+                                  // TODO(richard): validation error message
                                   return;
                                 }
 
