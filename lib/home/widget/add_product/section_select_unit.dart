@@ -7,6 +7,8 @@ import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class SectionSelectUnit extends StatefulWidget {
   SectionSelectUnit({Key key}) : super(key: key);
@@ -16,6 +18,8 @@ class SectionSelectUnit extends StatefulWidget {
 }
 
 class _SectionSelectUnitState extends State<SectionSelectUnit> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   Text unitSelector(List<UnitTableData> units) {
     Text text;
     for (var i = 0; i < units.length; i++) {
@@ -37,7 +41,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
             width: 300,
             child: GestureDetector(
               onTap: () {
-                Routing.navigator.pushNamed(Routing.addUnitType,
+                _navigationService.navigateTo(Routing.addUnitType,
                     arguments: AddUnitTypeScreenArguments(
                         productId: vm.tmpItem.productId));
               },

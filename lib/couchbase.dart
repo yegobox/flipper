@@ -112,6 +112,8 @@ class AppDatabase {
 
       String username = String.fromEnvironment('username');
       String password = String.fromEnvironment('password');
+      print(username);
+      print(password);
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
       config.authenticator = lite.BasicAuthenticator(username, password);

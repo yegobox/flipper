@@ -11,6 +11,8 @@ import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class ProductsView extends StatefulWidget {
   const ProductsView({
@@ -35,6 +37,8 @@ class ProductsView extends StatefulWidget {
 }
 
 class _ProductsViewState extends State<ProductsView> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   List<Widget> getProducts(List<ProductTableData> products,
       BuildContext context, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
@@ -127,7 +131,7 @@ class _ProductsViewState extends State<ProductsView> {
 
     dispatchCurrentProductVariants(context, variants, products, i);
 
-    Routing.navigator.pushNamed(Routing.editQuantityItemScreen,
+    _navigationService.navigateTo(Routing.editQuantityItemScreen,
         arguments:
             ChangeQuantityForSellingArguments(productId: products[i].id));
   }
@@ -206,7 +210,7 @@ class _ProductsViewState extends State<ProductsView> {
         ),
       ),
     );
-    Routing.navigator.pushNamed(
+    _navigationService.navigateTo(
       Routing.viewSingleItem,
       arguments: ViewSingleItemScreenArguments(
         productId: products[i].id,

@@ -9,6 +9,9 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
+
 
 class DashBoard extends StatefulWidget {
   DashBoard({Key key}) : super(key: key);
@@ -18,6 +21,8 @@ class DashBoard extends StatefulWidget {
 }
 
 class _DashBoardState extends State<DashBoard> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   ValueNotifier<bool> _sideOpenController;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -63,7 +68,7 @@ class _DashBoardState extends State<DashBoard> {
                 );
                 if (vm.hasSheet) {
                   WidgetsBinding.instance.addPostFrameCallback(
-                      (_) => Routing.navigator.pushNamed(Routing.addNoteScreen));
+                      (_) => _navigationService.navigateTo(Routing.addNoteScreen));
                 }
                 return we;
               }

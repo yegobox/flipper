@@ -64,6 +64,7 @@ dependencies:
   firebase_analytics: ^5.0.11
   camera: 0.5.8+2
   fl_chart:
+  bluetooth_print: ^2.0.0
   flutter_uploader:
   flipper_login:
     path:
@@ -72,7 +73,17 @@ dependencies:
   loading: ^1.0.2
   firebase_crashlytics: ^0.1.3+3
   logger: ^0.6.0
-  bluetooth_print: ^2.0.0
+  async: ^2.4.1
+  # filledstacks | state management
+  stacked: ^1.7.1
+  stacked_hooks: 0.1.1+3
+
+  stacked_services: 
+  # get it
+  get_it: 
+  # provider
+  provider: ^4.1.3
+  
 
 dev_dependencies:
   couchbase_lite:

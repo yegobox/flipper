@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper_login/helpers/user.dart';
 import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -13,18 +12,13 @@ import 'package:redux/redux.dart';
 
 StreamController<String> controller = StreamController<String>();
 
-enum Status { Uninitialized, Authenticated, Authenticating, Unauthenticated }
-
-class AuthProvider  {
+class AuthProvider {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User _user;
-  Status _status = Status.Uninitialized;
-  // Firestore _firestore = Firestore.instance;
-  final UserServices _userServicse = UserServices();
 
   TextEditingController phoneNo;
   String smsOTP;
- 
+
   String errorMessage = '';
   bool firstOpen;
   bool logedIn;
@@ -34,9 +28,6 @@ class AuthProvider  {
   // ignore: sort_constructors_first
   AuthProvider();
 
-
-
-  Status get status => _status;
   // ignore: deprecated_member_use
   FirebaseUser get user => _user;
 
@@ -44,15 +35,6 @@ class AuthProvider  {
 
   // ignore: sort_constructors_first
   AuthProvider.initialize() {}
-
-  // ignore: always_specify_types
-  Future signOut() async {
-    _auth.signOut();
-    _status = Status.Unauthenticated;
-
-    // ignore: always_specify_types
-    return Future.delayed(Duration.zero);
-  }
 
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
@@ -62,83 +44,68 @@ class AuthProvider  {
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
       proxyService.loading.add(false);
       store.dispatch(OtpCode(otpcode: verId));
-      _showModalBottomSheet(context,number);
+      _showModalBottomSheet(context, number);
     };
     try {
-      await _auth
-          .verifyPhoneNumber(
-              phoneNumber: number.trim(), // PHONE NUMBER TO SEND OTP
-              codeSent:
-                  smsOTPSent, // WHEN CODE SENT THEN WE OPEN DIALOG TO ENTER OTP.
-              timeout: const Duration(seconds: 60),
-              verificationCompleted: (AuthCredential phoneAuthCredential) {
-                print(phoneAuthCredential.toString() + 'lets make this work');
-              },
-              verificationFailed: (FirebaseAuthException exceptio) {
-                print('${exceptio.message} + something is wrong');
-              }, codeAutoRetrievalTimeout: (String verificationId) {  });
+      await _auth.verifyPhoneNumber(
+          phoneNumber: number.trim(), // PHONE NUMBER TO SEND OTP
+          codeSent:
+              smsOTPSent, // WHEN CODE SENT THEN WE OPEN DIALOG TO ENTER OTP.
+          timeout: const Duration(seconds: 60),
+          verificationCompleted: (AuthCredential phoneAuthCredential) {
+            print(phoneAuthCredential.toString() + 'lets make this work');
+          },
+          verificationFailed: (FirebaseAuthException exceptio) {
+            print('${exceptio.message} + something is wrong');
+          },
+          codeAutoRetrievalTimeout: (String verificationId) {});
     } catch (e) {
       handleError(e, context);
       errorMessage = e.toString();
     }
   }
 
-  Future<void> _showModalBottomSheet(BuildContext context,String phone) async {
+  Future<void> _showModalBottomSheet(BuildContext context, String phone) async {
     showModalBottomSheet(
       context: context,
-      isScrollControlled:true,
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
-            padding:EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-            child:Container(
-              child: OtpPage(phone: phone,),
-              height: 300,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            child: OtpPage(
+              phone: phone,
+            ),
+            height: 300,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
-            ),);
+            ),
+          ),
+        );
       },
     );
   }
+
   // ignore: always_declare_return_types
   // ignore: always_specify_types
+  // ignore: always_declare_return_types
   handleError(error, BuildContext context) async {
     print(error);
     errorMessage = error.toString();
 
     switch (error.code) {
       case 'ERROR_INVALID_VERIFICATION_CODE':
-        FocusScope.of(context).requestFocus(new FocusNode());
+        FocusScope.of(context).requestFocus(FocusNode());
         errorMessage = 'Invalid Code';
-        // TODO: show invalid code message
         break;
       default:
         errorMessage = error.message;
         break;
     }
-  }
-
-  void _createUser({String id, String number}) {
-    _userServicse.createUser({
-      "id": id,
-      "number": number,
-      "closeContacts": [],
-      "bluetoothAddress": ""
-    });
-  }
-
-  Future<void> setBluetoothAddress({String id, String bluetoothAddress}) async {
-    // if(_userModel == null){
-    //   _createUser(id: _user.uid, number: _user.phoneNumber);
-    // }
-    updateUser({"id": id, "bluetoothAddress": bluetoothAddress});
-  }
-
-  void updateUser(Map<String, dynamic> values) {
-    _userServicse.updateUserData(values);
   }
 }

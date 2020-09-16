@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
+import 'package:flipper/locator.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_flipperkit/flutter_flipperkit.dart';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:logger/logger.dart';
@@ -32,9 +32,11 @@ bool get isInDebugMode {
 //   flipperClient.start();
 // }
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-   
+  await Firebase.initializeApp();
+  setupLocator();
+
   if (isInDebugMode) {
     // enableFlipper();
   }
@@ -51,7 +53,6 @@ void main() {
     await Crashlytics.instance.recordFlutterError(e);
   };
   runZonedGuarded<Future<void>>(() async {
-    await Firebase.initializeApp();
     runApp(FlipperApp());
   }, (e, s) async {
     // Crashlytics.instance.setBool('runZonedGuarded', true);
@@ -62,7 +63,6 @@ void main() {
 }
 
 // Future<void> main() async {
-  
 //   configureLogger();
 //   WidgetsFlutterBinding.ensureInitialized();
 //   // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -71,9 +71,7 @@ void main() {
 //   //   systemNavigationBarColor: Colors.white,
 //   //   systemNavigationBarIconBrightness: Brightness.light,
 //   //   systemNavigationBarDividerColor: Colors.transparent,
-//   // ));
- 
-  
+//   // )); 
 // }
 
 

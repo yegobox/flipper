@@ -10,6 +10,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:redux/src/store.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class BranchList extends StatefulWidget {
   final CommonViewModel vm;
@@ -22,7 +24,7 @@ class BranchList extends StatefulWidget {
 
 class _BranchListState extends State<BranchList> {
   String _value;
-
+  final NavigationService _navigationService = locator<NavigationService>();
   String _scanBarcode;
 
   // ignore: non_constant_identifier_names, always_specify_types
@@ -134,7 +136,8 @@ class _BranchListState extends State<BranchList> {
               ListTile(
                 leading: FlatButton(
                   onPressed: () {
-                    Routing.navigator.pushNamed(Routing.reportScreen);
+                    
+                    _navigationService.navigateTo(Routing.reportScreen);
                   },
                   child: Text(
                     'Report',
@@ -151,7 +154,7 @@ class _BranchListState extends State<BranchList> {
               ListTile(
                 leading: FlatButton(
                   onPressed: () {
-                    Routing.navigator.pushNamed(Routing.allItemScreen);
+                    _navigationService.navigateTo(Routing.allItemScreen);
                   },
                   child: Text(
                     'Items  ',

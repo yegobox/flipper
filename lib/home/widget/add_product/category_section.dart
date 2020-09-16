@@ -7,6 +7,8 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class CategorySection extends StatefulWidget {
   CategorySection({Key key}) : super(key: key);
@@ -16,6 +18,8 @@ class CategorySection extends StatefulWidget {
 }
 
 class _CategorySectionState extends State<CategorySection> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   Text categorySelector(List<CategoryTableData> categories) {
     Text text;
     for (var i = 0; i < categories.length; i++) {
@@ -49,7 +53,7 @@ class _CategorySectionState extends State<CategorySection> {
             width: 300,
             child: GestureDetector(
               onTap: () {
-                Routing.navigator.pushNamed(Routing.addCategoryScreen);
+                _navigationService.navigateTo(Routing.addCategoryScreen);
               },
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(horizontal: 0.3),

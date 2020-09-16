@@ -10,6 +10,8 @@ import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/src/store.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class BusinessList extends StatefulWidget {
 //  final Function(DrawerState) stateChangeCallback;
@@ -23,6 +25,7 @@ class BusinessList extends StatefulWidget {
 
 class _BusinessListState extends State<BusinessList> {
   bool _businessSelected = false;
+  final NavigationService _navigationService = locator<NavigationService>();
 
   Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(
@@ -72,7 +75,7 @@ class _BusinessListState extends State<BusinessList> {
                 // TODO(richard): show a toast here that we can not create additional business...
                 return;
               }
-              Routing.navigator.pushNamed(Routing.createBusiness);
+              _navigationService.navigateTo(Routing.createBusiness);
             }),
           ],
         ));

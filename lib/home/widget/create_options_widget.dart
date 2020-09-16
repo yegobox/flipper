@@ -7,8 +7,12 @@ import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class CreateOptionsWidget extends StatelessWidget {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -33,7 +37,7 @@ class CreateOptionsWidget extends StatelessWidget {
                         onPressed: () async {
                           //create a temp item that can be deleted anytime on discard
                           await _createTemporalItem(vm, context);
-                          Routing.navigator.pushNamed(Routing.addItemScreen);
+                          _navigationService.navigateTo(Routing.addItemScreen);
                         },
                         child: Text(
                           'Create Item',

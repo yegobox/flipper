@@ -3,6 +3,8 @@ import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class VariationWidget extends StatefulWidget {
   const VariationWidget(
@@ -21,12 +23,13 @@ class VariationWidget extends StatefulWidget {
 }
 
 class _VariationWidgetState extends State<VariationWidget> {
+  final NavigationService _navigationService = locator<NavigationService>();
   @override
   Widget build(BuildContext context) {
     return ListView(children: <Widget>[
       GestureDetector(
         onTap: () {
-          Routing.navigator.pushNamed(
+          _navigationService.navigateTo(
             Routing.editVariationScreen,
             //TODO(richard): work on this.
             // arguments: EditVariationScreenArguments(
@@ -68,7 +71,7 @@ class _VariationWidgetState extends State<VariationWidget> {
                   : '${snapshot.data[i].currentStock}' + 'in Stock',
             ),
             onPressed: () {
-              Routing.navigator.pushNamed(Routing.receiveStock);
+              _navigationService.navigateTo(Routing.receiveStock);
             },
           )
         ]),

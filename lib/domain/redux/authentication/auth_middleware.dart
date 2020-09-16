@@ -9,6 +9,7 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
@@ -17,11 +18,11 @@ import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
-import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:redux/redux.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -64,10 +65,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     next(action);
+   
 
    final bool isLoggedIn =  await isUserCurrentlyLoggedIn(store);
    if(!isLoggedIn){
-     Routing.navigator.pushNamed(Routing.afterSplash);
+     final NavigationService _navigationService = locator<NavigationService>();
+     _navigationService.navigateTo(Routing.afterSplash);
      return;
    }
     final TabsTableData tab = await generalRepository.getTab(store);
@@ -80,8 +83,10 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _getCurrentLocation(store: store);
 
     await AppDatabase.instance.syncRemoteToLocal(store: store);
-    heartBeatSync(store: store);
+    heartBeatSync(store: store); // TODO(richard): this is going to deprecate soon.
 
+    // TODO(richard): init bluethooth
+    // proxyService.initBluetooth(); //initialize bluethooth;
     AppDatabase.instance.dbListner(store: store);
   };
 }
@@ -364,9 +369,12 @@ Future<void> getBusinesses(
     }
   }
 
+  final NavigationService _navigationService = locator<NavigationService>();
+  
+
   if (businesses.isEmpty) {
     if (store.state.user != null) {
-      Routing.navigator.pushNamed(
+      _navigationService.navigateTo(
         Routing.signUpScreen,
         arguments: SignUpScreenArguments(
           name: store.state.user.name,
@@ -376,13 +384,14 @@ Future<void> getBusinesses(
         ),
       );
     } else {
-      Routing.navigator.pushNamed(Routing.afterSplash);
+      
+      _navigationService.navigateTo(Routing.afterSplash);
     }
   } else if (store.state.userId == null) {
-    Routing.navigator.pushNamed(Routing.afterSplash);
+    _navigationService.navigateTo(Routing.afterSplash);
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));
-    Routing.navigator.pushNamed(Routing.dashboard);
+    _navigationService.navigateTo(Routing.dashboard);
   }
 }
 
@@ -401,7 +410,7 @@ void Function(
       await userRepository.logOut(store);
       store.dispatch(OnLogoutSuccess());
     } catch (e) {
-      Logger.w('Failed logout', e: e);
+      // Logger.w('Failed logout', e: e);
       store.dispatch(OnLogoutFail(e));
     }
   };

@@ -2,6 +2,8 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class AllItemScreen extends StatefulWidget {
   AllItemScreen({Key key}) : super(key: key);
@@ -11,6 +13,8 @@ class AllItemScreen extends StatefulWidget {
 }
 
 class _AllItemScreenState extends State<AllItemScreen> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +34,7 @@ class _AllItemScreenState extends State<AllItemScreen> {
           children: <Widget>[
             GestureDetector(
               onTap: () {
-                Routing.navigator.pushNamed(Routing.viewItemsScreen);
+                _navigationService.navigateTo(Routing.viewItemsScreen);
               },
               child: ListTile(
                 title: Text('All Items', style: TextStyle(color: Colors.black)),

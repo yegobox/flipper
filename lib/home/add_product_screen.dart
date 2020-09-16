@@ -14,6 +14,7 @@ import 'package:flipper/home/widget/add_product/section_select_unit.dart';
 import 'package:flipper/home/widget/add_product/sku_field.dart';
 import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
 import 'package:flipper/home/widget/add_product/variation_list.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
@@ -23,6 +24,7 @@ import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AddProductScreen extends StatefulWidget {
   AddProductScreen({Key key}) : super(key: key);
@@ -203,7 +205,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   GestureDetector buildImageHolder(CommonViewModel vm, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Routing.navigator.pushNamed(Routing.editItemTitle,
+        final NavigationService _navigationService = locator<NavigationService>();
+        _navigationService.navigateTo(Routing.editItemTitle,
             arguments: EditItemTitleArguments(productId: vm.tmpItem.productId));
       },
       child: !vm.tmpItem.hasPicture
@@ -326,8 +329,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _getSaveStatus(vm);
     if (_actions != null) {
       vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
+      final NavigationService _navigationService = locator<NavigationService>();
 
-      Routing.navigator.pushNamed(Routing.addVariationScreen,
+      _navigationService.navigateTo(Routing.addVariationScreen,
           arguments: AddVariationScreenArguments(
               retailPrice: DataManager.retailPrice,
               supplyPrice: DataManager.supplyPrice));

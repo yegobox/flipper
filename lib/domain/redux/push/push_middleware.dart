@@ -7,7 +7,6 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/push/push_actions.dart';
 import 'package:flipper/model/in_app_notification.dart';
-import 'package:flipper/util/logger.dart';
 import 'package:redux/redux.dart';
 
 List<Middleware<AppState>> createPushMiddleware(
@@ -34,7 +33,7 @@ void Function(
     try {
       await userRepository.updateUserToken(action.token, store);
     } catch (e) {
-      Logger.e('Failed to update token', e: e, s: StackTrace.current);
+      // Logger.e('Failed to update token', e: e, s: StackTrace.current);
     }
   };
 }
@@ -52,7 +51,7 @@ void Function(
       //   await userRepository.updateUserToken(store.state.fcmToken);
       // }
     } catch (e) {
-      Logger.e('Failed to update token', e: e, s: StackTrace.current);
+      // Logger.e('Failed to update token', e: e, s: StackTrace.current);
     }
   };
 }
@@ -76,8 +75,8 @@ void Function(
 
       store.dispatch(ShowPushNotificationAction(inAppNotification));
     } catch (e) {
-      Logger.e('Failed to display push notification',
-          e: e, s: StackTrace.current);
+      // Logger.e('Failed to display push notification',
+      //     e: e, s: StackTrace.current);
     }
   };
 }
@@ -101,7 +100,7 @@ Map<String, dynamic> _verifyedMessage(
 
   if (notification == null) {
     // there was  || data == null here but removed it for fast testing
-    Logger.d('Empty message payload');
+    // Logger.d('Empty message payload');
     return null;
   }
 

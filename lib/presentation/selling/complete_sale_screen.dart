@@ -2,6 +2,8 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:customappbar/customappbar.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class CompleteSaleScreen extends StatefulWidget {
   CompleteSaleScreen({Key key, this.cashReceived}) : super(key: key);
@@ -12,6 +14,8 @@ class CompleteSaleScreen extends StatefulWidget {
 }
 
 class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +55,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
             ),
             GestureDetector(
               onTap: () {
-                Routing.navigator.pushNamed(Routing.tenderScreen,
+                _navigationService.navigateTo(Routing.tenderScreen,
                     arguments: TenderScreenArguments(
                         cashReceived: widget.cashReceived));
               },

@@ -6,6 +6,9 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
+
 
 import '../theme.dart';
 
@@ -46,6 +49,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 .fold(0, (a, b) => a + b.quantity);
                         return FlatButton(
                           onPressed: () {
+                            final NavigationService _navigationService = locator<NavigationService>();
+                            
                             List<Cart> cart = [];
                             for (var i = 0; i < orderDetail.data.length; i++) {
                               cart.add(
@@ -62,7 +67,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     ),
                               );
                             }
-                            Routing.navigator.pushNamed(
+
+                            _navigationService.navigateTo(
                               Routing.cartDetailsScreen,
                               arguments: CartDetailsScreenArguments(
                                 carts: cart,

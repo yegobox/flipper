@@ -4,6 +4,95 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _themeModeKey = 'THEME_OPTION';
 
+// new themem not yet introduced
+ ThemeData buildLightThemeData(
+      TextStyle mainTextStyle, TextStyle headerTextStyle) {
+    return ThemeData(
+      primarySwatch: Colors.deepOrange,
+      toggleableActiveColor: Colors.deepOrangeAccent,
+      accentColor: Colors.deepOrangeAccent,
+      cursorColor: Colors.deepOrangeAccent,
+      textSelectionColor: Colors.orangeAccent[100],
+      textSelectionHandleColor: Colors.deepOrangeAccent,
+      brightness: Brightness.light,
+      popupMenuTheme: PopupMenuThemeData(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+      cardTheme: CardTheme(
+          elevation: 2.0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+      dialogTheme: DialogTheme(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+      textTheme: TextTheme(
+        headline1: mainTextStyle,
+        headline2: mainTextStyle,
+        headline3: mainTextStyle,
+        headline4: headerTextStyle.copyWith(
+            color: Colors.deepOrangeAccent, fontSize: 18),
+        headline5: headerTextStyle.copyWith(fontSize: 24),
+        headline6: mainTextStyle,
+        subtitle1: mainTextStyle,
+        subtitle2: mainTextStyle,
+        bodyText1: mainTextStyle,
+        bodyText2: mainTextStyle,
+        button: mainTextStyle,
+        caption: mainTextStyle,
+        overline: mainTextStyle,
+      ),
+    );
+  }
+
+  ThemeData buildDarkThemeData(
+      TextStyle mainTextStyle, TextStyle headerTextStyle) {
+    return ThemeData(
+      primarySwatch: Colors.orange,
+      toggleableActiveColor: Colors.orangeAccent,
+      accentColor: Colors.orangeAccent,
+      cursorColor: Colors.orangeAccent,
+      textSelectionColor: Colors.deepOrangeAccent,
+      textSelectionHandleColor: Colors.orangeAccent,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      cardColor: const Color(0xFF272727),
+      canvasColor: const Color(0xFF323232),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: Color(0xFF323232),
+        contentTextStyle: TextStyle(color: Colors.white),
+        actionTextColor: Colors.orangeAccent,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+          color: const Color(0xFF323232),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+      cardTheme: CardTheme(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+      dialogTheme: DialogTheme(
+          backgroundColor: const Color(0xFF323232),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+      textTheme: TextTheme(
+        headline1: mainTextStyle,
+        headline2: mainTextStyle,
+        headline3: mainTextStyle,
+        headline4:
+            headerTextStyle.copyWith(color: Colors.orangeAccent, fontSize: 18),
+        headline5: headerTextStyle.copyWith(fontSize: 24),
+        headline6: mainTextStyle,
+        subtitle1: mainTextStyle,
+        subtitle2: mainTextStyle,
+        bodyText1: mainTextStyle,
+        bodyText2: mainTextStyle,
+        button: mainTextStyle,
+        caption: mainTextStyle,
+        overline: mainTextStyle,
+      ),
+    );
+  }
+  // end of theme 
+
 Future<ThemeMode> getThemeMode() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final int themeModeIndex = prefs.containsKey(_themeModeKey)

@@ -3,16 +3,19 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:http/http.dart' as http;
+import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
+// ignore: implementation_imports
 import 'package:redux/src/store.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import './loginResponse.dart';
 import 'helpers/style.dart';
@@ -27,6 +30,8 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   TextEditingController number = TextEditingController();
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   bool _loading = false;
   @override
   void initState() {
@@ -195,7 +200,7 @@ class _OtpPageState extends State<OtpPage> {
 
                                     proxyService.loading.add(false);
                                     // TODO: fix me so I won't have to go on signup page everytime.
-                                    Routing.navigator.pushNamed(
+                                    _navigationService.navigateTo(
                                       Routing.signUpScreen,
                                       arguments: SignUpScreenArguments(
                                         name: loginResponse.name,

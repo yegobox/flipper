@@ -5,6 +5,8 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class VariationList extends StatefulWidget {
   const VariationList({Key key, this.productId}) : super(key: key);
@@ -15,6 +17,9 @@ class VariationList extends StatefulWidget {
 }
 
 class _VariationListState extends State<VariationList> {
+
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   _buildVariationsList(
       List<VariationTableData> variations, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
@@ -53,7 +58,7 @@ class _VariationListState extends State<VariationList> {
                                           'in Stock',
                                 ),
                                 onPressed: () {
-                                  Routing.navigator.pushNamed(
+                                  _navigationService.navigateTo(
                                     Routing.receiveStock,
                                     arguments: ReceiveStockScreenArguments(
                                       variationId: variations[i].id,

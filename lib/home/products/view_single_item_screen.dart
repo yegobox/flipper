@@ -10,7 +10,9 @@ import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper/locator.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class TForm {
   String price;
@@ -37,7 +39,8 @@ class ViewSingleItemScreen extends StatefulWidget {
 
 class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   final TForm tForm = new TForm();
-
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   ActionsTableData _actions;
 
   String _name;
@@ -109,7 +112,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Routing.navigator.pushNamed(Routing.editItemTitle);
+                              _navigationService.navigateTo(Routing.editItemTitle);
                             },
                             child: Container(
                                 height: 80,
@@ -154,7 +157,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: GestureDetector(
                                 onTap: () {
-                                  Routing.navigator.pushNamed(
+                                  _navigationService.navigateTo(
                                     Routing.editCategoryScreen,
                                     arguments: EditCategoryScreenArguments(
                                       productId: widget.productId,
@@ -225,7 +228,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: GestureDetector(
                                 onTap: () {
-                                  Routing.navigator.pushNamed(
+                                  _navigationService.navigateTo(
                                       Routing.editUnitType,
                                       arguments: EditUnitTypeScreenArguments(
                                           itemId: widget.productId));

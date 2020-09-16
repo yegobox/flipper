@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class KeyPadWidget extends StatefulWidget {
   KeyPadWidget({Key key}) : super(key: key);
@@ -16,6 +18,8 @@ class KeyPadWidget extends StatefulWidget {
 }
 
 class _KeyPadWidgetState extends State<KeyPadWidget> {
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -51,7 +55,7 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                   ),
                   leading: FlatButton(
                     onPressed: () {
-                      Routing.navigator.pushNamed(Routing.addNoteScreen);
+                      _navigationService.navigateTo(Routing.addNoteScreen);
                     },
                     child: Text(
                       vm.note == null

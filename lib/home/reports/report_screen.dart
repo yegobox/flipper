@@ -9,6 +9,8 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper/locator.dart';
 
 class ReportScreen extends StatefulWidget {
   @override
@@ -21,7 +23,8 @@ class _ReportScreenState extends State<ReportScreen>
     with SingleTickerProviderStateMixin {
   double tabLength = 50.0;
   TabController _tabReportController;
-
+  final NavigationService _navigationService = locator<NavigationService>();
+  
   double _grossProfit;
 
   double _netProfit;
@@ -110,7 +113,7 @@ class _ReportScreenState extends State<ReportScreen>
                       Center(
                         child: FlatButton(
                           onPressed: () {
-                            Routing.navigator.pushNamed(Routing.dateScreen);
+                            _navigationService.navigateTo(Routing.dateScreen);
                           },
                           child: Text('From Date'),
                         ),
