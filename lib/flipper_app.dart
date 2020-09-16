@@ -42,9 +42,7 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp> {
 
-  static FirebaseAnalytics analytics = FirebaseAnalytics();
-  static FirebaseAnalyticsObserver observer =
-      FirebaseAnalyticsObserver(analytics: analytics);
+
   final Logger log = Logging.getLogger('Firestore service ....');
 
   Store<AppState> store;
@@ -120,7 +118,7 @@ class _FlipperAppState extends State<FlipperApp> {
     return StoreProvider(
       store: store,
       child: MaterialApp(
-        navigatorObservers: <NavigatorObserver>[observer,locator<AnalyticsService>().getAnalyticsObserver()],
+        navigatorObservers: <NavigatorObserver>[locator<AnalyticsService>().getAnalyticsObserver()],
         debugShowCheckedModeBanner: false,
         // ignore: prefer_const_literals_to_create_immutables, always_specify_types
         localizationsDelegates: [S.delegate],
