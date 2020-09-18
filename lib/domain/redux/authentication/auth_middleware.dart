@@ -16,6 +16,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
@@ -65,11 +66,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     next(action);
-   
+
+    final NavigationService _navigationService = locator<NavigationService>();
+    final  _bluetoothService = locator<BlueToothService>();
 
    final bool isLoggedIn =  await isUserCurrentlyLoggedIn(store);
    if(!isLoggedIn){
-     final NavigationService _navigationService = locator<NavigationService>();
      _navigationService.navigateTo(Routing.afterSplash);
      return;
    }
@@ -85,8 +87,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await AppDatabase.instance.syncRemoteToLocal(store: store);
     heartBeatSync(store: store); // TODO(richard): this is going to deprecate soon.
 
-    // TODO(richard): init bluethooth
-    // proxyService.initBluetooth(); //initialize bluethooth;
+    _bluetoothService.connectToAnyBlueToothAvailable();
+    _bluetoothService.initBluetooth();
     AppDatabase.instance.dbListner(store: store);
   };
 }
