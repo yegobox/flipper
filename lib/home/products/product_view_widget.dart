@@ -1,18 +1,17 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/widget/create_options_widget.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class ProductsView extends StatefulWidget {
   const ProductsView({
@@ -37,8 +36,8 @@ class ProductsView extends StatefulWidget {
 }
 
 class _ProductsViewState extends State<ProductsView> {
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   List<Widget> getProducts(List<ProductTableData> products,
       BuildContext context, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();

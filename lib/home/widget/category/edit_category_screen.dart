@@ -3,13 +3,13 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 
@@ -22,8 +22,8 @@ class EditCategoryScreen extends StatefulWidget {
 }
 
 class _EditCategoryScreenState extends State<EditCategoryScreen> {
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   _getCategoriesWidgets(
       List<CategoryTableData> categories, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
@@ -111,7 +111,8 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                   StoreProvider.of<AppState>(context).dispatch(
                     CreateEmptyTempCategoryAction(name: 'tmp'),
                   );
-                  _navigationService.navigateTo(Routing.createCategoryInputScreen);
+                  _navigationService
+                      .navigateTo(Routing.createCategoryInputScreen);
                 },
                 child: ListTile(
                   title: Text('Create Category',

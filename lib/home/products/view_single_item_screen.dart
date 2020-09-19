@@ -2,17 +2,16 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/widget/add_product/variation_list.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper/locator.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class TForm {
   String price;
@@ -39,8 +38,8 @@ class ViewSingleItemScreen extends StatefulWidget {
 
 class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   final TForm tForm = new TForm();
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   ActionsTableData _actions;
 
   String _name;
@@ -112,7 +111,8 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              _navigationService.navigateTo(Routing.editItemTitle);
+                              _navigationService
+                                  .navigateTo(Routing.editItemTitle);
                             },
                             child: Container(
                                 height: 80,
@@ -127,9 +127,7 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                               width: 300,
                               child: TextFormField(
                                 initialValue: widget.itemName,
-                                style: const TextStyle(
-                                    color: Colors
-                                        .black), 
+                                style: const TextStyle(color: Colors.black),
                                 validator: Validators.isValid,
                                 onChanged: (String name) async {
                                   if (name == '') {
@@ -180,13 +178,11 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
                                                 snapshot) {
                                           if (snapshot.data == null ||
                                               snapshot.data.length == 0) {
-                                            return Text(
-                                                'Select Category');
+                                            return Text('Select Category');
                                           }
                                           return snapshot.data == null ||
                                                   snapshot.data.length == 0
-                                              ? Text(
-                                                  'Select Category')
+                                              ? Text('Select Category')
                                               : categorySelector(
                                                   snapshot.data, vm);
                                         },

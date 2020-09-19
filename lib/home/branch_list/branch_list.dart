@@ -1,6 +1,8 @@
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,8 +12,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:redux/src/store.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class BranchList extends StatefulWidget {
   final CommonViewModel vm;
@@ -24,7 +24,7 @@ class BranchList extends StatefulWidget {
 
 class _BranchListState extends State<BranchList> {
   String _value;
-  final NavigationService _navigationService = locator<NavigationService>();
+  final _navigationService = locator<FlipperNavigationService>();
   String _scanBarcode;
 
   // ignore: non_constant_identifier_names, always_specify_types
@@ -136,7 +136,6 @@ class _BranchListState extends State<BranchList> {
               ListTile(
                 leading: FlatButton(
                   onPressed: () {
-                    
                     _navigationService.navigateTo(Routing.reportScreen);
                   },
                   child: Text(

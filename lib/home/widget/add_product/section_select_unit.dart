@@ -1,14 +1,13 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class SectionSelectUnit extends StatefulWidget {
   SectionSelectUnit({Key key}) : super(key: key);
@@ -18,8 +17,8 @@ class SectionSelectUnit extends StatefulWidget {
 }
 
 class _SectionSelectUnitState extends State<SectionSelectUnit> {
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   Text unitSelector(List<UnitTableData> units) {
     Text text;
     for (var i = 0; i < units.length; i++) {

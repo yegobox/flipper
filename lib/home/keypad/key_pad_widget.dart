@@ -1,14 +1,14 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/widget/key_pad_buttons.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class KeyPadWidget extends StatefulWidget {
   KeyPadWidget({Key key}) : super(key: key);
@@ -18,8 +18,8 @@ class KeyPadWidget extends StatefulWidget {
 }
 
 class _KeyPadWidgetState extends State<KeyPadWidget> {
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(

@@ -3,15 +3,14 @@ import 'package:flipper/home/homescreen.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_viewmodel.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/home/slide_out_screen.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/branch/event/event_details.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
-
 
 class DashBoard extends StatefulWidget {
   DashBoard({Key key}) : super(key: key);
@@ -21,8 +20,8 @@ class DashBoard extends StatefulWidget {
 }
 
 class _DashBoardState extends State<DashBoard> {
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   ValueNotifier<bool> _sideOpenController;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -67,8 +66,8 @@ class _DashBoardState extends State<DashBoard> {
                   ),
                 );
                 if (vm.hasSheet) {
-                  WidgetsBinding.instance.addPostFrameCallback(
-                      (_) => _navigationService.navigateTo(Routing.addNoteScreen));
+                  WidgetsBinding.instance.addPostFrameCallback((_) =>
+                      _navigationService.navigateTo(Routing.addNoteScreen));
                 }
                 return we;
               }

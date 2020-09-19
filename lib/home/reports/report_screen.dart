@@ -4,13 +4,13 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/reports/report_view.dart';
 import 'package:flipper/home/reports/tabs.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/report.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class ReportScreen extends StatefulWidget {
   @override
@@ -23,8 +23,8 @@ class _ReportScreenState extends State<ReportScreen>
     with SingleTickerProviderStateMixin {
   double tabLength = 50.0;
   TabController _tabReportController;
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   double _grossProfit;
 
   double _netProfit;

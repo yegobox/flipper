@@ -1,18 +1,18 @@
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class CreateOptionsWidget extends StatelessWidget {
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -70,7 +70,7 @@ class CreateOptionsWidget extends StatelessWidget {
                           style: AppTheme.dismiss,
                         ),
                         onPressed: () {
-                          Routing.navigator.pop();
+                          _navigationService.pop();
                         },
                       ),
                     ),

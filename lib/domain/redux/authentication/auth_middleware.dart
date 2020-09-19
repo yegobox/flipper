@@ -17,13 +17,13 @@ import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/bluethooth_service.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:redux/redux.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -67,17 +67,17 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     next(action);
 
-    final NavigationService _navigationService = locator<NavigationService>();
-    final  _bluetoothService = locator<BlueToothService>();
+    final _navigationService = locator<FlipperNavigationService>();
+    final _bluetoothService = locator<BlueToothService>();
 
-   final bool isLoggedIn =  await isUserCurrentlyLoggedIn(store);
-   if(!isLoggedIn){
-     _navigationService.navigateTo(Routing.afterSplash);
-     return;
-   }
+    final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
+    if (!isLoggedIn) {
+      _navigationService.navigateTo(Routing.afterSplash);
+      return;
+    }
     final TabsTableData tab = await generalRepository.getTab(store);
     dispatchFocusedTab(tab, store);
-    
+
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
@@ -85,7 +85,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _getCurrentLocation(store: store);
 
     await AppDatabase.instance.syncRemoteToLocal(store: store);
-    heartBeatSync(store: store); // TODO(richard): this is going to deprecate soon.
+    heartBeatSync(
+        store: store); // TODO(richard): this is going to deprecate soon.
 
     _bluetoothService.connectToAnyBlueToothAvailable();
     _bluetoothService.initBluetooth();
@@ -178,7 +179,8 @@ Future<void> _getCurrentLocation({Store<AppState> store}) async {
   if (store.state.currentActiveBusiness == null) {
     return;
   }
-  final BusinessTableData businessTableData = await store.state.database.businessDao
+  final BusinessTableData businessTableData = await store
+      .state.database.businessDao
       .getBusinesById(id: store.state.currentActiveBusiness.id);
   geoLocator
       .getPositionStream(locationOptions)
@@ -371,8 +373,7 @@ Future<void> getBusinesses(
     }
   }
 
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
 
   if (businesses.isEmpty) {
     if (store.state.user != null) {
@@ -386,7 +387,6 @@ Future<void> getBusinesses(
         ),
       );
     } else {
-      
       _navigationService.navigateTo(Routing.afterSplash);
     }
   } else if (store.state.userId == null) {

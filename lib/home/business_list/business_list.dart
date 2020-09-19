@@ -2,16 +2,16 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/function.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/src/store.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
 
 class BusinessList extends StatefulWidget {
 //  final Function(DrawerState) stateChangeCallback;
@@ -25,7 +25,7 @@ class BusinessList extends StatefulWidget {
 
 class _BusinessListState extends State<BusinessList> {
   bool _businessSelected = false;
-  final NavigationService _navigationService = locator<NavigationService>();
+  final _navigationService = locator<FlipperNavigationService>();
 
   Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(
@@ -90,12 +90,12 @@ class _BusinessListState extends State<BusinessList> {
           _Style.defaultPadding,
           _GroupSettingsButton(
             Image.asset('assets/graphics/drawer/account.png'),
-            ()async {
+            () async {
               // _openUserAccount(context);
               // TODO(richard): change the icon should be icon of logout.
               final Store<AppState> store = StoreProvider.of<AppState>(context);
               final int loggedOut = await logout(store: store);
-              if(loggedOut ==1){
+              if (loggedOut == 1) {
                 store.dispatch(
                   VerifyAuthenticationState(),
                 );
@@ -110,7 +110,9 @@ class _BusinessListState extends State<BusinessList> {
 
   Container _buildSecondSectionBusinessList(BuildContext context,
       // ignore: always_specify_types
-      {onClick = true, hasNotification = true, data}) {
+      {onClick = true,
+      hasNotification = true,
+      data}) {
     return Container(
       height: _Style.itemHeight,
       child: Padding(
@@ -318,7 +320,8 @@ class _Style {
   static const double separatorHeight = 2.0;
   static const double separatorWidth = 48.0;
   static const double padding = 8.0;
-  static const Padding defaultPadding = Padding(padding: EdgeInsets.only(top: padding));
+  static const Padding defaultPadding =
+      Padding(padding: EdgeInsets.only(top: padding));
 
   static const double itemHeight = 52.0;
   static const double firstSectionHeight = 100.0;

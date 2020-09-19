@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/widget/add_product/add_variant.dart';
 import 'package:flipper/home/widget/add_product/category_section.dart';
 import 'package:flipper/home/widget/add_product/center_divider.dart';
@@ -17,6 +16,7 @@ import 'package:flipper/home/widget/add_product/variation_list.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
@@ -24,10 +24,11 @@ import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:redux/src/store.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class AddProductScreen extends StatefulWidget {
-  AddProductScreen({Key key}) : super(key: key);
+  const AddProductScreen({Key key}) : super(key: key);
 
   @override
   _AddProductScreenState createState() => _AddProductScreenState();
@@ -36,35 +37,35 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
-  bool _isEmpty = true;
-  bool _hasErrors = false;
+  final _navigationService = locator<FlipperNavigationService>();
 
   _onClose(BuildContext context) async {
-    Routing.navigator.pop(true);
+    _navigationService.pop();
   }
 
   Future<bool> _onWillPop() async {
     return (await showDialog(
           context: context,
-          builder: (context) => new AlertDialog(
-            title: new Text(
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text(
               'Are you sure?',
               style: TextStyle(color: Colors.black),
             ),
-            content: new Text(
+            content: const Text(
               'Do you want to exit an App',
               style: TextStyle(color: Colors.black),
             ),
             actions: <Widget>[
-              new FlatButton(
-                onPressed: () => Routing.navigator.pop(false),
-                child: new Text('No'),
+              FlatButton(
+                // onPressed: () => Routing.navigator.pop(false),
+                onPressed: () {},
+                child: const Text('No'),
               ),
-              new FlatButton(
+              FlatButton(
                 onPressed: () {
                   _onClose(context);
                 },
-                child: new Text('Yes'),
+                child: const Text('Yes'),
               ),
             ],
           ),
@@ -81,11 +82,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return WillPopScope(
           onWillPop: _onWillPop,
           child: Scaffold(
@@ -98,9 +98,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
               showActionButton: true,
               onPressedCallback: () async {
                 await _handleCreateItem(vm);
-                Routing.navigator.pop(true);
+                _navigationService.pop();
               },
-              actionButtonName:'Save',
+              actionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,
@@ -109,12 +109,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
               children: <Widget>[
                 Column(
                   children: <Widget>[
-                    SizedBox(
+                    const SizedBox(
                       height: 10,
                     ),
                     buildImageHolder(vm, context),
                     Text(
-                      'New Item',
+                      ' Item',
                       style: GoogleFonts.lato(
                         fontStyle: FontStyle.normal,
                         color: AppTheme.addProduct.accentColor,
@@ -137,7 +137,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           onChanged: (name) async {
                             await updateNameField(name, vm);
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             hintText: 'Name',
                             focusColor: Colors.black,
                           ),
@@ -148,7 +148,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     CenterDivider(
                       width: 300,
                     ),
-                    ListDivider(
+                    const ListDivider(
                       height: 24,
                     ),
                     Center(
@@ -173,7 +173,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     Center(
                       child: Container(
                         width: 300,
-                        child: Divider(
+                        child: const Divider(
                           color: Colors.black,
                         ),
                       ),
@@ -205,7 +205,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   GestureDetector buildImageHolder(CommonViewModel vm, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        final NavigationService _navigationService = locator<NavigationService>();
+        final NavigationService _navigationService =
+            locator<NavigationService>();
         _navigationService.navigateTo(Routing.editItemTitle,
             arguments: EditItemTitleArguments(productId: vm.tmpItem.productId));
       },
@@ -278,16 +279,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
   IconButton buildCloseButton(BuildContext context, CommonViewModel vm) {
     return IconButton(
       alignment: Alignment.topLeft,
-      icon: Icon(Icons.close),
+      icon: const Icon(Icons.close),
       color: Colors.white,
       onPressed: () async {
-        final store = StoreProvider.of<AppState>(context);
-        ProductTableData product = await store.state.database.productDao
+        final Store<AppState> store = StoreProvider.of<AppState>(context);
+        final ProductTableData product = await store.state.database.productDao
             .getItemById(productId: vm.tmpItem.productId);
         store.state.database.productDao
             .updateProduct(product.copyWith(picture: '', hasPicture: false));
 
-        ProductTableData updatedProduct = await store.state.database.productDao
+        final ProductTableData updatedProduct = await store
+            .state.database.productDao
             .getItemById(productId: vm.tmpItem.productId);
 
         DataManager.dispatchProduct(store, updatedProduct);
@@ -329,7 +331,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _getSaveStatus(vm);
     if (_actions != null) {
       vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-      final NavigationService _navigationService = locator<NavigationService>();
+      final _navigationService = locator<FlipperNavigationService>();
 
       _navigationService.navigateTo(Routing.addVariationScreen,
           arguments: AddVariationScreenArguments(
@@ -339,14 +341,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void _getSaveItemStatus(CommonViewModel vm) async {
-    var result = await vm.database.actionsDao.getActionBy('saveItem');
+    final ActionsTableData result =
+        await vm.database.actionsDao.getActionBy('saveItem');
     setState(() {
       _actionsSaveItem = result;
     });
   }
 
   void _getSaveStatus(CommonViewModel vm) async {
-    var result = await vm.database.actionsDao.getActionBy('save');
+    final ActionsTableData result =
+        await vm.database.actionsDao.getActionBy('save');
 
     setState(() {
       _actions = result;
@@ -354,13 +358,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<bool> _handleCreateItem(CommonViewModel vm) async {
-    final store = StoreProvider.of<AppState>(context);
+    final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     await updateProduct(
         productId: vm.tmpItem.productId,
         categoryId: store.state.category.id,
         vm: vm);
-    VariationTableData variation = await vm.database.variationDao
+    final VariationTableData variation = await vm.database.variationDao
         .getVariationById(variantId: vm.variant.id);
 
     await DataManager.updateVariation(

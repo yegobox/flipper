@@ -104,7 +104,7 @@ class AppDatabase {
       database = await lite.Database.initWithName(dbName);
       // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
       final lite.ReplicatorConfiguration config =
-          lite.ReplicatorConfiguration(database, 'http://yegobox.com:4985/main');
+          lite.ReplicatorConfiguration(database, 'ws://yegobox.com:4985/main');
 
       config.replicatorType = lite.ReplicatorType.pushAndPull;
       config.continuous = true;

@@ -1,14 +1,13 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper/locator.dart';
-
 
 import '../theme.dart';
 
@@ -49,8 +48,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 .fold(0, (a, b) => a + b.quantity);
                         return FlatButton(
                           onPressed: () {
-                            final NavigationService _navigationService = locator<NavigationService>();
-                            
+                            final _navigationService =
+                                locator<FlipperNavigationService>();
+
                             List<Cart> cart = [];
                             for (var i = 0; i < orderDetail.data.length; i++) {
                               cart.add(

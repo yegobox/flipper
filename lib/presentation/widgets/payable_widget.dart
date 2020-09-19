@@ -3,6 +3,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/flitter_color.dart';
@@ -10,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class PayableWidget extends StatefulWidget {
   @override
@@ -19,8 +19,8 @@ class PayableWidget extends StatefulWidget {
 
 class _PayableWidgetState extends State<PayableWidget> {
   int _total = 0;
-  final NavigationService _navigationService = locator<NavigationService>();
-  
+  final _navigationService = locator<FlipperNavigationService>();
+
   @override
   Widget build(BuildContext context) {
     var payable = new MoneyMaskedTextController(
