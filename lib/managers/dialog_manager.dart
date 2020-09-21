@@ -1,41 +1,54 @@
-import 'package:flipper/home/widget/loader.dart';
-import 'package:flipper/routes/router.gr.dart';
+
+import 'package:flipper/locator.dart';
+import 'package:flipper/model/dialog_models.dart';
+import 'package:flipper/services/dialog_service.dart';
 import 'package:flutter/material.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
 
-class Manager {
-  static showLoader(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Material(
-            type: MaterialType.transparency,
-            child: Loader(
-              radius: 60.0,
-              dotRadius: 6.0,
-            ), //put my Loader here
-          ),
-        );
-      },
-    );
+class DialogManager extends StatefulWidget {
+  final Widget child;
+  DialogManager({Key key, this.child}) : super(key: key);
+
+  _DialogManagerState createState() => _DialogManagerState();
+}
+
+class _DialogManagerState extends State<DialogManager> {
+  final DialogService _dialogService = locator<DialogService>();
+
+  @override
+  void initState() {
+    super.initState();
+    _dialogService.registerDialogListener(_showDialog);
   }
 
-  static deprecatedNotification() {
-    // Fluttertoast.showToast(
-    //     msg: 'feature deprecated need re-work',
-    //     toastLength: Toast.LENGTH_LONG,
-    //     gravity: ToastGravity.BOTTOM,
-    //     timeInSecForIos: 1,
-    //     backgroundColor: Colors.red,
-    //     textColor: Colors.white,
-    //     fontSize: 16.0);
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 
-  static dismissDialog() {
-    Routing.navigator.pop();
+  void _showDialog(DialogRequest request) {
+    var isConfirmationDialog = request.cancelTitle != null;
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(request.title),
+          content: Text(request.description),
+          actions: <Widget>[
+            if (isConfirmationDialog)
+              FlatButton(
+                child: Text(request.cancelTitle),
+                onPressed: () {
+                  _dialogService
+                      .dialogComplete(DialogResponse(confirmed: false));
+                },
+              ),
+            FlatButton(
+              child: Text(request.buttonTitle),
+              onPressed: () {
+                _dialogService
+                    .dialogComplete(DialogResponse(confirmed: true));
+              },
+            ),
+          ],
+        ),);
   }
 }

@@ -4,6 +4,7 @@ import 'package:flipper/generated/i18n.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/analytics_service.dart';
+import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
 import 'home/selling/selling_middleware.dart';
+import 'managers/dialog_manager.dart';
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key key}) : super(key: key);
@@ -112,6 +114,11 @@ class _FlipperAppState extends State<FlipperApp> {
     return StoreProvider(
       store: store,
       child: MaterialApp(
+        builder: (context, child) => Navigator(
+          key: locator<DialogService>().dialogNavigationKey,
+          onGenerateRoute: (settings) => MaterialPageRoute(
+              builder: (context) => DialogManager(child: child)),
+        ),
         navigatorObservers: <NavigatorObserver>[
           locator<AnalyticsService>().getAnalyticsObserver()
         ],

@@ -85,11 +85,10 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _getCurrentLocation(store: store);
 
     await AppDatabase.instance.syncRemoteToLocal(store: store);
-    heartBeatSync(
-        store: store); // TODO(richard): this is going to deprecate soon.
 
-    _bluetoothService.connectToAnyBlueToothAvailable();
+
     _bluetoothService.initBluetooth();
+
     AppDatabase.instance.dbListner(store: store);
   };
 }

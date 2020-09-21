@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CompleteSaleScreen extends StatefulWidget {
-  CompleteSaleScreen({Key key, this.cashReceived}) : super(key: key);
+  const CompleteSaleScreen({Key key, this.cashReceived}) : super(key: key);
   final int cashReceived;
 
   @override
@@ -35,7 +35,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
       body: Container(
         child: Column(
           children: <Widget>[
-            SizedBox(
+            const SizedBox(
               height: 100,
             ),
             Center(
@@ -50,7 +50,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
                 style: GoogleFonts.lato(fontStyle: FontStyle.normal),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             GestureDetector(
@@ -65,7 +65,8 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
                   style: GoogleFonts.lato(fontStyle: FontStyle.normal),
                 ),
                 trailing: Wrap(
-                  children: <Widget>[Icon(Icons.arrow_forward_ios)],
+                  // ignore: prefer_const_literals_to_create_immutables
+                  children: <Widget>[const Icon(Icons.arrow_forward_ios)],
                 ),
               ),
             )

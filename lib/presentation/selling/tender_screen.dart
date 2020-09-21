@@ -1,15 +1,17 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/bluethooth_service.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TenderScreen extends StatefulWidget {
-  TenderScreen({Key key, this.cashReceived}) : super(key: key);
+  const TenderScreen({Key key, this.cashReceived}) : super(key: key);
 
   final int cashReceived;
 
@@ -20,7 +22,8 @@ class TenderScreen extends StatefulWidget {
 class _TenderScreenState extends State<TenderScreen> {
   bool _isEmpty = true;
   bool _hasErrors = false;
-
+  final _navigationService = locator<FlipperNavigationService>();
+  final _bluetoothService = locator<BlueToothService>();
   bool _isButtonDisabled;
   int _customerChangeDue;
 
@@ -29,11 +32,12 @@ class _TenderScreenState extends State<TenderScreen> {
     super.initState();
     _isButtonDisabled = true;
     _customerChangeDue = 0;
+
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = _hasErrors
+    final InputDecorationTheme theme = _hasErrors
         ? AppTheme.inputDecorationErrorTheme
         : (_isEmpty
             ? AppTheme.inputDecorationEmptyTheme
@@ -42,7 +46,7 @@ class _TenderScreenState extends State<TenderScreen> {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Routing.navigator.pop();
+          _navigationService.popUntil(Routing.dashboard);
         },
         disableButton: false,
         showActionButton: false,
@@ -54,7 +58,7 @@ class _TenderScreenState extends State<TenderScreen> {
       ),
       body: Column(
         children: <Widget>[
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           SizedBox(
@@ -87,12 +91,13 @@ class _TenderScreenState extends State<TenderScreen> {
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           Center(
             child: Container(
-                color: _isButtonDisabled ?const Color(0xFFE3F2FD) : Colors.blue,
+                color:
+                    _isButtonDisabled ? const Color(0xFFE3F2FD) : Colors.blue,
                 child: SizedBox(
                   width: 380,
                   height: 50,
@@ -102,7 +107,7 @@ class _TenderScreenState extends State<TenderScreen> {
                     onPressed: _handleTender(),
                     child: const Text(
                       'Tender',
-                      style:  TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 )),
@@ -116,7 +121,7 @@ class _TenderScreenState extends State<TenderScreen> {
     if (_isButtonDisabled) {
       return null;
     } else {
-      return () {
+      return () async {
         StoreProvider.of<AppState>(context).dispatch(
           SavePayment(
             note: 'note',
@@ -124,9 +129,12 @@ class _TenderScreenState extends State<TenderScreen> {
             cashReceived: widget.cashReceived,
           ),
         );
-
-        Routing.navigator
-            .pushNamedAndRemoveUntil(Routing.dashboard, (route) => false);
+        // TODO(richard): finish printing to work proper
+        await _bluetoothService.printReceipt(
+          todayDate: DateTime.now().toIso8601String(),
+          businessName: 'yegobox',
+        );
+        _navigationService.popUntil(Routing.dashboard);
       };
     }
   }

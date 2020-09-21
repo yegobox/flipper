@@ -4,9 +4,9 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/locator.dart';
-import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -71,7 +71,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
   Future updateItemWithActiveCategory(
       CommonViewModel vm, List<CategoryTableData> categories, int i) async {
-    Manager.deprecatedNotification();
+    final _dialogService = locator<DialogService>();
+    _dialogService.showConfirmationDialog(
+        description: 'Can not update active product feature deprecated');
     // final item = await vm.database.productDao.getItemById(productId: widget.ItemId);
     // if (item != null) {
     //   vm.database.productDao

@@ -2,7 +2,6 @@ import 'package:flipper/data/dao/item_variation.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/managers/dialog_manager.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/util/data_manager.dart';
@@ -19,7 +18,6 @@ class GeneralRepository {
   Future<bool> updateCategory(
       Store<AppState> store, int categoryId, String categoryName, int branchId,
       {bool focused}) async {
-    Manager.deprecatedNotification();
     // final cat =
     //     await store.state.database.categoryDao.getCategoryById(categoryId);
 
@@ -79,7 +77,7 @@ class GeneralRepository {
     categoryData =
         await store.state.database.categoryDao.getCategoryName(category.name);
 
-    Manager.deprecatedNotification();
+    // TODO(richard): fix this deprecated code.
     // store.dispatch(
     //   CustomCategory(
     //     category: Category(

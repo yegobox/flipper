@@ -99,7 +99,8 @@ class AppDatabase {
     }
   }
 
-  Future<bool> login({String username, String password, List<String> channels}) async {
+  Future<bool> login(
+      {String username, String password, List<String> channels}) async {
     try {
       database = await lite.Database.initWithName(dbName);
       // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
@@ -458,7 +459,9 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return null;}
+    if (model.isEmpty) {
+      return null;
+    }
     // ignore: always_specify_types
     final r = model[0][dbName]['stockHistory'];
 
@@ -503,7 +506,9 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return null;}
+    if (model.isEmpty) {
+      return null;
+    }
     final r = model[0][dbName]['stocks'];
 
     for (int i = 0; i < r.length; i++) {
@@ -551,7 +556,9 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
-    if(model.isEmpty){return null;}
+    if (model.isEmpty) {
+      return null;
+    }
     final r = model[0][dbName]['variants'];
 
     for (int i = 0; i < r.length; i++) {
@@ -596,7 +603,9 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return null;}
+    if (model.isEmpty) {
+      return null;
+    }
     final r = model[0][dbName]['branches'];
 
     for (int i = 0; i < r.length; i++) {
@@ -639,12 +648,12 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    
-    if(model.isEmpty){return null;}
+    if (model.isEmpty) {
+      return null;
+    }
     // ignore: always_specify_types
     final r = model[0][dbName]['businesses'];
     for (int i = 0; i < r.length; i++) {
-     
       final BusinessTableData busine =
           await store.state.database.businessDao.getBusinesById(id: r[i]['id']);
       // ignore:missing_required_param
@@ -766,7 +775,9 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return [];}
+    if (model.isEmpty) {
+      return [];
+    }
     // ignore: always_specify_types
     final r = model[0][dbName]['taxes'];
 
@@ -911,7 +922,9 @@ class AppDatabase {
       return result.toMap();
     }).toList();
 
-    if(model.isEmpty){return [];}
+    if (model.isEmpty) {
+      return [];
+    }
     // ignore: always_specify_types
     final r = model[0][dbName]['products'];
 
@@ -997,7 +1010,7 @@ class AppDatabase {
       // return Beer.fromMap();
       return result.toMap();
     }).toList();
-    
+
     // (richard): right now dealing with one user will support multi user in near future.
     return FUser(
       (FUserBuilder u) => u
@@ -1019,7 +1032,9 @@ class AppDatabase {
       return result.toMap();
     }).toList();
     // ignore: always_specify_types
-    if(model.isEmpty){return [];}
+    if (model.isEmpty) {
+      return [];
+    }
     // ignore: always_specify_types
     final r = model[0][dbName]['businesses'];
     for (int i = 0; i < r.length; i++) {
@@ -1049,10 +1064,11 @@ class AppDatabase {
     }).toList();
 
     // ignore: always_specify_types
-    if(model.isEmpty){return [];}
+    if (model.isEmpty) {
+      return [];
+    }
     final r = model[0][dbName]['branches'];
     for (int i = 0; i < r.length; i++) {
-      
       branch.add(Branch((BranchBuilder b) => b
         ..name = r[i]['name']
         ..id = r[i]['id']
@@ -1270,9 +1286,6 @@ class AppDatabase {
         await syncVariantLRemote(store);
         await syncProductsLRemote(store);
         await syncStockLRemote(store);
-        await syncBranchProductLRemote(store);
-        await syncOrderDetailLRemote(store);
-        await syncOrdersLRemote(store);
     }
   }
 
@@ -1422,142 +1435,13 @@ class AppDatabase {
     return variations;
   }
 
-  Future syncOrderLRemote(Store<AppState> store) async {
-    await syncOrderDetailLRemote(store);
-    await syncOrdersLRemote(store);
-    //sync stock too.
-    await syncStockLRemote(store);
-  }
+  Future syncOrderLRemote(Store<AppState> store) async {}
 
-  Future syncOrderDetailLRemote(Store<AppState> store) async {
-    List<OrderDetailTableData> orderDetails =
-        await store.state.database.orderDetailDao.getCarts();
+  Future syncOrderDetailLRemote(Store<AppState> store) async {}
 
-    final lite.Document orderDetail =
-        await database.document(store.state.userId.toString());
+  Future<void> syncOrdersLRemote(Store<AppState> store) async {}
 
-    final List mapOrderDetail = [];
-    for (int i = 0; i < orderDetails.length; i++) {
-      Map map = {
-        'id': orderDetails[i].id,
-        'branchId': orderDetails[i].branchId,
-        'discountRate': orderDetails[i].discountRate,
-        'discountAmount': orderDetails[i].discountAmount,
-        'note': orderDetails[i].note,
-        'taxRate': orderDetails[i].taxRate,
-        'taxAmount': orderDetails[i].taxAmount,
-        'quantity': orderDetails[i].quantity,
-        'subTotal': orderDetails[i].subTotal,
-        'orderId': orderDetails[i].orderId,
-        'stockId': orderDetails[i].stockId,
-        'variationId': orderDetails[i].variationId,
-        'variantName': orderDetails[i].variantName,
-        'productName': orderDetails[i].productName,
-        'unit': orderDetails[i].unit,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
-      };
-      mapOrderDetail.add(map);
-    }
-
-    orderDetail
-        .toMutable()
-        .setList('orderDetails', mapOrderDetail)
-        // .setList('channels', [store.state.userId.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'orderDetails_' + store.state.userId.toString());
-    await database.saveDocument(orderDetail);
-  }
-
-  Future<void> syncOrdersLRemote(Store<AppState> store) async {
-    List<OrderTableData> orders =
-        await store.state.database.orderDao.getOrders();
-
-    final lite.Document order =
-        await database.document('store_' + store.state.userId.toString());
-
-    final List mapOrders = [];
-    for (int i = 0; i < orders.length; i++) {
-      Map map = {
-        'id': orders[i].id,
-        'userId': orders[i].userId,
-        'branchId': orders[i].branchId,
-        'deviceId': orders[i].deviceId,
-        'currency': orders[i].currency,
-        'reference': orders[i].reference,
-        'orderNUmber': orders[i].orderNUmber,
-        'supplierId': orders[i].supplierId,
-        'subTotal': orders[i].subTotal,
-        'supplierInvoiceNumber': orders[i].supplierInvoiceNumber,
-        'deliverDate': orders[i].deliverDate.toIso8601String(),
-        'taxRate': orders[i].taxRate,
-        'taxAmount': orders[i].taxAmount,
-        'count': orders[i].count,
-        'variantName': orders[i].variantName,
-        'discountRate': orders[i].discountRate,
-        'discountAmount': orders[i].discountAmount,
-        'cashReceived': orders[i].cashReceived,
-        'saleTotal': orders[i].saleTotal,
-        'customerSaving': orders[i].customerSaving,
-        'paymentId': orders[i].paymentId,
-        'orderNote': orders[i].orderNote,
-        'isDraft': orders[i].isDraft,
-        'status': orders[i].status,
-        'orders_': store.state.userId.toString(),
-        'orderType': orders[i].orderType,
-        'customerChangeDue': orders[i].customerChangeDue
-      };
-      mapOrders.add(map);
-    }
-
-    order
-        .toMutable()
-        .setList('orders', mapOrders)
-        // .setList('channels', [store.state.userId.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'orders_' + store.state.userId.toString());
-
-    await database.saveDocument(order);
-  }
-
-  Future<void> syncBusinessLRemote(Store<AppState> store) async {
-    List<BusinessTableData> businesses =
-        await store.state.database.businessDao.getBusinesses();
-
-    final lite.Document business =
-        await database.document('business_' + store.state.userId.toString());
-
-    final List mapTypeListBusiness = [];
-    for (int i = 0; i < businesses.length; i++) {
-      Map map = {
-        'name': businesses[i].name,
-        'id': businesses[i].id,
-        'active': businesses[i].active,
-        'userId': businesses[i].userId,
-        'categoryId': businesses[i].categoryId,
-        'typeId': businesses[i].typeId,
-        'country': businesses[i].country,
-        'currency': businesses[i].currency,
-        'timeZone': businesses[i].timeZone,
-        'longitude': businesses[i].longitude,
-        'business_': store.state.userId.toString(),
-        'latitude': businesses[i].latitude,
-        'createdAt': businesses[i].createdAt.toIso8601String(),
-        'updatedAt': businesses[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : businesses[i].updatedAt.toIso8601String(),
-      };
-      mapTypeListBusiness.add(map);
-    }
-    business
-        .toMutable()
-        .setList('businesses', mapTypeListBusiness)
-        // .setList('channels', [store.state.userId.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'business_' + store.state.userId.toString());
-
-    await database.saveDocument(business);
-  }
+  Future<void> syncBusinessLRemote(Store<AppState> store) async {}
 
   Future<void> syncProduct(String productId, Store<AppState> store) async {
     // get product sync it to couch db

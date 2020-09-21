@@ -4,7 +4,7 @@ import 'package:flipper/home/in_app_notification/in_app_notification_viewmodel.d
 import 'package:flipper/home/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/home/slide_out_screen.dart';
 import 'package:flipper/locator.dart';
-import 'package:flipper/presentation/branch/event/event_details.dart';
+import 'package:flipper/presentation/branch/event/business_details.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
@@ -13,17 +13,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class DashBoard extends StatefulWidget {
-  DashBoard({Key key}) : super(key: key);
+  const DashBoard({Key key}) : super(key: key);
 
   @override
   _DashBoardState createState() => _DashBoardState();
 }
 
 class _DashBoardState extends State<DashBoard> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService =
+      locator<FlipperNavigationService>();
 
   ValueNotifier<bool> _sideOpenController;
-  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _DashBoardState extends State<DashBoard> {
                       vm: vm,
                       sideOpenController: _sideOpenController,
                     ),
-                    side: EventDetails(),
+                    side: const BusinessDetails(),
                     sideOpenController: _sideOpenController,
                   ),
                 );

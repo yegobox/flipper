@@ -99,9 +99,6 @@ class $Routing {
 
   TransactionScreen transactionScreen;
 
-  // @MaterialRoute(fullscreenDialog: true)
-  // AuthWebView webView;
-
   @MaterialRoute(fullscreenDialog: true)
   ReportScreen reportScreen;
 
