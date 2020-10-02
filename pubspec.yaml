@@ -116,6 +116,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/
     - assets/
     - assets/graphics/
     - assets/card_provider/

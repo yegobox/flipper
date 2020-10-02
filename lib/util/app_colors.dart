@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // ignore: avoid_classes_with_only_static_members
 class AppColors {
   static MaterialColor black = AppColors.factoryColor(0xFF000000);
+  
   static MaterialColor darkBlue = AppColors.factoryColor(0xFF4169E1);
   static MaterialColor white = AppColors.factoryColor(0xffffffff);
   static MaterialColor gray = AppColors.factoryColor(0xffA9A9A9);

@@ -22,10 +22,10 @@ class BranchList extends StatefulWidget {
   _BranchListState createState() => _BranchListState();
 }
 
+
 class _BranchListState extends State<BranchList> {
   String _value;
-  final _navigationService = locator<FlipperNavigationService>();
-  String _scanBarcode;
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   // ignore: non_constant_identifier_names, always_specify_types
   DropdownButton _BranchItem() => DropdownButton<String>(
@@ -37,7 +37,7 @@ class _BranchListState extends State<BranchList> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontStyle: FontStyle.normal,
-              color: AppTheme.branchList.accentColor,
+              color: Colors.black,
               fontSize: AppTheme.branchList.textTheme.bodyText1.fontSize,
             ),
           ),
@@ -46,22 +46,10 @@ class _BranchListState extends State<BranchList> {
           // ignore: always_specify_types
           return DropdownMenuItem(
             value: b.id.toString(),
-            child: Row(
-              children: <Widget>[
-                SvgPicture.asset(
-                  'assets/graphics/arrow-up-right.svg',
-                  allowDrawingOutsideViewBox: true,
-                  color: Colors.white,
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Text(
+            child:Text(
                   b.name,
                   style: const TextStyle(color: Colors.black),
                 ),
-              ],
-            ),
           );
         }).toList(),
         onChanged: (String value) {
@@ -99,10 +87,11 @@ class _BranchListState extends State<BranchList> {
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
-      _scanBarcode = barcodeScanRes;
       desktopLogin(context: context, code: barcodeScanRes);
     });
   }

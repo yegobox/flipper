@@ -13,6 +13,6 @@ class Poswidget extends StatelessWidget {
     final MoneyMaskedTextController moneyFormat =
         MoneyMaskedTextController(leftSymbol: '\$', decimalSeparator: '.');
     moneyFormat.updateValue(0);
-    return KeyPadWidget();
+    return const KeyPadWidget();
   }
 }
