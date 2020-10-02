@@ -39,18 +39,18 @@ class LiteRollingSwitch extends StatefulWidget {
 
   LiteRollingSwitch(
       {this.value = false,
-      this.textOff = 'Off',
-      this.textOn = 'On',
-      this.textSize = 14.0,
-      this.colorOn = Colors.green,
-      this.colorOff = Colors.red,
-      this.iconOff = Icons.flag,
-      this.iconOn = Icons.check,
-      this.animationDuration = const Duration(milliseconds: 600),
-      this.onTap,
-      this.onDoubleTap,
-      this.onSwipe,
-      this.onChanged});
+        this.textOff = 'Off',
+        this.textOn = 'On',
+        this.textSize = 14.0,
+        this.colorOn = Colors.green,
+        this.colorOff = Colors.red,
+        this.iconOff = Icons.flag,
+        this.iconOn = Icons.check,
+        this.animationDuration = const Duration(milliseconds: 600),
+        this.onTap,
+        this.onDoubleTap,
+        this.onSwipe,
+        this.onChanged});
 
   @override
   _RollingSwitchState createState() => _RollingSwitchState();

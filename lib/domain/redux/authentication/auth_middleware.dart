@@ -16,7 +16,6 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
@@ -68,7 +67,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     final _navigationService = locator<FlipperNavigationService>();
-    final _bluetoothService = locator<BlueToothService>();
 
     final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
     if (!isLoggedIn) {
@@ -85,9 +83,6 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _getCurrentLocation(store: store);
 
     await AppDatabase.instance.syncRemoteToLocal(store: store);
-
-
-    _bluetoothService.initBluetooth();
 
     AppDatabase.instance.dbListner(store: store);
   };
@@ -116,58 +111,6 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   }
 
   return false;
-}
-
-heartBeatSync({Store<AppState> store}) {
-  // FIXME: fix the background fetch issue.
-  // BackgroundFetch.configure(
-  //     BackgroundFetchConfig(
-  //         minimumFetchInterval: 15,
-  //         stopOnTerminate: false,
-  //         enableHeadless: true,
-  //         requiresBatteryNotLow: true,
-  //         startOnBoot: true), (String taskId) async {
-  //   switch (taskId) {
-  //     case 'uploader':
-  //       bool internetAvailable = await DataManager.isInternetAvailable();
-  //       if (internetAvailable) {
-  //         List<ProductImageTableData> images =
-  //             await store.state.database.productImageDao.getImageProducts();
-  //         if (images.length > 0) {
-  //           for (var i = 0; i < images.length; i++) {
-  //             String fileName = images[i].localPath.split('/').removeLast();
-  //             String storagePath =
-  //                 images[i].localPath.replaceAll('/' + fileName, '');
-  //             await DataManager.startUploading(
-  //               store: store,
-  //               fileName: fileName,
-  //               productId: images[i].productId,
-  //               storagePath: storagePath,
-  //             );
-  //           }
-  //         }
-  //       }
-  //       //sync again this time it might be necessary.
-  //       store.state.couch.syncLocalToRemote(store: store);
-  //       break;
-  //     default:
-  //       print('Default fetch task');
-  //   }
-
-  //   BackgroundFetch.finish(taskId);
-  // });
-
-  // BackgroundFetch.scheduleTask(
-  //   TaskConfig(
-  //     taskId: 'uploader',
-  //     delay: 15 * 60 * 1000, // <-- milliseconds
-  //     periodic: true,
-  //     enableHeadless: true,
-  //     startOnBoot: true,
-  //     requiresBatteryNotLow: true,
-  //     stopOnTerminate: false,
-  //   ),
-  // );
 }
 
 Future<void> _getCurrentLocation({Store<AppState> store}) async {

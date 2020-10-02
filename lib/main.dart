@@ -13,25 +13,6 @@ bool get isInDebugMode {
   return inDebugMode;
 }
 
-// void enableFlipper() {
-//   FlipperClient flipperClient = FlipperClient.getDefault();
-//   flipperClient.addPlugin(new FlipperNetworkPlugin(
-//       // If you use http library, you must set it to false and use https://pub.dev/packages/flipperkit_http_interceptor
-//       // useHttpOverrides: false,
-//       // Optional, for filtering request
-//       // filter: (HttpClientRequest request) {
-//       //   String url = '${request.uri}';
-//       //   if (url.startsWith('https://via.placeholder.com') || url.startsWith('https://gravatar.com')) {
-//       //     return false;
-//       //   }
-//       //   return true;
-//       // }
-//       ));
-//   flipperClient.addPlugin(new FlipperReduxInspectorPlugin());
-//   flipperClient.addPlugin(new FlipperSharedPreferencesPlugin());
-//   flipperClient.start();
-// }
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -61,18 +42,6 @@ Future<void> main() async {
     await Crashlytics.instance.recordFlutterError(e);
   });
 }
-
-// Future<void> main() async {
-//   configureLogger();
-//   WidgetsFlutterBinding.ensureInitialized();
-//   // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-//   //   statusBarColor: Colors.black,
-//   //   statusBarIconBrightness: Brightness.dark,
-//   //   systemNavigationBarColor: Colors.white,
-//   //   systemNavigationBarIconBrightness: Brightness.light,
-//   //   systemNavigationBarDividerColor: Colors.transparent,
-//   // )); 
-// }
 
 
 

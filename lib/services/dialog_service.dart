@@ -2,12 +2,17 @@ import 'dart:async';
 
 import 'package:flipper/model/dialog_models.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flipper/util/logger.dart';
+import 'package:logger/logger.dart';
+
 
 
 class DialogService {
   GlobalKey<NavigatorState> _dialogNavigationKey = GlobalKey<NavigatorState>();
   Function(DialogRequest) _showDialogListener;
   Completer<DialogResponse> _dialogCompleter;
+
+  final Logger log = Logging.getLogger('Firestore service ....');
 
   GlobalKey<NavigatorState> get dialogNavigationKey => _dialogNavigationKey;
 

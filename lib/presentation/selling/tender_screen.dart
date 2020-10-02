@@ -1,13 +1,10 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TenderScreen extends StatefulWidget {
@@ -20,19 +17,17 @@ class TenderScreen extends StatefulWidget {
 }
 
 class _TenderScreenState extends State<TenderScreen> {
-  bool _isEmpty = true;
-  bool _hasErrors = false;
-  final _navigationService = locator<FlipperNavigationService>();
-  final _bluetoothService = locator<BlueToothService>();
+  final bool _isEmpty = true;
+  final bool _hasErrors = false;
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final BlueToothService _bluetoothService = locator<BlueToothService>();
   bool _isButtonDisabled;
-  int _customerChangeDue;
 
   @override
   void initState() {
     super.initState();
     _isButtonDisabled = true;
-    _customerChangeDue = 0;
-
+    
   }
 
   @override
@@ -68,12 +63,10 @@ class _TenderScreenState extends State<TenderScreen> {
               child: Form(
                 child: TextFormField(
                   autofocus: true,
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     if (int.parse(value) > widget.cashReceived) {
                       setState(() {
                         _isButtonDisabled = false;
-                        _customerChangeDue =
-                            int.parse(value) - widget.cashReceived;
                       });
                     } else {
                       setState(() {
@@ -122,19 +115,16 @@ class _TenderScreenState extends State<TenderScreen> {
       return null;
     } else {
       return () async {
-        StoreProvider.of<AppState>(context).dispatch(
-          SavePayment(
-            note: 'note',
-            customerChangeDue: _customerChangeDue,
-            cashReceived: widget.cashReceived,
-          ),
-        );
+        // StoreProvider.of<AppState>(context).dispatch(
+        //   SavePayment(
+        //     note: 'note',
+        //     customerChangeDue: _customerChangeDue,
+        //     cashReceived: widget.cashReceived,
+        //   ),
+        // );
         // TODO(richard): finish printing to work proper
-        await _bluetoothService.printReceipt(
-          todayDate: DateTime.now().toIso8601String(),
-          businessName: 'yegobox',
-        );
-        _navigationService.popUntil(Routing.dashboard);
+         _bluetoothService.printReceipt();
+        // _navigationService.popUntil(Routing.dashboard);
       };
     }
   }

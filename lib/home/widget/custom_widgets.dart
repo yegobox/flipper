@@ -53,16 +53,16 @@ Widget userImage(String path, {double height = 100}) {
 }
 
 Widget customIcon(
-  BuildContext context, {
-  int icon,
-  bool isEnable = false,
-  double size = 18,
-  bool istwitterIcon = true,
-  bool isFontAwesomeRegular = false,
-  bool isFontAwesomeSolid = false,
-  Color iconColor,
-  double paddingIcon = 10,
-}) {
+    BuildContext context, {
+      int icon,
+      bool isEnable = false,
+      double size = 18,
+      bool istwitterIcon = true,
+      bool isFontAwesomeRegular = false,
+      bool isFontAwesomeSolid = false,
+      Color iconColor,
+      double paddingIcon = 10,
+    }) {
   iconColor = iconColor ?? Theme.of(context).textTheme.caption.color;
   return Padding(
     padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
@@ -71,8 +71,8 @@ Widget customIcon(
           fontFamily: istwitterIcon
               ? 'TwitterIcon'
               : isFontAwesomeRegular
-                  ? 'AwesomeRegular'
-                  : isFontAwesomeSolid ? 'AwesomeSolid' : 'Fontello'),
+              ? 'AwesomeRegular'
+              : isFontAwesomeSolid ? 'AwesomeSolid' : 'Fontello'),
       size: size,
       color: isEnable ? Theme.of(context).primaryColor : iconColor,
     ),
@@ -81,16 +81,16 @@ Widget customIcon(
 
 Widget customTappbleIcon(BuildContext context, int icon,
     {double size = 16,
-    bool isEnable = false,
-    Function(bool, int) onPressed1,
-    bool isBoolValue,
-    int id,
-    Function onPressed2,
-    bool isFontAwesomeRegular = false,
-    bool istwitterIcon = false,
-    bool isFontAwesomeSolid = false,
-    Color iconColor,
-    EdgeInsetsGeometry padding}) {
+      bool isEnable = false,
+      Function(bool, int) onPressed1,
+      bool isBoolValue,
+      int id,
+      Function onPressed2,
+      bool isFontAwesomeRegular = false,
+      bool istwitterIcon = false,
+      bool isFontAwesomeSolid = false,
+      Color iconColor,
+      EdgeInsetsGeometry padding}) {
   if (padding == null) {
     padding = EdgeInsets.all(10);
   }
@@ -122,11 +122,11 @@ Widget customTappbleIcon(BuildContext context, int icon,
 
 Widget customText(String msg,
     {Key key,
-    TextStyle style,
-    TextAlign textAlign = TextAlign.justify,
-    TextOverflow overflow = TextOverflow.visible,
-    BuildContext context,
-    bool softwrap = true}) {
+      TextStyle style,
+      TextAlign textAlign = TextAlign.justify,
+      TextOverflow overflow = TextOverflow.visible,
+      BuildContext context,
+      bool softwrap = true}) {
   if (msg == null) {
     return SizedBox(
       height: 0,
@@ -152,11 +152,11 @@ Widget customText(String msg,
 }
 
 Widget customImage(
-  BuildContext context,
-  String path, {
-  double height = 50,
-  bool isBorder = false,
-}) {
+    BuildContext context,
+    String path, {
+      double height = 50,
+      bool isBorder = false,
+    }) {
   return Container(
     decoration: BoxDecoration(
       shape: BoxShape.circle,
@@ -181,14 +181,14 @@ double fullHeight(BuildContext context) {
 
 Widget customInkWell(
     {Widget child,
-    BuildContext context,
-    Function(bool, int) function1,
-    Function onPressed,
-    bool isEnable = false,
-    int no = 0,
-    Color color = Colors.transparent,
-    Color splashColor,
-    BorderRadius radius}) {
+      BuildContext context,
+      Function(bool, int) function1,
+      Function onPressed,
+      bool isEnable = false,
+      int no = 0,
+      Color color = Colors.transparent,
+      Color splashColor,
+      BorderRadius radius}) {
   if (splashColor == null) {
     splashColor = Theme.of(context).primaryColorLight;
   }
@@ -249,9 +249,9 @@ dynamic customAdvanceNetworkImage(String path) {
 
 void showAlert(BuildContext context,
     {@required Function onPressedOk,
-    @required String title,
-    String okText = 'OK',
-    String cancelText = 'Cancel'}) async {
+      @required String title,
+      String okText = 'OK',
+      String cancelText = 'Cancel'}) async {
   showDialog(
       context: context,
       builder: (context) {
@@ -265,9 +265,9 @@ void showAlert(BuildContext context,
 
 Widget customAlert(BuildContext context,
     {@required Function onPressedOk,
-    @required String title,
-    String okText = 'OK',
-    String cancelText = 'Cancel'}) {
+      @required String title,
+      String okText = 'OK',
+      String cancelText = 'Cancel'}) {
   return AlertDialog(
     title: Text('Alert',
         style: TextStyle(
@@ -397,13 +397,13 @@ Widget customSwitcherWidget(
 
 Widget customExtendedText(String text, bool isExpanded,
     {BuildContext context,
-    TextStyle style,
-    @required Function onPressed,
-    @required TickerProvider provider,
-    AlignmentGeometry alignment = Alignment.topRight,
-    @required EdgeInsetsGeometry padding,
-    int wordLimit = 100,
-    bool isAnimated = true}) {
+      TextStyle style,
+      @required Function onPressed,
+      @required TickerProvider provider,
+      AlignmentGeometry alignment = Alignment.topRight,
+      @required EdgeInsetsGeometry padding,
+      int wordLimit = 100,
+      bool isAnimated = true}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: <Widget>[
@@ -424,18 +424,18 @@ Widget customExtendedText(String text, bool isExpanded,
       ),
       text != null && text.length > wordLimit
           ? Container(
-              alignment: alignment,
-              child: InkWell(
-                onTap: onPressed,
-                child: Padding(
-                  padding: padding,
-                  child: Text(
-                    !isExpanded ? 'more...' : 'Less...',
-                    style: TextStyle(color: Colors.blue, fontSize: 14),
-                  ),
-                ),
-              ),
-            )
+        alignment: alignment,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: padding,
+            child: Text(
+              !isExpanded ? 'more...' : 'Less...',
+              style: TextStyle(color: Colors.blue, fontSize: 14),
+            ),
+          ),
+        ),
+      )
           : Container()
     ],
   );
@@ -451,10 +451,10 @@ double getDimention(context, double unit) {
 
 Widget customListTile(BuildContext context,
     {Widget title,
-    Widget subtitle,
-    Widget leading,
-    Widget trailing,
-    Function onTap}) {
+      Widget subtitle,
+      Widget leading,
+      Widget trailing,
+      Function onTap}) {
   return customInkWell(
     context: context,
     onPressed: () {
@@ -524,7 +524,7 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                     child: Text(
                       'Use Camera',
                       style:
-                          TextStyle(color: Theme.of(context).backgroundColor),
+                      TextStyle(color: Theme.of(context).backgroundColor),
                     ),
                     onPressed: () {
                       getImage(context, ImageSource.camera, onImageSelected);
@@ -540,7 +540,7 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                     child: Text(
                       'Use Gallery',
                       style:
-                          TextStyle(color: Theme.of(context).backgroundColor),
+                      TextStyle(color: Theme.of(context).backgroundColor),
                     ),
                     onPressed: () {
                       getImage(context, ImageSource.gallery, onImageSelected);

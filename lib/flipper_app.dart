@@ -4,6 +4,7 @@ import 'package:flipper/generated/i18n.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/analytics_service.dart';
+import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/logger.dart';
@@ -49,10 +50,17 @@ class _FlipperAppState extends State<FlipperApp> {
   final BusinessRepository businessRepo = BusinessRepository();
   final BranchRepository branchRepo = BranchRepository();
   final GeneralRepository generalRepo = GeneralRepository();
+  
   final AppDatabase instance = AppDatabase.instance;
+  final BlueToothService _bluetoothService = locator<BlueToothService>();
+
   @override
   void initState() {
     super.initState();
+   
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _bluetoothService.initBluetooth());
+        
     store = Store<AppState>(
       appReducer,
       initialState: AppState.init(),
@@ -129,8 +137,10 @@ class _FlipperAppState extends State<FlipperApp> {
         title: 'Flipper',
         navigatorKey: locator<FlipperNavigationService>()
             .navigationKey, //slowly use mvm stacked architecture
-        // theme: buildLightThemeData(mainTextStyle, headerTextStyle),
-        // darkTheme: buildDarkThemeData(mainTextStyle, headerTextStyle),
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
         initialRoute: Routing.splashScreen,
         onGenerateRoute: Routing.onGenerateRoute,
       ),
