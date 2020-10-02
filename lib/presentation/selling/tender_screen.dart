@@ -1,10 +1,13 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper/domain/redux/app_actions/actions.dart';
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TenderScreen extends StatefulWidget {
@@ -22,6 +25,8 @@ class _TenderScreenState extends State<TenderScreen> {
   final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
   final BlueToothService _bluetoothService = locator<BlueToothService>();
   bool _isButtonDisabled;
+
+  String _customerChangeDue;
 
   @override
   void initState() {
@@ -64,12 +69,15 @@ class _TenderScreenState extends State<TenderScreen> {
                 child: TextFormField(
                   autofocus: true,
                   onChanged: (String value) {
+                    
                     if (int.parse(value) > widget.cashReceived) {
                       setState(() {
+                        _customerChangeDue = value;
                         _isButtonDisabled = false;
                       });
                     } else {
                       setState(() {
+                        _customerChangeDue = value;
                         _isButtonDisabled = true;
                       });
                     }
@@ -115,16 +123,16 @@ class _TenderScreenState extends State<TenderScreen> {
       return null;
     } else {
       return () async {
-        // StoreProvider.of<AppState>(context).dispatch(
-        //   SavePayment(
-        //     note: 'note',
-        //     customerChangeDue: _customerChangeDue,
-        //     cashReceived: widget.cashReceived,
-        //   ),
-        // );
+        StoreProvider.of<AppState>(context).dispatch(
+          SavePayment(
+            note: 'note',
+            customerChangeDue: int.parse(_customerChangeDue),
+            cashReceived: widget.cashReceived,
+          ),
+        );
         // TODO(richard): finish printing to work proper
-         _bluetoothService.printReceipt();
-        // _navigationService.popUntil(Routing.dashboard);
+        await _bluetoothService.printReceipt();
+        _navigationService.popUntil(Routing.dashboard);
       };
     }
   }
