@@ -8,7 +8,7 @@ import 'package:logger/logger.dart';
 
 
 class DialogService {
-  GlobalKey<NavigatorState> _dialogNavigationKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _dialogNavigationKey = GlobalKey<NavigatorState>();
   Function(DialogRequest) _showDialogListener;
   Completer<DialogResponse> _dialogCompleter;
 

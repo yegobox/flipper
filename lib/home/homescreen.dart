@@ -1,13 +1,12 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/flipper_drawer.dart';
 import 'package:flipper/home/home_app_bar.dart';
 import 'package:flipper/home/keypad/poswidget.dart';
 import 'package:flipper/home/product_screen.dart';
+import 'package:flipper/home/widget/bottom_menu_bar.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/presentation/widgets/payable_widget.dart';
-import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -60,9 +59,28 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController.animateTo(newIndex);
   }
 
+  Widget _body() {
+    return SafeArea(
+      child: Container(
+        child: _getPage(StoreProvider.of<AppState>(context).state.tab),
+      ),
+    );
+  }
+
+  // ignore: missing_return
+  Widget _getPage(int index) {
+    switch (index) {
+      case 0:
+        return const Poswidget();
+        break;
+      case 1:
+        return ProductScreen();
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO(richard): handle swipe should change tab focus.
     _nextPage(widget.vm.tab);
     return Scaffold(
       extendBody: true,
@@ -71,46 +89,14 @@ class _HomeScreenState extends State<HomeScreen>
         scaffoldKey: _scaffoldKey,
         sideOpenController: widget.sideOpenController,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.keyboard),
-            title: Text('POS'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books),
-            title: Text('ITEMS'),
-          ),
-        ],
-        selectedItemColor: Colors.amber[800],
-        currentIndex: widget.vm.tab,
-        onTap: (int num) {
-          _nextPage(num == 0 ? -1 : 1);
-          StoreProvider.of<AppState>(context).dispatch(CurrentTab(tab: num));
-          StoreProvider.of<AppState>(context).dispatch(OnSetTab());
-        },
-      ),
+      bottomNavigationBar: const BottomMenubar(),
       body: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(5.0),
+            padding: const EdgeInsets.only(left:5.0,right: 5.0),
             child: PayableWidget(),
           ),
-          Expanded(
-            child: Container(
-              color: HexColor('#95cbe8'),
-              child: DefaultTabController(
-                initialIndex: widget.vm.tab,
-                length: 2,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: <Widget>[const Poswidget(), ProductScreen()],
-                ),
-              ),
-            ),
-          )
+          Expanded(child: Container(child:_body())),
         ],
       ),
       drawer: FlipperDrawer(

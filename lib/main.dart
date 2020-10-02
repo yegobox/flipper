@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper/locator.dart';
+import 'package:flipper/util/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+
 bool get isInDebugMode {
   bool inDebugMode = false;
   assert(inDebugMode = true); // never executes in production
@@ -34,14 +37,18 @@ Future<void> main() async {
     await Crashlytics.instance.recordFlutterError(e);
   };
   runZonedGuarded<Future<void>>(() async {
-    runApp(FlipperApp());
-  }, (e, s) async {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: AppColors.spennGreen,
+        systemNavigationBarColor: AppColors.spennGreen,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+    runApp(const FlipperApp());
+  }, (Object e, StackTrace s) async {
     // Crashlytics.instance.setBool('runZonedGuarded', true);
     // Crashlytics.instance.setString("stringKey", "{\"test\":\"this is a json error from stringKey\"}");
     // Crashlytics.instance.log("{\"test\":\"this is a json error\"}");
     await Crashlytics.instance.recordFlutterError(e);
   });
 }
-
-
-

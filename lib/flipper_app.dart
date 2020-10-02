@@ -7,9 +7,11 @@ import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/util/app_colors.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 
@@ -50,17 +52,17 @@ class _FlipperAppState extends State<FlipperApp> {
   final BusinessRepository businessRepo = BusinessRepository();
   final BranchRepository branchRepo = BranchRepository();
   final GeneralRepository generalRepo = GeneralRepository();
-  
+
   final AppDatabase instance = AppDatabase.instance;
   final BlueToothService _bluetoothService = locator<BlueToothService>();
 
   @override
   void initState() {
     super.initState();
-   
+
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _bluetoothService.initBluetooth());
-        
+
     store = Store<AppState>(
       appReducer,
       initialState: AppState.init(),
@@ -122,10 +124,11 @@ class _FlipperAppState extends State<FlipperApp> {
     return StoreProvider(
       store: store,
       child: MaterialApp(
-        builder: (context, child) => Navigator(
+        builder: (BuildContext context, Widget child) => Navigator(
           key: locator<DialogService>().dialogNavigationKey,
-          onGenerateRoute: (settings) => MaterialPageRoute(
-              builder: (context) => DialogManager(child: child)),
+          // ignore: always_specify_types
+          onGenerateRoute: (RouteSettings settings) => MaterialPageRoute(
+              builder: (BuildContext context) => DialogManager(child: child)),
         ),
         navigatorObservers: <NavigatorObserver>[
           locator<AnalyticsService>().getAnalyticsObserver()
@@ -138,7 +141,11 @@ class _FlipperAppState extends State<FlipperApp> {
         navigatorKey: locator<FlipperNavigationService>()
             .navigationKey, //slowly use mvm stacked architecture
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch: AppColors.warmNeutral,
+          fontFamily: 'Montserrat',
+          textTheme: GoogleFonts.muliTextTheme(
+            Theme.of(context).textTheme,
+          ),
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         initialRoute: Routing.splashScreen,

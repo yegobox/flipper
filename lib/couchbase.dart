@@ -7,7 +7,9 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/tax.dart';
+import 'package:flipper/util/logger.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
@@ -21,7 +23,8 @@ class AppDatabase {
   AppDatabase._internal();
 
   static final AppDatabase instance = AppDatabase._internal();
-
+  final Logger log = Logging.getLogger('Firestore service ....');
+  
   String dbName = 'main';
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
@@ -105,19 +108,19 @@ class AppDatabase {
       database = await lite.Database.initWithName(dbName);
       // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
       final lite.ReplicatorConfiguration config =
-          lite.ReplicatorConfiguration(database, 'ws://yegobox.com:4985/main');
+          lite.ReplicatorConfiguration(database, 'ws://yegobox.com:4984/main');
 
       config.replicatorType = lite.ReplicatorType.pushAndPull;
       config.continuous = true;
       config.channels = channels;
 
-      String username = String.fromEnvironment('username');
-      String password = String.fromEnvironment('password');
-      print(username);
-      print(password);
+      const String username = String.fromEnvironment('username');
+      const String password = String.fromEnvironment('password');
+      log.i('username:'+username);
+      log.i('password:'+password);
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
-      config.authenticator = lite.BasicAuthenticator(username, password);
+      // config.authenticator = lite.BasicAuthenticator(username, password);
       replicator = lite.Replicator(config);
 
       replicator.addChangeListener((lite.ReplicatorChange event) {

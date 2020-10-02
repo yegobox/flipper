@@ -11,22 +11,22 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class KeyPadWidget extends StatefulWidget {
-  KeyPadWidget({Key key}) : super(key: key);
+  const KeyPadWidget({Key key}) : super(key: key);
 
   @override
   _KeyPadWidgetState createState() => _KeyPadWidgetState();
 }
 
 class _KeyPadWidgetState extends State<KeyPadWidget> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
-        var moneyFormat = new MoneyMaskedTextController(
+      builder: (BuildContext context, CommonViewModel vm) {
+        final MoneyMaskedTextController moneyFormat =  MoneyMaskedTextController(
             leftSymbol: '\RWF', decimalSeparator: '.', thousandSeparator: ',');
 
         double cleanValue = 0;
@@ -72,7 +72,7 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                   ),
                 ),
               ),
-              KeyPadButtons()
+              const KeyPadButtons()
             ],
           ),
         );

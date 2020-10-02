@@ -10,8 +10,8 @@ class Poswidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var moneyFormat =
-        new MoneyMaskedTextController(leftSymbol: '\$', decimalSeparator: '.');
+    final MoneyMaskedTextController moneyFormat =
+        MoneyMaskedTextController(leftSymbol: '\$', decimalSeparator: '.');
     moneyFormat.updateValue(0);
     return KeyPadWidget();
   }

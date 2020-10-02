@@ -1,34 +1,32 @@
+import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/helper/constant.dart';
 import 'package:flipper/home/widget/custom_widgets.dart';
 import 'package:flipper/home/widget/tabItem.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 class BottomMenubar extends StatefulWidget {
   const BottomMenubar({this.pageController});
   final PageController pageController;
+  @override
   _BottomMenubarState createState() => _BottomMenubarState();
 }
 
 class _BottomMenubarState extends State<BottomMenubar> {
-  PageController _pageController;
-  int _selectedIcon = 0;
+  
   @override
   void initState() {
-    _pageController = widget.pageController;
     super.initState();
   }
 
   Widget _iconRow() {
-    var state = Provider.of<AppState>(
-      context,
-    );
+    
     return Container(
       height: 50,
       decoration:
           BoxDecoration(color: Theme.of(context).bottomAppBarColor, boxShadow: [
-        BoxShadow(color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
+        const BoxShadow(color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
       ]),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -54,9 +52,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
 
   Widget _icon(IconData iconData, int index,
       {bool isCustomIcon = false, int icon}) {
-    var state = Provider.of<AppState>(
-      context,
-    );
+   
     return Expanded(
       child: Container(
         height: double.infinity,
@@ -64,15 +60,15 @@ class _BottomMenubarState extends State<BottomMenubar> {
         child: AnimatedAlign(
           duration: const Duration(milliseconds: ANIM_DURATION),
           curve: Curves.easeIn,
-          alignment: Alignment(0, ICON_ON),
+          alignment: const Alignment(0, ICON_ON),
           child: AnimatedOpacity(
-            duration: Duration(milliseconds: ANIM_DURATION),
+            duration: const Duration(milliseconds: ANIM_DURATION),
             opacity: ALPHA_ON,
             child: IconButton(
               highlightColor: Colors.transparent,
               splashColor: Colors.transparent,
-              padding: EdgeInsets.all(0),
-              alignment: Alignment(0, 0),
+              padding: const EdgeInsets.all(0),
+              alignment: const Alignment(0, 0),
               icon: isCustomIcon
                   ? customIcon(context,
                       icon: icon,
@@ -86,10 +82,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
                           : Theme.of(context).textTheme.caption.color,
                     ),
               onPressed: () {
-                setState(() {
-                  _selectedIcon = index;
-                  // state.setpageIndex = index;
-                });
+                StoreProvider.of<AppState>(context).dispatch(CurrentTab(tab: index));
               },
             ),
           ),
