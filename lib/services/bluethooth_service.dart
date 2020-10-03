@@ -10,15 +10,14 @@ import 'package:logger/logger.dart';
 class BlueToothService {
   // ignore: always_specify_types
   PublishSubject blueConnected = PublishSubject();
-
+                                                          
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   final Logger log = Logging.getLogger('Bluetooth service ....');
 
   Future<void> connectToanyBlueThoothAvailable() async {
     bluetoothPrint.scanResults.listen((List<BluetoothDevice> devices) async {
       try {
-        log.e('connecting to device');
-
+       
         if (devices.isNotEmpty) {
           log.i('connected a device ready to print');
           await bluetoothPrint.connect(devices[0]);
@@ -27,18 +26,17 @@ class BlueToothService {
     });
 
     blueConnected?.listen((c) {
-      // a simple toast to show a client that flipper found a bluethooth device to print to.
     });
   }
 
   Future<void> initBluetooth() async {
-    //  start scanning the available bluetooth
+    
     bluetoothPrint.startScan(timeout: const Duration(seconds: 10));
     connectToanyBlueThoothAvailable();
 
     final bool isConnected= await bluetoothPrint.isConnected;
 
-    bluetoothPrint.state.listen((state) {
+    bluetoothPrint.state.listen((int state) {
       log.i('cur device status: $state');
       switch (state) {
         case BluetoothPrint.CONNECTED:
@@ -57,8 +55,8 @@ class BlueToothService {
   }
 
   Future<void> printReceipt() async {
-    Map<String, dynamic> config = Map();
-    List<LineText> list = List();
+    final Map<String, dynamic> config = {};
+    final List<LineText> list = [];
     list.add(LineText(
         type: LineText.TYPE_TEXT,
         content: 'Your Business Name',

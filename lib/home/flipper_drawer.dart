@@ -1,9 +1,14 @@
 import 'package:flipper/helper/constant.dart';
 import 'package:flipper/helper/theme.dart';
 import 'package:flipper/home/widget/custom_widgets.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/app_colors.dart';
+import 'package:flipper/viewmodels/drawe_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked/stacked.dart';
 
 import 'business_list/business_list.dart';
 
@@ -17,6 +22,8 @@ class FlipperDrawer extends StatefulWidget {
 }
 
 class _FlipperDrawerState extends State<FlipperDrawer> {
+  final FlipperNavigationService _navigationService =
+      locator<FlipperNavigationService>();
 
   ListTile _menuListRowButton(String title,
       {Function onPressed, int icon, bool isEnable = false}) {
@@ -47,7 +54,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     );
   }
 
-  Positioned _footer() {
+  Positioned _footer({DrawerViewModel drawerViewmodel}) {
     return Positioned(
       bottom: 0,
       right: 0,
@@ -67,9 +74,14 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                   size: 25,
                   iconColor: TwitterColor.dodgetBlue),
               const Spacer(),
-              Image.asset(
-                'assets/images/qr.png',
-                height: 25,
+              GestureDetector(
+                onTap: () {
+                  drawerViewmodel.loginWithQr(context: context);
+                },
+                child: Image.asset(
+                  'assets/images/qr.png',
+                  height: 25,
+                ),
               ),
               const SizedBox(
                 width: 10,
@@ -82,66 +94,72 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     );
   }
 
-  void _logOut() {
-    // Navigator.pop(context);
-    // state.logoutCallback();
-  }
+  void _logOut() {}
 
   void _navigateTo(String path) {
-    Navigator.pop(context);
-    Navigator.of(context).pushNamed('/$path');
+    _navigationService.navigateTo(path);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Drawer(
-        elevation: 0,
-        child: Container(
-          color: AppColors.white,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              BusinessList(
-                vm: widget.vm,
-              ),
-              Expanded(
-                child: Stack(
-                  children:<Widget> [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 45),
-                      child: Column(
-                        // physics: const BouncingScrollPhysics(),
-                        children: [
-                          const Divider(),
-                          _menuListRowButton('Profile',
-                              icon: AppIcon.profile,
-                              isEnable: true, onPressed: () {
-                            _navigateTo('ProfilePage');
-                          }),
-                          _menuListRowButton('Lists', icon: AppIcon.lists),
-                          _menuListRowButton('Bookmark',
-                              icon: AppIcon.bookmark),
-                          _menuListRowButton('Moments', icon: AppIcon.moments),
-                          _menuListRowButton('Flipper deals',
-                              icon: AppIcon.twitterAds),
-                          const Divider(),
-                          _menuListRowButton('Settings and privacy',
-                              isEnable: true, onPressed: () {
-                            _navigateTo('SettingsAndPrivacyPage');
-                          }),
-                          _menuListRowButton('Help Center'),
-                          const Divider(),
-                          _menuListRowButton('Logout',
-                              icon: null, onPressed: _logOut, isEnable: true),
-                        ],
-                      ),
-                    ),
-                     _footer()
-                  ],
+    return ViewModelBuilder<DrawerViewModel>.reactive(
+      viewModelBuilder: () => DrawerViewModel(),
+      builder: (BuildContext context, DrawerViewModel model, Widget child) =>
+          Container(
+        child: Drawer(
+          elevation: 0,
+          child: Container(
+            color: AppColors.white,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                BusinessList(
+                  vm: widget.vm,
                 ),
-              )
-            ],
+                Expanded(
+                  child: Stack(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 45),
+                        child: Column(
+                          // physics: const BouncingScrollPhysics(),
+                          children: [
+                            const Divider(),
+                            _menuListRowButton('Profile',
+                                icon: AppIcon.profile,
+                                isEnable: true, onPressed: () {
+                              _navigateTo('ProfilePage');
+                            }),
+                            _menuListRowButton('Lists', icon: AppIcon.lists,
+                                onPressed: () {
+                              _navigateTo(Routing.allItemScreen);
+                            }),
+                            _menuListRowButton('Reports',
+                                icon: AppIcon.bookmark, onPressed: () {
+                              _navigateTo(Routing.reportScreen);
+                            }),
+                            _menuListRowButton('Moments',
+                                icon: AppIcon.moments),
+                            _menuListRowButton('Flipper deals',
+                                icon: AppIcon.twitterAds),
+                            const Divider(),
+                            _menuListRowButton('Settings and privacy',
+                                isEnable: true, onPressed: () {
+                              _navigateTo('SettingsAndPrivacyPage');
+                            }),
+                            _menuListRowButton('Help Center'),
+                            const Divider(),
+                            _menuListRowButton('Logout',
+                                icon: null, onPressed: _logOut, isEnable: true),
+                          ],
+                        ),
+                      ),
+                      _footer(drawerViewmodel: model)
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
