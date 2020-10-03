@@ -71,7 +71,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
   Future updateItemWithActiveCategory(
       CommonViewModel vm, List<CategoryTableData> categories, int i) async {
-    final _dialogService = locator<DialogService>();
+    final _dialogService = locator<FlipperDialogService>();
     _dialogService.showConfirmationDialog(
         description: 'Can not update active product feature deprecated');
     // final item = await vm.database.productDao.getItemById(productId: widget.ItemId);

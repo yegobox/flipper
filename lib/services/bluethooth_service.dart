@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:bluetooth_print/bluetooth_print.dart';
 import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:flipper/locator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flipper/util/logger.dart';
 
 import 'package:logger/logger.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class BlueToothService {
   // ignore: always_specify_types
   PublishSubject blueConnected = PublishSubject();
+  final SnackbarService _snackBarService = locator<SnackbarService>();
                                                           
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   final Logger log = Logging.getLogger('Bluetooth service ....');
@@ -25,7 +28,14 @@ class BlueToothService {
       } catch (e) {}
     });
 
-    blueConnected?.listen((c) {
+    // ignore: always_specify_types
+    blueConnected?.listen((connected) {
+      if(connected){
+        _snackBarService.showCustomSnackBar(message: 'Bluetooth connected');
+      }else{
+        //keep trying to connect to any available device.
+        connectToanyBlueThoothAvailable();
+      }
     });
   }
 
@@ -34,7 +44,7 @@ class BlueToothService {
     bluetoothPrint.startScan(timeout: const Duration(seconds: 10));
     connectToanyBlueThoothAvailable();
 
-    final bool isConnected= await bluetoothPrint.isConnected;
+    final bool isConnected = await bluetoothPrint.isConnected;
 
     bluetoothPrint.state.listen((int state) {
       log.i('cur device status: $state');

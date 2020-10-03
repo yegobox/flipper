@@ -125,7 +125,7 @@ class _FlipperAppState extends State<FlipperApp> {
       store: store,
       child: MaterialApp(
         builder: (BuildContext context, Widget child) => Navigator(
-          key: locator<DialogService>().dialogNavigationKey,
+          key: locator<FlipperDialogService>().dialogNavigationKey,
           // ignore: always_specify_types
           onGenerateRoute: (RouteSettings settings) => MaterialPageRoute(
               builder: (BuildContext context) => DialogManager(child: child)),

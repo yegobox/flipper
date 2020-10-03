@@ -112,7 +112,7 @@ class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
 
   Future<void> updateItemWithActiveUnit(
       CommonViewModel vm, List<UnitTableData> unit, int i) async {
-    final _dialogService = locator<DialogService>();
+    final _dialogService = locator<FlipperDialogService>();
     _dialogService.showConfirmationDialog(
         description: 'Can not update active product feature deprecated');
 

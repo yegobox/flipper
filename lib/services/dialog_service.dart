@@ -6,8 +6,7 @@ import 'package:flipper/util/logger.dart';
 import 'package:logger/logger.dart';
 
 
-
-class DialogService {
+class FlipperDialogService {
   final GlobalKey<NavigatorState> _dialogNavigationKey = GlobalKey<NavigatorState>();
   Function(DialogRequest) _showDialogListener;
   Completer<DialogResponse> _dialogCompleter;

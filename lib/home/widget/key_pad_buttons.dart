@@ -124,21 +124,23 @@ class SingleKey extends StatelessWidget {
       StoreProvider.of<AppState>(context).dispatch(SaveCart());
       StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
     } else {
-      sum = sum * 10;
-      sum = sum + vm.keypad.amount / 100;
-      temp2 = sum;
-      permanentSumString = permanentSum.toStringAsFixed(2);
-      sumString = sum.toStringAsFixed(2);
-      if (sumString.substring(0, sumString.indexOf('.')).length > 6) {
-        sumString = '999999.99';
-      }
+      // sum = sum * 10;
+      // sum = sum + vm.keypad.amount / 100;
+      // temp2 = sum;
+      // permanentSumString = permanentSum.toStringAsFixed(2);
+      // sumString = sum.toStringAsFixed(2);
+      // if (sumString.substring(0, sumString.indexOf('.')).length > 6) {
+      //   sumString = '999999.99';
+      // }
+      //todo: commented the code to handle the 99999.99 case but assume not for now.
       StoreProvider.of<AppState>(context).dispatch(
         KayPadAction(
           keyPad: KeyPad(
             (KeyPadBuilder k) => k
               ..amount = vm.keypad == null
                   ? int.parse(buttonKeyName)
-                  : int.parse(sumString + buttonKeyName)
+                  // : int.parse(sumString + buttonKeyName)
+                  :int.parse(vm.keypad.amount.toString() + buttonKeyName)
               ..note = 'note',
           ),
         ),
@@ -155,7 +157,7 @@ class SingleKey extends StatelessWidget {
       height:110,
       child: InkWell(
         enableFeedback: false,
-        onTap: () => btnClicked(),
+        onTap: () => btnClicked(buttonKeyName: buttonKeyName,context: context,vm: vm),
         child: Container(
             decoration: BoxDecoration(
               border: Border.all(

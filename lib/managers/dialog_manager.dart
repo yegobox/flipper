@@ -12,7 +12,7 @@ class DialogManager extends StatefulWidget {
 }
 
 class _DialogManagerState extends State<DialogManager> {
-  final DialogService _dialogService = locator<DialogService>();
+  final FlipperDialogService _dialogService = locator<FlipperDialogService>();
 
   @override
   void initState() {
