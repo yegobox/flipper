@@ -9,6 +9,7 @@ abstract class HomeAppBarViewModel
     implements Built<HomeAppBarViewModel, HomeAppBarViewModelBuilder> {
   HomeAppBarViewModel._();
 
+  // ignore: sort_unnamed_constructors_first
   factory HomeAppBarViewModel(
           [void Function(HomeAppBarViewModelBuilder) updates]) =
       _$HomeAppBarViewModel;

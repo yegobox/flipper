@@ -67,6 +67,7 @@ Widget customIcon(
   return Padding(
     padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
     child: Icon(
+      
       IconData(icon,
           fontFamily: istwitterIcon
               ? 'TwitterIcon'

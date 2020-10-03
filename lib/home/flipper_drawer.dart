@@ -121,10 +121,9 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.only(bottom: 45),
-                        child: Column(
-                          // physics: const BouncingScrollPhysics(),
-                          children: [
-                            const Divider(),
+                        child: ListView(
+                          physics: const BouncingScrollPhysics(),
+                          children:<Widget> [
                             _menuListRowButton('Profile',
                                 icon: AppIcon.profile,
                                 isEnable: true, onPressed: () {

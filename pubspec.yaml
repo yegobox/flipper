@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.158
+version: 1.5.168
 
 environment:
   sdk: ">=2.9.2 <3.0.0"
@@ -151,7 +151,7 @@ flutter_intl:
 #  flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
 #  rw.flipper
 # app bundle
-# flutter build appbundle --build-name=1.5.158  --build-number=15158
+# flutter build appbundle --build-name=1.5.168  --build-number=15168 --no-tree-shake-icons
 # app apk
 # flutter build apk --build-name=1.5.131  --build-number=15131
 # Db on device for debugging purpose: This PC\Pixel\Internal shared storage\Android\data\rw.flipper\files\database-development
