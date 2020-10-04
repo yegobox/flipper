@@ -7,6 +7,7 @@ import 'package:flipper/locator.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -30,7 +31,7 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   TextEditingController number = TextEditingController();
-  final NavigationService _navigationService = locator<NavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
   
   bool _loading = false;
   @override

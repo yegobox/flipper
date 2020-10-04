@@ -1,3 +1,4 @@
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/dialog_service.dart';
@@ -17,4 +18,5 @@ void setupLocator() {
   locator.registerLazySingleton(() => FirestoreService());
   locator.registerLazySingleton(() => AnalyticsService());
   locator.registerLazySingleton(() => BlueToothService());
+  locator.registerLazySingleton(() => AppDatabase());
 }

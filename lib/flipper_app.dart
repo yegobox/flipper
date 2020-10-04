@@ -53,7 +53,7 @@ class _FlipperAppState extends State<FlipperApp> {
   final BranchRepository branchRepo = BranchRepository();
   final GeneralRepository generalRepo = GeneralRepository();
 
-  final AppDatabase instance = AppDatabase.instance;
+  
   final BlueToothService _bluetoothService = locator<BlueToothService>();
 
   @override
@@ -157,7 +157,6 @@ class _FlipperAppState extends State<FlipperApp> {
   @override
   // ignore: avoid_void_async
   void dispose() async {
-    await instance.logout();
     super.dispose();
   }
 }
