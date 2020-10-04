@@ -3,6 +3,7 @@ import 'package:flipper/home/homescreen.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_viewmodel.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/home/slide_out_screen.dart';
+import 'package:flipper/home/widget/switch_view.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/branch/event/business_details.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
@@ -58,9 +59,9 @@ class _DashBoardState extends State<DashBoard> {
                   backgroundColor: Colors.black,
                   key: _scaffoldKey,
                   body: SlideOutScreen(
-                    main: HomeScreen(
-                      vm: vm,
+                    main: SwitchView(
                       sideOpenController: _sideOpenController,
+                      vm: vm,
                     ),
                     side: const BusinessDetails(),
                     sideOpenController: _sideOpenController,
