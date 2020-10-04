@@ -12,15 +12,15 @@ import 'package:stacked_services/stacked_services.dart';
 class BlueToothService {
   // ignore: always_specify_types
   PublishSubject blueConnected = PublishSubject();
+  bool _isConnected = false;
   final SnackbarService _snackBarService = locator<SnackbarService>();
-                                                          
+
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   final Logger log = Logging.getLogger('Bluetooth service ....');
 
   Future<void> connectToanyBlueThoothAvailable() async {
     bluetoothPrint.scanResults.listen((List<BluetoothDevice> devices) async {
       try {
-       
         if (devices.isNotEmpty) {
           log.i('connected a device ready to print');
           await bluetoothPrint.connect(devices[0]);
@@ -30,9 +30,9 @@ class BlueToothService {
 
     // ignore: always_specify_types
     blueConnected?.listen((connected) {
-      if(connected){
+      if (connected) {
         _snackBarService.showCustomSnackBar(message: 'Bluetooth connected');
-      }else{
+      } else {
         //keep trying to connect to any available device.
         connectToanyBlueThoothAvailable();
       }
@@ -40,20 +40,20 @@ class BlueToothService {
   }
 
   Future<void> initBluetooth() async {
-    
     bluetoothPrint.startScan(timeout: const Duration(seconds: 10));
     connectToanyBlueThoothAvailable();
 
-    final bool isConnected = await bluetoothPrint.isConnected;
+    final bool connected = await bluetoothPrint.isConnected;
 
     bluetoothPrint.state.listen((int state) {
       log.i('cur device status: $state');
       switch (state) {
         case BluetoothPrint.CONNECTED:
+          _isConnected = true;
           blueConnected.add(true);
-         
           break;
         case BluetoothPrint.DISCONNECTED:
+          _isConnected = false;
           blueConnected.add(false);
           break;
         default:
@@ -61,7 +61,7 @@ class BlueToothService {
       }
     });
 
-    blueConnected.add(isConnected);
+    blueConnected.add(connected);
   }
 
   Future<void> printReceipt() async {
@@ -156,7 +156,14 @@ class BlueToothService {
         align: LineText.ALIGN_RIGHT,
         linefeed: 1));
     list.add(LineText(linefeed: 1));
-
-    await bluetoothPrint.printReceipt(config, list);
+    try {
+      if(_isConnected){
+         await bluetoothPrint.printReceipt(config, list);
+      }else{
+        _snackBarService.showCustomSnackBar(message: 'No printer connected');
+      }
+    } catch (e) {
+      //todo: add this to analytics so we know who is failing to print
+    }
   }
 }
