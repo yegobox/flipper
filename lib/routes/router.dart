@@ -9,6 +9,7 @@ import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper/home/cart/cart_details_screen.dart';
 import 'package:flipper/home/category/create_category_input_screen.dart';
 import 'package:flipper/home/edit_item_title.dart';
+import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/home/products/all_item_screen.dart';
 import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/products/view_products_screen.dart';
@@ -116,4 +117,7 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   OtpPage otpPage;
+
+  @MaterialRoute(fullscreenDialog: true)
+  OpenCloseDrawerView openCloseDrawerview;
 }

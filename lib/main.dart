@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 
 bool get isInDebugMode {
@@ -18,6 +19,7 @@ bool get isInDebugMode {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DotEnv().load('.env');
   await Firebase.initializeApp();
   setupLocator();
 

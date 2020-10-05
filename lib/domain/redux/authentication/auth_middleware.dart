@@ -16,6 +16,7 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
@@ -26,11 +27,6 @@ import 'package:redux/redux.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
-
-/// Authentication Middleware
-/// LogIn: Logging user in
-/// LogOut: Logging user out
-/// VerifyAuthenticationState: Verify if user is logged in
 
 List<Middleware<AppState>> createAuthenticationMiddleware(
   UserRepository userRepository,
@@ -66,7 +62,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     next(action);
 
-    final _navigationService = locator<FlipperNavigationService>();
+    final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
     final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
     if (!isLoggedIn) {
@@ -90,12 +86,19 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
 Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final UserTableData user = await store.state.database.userDao.getUser();
+  final DatabaseService _databaseService = locator<DatabaseService>();
   if (user != null) {
     //login to couchbase
-    // ignore: always_specify_types
+      // ignore: always_specify_types
     final List<String> channels = [];
     channels.add(user.id.toString());
-    AppDatabase.instance.login(channels: channels);
+
+    await AppDatabase.instance.login(channels: channels);
+    // start with business closed.
+    await _databaseService.closeBusiness(isSocial: false,name: user.username,userId: user.id.toString());
+    
+  
+    
     final FUser u = FUser(
       (FUserBuilder p) => p
         ..email = user.email

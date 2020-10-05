@@ -9,6 +9,7 @@ import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:rxdart/subjects.dart';
@@ -107,17 +108,18 @@ class AppDatabase {
     try {
       database = await lite.Database.initWithName(dbName);
       // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
+      final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
       final lite.ReplicatorConfiguration config =
-          lite.ReplicatorConfiguration(database, 'ws://yegobox.com:4984/main');
+          lite.ReplicatorConfiguration(database, 'ws://$gatewayUrl/main');
 
       config.replicatorType = lite.ReplicatorType.pushAndPull;
       config.continuous = true;
       config.channels = channels;
 
-      const String username = String.fromEnvironment('username');
-      const String password = String.fromEnvironment('password');
-      log.i('username:'+username);
-      log.i('password:'+password);
+       final String username = DotEnv().env['PASSWORD'];
+       final String password = DotEnv().env['USERNAME'];
+      log.d('username:'+username);
+      log.d('password:'+password);
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
       // config.authenticator = lite.BasicAuthenticator(username, password);

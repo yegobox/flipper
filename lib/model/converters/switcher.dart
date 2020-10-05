@@ -1,40 +1,65 @@
 
-class Switcher{
-  Switcher({this.business,this.userId,this.tableName,this.isClosed,
-  this.openingFLoat,this.closingFloat,this.displayText,this.cashierName});
+// ignore: library_names
+library Switcher;
 
-  String cashierName;
-  bool isClosed;
-  String tableName;
-  double openingFLoat;
-  double closingFloat;
-  String displayText;
-  String business;
-  String userId;
-  
+import 'dart:convert';
 
- // ignore: sort_constructors_first
- Switcher.fromData(Map<String, dynamic> data)
-      : cashierName = data['cashierName'],
-        business = data['business'],
-        isClosed = data['isClosed'],
-        tableName = data['tableName'],
-        openingFLoat = data['openingFLoat'],
-        closingFloat = data['closingFloat'],
-        displayText = data['displayText'],
-        userId = data['userId'];
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 
-  Map<String, dynamic> toJson() {
-    // ignore: always_specify_types
-    return {
-      'cashierName': cashierName,
-      'isClosed': isClosed,
-      'tableName': tableName,
-      'openingFLoat':openingFLoat,
-      'closingFloat':closingFloat,
-      'displayText':displayText,
-      'userId': userId,
-      'business': business,
-    };
+import 'serializers.dart';
+
+part 'switcher.g.dart';
+
+abstract class Switcher implements Built<Switcher, SwitcherBuilder> {
+  Switcher._();
+
+  factory Switcher([updates(SwitcherBuilder b)]) = _$Switcher;
+
+  @BuiltValueField(wireName: 'cashierName')
+  @nullable
+  String get cashierName;
+  @BuiltValueField(wireName: 'isClosed')
+  bool get isClosed;
+  @BuiltValueField(wireName: 'isSocial')
+  @nullable
+  bool get isSocial;
+  @BuiltValueField(wireName: 'tableName')
+  @nullable
+  String get tableName;
+  @nullable
+  @BuiltValueField(wireName: 'openingFLoat')
+  double get openingFLoat;
+  @nullable
+  @BuiltValueField(wireName: 'closingFloat')
+  double get closingFloat;
+  @nullable
+  @BuiltValueField(wireName: 'displayText')
+  @nullable
+  String get displayText;
+  @nullable
+  @BuiltValueField(wireName: 'businessId')
+  @nullable
+  String get businessId;
+  @BuiltValueField(wireName: 'userId')
+  @nullable
+  String get userId;
+
+  String toJson() {
+    return json.encode(toMap());
   }
+
+  Map toMap() {
+    return standardSerializers.serializeWith(Switcher.serializer, this);
+  }
+
+  Switcher fromJson(String jsonString) {
+    return fromMap(json.decode(jsonString));
+  }
+
+  static Switcher fromMap(Map jsonMap) {
+    return standardSerializers.deserializeWith(Switcher.serializer, jsonMap);
+  }
+
+  static Serializer<Switcher> get serializer => _$switcherSerializer;
 }

@@ -1,5 +1,4 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/generated/i18n.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';

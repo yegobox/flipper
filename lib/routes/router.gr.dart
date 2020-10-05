@@ -38,6 +38,7 @@ import 'package:flipper/presentation/selling/complete_sale_screen.dart';
 import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
+import 'package:flipper/home/open_close_drawerview.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -70,6 +71,7 @@ class Routing {
   static const tenderScreen = '/tender-screen';
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
+  static const openCloseDrawerview = '/open-close-drawerview';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -388,6 +390,16 @@ class Routing {
         final typedArgs = args as String;
         return MaterialPageRoute<dynamic>(
           builder: (_) => OtpPage(phone: typedArgs),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Routing.openCloseDrawerview:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => OpenCloseDrawerView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );

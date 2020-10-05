@@ -80,8 +80,6 @@ abstract class CommonViewModel
 
   Database get database;
 
-  // CouchBase get couch;
-
   BuiltList<Cart> get carts;
 
   @nullable
@@ -108,8 +106,6 @@ abstract class CommonViewModel
   @nullable
   Product get tmpItem;
 
-  // @nullable
-  // CouchDbClient get couchDbClient;
   @nullable
   Variation get currentActiveSaleVariant;
 
@@ -118,6 +114,7 @@ abstract class CommonViewModel
 
   @nullable
   ImageP get image;
+
 
   @nullable
   String get note;
@@ -136,6 +133,9 @@ abstract class CommonViewModel
 
   @nullable
   String get otpcode;
+
+  @nullable
+  int get userId;
 
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
@@ -178,6 +178,7 @@ abstract class CommonViewModel
         ..cartQuantities = store.state.cartQuantities
         ..order = store.state.order?.toBuilder()
         ..user = store.state.user?.toBuilder()
+        ..userId = store.state.userId
         ..keypad = store.state.keypad?.toBuilder()
         ..category = store.state.category?.toBuilder()
         ..customUnit = store.state.customUnit?.toBuilder()

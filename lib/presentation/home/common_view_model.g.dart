@@ -87,6 +87,8 @@ class _$CommonViewModel extends CommonViewModel {
   final String phone;
   @override
   final String otpcode;
+  @override
+  final int userId;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
       (new CommonViewModelBuilder()..update(updates)).build();
@@ -131,7 +133,8 @@ class _$CommonViewModel extends CommonViewModel {
       this.report,
       this.navigate,
       this.phone,
-      this.otpcode})
+      this.otpcode,
+      this.userId})
       : super._() {
     if (hasUser == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'hasUser');
@@ -213,7 +216,8 @@ class _$CommonViewModel extends CommonViewModel {
         report == other.report &&
         navigate == other.navigate &&
         phone == other.phone &&
-        otpcode == other.otpcode;
+        otpcode == other.otpcode &&
+        userId == other.userId;
   }
 
   @override
@@ -236,26 +240,26 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode), items.hashCode), currentIncrement.hashCode), currentActiveSaleProduct.hashCode),
-                                                                                database.hashCode),
-                                                                            carts.hashCode),
-                                                                        cartQuantities.hashCode),
-                                                                    order.hashCode),
-                                                                user.hashCode),
-                                                            keypad.hashCode),
-                                                        customUnit.hashCode),
-                                                    customItem.hashCode),
-                                                tempCategoryId.hashCode),
-                                            tmpItem.hashCode),
-                                        currentActiveSaleVariant.hashCode),
-                                    total.hashCode),
-                                image.hashCode),
-                            note.hashCode),
-                        dateFilter.hashCode),
-                    report.hashCode),
-                navigate.hashCode),
-            phone.hashCode),
-        otpcode.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode), items.hashCode), currentIncrement.hashCode), currentActiveSaleProduct.hashCode), database.hashCode),
+                                                                                carts.hashCode),
+                                                                            cartQuantities.hashCode),
+                                                                        order.hashCode),
+                                                                    user.hashCode),
+                                                                keypad.hashCode),
+                                                            customUnit.hashCode),
+                                                        customItem.hashCode),
+                                                    tempCategoryId.hashCode),
+                                                tmpItem.hashCode),
+                                            currentActiveSaleVariant.hashCode),
+                                        total.hashCode),
+                                    image.hashCode),
+                                note.hashCode),
+                            dateFilter.hashCode),
+                        report.hashCode),
+                    navigate.hashCode),
+                phone.hashCode),
+            otpcode.hashCode),
+        userId.hashCode));
   }
 
   @override
@@ -300,7 +304,8 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('report', report)
           ..add('navigate', navigate)
           ..add('phone', phone)
-          ..add('otpcode', otpcode))
+          ..add('otpcode', otpcode)
+          ..add('userId', userId))
         .toString();
   }
 }
@@ -486,6 +491,10 @@ class CommonViewModelBuilder
   String get otpcode => _$this._otpcode;
   set otpcode(String otpcode) => _$this._otpcode = otpcode;
 
+  int _userId;
+  int get userId => _$this._userId;
+  set userId(int userId) => _$this._userId = userId;
+
   CommonViewModelBuilder();
 
   CommonViewModelBuilder get _$this {
@@ -530,6 +539,7 @@ class CommonViewModelBuilder
       _navigate = _$v.navigate;
       _phone = _$v.phone;
       _otpcode = _$v.otpcode;
+      _userId = _$v.userId;
       _$v = null;
     }
     return this;
@@ -593,7 +603,8 @@ class CommonViewModelBuilder
               report: _report?.build(),
               navigate: navigate,
               phone: phone,
-              otpcode: otpcode);
+              otpcode: otpcode,
+              userId: userId);
     } catch (_) {
       String _$failedField;
       try {

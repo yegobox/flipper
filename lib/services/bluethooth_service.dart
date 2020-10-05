@@ -41,7 +41,7 @@ class BlueToothService {
 
   Future<void> initBluetooth() async {
     bluetoothPrint.startScan(timeout: const Duration(seconds: 10));
-    connectToanyBlueThoothAvailable();
+    
 
     final bool connected = await bluetoothPrint.isConnected;
 
@@ -49,6 +49,7 @@ class BlueToothService {
       log.i('cur device status: $state');
       switch (state) {
         case BluetoothPrint.CONNECTED:
+          connectToanyBlueThoothAvailable();
           _isConnected = true;
           blueConnected.add(true);
           break;
