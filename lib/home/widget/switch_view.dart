@@ -4,7 +4,7 @@ import 'package:flipper/model/converters/switcher.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/viewmodels/business_operation_model.dart';
+import 'package:flipper/viewmodels/switch_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -17,25 +17,21 @@ class SwitchView extends StatelessWidget {
 
   final CommonViewModel vm;
   final ValueNotifier<bool> sideOpenController;
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessOperation>.reactive(
+    return ViewModelBuilder<SwitchModel>.reactive(
       initialiseSpecialViewModelsOnce: true,
       viewModelBuilder: () {
-        return BusinessOperation(id: vm.userId.toString());
+        return SwitchModel(id: vm.userId.toString());
       },
 
-      builder: (BuildContext context, BusinessOperation model, Widget child) {
+      builder: (BuildContext context, SwitchModel model, Widget child) {
         // ignore: always_specify_types
         final Switcher drawer = model.data;
-       
-        if(drawer == null ){
-          return Container();
-        }
-        // ignore: null_aware_in_logical_operator
-        if (drawer.isClosed) {
+        // drawer can not be null as we start with business closed. i.e we check drawer!=null
+        if (drawer != null && !drawer.isSocial && drawer.isClosed) {
           return Scaffold(
             backgroundColor: Colors.white,
             body: Center(
@@ -47,7 +43,7 @@ class SwitchView extends StatelessWidget {
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
-                  const Spacer(),
+                  const Divider(height:20),
                   Center(
                     child: Container(
                       color: Colors.blue,
@@ -56,7 +52,8 @@ class SwitchView extends StatelessWidget {
                         height: 60,
                         child: FlatButton(
                           onPressed: () {
-                            _navigationService.navigateTo(Routing.openCloseDrawerview);
+                            
+                            _navigationService.navigateTo(Routing.openCloseDrawerview,arguments: OpenCloseDrawerViewArguments(vm: vm));
                           },
                           color: Colors.blue,
                           child: const Text(

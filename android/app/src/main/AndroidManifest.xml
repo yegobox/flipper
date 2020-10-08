@@ -58,4 +58,8 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     
+    <!-- contact permission -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />  
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" /> 
+
 </manifest>

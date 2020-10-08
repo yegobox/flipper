@@ -39,6 +39,7 @@ import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/home/open_close_drawerview.dart';
+import 'package:flipper/presentation/home/common_view_model.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -90,9 +91,12 @@ class Routing {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => DashBoard(key: typedArgs),
+        return PageRouteBuilder<dynamic>(
+          pageBuilder: (ctx, animation, secondaryAnimation) =>
+              DashBoard(key: typedArgs),
           settings: settings,
+          transitionsBuilder: TransitionsBuilders.zoomIn,
+          transitionDuration: Duration(milliseconds: 200),
         );
       case Routing.afterSplash:
         return MaterialPageRoute<dynamic>(
@@ -394,12 +398,14 @@ class Routing {
           fullscreenDialog: true,
         );
       case Routing.openCloseDrawerview:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
+        if (hasInvalidArgs<OpenCloseDrawerViewArguments>(args)) {
+          return misTypedArgsRoute<OpenCloseDrawerViewArguments>(args);
         }
-        final typedArgs = args as Key;
+        final typedArgs = args as OpenCloseDrawerViewArguments ??
+            OpenCloseDrawerViewArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => OpenCloseDrawerView(key: typedArgs),
+          builder: (_) =>
+              OpenCloseDrawerView(key: typedArgs.key, vm: typedArgs.vm),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -534,4 +540,11 @@ class CameraPreviewArguments {
   final Key key;
   final dynamic image;
   CameraPreviewArguments({this.key, this.image});
+}
+
+//OpenCloseDrawerView arguments holder class
+class OpenCloseDrawerViewArguments {
+  final Key key;
+  final CommonViewModel vm;
+  OpenCloseDrawerViewArguments({this.key, this.vm});
 }

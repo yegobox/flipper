@@ -15,29 +15,38 @@ List<Middleware<AppState>> permissionMiddleware(
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _checkPermission(GlobalKey<NavigatorState> navigatorKey) {
-  return (store, action, next) async {
-    PermissionStatus status = await PermissionHandler()
+  // ignore: always_specify_types
+  return (Store<AppState> store, action, next) async {
+    final PermissionStatus locationStatus = await PermissionHandler()
         .checkPermissionStatus(PermissionGroup.location);
-    if (status == PermissionStatus.granted) {
-      final permission = Permission((p) => p
+
+    final PermissionStatus contactStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.contacts);
+
+    final PermissionStatus smsStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.contacts);
+
+    if (locationStatus == PermissionStatus.granted && contactStatus ==  PermissionStatus.granted && smsStatus== PermissionStatus.granted) {
+      final Permission permission = Permission((PermissionBuilder p) => p
         ..checked = false
         ..type = 'Location');
       store.dispatch(OnCheckedPermission(permission: permission));
     } else {
       try {
-        Map<PermissionGroup, PermissionStatus> status =
+        final Map<PermissionGroup, PermissionStatus> status =
             await PermissionHandler()
-                .requestPermissions([PermissionGroup.location]);
+                // ignore: always_specify_types
+                .requestPermissions([PermissionGroup.locationAlways,PermissionGroup.contacts,PermissionGroup.sms]);
 
         if (status[PermissionGroup.locationWhenInUse] ==
             PermissionStatus.granted) {
-          final Permission permission = Permission((p) => p
+          final Permission permission = Permission((PermissionBuilder p) => p
             ..checked = false
             ..type = 'Location');
           store.dispatch(OnCheckedPermission(permission: permission));
         }
+      // ignore: empty_catches
       } catch (e) {
-        print(e);
       }
     }
   };

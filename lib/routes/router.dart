@@ -36,6 +36,10 @@ import 'package:flipper_login/otp.dart';
 class $Routing {
   @initial
   SplashScreen splashScreen;
+  @CustomRoute(
+    transitionsBuilder: TransitionsBuilders.zoomIn,
+    durationInMilliseconds: 200,
+  )
   DashBoard dashboard;
   @MaterialRoute(fullscreenDialog: true)
   AfterSplash afterSplash;
@@ -119,5 +123,9 @@ class $Routing {
   OtpPage otpPage;
 
   @MaterialRoute(fullscreenDialog: true)
+  @CustomRoute(
+    transitionsBuilder: TransitionsBuilders.zoomIn,
+    durationInMilliseconds: 200,
+  )
   OpenCloseDrawerView openCloseDrawerview;
 }

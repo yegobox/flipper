@@ -68,7 +68,7 @@ dependencies:
   firebase_messaging: ^6.0.16
   firebase_analytics: ^5.0.11
   camera: 0.5.8+2
-  fl_chart:
+  fl_chart: 0.11.1
   flutter_uploader:
   flipper_login:
     path:
@@ -90,12 +90,14 @@ dependencies:
   cached_network_image: ^2.2.0+1
   flutter_dotenv: ^2.1.0
   mailer: ^3.2.1
+  contacts_service: ^0.3.10
   
   
 
 dev_dependencies:
-  couchbase_lite:
-    path: ../
+  couchbase_lite: ^2.7.1+6
+  # couchbase_lite:
+  #   path: ../
   # flutter_flipperkit:
   build_runner: 
   moor_generator: ^3.0.0

@@ -4,59 +4,78 @@ import 'package:flipper/util/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
+
 // this calss is about to replace AppDatabase class used for experimental
 // query example: https://github.com/SaltechSystems/couchbase_lite/blob/master/example/lib/data/database.dart
-class DatabaseService{  
+class DatabaseService {
   final Logger log = Logging.getLogger('Database service  Model ....');
 
-  Future<void> openBusiness({String userId,String name,bool isSocial,String businessId})async {
-     //update the document set to open a business to true
-     final MutableDocument mutableDoc = MutableDocument()
-            .setString('userId', userId)
-            .setString('id', 'switcher_'+userId)
-            .setString('name', name)
-            .setString('businessId', businessId)
-            .setString('tableName', 'switcher_'+userId)
-            .setBoolean('isClosed', false)
-            .setBoolean('isSocial', isSocial)
-            // ignore: always_specify_types
-            .setList('channels', [userId])
-            .setString('uid', Uuid().v1())
-            .setString('_id',userId);
-        try {
-          await AppDatabase.instance.database.saveDocument(mutableDoc);
-        } on PlatformException {
-          return 'Error saving document';
-        }
+  Future<void> saveDrawerHistory({
+    double openingFloat,
+    double closingFloat,
+    String businessId,
+    String userId,
+  }) async {
+    // ignore: always_specify_types
+    final Map<String,dynamic> businessMap ={
+      'openingFloat': openingFloat,
+      'closingFloat': closingFloat,
+      'businessId': businessId,
+      'userId': userId,
+      // ignore: always_specify_types
+      'channels': [userId],
+      'uid': Uuid().v1()
+    };
+    try {
+       final MutableDocument newDoc =
+        MutableDocument(id: businessId, data: businessMap);
+        await AppDatabase.instance.database.saveDocument(newDoc);
+    } on PlatformException {
+      return 'Error saving document';
+    }
   }
-  Future<void> closeBusiness({String userId,String name,bool isSocial,String businessId})async {
-     //update the document set to open a business to true
-     final MutableDocument mutableDoc = MutableDocument()
-            .setString('userId', userId)
-            .setString('name', name)
-            .setString('id', 'switcher_'+userId)
-            .setString('businessId', businessId)
-            .setString('tableName', 'switcher_'+userId)
-            .setBoolean('isClosed', true)
-            .setBoolean('isSocial', isSocial)
-            // ignore: always_specify_types
-            .setList('channels', [userId])
-            .setString('uid', Uuid().v1())
-            .setString('_id',userId);
-        try {
-          await AppDatabase.instance.database.saveDocument(mutableDoc);
-        } catch(e) {
-          log.d(e);
-          return 'Error saving document';
-        }
-   
+
+  Future<void> openCloseBusiness(
+      {String userId,
+      String name,
+      bool isSocial = false,
+      String businessId,
+      bool isClosed = true,
+      }) async {
+    
+    final Document document =
+        await AppDatabase.instance.database.document(userId);
+
+    final Map<String,dynamic> buildMap = {
+      'tableName': 'switcher_'+userId,
+      'name': name,
+      'isClosed': isClosed,
+      'isSocial': isSocial,
+      'businessId': businessId,
+      // ignore: always_specify_types
+      'channels': [userId]
+    };
+    if (document == null) {
+      try {
+         final MutableDocument newDoc =
+        MutableDocument(id: userId, data: buildMap);
+        await AppDatabase.instance.database.saveDocument(newDoc);
+      // ignore: empty_catches
+      } on PlatformException {
+      }
+    } else {
+      final MutableDocument mutableDoc =
+          document.toMutable().setBoolean('isClosed', isClosed);
+      AppDatabase.instance.database.saveDocument(mutableDoc);
+    }
   }
-  Future<bool> documentExist({String property,String equator})async {
+
+  Future<bool> documentExist({String property, String equator}) async {
     final Where query = QueryBuilder.select([SelectResult.all()])
         .from(AppDatabase.instance.dbName)
-        .where(Expression.property(property)
-            .equalTo(Expression.string(equator)));
-      final ResultSet result = await query.execute();
-      return result.allResults().isNotEmpty;
+        .where(
+            Expression.property(property).equalTo(Expression.string(equator)));
+    final ResultSet result = await query.execute();
+    return result.allResults().isNotEmpty;
   }
 }

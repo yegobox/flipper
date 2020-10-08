@@ -1,5 +1,4 @@
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/home/homescreen.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_viewmodel.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/home/slide_out_screen.dart';

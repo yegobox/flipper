@@ -137,6 +137,9 @@ abstract class CommonViewModel
   @nullable
   int get userId;
 
+  @nullable
+  String get businessId;
+
   CommonViewModel._();
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
@@ -179,6 +182,7 @@ abstract class CommonViewModel
         ..order = store.state.order?.toBuilder()
         ..user = store.state.user?.toBuilder()
         ..userId = store.state.userId
+        ..businessId = store.state.businessId
         ..keypad = store.state.keypad?.toBuilder()
         ..category = store.state.category?.toBuilder()
         ..customUnit = store.state.customUnit?.toBuilder()

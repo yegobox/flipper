@@ -93,9 +93,11 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     final List<String> channels = [];
     channels.add(user.id.toString());
 
+
     await AppDatabase.instance.login(channels: channels);
+    
     // start with business closed.
-    await _databaseService.closeBusiness(isSocial: false,name: user.username,userId: user.id.toString());
+    await _databaseService.openCloseBusiness(isSocial: false,name: user.username,userId: user.id.toString(),isClosed:true);
     
   
     
@@ -299,6 +301,7 @@ Future<void> getBusinesses(
 
   for (int i = 0; i < businesses.length; i++) {
     if (businesses[i].active) {
+     
       store.dispatch(
         ActiveBusinessAction(
           Business(
@@ -318,7 +321,7 @@ Future<void> getBusinesses(
     }
   }
 
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   if (businesses.isEmpty) {
     if (store.state.user != null) {

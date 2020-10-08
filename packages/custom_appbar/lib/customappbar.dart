@@ -5,7 +5,6 @@ import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:google_fonts/google_fonts.dart';
 
-
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   // @Deprecated("_action will be removed soon")
   final Widget _additionalText;

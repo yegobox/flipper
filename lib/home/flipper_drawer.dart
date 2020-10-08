@@ -6,7 +6,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/app_colors.dart';
-import 'package:flipper/viewmodels/drawe_viewmodel.dart';
+import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 

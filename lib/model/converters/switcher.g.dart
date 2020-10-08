@@ -17,18 +17,22 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
   @override
   Iterable<Object> serialize(Serializers serializers, Switcher object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[];
+    final result = <Object>[
+      'isClosed',
+      serializers.serialize(object.isClosed,
+          specifiedType: const FullType(bool)),
+    ];
+    if (object.documentId != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.documentId,
+            specifiedType: const FullType(String)));
+    }
     if (object.cashierName != null) {
       result
         ..add('cashierName')
         ..add(serializers.serialize(object.cashierName,
             specifiedType: const FullType(String)));
-    }
-    if (object.isClosed != null) {
-      result
-        ..add('isClosed')
-        ..add(serializers.serialize(object.isClosed,
-            specifiedType: const FullType(bool)));
     }
     if (object.isSocial != null) {
       result
@@ -86,6 +90,10 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
       iterator.moveNext();
       final dynamic value = iterator.current;
       switch (key) {
+        case 'id':
+          result.documentId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
         case 'cashierName':
           result.cashierName = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -131,6 +139,8 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
 
 class _$Switcher extends Switcher {
   @override
+  final String documentId;
+  @override
   final String cashierName;
   @override
   final bool isClosed;
@@ -153,7 +163,8 @@ class _$Switcher extends Switcher {
       (new SwitcherBuilder()..update(updates)).build();
 
   _$Switcher._(
-      {this.cashierName,
+      {this.documentId,
+      this.cashierName,
       this.isClosed,
       this.isSocial,
       this.tableName,
@@ -162,7 +173,11 @@ class _$Switcher extends Switcher {
       this.displayText,
       this.businessId,
       this.userId})
-      : super._();
+      : super._() {
+    if (isClosed == null) {
+      throw new BuiltValueNullFieldError('Switcher', 'isClosed');
+    }
+  }
 
   @override
   Switcher rebuild(void Function(SwitcherBuilder) updates) =>
@@ -175,6 +190,7 @@ class _$Switcher extends Switcher {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is Switcher &&
+        documentId == other.documentId &&
         cashierName == other.cashierName &&
         isClosed == other.isClosed &&
         isSocial == other.isSocial &&
@@ -195,7 +211,9 @@ class _$Switcher extends Switcher {
                     $jc(
                         $jc(
                             $jc(
-                                $jc($jc(0, cashierName.hashCode),
+                                $jc(
+                                    $jc($jc(0, documentId.hashCode),
+                                        cashierName.hashCode),
                                     isClosed.hashCode),
                                 isSocial.hashCode),
                             tableName.hashCode),
@@ -209,6 +227,7 @@ class _$Switcher extends Switcher {
   @override
   String toString() {
     return (newBuiltValueToStringHelper('Switcher')
+          ..add('documentId', documentId)
           ..add('cashierName', cashierName)
           ..add('isClosed', isClosed)
           ..add('isSocial', isSocial)
@@ -224,6 +243,10 @@ class _$Switcher extends Switcher {
 
 class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
   _$Switcher _$v;
+
+  String _documentId;
+  String get documentId => _$this._documentId;
+  set documentId(String documentId) => _$this._documentId = documentId;
 
   String _cashierName;
   String get cashierName => _$this._cashierName;
@@ -265,6 +288,7 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
 
   SwitcherBuilder get _$this {
     if (_$v != null) {
+      _documentId = _$v.documentId;
       _cashierName = _$v.cashierName;
       _isClosed = _$v.isClosed;
       _isSocial = _$v.isSocial;
@@ -296,6 +320,7 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
   _$Switcher build() {
     final _$result = _$v ??
         new _$Switcher._(
+            documentId: documentId,
             cashierName: cashierName,
             isClosed: isClosed,
             isSocial: isSocial,

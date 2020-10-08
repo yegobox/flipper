@@ -5,8 +5,8 @@ import 'package:stacked/stacked.dart';
 import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 
 // ignore: always_specify_types
-class BusinessOperation extends FutureViewModel {
-  BusinessOperation({this.id});
+class SwitchModel extends FutureViewModel {
+  SwitchModel({this.id});
 
   final Logger log = Logging.getLogger('Business Operation  Model ....');
   // lite.Database _database;
@@ -26,15 +26,15 @@ class BusinessOperation extends FutureViewModel {
       final lite.ResultSet result = await query.execute();
       
       if (result.allResults().isNotEmpty) {
-         final List<Switcher> model = result.map((lite.Result result) {
-            log.d(result.toMap());
-            return Switcher.fromMap(result.toMap());
+         final List<Map<String, dynamic>> model = result.map((lite.Result result) {
+            return result.toMap();
         }).toList();
-        final Switcher switchi = model[0];
-        log.d(switchi);
-        return switchi; //intrested in first result. FIXME(richard):should be one result.
+        
+        final Switcher  switchi = Switcher.fromMap(model[0][dbName]); //intrested in first result. FIXME(richard):should be one result.
+        
+        return switchi; 
       } else {
-        log.i('no data found with Id:'+id);
+       
         return null;
       }
     } catch (e) {

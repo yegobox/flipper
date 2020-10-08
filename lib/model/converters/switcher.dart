@@ -14,7 +14,12 @@ part 'switcher.g.dart';
 abstract class Switcher implements Built<Switcher, SwitcherBuilder> {
   Switcher._();
 
+  // ignore: sort_unnamed_constructors_first
   factory Switcher([updates(SwitcherBuilder b)]) = _$Switcher;
+
+  @BuiltValueField(wireName: 'id')
+  @nullable
+  String get documentId;
 
   @BuiltValueField(wireName: 'cashierName')
   @nullable
@@ -49,6 +54,7 @@ abstract class Switcher implements Built<Switcher, SwitcherBuilder> {
     return json.encode(toMap());
   }
 
+  // ignore: always_specify_types
   Map toMap() {
     return standardSerializers.serializeWith(Switcher.serializer, this);
   }

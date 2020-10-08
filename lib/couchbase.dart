@@ -25,7 +25,7 @@ class AppDatabase {
 
   static final AppDatabase instance = AppDatabase._internal();
   final Logger log = Logging.getLogger('Firestore service ....');
-  
+
   String dbName = 'main';
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
@@ -116,10 +116,10 @@ class AppDatabase {
       config.continuous = true;
       config.channels = channels;
 
-       final String username = DotEnv().env['PASSWORD'];
-       final String password = DotEnv().env['USERNAME'];
-      log.d('username:'+username);
-      log.d('password:'+password);
+      final String username = DotEnv().env['PASSWORD'];
+      final String password = DotEnv().env['USERNAME'];
+      log.d('username:' + username);
+      log.d('password:' + password);
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
       // config.authenticator = lite.BasicAuthenticator(username, password);
@@ -142,10 +142,6 @@ class AppDatabase {
           lite.ValueIndexItem.expression(lite.Expression.property('name'))
         ]);
         await database.createIndex(index, withName: indexName);
-      } else {
-        // var query = _buildBeerQuery(100, 0, false);
-        print('explanation:');
-        // print(await query.explain());
       }
 
       final lite.Document pref =
@@ -155,9 +151,16 @@ class AppDatabase {
         print('Document change ${change.documentID}');
       });
 
-      _dbListenerToken = database.addChangeListener((dbChange) {
-        for (String change in dbChange.documentIDs) {
-          print('change in id: $change');
+      _dbListenerToken =
+          database.addChangeListener((lite.DatabaseChange dbChange) async {
+        for (String id in dbChange.documentIDs) {
+          log.d('change in id: $id');
+          // final lite.Document document = await database.document(id);
+          // if (document != null) {
+          //   final lite.MutableDocument mutableDoc =
+          //       document.toMutable().setString('id', id); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
+          //   database.saveDocument(mutableDoc);
+          // }
         }
       });
 
