@@ -81,4 +81,8 @@ class DatabaseService {
     final ResultSet result = await query.execute();
     return result.allResults().isNotEmpty;
   }
+
+  // products functions
+  // TODO(richard): save custom product function
+  // TODO(richard): getItemBy name Function
 }
