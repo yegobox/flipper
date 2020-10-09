@@ -1,3 +1,4 @@
+import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -18,7 +19,7 @@ class OpenBusinessModel extends BaseModel {
       {double float,
       String note,
       String documentId,
-      String businessState,
+      BusinessState businessState,
       CommonViewModel vm}) async {
     setBusy(true);
 

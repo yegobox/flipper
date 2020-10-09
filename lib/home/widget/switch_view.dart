@@ -40,14 +40,14 @@ class SwitchView extends StatelessWidget {
                 children:<Widget> [
                   const Center(
                     child:  Text(
-                      'open your business to start selling',
+                      'Open your business to start selling',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
                   const Divider(height:20),
                   Center(
                     child: Container(
-                      color: Colors.blue,
+                    color: Colors.blue,
                       child: SizedBox(
                         width: 380,
                         height: 60,

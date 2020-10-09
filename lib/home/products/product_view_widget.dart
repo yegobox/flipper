@@ -40,7 +40,7 @@ class _ProductsViewState extends State<ProductsView> {
 
   List<Widget> getProducts(List<ProductTableData> products,
       BuildContext context, CommonViewModel vm) {
-    List<Widget> list = new List<Widget>();
+    final List<Widget> list = <Widget>[];
 
     if (widget.showCreateItemOnTop) {
       addItemRow(list, context, widget.createButtonName);
@@ -49,7 +49,7 @@ class _ProductsViewState extends State<ProductsView> {
       itemRow(list, context);
     }
 
-    for (var i = 0; i < products.length; i++) {
+    for (int i = 0; i < products.length; i++) {
       if (products[i] != null &&
           products[i].name != 'custom' &&
           products[i].name != 'tmp' &&
@@ -72,7 +72,7 @@ class _ProductsViewState extends State<ProductsView> {
               }
             },
             child: ListTile(
-              contentPadding: EdgeInsets.fromLTRB(0, 0, 10, 0),
+              contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
               leading: Container(
                 color: HexColor(products[i].color),
                 width: 50,
@@ -81,7 +81,7 @@ class _ProductsViewState extends State<ProductsView> {
                     products[i].name.length > 2
                         ? products[i].name.substring(0, 2)
                         : products[i].name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                     ),
                   ),
@@ -90,25 +90,26 @@ class _ProductsViewState extends State<ProductsView> {
               ),
               title: Text(
                 products[i].name,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
+              // ignore: always_specify_types
               trailing: StreamBuilder(
                 stream: vm.database.stockDao.getStockByProductIdStream(
                     branchId: vm.branch.id, productId: products[i].id),
                 builder:
-                    (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+                    (BuildContext context, AsyncSnapshot<List<StockTableData>> snapshot) {
                   if (snapshot.data == null) {
-                    return Text('');
+                    return const SizedBox.shrink();
                   }
 
                   return snapshot.data.length == 1
                       ? Text(
                           'RWF ' + snapshot.data[0].retailPrice.toString(),
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                         )
                       : Text(
                           snapshot.data.length.toString() + ' Prices',
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                         );
                 },
               ),
@@ -120,13 +121,13 @@ class _ProductsViewState extends State<ProductsView> {
     if (!widget.showCreateItemOnTop) {
       addItemRow(list, context, widget.createButtonName);
     }
-    ;
+    
     return list;
   }
 
   void onSellingItem(
       BuildContext context, List<ProductTableData> products, int i) async {
-    List<Variation> variants = await buildVariantsList(context, products, i);
+    final List<Variation> variants = await buildVariantsList(context, products, i);
 
     dispatchCurrentProductVariants(context, variants, products, i);
 
@@ -143,7 +144,7 @@ class _ProductsViewState extends State<ProductsView> {
     StoreProvider.of<AppState>(context).dispatch(
       CurrentActiveSaleProduct(
         product: Product(
-          (b) => b
+          (ProductBuilder b) => b
             ..name = products[i].name
             ..description = products[i].description
             ..isCurrentUpdate = products[i].isCurrentUpdate
@@ -164,20 +165,20 @@ class _ProductsViewState extends State<ProductsView> {
 
   Future<List<Variation>> buildVariantsList(
       BuildContext context, List<ProductTableData> products, int i) async {
-    List<VariationTableData> variations =
+    final List<VariationTableData> variations =
         await StoreProvider.of<AppState>(context)
             .state
             .database
             .variationDao
             .getVariationByItemId(productId: products[i].id);
 
-    List<Variation> variants = [];
-    for (var i = 0; i < variations.length; i++) {
+    final List<Variation> variants = [];
+    for (int i = 0; i < variations.length; i++) {
       variants.add(
         Variation(
-          (b) => b
+          (VariationBuilder b) => b
             ..sku = variations[i].sku ??
-                'none' //TODO(richard): check if a variant can be save with no default sku
+                'none' 
             ..productId = variations[i].productId
             ..id = variations[i].id
             ..name = variations[i].name,
@@ -222,17 +223,17 @@ class _ProductsViewState extends State<ProductsView> {
   void itemRow(List<Widget> list, BuildContext context) {
     return list.add(
       ListTile(
-        contentPadding: EdgeInsets.all(0),
+        contentPadding: const EdgeInsets.all(0),
         leading: Container(
           width: 50,
           color: HexColor(FlipperColors.gray),
           child: IconButton(
-            icon: Icon(Icons.star_border),
+            icon: const Icon(Icons.star_border),
             color: Colors.white,
             onPressed: () {},
           ),
         ),
-        title: Text(
+        title: const Text(
           'Reedeem Rewards',
           style: TextStyle(color: Colors.black),
         ),
@@ -258,10 +259,10 @@ class _ProductsViewState extends State<ProductsView> {
           );
         },
         child: ListTile(
-          leading: Icon(Icons.add),
+          leading: const Icon(Icons.add),
           title: Text(
             createButtonName,
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
           ),
         ),
       ),

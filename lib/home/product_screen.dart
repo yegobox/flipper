@@ -1,29 +1,27 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/products/product_view_widget.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/theme.dart';
-import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ProductScreen extends StatefulWidget {
-  ProductScreen({Key key}) : super(key: key);
+  const ProductScreen({Key key}) : super(key: key);
   @override
   _ProductScreenState createState() => _ProductScreenState();
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  bool _isEmpty = true;
-  bool _hasErrors = false;
+  final bool _isEmpty = true;
+  final bool _hasErrors = false;
 
-  String _filter_key;
+  String _filterKey;
 
   @override
   Widget build(BuildContext context) {
-    final theme = _hasErrors
+    final InputDecorationTheme theme = _hasErrors
         ? AppTheme.inputDecorationErrorTheme
         : (_isEmpty
             ? AppTheme.inputDecorationEmptyTheme
@@ -31,7 +29,7 @@ class _ProductScreenState extends State<ProductScreen> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           body: Column(
             children: <Widget>[
@@ -47,15 +45,15 @@ class _ProductScreenState extends State<ProductScreen> {
                           keyboardType: TextInputType.text,
                           maxLength: 20,
                           enabled: true,
-                          onChanged: (value) {
+                          onChanged: (String value) {
                             if (value != null || value != '') {
                               setState(() {
-                                _filter_key = value;
+                                _filterKey = value;
                               });
                             }
                           },
                           style: GoogleFonts.lato(fontStyle: FontStyle.normal),
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             hintText: 'Search',
                           ).applyDefaults(theme),
                         ),
@@ -68,22 +66,21 @@ class _ProductScreenState extends State<ProductScreen> {
                 child: StreamBuilder(
                   stream: vm.database.productDao
                       .getProductStream(branchId: vm.branch.id),
-                  builder: (context,
+                  builder: (BuildContext context,
                       AsyncSnapshot<List<ProductTableData>> products) {
                     List<ProductTableData> productfilter;
                     if (products.data == null) {
-                      return Text('');
+                      return const SizedBox.shrink();
                     }
-                    if (_filter_key != null && _filter_key != '') {
+                    if (_filterKey != null && _filterKey != '') {
                       productfilter = products.data
-                          .where((element) => element.name
+                          .where((ProductTableData element) => element.name
                               .toUpperCase()
-                              .contains(_filter_key.toUpperCase()))
+                              .contains(_filterKey.toUpperCase()))
                           .toList();
                     } else {
                       productfilter = products.data;
                     }
-
                     return ProductsView(
                       context: context,
                       data: productfilter,

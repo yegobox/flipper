@@ -24,7 +24,8 @@ import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:redux/src/store.dart';
+import 'package:redux/redux.dart';
+
 import 'package:stacked_services/stacked_services.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -37,8 +38,9 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
+  // ignore: always_declare_return_types
   _onClose(BuildContext context) async {
     _navigationService.pop();
   }
