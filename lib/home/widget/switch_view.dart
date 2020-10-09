@@ -1,4 +1,5 @@
 import 'package:flipper/home/homescreen.dart';
+import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/converters/switcher.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
@@ -52,8 +53,7 @@ class SwitchView extends StatelessWidget {
                         height: 60,
                         child: FlatButton(
                           onPressed: () {
-                            
-                            _navigationService.navigateTo(Routing.openCloseDrawerview,arguments: OpenCloseDrawerViewArguments(vm: vm));
+                            _navigationService.navigateTo(Routing.openCloseDrawerview,arguments: OpenCloseDrawerViewArguments(vm: vm,businessState:BusinessState.OPEN));
                           },
                           color: Colors.blue,
                           child: const Text(

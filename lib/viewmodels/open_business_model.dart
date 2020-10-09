@@ -15,17 +15,19 @@ class OpenBusinessModel extends BaseModel {
   final Logger log = Logging.getLogger('Database service  Model ....');
 
   Future<void> openBusiness(
-      {double openingFloat,
-      double closingFloat,
+      {double float,
+      String note,
       String documentId,
+      String businessState,
       CommonViewModel vm}) async {
     setBusy(true);
 
     await _databaseService.saveDrawerHistory(
-      openingFloat: openingFloat,
+      float: float,
       businessId: vm.currentBusiness.id,
+      businessState: businessState,
       userId: vm.userId.toString(),
-      closingFloat: closingFloat,
+      note: note,
     );
     await _databaseService.openCloseBusiness(
       businessId: vm.currentBusiness.id,

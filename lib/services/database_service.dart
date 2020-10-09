@@ -1,5 +1,6 @@
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/couchbase.dart';
+import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -11,15 +12,17 @@ class DatabaseService {
   final Logger log = Logging.getLogger('Database service  Model ....');
 
   Future<void> saveDrawerHistory({
-    double openingFloat,
-    double closingFloat,
+    double float,
+    String note,
     String businessId,
     String userId,
+    BusinessState businessState,
   }) async {
     // ignore: always_specify_types
     final Map<String,dynamic> businessMap ={
-      'openingFloat': openingFloat,
-      'closingFloat': closingFloat,
+      'float': float,
+      'businessState': businessState== BusinessState.OPEN?'Open':'Close',
+      'note': note,
       'businessId': businessId,
       'userId': userId,
       // ignore: always_specify_types

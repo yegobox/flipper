@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 Future<void> openBusiness({
   OpenBusinessModel model,
   CommonViewModel vm,
+  bool open = false,
   String documentId,
-  TextEditingController closeFLoat,
-  TextEditingController openFLoat
+  String businessState,
+  TextEditingController note,
+  TextEditingController float
 }) async {
   model.openBusiness(
     vm: vm,
     documentId: documentId,
-    closingFloat: double.parse(openFLoat.text),
-    openingFloat: double.parse(closeFLoat.text),
+    float: double.parse(float.text),
+    businessState:businessState,
+    note: note.text,
   );
 }

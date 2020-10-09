@@ -5,16 +5,16 @@ import 'package:flipper_login/helpers/style.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
-
+enum BusinessState { OPEN, CLOSE }
 // ignore: must_be_immutable
 class OpenCloseDrawerView extends StatelessWidget {
-  OpenCloseDrawerView({Key key,this.vm}) : super(key: key);
+  OpenCloseDrawerView({Key key,this.vm,this.businessState=BusinessState.OPEN}) : super(key: key);
   final CommonViewModel vm;
+  BusinessState businessState;
   
-  final TextEditingController _closeFLoat = TextEditingController();
-  final TextEditingController _openFLoat = TextEditingController();
+  final TextEditingController _note = TextEditingController();
+  final TextEditingController _float = TextEditingController();
 
-  
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +50,12 @@ class OpenCloseDrawerView extends StatelessWidget {
                               ]),
                           child: TextField(
                             keyboardType: TextInputType.number,
-                            controller: _openFLoat,
-                            decoration: const InputDecoration(
-                                icon: Icon(Icons.monetization_on, color: grey),
+                            controller: _float,
+                            decoration:  InputDecoration(
+                                icon: const Icon(Icons.monetization_on, color: grey),
                                 border: InputBorder.none,
-                                hintText: 'open float',
-                                hintStyle: TextStyle(
+                                hintText:  businessState==BusinessState.OPEN? 'Opening float':'Closing float',
+                                hintStyle:const TextStyle(
                                     color: grey,
                                     fontFamily: 'Sen',
                                     fontSize: 18)),
@@ -75,12 +75,12 @@ class OpenCloseDrawerView extends StatelessWidget {
                                     blurRadius: 2)
                               ]),
                           child: TextField(
-                            keyboardType: TextInputType.number,
-                            controller: _closeFLoat,
+                            keyboardType: TextInputType.text,
+                            controller: _note,
                             decoration: const InputDecoration(
-                                icon: Icon(Icons.monetization_on, color: grey),
+                                // icon: Icon(Icons.pen, color: grey),
                                 border: InputBorder.none,
-                                hintText: 'close float',
+                                hintText: 'Add note',
                                 hintStyle: TextStyle(
                                     color: grey,
                                     fontFamily: 'Sen',
@@ -101,19 +101,20 @@ class OpenCloseDrawerView extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.all(0.0),
                             onPressed: () {
-                              // test the saving model to validate how update is done.
-                              
+                             
                               openBusiness(
                                 model: model,
+                                open: businessState==BusinessState.OPEN?true:false,
                                 vm:vm,
-                                closeFLoat: _closeFLoat,
-                                openFLoat: _openFLoat
+                                note: _note,
+                                businessState:businessState,
+                                float: _float
                               );
                             },
-                            child: const Text(
-                              'Open',
+                            child:  Text(
+                              businessState==BusinessState.OPEN?'Open':'Close',
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
+                                  const TextStyle(color: Colors.white, fontSize: 20),
                             ),
                           ),
                         )

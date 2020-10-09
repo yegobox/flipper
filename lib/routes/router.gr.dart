@@ -404,8 +404,10 @@ class Routing {
         final typedArgs = args as OpenCloseDrawerViewArguments ??
             OpenCloseDrawerViewArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              OpenCloseDrawerView(key: typedArgs.key, vm: typedArgs.vm),
+          builder: (_) => OpenCloseDrawerView(
+              key: typedArgs.key,
+              vm: typedArgs.vm,
+              businessState: typedArgs.businessState),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -546,5 +548,7 @@ class CameraPreviewArguments {
 class OpenCloseDrawerViewArguments {
   final Key key;
   final CommonViewModel vm;
-  OpenCloseDrawerViewArguments({this.key, this.vm});
+  final BusinessState businessState;
+  OpenCloseDrawerViewArguments(
+      {this.key, this.vm, this.businessState = BusinessState.OPEN});
 }
