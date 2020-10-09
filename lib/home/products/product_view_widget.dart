@@ -36,7 +36,7 @@ class ProductsView extends StatefulWidget {
 }
 
 class _ProductsViewState extends State<ProductsView> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   List<Widget> getProducts(List<ProductTableData> products,
       BuildContext context, CommonViewModel vm) {

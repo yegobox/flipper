@@ -11,14 +11,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class CreateOptionsWidget extends StatelessWidget {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Dialog(
           child: Container(
             width: 400,
@@ -86,7 +86,7 @@ class CreateOptionsWidget extends StatelessWidget {
 
   //create a temporal product with default regular variant to be updated along the way while creating the product
   //if such product with tmp name exist return it.
-  Future _createTemporalItem(CommonViewModel vm, BuildContext context) async {
+  Future<void> _createTemporalItem(CommonViewModel vm, BuildContext context) async {
     DataManager.createTempProduct(StoreProvider.of<AppState>(context), 'tmp');
   }
 }

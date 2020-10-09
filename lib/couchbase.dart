@@ -155,12 +155,12 @@ class AppDatabase {
           database.addChangeListener((lite.DatabaseChange dbChange) async {
         for (String id in dbChange.documentIDs) {
           log.d('change in id: $id');
-          // final lite.Document document = await database.document(id);
-          // if (document != null) {
-          //   final lite.MutableDocument mutableDoc =
-          //       document.toMutable().setString('id', id); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
-          //   database.saveDocument(mutableDoc);
-          // }
+          final lite.Document document = await database.document(id);
+          if (document != null) { //until we save document right in all place keep this code here to keep things smooth.
+            final lite.MutableDocument mutableDoc =
+                document.toMutable().setString('id', id); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
+            database.saveDocument(mutableDoc);
+          }
         }
       });
 
