@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+
+import 'converters/serializers.dart';
 
 part 'tax.g.dart';
+
 
 //Note: it is highligy recommended to know that even if we mark the field as nullable
 //they are required when mass assigning, it is only marked as required
@@ -11,6 +17,9 @@ abstract class Tax implements Built<Tax, TaxBuilder> {
   String get name;
   String get id;
 
+  bool get touched;
+  String get tableName;
+  
   bool get isDefault;
 
   double get percentage;
@@ -20,4 +29,24 @@ abstract class Tax implements Built<Tax, TaxBuilder> {
   Tax._();
   // ignore: sort_constructors_first
   factory Tax([void Function(TaxBuilder) updates]) = _$Tax;
+
+  
+  String toJson() {
+    return json.encode(toMap());
+  }
+  // ignore: always_specify_types
+  Map toMap() {
+    return standardSerializers.serializeWith(Tax.serializer, this);
+  }
+
+  Tax fromJson(String jsonString) {
+    return fromMap(json.decode(jsonString));
+  }
+
+  // ignore: always_specify_types
+  static Tax fromMap(Map jsonMap) {
+    return standardSerializers.deserializeWith(Tax.serializer, jsonMap);
+  }
+
+  static Serializer<Tax> get serializer => _$taxSerializer;
 }

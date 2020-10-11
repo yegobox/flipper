@@ -185,6 +185,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.15.0-nullsafety.3"
+  contacts_service:
+    dependency: transitive
+    description:
+      name: contacts_service
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.10"
   convert:
     dependency: transitive
     description:
@@ -359,7 +366,7 @@ packages:
       path: "../.."
       relative: true
     source: path
-    version: "1.5.169"
+    version: "1.5.171"
   flipper_ui:
     dependency: transitive
     description:
@@ -676,6 +683,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.11.4"
+  mailer:
+    dependency: transitive
+    description:
+      name: mailer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.1"
   matcher:
     dependency: transitive
     description:

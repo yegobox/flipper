@@ -101,7 +101,7 @@ abstract class CommonViewModel
   Product get customItem;
 
   @nullable
-  int get tempCategoryId;
+  String get tempCategoryId;
 
   @nullable
   Product get tmpItem;

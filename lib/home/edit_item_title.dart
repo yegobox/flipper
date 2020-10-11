@@ -1,17 +1,21 @@
+import 'dart:io';
+
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/image.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -24,6 +28,8 @@ class EditItemTitle extends StatefulWidget {
 }
 
 class _EditItemTitleState extends State<EditItemTitle> {
+  final DatabaseService _databaseService = locator<DatabaseService>();
+  
   @override
   void initState() {
     super.initState();
@@ -218,13 +224,14 @@ class _EditItemTitleState extends State<EditItemTitle> {
       store.state.database.productDao.updateProduct(product.copyWith(
           picture: compresedFile.path, isImageLocal: true, hasPicture: true));
 
-      ProductTableData productUpdated = await store.state.database.productDao
-          .getItemById(productId: widget.productId);
-
+      // ProductTableData productUpdated = await store.state.database.productDao
+      //     .getItemById(productId: widget.productId);
+      final Product productUpdated = await _databaseService.getById(id:widget.productId);
+      
       DataManager.dispatchProduct(store, productUpdated);
 
       store.dispatch(ImagePreview(
-          image: ImageP((img) => img
+          image: ImageP((ImagePBuilder img) => img
             ..path = compresedFile.path
             ..isLocal = true)));
 

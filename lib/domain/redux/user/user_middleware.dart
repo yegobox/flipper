@@ -21,6 +21,7 @@ List<Middleware<AppState>> userMiddleware(
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _createUser(
         GlobalKey<NavigatorState> navigatorKey, UserRepository userRepository) {
+  // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     if (store.state.user != null) {
       final FUser user = store.state.user;

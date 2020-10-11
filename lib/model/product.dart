@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+
+import 'converters/serializers.dart';
 
 part 'product.g.dart';
 
@@ -9,6 +14,7 @@ part 'product.g.dart';
 //in technical document of database design.
 abstract class Product implements Built<Product, ProductBuilder> {
   String get name;
+  String get id;
   String get productId;
   @nullable
   String get description;
@@ -24,6 +30,9 @@ abstract class Product implements Built<Product, ProductBuilder> {
   @nullable
   bool get isImageLocal;
 
+  bool get touched;
+  String get tableName;
+
   @nullable
   bool get isDraft;
   @nullable
@@ -33,14 +42,11 @@ abstract class Product implements Built<Product, ProductBuilder> {
   @nullable
   String get businessId;
 
-  //nullable are not and should not be in mater data model
-  //they are here for local usage as helper.
   @nullable
   String get supplierId;
   @nullable
   String get categoryId;
 
-  //columns that is not needed when presenting model.
   @nullable
   String get createdAt;
 
@@ -52,6 +58,31 @@ abstract class Product implements Built<Product, ProductBuilder> {
 
   @nullable
   int get count;
+  
+  // ignore: sort_constructors_first
   Product._();
-  factory Product([void Function(ProductBuilder) updates]) = _$Product;
+  // ignore: sort_unnamed_constructors_first
+  // ignore: sort_constructors_first
+  factory Product([updates(ProductBuilder b)]) = _$Product;
+
+
+  
+  String toJson() {
+    return json.encode(toMap());
+  }
+
+  // ignore: always_specify_types
+  Map toMap() {
+    return standardSerializers.serializeWith(Product.serializer, this);
+  }
+
+  Product fromJson(String jsonString) {
+    return fromMap(json.decode(jsonString));
+  }
+
+  static Product fromMap(Map jsonMap) {
+    return standardSerializers.deserializeWith(Product.serializer, jsonMap);
+  }
+
+  static Serializer<Product> get serializer => _$productSerializer;
 }

@@ -50,7 +50,8 @@ Future<void> main() async {
   }, (Object e, StackTrace s) async {
     // Crashlytics.instance.setBool('runZonedGuarded', true);
     // Crashlytics.instance.setString("stringKey", "{\"test\":\"this is a json error from stringKey\"}");
-    // Crashlytics.instance.log("{\"test\":\"this is a json error\"}");
+    Crashlytics.instance.log(s.toString());
+    
     await Crashlytics.instance.recordFlutterError(e);
   });
 }

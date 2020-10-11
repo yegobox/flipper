@@ -97,7 +97,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
 
   @nullable
-  int get tempCategoryId;
+  String get tempCategoryId;
 
   @nullable
   Unit get currentUnit;

@@ -12,7 +12,6 @@ import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
-import 'package:flipper/model/category.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -24,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -63,7 +63,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
-
+   
     final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
     if (!isLoggedIn) {
       _navigationService.navigateTo(Routing.afterSplash);
@@ -75,12 +75,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
+    // ignore: always_specify_types
+    
     await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
 
-    await AppDatabase.instance.syncRemoteToLocal(store: store);
-
-    AppDatabase.instance.dbListner(store: store);
   };
 }
 
@@ -176,23 +175,6 @@ Future<List<Branch>> getBranches(
   }
   store.dispatch(OnBranchLoaded(branches: branches));
   return branches;
-}
-
-List<Category> loadSystemCategories(List<CategoryTableData> categoryList) {
-  final List<Category> categories = [];
-  // ignore: avoid_function_literals_in_foreach_calls
-  categoryList.forEach((CategoryTableData c) => {
-        categories.add(
-          Category(
-            (CategoryBuilder u) => u
-              ..name = c.name
-              ..focused = c.focused
-              ..branchId = u.branchId ?? 0
-              ..id = c.id,
-          ),
-        )
-      });
-  return categories;
 }
 
 void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {

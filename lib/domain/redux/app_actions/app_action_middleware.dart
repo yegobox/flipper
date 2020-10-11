@@ -3,7 +3,10 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/unit.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
+import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -51,20 +54,13 @@ void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
         NextDispatcher next)
     _createTempCategory(GlobalKey<NavigatorState> navigatorKey,
         GeneralRepository generalRepository) {
-  return (store, action, next) async {
+  // ignore: always_specify_types
+  return (Store<AppState> store, CreateEmptyTempCategoryAction action, next) async {
     if (store.state.branch != null) {
-      final categoryId = await generalRepository.insertCategory(
-        store,
-        //ignore: missing_required_param
-        CategoryTableData(
-          branchId: store.state.branch.id,
-          id: Uuid().v1(),
-          focused: true,
-          name: action.name,
-          createdAt: DateTime.now(),
-        ),
-      );
-      store.dispatch(TempCategoryIdAction(categoryId: categoryId));
+      final DatabaseService _databaseService = locator<DatabaseService>();
+      final Document doc =await   _databaseService.insert(data: {'branchId': store.state.branch.id,'name':action.name});
+      
+      store.dispatch(TempCategoryIdAction(categoryId: doc.id));
     }
   };
 }

@@ -1,17 +1,23 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/locator.dart';
+import 'package:flipper/model/category.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/variation.dart';
+import 'package:flipper/services/database_service.dart';
+import 'package:flipper/util/logger.dart';
 import 'package:flipper/util/upload_response.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,6 +29,7 @@ class DataManager {
   static String description;
   static String sku;
   static String name;
+  
 
   static Future<void> startUploading(
       {String storagePath,
@@ -51,20 +58,27 @@ class DataManager {
       print('uploadProgress:' + progress.toString());
     });
     uploader.result.listen((UploadTaskResponse result) async {
-      final UploadResponse uploadResponse = uploadResponseFromJson(result.response);
-      final ProductTableData product = await store.state.database.productDao
-          .getItemById(productId: uploadResponse.productId);
+      final UploadResponse uploadResponse =
+          uploadResponseFromJson(result.response);
+      // final ProductTableData product = await store.state.database.productDao
+      //     .getItemById(productId: uploadResponse.productId);
+      final DatabaseService _databaseService = locator<DatabaseService>();
+      final Map<String, dynamic> productDoc =
+          await _databaseService.getById(id: uploadResponse.productId);
 
-      await store.state.database.productDao.updateProduct(
-          product.copyWith(picture: uploadResponse.url, isImageLocal: false));
+      final Product product = Product.fromMap(productDoc);
 
-      List<ProductImageTableData> p = await store.state.database.productImageDao
-          .getByid(productId: productId);
-      for (var i = 0; i < p.length; i++) {
-        store.state.database.productImageDao.deleteImageProduct(p[i]);
-      }
+      // TODO(richard): update url here
+      // await store.state.database.productDao.updateProduct(
+      //     pro.copyWith(picture: uploadResponse.url, isImageLocal: false));
+
+      // List<ProductImageTableData> p = await store.state.database.productImageDao
+      //     .getByid(productId: productId);
+      // for (var i = 0; i < p.length; i++) {
+      //   store.state.database.productImageDao.deleteImageProduct(p[i]);
+      // }
       return dispatchProduct(store, product);
-    // ignore: always_specify_types
+      // ignore: always_specify_types
     }, onError: (ex, stacktrace) {
       print('error' + stacktrace.toString());
     });
@@ -72,7 +86,8 @@ class DataManager {
 
   static Future<bool> isInternetAvailable() async {
     try {
-      final List<InternetAddress> result = await InternetAddress.lookup('google.com');
+      final List<InternetAddress> result =
+          await InternetAddress.lookup('google.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         return true;
       }
@@ -90,8 +105,9 @@ class DataManager {
     String variantName,
   }) async {
     if (variation != null) {
-      final StockTableData stock = await store.state.database.stockDao.getStockByVariantId(
-          branchId: store.state.branch.id, variantId: variation.id);
+      final StockTableData stock = await store.state.database.stockDao
+          .getStockByVariantId(
+              branchId: store.state.branch.id, variantId: variation.id);
       final VariationTableData variant = await store.state.database.variationDao
           .getVariationById(variantId: variation.id);
       await store.state.database.variationDao
@@ -111,7 +127,8 @@ class DataManager {
     store.state.database.orderDao.updateOrder(order);
   }
 
-  static Future<void> deleteProduct({Store<AppState> store, String productId}) async {
+  static Future<void> deleteProduct(
+      {Store<AppState> store, String productId}) async {
     final List<StockTableData> stocks = await store.state.database.stockDao
         .getStockByProductId(
             branchId: store.state.branch.id, productId: productId);
@@ -179,106 +196,100 @@ class DataManager {
   static Future<void> createTempProduct(
       Store<AppState> store, String productName) async {
     if (store.state.branch != null) {
-      // TODO(richard): create this in couchbase_lite db instead of sqlite.
-      final CategoryTableData category =
-          await store.state.database.categoryDao.getCategoryByNameBranchId(
-        'custom',
-        store.state.branch.id,
+      final DatabaseService _databaseService = locator<DatabaseService>();
+      // ignore: always_specify_types
+      final category = await _databaseService.filter(
+        equator: 'categories_' + store.state.branch.id,
+        property: 'tableName',
+        and: true, //define that this query is and type.
+        andEquator: 'custom',
+        andProperty: 'name',
+      );
+      final Logger log = Logging.getLogger('Data manager   Model ....');
+      
+      final List<Map<String, dynamic>> product = await _databaseService.filter(
+        equator: productName,
+        property: 'name',
+        and: true,
+        andProperty: 'tableName',
+        andEquator: 'products_' + store.state.branch.id,
       );
 
-      ProductTableData product =
-          await store.state.database.productDao.getItemByName(
-        name: productName,
-        businessId: store.state.currentActiveBusiness.id,
+      final List<Map<String, dynamic>> gettax = await _databaseService.filter(
+        equator: 'taxes_' + store.state.currentActiveBusiness.id,
+        property: 'tableName',
+        and: true, //define that this query is and type.
+        andEquator: 'Vat',
+        andProperty: 'name',
       );
 
-      final TaxTableData tax = await store.state.database.taxDao.getByName(
-          businessId: store.state.currentActiveBusiness.id, name: 'Vat');
+      if (product.isEmpty) {
+        final Document productDoc = await _databaseService.insert(data: {
+          name: productName,
+          'categoryId': Category.fromMap(category[0]['main']).id,
+          'color': '#955be9',
+          'active': true,
+          'hasPicture': false,
+          'tableName': 'products_'+ store.state.branch.id,
+          'isCurrentUpdate': false,
+          'isDraft': true,
+          'picture': 'null',
+          'supplierId': 'null',
+          'taxId': Tax.fromMap(gettax[0]['main']).id,
+          'businessId': store.state.currentActiveBusiness.id,
+          'description': productName,
+          'createdAt': DateTime.now().toIso8601String(),
+        });
 
-      if (product == null) {
-        // ignore: always_specify_types
-        final productId = await store.state.database.productDao.insert(
-          //ignore: missing_required_param
-          ProductTableData(
-            name: productName,
-            categoryId: category?.id,
-            color: '#955be9',
-            active: true,
-            hasPicture: false,
-            isCurrentUpdate: false,
-            isDraft: true,
-            picture: '',
-            supplierId: '',
-            taxId: tax?.id,
-            businessId: store.state.currentActiveBusiness.id,
-            id: Uuid().v1(),
-            description: productName,
-            createdAt: DateTime.now(),
-          ),
-        );
-        product = await store.state.database.productDao
-            .getProductByIdLocal(productId: productId);
+        final Document variant = await _databaseService.insert(data: {
+          'isActive': false,
+          name: productName,
+          'unit': 'kg',
+          'tableName':'variants_'+store.state.branch.id,
+          'productId': productDoc.id,
+          'sku': Uuid().v1().substring(0, 4),
+          'id': Uuid().v1(),
+          'createdAt': DateTime.now().toIso8601String(),
+        });
 
-        // ignore: always_specify_types
-        final variantId = await store.state.database.variationDao.insert(
-          //ignore: missing_required_param
-          VariationTableData(
-            isActive: false,
-            name: productName,
-            unit: 'kg',
-            productId: product.id,
-            sku: Uuid().v1().substring(0, 4),
-            id: Uuid().v1(),
-            createdAt: DateTime.now(),
-          ),
-        );
+        await _databaseService.insert(data: {
+          'variantId': variant.id,
+          'supplyPrice': 0,
+          'canTrackingStock': false,
+          'showLowStockAlert': false,
+          'retailPrice': 0,
+          'isActive': true,
+          'lowStock': 0,
+          'currentStock': 0,
+          'id': Uuid().v1(),
+          'productId': productDoc.id,
+          'branchId': store.state.branch.id,
+          'createdAt': DateTime.now().toIso8601String(),
+        });
 
-        final VariationTableData variant = await store
-            .state.database.variationDao
-            .getVariationByIdLocal(variantId: variantId);
-
-        store.state.database.stockDao.insert(
-          //ignore: missing_required_param
-          StockTableData(
-            variantId: variant.id,
-            supplyPrice: 0,
-            canTrackingStock: false,
-            showLowStockAlert: false,
-            retailPrice: 0,
-            isActive: true,
-            lowStock: 0,
-            currentStock: 0,
-            id: Uuid().v1(),
-            productId: product.id,
-            branchId: store.state.branch.id,
-            createdAt: DateTime.now(),
-          ),
-        );
-
-        //update branchProduct.
-        store.state.database.branchProductDao.insert(
-          //ignore: missing_required_param
-          BranchProductTableData(
-              branchId: store.state.branch.id,
-              productId: product.id,
-              id: Uuid().v1()),
-        );
-
-        dispatchCurrentTmpItem(store, product, productName);
+        await _databaseService.insert(data: {
+          'branchId': store.state.branch.id,
+          'productId': productDoc.id,
+          'tableName':'branchProducts_'+ store.state.branch.id,
+          'id': Uuid().v1()
+        });
+        final Product pro = Product.fromMap(productDoc.toMap());
+        dispatchCurrentTmpItem(store, pro, productName);
       } else {
-        dispatchCurrentTmpItem(store, product, productName);
+        final Product pro = Product.fromMap(product[0]['main']);
+        dispatchCurrentTmpItem(store, pro, productName);
       }
     }
   }
 
-  static void dispatchCurrentTmpItem(Store<AppState> store,
-      ProductTableData product, String productName) async {
+  static void dispatchCurrentTmpItem(
+      Store<AppState> store, Product product, String productName) async {
     VariationTableData variant;
     variant = await store.state.database.variationDao
         .getVariationByName(name: productName, productId: product.id);
 
     variant ??= await store.state.database.variationDao
-          .getVariationByName(name: 'Regular', productId: product.id);
+        .getVariationByName(name: 'Regular', productId: product.id);
     //dispatch this variant.
     store.dispatch(
       VariationAction(
@@ -295,31 +306,14 @@ class DataManager {
     return dispatchProduct(store, product);
   }
 
-  static dynamic dispatchProduct(Store<AppState> store, ProductTableData product) {
+  static dynamic dispatchProduct(Store<AppState> store, Product product) {
     return store.dispatch(
       TempProduct(
-        product: Product(
-          (ProductBuilder i) => i
-            ..isCurrentUpdate = product.isCurrentUpdate
-            ..isDraft = product.isDraft
-            ..taxId = product.taxId
-            ..description = product.description
-            ..isImageLocal = product.isImageLocal
-            ..picture = product.picture
-            ..hasPicture = product.hasPicture
-            ..active = product.active
-            ..color = product.color
-            ..businessId = product.businessId
-            ..supplierId = product.supplierId
-            ..categoryId = product.categoryId
-            ..productId = product.id
-            ..name = product.name
-            ..color = product.color,
-        ),
+        product: product,
       ),
     );
   }
 
   static Future<void> insertProduct(
-      Store<AppState> store, ProductTableData data) async {}
+      Store<AppState> store, Product data) async {}
 }

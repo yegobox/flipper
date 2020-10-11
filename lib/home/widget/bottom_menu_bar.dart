@@ -13,6 +13,7 @@ class BottomMenubar extends StatefulWidget {
   _BottomMenubarState createState() => _BottomMenubarState();
 }
 
+
 class _BottomMenubarState extends State<BottomMenubar> {
   
   @override
@@ -70,6 +71,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
               padding: const EdgeInsets.all(0),
               alignment: const Alignment(0, 0),
               icon: isCustomIcon
+              
                   ? customIcon(context,
                       icon: icon,
                       size: 22,

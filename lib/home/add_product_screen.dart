@@ -13,9 +13,11 @@ import 'package:flipper/home/widget/add_product/section_select_unit.dart';
 import 'package:flipper/home/widget/add_product/sku_field.dart';
 import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
 import 'package:flipper/home/widget/add_product/variation_list.dart';
+import 'package:flipper/home/widget/custom_widgets.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
@@ -38,7 +40,9 @@ class AddProductScreen extends StatefulWidget {
 class _AddProductScreenState extends State<AddProductScreen> {
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService =
+      locator<FlipperNavigationService>();
+  final DatabaseService _databaseService = locator<DatabaseService>();
 
   // ignore: always_declare_return_types
   _onClose(BuildContext context) async {
@@ -136,7 +140,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 .addProduct.textTheme.bodyText1.fontSize,
                           ),
                           validator: Validators.isValid,
-                          onChanged: (name) async {
+                          onChanged: (String name) async {
                             await updateNameField(name, vm);
                           },
                           decoration: const InputDecoration(
@@ -282,24 +286,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return IconButton(
       alignment: Alignment.topLeft,
       icon: const Icon(Icons.close),
+      // icon: customIcon(icon:0xe65e,),
       color: Colors.white,
       onPressed: () async {
         final Store<AppState> store = StoreProvider.of<AppState>(context);
-        final ProductTableData product = await store.state.database.productDao
-            .getItemById(productId: vm.tmpItem.productId);
-        store.state.database.productDao
-            .updateProduct(product.copyWith(picture: '', hasPicture: false));
 
-        final ProductTableData updatedProduct = await store
-            .state.database.productDao
-            .getItemById(productId: vm.tmpItem.productId);
+        // ignore: always_specify_types
+        final updatedProduct =
+            await _databaseService.getById(id: vm.tmpItem.productId);
 
         DataManager.dispatchProduct(store, updatedProduct);
       },
     );
   }
 
-  Future updateNameField(String name, CommonViewModel vm) async {
+  Future<void> updateNameField(String name, CommonViewModel vm) async {
     if (name == '') {
       _getSaveStatus(vm);
       _getSaveItemStatus(vm);
@@ -333,7 +334,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _getSaveStatus(vm);
     if (_actions != null) {
       vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-      final _navigationService = locator<FlipperNavigationService>();
+      final FlipperNavigationService _navigationService =
+          locator<FlipperNavigationService>();
 
       _navigationService.navigateTo(Routing.addVariationScreen,
           arguments: AddVariationScreenArguments(
@@ -363,9 +365,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     await updateProduct(
-        productId: vm.tmpItem.productId,
-        categoryId: store.state.category.id,
-        vm: vm);
+      productId: vm.tmpItem.productId,
+      categoryId: store.state.category.id,
+      vm: vm,
+    );
     final VariationTableData variation = await vm.database.variationDao
         .getVariationById(variantId: vm.variant.id);
 
@@ -377,9 +380,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
       retailPrice: DataManager.retailPrice ?? 0.0,
     );
 
-    //todo: uncomment this soon.
-    //await vm.couch.syncProduct(vm.tmpItem.productId, store);
-
     await resetSaveButtonStatus(vm);
 
     return true;
@@ -387,8 +387,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-    ProductTableData product =
+    final ProductTableData product =
         await vm.database.productDao.getProductById(productId: productId);
+
     await vm.database.productDao.updateProduct(
       product.copyWith(
         name: DataManager.name,

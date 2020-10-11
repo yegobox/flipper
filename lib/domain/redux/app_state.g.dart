@@ -54,7 +54,7 @@ class _$AppState extends AppState {
   @override
   final Database database;
   @override
-  final int tempCategoryId;
+  final String tempCategoryId;
   @override
   final Unit currentUnit;
   @override
@@ -435,9 +435,9 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   Database get database => _$this._database;
   set database(Database database) => _$this._database = database;
 
-  int _tempCategoryId;
-  int get tempCategoryId => _$this._tempCategoryId;
-  set tempCategoryId(int tempCategoryId) =>
+  String _tempCategoryId;
+  String get tempCategoryId => _$this._tempCategoryId;
+  set tempCategoryId(String tempCategoryId) =>
       _$this._tempCategoryId = tempCategoryId;
 
   UnitBuilder _currentUnit;

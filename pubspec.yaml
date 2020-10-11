@@ -103,7 +103,7 @@ dev_dependencies:
   moor_generator: ^3.0.0
   analyzer: 
   built_value_generator: 
-  auto_route_generator: ^0.3.2
+  auto_route_generator: 0.3.2
   flutter_test:
     sdk: flutter
 

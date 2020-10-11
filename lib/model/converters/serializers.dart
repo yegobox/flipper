@@ -5,7 +5,10 @@ import 'package:built_value/serializer.dart';
 import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
 import 'package:flipper/data/models/serializers/boolean_serializer.dart';
+import 'package:flipper/model/category.dart';
 import 'package:flipper/model/converters/switcher.dart';
+import 'package:flipper/model/product.dart';
+import 'package:flipper/model/tax.dart';
 
 
 part 'serializers.g.dart';
@@ -21,7 +24,7 @@ part 'serializers.g.dart';
 /// types needed transitively via fields.
 ///
 /// You usually only need to do this once per project.
-@SerializersFor([Switcher])
+@SerializersFor([Switcher,Category,Tax,Product])
 Serializers serializers = _$serializers;
 
 Serializers standardSerializers = (serializers.toBuilder()

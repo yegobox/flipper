@@ -53,7 +53,7 @@ class CreateEmptyTempCategoryAction {
 
 @immutable
 class TempCategoryIdAction {
-  final int categoryId;
+  final String categoryId;
 
   TempCategoryIdAction({this.categoryId});
 }

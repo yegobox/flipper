@@ -1,15 +1,16 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
+import 'package:flipper/couchbase.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/database_service.dart';
 import 'package:flutter/material.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:uuid/uuid.dart';
 
 class CreateCategoryInputScreen extends StatefulWidget {
-  CreateCategoryInputScreen({Key key}) : super(key: key);
+  const CreateCategoryInputScreen({Key key}) : super(key: key);
 
   @override
   _CreateCategoryInputScreenState createState() =>
@@ -17,12 +18,14 @@ class CreateCategoryInputScreen extends StatefulWidget {
 }
 
 class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
+
+  final DatabaseService _databaseService = locator<DatabaseService>();
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
@@ -37,21 +40,12 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Container(
               child: TextFormField(
-                style: TextStyle(color: Colors.black),
-                onChanged: (name) {
-                  vm.database.categoryDao.updateCategory(
-                    //ignore: missing_required_param
-                    CategoryTableData(
-                      updatedAt: DateTime.now(),
-                      id: Uuid().v1(),
-                      idLocal: vm.tempCategoryId,
-                      focused: false,
-                      branchId: vm.branch.id,
-                      name: name,
-                    ),
-                  );
+                style: const TextStyle(color: Colors.black),
+                onChanged: (String name)async  {
+                  final Document document =  await AppDatabase.instance.database.document(vm.tempCategoryId);
+                  _databaseService.update(document: document.toMutable().setString('updatedAt', DateTime.now().toIso8601String()).setString('name', name));
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                     hintText: 'Name', focusColor: Colors.blue),
               ),
             ),

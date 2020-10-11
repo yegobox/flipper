@@ -34,7 +34,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     next(action);
 
     if (store.state.business != null) {
-      final String businessId = Uuid().v1();
+     
       final Map<String, dynamic> _mapBusiness = {
         'active': true,
         '_id': 'business_' + store.state.userId.toString(),
@@ -52,12 +52,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'updatedAt': DateTime.now().toIso8601String(),
       };
 
-      await AppDatabase.instance.createBusiness(_mapBusiness);
+     final String businessId= await AppDatabase.instance.createBusiness(_mapBusiness);
 
       // ignore: always_specify_types
       final Map<String, dynamic> _notTax = {
         'active': true,
-        '_id': 'taxes_' + store.state.userId.toString(),
+        '_id': 'taxes_' + businessId,
         'channel': store.state.userId.toString(),
         'businessId': businessId,
         'createdAt': DateTime.now().toIso8601String(),
@@ -69,14 +69,15 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       };
 
       await AppDatabase.instance.createTax(_notTax);
+      // ignore: always_specify_types
       final Map<String, dynamic> vat = {
         'active': true,
-        '_id': 'taxes_' + store.state.userId.toString(),
+        '_id': 'taxes_' + businessId,
         'channel': store.state.userId.toString(),
         'businessId': businessId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
-        'id': 'taxes_' + store.state.userId.toString(),
+        'id': 'taxes_' + businessId,
         'isDefault': true,
         'name': 'Vat',
         'percentage': 18,

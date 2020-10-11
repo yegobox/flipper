@@ -66,7 +66,7 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Product customItem;
   @override
-  final int tempCategoryId;
+  final String tempCategoryId;
   @override
   final Product tmpItem;
   @override
@@ -447,9 +447,9 @@ class CommonViewModelBuilder
   ProductBuilder get customItem => _$this._customItem ??= new ProductBuilder();
   set customItem(ProductBuilder customItem) => _$this._customItem = customItem;
 
-  int _tempCategoryId;
-  int get tempCategoryId => _$this._tempCategoryId;
-  set tempCategoryId(int tempCategoryId) =>
+  String _tempCategoryId;
+  String get tempCategoryId => _$this._tempCategoryId;
+  set tempCategoryId(String tempCategoryId) =>
       _$this._tempCategoryId = tempCategoryId;
 
   ProductBuilder _tmpItem;

@@ -6,9 +6,238 @@ part of 'product.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Product> _$productSerializer = new _$ProductSerializer();
+
+class _$ProductSerializer implements StructuredSerializer<Product> {
+  @override
+  final Iterable<Type> types = const [Product, _$Product];
+  @override
+  final String wireName = 'Product';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Product object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'name',
+      serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'productId',
+      serializers.serialize(object.productId,
+          specifiedType: const FullType(String)),
+      'touched',
+      serializers.serialize(object.touched,
+          specifiedType: const FullType(bool)),
+      'tableName',
+      serializers.serialize(object.tableName,
+          specifiedType: const FullType(String)),
+    ];
+    if (object.description != null) {
+      result
+        ..add('description')
+        ..add(serializers.serialize(object.description,
+            specifiedType: const FullType(String)));
+    }
+    if (object.picture != null) {
+      result
+        ..add('picture')
+        ..add(serializers.serialize(object.picture,
+            specifiedType: const FullType(String)));
+    }
+    if (object.taxId != null) {
+      result
+        ..add('taxId')
+        ..add(serializers.serialize(object.taxId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.active != null) {
+      result
+        ..add('active')
+        ..add(serializers.serialize(object.active,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.hasPicture != null) {
+      result
+        ..add('hasPicture')
+        ..add(serializers.serialize(object.hasPicture,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.isImageLocal != null) {
+      result
+        ..add('isImageLocal')
+        ..add(serializers.serialize(object.isImageLocal,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.isDraft != null) {
+      result
+        ..add('isDraft')
+        ..add(serializers.serialize(object.isDraft,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.color != null) {
+      result
+        ..add('color')
+        ..add(serializers.serialize(object.color,
+            specifiedType: const FullType(String)));
+    }
+    if (object.isCurrentUpdate != null) {
+      result
+        ..add('isCurrentUpdate')
+        ..add(serializers.serialize(object.isCurrentUpdate,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.businessId != null) {
+      result
+        ..add('businessId')
+        ..add(serializers.serialize(object.businessId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.supplierId != null) {
+      result
+        ..add('supplierId')
+        ..add(serializers.serialize(object.supplierId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.categoryId != null) {
+      result
+        ..add('categoryId')
+        ..add(serializers.serialize(object.categoryId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.createdAt != null) {
+      result
+        ..add('createdAt')
+        ..add(serializers.serialize(object.createdAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.unit != null) {
+      result
+        ..add('unit')
+        ..add(serializers.serialize(object.unit,
+            specifiedType: const FullType(String)));
+    }
+    if (object.updatedAt != null) {
+      result
+        ..add('updatedAt')
+        ..add(serializers.serialize(object.updatedAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.count != null) {
+      result
+        ..add('count')
+        ..add(serializers.serialize(object.count,
+            specifiedType: const FullType(int)));
+    }
+    return result;
+  }
+
+  @override
+  Product deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new ProductBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'name':
+          result.name = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'productId':
+          result.productId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'description':
+          result.description = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'picture':
+          result.picture = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'taxId':
+          result.taxId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'active':
+          result.active = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'hasPicture':
+          result.hasPicture = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'isImageLocal':
+          result.isImageLocal = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'touched':
+          result.touched = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'tableName':
+          result.tableName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'isDraft':
+          result.isDraft = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'color':
+          result.color = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'isCurrentUpdate':
+          result.isCurrentUpdate = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'businessId':
+          result.businessId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'supplierId':
+          result.supplierId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'categoryId':
+          result.categoryId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'createdAt':
+          result.createdAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'unit':
+          result.unit = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'updatedAt':
+          result.updatedAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'count':
+          result.count = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Product extends Product {
   @override
   final String name;
+  @override
+  final String id;
   @override
   final String productId;
   @override
@@ -23,6 +252,10 @@ class _$Product extends Product {
   final bool hasPicture;
   @override
   final bool isImageLocal;
+  @override
+  final bool touched;
+  @override
+  final String tableName;
   @override
   final bool isDraft;
   @override
@@ -49,6 +282,7 @@ class _$Product extends Product {
 
   _$Product._(
       {this.name,
+      this.id,
       this.productId,
       this.description,
       this.picture,
@@ -56,6 +290,8 @@ class _$Product extends Product {
       this.active,
       this.hasPicture,
       this.isImageLocal,
+      this.touched,
+      this.tableName,
       this.isDraft,
       this.color,
       this.isCurrentUpdate,
@@ -70,8 +306,17 @@ class _$Product extends Product {
     if (name == null) {
       throw new BuiltValueNullFieldError('Product', 'name');
     }
+    if (id == null) {
+      throw new BuiltValueNullFieldError('Product', 'id');
+    }
     if (productId == null) {
       throw new BuiltValueNullFieldError('Product', 'productId');
+    }
+    if (touched == null) {
+      throw new BuiltValueNullFieldError('Product', 'touched');
+    }
+    if (tableName == null) {
+      throw new BuiltValueNullFieldError('Product', 'tableName');
     }
   }
 
@@ -87,6 +332,7 @@ class _$Product extends Product {
     if (identical(other, this)) return true;
     return other is Product &&
         name == other.name &&
+        id == other.id &&
         productId == other.productId &&
         description == other.description &&
         picture == other.picture &&
@@ -94,6 +340,8 @@ class _$Product extends Product {
         active == other.active &&
         hasPicture == other.hasPicture &&
         isImageLocal == other.isImageLocal &&
+        touched == other.touched &&
+        tableName == other.tableName &&
         isDraft == other.isDraft &&
         color == other.color &&
         isCurrentUpdate == other.isCurrentUpdate &&
@@ -126,19 +374,16 @@ class _$Product extends Product {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            0,
-                                                                            name
-                                                                                .hashCode),
-                                                                        productId
-                                                                            .hashCode),
-                                                                    description
-                                                                        .hashCode),
-                                                                picture
-                                                                    .hashCode),
-                                                            taxId.hashCode),
-                                                        active.hashCode),
-                                                    hasPicture.hashCode),
-                                                isImageLocal.hashCode),
+                                                                            $jc($jc($jc(0, name.hashCode), id.hashCode),
+                                                                                productId.hashCode),
+                                                                            description.hashCode),
+                                                                        picture.hashCode),
+                                                                    taxId.hashCode),
+                                                                active.hashCode),
+                                                            hasPicture.hashCode),
+                                                        isImageLocal.hashCode),
+                                                    touched.hashCode),
+                                                tableName.hashCode),
                                             isDraft.hashCode),
                                         color.hashCode),
                                     isCurrentUpdate.hashCode),
@@ -155,6 +400,7 @@ class _$Product extends Product {
   String toString() {
     return (newBuiltValueToStringHelper('Product')
           ..add('name', name)
+          ..add('id', id)
           ..add('productId', productId)
           ..add('description', description)
           ..add('picture', picture)
@@ -162,6 +408,8 @@ class _$Product extends Product {
           ..add('active', active)
           ..add('hasPicture', hasPicture)
           ..add('isImageLocal', isImageLocal)
+          ..add('touched', touched)
+          ..add('tableName', tableName)
           ..add('isDraft', isDraft)
           ..add('color', color)
           ..add('isCurrentUpdate', isCurrentUpdate)
@@ -182,6 +430,10 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   String _name;
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
+
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   String _productId;
   String get productId => _$this._productId;
@@ -210,6 +462,14 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   bool _isImageLocal;
   bool get isImageLocal => _$this._isImageLocal;
   set isImageLocal(bool isImageLocal) => _$this._isImageLocal = isImageLocal;
+
+  bool _touched;
+  bool get touched => _$this._touched;
+  set touched(bool touched) => _$this._touched = touched;
+
+  String _tableName;
+  String get tableName => _$this._tableName;
+  set tableName(String tableName) => _$this._tableName = tableName;
 
   bool _isDraft;
   bool get isDraft => _$this._isDraft;
@@ -257,6 +517,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   ProductBuilder get _$this {
     if (_$v != null) {
       _name = _$v.name;
+      _id = _$v.id;
       _productId = _$v.productId;
       _description = _$v.description;
       _picture = _$v.picture;
@@ -264,6 +525,8 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
       _active = _$v.active;
       _hasPicture = _$v.hasPicture;
       _isImageLocal = _$v.isImageLocal;
+      _touched = _$v.touched;
+      _tableName = _$v.tableName;
       _isDraft = _$v.isDraft;
       _color = _$v.color;
       _isCurrentUpdate = _$v.isCurrentUpdate;
@@ -297,6 +560,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
     final _$result = _$v ??
         new _$Product._(
             name: name,
+            id: id,
             productId: productId,
             description: description,
             picture: picture,
@@ -304,6 +568,8 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
             active: active,
             hasPicture: hasPicture,
             isImageLocal: isImageLocal,
+            touched: touched,
+            tableName: tableName,
             isDraft: isDraft,
             color: color,
             isCurrentUpdate: isCurrentUpdate,

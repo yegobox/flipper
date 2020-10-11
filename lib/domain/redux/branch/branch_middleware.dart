@@ -26,12 +26,14 @@ List<Middleware<AppState>> createBranchMiddleware(
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _onBusinessCreated(GlobalKey<NavigatorState> navigatorKey,
         BranchRepository branchRepo, GeneralRepository generalRepository) {
-  return (store, action, next) async {
+  // ignore: always_specify_types
+  return (Store<AppState> store, action, next) async {
     store.dispatch(ResetAppAction());
 
     //final branchId = await branchRepo.insertBranch(store, branch);
     //create tax for this branch
 
+    // ignore: always_specify_types
     final Map<String, dynamic> _mapBranch = {
       'active': true,
       'name': store.state.business.name,
@@ -52,6 +54,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _onSetBranchHint(
         GlobalKey<NavigatorState> navigatorKey, BranchRepository branchRepo) {
+  // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     final List<BranchTableData> branches = await branchRepo.getBranches(store);
     if (store.state.branch == null) {

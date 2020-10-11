@@ -3,6 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/model/order.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:redux/redux.dart';
@@ -11,7 +12,7 @@ import 'package:uuid/uuid.dart';
 class GeneralRepository {
   Future<int> insertTabs(Store<AppState> store, int value) {
     //ignore:missing_required_param
-    var tab = new TabsTableData(tab: value, id: 1);
+    final TabsTableData tab = TabsTableData(tab: value, id: 1);
     return store.state.database.tabsDao.insert(tab);
   }
 
@@ -38,14 +39,14 @@ class GeneralRepository {
 
   Future<bool> updateTab(Store<AppState> store, int value) {
     //ignore:missing_required_param
-    final b = TabsTableData(id: 1, tab: value);
+    final TabsTableData b = TabsTableData(id: 1, tab: value);
     return store.state.database.tabsDao.updateTab(b);
   }
 
   Future<bool> updateUnit(Store<AppState> store, Unit unit) {
     //ignore:missing_required_param
-    final b =
-        UnitTableData(id: unit.id, name: unit.name, focused: unit.focused);
+    final UnitTableData b =
+        UnitTableData(id: unit.id, name: unit.name, focused: unit.focused, value: null);
     return store.state.database.unitDao.updateUnit(b);
   }
 
@@ -57,7 +58,7 @@ class GeneralRepository {
     return store.state.database.unitDao.getUnits();
   }
 
-  Future<int> insertItem(Store<AppState> store, ProductTableData data) async {
+  Future<dynamic> insertItem(Store<AppState> store, Product data) async {
     return DataManager.insertProduct(store, data);
   }
 
@@ -65,7 +66,7 @@ class GeneralRepository {
     return store.state.database.categoryDao.getCategories();
   }
 
-  Future<int> insertCustomCategory(
+  Future<void> insertCustomCategory(
       Store<AppState> store, CategoryTableData category) async {
     CategoryTableData categoryData =
         await store.state.database.categoryDao.getCategoryName(category.name);
@@ -77,20 +78,6 @@ class GeneralRepository {
     categoryData =
         await store.state.database.categoryDao.getCategoryName(category.name);
 
-    // TODO(richard): fix this deprecated code.
-    // store.dispatch(
-    //   CustomCategory(
-    //     category: Category(
-    //       (u) => u
-    //         ..name = categoryData.name
-    //         ..focused = categoryData.focused
-    //         ..branchId = categoryData.branchId
-    //         ..id = categoryData.id,
-    //     ),
-    //   ),
-    // );
-
-    // return categoryData.id;
   }
 
   Future<int> insertCategory(

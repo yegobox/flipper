@@ -25,7 +25,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return SafeArea(
           top: true,
           child: Center(
@@ -36,19 +36,24 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   _hamburger(),
                   Align(
                     alignment: Alignment.center,
+                    // ignore: always_specify_types
                     child: StreamBuilder(
+                      // FIXME(richard): replace this with couchbaselite too
                       stream: vm.database.orderDetailDao
-                          .getCartsStream(vm.order.id.toString()),
-                      builder: (context,
+                      // there was this: vm.order==null?null:vm.order.id.toString()
+                          .getCartsStream(null),
+                      builder: (BuildContext context,
                           AsyncSnapshot<List<OrderDetailTableData>>
                               orderDetail) {
+                        // ignore: always_specify_types
                         final quantity = orderDetail.data == null
                             ? 0
                             : orderDetail.data
-                                .fold(0, (a, b) => a + b.quantity);
+                                // ignore: always_specify_types
+                                .fold(0, (a, OrderDetailTableData b) => a + b.quantity);
                         return FlatButton(
                           onPressed: () {
-                            final _navigationService =
+                            final FlipperNavigationService _navigationService =
                                 locator<FlipperNavigationService>();
 
                             List<Cart> cart = [];
@@ -144,5 +149,5 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(AppTheme.appBarSize);
+  Size get preferredSize => const Size.fromHeight(AppTheme.appBarSize);
 }

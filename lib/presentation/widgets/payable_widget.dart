@@ -38,10 +38,13 @@ class _PayableWidgetState extends State<PayableWidget> {
         return Container(
           height: 66,
           color: AppColors.darkBlue,
+          // FIXME(richard): use couchbaselite here too
+          // ignore: always_specify_types
           child: StreamBuilder(
             //always take the current order Id which should always be an a draft order.
             stream: vm.database.orderDetailDao
-                .getCartsStream(vm.order.id.toString()),
+            // vm.order.id.toString()
+                .getCartsStream(null),
             builder: (BuildContext context, AsyncSnapshot<List<OrderDetailTableData>> cart) {
               int cashReceived = 0;
               if (cart.data != null) {
@@ -112,12 +115,15 @@ class _PayableWidgetState extends State<PayableWidget> {
   }
 
   void _getOrderCart() async {
-    final orderId = StoreProvider.of<AppState>(context).state.order.id;
+    // FIXME(richard): fix order so it wont be null
+    // final orderId = StoreProvider.of<AppState>(context).state.order.id;
+    
     List<OrderDetailTableData> carts = await StoreProvider.of<AppState>(context)
         .state
         .database
         .orderDetailDao
-        .getCart(orderId.toString());
+        // orderId.toString()
+        .getCart(null);
 
     _getPayable(carts, context);
   }

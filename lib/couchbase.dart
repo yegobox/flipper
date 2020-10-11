@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/observable_response.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/tax.dart';
+import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,7 +26,7 @@ class AppDatabase {
   AppDatabase._internal();
 
   static final AppDatabase instance = AppDatabase._internal();
-  final Logger log = Logging.getLogger('Firestore service ....');
+  final Logger log = Logging.getLogger('Old Database service ....');
 
   String dbName = 'main';
   // ignore: always_specify_types
@@ -156,9 +158,17 @@ class AppDatabase {
         for (String id in dbChange.documentIDs) {
           log.d('change in id: $id');
           final lite.Document document = await database.document(id);
-          if (document != null) { //until we save document right in all place keep this code here to keep things smooth.
-            final lite.MutableDocument mutableDoc =
-                document.toMutable().setString('id', id); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
+          //until we save document right in all place keep this code here to keep things smooth.
+          if (document != null && !document.getBoolean('touched')) {
+            //only update once to avoid infinite loop
+            log.i('updated non touched document,we update the document to make the id be usable for update');
+            final lite.MutableDocument mutableDoc = document
+                .toMutable()
+                .setBoolean('touched', true)
+                .setString(
+                  'id',
+                  id,
+                ); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
             database.saveDocument(mutableDoc);
           }
         }
@@ -221,9 +231,8 @@ class AppDatabase {
 
   //create lite branch
 
-  Future<dynamic> createTax(Map map) async {
-    lite.Document doc = await database.document(map['id']);
-
+  // ignore: always_specify_types
+  Future<dynamic> createTax(map) async {
     assert(map['channel'] != null);
     assert(map['name'] != null);
     assert(map['active'] != null);
@@ -235,42 +244,13 @@ class AppDatabase {
 
     // ignore: always_specify_types
     final List<Map> m = [map];
-    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
-        .from(dbName)
-        .where(lite.Expression.property('id')
-            .equalTo(lite.Expression.string(map['id'])));
-    // Run the query.
-    try {
-      final lite.ResultSet result = await query.execute();
-
-      if (!result.allResults().isNotEmpty) {
-        final lite.MutableDocument mutableDoc = lite.MutableDocument()
-            .setList('taxes', m)
-            .setString('id', map['id'])
-            // ignore: always_specify_types
-            .setList('channels', [map['channel']])
-            .setString('uid', Uuid().v1())
-            .setString('_id', map['_id']);
-        try {
-          await database.saveDocument(mutableDoc);
-        } on PlatformException {
-          return 'Error saving document';
-        }
-      } else {
-        //todo: deal with result return [] of them.....
-        final List<Map<String, dynamic>> model = result.map((result) {
-          // return Beer.fromMap();
-          return result.toMap();
-        }).toList();
-      }
-    } on PlatformException {
-      // ignore: prefer_single_quotes
-      return "Error running the query";
-    }
+    final DatabaseService _databaseService = locator<DatabaseService>();
+    // TODO: discuss with @ganze to abandon saving array within a document
+    _databaseService.insert(id:map['id'],data:{'taxes':m});
   }
 
   //create business.
-  Future<dynamic> createBusiness(Map map) async {
+  Future<String> createBusiness(Map map) async {
     //if user has business do nothing
 
     assert(map['_id'] != null);
@@ -291,38 +271,9 @@ class AppDatabase {
 
     // ignore: always_specify_types
     final List<Map> m = [map];
-    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
-        .from(dbName)
-        .where(lite.Expression.property('id')
-            .equalTo(lite.Expression.string(map['id'])));
-    // Run the query.
-    try {
-      final lite.ResultSet result = await query.execute();
-
-      if (!result.allResults().isNotEmpty) {
-        final lite.MutableDocument mutableDoc = lite.MutableDocument()
-            .setList('businesses', m)
-            .setString('id', map['id'])
-            // ignore: always_specify_types
-            .setList('channels', [map['channel']])
-            .setString('uid', Uuid().v1())
-            .setString('_id', map['_id']);
-        try {
-          await database.saveDocument(mutableDoc);
-        } on PlatformException {
-          return 'Error saving document';
-        }
-      } else {
-        //todo: deal with result return [] of them.....
-        final List<Map<String, dynamic>> model = result.map((result) {
-          // return Beer.fromMap();
-          return result.toMap();
-        }).toList();
-      }
-    } on PlatformException {
-      // ignore: prefer_single_quotes
-      return "Error running the query";
-    }
+    final DatabaseService _databaseService = locator<DatabaseService>();
+    _databaseService.insert(id:map['id'],data:{'businesses':m});
+    return map['id'];
   }
 
   //create user
@@ -341,40 +292,8 @@ class AppDatabase {
 
     // ignore: always_specify_types
     final List<Map> m = [map];
-    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
-        .from(dbName)
-        .where(lite.Expression.property('id')
-            .equalTo(lite.Expression.string(map['id'])));
-
-    // Run the query.
-    try {
-      final lite.ResultSet result = await query.execute();
-      // ignore: prefer_single_quotes
-      // print("Number of rows :: ${result.allResults().length}");
-      if (!result.allResults().isNotEmpty) {
-        final lite.MutableDocument mutableDoc = lite.MutableDocument()
-            .setList('users', m)
-            .setString('id', map['id'])
-            .setList('channels', [map['channel']])
-            .setString('uid', 'uid')
-            .setString('_id', map['_id']);
-        try {
-          await database.saveDocument(mutableDoc);
-        } on PlatformException {
-          return 'Error saving document';
-        }
-      } else {
-        //todo: deal with result return [] of them.....
-        final List<Map<String, dynamic>> model =
-            result.map((lite.Result result) {
-          // return Beer.fromMap();
-          return result.toMap();
-        }).toList();
-      }
-    } on PlatformException {
-      // ignore: prefer_single_quotes
-      return "Error running the query";
-    }
+    final DatabaseService _databaseService = locator<DatabaseService>();
+    _databaseService.insert(id:map['id'],data:{'users':m});
   }
 
   Future<dynamic> getDocumentByFilter(
@@ -430,10 +349,7 @@ class AppDatabase {
     //load taxes:
     await syncTaxesRLocal(store);
     //end loading taxes
-    //category
-    await syncCategoriesRLocal(store);
-    //done loading category
-
+   
     //sync branch
     await syncBranchRLocal(store);
     //load business.
@@ -685,82 +601,6 @@ class AppDatabase {
       } else {
         await store.state.database.businessDao.updateBusiness(
             businessTableData.copyWith(idLocal: busine.idLocal));
-      }
-    }
-  }
-
-  Future<void> syncCategoriesRLocal(Store<AppState> store) async {
-    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
-        .from(dbName)
-        .where(lite.Expression.property('id').equalTo(lite.Expression.string(
-            'categories_' + store.state.userId.toString())));
-    lite.ResultSet result;
-    // Run the query.
-    try {
-      result = await query.execute();
-    } on PlatformException {
-      return 'Error running the query';
-    }
-
-    final List<Map<String, dynamic>> model = result.map((lite.Result result) {
-      // return Beer.fromMap();
-      return result.toMap();
-    }).toList();
-
-    if (model.isNotEmpty) {
-      // ignore: always_specify_types
-      final r = model[0][dbName]['categories'];
-
-      for (int i = 0; i < r.length; i++) {
-        final CategoryTableData category =
-            await store.state.database.categoryDao.getById(id: r[i]['id']);
-        CategoryTableData categoryData;
-        if (i == 1) {
-          // ignore:missing_required_param
-          categoryData = CategoryTableData(
-              id: r[i]['id'],
-              name: r[i]['name'],
-              focused: true,
-              branchId: r[i]['branchId'],
-              createdAt: DateTime.parse(r[i]['createdAt']),
-              updatedAt: DateTime.parse(r[i]['updatedAt']));
-        } else {
-          // ignore:missing_required_param
-          categoryData = CategoryTableData(
-              id: r[i][i]['id'],
-              name: r[i]['name'],
-              focused: false,
-              branchId: r[i]['branchId'],
-              createdAt: DateTime.parse(r[i]['createdAt']),
-              updatedAt: DateTime.parse(r[i]['updatedAt']));
-        }
-
-        if (category == null) {
-          await store.state.database.categoryDao.insert(categoryData);
-        } else {
-          await store.state.database.categoryDao
-              .updateCategory(categoryData.copyWith(idLocal: category.idLocal));
-        }
-      }
-    } else {
-      //TODO(richard): remember to sync lite custom category created local and tax to remote so other client can have them too.
-      if (store.state.branch == null) return;
-      final CategoryTableData category =
-          await store.state.database.categoryDao.getCategoryByNameBranchId(
-        'custom',
-        store.state.branch.id,
-      );
-      if (category == null) {
-        //ignore:missing_required_param
-        final CategoryTableData categoryData = CategoryTableData(
-            id: Uuid().v1(),
-            name: 'custom',
-            focused: true,
-            branchId: store.state.branch.id,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now());
-
-        await store.state.database.categoryDao.insert(categoryData);
       }
     }
   }
@@ -1521,7 +1361,7 @@ class AppDatabase {
         await createStockHistory(_history);
       }
 
-      Map _mapStock = {
+      final Map _mapStock = {
         'branchId': stock.branchId,
         'productId': productId,
         'createdAt': stock.createdAt.toIso8601String(),
@@ -1557,28 +1397,6 @@ class AppDatabase {
     await createBranchProduct(_mapBranchProduct);
   }
 
-  //database listners, provide listners for database then sync
-  //the data being touched or inserted this is the most effective way
-  //of syncing small database changes so we can avoid 1MB constraints of couchDB.
-  dbListner({Store<AppState> store}) {
-    // store.state.database.listner.streamUpdate().listen((stock) {
-    //   if (stock != null && stock.action != 'NONE') {
-    //     insertHistory(store, stock);
-    //   }
-    // });
-
-    // store.state.database.listner.streamInsert().listen((stock) {
-    //   if (stock.action != 'NONE') {
-    //     insertHistory(store, stock);
-    //   }
-    // });
-
-    //now sync them.
-    // store.state.database.listner.listenOnStockHistory().listen((history) {
-    //   partialSyncHistory(history: history);
-    // });
-  }
-
   void insertHistory(Store<AppState> store, StockTableData stock) {
     store.state.database.stockHistoryDao.insert(
       //ignore:missing_required_param
@@ -1595,6 +1413,7 @@ class AppDatabase {
     );
   }
 
+  // ignore: always_declare_return_types
   partialSyncHistory(
       {StockHistoryTableData history, Store<AppState> store}) async {
     final lite.Document histo = await database
