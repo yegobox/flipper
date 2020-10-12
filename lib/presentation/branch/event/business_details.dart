@@ -167,7 +167,7 @@ class BusinessDetails extends StatelessWidget {
 //                Navigator.pushNamed(
 //                  context,
 //                  Routes.eventNew,
-//                  arguments: widget.vm.channel,
+//                  arguments: widget.vm.channels,
 //                );
 //              }),
 //        ),
@@ -244,7 +244,7 @@ class BusinessDetails extends StatelessWidget {
 //        Padding(
 //          padding: const EdgeInsets.all(AppTheme.appMargin),
 //          child: Image.asset(
-//            'assets/graphics/channel/details_date.png',
+//            'assets/graphics/channels/details_date.png',
 //            height: _Style.iconSize,
 //          ),
 //        ),
@@ -278,7 +278,7 @@ class BusinessDetails extends StatelessWidget {
 //          Padding(
 //            padding: const EdgeInsets.all(AppTheme.appMargin),
 //            child: Image.asset(
-//              'assets/graphics/channel/details_location.png',
+//              'assets/graphics/channels/details_location.png',
 //              height: _Style.iconSize,
 //            ),
 //          ),
@@ -300,7 +300,7 @@ class BusinessDetails extends StatelessWidget {
 //            Padding(
 //              padding: const EdgeInsets.all(AppTheme.appMargin),
 //              child: Image.asset(
-//                'assets/graphics/channel/details_padlock.png',
+//                'assets/graphics/channels/details_padlock.png',
 //                height: _Style.iconSize,
 //              ),
 //            ),
@@ -327,7 +327,7 @@ class BusinessDetails extends StatelessWidget {
 //        Padding(
 //          padding: const EdgeInsets.all(AppTheme.appMargin),
 //          child: Image.asset(
-//            'assets/graphics/channel/details_members.png',
+//            'assets/graphics/channels/details_members.png',
 //            height: _Style.iconSize,
 //          ),
 //        ),
@@ -387,7 +387,7 @@ class BusinessDetails extends StatelessWidget {
 //            user: member,
 //            rsvp: widget.vm.rsvpStatus[member.uid],
 //            isYou: member.uid == widget.vm.user.uid,
-//            isHost: member.uid == widget.vm.channel.authorId,
+//            isHost: member.uid == widget.vm.channels.authorId,
 //          );
 //        } else {
 //          return Padding(
@@ -398,7 +398,7 @@ class BusinessDetails extends StatelessWidget {
 //                  .channelInviteButton,
 //              onTap: () {
 //                Navigator.of(context).pushNamed(Routes.channelInvite,
-//                    arguments: widget.vm.channel.id);
+//                    arguments: widget.vm.channels.id);
 //              },
 //            ),
 //          );
@@ -407,9 +407,9 @@ class BusinessDetails extends StatelessWidget {
 //    );
 //  }
 //
-//  /// Invite members is only visible if the channel is closed
+//  /// Invite members is only visible if the channels is closed
 //  num _canInviteUsers() {
-//    if (widget.vm.channel.visibility == ChannelVisibility.CLOSED) {
+//    if (widget.vm.channels.visibility == ChannelVisibility.CLOSED) {
 //      return 1;
 //    } else {
 //      return 0;
@@ -509,7 +509,7 @@ class BusinessDetails extends StatelessWidget {
 //                StoreProvider.of<AppState>(context).dispatch(
 //                  LeaveChannelAction(
 //                    widget.vm.groupId,
-//                    widget.vm.channel,
+//                    widget.vm.channels,
 //                    widget.vm.user.uid,
 //                  ),
 //                );

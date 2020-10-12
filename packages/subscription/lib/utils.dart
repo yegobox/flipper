@@ -1,7 +1,7 @@
 // import 'package:flutter/services.dart';
 
 // class Utils {
-//   static const MethodChannel channel = const MethodChannel('flutter_paystack');
+//   static const MethodChannel channels = const MethodChannel('flutter_paystack');
 
 //   static validateSdkInitialized() {
 //     if (!PaystackPlugin.sdkInitialized) {

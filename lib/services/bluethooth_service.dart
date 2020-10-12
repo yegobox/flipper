@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:bluetooth_print/bluetooth_print.dart';
 import 'package:bluetooth_print/bluetooth_print_model.dart';
 import 'package:flipper/locator.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flipper/util/logger.dart';
 
@@ -17,7 +19,7 @@ class BlueToothService {
 
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   final Logger log = Logging.getLogger('Bluetooth service ....');
-
+  BuildContext context;
   Future<void> connectToanyBlueThoothAvailable() async {
     bluetoothPrint.scanResults.listen((List<BluetoothDevice> devices) async {
       try {
@@ -31,7 +33,7 @@ class BlueToothService {
     // ignore: always_specify_types
     blueConnected?.listen((connected) {
       if (connected) {
-        _snackBarService.showCustomSnackBar(message: 'Bluetooth connected');
+        snackBar(context: context, message: 'connected priner');
       } else {
         //keep trying to connect to any available device.
         connectToanyBlueThoothAvailable();
@@ -39,9 +41,24 @@ class BlueToothService {
     });
   }
 
-  Future<void> initBluetooth() async {
+  void snackBar({BuildContext context, String message}) {
+    final SnackBar snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Text(message),
+      action: SnackBarAction(
+        label: 'Action',
+        onPressed: () {},
+      ),
+    );
+    // Find the Scaffold in the widget tree and use
+    // it to show a SnackBar.
+    Scaffold.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> initBluetooth({BuildContext context}) async {
+    context = context;
     bluetoothPrint.startScan(timeout: const Duration(seconds: 10));
-    
+    connectToanyBlueThoothAvailable();
 
     final bool connected = await bluetoothPrint.isConnected;
 
@@ -49,7 +66,6 @@ class BlueToothService {
       log.i('cur device status: $state');
       switch (state) {
         case BluetoothPrint.CONNECTED:
-          connectToanyBlueThoothAvailable();
           _isConnected = true;
           blueConnected.add(true);
           break;
@@ -158,9 +174,9 @@ class BlueToothService {
         linefeed: 1));
     list.add(LineText(linefeed: 1));
     try {
-      if(_isConnected){
-         await bluetoothPrint.printReceipt(config, list);
-      }else{
+      if (_isConnected) {
+        await bluetoothPrint.printReceipt(config, list);
+      } else {
         _snackBarService.showCustomSnackBar(message: 'No printer connected');
       }
     } catch (e) {

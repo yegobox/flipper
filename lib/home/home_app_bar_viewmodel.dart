@@ -26,22 +26,22 @@ abstract class HomeAppBarViewModel
 
   static Function(Store<AppState>) fromStore(context) {
     return (Store<AppState> store) {
-//      final channel = getSelectedChannel(store.state);
+//      final channels = getSelectedChannel(store.state);
 //      final groupId = store.state.selectedGroupId;
 //      final channels = store.state.groups[groupId].channels.values.toList();
 //      final hasGroupUpdates =
-//          channels.any((c) => (c != channel) && c.hasUpdates);
+//          channels.any((c) => (c != channels) && c.hasUpdates);
 
 //      final isMemberOfChannel =
-//          channel.users.any((u) => u.id == store.state.user.uid);
+//          channels.users.any((u) => u.id == store.state.user.uid);
 
       return HomeAppBarViewModel((vm) {
 //        return vm
-//          ..title = channel.name
+//          ..title = channels.name
 //          ..memberOfChannel = isMemberOfChannel
 //          ..hasUpdatedChannelsInGroup = hasGroupUpdates
-//          ..isEvent = channel.type == ChannelType.EVENT
-//          ..eventDate = _formatDate(context, channel);
+//          ..isEvent = channels.type == ChannelType.EVENT
+//          ..eventDate = _formatDate(context, channels);
       });
     };
   }

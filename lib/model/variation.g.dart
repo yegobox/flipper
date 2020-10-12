@@ -6,6 +6,79 @@ part of 'variation.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Variation> _$variationSerializer = new _$VariationSerializer();
+
+class _$VariationSerializer implements StructuredSerializer<Variation> {
+  @override
+  final Iterable<Type> types = const [Variation, _$Variation];
+  @override
+  final String wireName = 'Variation';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Variation object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'productId',
+      serializers.serialize(object.productId,
+          specifiedType: const FullType(String)),
+      'name',
+      serializers.serialize(object.name, specifiedType: const FullType(String)),
+    ];
+    if (object.sku != null) {
+      result
+        ..add('sku')
+        ..add(serializers.serialize(object.sku,
+            specifiedType: const FullType(String)));
+    }
+    if (object.unit != null) {
+      result
+        ..add('unit')
+        ..add(serializers.serialize(object.unit,
+            specifiedType: const FullType(String)));
+    }
+    return result;
+  }
+
+  @override
+  Variation deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new VariationBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sku':
+          result.sku = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'productId':
+          result.productId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'name':
+          result.name = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'unit':
+          result.unit = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Variation extends Variation {
   @override
   final String id;

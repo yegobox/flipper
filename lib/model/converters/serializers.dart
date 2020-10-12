@@ -1,10 +1,14 @@
 
 library serializers;
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
 import 'package:flipper/data/models/serializers/boolean_serializer.dart';
+
+import 'package:flipper/model/branch.dart';
+import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/converters/switcher.dart';
 import 'package:flipper/model/product.dart';
@@ -24,11 +28,15 @@ part 'serializers.g.dart';
 /// types needed transitively via fields.
 ///
 /// You usually only need to do this once per project.
-@SerializersFor([Switcher,Category,Tax,Product])
+@SerializersFor([Switcher,Category,Tax,Product,Business,Branch])
 Serializers serializers = _$serializers;
 
 Serializers standardSerializers = (serializers.toBuilder()
+        ..addBuilderFactory(  // add this builder factory
+          const FullType(BuiltList, [FullType(String)]),
+          () =>  ListBuilder<String>()) //if I want to return a list of business for example I will add it here like that
       ..addPlugin(StandardJsonPlugin())
       ..add(Iso8601DateTimeSerializer())
+     
       ..add(BooleanSerializer()))
     .build();

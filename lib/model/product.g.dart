@@ -22,9 +22,6 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'productId',
-      serializers.serialize(object.productId,
-          specifiedType: const FullType(String)),
       'touched',
       serializers.serialize(object.touched,
           specifiedType: const FullType(bool)),
@@ -150,10 +147,6 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'productId':
-          result.productId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
         case 'description':
           result.description = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -239,8 +232,6 @@ class _$Product extends Product {
   @override
   final String id;
   @override
-  final String productId;
-  @override
   final String description;
   @override
   final String picture;
@@ -283,7 +274,6 @@ class _$Product extends Product {
   _$Product._(
       {this.name,
       this.id,
-      this.productId,
       this.description,
       this.picture,
       this.taxId,
@@ -309,9 +299,6 @@ class _$Product extends Product {
     if (id == null) {
       throw new BuiltValueNullFieldError('Product', 'id');
     }
-    if (productId == null) {
-      throw new BuiltValueNullFieldError('Product', 'productId');
-    }
     if (touched == null) {
       throw new BuiltValueNullFieldError('Product', 'touched');
     }
@@ -333,7 +320,6 @@ class _$Product extends Product {
     return other is Product &&
         name == other.name &&
         id == other.id &&
-        productId == other.productId &&
         description == other.description &&
         picture == other.picture &&
         taxId == other.taxId &&
@@ -374,8 +360,8 @@ class _$Product extends Product {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc(0, name.hashCode), id.hashCode),
-                                                                                productId.hashCode),
+                                                                            $jc($jc(0, name.hashCode),
+                                                                                id.hashCode),
                                                                             description.hashCode),
                                                                         picture.hashCode),
                                                                     taxId.hashCode),
@@ -401,7 +387,6 @@ class _$Product extends Product {
     return (newBuiltValueToStringHelper('Product')
           ..add('name', name)
           ..add('id', id)
-          ..add('productId', productId)
           ..add('description', description)
           ..add('picture', picture)
           ..add('taxId', taxId)
@@ -434,10 +419,6 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   String _id;
   String get id => _$this._id;
   set id(String id) => _$this._id = id;
-
-  String _productId;
-  String get productId => _$this._productId;
-  set productId(String productId) => _$this._productId = productId;
 
   String _description;
   String get description => _$this._description;
@@ -518,7 +499,6 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
     if (_$v != null) {
       _name = _$v.name;
       _id = _$v.id;
-      _productId = _$v.productId;
       _description = _$v.description;
       _picture = _$v.picture;
       _taxId = _$v.taxId;
@@ -561,7 +541,6 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
         new _$Product._(
             name: name,
             id: id,
-            productId: productId,
             description: description,
             picture: picture,
             taxId: taxId,

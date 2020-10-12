@@ -14,8 +14,9 @@ part 'product.g.dart';
 //in technical document of database design.
 abstract class Product implements Built<Product, ProductBuilder> {
   String get name;
+  
   String get id;
-  String get productId;
+ 
   @nullable
   String get description;
   @nullable

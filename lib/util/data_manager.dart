@@ -7,6 +7,7 @@ import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/helper/constant.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/order.dart';
@@ -29,7 +30,6 @@ class DataManager {
   static String description;
   static String sku;
   static String name;
-  
 
   static Future<void> startUploading(
       {String storagePath,
@@ -152,38 +152,14 @@ class DataManager {
   // ignore: always_declare_return_types
   static createTemporalOrder(
       GeneralRepository generalRepository, Store<AppState> store) async {
-    final OrderTableData order =
+    final Order order =
         await generalRepository.createDraftOrderOrReturnExistingOne(store);
 
     //broadcast order to be used later when creating a sale
     if (order != null) {
       store.dispatch(
         OrderCreated(
-          order: Order(
-            (OrderBuilder o) => o
-              ..status = order.status
-              ..id = order.id
-              ..userId = store.state.userId
-              ..branchId = order.branchId
-              ..orderNote = order.orderNote
-              ..orderNUmber = order.orderNUmber
-              ..supplierId = order.supplierId
-              ..subTotal = order.subTotal
-              ..discountAmount = order.discountAmount
-              ..supplierInvoiceNumber = order.supplierInvoiceNumber
-              ..deliverDate = order.deliverDate
-              ..discountRate = order.discountRate
-              ..taxRate = order.taxRate
-              ..taxAmount = order.taxAmount
-              ..cashReceived = order.cashReceived
-              ..saleTotal = order.saleTotal
-              ..userId = order.userId
-              ..customerSaving = order.customerSaving
-              ..paymentId = order.paymentId
-              ..orderNote = order.orderNote
-              ..status = order.status
-              ..customerChangeDue = order.customerChangeDue,
-          ),
+          order: order,
         ),
       );
     }
@@ -199,20 +175,20 @@ class DataManager {
       final DatabaseService _databaseService = locator<DatabaseService>();
       // ignore: always_specify_types
       final category = await _databaseService.filter(
-        equator: 'categories_' + store.state.branch.id,
+        equator: AppTables.category + store.state.branch.id,
         property: 'tableName',
         and: true, //define that this query is and type.
         andEquator: 'custom',
         andProperty: 'name',
       );
-      final Logger log = Logging.getLogger('Data manager   Model ....');
-      
+      // final Logger log = Logging.getLogger('Data manager   Model ....');
+
       final List<Map<String, dynamic>> product = await _databaseService.filter(
         equator: productName,
         property: 'name',
         and: true,
         andProperty: 'tableName',
-        andEquator: 'products_' + store.state.branch.id,
+        andEquator: AppTables.category + store.state.branch.id,
       );
 
       final List<Map<String, dynamic>> gettax = await _databaseService.filter(
@@ -230,7 +206,7 @@ class DataManager {
           'color': '#955be9',
           'active': true,
           'hasPicture': false,
-          'tableName': 'products_'+ store.state.branch.id,
+          'tableName': AppTables.product + store.state.branch.id,
           'isCurrentUpdate': false,
           'isDraft': true,
           'picture': 'null',
@@ -245,7 +221,7 @@ class DataManager {
           'isActive': false,
           name: productName,
           'unit': 'kg',
-          'tableName':'variants_'+store.state.branch.id,
+          'tableName': AppTables.variation + store.state.branch.id,
           'productId': productDoc.id,
           'sku': Uuid().v1().substring(0, 4),
           'id': Uuid().v1(),
@@ -270,7 +246,7 @@ class DataManager {
         await _databaseService.insert(data: {
           'branchId': store.state.branch.id,
           'productId': productDoc.id,
-          'tableName':'branchProducts_'+ store.state.branch.id,
+          'tableName': 'branchProducts_' + store.state.branch.id,
           'id': Uuid().v1()
         });
         final Product pro = Product.fromMap(productDoc.toMap());
@@ -284,25 +260,31 @@ class DataManager {
 
   static void dispatchCurrentTmpItem(
       Store<AppState> store, Product product, String productName) async {
-    VariationTableData variant;
-    variant = await store.state.database.variationDao
-        .getVariationByName(name: productName, productId: product.id);
-
-    variant ??= await store.state.database.variationDao
-        .getVariationByName(name: 'Regular', productId: product.id);
-    //dispatch this variant.
-    store.dispatch(
-      VariationAction(
-        variation: Variation(
-          (VariationBuilder v) => v
-            ..productId = variant.productId
-            ..sku = variant.sku
-            ..name = variant.name
-            ..id = variant.id,
-        ),
-      ),
+    final DatabaseService _databaseService = locator<DatabaseService>();
+    // ignore: always_specify_types
+    final List<Map<String, dynamic>> v = await _databaseService.filter(
+      equator: productName,
+      property: 'name',
+      and: true, 
+      andEquator: product.id,
+      andProperty: 'productId',
     );
-
+    Variation variant;
+    if (v.isEmpty) {
+      final List<Map<String, dynamic>> vv = await _databaseService.filter(
+        equator: 'Regular',
+        property: 'name',
+        and: true, 
+        andEquator: product.id,
+        andProperty: 'productId',
+      );
+      variant = Variation.fromMap(vv[0][AppDatabase.instance.dbName]);
+    }else{
+     variant = Variation.fromMap(v[0][AppDatabase.instance.dbName]);
+    }
+    store.dispatch(
+      VariationAction(variation: variant),
+    );
     return dispatchProduct(store, product);
   }
 

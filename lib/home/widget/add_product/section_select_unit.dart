@@ -10,18 +10,18 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SectionSelectUnit extends StatefulWidget {
-  SectionSelectUnit({Key key}) : super(key: key);
+  const SectionSelectUnit({Key key}) : super(key: key);
 
   @override
   _SectionSelectUnitState createState() => _SectionSelectUnitState();
 }
 
 class _SectionSelectUnitState extends State<SectionSelectUnit> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   Text unitSelector(List<UnitTableData> units) {
     Text text;
-    for (var i = 0; i < units.length; i++) {
+    for (int i = 0; i < units.length; i++) {
       if (units[i].focused) {
         text = Text(units[i].name);
       }
@@ -34,7 +34,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Center(
           child: Container(
             width: 300,
@@ -42,10 +42,10 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
               onTap: () {
                 _navigationService.navigateTo(Routing.addUnitType,
                     arguments: AddUnitTypeScreenArguments(
-                        productId: vm.tmpItem.productId));
+                        productId: vm.tmpItem.id));
               },
               child: ListTile(
-                contentPadding: EdgeInsets.symmetric(horizontal: 0.3),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
                 leading: Text(
                   'Unit Type',
                   style: GoogleFonts.lato(
@@ -60,7 +60,7 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                   children: <Widget>[
                     StreamBuilder(
                         stream: vm.database.unitDao.getUnitsStream(),
-                        builder: (context,
+                        builder: (BuildContext context,
                             AsyncSnapshot<List<UnitTableData>> snapshot) {
                           if (snapshot.data == null) {
                             return Text(
@@ -76,10 +76,10 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                             );
                           }
                           return snapshot.data == null
-                              ? Text('Select Unit')
+                              ?const Text('Select Unit')
                               : unitSelector(snapshot.data);
                         }),
-                    Icon(Icons.arrow_forward_ios)
+                    const Icon(Icons.arrow_forward_ios)
                   ],
                 ),
               ),

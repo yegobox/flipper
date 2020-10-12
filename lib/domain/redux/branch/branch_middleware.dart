@@ -7,6 +7,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
+import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -38,11 +39,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       'active': true,
       'name': store.state.business.name,
       '_id': 'branches_' + store.state.userId.toString(),
-      'channel': store.state.userId.toString(),
+      'channels': [store.state.userId.toString()],
       'businessId': store.state.businessId,
       'id': 'branches_' + store.state.userId.toString(),
-      'mapLatitude': store.state.business.latitude ?? 0.0,
-      'mapLongitude': store.state.currentColor ?? 0.0,
+      'tableName':  AppTables.branch + store.state.userId.toString(),
+      'mapLatitude': store.state.business.latitude ?? '0.0',
+      'mapLongitude':store.state.business.longitude ?? ' 0.0',
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
     };

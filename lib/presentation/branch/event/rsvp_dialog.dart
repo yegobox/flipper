@@ -21,13 +21,13 @@
 //String _rsvpIcon(RSVP rsvp) {
 //  switch (rsvp) {
 //    case RSVP.YES:
-//      return 'assets/graphics/channel/rsvp/rsvp_yes_large.png';
+//      return 'assets/graphics/channels/rsvp/rsvp_yes_large.png';
 //      break;
 //    case RSVP.MAYBE:
-//      return 'assets/graphics/channel/rsvp/rsvp_maybe_large.png';
+//      return 'assets/graphics/channels/rsvp/rsvp_maybe_large.png';
 //      break;
 //    case RSVP.NO:
-//      return 'assets/graphics/channel/rsvp/rsvp_no_large.png';
+//      return 'assets/graphics/channels/rsvp/rsvp_no_large.png';
 //      break;
 //    case RSVP.UNSET:
 //    default:

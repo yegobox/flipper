@@ -1,4 +1,10 @@
+import 'dart:convert';
+
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+
+import 'converters/serializers.dart';
 
 part 'branch.g.dart';
 
@@ -11,106 +17,47 @@ abstract class Branch implements Built<Branch, BranchBuilder> {
   String get createdAt;
 
   String get name;
+
   String get mapLatitude;
+
   String get mapLongitude;
+
   String get updatedAt;
   @nullable
+
   String get description;
 
   @nullable
   bool get active;
 
   @nullable
+  BuiltList<String> get channels;
+
+  @nullable
   String get location;
 
+  // ignore: sort_constructors_first
   Branch._();
 
+  // ignore: sort_constructors_first
   factory Branch([void Function(BranchBuilder) updates]) = _$Branch;
-}
 
-class UserHelper {
-  static List<String> branchIds(List<dynamic> branchIds) {
-    if (branchIds == null) return [];
-    return branchIds.whereType<String>().toList();
-  }
-}
-
-enum RSVP { YES, MAYBE, NO, UNSET }
-
-class RSVPHelper {
-  static String stringOf(RSVP rsvp) {
-    switch (rsvp) {
-      case RSVP.YES:
-        return 'YES';
-      case RSVP.MAYBE:
-        return 'MAYBE';
-      case RSVP.NO:
-        return 'NO';
-      case RSVP.UNSET:
-      default:
-        return 'UNSET';
-    }
+  String toJson() {
+    return json.encode(toMap());
   }
 
-  static RSVP valueOf(String string) {
-    switch (string) {
-      case 'YES':
-        return RSVP.YES;
-      case 'MAYBE':
-        return RSVP.MAYBE;
-      case 'NO':
-        return RSVP.NO;
-      case 'UNSET':
-      default:
-        return RSVP.UNSET;
-    }
-  }
-}
-
-enum ChannelVisibility { OPEN, CLOSED }
-
-class ChannelVisibilityHelper {
-  static String stringOf(ChannelVisibility visibility) {
-    switch (visibility) {
-      case ChannelVisibility.OPEN:
-        return 'OPEN';
-      case ChannelVisibility.CLOSED:
-        return 'CLOSED';
-    }
-    return null;
+  // ignore: always_specify_types
+  Map toMap() {
+    return standardSerializers.serializeWith(Branch.serializer, this);
   }
 
-  static ChannelVisibility valueOf(String string) {
-    switch (string) {
-      case 'OPEN':
-        return ChannelVisibility.OPEN;
-      case 'CLOSED':
-        return ChannelVisibility.CLOSED;
-    }
-    return null;
-  }
-}
-
-enum ChannelType { TOPIC, EVENT }
-
-class ChannelTypeHelper {
-  static String stringOf(ChannelType type) {
-    switch (type) {
-      case ChannelType.EVENT:
-        return 'EVENT';
-      case ChannelType.TOPIC:
-        return 'TOPIC';
-    }
-    return null;
+  Branch fromJson(String jsonString) {
+    return fromMap(json.decode(jsonString));
   }
 
-  static ChannelType valueOf(String string) {
-    switch (string) {
-      case 'EVENT':
-        return ChannelType.EVENT;
-      case 'TOPIC':
-        return ChannelType.TOPIC;
-    }
-    return null;
+  static Branch fromMap(Map jsonMap) {
+    return standardSerializers.deserializeWith(Branch.serializer, jsonMap);
   }
+
+  static Serializer<Branch> get serializer => _$branchSerializer;
 }

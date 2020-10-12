@@ -6,6 +6,134 @@ part of 'branch.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Branch> _$branchSerializer = new _$BranchSerializer();
+
+class _$BranchSerializer implements StructuredSerializer<Branch> {
+  @override
+  final Iterable<Type> types = const [Branch, _$Branch];
+  @override
+  final String wireName = 'Branch';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Branch object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'businessId',
+      serializers.serialize(object.businessId,
+          specifiedType: const FullType(String)),
+      'createdAt',
+      serializers.serialize(object.createdAt,
+          specifiedType: const FullType(String)),
+      'name',
+      serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'mapLatitude',
+      serializers.serialize(object.mapLatitude,
+          specifiedType: const FullType(String)),
+      'mapLongitude',
+      serializers.serialize(object.mapLongitude,
+          specifiedType: const FullType(String)),
+      'updatedAt',
+      serializers.serialize(object.updatedAt,
+          specifiedType: const FullType(String)),
+    ];
+    if (object.id != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
+    }
+    if (object.description != null) {
+      result
+        ..add('description')
+        ..add(serializers.serialize(object.description,
+            specifiedType: const FullType(String)));
+    }
+    if (object.active != null) {
+      result
+        ..add('active')
+        ..add(serializers.serialize(object.active,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.channels != null) {
+      result
+        ..add('channels')
+        ..add(serializers.serialize(object.channels,
+            specifiedType:
+                const FullType(BuiltList, const [const FullType(String)])));
+    }
+    if (object.location != null) {
+      result
+        ..add('location')
+        ..add(serializers.serialize(object.location,
+            specifiedType: const FullType(String)));
+    }
+    return result;
+  }
+
+  @override
+  Branch deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new BranchBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'businessId':
+          result.businessId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'createdAt':
+          result.createdAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'name':
+          result.name = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'mapLatitude':
+          result.mapLatitude = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'mapLongitude':
+          result.mapLongitude = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'updatedAt':
+          result.updatedAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'description':
+          result.description = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'active':
+          result.active = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
+        case 'location':
+          result.location = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Branch extends Branch {
   @override
   final String id;
@@ -26,6 +154,8 @@ class _$Branch extends Branch {
   @override
   final bool active;
   @override
+  final BuiltList<String> channels;
+  @override
   final String location;
 
   factory _$Branch([void Function(BranchBuilder) updates]) =>
@@ -41,6 +171,7 @@ class _$Branch extends Branch {
       this.updatedAt,
       this.description,
       this.active,
+      this.channels,
       this.location})
       : super._() {
     if (businessId == null) {
@@ -83,6 +214,7 @@ class _$Branch extends Branch {
         updatedAt == other.updatedAt &&
         description == other.description &&
         active == other.active &&
+        channels == other.channels &&
         location == other.location;
   }
 
@@ -96,15 +228,17 @@ class _$Branch extends Branch {
                         $jc(
                             $jc(
                                 $jc(
-                                    $jc($jc(0, id.hashCode),
-                                        businessId.hashCode),
-                                    createdAt.hashCode),
-                                name.hashCode),
-                            mapLatitude.hashCode),
-                        mapLongitude.hashCode),
-                    updatedAt.hashCode),
-                description.hashCode),
-            active.hashCode),
+                                    $jc(
+                                        $jc($jc(0, id.hashCode),
+                                            businessId.hashCode),
+                                        createdAt.hashCode),
+                                    name.hashCode),
+                                mapLatitude.hashCode),
+                            mapLongitude.hashCode),
+                        updatedAt.hashCode),
+                    description.hashCode),
+                active.hashCode),
+            channels.hashCode),
         location.hashCode));
   }
 
@@ -120,6 +254,7 @@ class _$Branch extends Branch {
           ..add('updatedAt', updatedAt)
           ..add('description', description)
           ..add('active', active)
+          ..add('channels', channels)
           ..add('location', location))
         .toString();
   }
@@ -164,6 +299,11 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
   bool get active => _$this._active;
   set active(bool active) => _$this._active = active;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   String _location;
   String get location => _$this._location;
   set location(String location) => _$this._location = location;
@@ -181,6 +321,7 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
       _updatedAt = _$v.updatedAt;
       _description = _$v.description;
       _active = _$v.active;
+      _channels = _$v.channels?.toBuilder();
       _location = _$v.location;
       _$v = null;
     }
@@ -202,18 +343,32 @@ class BranchBuilder implements Builder<Branch, BranchBuilder> {
 
   @override
   _$Branch build() {
-    final _$result = _$v ??
-        new _$Branch._(
-            id: id,
-            businessId: businessId,
-            createdAt: createdAt,
-            name: name,
-            mapLatitude: mapLatitude,
-            mapLongitude: mapLongitude,
-            updatedAt: updatedAt,
-            description: description,
-            active: active,
-            location: location);
+    _$Branch _$result;
+    try {
+      _$result = _$v ??
+          new _$Branch._(
+              id: id,
+              businessId: businessId,
+              createdAt: createdAt,
+              name: name,
+              mapLatitude: mapLatitude,
+              mapLongitude: mapLongitude,
+              updatedAt: updatedAt,
+              description: description,
+              active: active,
+              channels: _channels?.build(),
+              location: location);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        _channels?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Branch', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

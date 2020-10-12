@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+
+import 'converters/serializers.dart';
 
 part 'order.g.dart';
 
@@ -39,4 +44,23 @@ abstract class Order implements Built<Order, OrderBuilder> {
   int get customerChangeDue;
   Order._();
   factory Order([void Function(OrderBuilder) updates]) = _$Order;
+
+  String toJson() {
+    return json.encode(toMap());
+  }
+
+  // ignore: always_specify_types
+  Map toMap() {
+    return standardSerializers.serializeWith(Order.serializer, this);
+  }
+
+  Order fromJson(String jsonString) {
+    return fromMap(json.decode(jsonString));
+  }
+
+  static Order fromMap(Map jsonMap) {
+    return standardSerializers.deserializeWith(Order.serializer, jsonMap);
+  }
+
+  static Serializer<Order> get serializer => _$orderSerializer;
 }

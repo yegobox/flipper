@@ -6,6 +6,209 @@ part of 'business.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Business> _$businessSerializer = new _$BusinessSerializer();
+
+class _$BusinessSerializer implements StructuredSerializer<Business> {
+  @override
+  final Iterable<Type> types = const [Business, _$Business];
+  @override
+  final String wireName = 'Business';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Business object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'name',
+      serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'active',
+      serializers.serialize(object.active, specifiedType: const FullType(bool)),
+      'currency',
+      serializers.serialize(object.currency,
+          specifiedType: const FullType(String)),
+      'categoryId',
+      serializers.serialize(object.categoryId,
+          specifiedType: const FullType(String)),
+      'typeId',
+      serializers.serialize(object.typeId,
+          specifiedType: const FullType(String)),
+      'country',
+      serializers.serialize(object.country,
+          specifiedType: const FullType(String)),
+    ];
+    if (object.latitude != null) {
+      result
+        ..add('latitude')
+        ..add(serializers.serialize(object.latitude,
+            specifiedType: const FullType(String)));
+    }
+    if (object.longitude != null) {
+      result
+        ..add('longitude')
+        ..add(serializers.serialize(object.longitude,
+            specifiedType: const FullType(String)));
+    }
+    if (object.userId != null) {
+      result
+        ..add('userId')
+        ..add(serializers.serialize(object.userId,
+            specifiedType: const FullType(int)));
+    }
+    if (object.timeZone != null) {
+      result
+        ..add('timeZone')
+        ..add(serializers.serialize(object.timeZone,
+            specifiedType: const FullType(String)));
+    }
+    if (object.createdAt != null) {
+      result
+        ..add('createdAt')
+        ..add(serializers.serialize(object.createdAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.updatedAt != null) {
+      result
+        ..add('updatedAt')
+        ..add(serializers.serialize(object.updatedAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.channels != null) {
+      result
+        ..add('channels')
+        ..add(serializers.serialize(object.channels,
+            specifiedType:
+                const FullType(BuiltList, const [const FullType(String)])));
+    }
+    if (object.businessUrl != null) {
+      result
+        ..add('businessUrl')
+        ..add(serializers.serialize(object.businessUrl,
+            specifiedType: const FullType(String)));
+    }
+    if (object.hexColor != null) {
+      result
+        ..add('hexColor')
+        ..add(serializers.serialize(object.hexColor,
+            specifiedType: const FullType(String)));
+    }
+    if (object.image != null) {
+      result
+        ..add('image')
+        ..add(serializers.serialize(object.image,
+            specifiedType: const FullType(String)));
+    }
+    if (object.type != null) {
+      result
+        ..add('type')
+        ..add(serializers.serialize(object.type,
+            specifiedType: const FullType(String)));
+    }
+    if (object.tableName != null) {
+      result
+        ..add('tableName')
+        ..add(serializers.serialize(object.tableName,
+            specifiedType: const FullType(String)));
+    }
+    return result;
+  }
+
+  @override
+  Business deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new BusinessBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'name':
+          result.name = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'active':
+          result.active = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'currency':
+          result.currency = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'categoryId':
+          result.categoryId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'latitude':
+          result.latitude = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'longitude':
+          result.longitude = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'userId':
+          result.userId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'typeId':
+          result.typeId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'timeZone':
+          result.timeZone = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'createdAt':
+          result.createdAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'updatedAt':
+          result.updatedAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
+        case 'country':
+          result.country = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'businessUrl':
+          result.businessUrl = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'hexColor':
+          result.hexColor = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'image':
+          result.image = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'type':
+          result.type = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'tableName':
+          result.tableName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Business extends Business {
   @override
   final String id;
@@ -18,11 +221,11 @@ class _$Business extends Business {
   @override
   final String categoryId;
   @override
-  final double latitude;
+  final String latitude;
   @override
-  final double longitude;
+  final String longitude;
   @override
-  final String userId;
+  final int userId;
   @override
   final String typeId;
   @override
@@ -32,6 +235,8 @@ class _$Business extends Business {
   @override
   final String updatedAt;
   @override
+  final BuiltList<String> channels;
+  @override
   final String country;
   @override
   final String businessUrl;
@@ -40,7 +245,9 @@ class _$Business extends Business {
   @override
   final String image;
   @override
-  final BusinessType type;
+  final String type;
+  @override
+  final String tableName;
 
   factory _$Business([void Function(BusinessBuilder) updates]) =>
       (new BusinessBuilder()..update(updates)).build();
@@ -58,11 +265,13 @@ class _$Business extends Business {
       this.timeZone,
       this.createdAt,
       this.updatedAt,
+      this.channels,
       this.country,
       this.businessUrl,
       this.hexColor,
       this.image,
-      this.type})
+      this.type,
+      this.tableName})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Business', 'id');
@@ -81,6 +290,9 @@ class _$Business extends Business {
     }
     if (typeId == null) {
       throw new BuiltValueNullFieldError('Business', 'typeId');
+    }
+    if (country == null) {
+      throw new BuiltValueNullFieldError('Business', 'country');
     }
   }
 
@@ -107,11 +319,13 @@ class _$Business extends Business {
         timeZone == other.timeZone &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
+        channels == other.channels &&
         country == other.country &&
         businessUrl == other.businessUrl &&
         hexColor == other.hexColor &&
         image == other.image &&
-        type == other.type;
+        type == other.type &&
+        tableName == other.tableName;
   }
 
   @override
@@ -132,24 +346,34 @@ class _$Business extends Business {
                                                         $jc(
                                                             $jc(
                                                                 $jc(
-                                                                    $jc(0,
-                                                                        id.hashCode),
-                                                                    name.hashCode),
-                                                                active.hashCode),
-                                                            currency.hashCode),
-                                                        categoryId.hashCode),
-                                                    latitude.hashCode),
-                                                longitude.hashCode),
-                                            userId.hashCode),
-                                        typeId.hashCode),
-                                    timeZone.hashCode),
-                                createdAt.hashCode),
-                            updatedAt.hashCode),
-                        country.hashCode),
-                    businessUrl.hashCode),
-                hexColor.hashCode),
-            image.hashCode),
-        type.hashCode));
+                                                                    $jc(
+                                                                        $jc(
+                                                                            $jc(
+                                                                                0,
+                                                                                id
+                                                                                    .hashCode),
+                                                                            name
+                                                                                .hashCode),
+                                                                        active
+                                                                            .hashCode),
+                                                                    currency
+                                                                        .hashCode),
+                                                                categoryId
+                                                                    .hashCode),
+                                                            latitude.hashCode),
+                                                        longitude.hashCode),
+                                                    userId.hashCode),
+                                                typeId.hashCode),
+                                            timeZone.hashCode),
+                                        createdAt.hashCode),
+                                    updatedAt.hashCode),
+                                channels.hashCode),
+                            country.hashCode),
+                        businessUrl.hashCode),
+                    hexColor.hashCode),
+                image.hashCode),
+            type.hashCode),
+        tableName.hashCode));
   }
 
   @override
@@ -167,11 +391,13 @@ class _$Business extends Business {
           ..add('timeZone', timeZone)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
+          ..add('channels', channels)
           ..add('country', country)
           ..add('businessUrl', businessUrl)
           ..add('hexColor', hexColor)
           ..add('image', image)
-          ..add('type', type))
+          ..add('type', type)
+          ..add('tableName', tableName))
         .toString();
   }
 }
@@ -199,17 +425,17 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get categoryId => _$this._categoryId;
   set categoryId(String categoryId) => _$this._categoryId = categoryId;
 
-  double _latitude;
-  double get latitude => _$this._latitude;
-  set latitude(double latitude) => _$this._latitude = latitude;
+  String _latitude;
+  String get latitude => _$this._latitude;
+  set latitude(String latitude) => _$this._latitude = latitude;
 
-  double _longitude;
-  double get longitude => _$this._longitude;
-  set longitude(double longitude) => _$this._longitude = longitude;
+  String _longitude;
+  String get longitude => _$this._longitude;
+  set longitude(String longitude) => _$this._longitude = longitude;
 
-  String _userId;
-  String get userId => _$this._userId;
-  set userId(String userId) => _$this._userId = userId;
+  int _userId;
+  int get userId => _$this._userId;
+  set userId(int userId) => _$this._userId = userId;
 
   String _typeId;
   String get typeId => _$this._typeId;
@@ -227,6 +453,11 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get updatedAt => _$this._updatedAt;
   set updatedAt(String updatedAt) => _$this._updatedAt = updatedAt;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   String _country;
   String get country => _$this._country;
   set country(String country) => _$this._country = country;
@@ -243,9 +474,13 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get image => _$this._image;
   set image(String image) => _$this._image = image;
 
-  BusinessType _type;
-  BusinessType get type => _$this._type;
-  set type(BusinessType type) => _$this._type = type;
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  String _tableName;
+  String get tableName => _$this._tableName;
+  set tableName(String tableName) => _$this._tableName = tableName;
 
   BusinessBuilder();
 
@@ -263,11 +498,13 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
       _timeZone = _$v.timeZone;
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
+      _channels = _$v.channels?.toBuilder();
       _country = _$v.country;
       _businessUrl = _$v.businessUrl;
       _hexColor = _$v.hexColor;
       _image = _$v.image;
       _type = _$v.type;
+      _tableName = _$v.tableName;
       _$v = null;
     }
     return this;
@@ -288,25 +525,40 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
 
   @override
   _$Business build() {
-    final _$result = _$v ??
-        new _$Business._(
-            id: id,
-            name: name,
-            active: active,
-            currency: currency,
-            categoryId: categoryId,
-            latitude: latitude,
-            longitude: longitude,
-            userId: userId,
-            typeId: typeId,
-            timeZone: timeZone,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            country: country,
-            businessUrl: businessUrl,
-            hexColor: hexColor,
-            image: image,
-            type: type);
+    _$Business _$result;
+    try {
+      _$result = _$v ??
+          new _$Business._(
+              id: id,
+              name: name,
+              active: active,
+              currency: currency,
+              categoryId: categoryId,
+              latitude: latitude,
+              longitude: longitude,
+              userId: userId,
+              typeId: typeId,
+              timeZone: timeZone,
+              createdAt: createdAt,
+              updatedAt: updatedAt,
+              channels: _channels?.build(),
+              country: country,
+              businessUrl: businessUrl,
+              hexColor: hexColor,
+              image: image,
+              type: type,
+              tableName: tableName);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        _channels?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Business', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

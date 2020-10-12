@@ -140,7 +140,7 @@ class _ProductsViewState extends State<ProductsView> {
       List<Variation> variants, List<ProductTableData> products, int i) {
     StoreProvider.of<AppState>(context)
         .dispatch(ItemsVariation(variations: variants));
-
+    // FIXME(richard): list product from couchbase_lite
     StoreProvider.of<AppState>(context).dispatch(
       CurrentActiveSaleProduct(
         product: Product(
@@ -157,7 +157,7 @@ class _ProductsViewState extends State<ProductsView> {
             ..hasPicture = products[i].hasPicture
             ..active = products[i].active
             ..picture = products[i].picture
-            ..productId = products[i].id,
+            ..id = products[i].id,
         ),
       ),
     );
@@ -193,7 +193,7 @@ class _ProductsViewState extends State<ProductsView> {
     StoreProvider.of<AppState>(context).dispatch(
       CurrentActiveSaleProduct(
         product: Product(
-          (b) => b
+          (ProductBuilder b) => b
             ..name = products[i].name
             ..description = products[i].description
             ..picture = products[i].picture
@@ -206,7 +206,7 @@ class _ProductsViewState extends State<ProductsView> {
             ..supplierId = products[i].supplierId
             ..categoryId = products[i].categoryId
             ..businessId = products[i].businessId
-            ..productId = products[i].id,
+            ..id = products[i].id,
         ),
       ),
     );

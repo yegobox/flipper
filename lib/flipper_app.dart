@@ -58,9 +58,9 @@ class _FlipperAppState extends State<FlipperApp> {
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _bluetoothService.initBluetooth());
+    // FIXME(richard): fix bluethooth_service to work with no crash.
+    // WidgetsBinding.instance
+    //     .addPostFrameCallback((_) => _bluetoothService.initBluetooth(context: context));
 
     store = Store<AppState>(
       appReducer,

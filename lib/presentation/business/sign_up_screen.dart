@@ -173,8 +173,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 
-      final double lat = _position == null ? 0 : _position.latitude;
-      final double long = _position == null ? 0 : _position.longitude;
+      final String lat = _position == null ? '0' : _position.latitude.toString();
+      final String long = _position == null ? '0' : _position.longitude.toString();
 
       if (tBusiness.name == null) {
         return;
@@ -184,13 +184,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ..id = Uuid().v1()
           ..name = tBusiness.name
           ..active = true
+          ..country ='Rwanda'
           ..currency = 'RWF'
           ..categoryId = '1'
           ..typeId = '1'
-          ..latitude = lat ?? 0
-          ..longitude = long ?? 0
+          ..latitude = lat ?? '0'
+          ..longitude = long ?? '0'
           ..active = true
-          ..type = BusinessType.NORMAL,
+          ..type = 'NORMAL',
       );
 
       final FUser user = FUser(

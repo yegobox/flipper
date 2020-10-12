@@ -9,7 +9,7 @@ import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/src/store.dart';
+import 'package:redux/redux.dart';
 
 class KeyPadButtons extends StatefulWidget {
   const KeyPadButtons({Key key}) : super(key: key);
@@ -90,7 +90,7 @@ class SingleKey extends StatelessWidget {
       final Store<AppState> store = StoreProvider.of<AppState>(context);
       final List<VariationTableData> variants = await store
           .state.database.variationDao
-          .getVariantByProductId(productId: vm.tmpItem.productId);
+          .getVariantByProductId(productId: vm.tmpItem.id);
 
       StoreProvider.of<AppState>(context).dispatch(
         IncrementAction(
@@ -99,7 +99,7 @@ class SingleKey extends StatelessWidget {
       );
       final Product cartItem = Product(
         (ProductBuilder b) => b
-          ..productId = variants[0]
+          ..id = variants[0]
               .id //done intentionally so we can use it while saving cart or orderDetail.
           ..name = vm.tmpItem.name
           ..categoryId = vm.tmpItem.categoryId
@@ -114,7 +114,7 @@ class SingleKey extends StatelessWidget {
           StoreProvider.of<AppState>(context).state.branch.id;
       final List<StockTableData> stocks = await store.state.database.stockDao
           .getStockByProductId(
-              branchId: branchId, productId: vm.tmpItem.productId);
+              branchId: branchId, productId: vm.tmpItem.id);
 
       for (int i = 0; i < stocks.length; i++) {
         await store.state.database.stockDao.updateStock(stocks[i].copyWith(

@@ -8,6 +8,6 @@ Every heading in this file denotes a scenario. Every bulleted point denotes a st
 Storing data and sync
 ----------------
 *On app start should connect to our centralized database that has
-    channel filter on it so on start the app can not load unneded (unrelated data) data
+    channels filter on it so on start the app can not load unneded (unrelated data) data
     On user creation all data, business,branch etc..should first create in local database
     first Sqlite then couchDb for sync: do overrite the data on couchside to avoid 20MB limit of size of document on couchside

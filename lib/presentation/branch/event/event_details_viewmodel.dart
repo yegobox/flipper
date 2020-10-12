@@ -22,7 +22,7 @@
 //
 //  String get groupId;
 //
-//  Channel get channel;
+//  channels get channels;
 //
 //  String get eventDate;
 //
@@ -45,43 +45,43 @@
 //      _$EventDetailsViewModel;
 //
 //  static EventDetailsViewModel fromStore(context, Store<AppState> store) {
-//    final channel = getSelectedChannel(store.state);
+//    final channels = getSelectedChannel(store.state);
 //    final members = store.state.groupUsers
-//        .where((user) => channel.users.any((u) => u.id == user.uid))
+//        .where((user) => channels.users.any((u) => u.id == user.uid))
 //        .toList();
 //
-//    final String dateString = _parseDate(context, channel);
-//    final String timeString = _parseTime(context, channel);
+//    final String dateString = _parseDate(context, channels);
+//    final String timeString = _parseTime(context, channels);
 //    final rsvpStatus =
-//        channel.users.asMap().map((k, v) => MapEntry(v.id, v.rsvp));
+//        channels.users.asMap().map((k, v) => MapEntry(v.id, v.rsvp));
 //
-//    members.sort((u1, u2) => _sortRsvpAndHost(rsvpStatus, u1, u2, channel.authorId));
+//    members.sort((u1, u2) => _sortRsvpAndHost(rsvpStatus, u1, u2, channels.authorId));
 //
 //    return EventDetailsViewModel((t) => t
-//      ..name = channel.name
-//      ..visibility = channel.visibility
-//      ..description = channel.description
+//      ..name = channels.name
+//      ..visibility = channels.visibility
+//      ..description = channels.description
 //      ..members.addAll(members)
 //      ..guestCount = rsvpStatus.values
 //          .where((v) => v == RSVP.YES || v == RSVP.MAYBE)
 //          .length
 //      ..rsvpStatus.addAll(rsvpStatus)
 //      ..groupId = store.state.selectedGroupId
-//      ..channel = channel.toBuilder()
+//      ..channels = channels.toBuilder()
 //      ..user = store.state.user.toBuilder()
 //      ..userRsvp = rsvpStatus[store.state.user.uid] ?? RSVP.UNSET
-//      ..editable = _isEditable(channel, store)
+//      ..editable = _isEditable(channels, store)
 //      ..eventDate = dateString
 //      ..eventTime = timeString
-//      ..canChangeRsvp = channel.startDate.isAfter(DateTime.now())
-//      ..venue = channel.venue ?? '');
+//      ..canChangeRsvp = channels.startDate.isAfter(DateTime.now())
+//      ..venue = channels.venue ?? '');
 //  }
 //
 //  // Allow to edit if:
 //  // 1. the current user is the author of the event
 //  // 2. the start date is after now (so, it did not pass)
-//  static bool _isEditable(Channel channel, Store<AppState> store) {
-//    return channel.authorId == store.state.user.uid && channel.startDate.isAfter(DateTime.now());
+//  static bool _isEditable(channels channels, Store<AppState> store) {
+//    return channels.authorId == store.state.user.uid && channels.startDate.isAfter(DateTime.now());
 //  }
 //
 //  static int _sortRsvpAndHost(Map<String, RSVP> rsvpStatus, User u1, User u2, String authorId) {
@@ -115,17 +115,17 @@
 //    }
 //  }
 //
-//  static String _parseDate(context, Channel channel) {
-//    if (channel.startDate == null) {
+//  static String _parseDate(context, channels channels) {
+//    if (channels.startDate == null) {
 //      return '';
 //    }
-//    return formatDate(context, channel.startDate);
+//    return formatDate(context, channels.startDate);
 //  }
 //
-//  static String _parseTime(prefix0.BuildContext context, Channel channel) {
-//    if (channel.hasStartTime != null && !channel.hasStartTime) {
+//  static String _parseTime(prefix0.BuildContext context, channels channels) {
+//    if (channels.hasStartTime != null && !channels.hasStartTime) {
 //      return '';
 //    }
-//    return formatTime(context, channel.startDate);
+//    return formatTime(context, channels.startDate);
 //  }
 //}

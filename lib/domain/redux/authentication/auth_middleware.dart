@@ -9,6 +9,7 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/helper/constant.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
@@ -18,12 +19,12 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/util/data_manager.dart';
-import 'package:flipper/util/flitter_color.dart';
+import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-import 'package:uuid/uuid.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -62,8 +63,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     next(action);
 
-    final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
-   
+    final FlipperNavigationService _navigationService =
+        locator<FlipperNavigationService>();
+
     final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
     if (!isLoggedIn) {
       _navigationService.navigateTo(Routing.afterSplash);
@@ -76,10 +78,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
     // ignore: always_specify_types
-    
+
     await DataManager.createTempProduct(store, 'custom-product');
     _getCurrentLocation(store: store);
-
   };
 }
 
@@ -88,18 +89,19 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = locator<DatabaseService>();
   if (user != null) {
     //login to couchbase
-      // ignore: always_specify_types
+    // ignore: always_specify_types
     final List<String> channels = [];
     channels.add(user.id.toString());
 
-
     await AppDatabase.instance.login(channels: channels);
-    
+
     // start with business closed.
-    await _databaseService.openCloseBusiness(isSocial: false,name: user.username,userId: user.id.toString(),isClosed:true);
-    
-  
-    
+    await _databaseService.openCloseBusiness(
+        isSocial: false,
+        name: user.username,
+        userId: user.id.toString(),
+        isClosed: true);
+
     final FUser u = FUser(
       (FUserBuilder p) => p
         ..email = user.email
@@ -144,32 +146,32 @@ Future<void> _getCurrentLocation({Store<AppState> store}) async {
 
 Future<List<Branch>> getBranches(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  final List<Branch> branches = await AppDatabase.instance.getDocumentByFilter(
-      filter: 'branches_' + store.state.userId.toString(),
-      store: store,
-      T: Branch);
-
-  for (int i = 0; i < branches.length; i++) {
-    if (branches[i].active) {
+  final DatabaseService _databaseService = locator<DatabaseService>();
+  final List<Map<String, dynamic>> branche = await _databaseService.filter(
+    equator: AppTables.branch + store.state.userId.toString(),
+    property: 'tableName',
+  );
+  List<Branch> branches =[];
+  if(branche.isNotEmpty){
+    // ignore: unnecessary_type_check
+    if(branche[0][AppDatabase.instance.dbName] is Object){
+      branches.add(Branch.fromMap(branche[0][AppDatabase.instance.dbName]));
+    }else{
+       branches =
+      branche[0][AppDatabase.instance.dbName].map((e) => Branch.fromMap(e)).toList();
+    }
+  }
+ 
+  for (Branch branch in branches) {
+    if (branch.active) {
       //set current active branch
       store.dispatch(
-        OnCurrentBranchAction(
-          branch: Branch((BranchBuilder b) => b
-            ..name = branches[i].name
-            ..id = branches[i].id
-            ..active = branches[i].active
-            ..businessId = branches[i].businessId
-            ..createdAt = branches[i].createdAt
-            ..mapLatitude = branches[i].mapLatitude
-            ..mapLongitude = branches[i].mapLongitude
-            ..mapLongitude = branches[i].mapLongitude
-            ..updatedAt = branches[i].updatedAt),
-        ),
+        OnCurrentBranchAction(branch: branch),
       );
       //set branch hint
       final Hint hint = Hint((HintBuilder b) => b
         ..type = HintType.Branch
-        ..name = branches[i].name);
+        ..name = branch.name);
       store.dispatch(OnHintLoaded(hint: hint));
     }
   }
@@ -272,38 +274,40 @@ Future<void> createTemporalOrder(
 
 Future<void> getBusinesses(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  final List<Business> businesses = await AppDatabase.instance
-      .getDocumentByFilter(
-          filter: 'business_' + store.state.userId.toString(),
-          store: store,
-          T: Business);
+  final DatabaseService _databaseService = locator<DatabaseService>();
+  final List<Map<String, dynamic>> business = await _databaseService.filter(
+    equator: AppTables.business + store.state.userId.toString(),
+    property: 'tableName',
+  );
+  
+  // ignore: always_specify_types
+  List<Business> businesses =[];
+  final Logger log = Logging.getLogger('DDD ....');
+  if(business.isNotEmpty){
+    log.d(business[0][AppDatabase.instance.dbName]);
 
+    // ignore: unnecessary_type_check
+    if( business[0][AppDatabase.instance.dbName] is Object){ //one business
+       businesses.add( Business.fromMap(business[0][AppDatabase.instance.dbName]));
+    }else{//in case a user have more than one business this use case is not yet supported
+      businesses =
+      business[0][AppDatabase.instance.dbName].map((e) => Business.fromMap(e)).toList();
+    }  
+  }
+ 
   await getBranches(store, generalRepository);
   await createTemporalOrder(generalRepository, store);
 
-  for (int i = 0; i < businesses.length; i++) {
-    if (businesses[i].active) {
-     
+  for (Business business in businesses) {
+    if (business.active) {
       store.dispatch(
-        ActiveBusinessAction(
-          Business(
-            (BusinessBuilder b) => b
-              ..id = businesses[i].id
-              ..currency = businesses[i].currency
-              ..typeId = businesses[i].typeId
-              ..categoryId = businesses[i].categoryId
-              ..active = businesses[i].active
-              ..name = businesses[i].name
-              ..type = BusinessType.NORMAL
-              ..hexColor = FlipperColors.defaultBusinessColor
-              ..image = 'image_null',
-          ),
-        ),
+        ActiveBusinessAction(business),
       );
     }
   }
 
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService =
+      locator<FlipperNavigationService>();
 
   if (businesses.isEmpty) {
     if (store.state.user != null) {

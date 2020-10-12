@@ -24,28 +24,35 @@ abstract class Switcher implements Built<Switcher, SwitcherBuilder> {
   @BuiltValueField(wireName: 'cashierName')
   @nullable
   String get cashierName;
+
   @BuiltValueField(wireName: 'isClosed')
   bool get isClosed;
+
   @BuiltValueField(wireName: 'isSocial')
   @nullable
   bool get isSocial;
+
   @BuiltValueField(wireName: 'tableName')
   @nullable
   String get tableName;
+
   @nullable
   @BuiltValueField(wireName: 'openingFLoat')
   double get openingFLoat;
+
   @nullable
   @BuiltValueField(wireName: 'closingFloat')
   double get closingFloat;
-  @nullable
+
+ 
   @BuiltValueField(wireName: 'displayText')
   @nullable
   String get displayText;
+
   @nullable
   @BuiltValueField(wireName: 'businessId')
-  @nullable
   String get businessId;
+  
   @BuiltValueField(wireName: 'userId')
   @nullable
   String get userId;

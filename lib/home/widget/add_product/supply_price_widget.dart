@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class SupplyPriceWidget extends StatefulWidget {
-  SupplyPriceWidget({Key key, this.vm}) : super(key: key);
+  const SupplyPriceWidget({Key key, this.vm}) : super(key: key);
   final CommonViewModel vm;
 
   @override
@@ -20,18 +20,18 @@ class _SupplyPriceWidgetState extends State<SupplyPriceWidget> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return StreamBuilder(
           stream: vm.database.variationDao.getItemVariationsByItemId(
-              vm.tmpItem.productId), //do we have regular variant on this item?
-          builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+              vm.tmpItem.id), //do we have regular variant on this item?
+          builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             //if we have more than one variant do not show regular widget for changing supply price
             if (snapshot.data != null && snapshot.data.length < 2) {
               return SupplyPrice(
                 vm: widget.vm,
               );
             }
-            return Text('');
+            return const SizedBox.shrink();
           },
         );
       },

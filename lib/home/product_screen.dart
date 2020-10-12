@@ -65,7 +65,7 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 child: StreamBuilder(
                   stream: vm.database.productDao
-                      .getProductStream(branchId: vm.branch.id),
+                      .getProductStream(branchId: null),
                   builder: (BuildContext context,
                       AsyncSnapshot<List<ProductTableData>> products) {
                     List<ProductTableData> productfilter;

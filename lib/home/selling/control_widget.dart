@@ -16,7 +16,7 @@ class ControlSaleWidget extends StatefulWidget {
 class _ControlSaleWidgetState extends State<ControlSaleWidget> {
   @override
   Widget build(BuildContext context) {
-    TextEditingController _controller = new TextEditingControllerWorkaroud(
+    final TextEditingController _controller =  TextEditingControllerWorkaroud(
         text: widget.vm.currentIncrement == null
             ? '1'
             : widget.vm.currentIncrement.toString());
@@ -27,8 +27,8 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
           width: 80,
           child: TextField(
             textDirection: TextDirection.rtl,
-            onChanged: (count) {
-              //TODO(richard): work on entering count from keyboard right now it is messing around with other inputs
+            onChanged: (String count) {
+              // TODO(richard): work on entering count from keyboard right now it is messing around with other inputs
               //set the increment to this value entered
               if (count == null || count.isEmpty) {
                 StoreProvider.of<AppState>(context).dispatch(
@@ -48,17 +48,17 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
             controller: _controller,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
           ),
         ),
       ),
       leading: IconButton(
         enableFeedback: false,
-        icon: Icon(Icons.remove),
+        icon: const Icon(Icons.remove),
         onPressed: () {
-          if (widget.vm.itemVariations.length > 0) {
-            for (var i = 0; i < widget.vm.itemVariations.length; i++) {
-              if (widget.vm.currentActiveSaleProduct.productId ==
+          if (widget.vm.itemVariations.isNotEmpty) {
+            for (int i = 0; i < widget.vm.itemVariations.length; i++) {
+              if (widget.vm.currentActiveSaleProduct.id ==
                   widget.vm.itemVariations[i].productId) {
                 if (widget.vm.currentIncrement == null) {
                   return;
@@ -66,7 +66,7 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
                 if (widget.vm.currentIncrement - 1 == -1) {
                   return;
                 }
-                var increment = widget.vm.currentIncrement - 1;
+                final int increment = widget.vm.currentIncrement - 1;
                 StoreProvider.of<AppState>(context).dispatch(
                   IncrementAction(
                     increment:
@@ -80,12 +80,12 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
       ),
       trailing: IconButton(
         enableFeedback: false,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         onPressed: () {
-          for (var i = 0; i < widget.vm.itemVariations.length; i++) {
-            if (widget.vm.currentActiveSaleProduct.productId ==
+          for (int i = 0; i < widget.vm.itemVariations.length; i++) {
+            if (widget.vm.currentActiveSaleProduct.id ==
                 widget.vm.itemVariations[i].productId) {
-              var increment = widget.vm.currentIncrement == null
+              final increment = widget.vm.currentIncrement == null
                   ? 1
                   : widget.vm.currentIncrement + 1;
 

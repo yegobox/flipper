@@ -6,6 +6,240 @@ part of 'order.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Order> _$orderSerializer = new _$OrderSerializer();
+
+class _$OrderSerializer implements StructuredSerializer<Order> {
+  @override
+  final Iterable<Type> types = const [Order, _$Order];
+  @override
+  final String wireName = 'Order';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Order object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'userId',
+      serializers.serialize(object.userId, specifiedType: const FullType(int)),
+      'branchId',
+      serializers.serialize(object.branchId,
+          specifiedType: const FullType(String)),
+      'orderNUmber',
+      serializers.serialize(object.orderNUmber,
+          specifiedType: const FullType(int)),
+      'supplierId',
+      serializers.serialize(object.supplierId,
+          specifiedType: const FullType(int)),
+      'subTotal',
+      serializers.serialize(object.subTotal,
+          specifiedType: const FullType(int)),
+      'supplierInvoiceNumber',
+      serializers.serialize(object.supplierInvoiceNumber,
+          specifiedType: const FullType(int)),
+      'deliverDate',
+      serializers.serialize(object.deliverDate,
+          specifiedType: const FullType(DateTime)),
+      'taxRate',
+      serializers.serialize(object.taxRate, specifiedType: const FullType(int)),
+      'taxAmount',
+      serializers.serialize(object.taxAmount,
+          specifiedType: const FullType(int)),
+      'discountRate',
+      serializers.serialize(object.discountRate,
+          specifiedType: const FullType(int)),
+      'discountAmount',
+      serializers.serialize(object.discountAmount,
+          specifiedType: const FullType(int)),
+      'cashReceived',
+      serializers.serialize(object.cashReceived,
+          specifiedType: const FullType(int)),
+      'saleTotal',
+      serializers.serialize(object.saleTotal,
+          specifiedType: const FullType(int)),
+      'customerSaving',
+      serializers.serialize(object.customerSaving,
+          specifiedType: const FullType(int)),
+      'paymentId',
+      serializers.serialize(object.paymentId,
+          specifiedType: const FullType(int)),
+      'orderNote',
+      serializers.serialize(object.orderNote,
+          specifiedType: const FullType(String)),
+      'status',
+      serializers.serialize(object.status,
+          specifiedType: const FullType(String)),
+      'customerChangeDue',
+      serializers.serialize(object.customerChangeDue,
+          specifiedType: const FullType(int)),
+    ];
+    if (object.deviceId != null) {
+      result
+        ..add('deviceId')
+        ..add(serializers.serialize(object.deviceId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.currency != null) {
+      result
+        ..add('currency')
+        ..add(serializers.serialize(object.currency,
+            specifiedType: const FullType(String)));
+    }
+    if (object.reference != null) {
+      result
+        ..add('reference')
+        ..add(serializers.serialize(object.reference,
+            specifiedType: const FullType(String)));
+    }
+    if (object.idLocal != null) {
+      result
+        ..add('idLocal')
+        ..add(serializers.serialize(object.idLocal,
+            specifiedType: const FullType(String)));
+    }
+    if (object.orderDate != null) {
+      result
+        ..add('orderDate')
+        ..add(serializers.serialize(object.orderDate,
+            specifiedType: const FullType(String)));
+    }
+    if (object.isDraft != null) {
+      result
+        ..add('isDraft')
+        ..add(serializers.serialize(object.isDraft,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.orderType != null) {
+      result
+        ..add('orderType')
+        ..add(serializers.serialize(object.orderType,
+            specifiedType: const FullType(String)));
+    }
+    return result;
+  }
+
+  @override
+  Order deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new OrderBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'userId':
+          result.userId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'branchId':
+          result.branchId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'deviceId':
+          result.deviceId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'currency':
+          result.currency = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'reference':
+          result.reference = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'idLocal':
+          result.idLocal = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'orderDate':
+          result.orderDate = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'isDraft':
+          result.isDraft = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'orderType':
+          result.orderType = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'orderNUmber':
+          result.orderNUmber = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'supplierId':
+          result.supplierId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'subTotal':
+          result.subTotal = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'supplierInvoiceNumber':
+          result.supplierInvoiceNumber = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'deliverDate':
+          result.deliverDate = serializers.deserialize(value,
+              specifiedType: const FullType(DateTime)) as DateTime;
+          break;
+        case 'taxRate':
+          result.taxRate = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'taxAmount':
+          result.taxAmount = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'discountRate':
+          result.discountRate = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'discountAmount':
+          result.discountAmount = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'cashReceived':
+          result.cashReceived = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'saleTotal':
+          result.saleTotal = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'customerSaving':
+          result.customerSaving = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'paymentId':
+          result.paymentId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'orderNote':
+          result.orderNote = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'status':
+          result.status = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'customerChangeDue':
+          result.customerChangeDue = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Order extends Order {
   @override
   final String id;

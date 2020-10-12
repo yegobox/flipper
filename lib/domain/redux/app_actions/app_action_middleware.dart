@@ -126,20 +126,21 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
         GeneralRepository generalRepository) {
   return (store, action, next) async {
     next(action);
-
+    // FIXME(richard): update the code
     //get this stock additional data for selling
-    StockTableData stock = await store.state.database.stockDao
+    final StockTableData stock = await store.state.database.stockDao
         .getStockByVariantId(
             branchId: store.state.branch.id,
-            variantId: store.state.cartItem.productId);
+            variantId: store.state.cartItem.id);
 
-    ProductTableData product = await store.state.database.productDao
+    final ProductTableData product = await store.state.database.productDao
         .getItemById(productId: stock.productId);
 
-    VariationTableData variant = await store.state.database.variationDao
-        .getVariationById(variantId: store.state.cartItem.productId);
+    final VariationTableData variant = await store.state.database.variationDao
+        .getVariationById(variantId: store.state.cartItem.id);
 
     await generalRepository.insertOrUpdateCart(
+
       store,
       //ignore: missing_required_param
       OrderDetailTableData(

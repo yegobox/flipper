@@ -156,7 +156,7 @@ class _OtpPageState extends State<OtpPage> {
                                     final http.Response response = await http
                                         .post('https://flipper.rw/open-login',
                                             body: {
-                                          'phone_number': widget.phone
+                                          'phone': widget.phone
                                         },
                                             headers: {
                                           'Content-Type':

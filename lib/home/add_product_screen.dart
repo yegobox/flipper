@@ -190,8 +190,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     SupplyPriceWidget(
                       vm: vm,
                     ),
-                    SkuField(),
-                    VariationList(productId: vm.tmpItem.productId),
+                    const SkuField(),
+                    VariationList(productId: vm.tmpItem.id),
                     AddVariant(
                       onPressedCallback: () {
                         createVariant(vm);
@@ -214,7 +214,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         final NavigationService _navigationService =
             locator<NavigationService>();
         _navigationService.navigateTo(Routing.editItemTitle,
-            arguments: EditItemTitleArguments(productId: vm.tmpItem.productId));
+            arguments: EditItemTitleArguments(productId: vm.tmpItem.id));
       },
       child: !vm.tmpItem.hasPicture
           ? Container(
@@ -293,7 +293,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
         // ignore: always_specify_types
         final updatedProduct =
-            await _databaseService.getById(id: vm.tmpItem.productId);
+            await _databaseService.getById(id: vm.tmpItem.id);
 
         DataManager.dispatchProduct(store, updatedProduct);
       },
@@ -365,7 +365,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     await updateProduct(
-      productId: vm.tmpItem.productId,
+      productId: vm.tmpItem.id,
       categoryId: store.state.category.id,
       vm: vm,
     );

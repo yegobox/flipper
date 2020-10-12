@@ -12,7 +12,7 @@ import 'package:stacked/stacked.dart';
 
 import 'business_list/business_list.dart';
 
-enum DrawerState { CALENDAR, CHANNEL }
+enum DrawerState { CALENDAR, channels }
 
 class FlipperDrawer extends StatefulWidget {
   const FlipperDrawer({Key key, this.vm}) : super(key: key);

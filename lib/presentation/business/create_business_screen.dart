@@ -115,10 +115,10 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
       _formKey.currentState.save();
     }
     StoreProvider.of<AppState>(context).dispatch(ResetAppAction());
-    final business = Business((b) => b
+    final Business business = Business((BusinessBuilder b) => b
       ..name = tBusiness.name
-      ..hexColor = "#f5a623"
-      ..type = BusinessType.NORMAL);
+      ..hexColor = '#f5a623'
+      ..type ='NORMAL');
     StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
     StoreProvider.of<AppState>(context).dispatch(CreateBusiness());
     //finally verify if all is good and go to dashboard.

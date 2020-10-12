@@ -14,21 +14,26 @@ abstract class Category implements Built<Category, CategoryBuilder> {
   // ignore: sort_constructors_first
   factory Category([updates(CategoryBuilder b)]) = _$Category;
   
-  
+
   @BuiltValueField(wireName: 'name')
   String get name;
+
   @BuiltValueField(wireName: 'id')
   String get id;
 
   @BuiltValueField(wireName: 'focused')
   @nullable
+
   bool get focused;
   @BuiltValueField(wireName: 'tableName')
+
   String get tableName;
   @BuiltValueField(wireName: 'touched')
+
   bool get touched;
   @nullable
   @BuiltValueField(wireName: 'branchId')
+  
   String get branchId;
   // ignore: sort_constructors_first
   

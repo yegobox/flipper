@@ -2,7 +2,6 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/home/selling/actions.dart';
 import 'package:flipper/home/selling/control_widget.dart';
 import 'package:flipper/model/product.dart';
@@ -17,6 +16,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
   final CommonViewModel vm;
 
   final Product activeItem;
+  // ignore: sort_constructors_first
   const MultipleVariantViewWidget(
       {Key key, this.stocks, this.vm, this.activeItem})
       : super(key: key);
@@ -61,7 +61,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
   List<Widget> getVariantsRow(
       List<StockTableData> stocks, BuildContext context) {
-    List<Widget> list = new List<Widget>();
+    final List<Widget> list =  <Widget>[];
     list.add(
       chooserRow(),
     );
@@ -78,7 +78,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
   ListTile chooserRow() {
     return ListTile(
-      contentPadding: EdgeInsets.fromLTRB(20, 20, 0, 0),
+      contentPadding: const EdgeInsets.fromLTRB(20, 20, 0, 0),
       leading: Text(vm.currentActiveSaleProduct == null
           ? 'CHOOSE ONE'
           : vm.currentActiveSaleProduct.name + ' CHOOSE ONE'),
@@ -101,7 +101,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
       Product cartItem = Product(
         (b) => b
-          ..productId = v
+          ..id = v
               .id //keep variation id Did it intentionally! so we can use it instead of productId
           ..name = v.name
           ..unit = v.unit
@@ -118,20 +118,20 @@ class MultipleVariantViewWidget extends StatelessWidget {
       BuildContext context, List<StockTableData> stocks, int i) {
     return GestureDetector(
       onTap: () {
-        for (var y = 0; y < stocks.length; y++) {
+        for (int y = 0; y < stocks.length; y++) {
           vm.database.stockDao.updateStock(stocks[y].copyWith(isActive: false));
         }
         vm.database.stockDao
             .updateStock(stocks[i].copyWith(isActive: !stocks[i].isActive));
       },
       child: ListTile(
-        contentPadding: EdgeInsets.fromLTRB(20, 20, 40, 10),
+        contentPadding: const EdgeInsets.fromLTRB(20, 20, 40, 10),
         dense: false,
         title: Align(
           alignment: Alignment.topRight,
           child: Text(
             'FRW ' + stocks[i].retailPrice.toString(),
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
             ),
           ),
@@ -140,17 +140,18 @@ class MultipleVariantViewWidget extends StatelessWidget {
             stream: vm.database.variationDao
                 .getVariationByIdStream(stocks[i].variantId),
             builder:
-                (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-              if (snapshot.data == null || snapshot.data.length == 0) {
-                return Text('');
+                (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+              if (snapshot.data == null || snapshot.data.isEmpty) {
+                return const SizedBox.shrink();
               }
               return Text(
                 snapshot.data[0].name,
-                style: TextStyle(
+                style:const TextStyle(
                   color: Colors.black,
                 ),
               );
             }),
+        // ignore: always_specify_types
         trailing: Radio(
           value: stocks[i].idLocal,
           groupValue: stocks[i].isActive ? stocks[i].idLocal : 0,
@@ -160,6 +161,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
     );
   }
 
+  // ignore: always_specify_types
   void _saveCart(CommonViewModel vm, context) {
     StoreProvider.of<AppState>(context).dispatch(SaveCart());
     Routing.navigator.maybePop();

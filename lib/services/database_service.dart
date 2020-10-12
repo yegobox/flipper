@@ -95,12 +95,12 @@ class DatabaseService {
   }
 
   // A filter query to look for a document muck like select * from where name =sth and email =sth
-  Future<List<Map<dynamic, dynamic>>> filter(
+  Future<List<Map<String, dynamic>>> filter(
       {String property,
       String equator,
       String andProperty,
       String andEquator,
-      bool and}) async {
+      bool and=false}) async {
     // ignore: always_specify_types
     Where query;
     if (!and) {

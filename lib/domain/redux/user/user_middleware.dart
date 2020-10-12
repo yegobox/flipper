@@ -28,12 +28,14 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
       assert(store.state.userId != null);
       final String userId = Uuid().v1();
+      // ignore: always_specify_types
       final Map<String,dynamic> mapUser = {
         'active': true,
         '_id': 'user_' + store.state.userId.toString(),
         'uid': Uuid().v1(),
         'id': userId,
-        'channel': store.state.userId.toString(),
+        // ignore: always_specify_types
+        'channels': [store.state.userId.toString()],//users allowed to see a document.
         'name': user.name, //remove any white space from string
         'token': user.token,
         'createdAt': DateTime.now().toIso8601String(),

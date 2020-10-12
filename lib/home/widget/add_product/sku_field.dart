@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class SkuField extends StatefulWidget {
-  SkuField({Key key}) : super(key: key);
+  const SkuField({Key key}) : super(key: key);
 
   @override
   _SkuFieldState createState() => _SkuFieldState();
@@ -18,31 +18,31 @@ class _SkuFieldState extends State<SkuField> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return StreamBuilder(
           stream: vm.database.variationDao
-              .getVariationByNameStream('Regular', vm.tmpItem.productId),
-          builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+              .getVariationByNameStream('Regular', vm.tmpItem.id),
+          builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
             if (snapshot.data == null) {
-              return Text('');
+              return const SizedBox.shrink();
             }
             return snapshot.data == null
                 ? Center(
                     child: Container(
                       width: 300,
                       child: TextFormField(
-                        style: TextStyle(color: Colors.black),
-                        onChanged: (sku) {
+                        style: const TextStyle(color: Colors.black),
+                        onChanged: (String sku) {
                           setState(() {
                             DataManager.sku = sku;
                           });
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                             hintText: 'SKU', focusColor: Colors.blue),
                       ),
                     ),
                   )
-                : Text('');
+                : const SizedBox.shrink();
           },
         );
       },

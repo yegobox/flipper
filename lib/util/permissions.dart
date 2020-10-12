@@ -1,7 +1,7 @@
 
 import 'package:flutter/services.dart';
 
-const MethodChannel channel = MethodChannel('de.janoodle.timy/permission');
+const MethodChannel channels = MethodChannel('de.janoodle.timy/permission');
 
 /// Obtain the status for storage/photos permissions
 ///

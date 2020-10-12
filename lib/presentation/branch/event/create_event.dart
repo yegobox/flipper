@@ -24,7 +24,7 @@
 //  final GlobalKey<FormState> _key = GlobalKey<FormState>();
 //
 //  // will be null if we are in create mode
-//  Channel _editChannel;
+//  channels _editChannel;
 //  bool _loadedEditChannel = false;
 //
 //  @override
@@ -276,7 +276,7 @@
 //          Padding(
 //            padding: const EdgeInsets.all(AppTheme.appMargin),
 //            child: Image.asset(
-//              'assets/graphics/channel/details_padlock.png',
+//              'assets/graphics/channels/details_padlock.png',
 //              height: 36,
 //            ),
 //          ),
@@ -303,7 +303,7 @@
 //    });
 //  }
 //
-//  // TODO(richard): Maybe unify with Create Channel module
+//  // TODO(richard): Maybe unify with Create channels module
 //  void _showAlert(
 //    BuildContext context,
 //    String title,
@@ -371,7 +371,7 @@
 //  void _dispatchCreateAction(List<String> members, Completer completer) {
 //    final provider = StoreProvider.of<AppState>(context);
 //    provider.dispatch(CreateChannel(
-//      Channel((c) => c
+//      channels((c) => c
 //        ..type = ChannelType.EVENT
 //        ..name = _nameController.text
 //        ..description = _purposeController.text ?? ''

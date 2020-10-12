@@ -3,6 +3,7 @@ import 'package:flipper/data/respositories/business_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
+import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -37,16 +38,15 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
      
       final Map<String, dynamic> _mapBusiness = {
         'active': true,
-        '_id': 'business_' + store.state.userId.toString(),
+        '_id':  AppTables.business + store.state.userId.toString(),
         'categoryId': '10', //pet store a default id when signup on mobile
-        'channel': store.state.userId.toString(),
+        'channels':[ store.state.userId.toString()],
         'typeId': '1', //pet store a default id when signup on mobile
-        'businessUrl': '',
+        'tableName': AppTables.business + store.state.userId.toString(),
         'country': 'Rwanda',
         'currency': 'RWF',
-        'id': 'business_' + store.state.userId.toString(),
+        'id':  AppTables.business + store.state.userId.toString(),
         'name': store.state.business.name,
-        'timeZone': '',
         'userId': store.state.userId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
@@ -58,8 +58,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       final Map<String, dynamic> _notTax = {
         'active': true,
         '_id': 'taxes_' + businessId,
-        'channel': store.state.userId.toString(),
+        'channels': [store.state.userId.toString()],
         'businessId': businessId,
+        'tableName': AppTables.tax + store.state.userId.toString(),
         'createdAt': DateTime.now().toIso8601String(),
         'id': 'taxes_' + store.state.userId.toString(),
         'updatedAt': DateTime.now().toIso8601String(),
@@ -73,8 +74,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       final Map<String, dynamic> vat = {
         'active': true,
         '_id': 'taxes_' + businessId,
-        'channel': store.state.userId.toString(),
+        'channels': [store.state.userId.toString()],
         'businessId': businessId,
+        'tableName': AppTables.tax + store.state.userId.toString(),
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'id': 'taxes_' + businessId,
