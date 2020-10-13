@@ -13,6 +13,8 @@ import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/data_manager.dart';
+import 'package:logger/logger.dart';
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
@@ -65,6 +67,7 @@ class GeneralRepository {
 
   Future<Order> createDraftOrderOrReturnExistingOne(
       Store<AppState> store) async {
+         final Logger log = Logging.getLogger('General repo ....');
     // OrderTableData order =
     //     await store.state.database.orderDao.getExistingDraftOrder();
     final DatabaseService _databaseService = locator<DatabaseService>();
@@ -82,7 +85,7 @@ class GeneralRepository {
         'branchId': store.state.branch.id,
         'tableName': AppTables.order + AppTables.order + store.state.branch.id
       });
-
+      
       final List<Map<String, dynamic>> or = await _databaseService.filter(
         equator: 'draft',
         property: 'name',
@@ -90,10 +93,12 @@ class GeneralRepository {
         andProperty: 'tableName',
         andEquator: AppTables.order + store.state.branch.id,
       );
+      log.d(or);
       final Order order = Order.fromMap(or[0][AppDatabase.instance.dbName]);
       dispatchOrder(store, order);
       return order;
     } else {
+      log.d(or);
       final Order order = Order.fromMap(or[0][AppDatabase.instance.dbName]);
       dispatchOrder(store, order);
       return order;

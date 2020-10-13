@@ -6,6 +6,16 @@
          In most cases you can leave this as-is, but you if you want to provide
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
+         <uses-permission android:name="android.permission.INTERNET" />
+    
+         <uses-permission android:name="android.permission.BLUETOOTH" />
+         <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+     
+         <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+         <!-- contact permission -->
+         <uses-permission android:name="android.permission.READ_CONTACTS" />  
+         <uses-permission android:name="android.permission.WRITE_CONTACTS" /> 
+     
     <application
         android:usesCleartextTraffic="true"
         tools:replace="icon, label"
@@ -48,18 +58,6 @@
             android:value="2" />
     </application>
 
-    <uses-permission android:name="android.permission.READ_CONTACTS" />  
-    <uses-permission android:name="android.permission.WRITE_CONTACTS" /> 
-    <uses-permission android:name="android.permission.GET_aCCOUNTS" /> 
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    
-    <!-- contact permission -->
-    <uses-permission android:name="android.permission.READ_CONTACTS" />  
-    <uses-permission android:name="android.permission.WRITE_CONTACTS" /> 
 
 </manifest>

@@ -91,6 +91,7 @@ dependencies:
   flutter_dotenv: ^2.1.0
   mailer: ^3.2.1
   contacts_service: ^0.3.10
+  flutter_reactive_ble: ^2.5.3
   
   
 
