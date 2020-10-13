@@ -80,10 +80,12 @@ class GeneralRepository {
     );
     if (or.isEmpty) {
       // ignore: always_specify_types
-      _databaseService.insert(id: Uuid().v1(), data: {
+      final       String id = Uuid().v1();
+      _databaseService.insert(id:id, data: {
         'name': 'draft',
+        'id':id,
         'branchId': store.state.branch.id,
-        'tableName': AppTables.order + AppTables.order + store.state.branch.id
+        'tableName':  AppTables.order + store.state.branch.id
       });
       
       final List<Map<String, dynamic>> or = await _databaseService.filter(
@@ -93,12 +95,12 @@ class GeneralRepository {
         andProperty: 'tableName',
         andEquator: AppTables.order + store.state.branch.id,
       );
-      log.d(or);
+      
       final Order order = Order.fromMap(or[0][AppDatabase.instance.dbName]);
       dispatchOrder(store, order);
       return order;
     } else {
-      log.d(or);
+      
       final Order order = Order.fromMap(or[0][AppDatabase.instance.dbName]);
       dispatchOrder(store, order);
       return order;

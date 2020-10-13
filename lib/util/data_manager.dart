@@ -40,6 +40,7 @@ class DataManager {
 
     await uploader.enqueue(
         url: 'https://test.flipper.rw/api/upload',
+        // ignore: always_specify_types
         files: [
           FileItem(
               filename: fileName, savedDir: storagePath, fieldname: 'image')
@@ -205,6 +206,7 @@ class DataManager {
           name: productName,
           'categoryId': Category.fromMap(category[0]['main']).id,
           'color': '#955be9',
+          'id': Uuid().v1(),
           'active': true,
           'hasPicture': false,
           'tableName': AppTables.product + store.state.branch.id,
@@ -266,22 +268,33 @@ class DataManager {
     final List<Map<String, dynamic>> v = await _databaseService.filter(
       equator: productName,
       property: 'name',
-      and: true, 
+      and: true,
       andEquator: product.id,
       andProperty: 'productId',
     );
     Variation variant;
     if (v.isEmpty) {
+      final String id = Uuid().v1();
+      _databaseService.insert(id: id, data: {
+        'name': 'Regular',
+        'id': id,
+        'productId': product.id,
+        'tableName': AppTables.variation + store.state.branch.id
+      });
+
       final List<Map<String, dynamic>> vv = await _databaseService.filter(
         equator: 'Regular',
         property: 'name',
-        and: true, 
+        and: true,
         andEquator: product.id,
         andProperty: 'productId',
       );
       variant = Variation.fromMap(vv[0][AppDatabase.instance.dbName]);
-    }else{
-     variant = Variation.fromMap(v[0][AppDatabase.instance.dbName]);
+    } else {
+      final Logger log = Logging.getLogger('Database service  Model ....');
+      
+      log.d(v[0][AppDatabase.instance.dbName]);
+      variant = Variation.fromMap(v[0][AppDatabase.instance.dbName]);
     }
     store.dispatch(
       VariationAction(variation: variant),

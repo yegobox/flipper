@@ -24,7 +24,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         .checkPermissionStatus(PermissionGroup.contacts);
 
     final PermissionStatus smsStatus = await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.contacts);
+        .checkPermissionStatus(PermissionGroup.sms);
 
     if (locationStatus == PermissionStatus.granted && contactStatus ==  PermissionStatus.granted && smsStatus== PermissionStatus.granted) {
       final Permission permission = Permission((PermissionBuilder p) => p

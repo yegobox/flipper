@@ -123,10 +123,11 @@ class AppDatabase {
       _dbListenerToken =
           database.addChangeListener((lite.DatabaseChange dbChange) async {
         for (String id in dbChange.documentIDs) {
-          log.d('change in id: $id');
+         
           final lite.Document document = await database.document(id);
           //until we save document right in all place keep this code here to keep things smooth.
           if (document != null && !document.getBoolean('touched')) {
+             log.d('change in id: $id');
             //only update once to avoid infinite loop
             log.i('updated non touched document,we update the document to make the id be usable for update');
             final lite.MutableDocument mutableDoc = document

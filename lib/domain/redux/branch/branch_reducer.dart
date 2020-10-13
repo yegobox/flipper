@@ -4,6 +4,7 @@ import 'package:flipper/helper/constant.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 // ignore: always_specify_types
 final branchReducers = <AppState Function(AppState, dynamic)>[
@@ -23,7 +24,7 @@ AppState _onHintLoaded(AppState state, OnHintLoaded action) {
 AppState _onActiveBranch(AppState state, OnCurrentBranchAction action) {
   //create default category if does not exist on active branch
    final DatabaseService _databaseService = locator<DatabaseService>();
-  _databaseService.insert(id: '1ux-default-category',data:{'tableName': AppTables.category+action.branch.id,'name':'custom'});
+  _databaseService.insert(id: Uuid().v1(),data:{'tableName': AppTables.category+action.branch.id,'name':'custom'});
 
   return state.rebuild((AppStateBuilder a) => a..branch = action.branch.toBuilder());
 }

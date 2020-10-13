@@ -20,59 +20,16 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'userId',
-      serializers.serialize(object.userId, specifiedType: const FullType(int)),
       'branchId',
       serializers.serialize(object.branchId,
           specifiedType: const FullType(String)),
-      'orderNUmber',
-      serializers.serialize(object.orderNUmber,
-          specifiedType: const FullType(int)),
-      'supplierId',
-      serializers.serialize(object.supplierId,
-          specifiedType: const FullType(int)),
-      'subTotal',
-      serializers.serialize(object.subTotal,
-          specifiedType: const FullType(int)),
-      'supplierInvoiceNumber',
-      serializers.serialize(object.supplierInvoiceNumber,
-          specifiedType: const FullType(int)),
-      'deliverDate',
-      serializers.serialize(object.deliverDate,
-          specifiedType: const FullType(DateTime)),
-      'taxRate',
-      serializers.serialize(object.taxRate, specifiedType: const FullType(int)),
-      'taxAmount',
-      serializers.serialize(object.taxAmount,
-          specifiedType: const FullType(int)),
-      'discountRate',
-      serializers.serialize(object.discountRate,
-          specifiedType: const FullType(int)),
-      'discountAmount',
-      serializers.serialize(object.discountAmount,
-          specifiedType: const FullType(int)),
-      'cashReceived',
-      serializers.serialize(object.cashReceived,
-          specifiedType: const FullType(int)),
-      'saleTotal',
-      serializers.serialize(object.saleTotal,
-          specifiedType: const FullType(int)),
-      'customerSaving',
-      serializers.serialize(object.customerSaving,
-          specifiedType: const FullType(int)),
-      'paymentId',
-      serializers.serialize(object.paymentId,
-          specifiedType: const FullType(int)),
-      'orderNote',
-      serializers.serialize(object.orderNote,
-          specifiedType: const FullType(String)),
-      'status',
-      serializers.serialize(object.status,
-          specifiedType: const FullType(String)),
-      'customerChangeDue',
-      serializers.serialize(object.customerChangeDue,
-          specifiedType: const FullType(int)),
     ];
+    if (object.userId != null) {
+      result
+        ..add('userId')
+        ..add(serializers.serialize(object.userId,
+            specifiedType: const FullType(String)));
+    }
     if (object.deviceId != null) {
       result
         ..add('deviceId')
@@ -115,6 +72,102 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
         ..add(serializers.serialize(object.orderType,
             specifiedType: const FullType(String)));
     }
+    if (object.orderNUmber != null) {
+      result
+        ..add('orderNUmber')
+        ..add(serializers.serialize(object.orderNUmber,
+            specifiedType: const FullType(String)));
+    }
+    if (object.supplierId != null) {
+      result
+        ..add('supplierId')
+        ..add(serializers.serialize(object.supplierId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.subTotal != null) {
+      result
+        ..add('subTotal')
+        ..add(serializers.serialize(object.subTotal,
+            specifiedType: const FullType(String)));
+    }
+    if (object.supplierInvoiceNumber != null) {
+      result
+        ..add('supplierInvoiceNumber')
+        ..add(serializers.serialize(object.supplierInvoiceNumber,
+            specifiedType: const FullType(String)));
+    }
+    if (object.deliverDate != null) {
+      result
+        ..add('deliverDate')
+        ..add(serializers.serialize(object.deliverDate,
+            specifiedType: const FullType(String)));
+    }
+    if (object.taxRate != null) {
+      result
+        ..add('taxRate')
+        ..add(serializers.serialize(object.taxRate,
+            specifiedType: const FullType(String)));
+    }
+    if (object.taxAmount != null) {
+      result
+        ..add('taxAmount')
+        ..add(serializers.serialize(object.taxAmount,
+            specifiedType: const FullType(String)));
+    }
+    if (object.discountRate != null) {
+      result
+        ..add('discountRate')
+        ..add(serializers.serialize(object.discountRate,
+            specifiedType: const FullType(String)));
+    }
+    if (object.discountAmount != null) {
+      result
+        ..add('discountAmount')
+        ..add(serializers.serialize(object.discountAmount,
+            specifiedType: const FullType(String)));
+    }
+    if (object.cashReceived != null) {
+      result
+        ..add('cashReceived')
+        ..add(serializers.serialize(object.cashReceived,
+            specifiedType: const FullType(String)));
+    }
+    if (object.saleTotal != null) {
+      result
+        ..add('saleTotal')
+        ..add(serializers.serialize(object.saleTotal,
+            specifiedType: const FullType(String)));
+    }
+    if (object.customerSaving != null) {
+      result
+        ..add('customerSaving')
+        ..add(serializers.serialize(object.customerSaving,
+            specifiedType: const FullType(String)));
+    }
+    if (object.paymentId != null) {
+      result
+        ..add('paymentId')
+        ..add(serializers.serialize(object.paymentId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.orderNote != null) {
+      result
+        ..add('orderNote')
+        ..add(serializers.serialize(object.orderNote,
+            specifiedType: const FullType(String)));
+    }
+    if (object.status != null) {
+      result
+        ..add('status')
+        ..add(serializers.serialize(object.status,
+            specifiedType: const FullType(String)));
+    }
+    if (object.customerChangeDue != null) {
+      result
+        ..add('customerChangeDue')
+        ..add(serializers.serialize(object.customerChangeDue,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -135,7 +188,7 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'userId':
           result.userId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'branchId':
           result.branchId = serializers.deserialize(value,
@@ -171,55 +224,55 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'orderNUmber':
           result.orderNUmber = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'supplierId':
           result.supplierId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'subTotal':
           result.subTotal = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'supplierInvoiceNumber':
           result.supplierInvoiceNumber = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'deliverDate':
           result.deliverDate = serializers.deserialize(value,
-              specifiedType: const FullType(DateTime)) as DateTime;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'taxRate':
           result.taxRate = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'taxAmount':
           result.taxAmount = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'discountRate':
           result.discountRate = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'discountAmount':
           result.discountAmount = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'cashReceived':
           result.cashReceived = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'saleTotal':
           result.saleTotal = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'customerSaving':
           result.customerSaving = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'paymentId':
           result.paymentId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'orderNote':
           result.orderNote = serializers.deserialize(value,
@@ -231,7 +284,7 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'customerChangeDue':
           result.customerChangeDue = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -244,7 +297,7 @@ class _$Order extends Order {
   @override
   final String id;
   @override
-  final int userId;
+  final String userId;
   @override
   final String branchId;
   @override
@@ -262,37 +315,37 @@ class _$Order extends Order {
   @override
   final String orderType;
   @override
-  final int orderNUmber;
+  final String orderNUmber;
   @override
-  final int supplierId;
+  final String supplierId;
   @override
-  final int subTotal;
+  final String subTotal;
   @override
-  final int supplierInvoiceNumber;
+  final String supplierInvoiceNumber;
   @override
-  final DateTime deliverDate;
+  final String deliverDate;
   @override
-  final int taxRate;
+  final String taxRate;
   @override
-  final int taxAmount;
+  final String taxAmount;
   @override
-  final int discountRate;
+  final String discountRate;
   @override
-  final int discountAmount;
+  final String discountAmount;
   @override
-  final int cashReceived;
+  final String cashReceived;
   @override
-  final int saleTotal;
+  final String saleTotal;
   @override
-  final int customerSaving;
+  final String customerSaving;
   @override
-  final int paymentId;
+  final String paymentId;
   @override
   final String orderNote;
   @override
   final String status;
   @override
-  final int customerChangeDue;
+  final String customerChangeDue;
 
   factory _$Order([void Function(OrderBuilder) updates]) =>
       (new OrderBuilder()..update(updates)).build();
@@ -328,59 +381,8 @@ class _$Order extends Order {
     if (id == null) {
       throw new BuiltValueNullFieldError('Order', 'id');
     }
-    if (userId == null) {
-      throw new BuiltValueNullFieldError('Order', 'userId');
-    }
     if (branchId == null) {
       throw new BuiltValueNullFieldError('Order', 'branchId');
-    }
-    if (orderNUmber == null) {
-      throw new BuiltValueNullFieldError('Order', 'orderNUmber');
-    }
-    if (supplierId == null) {
-      throw new BuiltValueNullFieldError('Order', 'supplierId');
-    }
-    if (subTotal == null) {
-      throw new BuiltValueNullFieldError('Order', 'subTotal');
-    }
-    if (supplierInvoiceNumber == null) {
-      throw new BuiltValueNullFieldError('Order', 'supplierInvoiceNumber');
-    }
-    if (deliverDate == null) {
-      throw new BuiltValueNullFieldError('Order', 'deliverDate');
-    }
-    if (taxRate == null) {
-      throw new BuiltValueNullFieldError('Order', 'taxRate');
-    }
-    if (taxAmount == null) {
-      throw new BuiltValueNullFieldError('Order', 'taxAmount');
-    }
-    if (discountRate == null) {
-      throw new BuiltValueNullFieldError('Order', 'discountRate');
-    }
-    if (discountAmount == null) {
-      throw new BuiltValueNullFieldError('Order', 'discountAmount');
-    }
-    if (cashReceived == null) {
-      throw new BuiltValueNullFieldError('Order', 'cashReceived');
-    }
-    if (saleTotal == null) {
-      throw new BuiltValueNullFieldError('Order', 'saleTotal');
-    }
-    if (customerSaving == null) {
-      throw new BuiltValueNullFieldError('Order', 'customerSaving');
-    }
-    if (paymentId == null) {
-      throw new BuiltValueNullFieldError('Order', 'paymentId');
-    }
-    if (orderNote == null) {
-      throw new BuiltValueNullFieldError('Order', 'orderNote');
-    }
-    if (status == null) {
-      throw new BuiltValueNullFieldError('Order', 'status');
-    }
-    if (customerChangeDue == null) {
-      throw new BuiltValueNullFieldError('Order', 'customerChangeDue');
     }
   }
 
@@ -505,9 +507,9 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get id => _$this._id;
   set id(String id) => _$this._id = id;
 
-  int _userId;
-  int get userId => _$this._userId;
-  set userId(int userId) => _$this._userId = userId;
+  String _userId;
+  String get userId => _$this._userId;
+  set userId(String userId) => _$this._userId = userId;
 
   String _branchId;
   String get branchId => _$this._branchId;
@@ -541,60 +543,60 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get orderType => _$this._orderType;
   set orderType(String orderType) => _$this._orderType = orderType;
 
-  int _orderNUmber;
-  int get orderNUmber => _$this._orderNUmber;
-  set orderNUmber(int orderNUmber) => _$this._orderNUmber = orderNUmber;
+  String _orderNUmber;
+  String get orderNUmber => _$this._orderNUmber;
+  set orderNUmber(String orderNUmber) => _$this._orderNUmber = orderNUmber;
 
-  int _supplierId;
-  int get supplierId => _$this._supplierId;
-  set supplierId(int supplierId) => _$this._supplierId = supplierId;
+  String _supplierId;
+  String get supplierId => _$this._supplierId;
+  set supplierId(String supplierId) => _$this._supplierId = supplierId;
 
-  int _subTotal;
-  int get subTotal => _$this._subTotal;
-  set subTotal(int subTotal) => _$this._subTotal = subTotal;
+  String _subTotal;
+  String get subTotal => _$this._subTotal;
+  set subTotal(String subTotal) => _$this._subTotal = subTotal;
 
-  int _supplierInvoiceNumber;
-  int get supplierInvoiceNumber => _$this._supplierInvoiceNumber;
-  set supplierInvoiceNumber(int supplierInvoiceNumber) =>
+  String _supplierInvoiceNumber;
+  String get supplierInvoiceNumber => _$this._supplierInvoiceNumber;
+  set supplierInvoiceNumber(String supplierInvoiceNumber) =>
       _$this._supplierInvoiceNumber = supplierInvoiceNumber;
 
-  DateTime _deliverDate;
-  DateTime get deliverDate => _$this._deliverDate;
-  set deliverDate(DateTime deliverDate) => _$this._deliverDate = deliverDate;
+  String _deliverDate;
+  String get deliverDate => _$this._deliverDate;
+  set deliverDate(String deliverDate) => _$this._deliverDate = deliverDate;
 
-  int _taxRate;
-  int get taxRate => _$this._taxRate;
-  set taxRate(int taxRate) => _$this._taxRate = taxRate;
+  String _taxRate;
+  String get taxRate => _$this._taxRate;
+  set taxRate(String taxRate) => _$this._taxRate = taxRate;
 
-  int _taxAmount;
-  int get taxAmount => _$this._taxAmount;
-  set taxAmount(int taxAmount) => _$this._taxAmount = taxAmount;
+  String _taxAmount;
+  String get taxAmount => _$this._taxAmount;
+  set taxAmount(String taxAmount) => _$this._taxAmount = taxAmount;
 
-  int _discountRate;
-  int get discountRate => _$this._discountRate;
-  set discountRate(int discountRate) => _$this._discountRate = discountRate;
+  String _discountRate;
+  String get discountRate => _$this._discountRate;
+  set discountRate(String discountRate) => _$this._discountRate = discountRate;
 
-  int _discountAmount;
-  int get discountAmount => _$this._discountAmount;
-  set discountAmount(int discountAmount) =>
+  String _discountAmount;
+  String get discountAmount => _$this._discountAmount;
+  set discountAmount(String discountAmount) =>
       _$this._discountAmount = discountAmount;
 
-  int _cashReceived;
-  int get cashReceived => _$this._cashReceived;
-  set cashReceived(int cashReceived) => _$this._cashReceived = cashReceived;
+  String _cashReceived;
+  String get cashReceived => _$this._cashReceived;
+  set cashReceived(String cashReceived) => _$this._cashReceived = cashReceived;
 
-  int _saleTotal;
-  int get saleTotal => _$this._saleTotal;
-  set saleTotal(int saleTotal) => _$this._saleTotal = saleTotal;
+  String _saleTotal;
+  String get saleTotal => _$this._saleTotal;
+  set saleTotal(String saleTotal) => _$this._saleTotal = saleTotal;
 
-  int _customerSaving;
-  int get customerSaving => _$this._customerSaving;
-  set customerSaving(int customerSaving) =>
+  String _customerSaving;
+  String get customerSaving => _$this._customerSaving;
+  set customerSaving(String customerSaving) =>
       _$this._customerSaving = customerSaving;
 
-  int _paymentId;
-  int get paymentId => _$this._paymentId;
-  set paymentId(int paymentId) => _$this._paymentId = paymentId;
+  String _paymentId;
+  String get paymentId => _$this._paymentId;
+  set paymentId(String paymentId) => _$this._paymentId = paymentId;
 
   String _orderNote;
   String get orderNote => _$this._orderNote;
@@ -604,9 +606,9 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get status => _$this._status;
   set status(String status) => _$this._status = status;
 
-  int _customerChangeDue;
-  int get customerChangeDue => _$this._customerChangeDue;
-  set customerChangeDue(int customerChangeDue) =>
+  String _customerChangeDue;
+  String get customerChangeDue => _$this._customerChangeDue;
+  set customerChangeDue(String customerChangeDue) =>
       _$this._customerChangeDue = customerChangeDue;
 
   OrderBuilder();

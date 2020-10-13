@@ -20,11 +20,9 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'productId',
-      serializers.serialize(object.productId,
+      'tableName',
+      serializers.serialize(object.tableName,
           specifiedType: const FullType(String)),
-      'name',
-      serializers.serialize(object.name, specifiedType: const FullType(String)),
     ];
     if (object.sku != null) {
       result
@@ -32,11 +30,30 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
         ..add(serializers.serialize(object.sku,
             specifiedType: const FullType(String)));
     }
+    if (object.productId != null) {
+      result
+        ..add('productId')
+        ..add(serializers.serialize(object.productId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.name != null) {
+      result
+        ..add('name')
+        ..add(serializers.serialize(object.name,
+            specifiedType: const FullType(String)));
+    }
     if (object.unit != null) {
       result
         ..add('unit')
         ..add(serializers.serialize(object.unit,
             specifiedType: const FullType(String)));
+    }
+    if (object.channels != null) {
+      result
+        ..add('channels')
+        ..add(serializers.serialize(object.channels,
+            specifiedType:
+                const FullType(BuiltList, const [const FullType(String)])));
     }
     return result;
   }
@@ -72,6 +89,16 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
           result.unit = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'tableName':
+          result.tableName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
       }
     }
 
@@ -90,20 +117,28 @@ class _$Variation extends Variation {
   final String name;
   @override
   final String unit;
+  @override
+  final String tableName;
+  @override
+  final BuiltList<String> channels;
 
   factory _$Variation([void Function(VariationBuilder) updates]) =>
       (new VariationBuilder()..update(updates)).build();
 
-  _$Variation._({this.id, this.sku, this.productId, this.name, this.unit})
+  _$Variation._(
+      {this.id,
+      this.sku,
+      this.productId,
+      this.name,
+      this.unit,
+      this.tableName,
+      this.channels})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
     }
-    if (productId == null) {
-      throw new BuiltValueNullFieldError('Variation', 'productId');
-    }
-    if (name == null) {
-      throw new BuiltValueNullFieldError('Variation', 'name');
+    if (tableName == null) {
+      throw new BuiltValueNullFieldError('Variation', 'tableName');
     }
   }
 
@@ -122,15 +157,23 @@ class _$Variation extends Variation {
         sku == other.sku &&
         productId == other.productId &&
         name == other.name &&
-        unit == other.unit;
+        unit == other.unit &&
+        tableName == other.tableName &&
+        channels == other.channels;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc($jc(0, id.hashCode), sku.hashCode), productId.hashCode),
-            name.hashCode),
-        unit.hashCode));
+        $jc(
+            $jc(
+                $jc(
+                    $jc($jc($jc(0, id.hashCode), sku.hashCode),
+                        productId.hashCode),
+                    name.hashCode),
+                unit.hashCode),
+            tableName.hashCode),
+        channels.hashCode));
   }
 
   @override
@@ -140,7 +183,9 @@ class _$Variation extends Variation {
           ..add('sku', sku)
           ..add('productId', productId)
           ..add('name', name)
-          ..add('unit', unit))
+          ..add('unit', unit)
+          ..add('tableName', tableName)
+          ..add('channels', channels))
         .toString();
   }
 }
@@ -168,6 +213,15 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   String get unit => _$this._unit;
   set unit(String unit) => _$this._unit = unit;
 
+  String _tableName;
+  String get tableName => _$this._tableName;
+  set tableName(String tableName) => _$this._tableName = tableName;
+
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   VariationBuilder();
 
   VariationBuilder get _$this {
@@ -177,6 +231,8 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
       _productId = _$v.productId;
       _name = _$v.name;
       _unit = _$v.unit;
+      _tableName = _$v.tableName;
+      _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
     return this;
@@ -197,9 +253,28 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
 
   @override
   _$Variation build() {
-    final _$result = _$v ??
-        new _$Variation._(
-            id: id, sku: sku, productId: productId, name: name, unit: unit);
+    _$Variation _$result;
+    try {
+      _$result = _$v ??
+          new _$Variation._(
+              id: id,
+              sku: sku,
+              productId: productId,
+              name: name,
+              unit: unit,
+              tableName: tableName,
+              channels: _channels?.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        _channels?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Variation', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

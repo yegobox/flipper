@@ -9,39 +9,81 @@ part 'order.g.dart';
 
 abstract class Order implements Built<Order, OrderBuilder> {
   String get id;
-  int get userId;
+
+  @nullable
+  String get userId;
+
   String get branchId;
   @nullable
+
   String get deviceId;
   @nullable
+
   String get currency;
   @nullable
+
   String get reference;
   @nullable
+
   String get idLocal;
   @nullable
+
   String get orderDate;
   @nullable
+
   bool get isDraft;
   @nullable
+
   String get orderType;
 
-  int get orderNUmber;
-  int get supplierId;
-  int get subTotal;
-  int get supplierInvoiceNumber;
-  DateTime get deliverDate;
-  int get taxRate;
-  int get taxAmount;
-  int get discountRate;
-  int get discountAmount;
-  int get cashReceived;
-  int get saleTotal;
-  int get customerSaving;
-  int get paymentId;
+  @nullable
+  String get orderNUmber;
+
+  @nullable
+  String get supplierId;
+
+  @nullable
+  String get subTotal;
+
+  @nullable
+  String get supplierInvoiceNumber;
+
+  @nullable
+  String get deliverDate;
+
+  @nullable
+  String get taxRate;
+
+  @nullable
+  String get taxAmount;
+
+  @nullable
+  String get discountRate;
+
+  @nullable
+  String get discountAmount;
+
+  @nullable
+  String get cashReceived;
+
+  @nullable
+  String get saleTotal;
+
+  @nullable
+  String get customerSaving;
+
+  @nullable
+  String get paymentId;
+
+  @nullable
   String get orderNote;
+
+  @nullable
   String get status;
-  int get customerChangeDue;
+
+  @nullable
+  String get customerChangeDue;
+  // ignore: sort_constructors_first
   Order._();
   factory Order([void Function(OrderBuilder) updates]) = _$Order;
 

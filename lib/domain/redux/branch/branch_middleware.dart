@@ -11,6 +11,7 @@ import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBranchMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
@@ -41,7 +42,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       '_id': 'branches_' + store.state.userId.toString(),
       'channels': [store.state.userId.toString()],
       'businessId': store.state.businessId,
-      'id': 'branches_' + store.state.userId.toString(),
+      'id': Uuid().v1(),
       'tableName':  AppTables.branch + store.state.userId.toString(),
       'mapLatitude': store.state.business.latitude ?? '0.0',
       'mapLongitude':store.state.business.longitude ?? ' 0.0',
