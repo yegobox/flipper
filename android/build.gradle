@@ -3,7 +3,10 @@ buildscript {
     repositories {
         google()
         jcenter()
-         maven {
+        maven {
+            url 'https://dl.google.com/dl/android/maven2'
+        }
+        maven {
             url 'https://maven.fabric.io/public'
         }
     }

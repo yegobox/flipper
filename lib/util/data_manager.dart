@@ -200,6 +200,7 @@ class DataManager {
       );
 
       if (product.isEmpty) {
+        // ignore: always_specify_types
         final Document productDoc = await _databaseService.insert(data: {
           name: productName,
           'categoryId': Category.fromMap(category[0]['main']).id,

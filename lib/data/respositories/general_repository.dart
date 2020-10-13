@@ -13,7 +13,7 @@ import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/data_manager.dart';
-import 'package:logger/logger.dart';
+import 'package:flipper/util/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';

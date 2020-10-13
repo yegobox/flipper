@@ -27,6 +27,7 @@ class BlueToothService {
           log.i('connected a device ready to print');
           await bluetoothPrint.connect(devices[0]);
         }
+      // ignore: empty_catches
       } catch (e) {}
     });
 
