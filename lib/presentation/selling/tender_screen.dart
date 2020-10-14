@@ -5,7 +5,7 @@ import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,12 +37,7 @@ class _TenderScreenState extends State<TenderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final InputDecorationTheme theme = _hasErrors
-        ? AppTheme.inputDecorationErrorTheme
-        : (_isEmpty
-            ? AppTheme.inputDecorationEmptyTheme
-            : AppTheme.inputDecorationFilledTheme);
-
+  
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
@@ -87,7 +82,7 @@ class _TenderScreenState extends State<TenderScreen> {
                   style: GoogleFonts.lato(fontStyle: FontStyle.normal),
                   decoration: InputDecoration(
                     hintText: 'FRW' + widget.cashReceived.toString(),
-                  ).applyDefaults(theme),
+                  ),
                 ),
               ),
             ),

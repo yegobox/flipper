@@ -54,7 +54,7 @@ class _BusinessListState extends State<BusinessList> {
               ),
             ),
             Container(
-              color: AppTheme.colorDarkGreen,
+              color: const Color.fromRGBO(33, 127, 125, 1.0), // TODO(lonald): should app theme instead
               height: _Style.separatorHeight,
               width: _Style.separatorWidth,
             ),
@@ -259,7 +259,7 @@ AnimatedContainer _selectableListItem({
             width: _Style.flipperButtonWidth,
             height: _Style.flipperButtonWidth,
             child: userIcon == null
-                ? Text(text, style: AppTheme.circleMenuAbbreviationText)
+                ? Text(text)
                 : userIcon,
           ),
           onTap: action,

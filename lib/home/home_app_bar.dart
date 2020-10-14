@@ -91,8 +91,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                                       ']',
                               style: GoogleFonts.lato(
                                   fontStyle: FontStyle.normal,
-                                  color: AppTheme.currentSale.accentColor,
-                                  fontSize: AppTheme.currentSale.textTheme
+                                  color: Theme.of(context).accentColor,
+                                  fontSize:  Theme.of(context).textTheme
                                       .bodyText1.fontSize),
                             ),
                           ),
@@ -117,8 +117,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           scaffoldKey.currentState.openDrawer();
         },
         child: Container(
-          width: AppTheme.appBarSize,
-          height: AppTheme.appBarSize,
+          width: appBarSize,
+          height: appBarSize,
           child: Center(
             child: Stack(
               overflow: Overflow.visible,
@@ -149,5 +149,5 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(AppTheme.appBarSize);
+  Size get preferredSize => const Size.fromHeight(appBarSize);
 }

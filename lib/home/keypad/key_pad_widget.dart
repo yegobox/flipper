@@ -47,9 +47,11 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                       moneyFormat.text,
                       style: GoogleFonts.lato(
                           fontStyle: FontStyle.normal,
-                          color: AppTheme.money.accentColor,
+                          color: Theme.of(context).appBarTheme.color,
                           fontSize:
-                              AppTheme.money.textTheme.bodyText1.fontSize),
+                              Theme.of(context)
+                    .textTheme
+                    .headline6.fontSize),
                     ),
                     onPressed: () {},
                   ),
@@ -65,9 +67,9 @@ class _KeyPadWidgetState extends State<KeyPadWidget> {
                               : vm.note,
                       style: GoogleFonts.lato(
                           fontStyle: FontStyle.normal,
-                          color: AppTheme.addAnote.accentColor,
+                          color:Theme.of(context).accentColor,
                           fontSize:
-                              AppTheme.addAnote.textTheme.bodyText1.fontSize),
+                              Theme.of(context).textTheme.headline5.fontSize),
                     ),
                   ),
                 ),

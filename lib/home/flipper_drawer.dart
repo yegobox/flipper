@@ -1,10 +1,11 @@
 import 'package:flipper/helper/constant.dart';
-import 'package:flipper/helper/theme.dart';
+
 import 'package:flipper/home/widget/custom_widgets.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/theme.dart';
 import 'package:flipper/util/app_colors.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -41,14 +42,14 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 context,
                 icon: icon,
                 size: 25,
-                iconColor: isEnable ? AppColor.darkGrey : AppColor.lightGrey,
+                iconColor: isEnable ? Theme.of(context).iconTheme.color : Theme.of(context).iconTheme.copyWith(color:Colors.grey),
               ),
             ),
       title: customText(
         title,
         style: TextStyle(
           fontSize: 20,
-          color: isEnable ? AppColor.secondary : AppColor.lightGrey,
+          color: isEnable ? Theme.of(context).secondaryHeaderColor : Theme.of(context).copyWith(accentColor:const Color(0xffAAB8C2)),
         ),
       ),
     );
@@ -72,7 +73,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                   icon: AppIcon.bulbOn,
                   istwitterIcon: true,
                   size: 25,
-                  iconColor: TwitterColor.dodgetBlue),
+                  iconColor: Theme.of(context).accentColor),
               const Spacer(),
               GestureDetector(
                 onTap: () {
@@ -123,7 +124,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                         padding: const EdgeInsets.only(bottom: 45),
                         child: ListView(
                           physics: const BouncingScrollPhysics(),
-                          children:<Widget> [
+                          children: <Widget>[
                             _menuListRowButton('Profile',
                                 icon: AppIcon.profile,
                                 isEnable: true, onPressed: () {
@@ -137,8 +138,13 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                 icon: AppIcon.bookmark, onPressed: () {
                               _navigateTo(Routing.reportScreen);
                             }),
-                            _menuListRowButton('Moments',
-                                icon: AppIcon.moments),
+                            _menuListRowButton(
+                              'Payroll',
+                              icon: AppIcon.moments,
+                              onPressed: () {
+                                _navigateTo(Routing.contactView);
+                              },
+                            ),
                             _menuListRowButton('Flipper deals',
                                 icon: AppIcon.twitterAds),
                             const Divider(),

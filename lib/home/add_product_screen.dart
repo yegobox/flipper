@@ -123,9 +123,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ' Item',
                       style: GoogleFonts.lato(
                         fontStyle: FontStyle.normal,
-                        color: AppTheme.addProduct.accentColor,
+                        color: Theme.of(context).accentColor,
                         fontSize:
-                            AppTheme.addProduct.textTheme.bodyText1.fontSize,
+                            Theme.of(context).textTheme.bodyText1.fontSize,
                       ),
                     ),
                     //nameField
@@ -135,9 +135,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         child: TextFormField(
                           style: GoogleFonts.lato(
                             fontStyle: FontStyle.normal,
-                            color: AppTheme.addProduct.accentColor,
-                            fontSize: AppTheme
-                                .addProduct.textTheme.bodyText1.fontSize,
+                            color: Theme.of(context).accentColor,
+                            fontSize: Theme.of(context).textTheme.bodyText1.fontSize,
                           ),
                           validator: Validators.isValid,
                           onChanged: (String name) async {
@@ -164,8 +163,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           'PRICE AND INVENTORY',
                           style: GoogleFonts.lato(
                             fontStyle: FontStyle.normal,
-                            color: AppTheme.addProduct.accentColor,
-                            fontSize: AppTheme.addProduct.textTheme.bodyText1
+                            color: Theme.of(context).accentColor,
+                            fontSize: Theme.of(context).textTheme.bodyText1
                                 .copyWith(fontSize: 12)
                                 .fontSize,
                           ),

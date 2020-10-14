@@ -12,7 +12,7 @@ enum NewChatOptions {
   help,
 }
 
-class NewChatScreen extends StatelessWidget {
+class ContactView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SelectContact();

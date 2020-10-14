@@ -1,5 +1,5 @@
 import 'package:flipper/home/reports/bar_chart.dart';
-import 'package:flipper/theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -71,11 +71,11 @@ class _ReportViewState extends State<ReportView> {
             'FRw ' + widget.grossProfit.toString(),
             style: GoogleFonts.lato(
               fontStyle: FontStyle.normal,
-              color: AppTheme.addProduct.accentColor,
-              fontSize: AppTheme.addProduct.textTheme.bodyText1.fontSize,
+              color: Theme.of(context).accentColor,
+              fontSize: Theme.of(context).textTheme.headline6.fontSize,
             ),
           ),
-          Text('Gross profit')
+          const Text('Gross profit')
         ],
       ),
       trailing: Column(
@@ -84,11 +84,11 @@ class _ReportViewState extends State<ReportView> {
             'FRw ' + widget.netProfit.toString(),
             style: GoogleFonts.lato(
               fontStyle: FontStyle.normal,
-              color: AppTheme.addProduct.accentColor,
-              fontSize: AppTheme.addProduct.textTheme.bodyText1.fontSize,
+              color: Theme.of(context).accentColor,
+              fontSize: Theme.of(context).textTheme.headline6.fontSize,
             ),
           ),
-          Text('Net profit')
+          const Text('Net profit')
         ],
       ),
     ));
@@ -130,15 +130,15 @@ class _ReportViewState extends State<ReportView> {
           '$month $todayDay,$year',
           style: GoogleFonts.lato(
             fontStyle: FontStyle.normal,
-            color: AppTheme.addProduct.accentColor,
-            fontSize: AppTheme.addProduct.textTheme.bodyText1.fontSize,
+            color: Theme.of(context).accentColor,
+            fontSize: Theme.of(context).textTheme.bodyText1.fontSize,
           ),
         ),
       ),
     );
     list.add(
       Container(
-        margin: EdgeInsets.only(
+        margin:const EdgeInsets.only(
           top: 5,
           left: 20,
         ),
@@ -146,8 +146,8 @@ class _ReportViewState extends State<ReportView> {
           'FRw ' + widget.grossProfit.toString(),
           style: GoogleFonts.lato(
             fontStyle: FontStyle.normal,
-            color: AppTheme.addProduct.accentColor,
-            fontSize: AppTheme.addProduct.textTheme.bodyText1.fontSize,
+            color: Theme.of(context).accentColor,
+            fontSize: Theme.of(context).textTheme.bodyText1.fontSize,
           ),
         ),
       ),

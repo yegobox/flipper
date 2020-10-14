@@ -110,15 +110,19 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                               child: Text(
                                 'Busines: Branch',
                                 overflow: TextOverflow.ellipsis,
-                                style: AppTheme.notificationTitle,
+                                style: Theme.of(context)
+                    .textTheme
+                    .headline5,
                               )),
                         ),
                       ],
                     ),
                     Text(
-                      'Richie: ${widget._vm.inAppNotification.message}',
+                      'Flipper: ${widget._vm.inAppNotification.message}',
                       overflow: TextOverflow.ellipsis,
-                      style: AppTheme.notificationBody,
+                      style: Theme.of(context)
+                    .textTheme
+                    .headline5,
                     )
                   ],
                 ),

@@ -139,14 +139,7 @@ class _FlipperAppState extends State<FlipperApp> {
         title: 'Flipper',
         navigatorKey: locator<FlipperNavigationService>()
             .navigationKey, //slowly use mvm stacked architecture
-        theme: ThemeData(
-          primarySwatch: AppColors.warmNeutral,
-          fontFamily: 'Montserrat',
-          textTheme: GoogleFonts.muliTextTheme(
-            Theme.of(context).textTheme,
-          ),
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
+        theme: appTheme(),
         initialRoute: Routing.splashScreen,
         onGenerateRoute: Routing.onGenerateRoute,
       ),

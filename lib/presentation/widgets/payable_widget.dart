@@ -4,15 +4,12 @@ import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/theme.dart';
-import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/app_colors.dart';
-import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:redux/src/store.dart';
+import 'package:redux/redux.dart';
 
 class PayableWidget extends StatefulWidget {
   @override
@@ -21,11 +18,11 @@ class PayableWidget extends StatefulWidget {
 
 class _PayableWidgetState extends State<PayableWidget> {
   int _total = 0;
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
   @override
   Widget build(BuildContext context) {
-    final MoneyMaskedTextController payable = new MoneyMaskedTextController(
+    final MoneyMaskedTextController payable =  MoneyMaskedTextController(
         leftSymbol: '\RWF ', decimalSeparator: '.', thousandSeparator: ',');
     payable.updateValue(0);
 
@@ -76,16 +73,16 @@ class _PayableWidgetState extends State<PayableWidget> {
                                   'Charge  ',
                                   style: GoogleFonts.lato(
                                       fontStyle: FontStyle.normal,
-                                      color: AppTheme.payableTheme.accentColor,
-                                      fontSize: AppTheme.payableTheme.textTheme
+                                      color: Theme.of(context).accentColor,
+                                      fontSize: Theme.of(context).textTheme
                                           .bodyText1.fontSize),
                                 ),
                                 Text(
                                   payable.text,
                                   style: GoogleFonts.lato(
                                       fontStyle: FontStyle.normal,
-                                      color: AppTheme.payableTheme.accentColor,
-                                      fontSize: AppTheme.payableTheme.textTheme
+                                      color: Theme.of(context).accentColor,
+                                      fontSize: Theme.of(context).textTheme
                                           .bodyText1.fontSize),
                                 )
                               ],

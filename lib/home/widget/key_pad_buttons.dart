@@ -168,7 +168,7 @@ class SingleKey extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
             child: Text(
               buttonKeyName.toString(),
-              style: AppTheme.keypad.textTheme.bodyText1,
+              style: Theme.of(context).textTheme.bodyText1,
             )),
       ),
     );

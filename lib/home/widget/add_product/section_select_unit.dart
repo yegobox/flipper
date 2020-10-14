@@ -50,8 +50,8 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                   'Unit Type',
                   style: GoogleFonts.lato(
                     fontStyle: FontStyle.normal,
-                    color: AppTheme.addProduct.accentColor,
-                    fontSize: AppTheme.addProduct.textTheme.bodyText1
+                    color: Theme.of(context).accentColor,
+                    fontSize: Theme.of(context).textTheme.bodyText1
                         .copyWith(fontSize: 12)
                         .fontSize,
                   ),
@@ -67,9 +67,8 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                               'Select Unit',
                               style: GoogleFonts.lato(
                                 fontStyle: FontStyle.normal,
-                                color: AppTheme.addProduct.accentColor,
-                                fontSize: AppTheme
-                                    .addProduct.textTheme.bodyText1
+                                color: Theme.of(context).accentColor,
+                                fontSize: Theme.of(context).textTheme.bodyText1
                                     .copyWith(fontSize: 12)
                                     .fontSize,
                               ),

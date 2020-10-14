@@ -8,6 +8,7 @@ import 'package:flipper/home/add_variation_screen.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper/home/cart/cart_details_screen.dart';
 import 'package:flipper/home/category/create_category_input_screen.dart';
+import 'package:flipper/home/contacts/contact_item.dart';
 import 'package:flipper/home/edit_item_title.dart';
 import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/home/products/all_item_screen.dart';
@@ -31,6 +32,7 @@ import 'package:flipper/presentation/selling/tender_screen.dart';
 import 'package:flipper/presentation/splash/aftersplash.dart';
 import 'package:flipper/presentation/splash/splash_screen.dart';
 import 'package:flipper_login/otp.dart';
+import 'package:flipper/home/contacts/contact_view.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -128,4 +130,7 @@ class $Routing {
     durationInMilliseconds: 200,
   )
   OpenCloseDrawerView openCloseDrawerview;
+
+  ContactView contactView;
+  
 }

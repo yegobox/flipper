@@ -3,7 +3,6 @@ import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
@@ -39,9 +38,8 @@ class CreateOptionsWidget extends StatelessWidget {
                           await _createTemporalItem(vm, context);
                           _navigationService.navigateTo(Routing.addItemScreen);
                         },
-                        child: Text(
-                          'Create Item',
-                          style: AppTheme.createItem,
+                        child:const Text(
+                          'Create Item'
                         ),
                       ),
                     ),
@@ -53,9 +51,8 @@ class CreateOptionsWidget extends StatelessWidget {
                       width: double.infinity,
                       child: OutlineButton(
                         onPressed: () {},
-                        child: Text(
-                          'Create Discount',
-                          style: AppTheme.createDiscount,
+                        child:const Text(
+                          'Create Discount'
                         ),
                       ),
                     ),
@@ -65,9 +62,8 @@ class CreateOptionsWidget extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: FlatButton(
-                        child: Text(
-                          'Dismiss',
-                          style: AppTheme.dismiss,
+                        child:const Text(
+                          'Dismiss'
                         ),
                         onPressed: () {
                           _navigationService.pop();

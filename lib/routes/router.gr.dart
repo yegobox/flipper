@@ -40,6 +40,7 @@ import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/home/contacts/contact_view.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -73,6 +74,7 @@ class Routing {
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
   static const openCloseDrawerview = '/open-close-drawerview';
+  static const contactView = '/contact-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -410,6 +412,11 @@ class Routing {
               businessState: typedArgs.businessState),
           settings: settings,
           fullscreenDialog: true,
+        );
+      case Routing.contactView:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ContactView(),
+          settings: settings,
         );
       default:
         return unknownRoutePage(settings.name);
