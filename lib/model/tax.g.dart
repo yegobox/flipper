@@ -37,6 +37,10 @@ class _$TaxSerializer implements StructuredSerializer<Tax> {
       'businessId',
       serializers.serialize(object.businessId,
           specifiedType: const FullType(String)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
     ];
 
     return result;
@@ -81,6 +85,12 @@ class _$TaxSerializer implements StructuredSerializer<Tax> {
           result.businessId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
       }
     }
 
@@ -103,6 +113,8 @@ class _$Tax extends Tax {
   final double percentage;
   @override
   final String businessId;
+  @override
+  final BuiltList<String> channels;
 
   factory _$Tax([void Function(TaxBuilder) updates]) =>
       (new TaxBuilder()..update(updates)).build();
@@ -114,7 +126,8 @@ class _$Tax extends Tax {
       this.tableName,
       this.isDefault,
       this.percentage,
-      this.businessId})
+      this.businessId,
+      this.channels})
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('Tax', 'name');
@@ -137,6 +150,9 @@ class _$Tax extends Tax {
     if (businessId == null) {
       throw new BuiltValueNullFieldError('Tax', 'businessId');
     }
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Tax', 'channels');
+    }
   }
 
   @override
@@ -156,7 +172,8 @@ class _$Tax extends Tax {
         tableName == other.tableName &&
         isDefault == other.isDefault &&
         percentage == other.percentage &&
-        businessId == other.businessId;
+        businessId == other.businessId &&
+        channels == other.channels;
   }
 
   @override
@@ -165,12 +182,14 @@ class _$Tax extends Tax {
         $jc(
             $jc(
                 $jc(
-                    $jc($jc($jc(0, name.hashCode), id.hashCode),
-                        touched.hashCode),
-                    tableName.hashCode),
-                isDefault.hashCode),
-            percentage.hashCode),
-        businessId.hashCode));
+                    $jc(
+                        $jc($jc($jc(0, name.hashCode), id.hashCode),
+                            touched.hashCode),
+                        tableName.hashCode),
+                    isDefault.hashCode),
+                percentage.hashCode),
+            businessId.hashCode),
+        channels.hashCode));
   }
 
   @override
@@ -182,7 +201,8 @@ class _$Tax extends Tax {
           ..add('tableName', tableName)
           ..add('isDefault', isDefault)
           ..add('percentage', percentage)
-          ..add('businessId', businessId))
+          ..add('businessId', businessId)
+          ..add('channels', channels))
         .toString();
   }
 }
@@ -218,6 +238,11 @@ class TaxBuilder implements Builder<Tax, TaxBuilder> {
   String get businessId => _$this._businessId;
   set businessId(String businessId) => _$this._businessId = businessId;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   TaxBuilder();
 
   TaxBuilder get _$this {
@@ -229,6 +254,7 @@ class TaxBuilder implements Builder<Tax, TaxBuilder> {
       _isDefault = _$v.isDefault;
       _percentage = _$v.percentage;
       _businessId = _$v.businessId;
+      _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
     return this;
@@ -249,15 +275,29 @@ class TaxBuilder implements Builder<Tax, TaxBuilder> {
 
   @override
   _$Tax build() {
-    final _$result = _$v ??
-        new _$Tax._(
-            name: name,
-            id: id,
-            touched: touched,
-            tableName: tableName,
-            isDefault: isDefault,
-            percentage: percentage,
-            businessId: businessId);
+    _$Tax _$result;
+    try {
+      _$result = _$v ??
+          new _$Tax._(
+              name: name,
+              id: id,
+              touched: touched,
+              tableName: tableName,
+              isDefault: isDefault,
+              percentage: percentage,
+              businessId: businessId,
+              channels: channels.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        channels.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Tax', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

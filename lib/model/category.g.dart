@@ -25,14 +25,21 @@ class _$CategorySerializer implements StructuredSerializer<Category> {
       'tableName',
       serializers.serialize(object.tableName,
           specifiedType: const FullType(String)),
-      'touched',
-      serializers.serialize(object.touched,
-          specifiedType: const FullType(bool)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
     ];
     if (object.focused != null) {
       result
         ..add('focused')
         ..add(serializers.serialize(object.focused,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.touched != null) {
+      result
+        ..add('touched')
+        ..add(serializers.serialize(object.touched,
             specifiedType: const FullType(bool)));
     }
     if (object.branchId != null) {
@@ -79,6 +86,12 @@ class _$CategorySerializer implements StructuredSerializer<Category> {
           result.branchId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
       }
     }
 
@@ -99,6 +112,8 @@ class _$Category extends Category {
   final bool touched;
   @override
   final String branchId;
+  @override
+  final BuiltList<String> channels;
 
   factory _$Category([void Function(CategoryBuilder) updates]) =>
       (new CategoryBuilder()..update(updates)).build();
@@ -109,7 +124,8 @@ class _$Category extends Category {
       this.focused,
       this.tableName,
       this.touched,
-      this.branchId})
+      this.branchId,
+      this.channels})
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('Category', 'name');
@@ -120,8 +136,8 @@ class _$Category extends Category {
     if (tableName == null) {
       throw new BuiltValueNullFieldError('Category', 'tableName');
     }
-    if (touched == null) {
-      throw new BuiltValueNullFieldError('Category', 'touched');
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Category', 'channels');
     }
   }
 
@@ -141,17 +157,22 @@ class _$Category extends Category {
         focused == other.focused &&
         tableName == other.tableName &&
         touched == other.touched &&
-        branchId == other.branchId;
+        branchId == other.branchId &&
+        channels == other.channels;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc($jc($jc($jc(0, name.hashCode), id.hashCode), focused.hashCode),
-                tableName.hashCode),
-            touched.hashCode),
-        branchId.hashCode));
+            $jc(
+                $jc(
+                    $jc($jc($jc(0, name.hashCode), id.hashCode),
+                        focused.hashCode),
+                    tableName.hashCode),
+                touched.hashCode),
+            branchId.hashCode),
+        channels.hashCode));
   }
 
   @override
@@ -162,7 +183,8 @@ class _$Category extends Category {
           ..add('focused', focused)
           ..add('tableName', tableName)
           ..add('touched', touched)
-          ..add('branchId', branchId))
+          ..add('branchId', branchId)
+          ..add('channels', channels))
         .toString();
   }
 }
@@ -194,6 +216,11 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
   String get branchId => _$this._branchId;
   set branchId(String branchId) => _$this._branchId = branchId;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   CategoryBuilder();
 
   CategoryBuilder get _$this {
@@ -204,6 +231,7 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
       _tableName = _$v.tableName;
       _touched = _$v.touched;
       _branchId = _$v.branchId;
+      _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
     return this;
@@ -224,14 +252,28 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
 
   @override
   _$Category build() {
-    final _$result = _$v ??
-        new _$Category._(
-            name: name,
-            id: id,
-            focused: focused,
-            tableName: tableName,
-            touched: touched,
-            branchId: branchId);
+    _$Category _$result;
+    try {
+      _$result = _$v ??
+          new _$Category._(
+              name: name,
+              id: id,
+              focused: focused,
+              tableName: tableName,
+              touched: touched,
+              branchId: branchId,
+              channels: channels.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        channels.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Category', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

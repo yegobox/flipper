@@ -17,6 +17,7 @@ import 'domain/redux/app_state.dart';
 
 typedef ResultSetCallback = void Function(lite.ResultSet results);
 
+
 class AppDatabase {
   AppDatabase._internal();
 
@@ -32,6 +33,7 @@ class AppDatabase {
   lite.ListenerToken _docListenerToken;
   lite.ListenerToken _dbListenerToken;
 
+  @deprecated
   Future<dynamic> createBranch(Map map) async {
     assert(map['_id'] != null);
     assert(map['name'] != null);
@@ -51,7 +53,7 @@ class AppDatabase {
     // FIXME(richard): update the document online to remove branch in array just save them and rely on table name
     return map['id'];
   }
-
+  @deprecated
   Future<lite.Document> createDocumentIfNotExists(
       String id, Map<String, dynamic> map) async {
     try {
@@ -113,13 +115,6 @@ class AppDatabase {
         await database.createIndex(index, withName: indexName);
       }
 
-      final lite.Document pref =
-          await createDocumentIfNotExists('MyPreference', {'theme': 'dark'});
-      _docListenerToken = database.addDocumentChangeListener(pref.id,
-          (lite.DocumentChange change) {
-        print('Document change ${change.documentID}');
-      });
-
       _dbListenerToken =
           database.addChangeListener((lite.DatabaseChange dbChange) async {
         for (String id in dbChange.documentIDs) {
@@ -169,36 +164,12 @@ class AppDatabase {
     await replicator.stop();
   }
 
-  ObservableResponse<lite.ResultSet> getMyDocument(String documentId) {
-    final BehaviorSubject<lite.ResultSet> stream =
-        BehaviorSubject<lite.ResultSet>();
-    // Execute lite query and then post results and all changes to the stream
-
-    final lite.Query query = lite.QueryBuilder.select([
-      lite.SelectResult.expression(lite.Meta.id.from('mydocs')).as('id'),
-      lite.SelectResult.expression(
-          lite.Expression.property('foo').from('mydocs')),
-      lite.SelectResult.expression(
-          lite.Expression.property('bar').from('mydocs')),
-    ]).from(dbName, as: 'mydocs').where(lite.Meta.id
-        .from('mydocs')
-        .equalTo(lite.Expression.string(documentId)));
-
-    final Null Function(lite.ResultSet results) processResults =
-        (lite.ResultSet results) {
-      if (!stream.isClosed) {
-        stream.add(results);
-      }
-    };
-
-    // return _buildObservableQueryResponse(stream, query, processResults);
-  }
 
   // ignore: sort_constructors_first
   // CouchBase(): super();
 
   //create lite branch
-
+  @deprecated
   // ignore: always_specify_types
   Future<dynamic> createTax(map) async {
     assert(map['channels'] != null);
@@ -216,7 +187,7 @@ class AppDatabase {
     // TODO: discuss with @ganze to abandon saving array within a document
     _databaseService.insert(id:map['id'],data:map);
   }
-
+  @deprecated
   //create business.
   Future<String> createBusiness(Map map) async {
     //if user has business do nothing
@@ -242,6 +213,7 @@ class AppDatabase {
 
   //create user
   // ignore: always_specify_types
+  @deprecated
   Future<void> createUser(Map map) async {
     assert(map['_id'] != null);
     assert(map['name'] != null);
@@ -257,12 +229,12 @@ class AppDatabase {
     final DatabaseService _databaseService = locator<DatabaseService>();
     _databaseService.insert(id:map['id'],data:map);
   }
-
+  @deprecated
   Future<void> syncRemoteToLocal({Store<AppState> store}) async {
     //load all app units:
     await syncUnit(store);
   }
-
+  @deprecated
   Future<void> syncUnit(Store<AppState> store) async {
     // ignore: always_specify_types
     final List<Map<String, String>> units = [
@@ -338,7 +310,7 @@ class AppDatabase {
       }
     }
   }
-
+  @deprecated
   Future<dynamic> createVariant(Map map) async {
     assert(map['_id'] != null);
 
@@ -363,7 +335,7 @@ class AppDatabase {
 
     return await database.saveDocument(variants);
   }
-
+  @deprecated
   Future<dynamic> createBranchProduct(Map map) async {
     assert(map['_id'] != null);
 
@@ -407,7 +379,7 @@ class AppDatabase {
       return "Error running the query";
     }
   }
-
+  @deprecated
   Future<dynamic> createStockHistory(Map map) async {
     assert(map['_id'] != null);
 
@@ -456,7 +428,7 @@ class AppDatabase {
       return "Error running the query";
     }
   }
-
+  @deprecated
   Future<dynamic> createStock(Map map) async {
     assert(map['_id'] != null);
 
@@ -489,7 +461,7 @@ class AppDatabase {
 
     return await database.saveDocument(stocks);
   }
-
+  @deprecated
   Future<dynamic> syncLocalToRemote(
       {Store<AppState> store, String partial}) async {
     // //L stands for local and R stands for remote.
@@ -513,7 +485,7 @@ class AppDatabase {
         await syncStockLRemote(store);
     }
   }
-
+  @deprecated
   Future<void> syncBranchProductLRemote(Store<AppState> store) async {
     final List<BranchProductTableData> branchProducts =
         await store.state.database.branchProductDao.branchProducts();
@@ -543,7 +515,7 @@ class AppDatabase {
 
     await database.saveDocument(bP);
   }
-
+  @deprecated
   Future<lite.Document> syncStockLRemote(Store<AppState> store) async {
     List<StockTableData> stocks =
         await store.state.database.stockDao.getStocks();
@@ -581,7 +553,7 @@ class AppDatabase {
     await database.saveDocument(stock);
     return stock;
   }
-
+  @deprecated
   Future syncProductsLRemote(Store<AppState> store) async {
     List<ProductTableData> products =
         await store.state.database.productDao.getProducts();
@@ -624,7 +596,7 @@ class AppDatabase {
 
     await database.saveDocument(product);
   }
-
+  @deprecated
   Future<List<VariationTableData>> syncVariantLRemote(
       Store<AppState> store) async {
     List<VariationTableData> variations =
@@ -659,15 +631,15 @@ class AppDatabase {
     await database.saveDocument(variant);
     return variations;
   }
-
+  @deprecated
   Future syncOrderLRemote(Store<AppState> store) async {}
-
+  @deprecated
   Future syncOrderDetailLRemote(Store<AppState> store) async {}
-
+  @deprecated
   Future<void> syncOrdersLRemote(Store<AppState> store) async {}
-
+  @deprecated
   Future<void> syncBusinessLRemote(Store<AppState> store) async {}
-
+  @deprecated
   void insertHistory(Store<AppState> store, StockTableData stock) {
     store.state.database.stockHistoryDao.insert(
       //ignore:missing_required_param
@@ -683,7 +655,7 @@ class AppDatabase {
       ),
     );
   }
-
+  @deprecated
   // ignore: always_declare_return_types
   partialSyncHistory(
       {StockHistoryTableData history, Store<AppState> store}) async {

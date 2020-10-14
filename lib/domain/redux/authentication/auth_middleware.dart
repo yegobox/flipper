@@ -25,6 +25,7 @@ import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -165,6 +166,11 @@ Future<List<Branch>> getBranches(
   for (Branch branch in branches) {
     if (branch.active) {
       //set current active branch
+      final bool weHaveCustomCategory = await isCategory(branchId: branch.id);
+      if(!weHaveCustomCategory){
+        final String id = Uuid().v1();
+        _databaseService.insert(id: id,data:{'tableName': AppTables.category+branch.id,'id':id, 'channels':[store.state.userId.toString()], 'name':'custom'});
+      }
       store.dispatch(
         OnCurrentBranchAction(branch: branch),
       );
@@ -177,6 +183,17 @@ Future<List<Branch>> getBranches(
   }
   store.dispatch(OnBranchLoaded(branches: branches));
   return branches;
+}
+Future<bool> isCategory({String branchId})async{
+  final DatabaseService _databaseService = locator<DatabaseService>();
+   final List<Map<String, dynamic>> category = await _databaseService.filter(
+        equator: 'custom',
+        property: 'name',
+        and: true,
+        andProperty: 'tableName',
+        andEquator: AppTables.category + branchId,
+      );
+    return category.isNotEmpty;
 }
 
 void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {

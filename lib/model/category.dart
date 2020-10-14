@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -30,12 +31,17 @@ abstract class Category implements Built<Category, CategoryBuilder> {
   String get tableName;
   @BuiltValueField(wireName: 'touched')
 
+  @nullable
   bool get touched;
+  
   @nullable
   @BuiltValueField(wireName: 'branchId')
   
   String get branchId;
   // ignore: sort_constructors_first
+
+  
+  BuiltList<String> get channels;
   
   String toJson() {
     return json.encode(toMap());

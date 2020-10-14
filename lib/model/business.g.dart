@@ -33,6 +33,10 @@ class _$BusinessSerializer implements StructuredSerializer<Business> {
       'typeId',
       serializers.serialize(object.typeId,
           specifiedType: const FullType(String)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
       'country',
       serializers.serialize(object.country,
           specifiedType: const FullType(String)),
@@ -72,13 +76,6 @@ class _$BusinessSerializer implements StructuredSerializer<Business> {
         ..add('updatedAt')
         ..add(serializers.serialize(object.updatedAt,
             specifiedType: const FullType(String)));
-    }
-    if (object.channels != null) {
-      result
-        ..add('channels')
-        ..add(serializers.serialize(object.channels,
-            specifiedType:
-                const FullType(BuiltList, const [const FullType(String)])));
     }
     if (object.businessUrl != null) {
       result
@@ -290,6 +287,9 @@ class _$Business extends Business {
     }
     if (typeId == null) {
       throw new BuiltValueNullFieldError('Business', 'typeId');
+    }
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Business', 'channels');
     }
     if (country == null) {
       throw new BuiltValueNullFieldError('Business', 'country');
@@ -541,7 +541,7 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
               timeZone: timeZone,
               createdAt: createdAt,
               updatedAt: updatedAt,
-              channels: _channels?.build(),
+              channels: channels.build(),
               country: country,
               businessUrl: businessUrl,
               hexColor: hexColor,
@@ -552,7 +552,7 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
       String _$failedField;
       try {
         _$failedField = 'channels';
-        _channels?.build();
+        channels.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'Business', _$failedField, e.toString());

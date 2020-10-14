@@ -7,7 +7,6 @@ import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
-import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,

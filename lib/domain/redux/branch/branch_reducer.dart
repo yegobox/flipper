@@ -23,8 +23,6 @@ AppState _onHintLoaded(AppState state, OnHintLoaded action) {
 
 AppState _onActiveBranch(AppState state, OnCurrentBranchAction action) {
   //create default category if does not exist on active branch
-   final DatabaseService _databaseService = locator<DatabaseService>();
-  _databaseService.insert(id: Uuid().v1(),data:{'tableName': AppTables.category+action.branch.id,'name':'custom'});
-
+  
   return state.rebuild((AppStateBuilder a) => a..branch = action.branch.toBuilder());
 }

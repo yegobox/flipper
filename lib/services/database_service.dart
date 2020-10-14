@@ -17,7 +17,7 @@ class DatabaseService {
   final Database dbInstance = AppDatabase.instance.database;
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
-
+  @deprecated //use insert and update function no need to define every action functons here
   Future<void> saveDrawerHistory({
     double float,
     String note,
@@ -44,7 +44,7 @@ class DatabaseService {
       return 'Error saving document';
     }
   }
-
+  @deprecated
   Future<void> openCloseBusiness({
     String userId,
     String name,

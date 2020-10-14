@@ -40,7 +40,7 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   String get updatedAt;
 
   
-  @nullable
+  
   BuiltList<String> get channels;
 
   String get country;

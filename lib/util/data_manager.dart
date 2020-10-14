@@ -189,7 +189,7 @@ class DataManager {
         property: 'name',
         and: true,
         andProperty: 'tableName',
-        andEquator: AppTables.category + store.state.branch.id,
+        andEquator: AppTables.product + store.state.branch.id,
       );
 
       final List<Map<String, dynamic>> gettax = await _databaseService.filter(
@@ -209,6 +209,7 @@ class DataManager {
           'id': Uuid().v1(),
           'active': true,
           'hasPicture': false,
+          'channels':[store.state.userId.toString()],
           'tableName': AppTables.product + store.state.branch.id,
           'isCurrentUpdate': false,
           'isDraft': true,
@@ -224,6 +225,7 @@ class DataManager {
           'isActive': false,
           name: productName,
           'unit': 'kg',
+          'channels':[store.state.userId.toString()],
           'tableName': AppTables.variation + store.state.branch.id,
           'productId': productDoc.id,
           'sku': Uuid().v1().substring(0, 4),
@@ -237,7 +239,10 @@ class DataManager {
           'canTrackingStock': false,
           'showLowStockAlert': false,
           'retailPrice': 0,
+          'channels': [store.state.userId.toString()],
           'isActive': true,
+          // TODO(richard): decide which tableName
+          // 'tableName':AppTables.variation + store.state.branch.id,
           'lowStock': 0,
           'currentStock': 0,
           'id': Uuid().v1(),
@@ -249,7 +254,7 @@ class DataManager {
         await _databaseService.insert(data: {
           'branchId': store.state.branch.id,
           'productId': productDoc.id,
-          'tableName': 'branchProducts_' + store.state.branch.id,
+          'tableName': AppTables.branchProduct + store.state.branch.id,
           'id': Uuid().v1()
         });
         final Product pro = Product.fromMap(productDoc.toMap());
@@ -278,6 +283,7 @@ class DataManager {
       _databaseService.insert(id: id, data: {
         'name': 'Regular',
         'id': id,
+        'channels':[store.state.userId.toString()],
         'productId': product.id,
         'tableName': AppTables.variation + store.state.branch.id
       });
@@ -291,9 +297,7 @@ class DataManager {
       );
       variant = Variation.fromMap(vv[0][AppDatabase.instance.dbName]);
     } else {
-      final Logger log = Logging.getLogger('Database service  Model ....');
       
-      log.d(v[0][AppDatabase.instance.dbName]);
       variant = Variation.fromMap(v[0][AppDatabase.instance.dbName]);
     }
     store.dispatch(

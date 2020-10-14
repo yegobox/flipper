@@ -21,6 +21,8 @@ class AppTables{
   static const String variation = 'variants_'; 
   static const String product = 'products_'; 
   static const String order = 'orders_'; 
+  static const String branchProduct = 'branchProducts_'; 
+  
   // 
 }
 

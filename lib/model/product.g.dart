@@ -28,6 +28,10 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
       'tableName',
       serializers.serialize(object.tableName,
           specifiedType: const FullType(String)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
     ];
     if (object.description != null) {
       result
@@ -219,6 +223,12 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
           result.count = serializers.deserialize(value,
               specifiedType: const FullType(int)) as int;
           break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
       }
     }
 
@@ -267,6 +277,8 @@ class _$Product extends Product {
   final String updatedAt;
   @override
   final int count;
+  @override
+  final BuiltList<String> channels;
 
   factory _$Product([void Function(ProductBuilder) updates]) =>
       (new ProductBuilder()..update(updates)).build();
@@ -291,7 +303,8 @@ class _$Product extends Product {
       this.createdAt,
       this.unit,
       this.updatedAt,
-      this.count})
+      this.count,
+      this.channels})
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('Product', 'name');
@@ -304,6 +317,9 @@ class _$Product extends Product {
     }
     if (tableName == null) {
       throw new BuiltValueNullFieldError('Product', 'tableName');
+    }
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Product', 'channels');
     }
   }
 
@@ -337,7 +353,8 @@ class _$Product extends Product {
         createdAt == other.createdAt &&
         unit == other.unit &&
         updatedAt == other.updatedAt &&
-        count == other.count;
+        count == other.count &&
+        channels == other.channels;
   }
 
   @override
@@ -360,26 +377,26 @@ class _$Product extends Product {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc(0, name.hashCode),
-                                                                                id.hashCode),
-                                                                            description.hashCode),
-                                                                        picture.hashCode),
-                                                                    taxId.hashCode),
-                                                                active.hashCode),
-                                                            hasPicture.hashCode),
-                                                        isImageLocal.hashCode),
-                                                    touched.hashCode),
-                                                tableName.hashCode),
-                                            isDraft.hashCode),
-                                        color.hashCode),
-                                    isCurrentUpdate.hashCode),
-                                businessId.hashCode),
-                            supplierId.hashCode),
-                        categoryId.hashCode),
-                    createdAt.hashCode),
-                unit.hashCode),
-            updatedAt.hashCode),
-        count.hashCode));
+                                                                            $jc($jc($jc(0, name.hashCode), id.hashCode),
+                                                                                description.hashCode),
+                                                                            picture.hashCode),
+                                                                        taxId.hashCode),
+                                                                    active.hashCode),
+                                                                hasPicture.hashCode),
+                                                            isImageLocal.hashCode),
+                                                        touched.hashCode),
+                                                    tableName.hashCode),
+                                                isDraft.hashCode),
+                                            color.hashCode),
+                                        isCurrentUpdate.hashCode),
+                                    businessId.hashCode),
+                                supplierId.hashCode),
+                            categoryId.hashCode),
+                        createdAt.hashCode),
+                    unit.hashCode),
+                updatedAt.hashCode),
+            count.hashCode),
+        channels.hashCode));
   }
 
   @override
@@ -404,7 +421,8 @@ class _$Product extends Product {
           ..add('createdAt', createdAt)
           ..add('unit', unit)
           ..add('updatedAt', updatedAt)
-          ..add('count', count))
+          ..add('count', count)
+          ..add('channels', channels))
         .toString();
   }
 }
@@ -493,6 +511,11 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   int get count => _$this._count;
   set count(int count) => _$this._count = count;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   ProductBuilder();
 
   ProductBuilder get _$this {
@@ -517,6 +540,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
       _unit = _$v.unit;
       _updatedAt = _$v.updatedAt;
       _count = _$v.count;
+      _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
     return this;
@@ -537,28 +561,42 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
 
   @override
   _$Product build() {
-    final _$result = _$v ??
-        new _$Product._(
-            name: name,
-            id: id,
-            description: description,
-            picture: picture,
-            taxId: taxId,
-            active: active,
-            hasPicture: hasPicture,
-            isImageLocal: isImageLocal,
-            touched: touched,
-            tableName: tableName,
-            isDraft: isDraft,
-            color: color,
-            isCurrentUpdate: isCurrentUpdate,
-            businessId: businessId,
-            supplierId: supplierId,
-            categoryId: categoryId,
-            createdAt: createdAt,
-            unit: unit,
-            updatedAt: updatedAt,
-            count: count);
+    _$Product _$result;
+    try {
+      _$result = _$v ??
+          new _$Product._(
+              name: name,
+              id: id,
+              description: description,
+              picture: picture,
+              taxId: taxId,
+              active: active,
+              hasPicture: hasPicture,
+              isImageLocal: isImageLocal,
+              touched: touched,
+              tableName: tableName,
+              isDraft: isDraft,
+              color: color,
+              isCurrentUpdate: isCurrentUpdate,
+              businessId: businessId,
+              supplierId: supplierId,
+              categoryId: categoryId,
+              createdAt: createdAt,
+              unit: unit,
+              updatedAt: updatedAt,
+              count: count,
+              channels: channels.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        channels.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Product', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

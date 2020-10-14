@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -59,6 +60,8 @@ abstract class Product implements Built<Product, ProductBuilder> {
 
   @nullable
   int get count;
+
+  BuiltList<String> get channels;
   
   // ignore: sort_constructors_first
   Product._();
