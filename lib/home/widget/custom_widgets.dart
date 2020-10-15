@@ -344,7 +344,7 @@ Widget emptyListWidget(BuildContext context, String title,
                 style: Theme.of(context)
                     .typography
                     .dense.bodyText1
-                    .copyWith(color: Color(0xff9da9c7)),
+                    .copyWith(color:const Color(0xff9da9c7)),
               ),
               customText(
                 subTitle,

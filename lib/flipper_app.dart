@@ -6,6 +6,7 @@ import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/theme.dart';
 import 'package:flipper/util/app_colors.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';

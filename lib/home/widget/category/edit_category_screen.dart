@@ -14,7 +14,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 enum CategoriesEnum { beverage, drinks, ikawa }
 
 class EditCategoryScreen extends StatefulWidget {
-  EditCategoryScreen({Key key, @required this.productId}) : super(key: key);
+  const EditCategoryScreen({Key key, @required this.productId}) : super(key: key);
   final String productId;
 
   @override
@@ -22,12 +22,12 @@ class EditCategoryScreen extends StatefulWidget {
 }
 
 class _EditCategoryScreenState extends State<EditCategoryScreen> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
 
-  _getCategoriesWidgets(
+  Wrap _getCategoriesWidgets(
       List<CategoryTableData> categories, CommonViewModel vm) {
-    List<Widget> list = new List<Widget>();
-    for (var i = 0; i < categories.length; i++) {
+    final List<Widget> list = <Widget>[];
+    for (int i = 0; i < categories.length; i++) {
       if (categories[i].focused) {
         updateItemWithActiveCategory(vm, categories, i);
       }
@@ -35,7 +35,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
         list.add(
           GestureDetector(
             onTap: () {
-              for (var y = 0; y < categories.length; y++) {
+              for (int y = 0; y < categories.length; y++) {
                 vm.database.categoryDao
                     .updateCategory(categories[y].copyWith(focused: false));
               }
@@ -46,7 +46,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
             child: ListTile(
               title: Text(
                 categories[i].name,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
               trailing: Radio(
                 value: categories[i].id,
@@ -60,7 +60,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
       list.add(Center(
         child: Container(
           width: 400,
-          child: Divider(
+          child: const Divider(
             color: Colors.black,
           ),
         ),
@@ -69,9 +69,10 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
     return Wrap(children: list);
   }
 
+  // ignore: always_specify_types
   Future updateItemWithActiveCategory(
       CommonViewModel vm, List<CategoryTableData> categories, int i) async {
-    final _dialogService = locator<FlipperDialogService>();
+    final FlipperDialogService _dialogService = locator<FlipperDialogService>();
     _dialogService.showConfirmationDialog(
         description: 'Can not update active product feature deprecated');
     // final item = await vm.database.productDao.getItemById(productId: widget.ItemId);
@@ -86,7 +87,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
@@ -103,7 +104,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
               Center(
                 child: Container(
                   width: 400,
-                  child: Divider(
+                  child: const Divider(
                     color: Colors.black,
                   ),
                 ),
@@ -117,17 +118,17 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                       .navigateTo(Routing.createCategoryInputScreen);
                 },
                 child: ListTile(
-                  title: Text('Create Category',
+                  title: const Text('Create Category',
                       style: TextStyle(color: Colors.black)),
                   trailing: Wrap(
-                    children: <Widget>[Icon(Icons.arrow_forward_ios)],
+                    children: <Widget>[const Icon(Icons.arrow_forward_ios)],
                   ),
                 ),
               ),
               StreamBuilder(
                 stream: vm.database.categoryDao.getCategoriesStream(),
                 builder:
-                    (context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
+                    (BuildContext context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
                   if (snapshot.data == null) {
                     return Container();
                   }

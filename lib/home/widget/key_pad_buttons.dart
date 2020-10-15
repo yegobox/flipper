@@ -26,6 +26,7 @@ class _KeyPadButtonsState extends State<KeyPadButtons> {
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
         return Wrap(
+          // alignment: Alignment.center,
           children: _buildButtons(vm),
         );
       },
@@ -62,21 +63,37 @@ class _KeyPadButtonsState extends State<KeyPadButtons> {
   }
 }
 
-class SingleKey extends StatelessWidget {
-  SingleKey({
+class SingleKey extends StatefulWidget {
+  const SingleKey({
     Key key,
     @required this.buttonKeyName,
     this.vm,
   }) : super(key: key);
 
+  final String buttonKeyName;
+  final CommonViewModel vm;
+
+  @override
+  _SingleKeyState createState() => _SingleKeyState();
+}
+
+class _SingleKeyState extends State<SingleKey> {
   double sum = 0.00;
+
   bool flag = false;
+
   int count = 0;
+
   String sumString = '0.00';
+
   double temp;
+
   double permanentSum = 0.00;
+
   String permanentSumString = '0.00';
+
   double temp1 = 0;
+
   double temp2 = 0;
 
   void btnClicked(
@@ -105,7 +122,7 @@ class SingleKey extends StatelessWidget {
           ..categoryId = vm.tmpItem.categoryId
           ..unit = 'custom',
       );
-      print(cartItem);
+
       StoreProvider.of<AppState>(context).dispatch(
         AddItemToCartAction(cartItem: cartItem),
       );
@@ -113,34 +130,24 @@ class SingleKey extends StatelessWidget {
       final String branchId =
           StoreProvider.of<AppState>(context).state.branch.id;
       final List<StockTableData> stocks = await store.state.database.stockDao
-          .getStockByProductId(
-              branchId: branchId, productId: vm.tmpItem.id);
+          .getStockByProductId(branchId: branchId, productId: vm.tmpItem.id);
 
       for (int i = 0; i < stocks.length; i++) {
         await store.state.database.stockDao.updateStock(stocks[i].copyWith(
             retailPrice: vm.keypad.amount.toDouble(), branchId: branchId));
       }
-
       StoreProvider.of<AppState>(context).dispatch(SaveCart());
       StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
     } else {
-      // sum = sum * 10;
-      // sum = sum + vm.keypad.amount / 100;
-      // temp2 = sum;
-      // permanentSumString = permanentSum.toStringAsFixed(2);
-      // sumString = sum.toStringAsFixed(2);
-      // if (sumString.substring(0, sumString.indexOf('.')).length > 6) {
-      //   sumString = '999999.99';
-      // }
-      //todo: commented the code to handle the 99999.99 case but assume not for now.
+     
       StoreProvider.of<AppState>(context).dispatch(
         KayPadAction(
           keyPad: KeyPad(
             (KeyPadBuilder k) => k
               ..amount = vm.keypad == null
                   ? int.parse(buttonKeyName)
-                  // : int.parse(sumString + buttonKeyName)
-                  :int.parse(vm.keypad.amount.toString() + buttonKeyName)
+                 
+                  : int.parse(vm.keypad.amount.toString() + buttonKeyName)
               ..note = 'note',
           ),
         ),
@@ -148,28 +155,31 @@ class SingleKey extends StatelessWidget {
     }
   }
 
-  final String buttonKeyName;
-  final CommonViewModel vm;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 136.99,
-      height:110,
+      height: 110,
       child: InkWell(
         enableFeedback: false,
-        onTap: () => btnClicked(buttonKeyName: buttonKeyName,context: context,vm: vm),
+        onTap: () =>
+            btnClicked(buttonKeyName: widget.buttonKeyName, context: context, vm: widget.vm),
         child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.1),
-                width: 0.5,
-              ),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.1),
+              width: 0.5,
             ),
-            padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
+          ),
+          // padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
+          child: Center(
+            
             child: Text(
-              buttonKeyName.toString(),
-              style: Theme.of(context).textTheme.bodyText1,
-            )),
+              widget.buttonKeyName.toString(),
+              style: Theme.of(context).textTheme.bodyText1.copyWith(fontSize: 40,fontWeight: FontWeight.normal),
+            ),
+          ),
+        ),
       ),
     );
   }

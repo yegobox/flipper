@@ -31,6 +31,8 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   TextEditingController number = TextEditingController();
+   static final _textKey = GlobalKey<
+      FormState>();
   bool _loading = false;
   @override
   void initState() {
@@ -78,9 +80,13 @@ class _LoginState extends State<Login> {
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
               child: TextField(
+                 key: _textKey,
+                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.phone,
+                style: Theme.of(context).textTheme.bodyText2.copyWith(color:Colors.black),
                 controller: number,
                 decoration: const InputDecoration(
+                  focusColor: Colors.black,
                     icon: Icon(Icons.phone_android, color: grey),
                     border: InputBorder.none,
                     hintText: '+250 788 3600 58',

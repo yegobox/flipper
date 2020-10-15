@@ -28,82 +28,71 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (BuildContext context, CommonViewModel vm) {
         return SafeArea(
           top: true,
-          child: Center(
-            child: Container(
-              height: 44,
-              child: Row(
-                children: <Widget>[
-                  _hamburger(),
-                  Align(
-                    alignment: Alignment.center,
-                    // ignore: always_specify_types
-                    child: StreamBuilder(
-                      // FIXME(richard): replace this with couchbaselite too
-                      stream: vm.database.orderDetailDao
-                      // there was this: vm.order==null?null:vm.order.id.toString()
-                          .getCartsStream(null),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<List<OrderDetailTableData>>
-                              orderDetail) {
-                        // ignore: always_specify_types
-                        final quantity = orderDetail.data == null
-                            ? 0
-                            : orderDetail.data
-                                // ignore: always_specify_types
-                                .fold(0, (a, OrderDetailTableData b) => a + b.quantity);
-                        return FlatButton(
-                          onPressed: () {
-                            final FlipperNavigationService _navigationService =
-                                locator<FlipperNavigationService>();
+          child: ListTile(
+            contentPadding:const EdgeInsets.symmetric(horizontal: 0.0),
+            // ignore: always_specify_types
+            leading: _hamburger(),title:  StreamBuilder(
+                    // FIXME(richard): replace this with couchbaselite too
+                    stream: vm.database.orderDetailDao
+                    // there was this: vm.order==null?null:vm.order.id.toString()
+                        .getCartsStream(null),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<OrderDetailTableData>>
+                            orderDetail) {
+                      // ignore: always_specify_types
+                      final quantity = orderDetail.data == null
+                          ? 0
+                          : orderDetail.data
+                              // ignore: always_specify_types
+                              .fold(0, (a, OrderDetailTableData b) => a + b.quantity);
+                      return FlatButton(
+                        onPressed: () {
+                          final FlipperNavigationService _navigationService =
+                              locator<FlipperNavigationService>();
 
-                            List<Cart> cart = [];
-                            for (var i = 0; i < orderDetail.data.length; i++) {
-                              cart.add(
-                                Cart((c) => c
-                                      ..id = orderDetail.data[i].id
-                                      ..branchId = orderDetail.data[i].branchId
-                                      ..quantity =
-                                          orderDetail.data[i].quantity.toInt()
-                                      ..variationName =
-                                          orderDetail.data[i].variantName
-                                      ..variationId =
-                                          orderDetail.data[i].variationId
-                                    // ..parentName = snapshot.data[i].parentName,
-                                    ),
-                              );
-                            }
-
-                            _navigationService.navigateTo(
-                              Routing.cartDetailsScreen,
-                              arguments: CartDetailsScreenArguments(
-                                carts: cart,
-                              ),
+                          List<Cart> cart = [];
+                          for (var i = 0; i < orderDetail.data.length; i++) {
+                            cart.add(
+                              Cart((c) => c
+                                    ..id = orderDetail.data[i].id
+                                    ..branchId = orderDetail.data[i].branchId
+                                    ..quantity =
+                                        orderDetail.data[i].quantity.toInt()
+                                    ..variationName =
+                                        orderDetail.data[i].variantName
+                                    ..variationId =
+                                        orderDetail.data[i].variationId
+                                  // ..parentName = snapshot.data[i].parentName,
+                                  ),
                             );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(90, 0, 0, 0),
-                            child: Text(
-                              orderDetail.data == null || quantity == 0
-                                  ? 'No Sale'
-                                  : 'Current Sale' +
-                                      '[' +
-                                      quantity.toInt().toString() +
-                                      ']',
-                              style: GoogleFonts.lato(
-                                  fontStyle: FontStyle.normal,
-                                  color: Theme.of(context).accentColor,
-                                  fontSize:  Theme.of(context).textTheme
-                                      .bodyText1.fontSize),
+                          }
+
+                          _navigationService.navigateTo(
+                            Routing.cartDetailsScreen,
+                            arguments: CartDetailsScreenArguments(
+                              carts: cart,
                             ),
+                          );
+                        },
+                        child: Center(
+                          
+                          child: Text(
+                            orderDetail.data == null || quantity == 0
+                                ? 'No Sale'
+                                : 'Current Sale' +
+                                    '[' +
+                                    quantity.toInt().toString() +
+                                    ']',
+                            style: GoogleFonts.lato(
+                                fontStyle: FontStyle.normal,
+                                color: Theme.of(context).accentColor,
+                                fontSize:  Theme.of(context).textTheme
+                                    .bodyText1.fontSize),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                        ),
+                      );
+                    },
+                  ),trailing:const SizedBox.shrink())
         );
       },
     );

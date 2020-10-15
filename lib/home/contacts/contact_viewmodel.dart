@@ -1,0 +1,26 @@
+
+import 'package:flipper/datamodels/api.dart';
+import 'package:flipper/services/proxy.dart';
+import 'package:flipper/util/logger.dart';
+import 'package:logger/logger.dart';
+import 'package:stacked/stacked.dart';
+
+// ignore: always_specify_types
+class ContactViewModel extends FutureViewModel {
+  ContactViewModel();
+  final Logger log = Logging.getLogger('Contact view model');
+
+
+  @override
+  Future futureToRun() async {
+    final ApiResponse response =
+        await ProxyService.api.payroll();
+
+    return response.data;
+  }
+
+  void onError(error) {
+    // Show dialog here using service if we want to
+    log.e('error');
+  }
+}

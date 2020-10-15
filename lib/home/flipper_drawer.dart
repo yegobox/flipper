@@ -5,7 +5,7 @@ import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/theme.dart';
+
 import 'package:flipper/util/app_colors.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -42,14 +42,14 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 context,
                 icon: icon,
                 size: 25,
-                iconColor: isEnable ? Theme.of(context).iconTheme.color : Theme.of(context).iconTheme.copyWith(color:Colors.grey),
+                iconColor: isEnable ? Theme.of(context).iconTheme.color :Colors.grey, // TODO(richard): should come from Theme as it is a single source 
               ),
             ),
       title: customText(
         title,
         style: TextStyle(
           fontSize: 20,
-          color: isEnable ? Theme.of(context).secondaryHeaderColor : Theme.of(context).copyWith(accentColor:const Color(0xffAAB8C2)),
+          color: isEnable ?const Color(0xff00897b) : const Color(0xffe2e8ea),
         ),
       ),
     );

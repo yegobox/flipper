@@ -68,12 +68,13 @@ class _PayableWidgetState extends State<PayableWidget> {
                         children: <Widget>[
                           Center(
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: <Widget>[
                                 Text(
                                   'Charge  ',
                                   style: GoogleFonts.lato(
                                       fontStyle: FontStyle.normal,
-                                      color: Theme.of(context).accentColor,
+                                      color: Colors.white, // TODO(lonald): use color from theme we no longer call color like this instead like Theme.of(context)...
                                       fontSize: Theme.of(context).textTheme
                                           .bodyText1.fontSize),
                                 ),
@@ -81,7 +82,7 @@ class _PayableWidgetState extends State<PayableWidget> {
                                   payable.text,
                                   style: GoogleFonts.lato(
                                       fontStyle: FontStyle.normal,
-                                      color: Theme.of(context).accentColor,
+                                      color: Colors.white,
                                       fontSize: Theme.of(context).textTheme
                                           .bodyText1.fontSize),
                                 )

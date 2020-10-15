@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 // ignore: avoid_classes_with_only_static_members
 const double appBarSize = 44.0;
 
-
 final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
       // Define the default brightness and colors.
       brightness: Brightness.light,
@@ -24,12 +23,12 @@ final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
           )),
       dialogTheme: const DialogTheme(
           titleTextStyle: TextStyle(
-              fontFamily: 'Avenir',
+              fontFamily: 'Montserrat',
               fontSize: 16.0,
               color: Colors.black,
               fontWeight: FontWeight.bold),
           contentTextStyle: TextStyle(
-              fontFamily: 'Avenir',
+              fontFamily: 'Montserrat',
               fontSize: 16.0,
               color: Colors.black,
               fontWeight: FontWeight.normal)),
@@ -38,39 +37,39 @@ final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
       iconTheme: IconThemeData(color: Colors.grey[350],),
       textTheme: const TextTheme(
         headline1: TextStyle(
-            fontFamily: 'Avenir',
+            fontFamily: 'Montserrat',
             fontSize: 24.0,
             color: Colors.black,
             fontWeight: FontWeight.bold),
         headline2: TextStyle(
-            fontFamily: 'Avenir',
+            fontFamily: 'Montserrat',
             fontSize: 22.0,
             color: Colors.black,
             fontWeight: FontWeight.bold),
         headline3: TextStyle(
-            fontFamily: 'Avenir',
+            fontFamily: 'Montserrat',
             fontSize: 20.0,
             color: Colors.black,
             fontWeight: FontWeight.bold),
         headline4: TextStyle(
-            fontFamily: 'Avenir',
+            fontFamily: 'Montserrat',
             fontSize: 18.0,
             color: Colors.black,
             fontWeight: FontWeight.bold),
         headline5: TextStyle(
-            fontFamily: 'Avenir',
+            fontFamily: 'Montserrat',
             fontSize: 16.0,
             color: Colors.black,
             fontWeight: FontWeight.bold),
         headline6: TextStyle(
-            fontFamily: 'Avenir',
+            fontFamily: 'Montserrat',
             fontSize: 14.0,
             color: Colors.orange,
             fontWeight: FontWeight.bold),
         bodyText1: TextStyle(
-            fontFamily: 'Avenir', fontSize: 15.0, color: Colors.black),
+            fontFamily: 'Montserrat', fontSize: 15.0, color: Colors.black),
         bodyText2: TextStyle(
-          fontFamily: 'Avenir',
+          fontFamily: 'Montserrat',
           color: Colors.black,
           fontSize: 15.0,
         ),

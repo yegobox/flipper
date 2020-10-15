@@ -16,7 +16,6 @@ import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
 // ignore: implementation_imports
 import 'package:redux/src/store.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 import './loginResponse.dart';
 import 'helpers/style.dart';
@@ -91,6 +90,7 @@ class _OtpPageState extends State<OtpPage> {
                       child: TextField(
                         keyboardType: TextInputType.phone,
                         controller: number,
+                        style: Theme.of(context).textTheme.bodyText2.copyWith(color:Colors.black),
                         decoration: const InputDecoration(
                             icon: Icon(Icons.phone_android, color: grey),
                             border: InputBorder.none,

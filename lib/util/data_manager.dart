@@ -213,8 +213,6 @@ class DataManager {
           'tableName': AppTables.product + store.state.branch.id,
           'isCurrentUpdate': false,
           'isDraft': true,
-          'picture': 'null',
-          'supplierId': 'null',
           'taxId': Tax.fromMap(gettax[0]['main']).id,
           'businessId': store.state.currentActiveBusiness.id,
           'description': productName,

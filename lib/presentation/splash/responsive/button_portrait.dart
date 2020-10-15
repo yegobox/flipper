@@ -19,7 +19,7 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
         return Padding(
           padding:EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
             child:Container(
-          child: Login(),
+          child: const Login(),
           height: 300,
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -53,9 +53,9 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
                     _showModalBottomSheet(context);
                   },
                   color: Colors.blue,
-                  child:const Text(
+                  child: Text(
                     'Create Account',
-                    style:  TextStyle(color: Colors.white),
+                    style:  Theme.of(context).textTheme.headline6.copyWith(color:Colors.white),
                   ),
                 ),
               ),
@@ -64,15 +64,15 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
               height: 20,
             ),
             Container(
-              color: Colors.white,
+              // color: Colors.white,
               child: SizedBox(
                 width: 380,
                 height: 60,
                 child: OutlineButton(
                   color: Colors.blue,
-                  child:const Text(
+                  child: Text(
                     'Sign in',
-                    style:  TextStyle(color: Colors.blue),
+                    style:   Theme.of(context).textTheme.headline6.copyWith(color:Colors.blue),
                   ),
                   onPressed: (){
                     _showModalBottomSheet(context);

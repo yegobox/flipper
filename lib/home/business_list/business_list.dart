@@ -25,41 +25,44 @@ class BusinessList extends StatefulWidget {
 
 class _BusinessListState extends State<BusinessList> {
   bool _businessSelected = false;
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService =
+      locator<FlipperNavigationService>();
 
   Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(
-        height: _Style.firstSectionHeight,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Container(
-              child: Row(children: <Widget>[
-                // ..._buildSelectionHighlight(_businessSelected, Colors.white),
-                _selectableListItem(
-                    userIcon: Text(widget.vm.user.name.length > 2
-                        ? widget.vm.user.name.substring(0, 1).toUpperCase()
-                        : widget.vm.user.name.toUpperCase()),
-                    isSquareShape: _businessSelected,
-                    action: () {
-                      setState(() {
-                        _businessSelected = true;
-                      });
-                    }),
-              ]),
+      height: _Style.firstSectionHeight,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          Container(
+            child: Row(children: <Widget>[
+              // ..._buildSelectionHighlight(_businessSelected, Colors.white),
+              _selectableListItem(
+                  userIcon: Text(widget.vm.user.name.length > 2
+                      ? widget.vm.user.name.substring(0, 1).toUpperCase()
+                      : widget.vm.user.name.toUpperCase()),
+                  isSquareShape: _businessSelected,
+                  action: () {
+                    setState(() {
+                      _businessSelected = true;
+                    });
+                  }),
+            ]),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(
+              top: _Style.padding,
             ),
-            const Padding(
-              padding: EdgeInsets.only(
-                top: _Style.padding,
-              ),
-            ),
-            Container(
-              color: const Color.fromRGBO(33, 127, 125, 1.0), // TODO(lonald): should app theme instead
-              height: _Style.separatorHeight,
-              width: _Style.separatorWidth,
-            ),
-          ],
-        ));
+          ),
+          Container(
+            color: const Color.fromRGBO(
+                33, 127, 125, 1.0), // TODO(lonald): should app theme instead
+            height: _Style.separatorHeight,
+            width: _Style.separatorWidth,
+          ),
+        ],
+      ),
+    );
   }
 
   Container _buildThirdSection(BuildContext context) {
@@ -258,9 +261,7 @@ AnimatedContainer _selectableListItem({
             alignment: const Alignment(0, 0),
             width: _Style.flipperButtonWidth,
             height: _Style.flipperButtonWidth,
-            child: userIcon == null
-                ? Text(text)
-                : userIcon,
+            child: userIcon == null ? Text(text) : userIcon,
           ),
           onTap: action,
         ),
