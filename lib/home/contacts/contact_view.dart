@@ -48,6 +48,7 @@ class _SelectContact extends State<SelectContact> {
   }
 
   Future<Iterable<Contact>> _getContacts() async {
+    // FIXME(richard): fix the long wait on loading time,should load and save them locally on app start.
     return await ContactsService.getContacts(
       withThumbnails: false,
       photoHighResolution: false,
