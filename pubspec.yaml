@@ -95,6 +95,7 @@ dependencies:
   mailer: ^3.2.1
   contacts_service: ^0.4.6
   flutter_reactive_ble: ^2.5.3
+  flutter_text_drawable: ^0.3.1
   
   
 

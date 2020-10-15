@@ -105,6 +105,7 @@ class _SelectContact extends State<SelectContact> {
                         child: Text('Contacts'),
                         value: NewChatOptions.contacts,
                       ),
+                      // ignore: always_specify_types
                       const PopupMenuItem(
                         child: Text('Refresh'),
                         value: NewChatOptions.refresh,
@@ -178,8 +179,10 @@ class _SelectContact extends State<SelectContact> {
                           color: Colors.white,
                         ),
                       ),
-                      title:  Text('New contact',
-                          style: Theme.of(context).textTheme.headline5,),
+                      title: Text(
+                        'New contact',
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
                       onTap: () {
                         // AndroidIntentHelpers.createContact(context);
                       },
@@ -190,8 +193,8 @@ class _SelectContact extends State<SelectContact> {
                         padding: const EdgeInsets.all(8.0),
                         child: const Icon(Icons.share),
                       ),
-                      title:  Text('Invite friends',
-                          style:Theme.of(context).textTheme.headline5),
+                      title: Text('Invite friends',
+                          style: Theme.of(context).textTheme.headline5),
                       onTap: () {
                         // AndroidIntentHelpers.inviteFriend(context);
                       },
@@ -201,7 +204,7 @@ class _SelectContact extends State<SelectContact> {
                         padding: const EdgeInsets.all(8.0),
                         child: const Icon(Icons.help),
                       ),
-                      title:  Text('Contacts help',
+                      title: Text('Contacts help',
                           style: Theme.of(context).textTheme.headline5),
                       onTap: () {},
                     ));
@@ -211,11 +214,15 @@ class _SelectContact extends State<SelectContact> {
                           if (i < 2 || i > data.length - 3) {
                             return data[i];
                           }
-                          return ContactItem(
-                              contact: data.elementAt(i),
-                              onProfileTap: () => onTapProfileContactItem(
-                                  context, snapshot.data.elementAt(i)),
-                              onTap: () {});
+                          if (data.elementAt(i).displayName != null) {
+                            return ContactItem(
+                                contact: data.elementAt(i),
+                                onProfileTap: () => onTapProfileContactItem(
+                                    context, snapshot.data.elementAt(i)),
+                                onTap: () {});
+                          } else {
+                            return const SizedBox.shrink();
+                          }
                         });
                 }
                 return null; // unreachable

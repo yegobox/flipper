@@ -2,15 +2,16 @@ import 'package:flipper/util/app_colors.dart';
 import 'package:flipper/util/text_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart';
+import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 
 class ContactItem extends StatelessWidget {
+  const ContactItem(
+      {this.contact, this.searchKeyword, this.onProfileTap, this.onTap});
+
   final Contact contact;
   final String searchKeyword;
   final Function onProfileTap;
   final Function onTap;
-
-  ContactItem(
-      {this.contact, this.searchKeyword, this.onProfileTap, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +23,13 @@ class ContactItem extends StatelessWidget {
         leading: SizedBox(
           width: 45.0,
           height: 45.0,
-          child: IconButton(
-              padding: const EdgeInsets.all(0.0),
-              icon: const Icon(
-                Icons.account_circle,
-                size: 45.0,
-              ),
-              color: AppColors.lightGrey,
-              onPressed: onProfileTap),
+          child: TextDrawable(
+            text:contact.displayName == null ? '' : contact.displayName,
+            isTappable: true,
+            onTap: null,
+            boxShape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         title: searchKeyword == null || searchKeyword.isEmpty
             ? Text(
