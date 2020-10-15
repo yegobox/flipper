@@ -11,7 +11,7 @@ class ButtonPortrait extends StatefulWidget {
 
 class _ButtonPortraitState extends State<ButtonPortrait> {
    // ignore: always_declare_return_types
-   _showModalBottomSheet(context) {
+   _showModalBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled:true,

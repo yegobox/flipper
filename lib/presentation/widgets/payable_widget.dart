@@ -100,7 +100,7 @@ class _PayableWidgetState extends State<PayableWidget> {
     );
   }
 
-  void _getPayable(List<OrderDetailTableData> carts, context) async {
+  void _getPayable(List<OrderDetailTableData> carts,BuildContext context) async {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
     int total = 0;
     for (int i = 0; i < carts.length; i++) {
@@ -116,7 +116,7 @@ class _PayableWidgetState extends State<PayableWidget> {
     // FIXME(richard): fix order so it wont be null
     // final orderId = StoreProvider.of<AppState>(context).state.order.id;
     
-    List<OrderDetailTableData> carts = await StoreProvider.of<AppState>(context)
+    final List<OrderDetailTableData> carts = await StoreProvider.of<AppState>(context)
         .state
         .database
         .orderDetailDao

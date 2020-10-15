@@ -50,10 +50,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                           final FlipperNavigationService _navigationService =
                               locator<FlipperNavigationService>();
 
-                          List<Cart> cart = [];
-                          for (var i = 0; i < orderDetail.data.length; i++) {
+                          final List<Cart> cart = <Cart>[];
+                          for (int i = 0; i < orderDetail.data.length; i++) {
                             cart.add(
-                              Cart((c) => c
+                              Cart((CartBuilder c) => c
                                     ..id = orderDetail.data[i].id
                                     ..branchId = orderDetail.data[i].branchId
                                     ..quantity =
@@ -79,8 +79,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                           child: Text(
                             orderDetail.data == null || quantity == 0
                                 ? 'No Sale'
-                                : 'Current Sale' +
-                                    '[' +
+                                : 'Current Sale' '[' +
                                     quantity.toInt().toString() +
                                     ']',
                             style: GoogleFonts.lato(
@@ -113,7 +112,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               overflow: Overflow.visible,
               children: <Widget>[
                 Image.asset(
-                  'assets/graphics/menu_icon.png', //TODO(richard): change it to our icon later.
+                  'assets/graphics/menu_icon.png', // TODO(richard): change it to our icon later.
                   width: 25,
                   height: 25,
                 ),
