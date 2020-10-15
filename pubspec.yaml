@@ -93,7 +93,7 @@ dependencies:
   cached_network_image: ^2.2.0+1
   flutter_dotenv: ^2.1.0
   mailer: ^3.2.1
-  contacts_service: ^0.3.10
+  contacts_service: ^0.4.6
   flutter_reactive_ble: ^2.5.3
   
   

@@ -13,8 +13,6 @@ import 'package:stacked/stacked.dart';
 
 import 'business_list/business_list.dart';
 
-enum DrawerState { CALENDAR, channels }
-
 class FlipperDrawer extends StatefulWidget {
   const FlipperDrawer({Key key, this.vm}) : super(key: key);
   final CommonViewModel vm;
@@ -49,7 +47,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
         title,
         style: TextStyle(
           fontSize: 20,
-          color: isEnable ?const Color(0xff00897b) : const Color(0xffe2e8ea),
+          color: isEnable ?Theme.of(context).copyWith(canvasColor: Colors.black).canvasColor : Theme.of(context).copyWith(canvasColor:const Color(0xffe2e8ea)).canvasColor,
         ),
       ),
     );

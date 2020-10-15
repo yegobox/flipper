@@ -15,10 +15,8 @@ import 'package:flipper/model/product.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/util/logger.dart';
 import 'package:flipper/util/upload_response.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
-import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 

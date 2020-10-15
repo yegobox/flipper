@@ -13,10 +13,11 @@ class ContactViewModel extends FutureViewModel {
 
   @override
   Future futureToRun() async {
-    final ApiResponse response =
-        await ProxyService.api.payroll();
+    // FIXME(richard): this is fix me:
+    // final ApiResponse response =
+    //     await ProxyService.api.payroll();
 
-    return response.data;
+    // return response.data;
   }
 
   void onError(error) {

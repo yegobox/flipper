@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-import 'package:rxdart/subjects.dart';
+
 import 'package:uuid/uuid.dart';
 
 import 'domain/redux/app_state.dart';
