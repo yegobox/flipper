@@ -28,11 +28,9 @@ import 'package:flipper/model/variation.dart';
 part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
-  @nullable
+  
+  
   FUser get user;
-
-  @nullable
-  int get userId;
 
   @nullable
   Business get currentActiveBusiness;

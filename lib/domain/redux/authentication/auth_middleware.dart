@@ -79,9 +79,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
     // ignore: always_specify_types
-
-    await DataManager.createTempProduct(store, 'custom-product');
-    _getCurrentLocation(store: store);
+    
+    if(store.state.user.id!=null){
+      await DataManager.createTempProduct(store: store,userId: store.state.user.id,productName: 'tmp');
+      _getCurrentLocation(store: store);
+    }
+    
   };
 }
 
@@ -93,7 +96,7 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     // ignore: always_specify_types
     final List<String> channels = [];
     channels.add(user.id.toString());
-
+    
     await AppDatabase.instance.login(channels: channels);
 
     // start with business closed.
@@ -107,13 +110,13 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
       (FUserBuilder p) => p
         ..email = user.email
         ..active = true
+        ..id = user.id.toString()
         ..createdAt = DateTime.now().toIso8601String()
         ..updatedAt = DateTime.now().toIso8601String()
         ..token = user.token
         ..name = user.username,
     );
     store.dispatch(WithUser(user: u));
-    store.dispatch(UserID(userId: user.userId));
     return true;
   }
 
@@ -149,7 +152,7 @@ Future<List<Branch>> getBranches(
     Store<AppState> store, GeneralRepository generalRepository) async {
   final DatabaseService _databaseService = locator<DatabaseService>();
   final List<Map<String, dynamic>> branche = await _databaseService.filter(
-    equator: AppTables.branch + store.state.userId.toString(),
+    equator: AppTables.branch + store.state.user.id.toString(),
     property: 'tableName',
   );
   List<Branch> branches =[];
@@ -169,7 +172,7 @@ Future<List<Branch>> getBranches(
       final bool weHaveCustomCategory = await isCategory(branchId: branch.id);
       if(!weHaveCustomCategory){
         final String id = Uuid().v1();
-        _databaseService.insert(id: id,data:{'tableName': AppTables.category+branch.id,'id':id, 'channels':[store.state.userId.toString()], 'name':'custom'});
+        _databaseService.insert(id: id,data:{'tableName': AppTables.category+branch.id,'id':id, 'channels':[store.state.user.id.toString()], 'name':'custom'});
       }
       store.dispatch(
         OnCurrentBranchAction(branch: branch),
@@ -283,7 +286,7 @@ Future<void> createTemporalOrder(
   if (store.state.branch == null) {
     return;
   }
-  if (store.state.userId == null) {
+  if (store.state.user.id == null) {
     return;
   }
   DataManager.createTemporalOrder(generalRepository, store);
@@ -293,7 +296,7 @@ Future<void> getBusinesses(
     Store<AppState> store, GeneralRepository generalRepository) async {
   final DatabaseService _databaseService = locator<DatabaseService>();
   final List<Map<String, dynamic>> business = await _databaseService.filter(
-    equator: AppTables.business + store.state.userId.toString(),
+    equator: AppTables.business + store.state.user.id.toString(),
     property: 'tableName',
   );
   
@@ -331,6 +334,7 @@ Future<void> getBusinesses(
       _navigationService.navigateTo(
         Routing.signUpScreen,
         arguments: SignUpScreenArguments(
+          userId: store.state.user.id,
           name: store.state.user.name,
           avatar: 'avatar',
           email: store.state.user.email,
@@ -340,7 +344,7 @@ Future<void> getBusinesses(
     } else {
       _navigationService.navigateTo(Routing.afterSplash);
     }
-  } else if (store.state.userId == null) {
+  } else if (store.state.user.id == null) {
     _navigationService.navigateTo(Routing.afterSplash);
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));

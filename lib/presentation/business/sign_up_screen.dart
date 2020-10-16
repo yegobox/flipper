@@ -23,24 +23,25 @@ class TBusiness {
 }
 
 class SignUpScreen extends StatefulWidget {
-  SignUpScreen({Key key, this.token, this.email, this.name, this.avatar})
+  const SignUpScreen({Key key, this.token, this.email, this.name, this.avatar,@required this.userId})
       : super(key: key);
   final String token;
   final String email;
   final String name;
+  final String userId;
   final String avatar;
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TBusiness tBusiness = TBusiness();
   Position _position;
   _getCurrentLocation() async {
-    var geolocator = Geolocator();
-    var locationOptions =
-        LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
+    final Geolocator geolocator = Geolocator();
+    const LocationOptions locationOptions =
+         LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
 
     geolocator.getPositionStream(locationOptions).listen((Position location) {
       setState(() {
@@ -53,12 +54,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     //grant that we have the permission we need for this activity
     StoreProvider.of<AppState>(context)
-        .dispatch(CheckPermission(checking: true));
+        .dispatch(const CheckPermission(checking: true));
     _getCurrentLocation();
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             title: '',
@@ -74,6 +75,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             multi: 3,
             bottomSpacer: 120,
             action: Column(
+              // ignore: prefer_const_literals_to_create_immutables
               children: <Widget>[
                 const Text("Let's get started"),
                 const Text('Sign up for flipper and yegobox is fast and free'),
@@ -198,6 +200,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         (FUserBuilder user) => user
           ..email = widget.email
           ..active = true
+          ..id = widget.userId
           ..createdAt = DateTime.now().toIso8601String()
           ..updatedAt = DateTime.now().toIso8601String()
           ..token = widget.token
@@ -207,8 +210,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));
-      
-      
     }
   }
 }

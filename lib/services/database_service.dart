@@ -139,7 +139,7 @@ class DatabaseService {
   }
 
   Future<Document> insert({String id, Map  data}) async {
-   
+    log.d(data);
     final MutableDocument newDoc =
         MutableDocument(id: id??Uuid().v1(), data: data);
     await AppDatabase.instance.database.saveDocument(newDoc);

@@ -6,6 +6,109 @@ part of 'fuser.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<FUser> _$fUserSerializer = new _$FUserSerializer();
+
+class _$FUserSerializer implements StructuredSerializer<FUser> {
+  @override
+  final Iterable<Type> types = const [FUser, _$FUser];
+  @override
+  final String wireName = 'FUser';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, FUser object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[];
+    if (object.id != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
+    }
+    if (object.email != null) {
+      result
+        ..add('email')
+        ..add(serializers.serialize(object.email,
+            specifiedType: const FullType(String)));
+    }
+    if (object.active != null) {
+      result
+        ..add('active')
+        ..add(serializers.serialize(object.active,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.name != null) {
+      result
+        ..add('name')
+        ..add(serializers.serialize(object.name,
+            specifiedType: const FullType(String)));
+    }
+    if (object.createdAt != null) {
+      result
+        ..add('createdAt')
+        ..add(serializers.serialize(object.createdAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.updatedAt != null) {
+      result
+        ..add('updatedAt')
+        ..add(serializers.serialize(object.updatedAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.token != null) {
+      result
+        ..add('token')
+        ..add(serializers.serialize(object.token,
+            specifiedType: const FullType(String)));
+    }
+    return result;
+  }
+
+  @override
+  FUser deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new FUserBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'email':
+          result.email = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'active':
+          result.active = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'name':
+          result.name = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'createdAt':
+          result.createdAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'updatedAt':
+          result.updatedAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'token':
+          result.token = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$FUser extends FUser {
   @override
   final String id;
@@ -33,20 +136,7 @@ class _$FUser extends FUser {
       this.createdAt,
       this.updatedAt,
       this.token})
-      : super._() {
-    if (active == null) {
-      throw new BuiltValueNullFieldError('FUser', 'active');
-    }
-    if (name == null) {
-      throw new BuiltValueNullFieldError('FUser', 'name');
-    }
-    if (createdAt == null) {
-      throw new BuiltValueNullFieldError('FUser', 'createdAt');
-    }
-    if (updatedAt == null) {
-      throw new BuiltValueNullFieldError('FUser', 'updatedAt');
-    }
-  }
+      : super._();
 
   @override
   FUser rebuild(void Function(FUserBuilder) updates) =>

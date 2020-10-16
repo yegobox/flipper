@@ -14,7 +14,6 @@ final appActionReducer = <AppState Function(AppState, dynamic)>[
   TypedReducer<AppState, TempCategoryIdAction>(_onTempCategoryId),
   TypedReducer<AppState, UpdateUnitAction>(_onUpdateUnit),
   TypedReducer<AppState, WithUnitId>(_withUnitId),
-  TypedReducer<AppState, ResetAppAction>(_onResetAppAction),
   TypedReducer<AppState, CurrentTab>(_onSetTab),
   TypedReducer<AppState, ItemLoaded>(_onItemLoaded),
   TypedReducer<AppState, AddItemToCartAction>(_onAddingOneItemOnCart),
@@ -45,16 +44,6 @@ AppState _onAppActions(AppState state, AppAction action) {
   return state.rebuild((a) => a..action = action.actions.toBuilder());
 }
 
-AppState _onResetAppAction(AppState state, ResetAppAction action) {
-  //TODO(richard): should update the
-  switch (action.type) {
-    case 'User':
-      return state.rebuild((a) => a..userId = null);
-      break;
-    default:
-      return state.rebuild((a) => a..action = null);
-  }
-}
 
 AppState _onUpdateUnit(AppState state, UpdateUnitAction action) {
   List<Unit> updatedUnits = [];

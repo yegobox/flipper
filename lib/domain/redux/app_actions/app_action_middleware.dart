@@ -1,4 +1,4 @@
-import 'package:flipper/couchbase.dart';
+
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
@@ -69,7 +69,7 @@ void Function(Store<AppState> store, PersistFocusedUnitAction action,
         NextDispatcher next)
     _persistUnit(GlobalKey<NavigatorState> navigatorKey,
         GeneralRepository generalRepository) {
-  return (store, action, next) {
+  return (Store<AppState> store, PersistFocusedUnitAction action, next) {
     if (store.state.focusedUnit != null) {
       store.state.units.forEach((u) => {
             if (u.id == store.state.focusedUnit)
@@ -185,15 +185,15 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
       ),
     );
 
-    //TODO:update the quantity of stock.
+    // TODO(richard): update the quantity of stock.
     //get this order details using this orderId
     //get variantId then update the stock current quantity minus the orderDetail quantity
 
     //update orderdetails
     DataManager.createTemporalOrder(generalRepository, store);
 
-    DataManager.createTempProduct(store, 'custom-product');
+
+    DataManager.createTempProduct(store: store,userId: store.state.user.id,productName: 'tmp');
     
-    AppDatabase.instance.syncOrderLRemote(store);
   };
 }

@@ -88,7 +88,7 @@ abstract class CommonViewModel
   @nullable
   Order get order;
 
-  @nullable
+  
   FUser get user;
 
   @nullable
@@ -134,18 +134,19 @@ abstract class CommonViewModel
   @nullable
   String get otpcode;
 
-  @nullable
-  int get userId;
+
 
   @nullable
   String get businessId;
 
+  // ignore: sort_constructors_first
   CommonViewModel._();
+  // ignore: sort_unnamed_constructors_first
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
 
   static bool _hasUser(Store<AppState> store) {
-    return store.state.userId != null;
+    return store.state.user.id != null;
   }
 
   static bool _hasAction(Store<AppState> store) {
@@ -181,7 +182,6 @@ abstract class CommonViewModel
         ..cartQuantities = store.state.cartQuantities
         ..order = store.state.order?.toBuilder()
         ..user = store.state.user?.toBuilder()
-        ..userId = store.state.userId
         ..businessId = store.state.businessId
         ..keypad = store.state.keypad?.toBuilder()
         ..category = store.state.category?.toBuilder()

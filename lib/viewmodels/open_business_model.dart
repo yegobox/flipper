@@ -27,12 +27,12 @@ class OpenBusinessModel extends BaseModel {
       float: float,
       businessId: vm.currentBusiness.id,
       businessState: businessState,
-      userId: vm.userId.toString(),
+      userId: vm.user.id.toString(),
       note: note,
     );
     await _databaseService.openCloseBusiness(
       businessId: vm.currentBusiness.id,
-      userId: vm.userId.toString(),
+      userId: vm.user.id.toString(),
       isSocial: false,
       name: vm.user.name,
       isClosed: false,

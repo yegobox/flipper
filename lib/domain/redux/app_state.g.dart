@@ -10,8 +10,6 @@ class _$AppState extends AppState {
   @override
   final FUser user;
   @override
-  final int userId;
-  @override
   final Business currentActiveBusiness;
   @override
   final int tab;
@@ -111,7 +109,6 @@ class _$AppState extends AppState {
 
   _$AppState._(
       {this.user,
-      this.userId,
       this.currentActiveBusiness,
       this.tab,
       this.nextActiveBusiness,
@@ -160,6 +157,9 @@ class _$AppState extends AppState {
       this.phone,
       this.otpcode})
       : super._() {
+    if (user == null) {
+      throw new BuiltValueNullFieldError('AppState', 'user');
+    }
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
     }
@@ -186,7 +186,6 @@ class _$AppState extends AppState {
     if (identical(other, this)) return true;
     return other is AppState &&
         user == other.user &&
-        userId == other.userId &&
         currentActiveBusiness == other.currentActiveBusiness &&
         tab == other.tab &&
         nextActiveBusiness == other.nextActiveBusiness &&
@@ -256,7 +255,7 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), userId.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode), currentActiveSaleProduct.hashCode), currentActiveSaleVariant.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), tab.hashCode), nextActiveBusiness.hashCode), sheet.hashCode), action.hashCode), price.hashCode), businessId.hashCode), unit.hashCode), customUnit.hashCode), customItem.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode), category.hashCode), permissions.hashCode), branches.hashCode), businesses.hashCode), branch.hashCode), business.hashCode), hint.hashCode), database.hashCode), tempCategoryId.hashCode), currentUnit.hashCode), currentColor.hashCode), variant.hashCode), itemVariations.hashCode), currentActiveSaleProduct.hashCode), currentActiveSaleVariant.hashCode),
                                                                                 cartItem.hashCode),
                                                                             items.hashCode),
                                                                         currentIncrement.hashCode),
@@ -282,7 +281,6 @@ class _$AppState extends AppState {
   String toString() {
     return (newBuiltValueToStringHelper('AppState')
           ..add('user', user)
-          ..add('userId', userId)
           ..add('currentActiveBusiness', currentActiveBusiness)
           ..add('tab', tab)
           ..add('nextActiveBusiness', nextActiveBusiness)
@@ -340,10 +338,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   FUserBuilder _user;
   FUserBuilder get user => _$this._user ??= new FUserBuilder();
   set user(FUserBuilder user) => _$this._user = user;
-
-  int _userId;
-  int get userId => _$this._userId;
-  set userId(int userId) => _$this._userId = userId;
 
   BusinessBuilder _currentActiveBusiness;
   BusinessBuilder get currentActiveBusiness =>
@@ -560,7 +554,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   AppStateBuilder get _$this {
     if (_$v != null) {
       _user = _$v.user?.toBuilder();
-      _userId = _$v.userId;
       _currentActiveBusiness = _$v.currentActiveBusiness?.toBuilder();
       _tab = _$v.tab;
       _nextActiveBusiness = _$v.nextActiveBusiness?.toBuilder();
@@ -632,8 +625,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
     try {
       _$result = _$v ??
           new _$AppState._(
-              user: _user?.build(),
-              userId: userId,
+              user: user.build(),
               currentActiveBusiness: _currentActiveBusiness?.build(),
               tab: tab,
               nextActiveBusiness: _nextActiveBusiness?.build(),
@@ -685,8 +677,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       String _$failedField;
       try {
         _$failedField = 'user';
-        _user?.build();
-
+        user.build();
         _$failedField = 'currentActiveBusiness';
         _currentActiveBusiness?.build();
 

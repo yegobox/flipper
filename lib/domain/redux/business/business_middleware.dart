@@ -37,16 +37,16 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
      
       final Map<String, dynamic> _mapBusiness = {
         'active': true,
-        '_id':  AppTables.business + store.state.userId.toString(),
+        '_id':  AppTables.business + store.state.user.id.toString(),
         'categoryId': '10', //pet store a default id when signup on mobile
-        'channels':[ store.state.userId.toString()],
+        'channels':[ store.state.user.id.toString()],
         'typeId': '1', //pet store a default id when signup on mobile
-        'tableName': AppTables.business + store.state.userId.toString(),
+        'tableName': AppTables.business + store.state.user.id.toString(),
         'country': 'Rwanda',
         'currency': 'RWF',
-        'id':  AppTables.business + store.state.userId.toString(),
+        'id':  AppTables.business + store.state.user.id.toString(),
         'name': store.state.business.name,
-        'userId': store.state.userId,
+        'userId': store.state.user.id,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
@@ -57,11 +57,11 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       final Map<String, dynamic> _notTax = {
         'active': true,
         '_id': 'taxes_' + businessId,
-        'channels': [store.state.userId.toString()],
+        'channels': [store.state.user.id.toString()],
         'businessId': businessId,
-        'tableName': AppTables.tax + store.state.userId.toString(),
+        'tableName': AppTables.tax + businessId,
         'createdAt': DateTime.now().toIso8601String(),
-        'id': 'taxes_' + store.state.userId.toString(),
+        'id': AppTables.tax + businessId,
         'updatedAt': DateTime.now().toIso8601String(),
         'isDefault': false,
         'name': 'No Tax',
@@ -73,12 +73,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       final Map<String, dynamic> vat = {
         'active': true,
         '_id': 'taxes_' + businessId,
-        'channels': [store.state.userId.toString()],
+        'channels': [store.state.user.id.toString()],
         'businessId': businessId,
-        'tableName': AppTables.tax + store.state.userId.toString(),
+        'tableName': AppTables.tax + businessId,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
-        'id': 'taxes_' + businessId,
+        'id': AppTables.tax + businessId,
         'isDefault': true,
         'name': 'Vat',
         'percentage': 18,

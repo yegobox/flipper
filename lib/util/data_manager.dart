@@ -17,8 +17,11 @@ import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/upload_response.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
+
+import 'logger.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class DataManager {
@@ -169,8 +172,11 @@ class DataManager {
   //create variant,
   //add the variant to stock with default value 0
   static Future<void> createTempProduct(
-      Store<AppState> store, String productName) async {
-    if (store.state.branch != null) {
+      {Store<AppState> store, String productName,String userId}) async {
+    if (store.state.branch != null && userId !=null) {
+      final Logger log = Logging.getLogger('Data manager   Model ....');
+
+      
       final DatabaseService _databaseService = locator<DatabaseService>();
       // ignore: always_specify_types
       final category = await _databaseService.filter(
@@ -180,7 +186,7 @@ class DataManager {
         andEquator: 'custom',
         andProperty: 'name',
       );
-      // final Logger log = Logging.getLogger('Data manager   Model ....');
+      
 
       final List<Map<String, dynamic>> product = await _databaseService.filter(
         equator: productName,
@@ -191,23 +197,30 @@ class DataManager {
       );
 
       final List<Map<String, dynamic>> gettax = await _databaseService.filter(
-        equator: 'taxes_' + store.state.currentActiveBusiness.id,
+        equator: AppTables.tax + store.state.currentActiveBusiness.id,
         property: 'tableName',
         and: true, //define that this query is and type.
         andEquator: 'Vat',
         andProperty: 'name',
       );
+      log.d('categoryId:'+Category.fromMap(category[0]['main']).id);
+      log.d('taxId:'+Tax.fromMap(gettax[0]['main']).id);
+      
+      log.d(product);
+      log.d('branchId'+store.state.branch.id);
+      log.d('productName:'+productName);
+      log.d('businessId:'+store.state.currentActiveBusiness.id);
 
       if (product.isEmpty) {
         // ignore: always_specify_types
         final Document productDoc = await _databaseService.insert(data: {
-          name: productName,
+          'name': productName,
           'categoryId': Category.fromMap(category[0]['main']).id,
           'color': '#955be9',
           'id': Uuid().v1(),
           'active': true,
           'hasPicture': false,
-          'channels':<String>[store.state.userId.toString()],
+          'channels':<String>[userId],
           'tableName': AppTables.product + store.state.branch.id,
           'isCurrentUpdate': false,
           'isDraft': true,
@@ -219,9 +232,9 @@ class DataManager {
 
         final Document variant = await _databaseService.insert(data: {
           'isActive': false,
-          name: productName,
+          'name': productName,
           'unit': 'kg',
-          'channels':<String>[store.state.userId.toString()],
+          'channels':<String>[userId],
           'tableName': AppTables.variation + store.state.branch.id,
           'productId': productDoc.id,
           'sku': Uuid().v1().substring(0, 4),
@@ -235,7 +248,7 @@ class DataManager {
           'canTrackingStock': false,
           'showLowStockAlert': false,
           'retailPrice': 0,
-          'channels': [store.state.userId.toString()],
+          'channels': [userId],
           'isActive': true,
           // TODO(richard): decide which tableName
           // 'tableName':AppTables.variation + store.state.branch.id,
@@ -254,16 +267,16 @@ class DataManager {
           'id': Uuid().v1()
         });
         final Product pro = Product.fromMap(productDoc.toMap());
-        dispatchCurrentTmpItem(store, pro, productName);
+        dispatchCurrentTmpItem(store, pro, productName,userId);
       } else {
         final Product pro = Product.fromMap(product[0]['main']);
-        dispatchCurrentTmpItem(store, pro, productName);
+        dispatchCurrentTmpItem(store, pro, productName,userId);
       }
     }
   }
 
   static void dispatchCurrentTmpItem(
-      Store<AppState> store, Product product, String productName) async {
+      Store<AppState> store, Product product, String productName,String userId) async {
     final DatabaseService _databaseService = locator<DatabaseService>();
     // ignore: always_specify_types
     final List<Map<String, dynamic>> v = await _databaseService.filter(
@@ -279,7 +292,7 @@ class DataManager {
       _databaseService.insert(id: id, data: {
         'name': 'Regular',
         'id': id,
-        'channels':[store.state.userId.toString()],
+        'channels':[userId],
         'productId': product.id,
         'tableName': AppTables.variation + store.state.branch.id
       });

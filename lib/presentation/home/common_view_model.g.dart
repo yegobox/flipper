@@ -88,8 +88,6 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final String otpcode;
   @override
-  final int userId;
-  @override
   final String businessId;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
@@ -136,7 +134,6 @@ class _$CommonViewModel extends CommonViewModel {
       this.navigate,
       this.phone,
       this.otpcode,
-      this.userId,
       this.businessId})
       : super._() {
     if (hasUser == null) {
@@ -165,6 +162,9 @@ class _$CommonViewModel extends CommonViewModel {
     }
     if (carts == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'carts');
+    }
+    if (user == null) {
+      throw new BuiltValueNullFieldError('CommonViewModel', 'user');
     }
   }
 
@@ -220,7 +220,6 @@ class _$CommonViewModel extends CommonViewModel {
         navigate == other.navigate &&
         phone == other.phone &&
         otpcode == other.otpcode &&
-        userId == other.userId &&
         businessId == other.businessId;
   }
 
@@ -244,25 +243,25 @@ class _$CommonViewModel extends CommonViewModel {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode), items.hashCode), currentIncrement.hashCode), currentActiveSaleProduct.hashCode), database.hashCode), carts.hashCode),
-                                                                                cartQuantities.hashCode),
-                                                                            order.hashCode),
-                                                                        user.hashCode),
-                                                                    keypad.hashCode),
-                                                                customUnit.hashCode),
-                                                            customItem.hashCode),
-                                                        tempCategoryId.hashCode),
-                                                    tmpItem.hashCode),
-                                                currentActiveSaleVariant.hashCode),
-                                            total.hashCode),
-                                        image.hashCode),
-                                    note.hashCode),
-                                dateFilter.hashCode),
-                            report.hashCode),
-                        navigate.hashCode),
-                    phone.hashCode),
-                otpcode.hashCode),
-            userId.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, hasUser.hashCode), hasSheet.hashCode), hasHint.hashCode), units.hashCode), tab.hashCode), currentBusiness.hashCode), hasAction.hashCode), branches.hashCode), businesses.hashCode), appAction.hashCode), hint.hashCode), category.hashCode), currentUnit.hashCode), currentColor.hashCode), branch.hashCode), cartItem.hashCode), itemVariations.hashCode), variant.hashCode), items.hashCode), currentIncrement.hashCode), currentActiveSaleProduct.hashCode), database.hashCode),
+                                                                                carts.hashCode),
+                                                                            cartQuantities.hashCode),
+                                                                        order.hashCode),
+                                                                    user.hashCode),
+                                                                keypad.hashCode),
+                                                            customUnit.hashCode),
+                                                        customItem.hashCode),
+                                                    tempCategoryId.hashCode),
+                                                tmpItem.hashCode),
+                                            currentActiveSaleVariant.hashCode),
+                                        total.hashCode),
+                                    image.hashCode),
+                                note.hashCode),
+                            dateFilter.hashCode),
+                        report.hashCode),
+                    navigate.hashCode),
+                phone.hashCode),
+            otpcode.hashCode),
         businessId.hashCode));
   }
 
@@ -309,7 +308,6 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('navigate', navigate)
           ..add('phone', phone)
           ..add('otpcode', otpcode)
-          ..add('userId', userId)
           ..add('businessId', businessId))
         .toString();
   }
@@ -496,10 +494,6 @@ class CommonViewModelBuilder
   String get otpcode => _$this._otpcode;
   set otpcode(String otpcode) => _$this._otpcode = otpcode;
 
-  int _userId;
-  int get userId => _$this._userId;
-  set userId(int userId) => _$this._userId = userId;
-
   String _businessId;
   String get businessId => _$this._businessId;
   set businessId(String businessId) => _$this._businessId = businessId;
@@ -548,7 +542,6 @@ class CommonViewModelBuilder
       _navigate = _$v.navigate;
       _phone = _$v.phone;
       _otpcode = _$v.otpcode;
-      _userId = _$v.userId;
       _businessId = _$v.businessId;
       _$v = null;
     }
@@ -599,7 +592,7 @@ class CommonViewModelBuilder
               carts: carts.build(),
               cartQuantities: cartQuantities,
               order: _order?.build(),
-              user: _user?.build(),
+              user: user.build(),
               keypad: _keypad?.build(),
               customUnit: _customUnit?.build(),
               customItem: _customItem?.build(),
@@ -614,7 +607,6 @@ class CommonViewModelBuilder
               navigate: navigate,
               phone: phone,
               otpcode: otpcode,
-              userId: userId,
               businessId: businessId);
     } catch (_) {
       String _$failedField;
@@ -655,7 +647,7 @@ class CommonViewModelBuilder
         _$failedField = 'order';
         _order?.build();
         _$failedField = 'user';
-        _user?.build();
+        user.build();
         _$failedField = 'keypad';
         _keypad?.build();
         _$failedField = 'customUnit';

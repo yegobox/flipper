@@ -123,18 +123,18 @@ class Routing {
           fullscreenDialog: true,
         );
       case Routing.signUpScreen:
-        if (hasInvalidArgs<SignUpScreenArguments>(args)) {
+        if (hasInvalidArgs<SignUpScreenArguments>(args, isRequired: true)) {
           return misTypedArgsRoute<SignUpScreenArguments>(args);
         }
-        final typedArgs =
-            args as SignUpScreenArguments ?? SignUpScreenArguments();
+        final typedArgs = args as SignUpScreenArguments;
         return PageRouteBuilder<dynamic>(
           pageBuilder: (ctx, animation, secondaryAnimation) => SignUpScreen(
               key: typedArgs.key,
               token: typedArgs.token,
               email: typedArgs.email,
               name: typedArgs.name,
-              avatar: typedArgs.avatar),
+              avatar: typedArgs.avatar,
+              userId: typedArgs.userId),
           settings: settings,
           transitionsBuilder: TransitionsBuilders.slideLeft,
           transitionDuration: Duration(milliseconds: 200),
@@ -435,8 +435,14 @@ class SignUpScreenArguments {
   final String email;
   final String name;
   final String avatar;
+  final String userId;
   SignUpScreenArguments(
-      {this.key, this.token, this.email, this.name, this.avatar});
+      {this.key,
+      this.token,
+      this.email,
+      this.name,
+      this.avatar,
+      @required this.userId});
 }
 
 //EditItemTitle arguments holder class

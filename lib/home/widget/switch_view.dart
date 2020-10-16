@@ -25,7 +25,7 @@ class SwitchView extends StatelessWidget {
     return ViewModelBuilder<SwitchModel>.reactive(
       initialiseSpecialViewModelsOnce: true,
       viewModelBuilder: () {
-        return SwitchModel(id: vm.userId.toString());
+        return SwitchModel(id: vm.user.id.toString());
       },
 
       builder: (BuildContext context, SwitchModel model, Widget child) {

@@ -26,7 +26,7 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   String get longitude;
 
   @nullable
-  int get userId;
+  String get userId;
 
   String get typeId;
 
@@ -84,4 +84,4 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   static Serializer<Business> get serializer => _$businessSerializer;
 }
 
-enum BusinessType { PHARMACY, NORMAL }
+

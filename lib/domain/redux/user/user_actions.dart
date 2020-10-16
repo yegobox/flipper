@@ -26,11 +26,12 @@ class WithUsers {
 
 @immutable
 class WithUser {
-  final FUser user;
 
   const WithUser({this.user});
+  final FUser user;
 }
 
+@deprecated
 @immutable
 class UserID {
   final int userId;

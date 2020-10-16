@@ -57,7 +57,7 @@ class _$BusinessSerializer implements StructuredSerializer<Business> {
       result
         ..add('userId')
         ..add(serializers.serialize(object.userId,
-            specifiedType: const FullType(int)));
+            specifiedType: const FullType(String)));
     }
     if (object.timeZone != null) {
       result
@@ -151,7 +151,7 @@ class _$BusinessSerializer implements StructuredSerializer<Business> {
           break;
         case 'userId':
           result.userId = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+              specifiedType: const FullType(String)) as String;
           break;
         case 'typeId':
           result.typeId = serializers.deserialize(value,
@@ -222,7 +222,7 @@ class _$Business extends Business {
   @override
   final String longitude;
   @override
-  final int userId;
+  final String userId;
   @override
   final String typeId;
   @override
@@ -433,9 +433,9 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get longitude => _$this._longitude;
   set longitude(String longitude) => _$this._longitude = longitude;
 
-  int _userId;
-  int get userId => _$this._userId;
-  set userId(int userId) => _$this._userId = userId;
+  String _userId;
+  String get userId => _$this._userId;
+  set userId(String userId) => _$this._userId = userId;
 
   String _typeId;
   String get typeId => _$this._typeId;

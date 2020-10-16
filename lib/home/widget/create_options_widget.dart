@@ -83,6 +83,9 @@ class CreateOptionsWidget extends StatelessWidget {
   //create a temporal product with default regular variant to be updated along the way while creating the product
   //if such product with tmp name exist return it.
   Future<void> _createTemporalItem(CommonViewModel vm, BuildContext context) async {
-    DataManager.createTempProduct(StoreProvider.of<AppState>(context), 'tmp');
+    if(vm.user.id!=null){
+      DataManager.createTempProduct(store: StoreProvider.of<AppState>(context),userId: vm.user.id,productName: 'tmp');
+    }
+    
   }
 }

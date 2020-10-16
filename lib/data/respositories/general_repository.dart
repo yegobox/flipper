@@ -268,7 +268,7 @@ Future<void> insertNewDraftOrder(Store<AppState> store) async {
         supplierInvoiceNumber: 0,
         taxAmount: 0,
         taxRate: 0,
-        userId: store.state.userId,
+        // userId: store.state.user.id,
       ),
     );
   }
