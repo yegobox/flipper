@@ -5,7 +5,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/key_pad.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';

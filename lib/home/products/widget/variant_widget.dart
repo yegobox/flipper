@@ -3,13 +3,13 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/functions.dart';
 import 'package:flipper/home/products/view_single_item_view.dart';
 import 'package:flipper/home/variations/variation_viewmodel.dart';
-import 'package:flipper/home/widget/add_product/variation_list.dart';
+import 'package:flipper/home/widget/product/variation_list.dart';
 
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/services/proxy.dart';
+
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';

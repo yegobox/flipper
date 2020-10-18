@@ -1,17 +1,9 @@
-import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/home/widget/add_product/variation_list.dart';
-import 'package:flipper/services/proxy.dart';
+
 import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/data_manager.dart';
-import 'package:flipper/util/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/redux.dart';
 
 import 'widget/variant_widget.dart';
 

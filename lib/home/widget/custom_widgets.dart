@@ -164,7 +164,7 @@ Widget customImage(
     child: CircleAvatar(
       maxRadius: height / 2,
       backgroundColor: Theme.of(context).cardColor,
-      backgroundImage: customAdvanceNetworkImage(path ?? dummyProfilePic),
+      backgroundImage: customAdvanceNetworkImage(path),
     ),
   );
 }
@@ -216,7 +216,7 @@ SizedBox sizedBox({double height = 5, String title}) {
 Widget customNetworkImage(String path, {BoxFit fit = BoxFit.contain}) {
   return CachedNetworkImage(
     fit: fit,
-    imageUrl: path ?? dummyProfilePic,
+    imageUrl: path,
     imageBuilder: (BuildContext context, ImageProvider<Object> imageProvider) => Container(
       decoration: BoxDecoration(
         image: DecorationImage(
@@ -229,14 +229,15 @@ Widget customNetworkImage(String path, {BoxFit fit = BoxFit.contain}) {
     placeholder: (BuildContext context, String url) => Container(
       color: const Color(0xffeeeeee),
     ),
+    // ignore: always_specify_types
     errorWidget: (BuildContext context, String url, error) => const Icon(Icons.error),
   );
 }
 
 dynamic customAdvanceNetworkImage(String path) {
-  path ??= dummyProfilePic;
+  
   return CachedNetworkImageProvider(
-    path ?? dummyProfilePic,
+    path,
   );
 }
 

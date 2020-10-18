@@ -1,15 +1,17 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/home/products/widget/build_image_holder.dart';
-import 'package:flipper/home/widget/add_product/add_variant.dart';
-import 'package:flipper/home/widget/add_product/category_section.dart';
-import 'package:flipper/home/widget/add_product/center_divider.dart';
-import 'package:flipper/home/widget/add_product/description_widget.dart';
-import 'package:flipper/home/widget/add_product/list_divider.dart';
-import 'package:flipper/home/widget/add_product/retail_price_widget.dart';
-import 'package:flipper/home/widget/add_product/section_select_unit.dart';
-import 'package:flipper/home/widget/add_product/sku_field.dart';
-import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
-import 'package:flipper/home/widget/add_product/variation_list.dart';
+
+import 'package:flipper/home/widget/add_product/supplier/supply_price_widget.dart';
+import 'package:flipper/home/widget/product/add_variant.dart';
+import 'package:flipper/home/widget/product/category_section.dart';
+import 'package:flipper/home/widget/product/center_divider.dart';
+import 'package:flipper/home/widget/product/description_widget.dart';
+import 'package:flipper/home/widget/product/list_divider.dart';
+import 'package:flipper/home/widget/product/retail/retail_price_widget.dart';
+import 'package:flipper/home/widget/product/section_select_unit.dart';
+import 'package:flipper/home/widget/product/sku_field.dart';
+import 'package:flipper/home/widget/product/variation_list.dart';
+
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/proxy.dart';
