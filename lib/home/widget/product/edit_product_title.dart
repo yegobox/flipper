@@ -20,7 +20,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 class EditItemTitle extends StatefulWidget {
-  EditItemTitle({Key key, this.productId}) : super(key: key);
+  const EditItemTitle({Key key, this.productId}) : super(key: key);
   final String productId;
 
   @override

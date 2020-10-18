@@ -36,7 +36,7 @@ import 'package:flipper/data/token.dart';
 import 'package:flipper/data/unit_table.dart';
 import 'package:flipper/data/user.dart';
 import 'package:flipper/data/variation_table.dart';
-import 'package:flipper/listeners/table_listeners.dart';
+
 import 'package:moor/ffi.dart';
 import 'package:moor/moor.dart';
 
@@ -119,8 +119,7 @@ LazyDatabase _openConnection() {
   TaxDao,
   ReasonDao,
   BranchProductDao,
-  ProductImageDao,
-  Listner
+  ProductImageDao
 ])
 class Database extends _$Database {
   Database() : super(_openConnection());

@@ -4,6 +4,8 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
+import 'build_supplier_body.dart';
+
 class SupplyPriceWidget extends StatefulWidget {
   const SupplyPriceWidget({Key key, this.vm}) : super(key: key);
   final CommonViewModel vm;
@@ -20,21 +22,7 @@ class _SupplyPriceWidgetState extends State<SupplyPriceWidget> {
       distinct: true,
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
-        return const Text('supply widget');
-        // FIXME(richard): 
-        // return StreamBuilder(
-        //   stream: vm.database.variationDao.getItemVariationsByItemId(
-        //       vm.tmpItem.id), //do we have regular variant on this item?
-        //   builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-        //     //if we have more than one variant do not show regular widget for changing supply price
-        //     if (snapshot.data != null && snapshot.data.length < 2) {
-        //       return SupplyPrice(
-        //         vm: widget.vm,
-        //       );
-        //     }
-        //     return const SizedBox.shrink();
-        //   },
-        // );
+        return BuildSupplierBody(vm:vm);
       },
     );
   }

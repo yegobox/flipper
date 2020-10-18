@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
+
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/util/enums.dart';
@@ -10,7 +10,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:uuid/uuid.dart';
 
 class ReceiveStockScreen extends StatefulWidget {
-  ReceiveStockScreen({
+  const ReceiveStockScreen({
     Key key,
     @required this.variationId,
   }) : super(key: key);
@@ -25,7 +25,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {

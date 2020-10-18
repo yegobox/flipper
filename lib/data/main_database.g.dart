@@ -10814,8 +10814,6 @@ abstract class _$Database extends GeneratedDatabase {
   ProductImageDao _productImageDao;
   ProductImageDao get productImageDao =>
       _productImageDao ??= ProductImageDao(this as Database);
-  Listner _listner;
-  Listner get listner => _listner ??= Listner(this as Database);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override

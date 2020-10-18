@@ -5,7 +5,7 @@ import 'package:flipper/util/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:redux/src/store.dart';
+import 'package:redux/redux.dart';
 
 class SupplyPrice extends StatefulWidget {
   const SupplyPrice({Key key, this.vm}) : super(key: key);
