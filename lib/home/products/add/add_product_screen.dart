@@ -34,7 +34,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       distinct: true,
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
-        return const BuildAddProductBody();
+        return  BuildAddProductBody(vm: vm);
       },
     );
   }

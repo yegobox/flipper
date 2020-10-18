@@ -107,7 +107,8 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
         isSocial: false,
         name: user.username,
         userId: user.id.toString(),
-        isClosed: true);
+        isClosed: true,
+        );
 
     final FUser u = FUser(
       (FUserBuilder p) => p

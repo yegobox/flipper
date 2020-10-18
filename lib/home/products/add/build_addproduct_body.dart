@@ -28,8 +28,11 @@ class BuildAddProductBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<AddProductViewmodel>.reactive(
       viewModelBuilder: () => AddProductViewmodel(),
-      onModelReady: (AddProductViewmodel model) => model.getProducts(),
+      onModelReady: (AddProductViewmodel model) => model.getTemporalProduct(vm: vm,context: context),
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
+        if(model.busy){
+          return const CircularProgressIndicator();
+        }
         return WillPopScope(
           onWillPop: model.onWillPop,
           child: Scaffold(

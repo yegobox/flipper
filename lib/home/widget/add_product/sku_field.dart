@@ -19,32 +19,34 @@ class _SkuFieldState extends State<SkuField> {
       distinct: true,
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
-        return StreamBuilder(
-          stream: vm.database.variationDao
-              .getVariationByNameStream('Regular', vm.tmpItem.id),
-          builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-            if (snapshot.data == null) {
-              return const SizedBox.shrink();
-            }
-            return snapshot.data == null
-                ? Center(
-                    child: Container(
-                      width: 300,
-                      child: TextFormField(
-                        style: const TextStyle(color: Colors.black),
-                        onChanged: (String sku) {
-                          setState(() {
-                            DataManager.sku = sku;
-                          });
-                        },
-                        decoration: const InputDecoration(
-                            hintText: 'SKU', focusColor: Colors.blue),
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink();
-          },
-        );
+           return const Text('sku field');
+        // FIXME (richard):
+        // return StreamBuilder(
+        //   stream: vm.database.variationDao
+        //       .getVariationByNameStream('Regular', vm.tmpItem.id),
+        //   builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+        //     if (snapshot.data == null) {
+        //       return const SizedBox.shrink();
+        //     }
+        //     return snapshot.data == null
+        //         ? Center(
+        //             child: Container(
+        //               width: 300,
+        //               child: TextFormField(
+        //                 style: const TextStyle(color: Colors.black),
+        //                 onChanged: (String sku) {
+        //                   setState(() {
+        //                     DataManager.sku = sku;
+        //                   });
+        //                 },
+        //                 decoration: const InputDecoration(
+        //                     hintText: 'SKU', focusColor: Colors.blue),
+        //               ),
+        //             ),
+        //           )
+        //         : const SizedBox.shrink();
+        //   },
+        // );
       },
     );
   }

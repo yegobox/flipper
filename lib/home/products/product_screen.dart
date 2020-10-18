@@ -35,7 +35,7 @@ class _ProductScreenState extends State<ProductScreen> {
               data: model.data,
               shouldSeeItem: false,
               showCreateItemOnTop: true,
-              createButtonName: 'Create New',
+              createButtonName: 'Add Product',
             )
           ],
         );

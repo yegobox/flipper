@@ -9,6 +9,7 @@ import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
@@ -24,15 +25,13 @@ class AddProductViewmodel extends BaseModel {
     return _actions;
   }
 
-  
   ActionsTableData _actions;
 
-  bool get isLocked{
+  bool get isLocked {
     return _isLocked;
   }
-  final bool _isLocked = true;
-  
 
+  final bool _isLocked = true;
 
   Future<bool> onWillPop({BuildContext context}) async {
     return (await showDialog(
@@ -43,12 +42,11 @@ class AddProductViewmodel extends BaseModel {
               style: TextStyle(color: Colors.black),
             ),
             content: const Text(
-              'Do you want to exit an App',
+              'Do you want to exit',
               style: TextStyle(color: Colors.black),
             ),
             actions: <Widget>[
               FlatButton(
-                // onPressed: () => Routing.navigator.pop(false),
                 onPressed: () {},
                 child: const Text('No'),
               ),
@@ -69,7 +67,8 @@ class AddProductViewmodel extends BaseModel {
     ProxyService.nav.pop();
   }
 
-  Future<bool> handleCreateItem({CommonViewModel vm, Store<AppState> store}) async {
+  Future<bool> handleCreateItem(
+      {CommonViewModel vm, Store<AppState> store}) async {
     // final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     await updateProduct(
@@ -92,6 +91,7 @@ class AddProductViewmodel extends BaseModel {
 
     return true;
   }
+
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
     final ProductTableData product =
@@ -107,7 +107,8 @@ class AddProductViewmodel extends BaseModel {
     );
     return true;
   }
-   Future<bool> resetSaveButtonStatus(CommonViewModel vm) async {
+
+  Future<bool> resetSaveButtonStatus(CommonViewModel vm) async {
     await vm.database.actionsDao
         .updateAction(_actionsSaveItem.copyWith(isLocked: true));
 
@@ -115,26 +116,27 @@ class AddProductViewmodel extends BaseModel {
         .updateAction(_actions.copyWith(isLocked: true));
     return true;
   }
-   void getSaveStatus(CommonViewModel vm) async {
+
+  void getSaveStatus(CommonViewModel vm) async {
     final ActionsTableData result =
         await vm.database.actionsDao.getActionBy('save');
 
-      _actions = result;
-    
+    _actions = result;
   }
+
   void getSaveItemStatus(CommonViewModel vm) async {
     final ActionsTableData result =
         await vm.database.actionsDao.getActionBy('saveItem');
-    
-      _actionsSaveItem = result;
+
+    _actionsSaveItem = result;
     notifyListeners();
   }
+
   void createVariant(CommonViewModel vm) {
     // _getSaveStatus(vm);
     if (_actions != null) {
       vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-      final FlipperNavigationService _navigationService =
-         ProxyService.nav;
+      final FlipperNavigationService _navigationService = ProxyService.nav;
 
       _navigationService.navigateTo(Routing.addVariationScreen,
           arguments: AddVariationScreenArguments(
@@ -142,6 +144,7 @@ class AddProductViewmodel extends BaseModel {
               supplyPrice: DataManager.supplyPrice));
     }
   }
+
   Future<void> updateNameField(String name, CommonViewModel vm) async {
     if (name == '') {
       // _getSaveStatus(vm);
@@ -152,26 +155,40 @@ class AddProductViewmodel extends BaseModel {
       //   _getSaveStatus(vm);
       //   _getSaveItemStatus(vm);
       // }
-      
+
       DataManager.name = name;
       notifyListeners();
-      
     } else if (_actions != null) {
       await vm.database.actionsDao
           .updateAction(_actions.copyWith(isLocked: false));
       // _getSaveStatus(vm);
       // _getSaveItemStatus(vm);
-      
+
       DataManager.name = name;
       notifyListeners();
-     
     } else {
       // _getSaveStatus(vm);
       // _getSaveItemStatus(vm);
-      
-        DataManager.name = name;
+
+      DataManager.name = name;
       notifyListeners();
     }
   }
-  Future getProducts() {}
+
+  // once full refacored
+  // ignore: always_specify_types
+  Future getTemporalProduct({BuildContext context, CommonViewModel vm}) async {
+    setBusy(true);
+    log.i(vm.user.id);
+    // ignore: prefer_const_constructors
+    final String productId = await DataManager.createTempProduct(
+      store: StoreProvider.of<AppState>(context),
+      userId: vm.user.id,
+      productName: 'tmp',
+    );
+
+    setBusy(false);
+    log.i(productId);
+    return productId;
+  }
 }

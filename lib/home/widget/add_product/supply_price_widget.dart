@@ -21,19 +21,21 @@ class _SupplyPriceWidgetState extends State<SupplyPriceWidget> {
       distinct: true,
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
-        return StreamBuilder(
-          stream: vm.database.variationDao.getItemVariationsByItemId(
-              vm.tmpItem.id), //do we have regular variant on this item?
-          builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-            //if we have more than one variant do not show regular widget for changing supply price
-            if (snapshot.data != null && snapshot.data.length < 2) {
-              return SupplyPrice(
-                vm: widget.vm,
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        );
+        return const Text('supply widget');
+        // FIXME(richard): 
+        // return StreamBuilder(
+        //   stream: vm.database.variationDao.getItemVariationsByItemId(
+        //       vm.tmpItem.id), //do we have regular variant on this item?
+        //   builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+        //     //if we have more than one variant do not show regular widget for changing supply price
+        //     if (snapshot.data != null && snapshot.data.length < 2) {
+        //       return SupplyPrice(
+        //         vm: widget.vm,
+        //       );
+        //     }
+        //     return const SizedBox.shrink();
+        //   },
+        // );
       },
     );
   }

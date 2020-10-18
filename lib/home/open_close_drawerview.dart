@@ -5,20 +5,22 @@ import 'package:flipper_login/helpers/style.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
+
 enum BusinessState { OPEN, CLOSE }
+
 // ignore: must_be_immutable
 class OpenCloseDrawerView extends StatelessWidget {
-  OpenCloseDrawerView({Key key,this.vm,this.businessState=BusinessState.OPEN}) : super(key: key);
+  OpenCloseDrawerView(
+      {Key key, this.vm, this.businessState = BusinessState.OPEN})
+      : super(key: key);
   final CommonViewModel vm;
   BusinessState businessState;
-  
+
   final TextEditingController _note = TextEditingController();
   final TextEditingController _float = TextEditingController();
 
-
   @override
   Widget build(BuildContext context) {
-    
     return ViewModelBuilder<OpenBusinessModel>.reactive(
       viewModelBuilder: () => OpenBusinessModel(),
       builder: (BuildContext context, OpenBusinessModel model, Widget child) {
@@ -48,17 +50,26 @@ class OpenCloseDrawerView extends StatelessWidget {
                                     offset: const Offset(2, 1),
                                     blurRadius: 2)
                               ]),
-                          child: TextField(
+                          child: TextFormField(
                             keyboardType: TextInputType.number,
                             controller: _float,
-                            decoration:  InputDecoration(
-                                icon: const Icon(Icons.monetization_on, color: grey),
-                                border: InputBorder.none,
-                                hintText:  businessState==BusinessState.OPEN? 'Opening float':'Closing float',
-                                hintStyle:const TextStyle(
-                                    color: grey,
-                                    fontFamily: 'Sen',
-                                    fontSize: 18)),
+                            decoration: InputDecoration(
+                              // color: Colors.black,
+                              
+                              icon: const Icon(
+                                Icons.monetization_on,
+                                color: grey,
+                              ),
+                              border: InputBorder.none,
+                              hintText: businessState == BusinessState.OPEN
+                                  ? 'Opening float'
+                                  : 'Closing float',
+                              hintStyle: const TextStyle(
+                                color: Colors.black,
+                                fontFamily: 'Sen',
+                                fontSize: 18,
+                              ),
+                            ),
                           ),
                         ),
                         const Divider(height: 10),
@@ -74,17 +85,19 @@ class OpenCloseDrawerView extends StatelessWidget {
                                     offset: const Offset(2, 1),
                                     blurRadius: 2)
                               ]),
-                          child: TextField(
+                          child: TextFormField(
                             keyboardType: TextInputType.text,
                             controller: _note,
                             decoration: const InputDecoration(
-                                // icon: Icon(Icons.pen, color: grey),
-                                border: InputBorder.none,
-                                hintText: 'Add note',
-                                hintStyle: TextStyle(
-                                    color: grey,
-                                    fontFamily: 'Sen',
-                                    fontSize: 18)),
+                              // icon: Icon(Icons.pen, color: grey),
+                              border: InputBorder.none,
+                              hintText: 'Add note',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontFamily: 'Sen',
+                                fontSize: 18,
+                              ),
+                            ),
                           ),
                         ),
                         const Divider(height: 10),
@@ -101,20 +114,22 @@ class OpenCloseDrawerView extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.all(0.0),
                             onPressed: () {
-                             
                               openBusiness(
-                                model: model,
-                                open: businessState==BusinessState.OPEN?true:false,
-                                vm:vm,
-                                note: _note,
-                                businessState:businessState,
-                                float: _float
-                              );
+                                  model: model,
+                                  open: businessState == BusinessState.OPEN
+                                      ? true
+                                      : false,
+                                  vm: vm,
+                                  note: _note,
+                                  businessState: businessState,
+                                  float: _float);
                             },
-                            child:  Text(
-                              businessState==BusinessState.OPEN?'Open':'Close',
-                              style:
-                                  const TextStyle(color: Colors.white, fontSize: 20),
+                            child: Text(
+                              businessState == BusinessState.OPEN
+                                  ? 'Open'
+                                  : 'Close',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 20),
                             ),
                           ),
                         )

@@ -172,7 +172,7 @@ class DataManager {
   //if a product does not exist then create it otherwise
   //create variant,
   //add the variant to stock with default value 0
-  static Future<void> createTempProduct(
+  static Future<String> createTempProduct(
       {Store<AppState> store, String productName,String userId}) async {
     if (store.state.branch != null && userId !=null) {
       final Logger log = Logging.getLogger('Data manager   Model ....');
@@ -269,9 +269,12 @@ class DataManager {
         });
         final Product pro = Product.fromMap(productDoc.toMap());
         dispatchCurrentTmpItem(store, pro, productName,userId);
+        
+        return  productDoc.id;
       } else {
         final Product pro = Product.fromMap(product[0]['main']);
         dispatchCurrentTmpItem(store, pro, productName,userId);
+        return pro.id;
       }
     }
   }

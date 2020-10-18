@@ -19,20 +19,22 @@ class _RetailPriceWidgetState extends State<RetailPriceWidget> {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
-        return StreamBuilder(
-          stream: vm.database.variationDao.getItemVariationsByItemId(
-              vm.tmpItem.id), //do we have regular variant on this item?
-          builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-            //if we have more than one variant do not show regular widget for changing supply price
-            if (snapshot.data != null && snapshot.data.length < 2) {
-              return RetailPrice(
-                vm: widget.vm,
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        );
+      builder: (BuildContext context, CommonViewModel vm) {
+        return const Text('retail price widget');
+        // FIXME(richard):
+        // return StreamBuilder(
+        //   stream: vm.database.variationDao.getItemVariationsByItemId(
+        //       vm.tmpItem.id), //do we have regular variant on this item?
+        //   builder: (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+        //     //if we have more than one variant do not show regular widget for changing supply price
+        //     if (snapshot.data != null && snapshot.data.length < 2) {
+        //       return RetailPrice(
+        //         vm: widget.vm,
+        //       );
+        //     }
+        //     return const SizedBox.shrink();
+        //   },
+        // );
       },
     );
   }
