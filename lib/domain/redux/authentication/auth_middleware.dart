@@ -18,7 +18,6 @@ import 'package:flipper/model/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/material.dart';
@@ -312,7 +311,7 @@ Future<void> getBusinesses(
     equator: AppTables.business + store.state.user.id.toString(),
     property: 'tableName',
   );
-
+  log.d(AppTables.business +store.state.user.id.toString());
   // ignore: always_specify_types
   List<Business> businesses = [];
 

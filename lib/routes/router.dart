@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
-import 'package:flipper/home/add_category_screen.dart';
+import 'package:flipper/home/products/add/add_category_screen.dart';
 import 'package:flipper/home/add_note_screen.dart';
-import 'package:flipper/home/add_product_screen.dart';
+import 'package:flipper/home/products/add/add_product_screen.dart';
 import 'package:flipper/home/add_unit_type.dart';
 import 'package:flipper/home/add_variation_screen.dart';
 import 'package:flipper/home/camera/camera_preview.dart';

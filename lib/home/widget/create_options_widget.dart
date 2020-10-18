@@ -8,7 +8,6 @@ import 'package:flipper/util/data_manager.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:flipper/services/proxy.dart';
 
 class CreateOptionsWidget extends StatelessWidget {
   final FlipperNavigationService _navigationService = ProxyService.nav;
@@ -41,8 +40,9 @@ class CreateOptionsWidget extends StatelessWidget {
                           await _createTemporalItem(vm, context);
                           _navigationService.navigateTo(Routing.addProduct);
                         },
-                        child:const Text(
-                          'Create Item'
+                        child: Text(
+                          'Create Item',
+                          style:Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.white)
                         ),
                       ),
                     ),

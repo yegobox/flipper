@@ -44,13 +44,16 @@ class _ProductsViewState extends State<ProductsView> {
 
   List<Widget> getProducts(List<Product> products, BuildContext context) {
     final List<Widget> list = <Widget>[];
-
-    if (widget.showCreateItemOnTop) {
+     if (widget.showCreateItemOnTop) {
       addItemRow(list, context, widget.createButtonName);
     }
     if (!widget.showCreateItemOnTop) {
       itemRow(list, context);
     }
+    if(products==null) {
+      return list;
+    }
+   
 
     for (Product product in products) {
       if (product != null &&
@@ -161,7 +164,7 @@ class _ProductsViewState extends State<ProductsView> {
       GestureDetector(
         onTap: () {
           //clearn state first
-          clear();
+          // clear();
           showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -182,7 +185,8 @@ class _ProductsViewState extends State<ProductsView> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return getProducts(widget.data, context).isEmpty?const SizedBox.shrink(): ListView(
+      shrinkWrap: true,
       children: ListTile.divideTiles(
         context: context,
         tiles: getProducts(widget.data, context),

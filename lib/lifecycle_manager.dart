@@ -52,7 +52,11 @@ class _LifeCycleManagerState extends State<LifeCycleManager>
       if (state == AppLifecycleState.resumed) {
         service.start();
       } else {
-        service.stop();
+        try{
+          service.stop();
+        // ignore: empty_catches
+        }catch(e){}
+        
       }
     });
   }

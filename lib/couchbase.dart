@@ -124,15 +124,15 @@ class AppDatabase {
           if (document != null && !document.getBoolean('touched')) {
              log.d('change in id: $id');
             //only update once to avoid infinite loop
-            log.i('updated non touched document,we update the document to make the id be usable for update');
-            final lite.MutableDocument mutableDoc = document
-                .toMutable()
-                .setBoolean('touched', true)
-                .setString(
-                  'id',
-                  id,
-                ); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
-            database.saveDocument(mutableDoc);
+            // log.i('updated non touched document,we update the document to make the id be usable for update');
+            // final lite.MutableDocument mutableDoc = document
+            //     .toMutable()
+            //     .setBoolean('touched', true)
+            //     .setString(
+            //       'id',
+            //       id,
+            //     ); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
+            // database.saveDocument(mutableDoc);
           }
         }
       });

@@ -6,7 +6,7 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-import 'widget/category_list.dart';
+import '../../widget/category_list.dart';
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 

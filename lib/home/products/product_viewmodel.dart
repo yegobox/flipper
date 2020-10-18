@@ -23,7 +23,7 @@ class ProductViewModel extends BaseModel {
   void getProducts({BuildContext context}) {
     setBusy(true);
     
-
+    log.i('loading product of branchId:'+StoreProvider.of<AppState>(context).state.branch.id);
     //demo of listening on users table on every entry.
     _databaseService
         .observer(equator: AppTables.product + StoreProvider.of<AppState>(context).state.branch.id, property: 'tableName')
