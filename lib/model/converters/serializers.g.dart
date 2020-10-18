@@ -15,7 +15,11 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Product.serializer)
       ..add(Switcher.serializer)
       ..add(Tax.serializer)
+      ..add(Unit.serializer)
       ..add(Variation.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => new ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => new ListBuilder<String>())

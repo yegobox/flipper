@@ -1,5 +1,6 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/home/widget/atoms/build_unit_body.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
@@ -18,16 +19,6 @@ class SectionSelectUnit extends StatefulWidget {
 class _SectionSelectUnitState extends State<SectionSelectUnit> {
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
-  Text unitSelector(List<UnitTableData> units) {
-    Text text;
-    for (int i = 0; i < units.length; i++) {
-      if (units[i].focused) {
-        text = Text(units[i].name);
-      }
-    }
-    return text;
-  }
-
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
@@ -40,9 +31,10 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
             child: GestureDetector(
               onTap: () {
                 // FIXME(richard):
-                _navigationService.navigateTo(Routing.addUnitType,
-                    arguments: AddUnitTypeScreenArguments(
-                        productId: vm.tmpItem.id));
+                print(vm.tmpItem.id);
+                // _navigationService.navigateTo(Routing.addUnitType,
+                //     arguments: AddUnitTypeScreenArguments(
+                //         productId: vm.tmpItem.id));
               },
               child: ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
@@ -57,27 +49,8 @@ class _SectionSelectUnitState extends State<SectionSelectUnit> {
                   ),
                 ),
                 trailing: Wrap(
-                  children: <Widget>[
-                    StreamBuilder(
-                        stream: vm.database.unitDao.getUnitsStream(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<List<UnitTableData>> snapshot) {
-                          if (snapshot.data == null) {
-                            return Text(
-                              'Select Unit',
-                              style: GoogleFonts.lato(
-                                fontStyle: FontStyle.normal,
-                                color: Theme.of(context).accentColor,
-                                fontSize: Theme.of(context).textTheme.bodyText1
-                                    .copyWith(fontSize: 12)
-                                    .fontSize,
-                              ),
-                            );
-                          }
-                          return snapshot.data == null
-                              ?const Text('Select Unit')
-                              : unitSelector(snapshot.data);
-                        }),
+                  children: [
+                    const BuildUnitBody(),
                     const Icon(Icons.arrow_forward_ios)
                   ],
                 ),

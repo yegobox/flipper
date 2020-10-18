@@ -6,6 +6,90 @@ part of 'unit.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Unit> _$unitSerializer = new _$UnitSerializer();
+
+class _$UnitSerializer implements StructuredSerializer<Unit> {
+  @override
+  final Iterable<Type> types = const [Unit, _$Unit];
+  @override
+  final String wireName = 'Unit';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Unit object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'name',
+      serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'focused',
+      serializers.serialize(object.focused,
+          specifiedType: const FullType(bool)),
+      'branchId',
+      serializers.serialize(object.branchId,
+          specifiedType: const FullType(int)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
+    ];
+    if (object.businessId != null) {
+      result
+        ..add('businessId')
+        ..add(serializers.serialize(object.businessId,
+            specifiedType: const FullType(int)));
+    }
+    if (object.id != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(int)));
+    }
+    return result;
+  }
+
+  @override
+  Unit deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new UnitBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'name':
+          result.name = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'focused':
+          result.focused = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'businessId':
+          result.businessId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'branchId':
+          result.branchId = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(int)) as int;
+          break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Unit extends Unit {
   @override
   final String name;
@@ -17,11 +101,19 @@ class _$Unit extends Unit {
   final int branchId;
   @override
   final int id;
+  @override
+  final BuiltList<String> channels;
 
   factory _$Unit([void Function(UnitBuilder) updates]) =>
       (new UnitBuilder()..update(updates)).build();
 
-  _$Unit._({this.name, this.focused, this.businessId, this.branchId, this.id})
+  _$Unit._(
+      {this.name,
+      this.focused,
+      this.businessId,
+      this.branchId,
+      this.id,
+      this.channels})
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('Unit', 'name');
@@ -31,6 +123,9 @@ class _$Unit extends Unit {
     }
     if (branchId == null) {
       throw new BuiltValueNullFieldError('Unit', 'branchId');
+    }
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Unit', 'channels');
     }
   }
 
@@ -49,17 +144,20 @@ class _$Unit extends Unit {
         focused == other.focused &&
         businessId == other.businessId &&
         branchId == other.branchId &&
-        id == other.id;
+        id == other.id &&
+        channels == other.channels;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc($jc($jc(0, name.hashCode), focused.hashCode),
-                businessId.hashCode),
-            branchId.hashCode),
-        id.hashCode));
+            $jc(
+                $jc($jc($jc(0, name.hashCode), focused.hashCode),
+                    businessId.hashCode),
+                branchId.hashCode),
+            id.hashCode),
+        channels.hashCode));
   }
 
   @override
@@ -69,7 +167,8 @@ class _$Unit extends Unit {
           ..add('focused', focused)
           ..add('businessId', businessId)
           ..add('branchId', branchId)
-          ..add('id', id))
+          ..add('id', id)
+          ..add('channels', channels))
         .toString();
   }
 }
@@ -97,6 +196,11 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
   int get id => _$this._id;
   set id(int id) => _$this._id = id;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   UnitBuilder();
 
   UnitBuilder get _$this {
@@ -106,6 +210,7 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
       _businessId = _$v.businessId;
       _branchId = _$v.branchId;
       _id = _$v.id;
+      _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
     return this;
@@ -126,13 +231,27 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
 
   @override
   _$Unit build() {
-    final _$result = _$v ??
-        new _$Unit._(
-            name: name,
-            focused: focused,
-            businessId: businessId,
-            branchId: branchId,
-            id: id);
+    _$Unit _$result;
+    try {
+      _$result = _$v ??
+          new _$Unit._(
+              name: name,
+              focused: focused,
+              businessId: businessId,
+              branchId: branchId,
+              id: id,
+              channels: channels.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        channels.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Unit', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

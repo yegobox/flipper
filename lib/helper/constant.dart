@@ -1,29 +1,17 @@
-String dummyProfilePic = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6TaCLCqU4K0ieF27ayjl51NmitWaJAh_X0r1rLX4gMvOe0MDaYw&s';
 String appFont = 'HelveticaNeuea';
-List<String> dummyProfilePicList = [
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6TaCLCqU4K0ieF27ayjl51NmitWaJAh_X0r1rLX4gMvOe0MDaYw&s',
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFDjXj1F8Ix-rRFgY_r3GerDoQwfiOMXVt-tZdv_Mcou_yIlUC&s',
-  'http://www.azembelani.co.za/wp-content/uploads/2016/07/20161014_58006bf6e7079-3.png',
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzDG366qY7vXN2yng09wb517WTWqp-oua-mMsAoCadtncPybfQ&s',
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq7BgpG1CwOveQ_gEFgOJASWjgzHAgVfyozkIXk67LzN1jnj9I&s',
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPxjRIYT8pG0zgzKTilbko-MOv8pSnmO63M9FkOvfHoR9FvInm&s',
-  'https://cdn5.f-cdn.com/contestentries/753244/11441006/57c152cc68857_thumb900.jpg',
-  'https://cdn6.f-cdn.com/contestentries/753244/20994643/57c189b564237_thumb900.jpg'
-];
-
 // ignore: avoid_classes_with_only_static_members
 class AppTables{
   //table name used to query couchbase_lite data
-  static const String business = 'business_';
-  static const String branch = 'branch_';
-  static const String tax = 'taxes_'; 
-  static const String category = 'categories_'; 
-  static const String variation = 'variants_'; 
-  static const String product = 'products_'; 
-  static const String order = 'orders_'; 
+  static const String business = 'business_'; //+userId
+  static const String branch = 'branch_'; //+userId
+  static const String tax = 'taxes_'; //+businessId
+  static const String category = 'categories_';  //+ branchId
+  static const String variation = 'variants_';  //+ branchId
+  static const String product = 'products_';  //+ branchId
+  static const String order = 'orders_';  //+ branchId
   static const String branchProduct = 'branchProducts_'; 
-  
-  // 
+  static const String unit = 'unit_'; //+branchId
+
 }
 
 // ignore: avoid_classes_with_only_static_members
