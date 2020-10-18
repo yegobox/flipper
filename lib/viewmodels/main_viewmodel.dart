@@ -1,6 +1,6 @@
 
 import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/logger.dart';
@@ -11,7 +11,7 @@ import 'base_model.dart';
 
 class MainViewModel extends BaseModel {
   final Logger log = Logging.getLogger('main view model:)');
-  final DatabaseService _databaseService = locator<DatabaseService>();
+  final DatabaseService _databaseService = ProxyService.database;
 
   List<Category> _categories;
   List<Category> get data => _categories;

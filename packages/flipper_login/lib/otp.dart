@@ -3,7 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -14,8 +14,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
-// ignore: implementation_imports
-import 'package:redux/src/store.dart';
+import 'package:redux/redux.dart';
 
 import './loginResponse.dart';
 import 'helpers/style.dart';
@@ -30,12 +29,13 @@ class OtpPage extends StatefulWidget {
 
 class _OtpPageState extends State<OtpPage> {
   TextEditingController number = TextEditingController();
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
   
   bool _loading = false;
   @override
   void initState() {
     super.initState();
+    // ignore: always_specify_types
     proxyService.loading.listen((loading) {
       setState(() {
         _loading = loading;

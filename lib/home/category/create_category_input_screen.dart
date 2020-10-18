@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
@@ -19,7 +19,7 @@ class CreateCategoryInputScreen extends StatefulWidget {
 
 class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
 
-  final DatabaseService _databaseService = locator<DatabaseService>();
+  final DatabaseService _databaseService = ProxyService.database;
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/observable_response.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/util/logger.dart';
 import 'package:flutter/services.dart';
@@ -48,7 +48,7 @@ class AppDatabase {
     assert(map['_id'] != null);
     // ignore: always_specify_types
     // final List<Map> m = [map];
-    final DatabaseService _databaseService = locator<DatabaseService>();
+    final DatabaseService _databaseService = ProxyService.database;
     _databaseService.insert(id:map['id'],data:map);
     // FIXME(richard): update the document online to remove branch in array just save them and rely on table name
     return map['id'];
@@ -182,7 +182,7 @@ class AppDatabase {
     assert(map['businessId'] != null);
 
     // ignore: always_specify_types
-    final DatabaseService _databaseService = locator<DatabaseService>();
+    final DatabaseService _databaseService = ProxyService.database;
     // ignore: flutter_style_todos
     // TODO: discuss with @ganze to abandon saving array within a document
     _databaseService.insert(id:map['id'],data:map);
@@ -206,7 +206,7 @@ class AppDatabase {
     assert(map['updatedAt'] != null);
     assert(map['userId'] != null);
 
-    final DatabaseService _databaseService = locator<DatabaseService>();
+    final DatabaseService _databaseService = ProxyService.database;
     _databaseService.insert(id:map['id'],data:map);
     return map['id'];
   }
@@ -226,7 +226,7 @@ class AppDatabase {
     assert(map['updatedAt'] != null);
 
     // ignore: always_specify_types
-    final DatabaseService _databaseService = locator<DatabaseService>();
+    final DatabaseService _databaseService = ProxyService.database;
     _databaseService.insert(id:map['id'],data:map);
   }
   @deprecated

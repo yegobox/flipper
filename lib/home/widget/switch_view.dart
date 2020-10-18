@@ -1,6 +1,6 @@
 import 'package:flipper/home/homescreen.dart';
 import 'package:flipper/home/open_close_drawerview.dart';
-import 'package:flipper/locator.dart';
+
 import 'package:flipper/model/converters/switcher.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -8,6 +8,7 @@ import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/viewmodels/switch_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper/services/proxy.dart';
 
 class SwitchView extends StatelessWidget {
    SwitchView({
@@ -18,7 +19,7 @@ class SwitchView extends StatelessWidget {
 
   final CommonViewModel vm;
   final ValueNotifier<bool> sideOpenController;
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   @override
   Widget build(BuildContext context) {

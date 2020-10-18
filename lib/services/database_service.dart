@@ -161,6 +161,7 @@ class DatabaseService {
         stream.add(results);
       }
     };
+    
     return _buildObservableQueryResponse(stream, query, processResults);
   }
 

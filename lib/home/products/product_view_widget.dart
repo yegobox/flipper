@@ -1,32 +1,35 @@
-import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/functions.dart';
+import 'package:flipper/home/products/stock_viewmodel.dart';
 import 'package:flipper/home/widget/create_options_widget.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
-import 'package:flipper/presentation/home/common_view_model.dart';
+
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/flitter_color.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+
+import 'package:stacked/stacked.dart';
+
+import 'dispatcher.dart';
+import 'widget/build_variant.dart';
 
 class ProductsView extends StatefulWidget {
   const ProductsView({
     Key key,
     @required this.context,
     @required this.data,
-    @required this.vm,
     @required this.showCreateItemOnTop,
     @required this.createButtonName,
     @required this.shouldSeeItem,
   }) : super(key: key);
 
   final BuildContext context;
-  final List<ProductTableData> data;
-  final CommonViewModel vm;
+  final List<Product> data;
+
   final bool showCreateItemOnTop;
   final String createButtonName;
   final bool shouldSeeItem;
@@ -36,10 +39,10 @@ class ProductsView extends StatefulWidget {
 }
 
 class _ProductsViewState extends State<ProductsView> {
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService =
+     ProxyService.nav;
 
-  List<Widget> getProducts(List<ProductTableData> products,
-      BuildContext context, CommonViewModel vm) {
+  List<Widget> getProducts(List<Product> products, BuildContext context) {
     final List<Widget> list = <Widget>[];
 
     if (widget.showCreateItemOnTop) {
@@ -49,38 +52,35 @@ class _ProductsViewState extends State<ProductsView> {
       itemRow(list, context);
     }
 
-    for (int i = 0; i < products.length; i++) {
-      if (products[i] != null &&
-          products[i].name != 'custom' &&
-          products[i].name != 'tmp' &&
-          products[i].name != 'custom-product' &&
-          products[i].name != 'custom-product-test') {
+    for (Product product in products) {
+      if (product != null &&
+          product.name != 'tmp' ) {
         list.add(
           GestureDetector(
             onTap: () {
               if (widget.shouldSeeItem) {
-                shouldSeeItemOnly(context, products, i);
+                shouldSeeItemOnly(context, product);
               } else {
-                onSellingItem(context, products, i);
+                onSellingItem(context, product);
               }
             },
             onLongPress: () {
               if (widget.shouldSeeItem) {
-                shouldSeeItemOnly(context, products, i);
+                shouldSeeItemOnly(context, product);
               } else {
-                onSellingItem(context, products, i);
+                onSellingItem(context, product);
               }
             },
             child: ListTile(
               contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
               leading: Container(
-                color: HexColor(products[i].color),
+                color: HexColor(product.color),
                 width: 50,
                 child: FlatButton(
                   child: Text(
-                    products[i].name.length > 2
-                        ? products[i].name.substring(0, 2)
-                        : products[i].name,
+                    product.name.length > 2
+                        ? product.name.substring(0, 2)
+                        : product.name,
                     style: const TextStyle(
                       color: Colors.white,
                     ),
@@ -89,30 +89,27 @@ class _ProductsViewState extends State<ProductsView> {
                 ),
               ),
               title: Text(
-                products[i].name,
+                product.name,
                 style: const TextStyle(color: Colors.black),
               ),
               // ignore: always_specify_types
-              trailing: StreamBuilder(
-                stream: vm.database.stockDao.getStockByProductIdStream(
-                    branchId: vm.branch.id, productId: products[i].id),
-                builder:
-                    (BuildContext context, AsyncSnapshot<List<StockTableData>> snapshot) {
-                  if (snapshot.data == null) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return snapshot.data.length == 1
-                      ? Text(
-                          'RWF ' + snapshot.data[0].retailPrice.toString(),
-                          style: const TextStyle(color: Colors.black),
-                        )
-                      : Text(
-                          snapshot.data.length.toString() + ' Prices',
-                          style: const TextStyle(color: Colors.black),
-                        );
-                },
-              ),
+              trailing: ViewModelBuilder<StockViewModel>.reactive(
+                  viewModelBuilder: () => StockViewModel(),
+                  onModelReady: (StockViewModel model) => model.loadStockById(
+                      productId: product.id, context: context),
+                  builder: (BuildContext context, StockViewModel model,
+                      Widget child) {
+                    return model.data.length == 1
+                        ? const Text(
+                            'RWF 500',
+                            // 'RWF ' + model.data[0].retailPrice.toString(),
+                            style: TextStyle(color: Colors.black),
+                          )
+                        : const Text(
+                            ' Prices',
+                            style: TextStyle(color: Colors.black),
+                          );
+                  }),
             ),
           ),
         );
@@ -121,103 +118,20 @@ class _ProductsViewState extends State<ProductsView> {
     if (!widget.showCreateItemOnTop) {
       addItemRow(list, context, widget.createButtonName);
     }
-    
+
     return list;
   }
 
   void onSellingItem(
-      BuildContext context, List<ProductTableData> products, int i) async {
-    final List<Variation> variants = await buildVariantsList(context, products, i);
+      BuildContext context, Product product) async {
+    final List<Variation> variants =
+        await buildVariantsList(context, product);
 
-    dispatchCurrentProductVariants(context, variants, products, i);
+    dispatchCurrentProductVariants(context, variants, product);
 
     _navigationService.navigateTo(Routing.editQuantityItemScreen,
         arguments:
-            ChangeQuantityForSellingArguments(productId: products[i].id));
-  }
-
-  void dispatchCurrentProductVariants(BuildContext context,
-      List<Variation> variants, List<ProductTableData> products, int i) {
-    StoreProvider.of<AppState>(context)
-        .dispatch(ItemsVariation(variations: variants));
-    // FIXME(richard): list product from couchbase_lite
-    StoreProvider.of<AppState>(context).dispatch(
-      CurrentActiveSaleProduct(
-        product: Product(
-          (ProductBuilder b) => b
-            ..name = products[i].name
-            ..description = products[i].description
-            ..isCurrentUpdate = products[i].isCurrentUpdate
-            ..isDraft = products[i].isDraft
-            ..categoryId = products[i].categoryId
-            ..supplierId = products[i].supplierId
-            ..businessId = products[i].businessId
-            ..color = products[i].color
-            ..taxId = products[i].taxId
-            ..hasPicture = products[i].hasPicture
-            ..active = products[i].active
-            ..picture = products[i].picture
-            ..id = products[i].id,
-        ),
-      ),
-    );
-  }
-
-  Future<List<Variation>> buildVariantsList(
-      BuildContext context, List<ProductTableData> products, int i) async {
-    final List<VariationTableData> variations =
-        await StoreProvider.of<AppState>(context)
-            .state
-            .database
-            .variationDao
-            .getVariationByItemId(productId: products[i].id);
-
-    final List<Variation> variants = [];
-    for (int i = 0; i < variations.length; i++) {
-      variants.add(
-        Variation(
-          (VariationBuilder b) => b
-            ..sku = variations[i].sku ??
-                'none' 
-            ..productId = variations[i].productId
-            ..id = variations[i].id
-            ..name = variations[i].name,
-        ),
-      );
-    }
-    return variants;
-  }
-
-  void shouldSeeItemOnly(
-      BuildContext context, List<ProductTableData> products, int i) {
-    StoreProvider.of<AppState>(context).dispatch(
-      CurrentActiveSaleProduct(
-        product: Product(
-          (ProductBuilder b) => b
-            ..name = products[i].name
-            ..description = products[i].description
-            ..picture = products[i].picture
-            ..taxId = products[i].taxId
-            ..active = products[i].active
-            ..hasPicture = products[i].hasPicture
-            ..isDraft = products[i].isDraft
-            ..color = products[i].color
-            ..isCurrentUpdate = products[i].isCurrentUpdate
-            ..supplierId = products[i].supplierId
-            ..categoryId = products[i].categoryId
-            ..businessId = products[i].businessId
-            ..id = products[i].id,
-        ),
-      ),
-    );
-    _navigationService.navigateTo(
-      Routing.viewSingleItem,
-      arguments: ViewSingleItemScreenArguments(
-        productId: products[i].id,
-        itemName: products[i].name,
-        itemColor: products[i].color,
-      ),
-    );
+            ChangeQuantityForSellingArguments(productId: product.id));
   }
 
   void itemRow(List<Widget> list, BuildContext context) {
@@ -247,10 +161,7 @@ class _ProductsViewState extends State<ProductsView> {
       GestureDetector(
         onTap: () {
           //clearn state first
-          StoreProvider.of<AppState>(context).dispatch(CleanVariation());
-          StoreProvider.of<AppState>(context).dispatch(CleanAppActions());
-          StoreProvider.of<AppState>(context).dispatch(CleanCurrentColor());
-
+          clear();
           showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -274,7 +185,7 @@ class _ProductsViewState extends State<ProductsView> {
     return ListView(
       children: ListTile.divideTiles(
         context: context,
-        tiles: getProducts(widget.data, context, widget.vm),
+        tiles: getProducts(widget.data, context),
       ).toList(),
     );
   }

@@ -1,18 +1,18 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class AllItemScreen extends StatefulWidget {
-  AllItemScreen({Key key}) : super(key: key);
+  const AllItemScreen({Key key}) : super(key: key);
 
   @override
   _AllItemScreenState createState() => _AllItemScreenState();
 }
 
 class _AllItemScreenState extends State<AllItemScreen> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +36,10 @@ class _AllItemScreenState extends State<AllItemScreen> {
                 _navigationService.navigateTo(Routing.viewItemsScreen);
               },
               child: ListTile(
-                title: Text('All Items', style: TextStyle(color: Colors.black)),
+                title:const Text('All Items', style: TextStyle(color: Colors.black)),
                 trailing: Wrap(
-                  children: <Widget>[Icon(Icons.arrow_forward_ios)],
+                  // ignore: prefer_const_literals_to_create_immutables
+                  children: <Widget>[const Icon(Icons.arrow_forward_ios)],
                 ),
               ),
             ),
@@ -46,18 +47,20 @@ class _AllItemScreenState extends State<AllItemScreen> {
               onTap: () {},
               child: ListTile(
                 title:
-                    Text('Categories', style: TextStyle(color: Colors.black)),
+                    const Text('Categories', style: TextStyle(color: Colors.black)),
                 trailing: Wrap(
-                  children: <Widget>[Icon(Icons.arrow_forward_ios)],
+                  // ignore: prefer_const_literals_to_create_immutables
+                  children: <Widget>[const Icon(Icons.arrow_forward_ios)],
                 ),
               ),
             ),
             GestureDetector(
               onTap: () {},
               child: ListTile(
-                title: Text('Units', style: TextStyle(color: Colors.black)),
+                title: Text('Units', style: const TextStyle(color: Colors.black)),
                 trailing: Wrap(
-                  children: <Widget>[Icon(Icons.arrow_forward_ios)],
+                  // ignore: prefer_const_literals_to_create_immutables
+                  children: <Widget>[const Icon(Icons.arrow_forward_ios)],
                 ),
               ),
             )

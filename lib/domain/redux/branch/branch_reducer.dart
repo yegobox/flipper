@@ -1,7 +1,7 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/helper/constant.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';

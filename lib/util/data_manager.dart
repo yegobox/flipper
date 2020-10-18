@@ -8,13 +8,14 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/helper/constant.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/util/upload_response.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:logger/logger.dart';
@@ -64,7 +65,7 @@ class DataManager {
           uploadResponseFromJson(result.response);
       // final ProductTableData product = await store.state.database.productDao
       //     .getItemById(productId: uploadResponse.productId);
-      final DatabaseService _databaseService = locator<DatabaseService>();
+      final DatabaseService _databaseService = ProxyService.database;
       final Map<String, dynamic> productDoc =
           await _databaseService.getById(id: uploadResponse.productId);
 
@@ -177,7 +178,7 @@ class DataManager {
       final Logger log = Logging.getLogger('Data manager   Model ....');
 
       
-      final DatabaseService _databaseService = locator<DatabaseService>();
+      final DatabaseService _databaseService = ProxyService.database;
       // ignore: always_specify_types
       final category = await _databaseService.filter(
         equator: AppTables.category + store.state.branch.id,
@@ -277,7 +278,7 @@ class DataManager {
 
   static void dispatchCurrentTmpItem(
       Store<AppState> store, Product product, String productName,String userId) async {
-    final DatabaseService _databaseService = locator<DatabaseService>();
+    final DatabaseService _databaseService = ProxyService.database;
     // ignore: always_specify_types
     final List<Map<String, dynamic>> v = await _databaseService.filter(
       equator: productName,

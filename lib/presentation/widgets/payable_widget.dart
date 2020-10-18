@@ -1,6 +1,5 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
@@ -10,7 +9,7 @@ import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:redux/redux.dart';
-
+import 'package:flipper/services/proxy.dart';
 class PayableWidget extends StatefulWidget {
   @override
   _PayableWidgetState createState() => _PayableWidgetState();
@@ -18,7 +17,7 @@ class PayableWidget extends StatefulWidget {
 
 class _PayableWidgetState extends State<PayableWidget> {
   int _total = 0;
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   @override
   Widget build(BuildContext context) {

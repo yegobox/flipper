@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bluetooth_print/bluetooth_print.dart';
 import 'package:bluetooth_print/bluetooth_print_model.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -15,7 +15,7 @@ class BlueToothService {
   // ignore: always_specify_types
   PublishSubject blueConnected = PublishSubject();
   bool _isConnected = false;
-  final SnackbarService _snackBarService = locator<SnackbarService>();
+  final SnackbarService _snackBarService = ProxyService.toast;
 
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   final Logger log = Logging.getLogger('Bluetooth service ....');

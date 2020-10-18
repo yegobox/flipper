@@ -3,13 +3,13 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 
@@ -22,7 +22,7 @@ class EditCategoryScreen extends StatefulWidget {
 }
 
 class _EditCategoryScreenState extends State<EditCategoryScreen> {
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   Wrap _getCategoriesWidgets(
       List<CategoryTableData> categories, CommonViewModel vm) {
@@ -72,9 +72,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   // ignore: always_specify_types
   Future updateItemWithActiveCategory(
       CommonViewModel vm, List<CategoryTableData> categories, int i) async {
-    final FlipperDialogService _dialogService = locator<FlipperDialogService>();
-    _dialogService.showConfirmationDialog(
-        description: 'Can not update active product feature deprecated');
+    // final DialogService _dialogService = ProxyService.modal;
+    // _dialogService.showConfirmationDialog(
+    //     description: 'Can not update active product feature deprecated');
     // final item = await vm.database.productDao.getItemById(productId: widget.ItemId);
     // if (item != null) {
     //   vm.database.productDao

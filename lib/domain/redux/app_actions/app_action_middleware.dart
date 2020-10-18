@@ -3,7 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/services/database_service.dart';
@@ -57,7 +57,7 @@ void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
   // ignore: always_specify_types
   return (Store<AppState> store, CreateEmptyTempCategoryAction action, next) async {
     if (store.state.branch != null) {
-      final DatabaseService _databaseService = locator<DatabaseService>();
+      final DatabaseService _databaseService = ProxyService.database;
       final Document doc =await   _databaseService.insert(data: {'branchId': store.state.branch.id,'name':action.name});
       
       store.dispatch(TempCategoryIdAction(categoryId: doc.id));

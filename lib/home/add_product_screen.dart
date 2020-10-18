@@ -14,11 +14,12 @@ import 'package:flipper/home/widget/add_product/sku_field.dart';
 import 'package:flipper/home/widget/add_product/supply_price_widget.dart';
 import 'package:flipper/home/widget/add_product/variation_list.dart';
 import 'package:flipper/home/widget/custom_widgets.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flipper/util/data_manager.dart';
@@ -41,8 +42,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   ActionsTableData _actions;
   ActionsTableData _actionsSaveItem;
   final FlipperNavigationService _navigationService =
-      locator<FlipperNavigationService>();
-  final DatabaseService _databaseService = locator<DatabaseService>();
+      ProxyService.nav;
+  final DatabaseService _databaseService = ProxyService.database;
 
   // ignore: always_declare_return_types
   _onClose(BuildContext context) async {
@@ -210,8 +211,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   GestureDetector buildImageHolder(CommonViewModel vm, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        final NavigationService _navigationService =
-            locator<NavigationService>();
+        final FlipperNavigationService _navigationService = ProxyService.nav;
         _navigationService.navigateTo(Routing.editItemTitle,
             arguments: EditItemTitleArguments(productId: vm.tmpItem.id));
       },
@@ -334,7 +334,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (_actions != null) {
       vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
       final FlipperNavigationService _navigationService =
-          locator<FlipperNavigationService>();
+         ProxyService.nav;
 
       _navigationService.navigateTo(Routing.addVariationScreen,
           arguments: AddVariationScreenArguments(

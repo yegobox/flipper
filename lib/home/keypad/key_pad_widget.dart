@@ -1,9 +1,10 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/widget/key_pad_buttons.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -17,7 +18,7 @@ class KeyPadWidget extends StatefulWidget {
 }
 
 class _KeyPadWidgetState extends State<KeyPadWidget> {
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   @override
   Widget build(BuildContext context) {

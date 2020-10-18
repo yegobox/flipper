@@ -4,7 +4,7 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/product.dart';
@@ -28,7 +28,7 @@ class EditItemTitle extends StatefulWidget {
 }
 
 class _EditItemTitleState extends State<EditItemTitle> {
-  final DatabaseService _databaseService = locator<DatabaseService>();
+  final DatabaseService _databaseService = ProxyService.database;
   
   @override
   void initState() {

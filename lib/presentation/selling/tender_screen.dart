@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
@@ -22,8 +22,8 @@ class TenderScreen extends StatefulWidget {
 class _TenderScreenState extends State<TenderScreen> {
   final bool _isEmpty = true;
   final bool _hasErrors = false;
-  final FlipperNavigationService _navigationService = locator<FlipperNavigationService>();
-  final BlueToothService _bluetoothService = locator<BlueToothService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
+  final BlueToothService _bluetoothService = ProxyService.blue;
   bool _isButtonDisabled;
 
   String _customerChangeDue;

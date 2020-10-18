@@ -3,7 +3,7 @@ import 'package:flipper/home/in_app_notification/in_app_notification_viewmodel.d
 import 'package:flipper/home/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/home/slide_out_screen.dart';
 import 'package:flipper/home/widget/switch_view.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/branch/event/business_details.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -21,7 +21,7 @@ class DashBoard extends StatefulWidget {
 
 class _DashBoardState extends State<DashBoard> {
   final FlipperNavigationService _navigationService =
-      locator<FlipperNavigationService>();
+      ProxyService.nav;
 
   ValueNotifier<bool> _sideOpenController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();

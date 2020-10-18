@@ -1,10 +1,11 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,7 +49,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                       return FlatButton(
                         onPressed: () {
                           final FlipperNavigationService _navigationService =
-                              locator<FlipperNavigationService>();
+                              ProxyService.nav;
 
                           final List<Cart> cart = <Cart>[];
                           for (int i = 0; i < orderDetail.data.length; i++) {

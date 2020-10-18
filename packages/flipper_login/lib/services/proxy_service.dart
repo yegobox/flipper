@@ -1,7 +1,7 @@
 
 import 'package:rxdart/rxdart.dart';
 
-class ProxyService {
+class Proxy {
   PublishSubject isBlueToothConnected = PublishSubject(); 
 
   PublishSubject loading = PublishSubject();
@@ -10,4 +10,4 @@ class ProxyService {
   bool _connected = false;
   
 }
-final ProxyService proxyService = ProxyService();
+final Proxy proxyService = Proxy();

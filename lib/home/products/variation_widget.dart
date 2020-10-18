@@ -1,8 +1,9 @@
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class VariationWidget extends StatefulWidget {
@@ -22,7 +23,7 @@ class VariationWidget extends StatefulWidget {
 }
 
 class _VariationWidgetState extends State<VariationWidget> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final FlipperNavigationService _navigationService = ProxyService.nav;
   @override
   Widget build(BuildContext context) {
     return ListView(children: <Widget>[

@@ -2,7 +2,7 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -112,7 +112,7 @@ class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
 
   Future<void> updateItemWithActiveUnit(
       CommonViewModel vm, List<UnitTableData> unit, int i) async {
-    final _dialogService = locator<FlipperDialogService>();
+    final _dialogService = ProxyService.modal;
     _dialogService.showConfirmationDialog(
         description: 'Can not update active product feature deprecated');
 

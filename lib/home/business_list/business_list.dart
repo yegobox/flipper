@@ -2,11 +2,12 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/function.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/util/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -25,7 +26,7 @@ class BusinessList extends StatefulWidget {
 class _BusinessListState extends State<BusinessList> {
   bool _businessSelected = false;
   final FlipperNavigationService _navigationService =
-      locator<FlipperNavigationService>();
+     ProxyService.nav;
 
   Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(

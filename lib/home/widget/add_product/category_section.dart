@@ -1,23 +1,22 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flipper/services/proxy.dart';
 
 class CategorySection extends StatefulWidget {
-  CategorySection({Key key}) : super(key: key);
+  const CategorySection({Key key}) : super(key: key);
 
   @override
   _CategorySectionState createState() => _CategorySectionState();
 }
 
 class _CategorySectionState extends State<CategorySection> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final _navigationService = ProxyService.nav;
 
   Text categorySelector(List<CategoryTableData> categories) {
     Text text;

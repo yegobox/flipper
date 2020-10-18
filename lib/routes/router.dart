@@ -8,13 +8,14 @@ import 'package:flipper/home/add_variation_screen.dart';
 import 'package:flipper/home/camera/camera_preview.dart';
 import 'package:flipper/home/cart/cart_details_screen.dart';
 import 'package:flipper/home/category/create_category_input_screen.dart';
-import 'package:flipper/home/contacts/contact_item.dart';
+
 import 'package:flipper/home/edit_item_title.dart';
 import 'package:flipper/home/open_close_drawerview.dart';
 import 'package:flipper/home/products/all_item_screen.dart';
 import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/products/view_products_screen.dart';
-import 'package:flipper/home/products/view_single_item_screen.dart';
+import 'package:flipper/home/products/view_single_item_view.dart';
+
 import 'package:flipper/home/receive_stock.dart';
 import 'package:flipper/home/reports/date_screen.dart';
 import 'package:flipper/home/reports/report_screen.dart';
@@ -63,7 +64,7 @@ class $Routing {
   CreateBusinessScreen createBusiness;
 
   @MaterialRoute(fullscreenDialog: true)
-  AddProductScreen addItemScreen;
+  AddProductScreen addProduct;
 
   @MaterialRoute(fullscreenDialog: true)
   EditItemTitle editItemTitle;
@@ -97,6 +98,7 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   ViewSingleItemScreen viewSingleItem;
+
 
   EditVariationScreen editVariationScreen;
 
@@ -134,3 +136,5 @@ class $Routing {
   ContactView contactView;
   
 }
+
+//  flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

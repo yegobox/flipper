@@ -1,9 +1,8 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flipper/services/proxy.dart';
 
 class CompleteSaleScreen extends StatefulWidget {
   const CompleteSaleScreen({Key key, this.cashReceived}) : super(key: key);
@@ -14,7 +13,7 @@ class CompleteSaleScreen extends StatefulWidget {
 }
 
 class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final _navigationService = ProxyService.nav;
 
   @override
   Widget build(BuildContext context) {

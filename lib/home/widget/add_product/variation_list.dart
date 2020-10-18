@@ -1,11 +1,11 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flipper/services/proxy.dart';
 
 class VariationList extends StatefulWidget {
   const VariationList({Key key, this.productId}) : super(key: key);
@@ -16,7 +16,7 @@ class VariationList extends StatefulWidget {
 }
 
 class _VariationListState extends State<VariationList> {
-  final _navigationService = locator<FlipperNavigationService>();
+  final _navigationService = ProxyService.nav;
 
   _buildVariationsList(
       List<VariationTableData> variations, CommonViewModel vm) {

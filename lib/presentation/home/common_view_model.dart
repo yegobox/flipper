@@ -23,6 +23,7 @@ import 'package:redux/redux.dart';
 
 part 'common_view_model.g.dart';
 
+
 abstract class CommonViewModel
     implements Built<CommonViewModel, CommonViewModelBuilder> {
   bool get hasUser;

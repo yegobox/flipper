@@ -4,11 +4,11 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/reports/report_view.dart';
 import 'package:flipper/home/reports/tabs.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/report.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -23,7 +23,7 @@ class _ReportScreenState extends State<ReportScreen>
     with SingleTickerProviderStateMixin {
   double tabLength = 50.0;
   TabController _tabReportController;
-  final _navigationService = locator<FlipperNavigationService>();
+  final _navigationService = ProxyService.nav;
 
   double _grossProfit;
 

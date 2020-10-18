@@ -27,7 +27,7 @@ import 'package:flipper/model/cart.dart';
 import 'package:flipper/home/products/all_item_screen.dart';
 import 'package:flipper/home/products/view_products_screen.dart';
 import 'package:flipper/presentation/login/login_screen.dart';
-import 'package:flipper/home/products/view_single_item_screen.dart';
+import 'package:flipper/home/products/view_single_item_view.dart';
 import 'package:flipper/home/products/edit_variation_screen.dart';
 import 'package:flipper/home/widget/category/edit_category_screen.dart';
 import 'package:flipper/home/unit/edit_unit_screen.dart';
@@ -50,7 +50,7 @@ class Routing {
   static const settingUpApplicationScreen = '/setting-up-application-screen';
   static const signUpScreen = '/sign-up-screen';
   static const createBusiness = '/create-business';
-  static const addItemScreen = '/add-item-screen';
+  static const addProduct = '/add-product';
   static const editItemTitle = '/edit-item-title';
   static const addVariationScreen = '/add-variation-screen';
   static const addUnitType = '/add-unit-type';
@@ -149,7 +149,7 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.addItemScreen:
+      case Routing.addProduct:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
