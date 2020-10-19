@@ -4,7 +4,7 @@ import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/observable_response.dart';
 import 'package:flipper/home/open_close_drawerview.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';

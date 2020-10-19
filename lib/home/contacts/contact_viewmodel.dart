@@ -1,7 +1,5 @@
 
-import 'package:flipper/datamodels/api.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 

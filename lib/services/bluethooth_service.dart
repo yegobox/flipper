@@ -6,7 +6,7 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 
 import 'package:logger/logger.dart';
 import 'package:stacked_services/stacked_services.dart';

@@ -1,6 +1,6 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/splash/splash_viewmodel.dart';
-import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 

@@ -59,7 +59,7 @@ dependencies:
   google_fonts:  ^1.1.0
   customappbar: ^1.0.0
   flipper_ui: ^1.0.0
-  apptheme: ^1.0.0
+  
   rubber: ^0.4.0
   shared_preferences: 0.5.2
   # background_fetch: 0.6.0

@@ -2,10 +2,9 @@ import 'dart:async';
 
 import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/data/observable_response.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';

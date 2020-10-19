@@ -1,5 +1,5 @@
 import 'package:flipper/model/converters/switcher.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:couchbase_lite/couchbase_lite.dart' as lite;

@@ -1,4 +1,4 @@
-import 'package:flipper/util/app_colors.dart';
+import 'package:flipper/utils/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 // import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flutter/services.dart';
 
 import 'package:logger/logger.dart';

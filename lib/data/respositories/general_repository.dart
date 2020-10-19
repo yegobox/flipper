@@ -5,15 +5,14 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/helper/constant.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/util/data_manager.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/data_manager.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -138,9 +137,9 @@ class GeneralRepository {
 
   Future<bool> updateUnit(Store<AppState> store, Unit unit) {
     //ignore:missing_required_param
-    final UnitTableData b = UnitTableData(
-        id: unit.id, name: unit.name, focused: unit.focused, value: null);
-    return store.state.database.unitDao.updateUnit(b);
+    // final UnitTableData b = UnitTableData(
+    //     id: unit.id, name: unit.name, focused: unit.focused, value: null);
+    // return store.state.database.unitDao.updateUnit(b);
   }
 
   Future<TabsTableData> getTab(Store<AppState> store) {

@@ -1,6 +1,6 @@
 
 // import 'package:firebase_performance/firebase_performance.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 
 class PerformanceService {

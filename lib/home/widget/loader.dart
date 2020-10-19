@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flipper/util/HexColor.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 class Loader extends StatefulWidget {

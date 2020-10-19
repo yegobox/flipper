@@ -1,7 +1,7 @@
 
 
 
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 
 class DataCore {

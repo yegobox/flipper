@@ -1,4 +1,4 @@
-import 'package:flipper/model/unit.dart';
+
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flipper/domain/redux/app_state.dart';
@@ -6,7 +6,7 @@ import 'package:flipper/helper/constant.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';

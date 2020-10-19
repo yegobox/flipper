@@ -2,7 +2,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_viewmodel.dart';
 import 'package:flipper/home/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/home/slide_out_screen.dart';
-import 'package:flipper/home/widget/switch_view.dart';
+import 'package:flipper/home/widget/switch/switch_view.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/branch/event/business_details.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';

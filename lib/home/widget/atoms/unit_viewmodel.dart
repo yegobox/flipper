@@ -7,14 +7,14 @@ import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 
 class UnitViewModel extends BaseModel{
-   final Logger log = Logging.getLogger('category observer:)');
+  final Logger log = Logging.getLogger('category observer:)');
   final DatabaseService _databaseService = ProxyService.database;
   List<Unit> _unit;
   List<Unit> get data => _unit;

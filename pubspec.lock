@@ -30,7 +30,7 @@ packages:
     source: hosted
     version: "0.3.0"
   apptheme:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: apptheme
       url: "https://pub.dartlang.org"

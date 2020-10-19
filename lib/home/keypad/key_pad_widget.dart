@@ -1,5 +1,5 @@
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/home/widget/key_pad_buttons.dart';
+import 'package:flipper/home/widget/keypad/key_pad_buttons.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';

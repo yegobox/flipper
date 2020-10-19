@@ -7,7 +7,7 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/util/data_manager.dart';
+import 'package:flipper/utils/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -78,8 +78,6 @@ void Function(Store<AppState> store, PersistFocusedUnitAction action,
                     store,
                     Unit((j) => j
                       ..id = u.id
-                      ..businessId = u.businessId
-                      ..branchId = u.branchId
                       ..focused = true
                       ..name = u.name))
               }
@@ -89,8 +87,6 @@ void Function(Store<AppState> store, PersistFocusedUnitAction action,
                     store,
                     Unit((j) => j
                       ..id = u.id
-                      ..businessId = u.businessId
-                      ..branchId = u.branchId
                       ..focused = false
                       ..name = u.name))
               }

@@ -9,21 +9,25 @@ import 'converters/serializers.dart';
 part 'unit.g.dart';
 
 abstract class Unit implements Built<Unit, UnitBuilder> {
+ 
   String get name;
+ 
+  String get tableName;
 
+  String get productId;
+
+  @nullable
   bool get focused;
-  @nullable
-  int get businessId;
-  int get branchId;
-  @nullable
-  int get id;
+  
+  
+  BuiltList<String> get channels;
+
+  String get id;
   // ignore: sort_constructors_first
   Unit._();
 
   factory Unit([void Function(UnitBuilder) updates]) = _$Unit;
-
-  BuiltList<String> get channels;
-  
+ 
   String toJson() {
     return json.encode(toMap());
   }

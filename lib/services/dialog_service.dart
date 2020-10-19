@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flipper/model/dialog_models.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 
 

@@ -52,8 +52,6 @@ AppState _onUpdateUnit(AppState state, UpdateUnitAction action) {
           {
             updatedUnits.add(Unit((j) => j
               ..id = u.id
-              ..businessId = u.businessId
-              ..branchId = u.branchId
               ..focused = true
               ..name = u.name))
           }
@@ -61,8 +59,8 @@ AppState _onUpdateUnit(AppState state, UpdateUnitAction action) {
           {
             updatedUnits.add(Unit((j) => j
               ..id = u.id
-              ..businessId = u.businessId
-              ..branchId = u.branchId
+              // ..businessId = u.businessId
+              // ..branchId = u.branchId
               ..focused = false
               ..name = u.name))
           }

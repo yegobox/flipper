@@ -3,9 +3,8 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/data_manager.dart';
-import 'package:flipper/util/flitter_color.dart';
+import 'package:flipper/utils/HexColor.dart';
+import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 

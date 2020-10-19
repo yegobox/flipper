@@ -1,5 +1,5 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/home/widget/note_input.dart';
+import 'package:flipper/home/widget/note/note_input.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
