@@ -13,7 +13,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:logger/logger.dart';
 
-
+// comment
 class StockViewModel extends BaseModel {
   final Logger log = Logging.getLogger('stock observer:)');
   final DatabaseService _databaseService = ProxyService.database;
