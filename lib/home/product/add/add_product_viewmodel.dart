@@ -2,20 +2,17 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 
 class AddProductViewmodel extends BaseModel {
-
   // FIXME(richard): tomorrow I will work on this after finishing some work on renter app.
 
   final Logger log = Logging.getLogger('add product view model:)');
@@ -30,16 +27,26 @@ class AddProductViewmodel extends BaseModel {
 
   ActionsTableData _actions;
 
-  bool get isLocked {
-    return _isLocked;
-  }
+  
 
   String _productId;
   String get productId {
     return _productId;
   }
 
-  final bool _isLocked = true;
+  bool get isLocked {
+    return _isLocked;
+  }
+  bool _isLocked = true;
+
+  // bool get fieldIsEmpty {
+  //   return _supplyController.text.length == 0;
+  // }
+
+  TextEditingController _supplyController;
+  get textController {
+    return _supplyController;
+  }
 
   Future<bool> onWillPop({BuildContext context}) async {
     return (await showDialog(
@@ -140,47 +147,24 @@ class AddProductViewmodel extends BaseModel {
     notifyListeners();
   }
 
-  void createVariant(CommonViewModel vm) {
-    // _getSaveStatus(vm);
-    if (_actions != null) {
-      vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-      final FlipperNavigationService _navigationService = ProxyService.nav;
+  void createVariant({String productId}) {
+    _isLocked = true;
+    notifyListeners();
 
-      _navigationService.navigateTo(Routing.addVariationScreen,
-          arguments: AddVariationScreenArguments(
-              retailPrice: DataManager.retailPrice,
-              supplyPrice: DataManager.supplyPrice));
-    }
+    ProxyService.nav.navigateTo(Routing.addVariationScreen,
+        arguments: AddVariationScreenArguments(productId:productId));
   }
 
-  Future<void> updateNameField(String name, CommonViewModel vm) async {
-    if (name == '') {
-      // _getSaveStatus(vm);
-      // _getSaveItemStatus(vm);
-      // if (_actions != null) {
-      //   await vm.database.actionsDao
-      //       .updateAction(_actions.copyWith(isLocked: true));
-      //   _getSaveStatus(vm);
-      //   _getSaveItemStatus(vm);
-      // }
-
-      DataManager.name = name;
-      notifyListeners();
-    } else if (_actions != null) {
-      await vm.database.actionsDao
-          .updateAction(_actions.copyWith(isLocked: false));
-      // _getSaveStatus(vm);
-      // _getSaveItemStatus(vm);
-
-      DataManager.name = name;
-      notifyListeners();
-    } else {
-      // _getSaveStatus(vm);
-      // _getSaveItemStatus(vm);
-
-      DataManager.name = name;
-      notifyListeners();
-    }
+  
+  
+  TextEditingController _nameController;
+  TextEditingController get nameController {
+    return _nameController;
+  }
+  void lock() {
+    // ignore: prefer_is_empty
+    _nameController.text.length == 0?_isLocked = true:_isLocked = false;
+    notifyListeners();
   }
 
   // once full refacored

@@ -232,7 +232,7 @@ class DataManager {
 
         final Document variant = await _databaseService.insert(data: {
           'isActive': false,
-          'name': productName,
+          'name': 'Regular',
           'unit': 'kg',
           'channels':<String>[userId],
           'tableName': AppTables.variation + store.state.branch.id,
@@ -250,8 +250,7 @@ class DataManager {
           'retailPrice': 0,
           'channels': [userId],
           'isActive': true,
-          // TODO(richard): decide which tableName
-          // 'tableName':AppTables.variation + store.state.branch.id,
+          'tableName':AppTables.stock + store.state.branch.id,
           'lowStock': 0,
           'currentStock': 0,
           'id': Uuid().v1(),

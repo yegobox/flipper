@@ -1,26 +1,20 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/product/section_select_unit.dart';
+import 'package:flipper/home/variation/variation_viewmodel.dart';
 
-
-import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/HexColor.dart';
-import 'package:flipper/utils/data_manager.dart';
-import 'package:flipper/utils/enums.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/redux.dart';
+
+import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 
 class AddVariationScreen extends StatefulWidget {
   const AddVariationScreen(
-      {Key key, @required this.retailPrice, @required this.supplyPrice})
+      {Key key, this.productId,})
       : super(key: key);
-  final double retailPrice;
-  final double supplyPrice;
+  final String productId;
 
   @override
   _AddVariationScreenState createState() => _AddVariationScreenState();
@@ -29,165 +23,100 @@ class AddVariationScreen extends StatefulWidget {
 class _AddVariationScreenState extends State<AddVariationScreen> {
   String name;
 
-  ActionsTableData _actions;
+  static final GlobalKey<FormState> _textKey = GlobalKey<FormState>();
 
-  double _retailPrice;
-
-  double _supplyPrice;
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        vm.database.actionsDao.getActionByStream('save').listen((List<ActionsTableData> event) {
-          if (mounted) {
-            setState(() {
-              _actions = event[0];
-            });
-          }
-        });
-        return Scaffold(
-          appBar: CommonAppBar(
-            onPop: () {
-              Routing.navigator.pop();
-            },
-            title: 'Add Variation',
-            showActionButton: true,
-            disableButton: _actions == null ? true : _actions.isLocked,
-            actionButtonName: 'Save',
-            onPressedCallback: () async {
-              await _createVariant(vm, context);
-              Routing.navigator.maybePop();
-            },
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 52,
-          ),
-          body: Container(
-            child: ListView(
-              children: <Widget>[
-                Column(
-                  children: <Widget>[
-                    Container(
-                      height: 20,
-                    ),
-                    Center(
-                      child: Container(
-                        width: 400,
-                        child: const Divider(
-                          color: Colors.black,
-                        ),
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(
+        builder:
+            (BuildContext context, VariationViewModel model, Widget child) {
+          return Scaffold(
+            appBar: CommonAppBar(
+              onPop: () {
+                ProxyService.nav.pop();
+              },
+              title: 'Add Variation',
+              showActionButton: true,
+              disableButton: model.isLocked,
+              actionButtonName: 'Save',
+              onPressedCallback: () async {
+                await model.createVariant(context: context, productId:widget.productId);
+                ProxyService.nav.pop();
+              },
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 52,
+            ),
+            body: Container(
+              child: ListView(
+                children: <Widget>[
+                  Column(
+                    children: <Widget>[
+                      Container(
+                        height: 20,
                       ),
-                    ),
-                    const SectionSelectUnit(),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: TextFormField(
-                          style: const TextStyle(color: Colors.black),
-                          validator: Validators.isValid,
-                          onChanged: (String _name) {
-                            if (_name == '') {
-                              vm.database.actionsDao.updateAction(
-                                  _actions.copyWith(isLocked: true));
-                              return;
-                            }
-                            vm.database.actionsDao.updateAction(
-                                _actions.copyWith(isLocked: false));
-
-                            name = _name;
-                          },
-                          decoration: const InputDecoration(
-                            hintText: 'Name',
-                            focusColor: Colors.blue,
+                      Center(
+                        child: Container(
+                          width: 400,
+                          child: const Divider(
+                            color: Colors.black,
                           ),
                         ),
                       ),
-                    ),
-                    buildRetailPriceWidget(context),
-                    buildCostPriceWidget(context),
-                    Container(
-                      width: 300,
-                      child: TextFormField(
-                        style: TextStyle(color: HexColor('#2d3436')),
-                        validator: Validators.isValid,
-                        onChanged: (String sku) {
-                          if (sku == '' || sku == null) {
-                            sku = DateTime.now().year.toString() +
-                                Uuid().v1().substring(0, 4);
-                          } else {
-                            sku = DateTime.now().year.toString() +
-                                sku.substring(0, 4);
-                          }
-                        },
-                        decoration: InputDecoration(
-                            hintText: 'SKU',
-                            focusColor: HexColor('#0984e3')),
+                      const SectionSelectUnit(),
+                      Center(
+                        child: Container(
+                          width: 300,
+                          child: TextFormField(
+                            key: _textKey,
+                            controller: model.nameController,
+                            style: const TextStyle(color: Colors.black),
+                            validator: Validators.isValid,
+                            onChanged: (String _name) {
+                              model.lock(); //lock the fields
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Name',
+                              focusColor: Colors.blue,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const Text('Leave the price blank to enter at the time of sale.')
-                  ],
-                )
-              ],
+                      buildRetailPriceWidget(context: context, model: model),
+                      buildCostPriceWidget(context: context, model: model),
+                      Container(
+                        width: 300,
+                        child: TextFormField(
+                          style: TextStyle(color: HexColor('#2d3436')),
+                          validator: Validators.isValid,
+                          onChanged: (String sku) {
+                            if (sku == '' || sku == null) {
+                              sku = DateTime.now().year.toString() +
+                                  Uuid().v1().substring(0, 4);
+                            } else {
+                              sku = DateTime.now().year.toString() +
+                                  sku.substring(0, 4);
+                            }
+                          },
+                          decoration: InputDecoration(
+                              hintText: 'SKU', focusColor: HexColor('#0984e3')),
+                        ),
+                      ),
+                      const Text(
+                          'Leave the price blank to enter at the time of sale.')
+                    ],
+                  )
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+        viewModelBuilder: () => VariationViewModel());
   }
 
-  Future<void> _createVariant(CommonViewModel vm, BuildContext context) async {
-    final VariationTableData variation = await vm.database.variationDao
-        .getVariationById(variantId: vm.variant.id);
-
-    final Store<AppState> store = StoreProvider.of<AppState>(context);
-
-    await DataManager.updateVariation(
-      variation: variation,
-      supplyPrice: widget.supplyPrice,
-      store: store,
-      variantName: 'Regular',
-      retailPrice: widget.retailPrice,
-    );
-    final int variantId = await vm.database.variationDao.insert(
-      //ignore:missing_required_param
-      VariationTableData(
-        isActive: false,
-        name: name,
-        id: Uuid().v1(),
-        sku: DateTime.now().year.toString() + Uuid().v1().substring(0, 4),
-        unit: '',
-        createdAt: DateTime.now(),
-        productId: vm.tmpItem.id,
-      ),
-    );
-    final VariationTableData variant = await vm.database.variationDao
-        .getVariationByIdLocal(variantId: variantId);
-
-    await vm.database.stockDao.insert(
-      //ignore:missing_required_param
-      StockTableData(
-        canTrackingStock: false,
-        retailPrice: _retailPrice,
-        supplyPrice: _supplyPrice,
-        lowStock: 0,
-        productId: vm.tmpItem.id,
-        showLowStockAlert: false,
-        currentStock: 0,
-        variantId: variant.id,
-        isActive: true,
-        action: Defaults.ADD.toString(),
-        id: Uuid().v1(),
-        branchId: vm.branch.id,
-        createdAt: DateTime.now(),
-      ),
-    );
-    await vm.database.actionsDao
-        .updateAction(_actions.copyWith(isLocked: true));
-  }
-
-  Container buildCostPriceWidget(BuildContext context) {
+  Container buildCostPriceWidget(
+      {BuildContext context, VariationViewModel model}) {
     return Container(
       width: 300,
       child: TextFormField(
@@ -197,7 +126,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         onChanged: (String supplyPrice) {
           if (supplyPrice != '') {
             setState(() {
-              _supplyPrice = double.parse(supplyPrice);
+              model.supplierPrice = double.parse(supplyPrice);
             });
           }
         },
@@ -207,7 +136,8 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
     );
   }
 
-  Container buildRetailPriceWidget(BuildContext context) {
+  Container buildRetailPriceWidget(
+      {BuildContext context, VariationViewModel model}) {
     return Container(
       width: 300,
       child: TextFormField(
@@ -216,9 +146,7 @@ class _AddVariationScreenState extends State<AddVariationScreen> {
         validator: Validators.isValid,
         onChanged: (String price) {
           if (price != '') {
-            setState(() {
-              _retailPrice = double.parse(price);
-            });
+            model.retailPrice = double.parse(price);
           }
         },
         decoration: const InputDecoration(

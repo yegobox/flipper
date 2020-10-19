@@ -41,7 +41,7 @@ class BuildAddProductBody extends StatelessWidget {
                 ProxyService.nav.pop();
               },
               title: 'Create Product',
-              disableButton: model.action == null ? true : model.isLocked,
+              disableButton: model.isLocked,
               showActionButton: true,
               onPressedCallback: () async {
                 await model.handleCreateItem(vm: vm);
@@ -62,29 +62,17 @@ class BuildAddProductBody extends StatelessWidget {
                     BuildImageHolder(
                       vm: vm,
                     ),
-                    Text(
-                      'Product',
-                      style: GoogleFonts.lato(
-                        fontStyle: FontStyle.normal,
-                        color: Theme.of(context).accentColor,
-                        fontSize:
-                            Theme.of(context).textTheme.bodyText1.fontSize,
-                      ),
+                   const Text(
+                      'Product'
                     ),
                     //nameField
                     Center(
                       child: Container(
                         width: 300,
                         child: TextFormField(
-                          style: GoogleFonts.lato(
-                            fontStyle: FontStyle.normal,
-                            color: Theme.of(context).accentColor,
-                            fontSize:
-                                Theme.of(context).textTheme.bodyText1.fontSize,
-                          ),
                           validator: Validators.isValid,
                           onChanged: (String name) async {
-                            await model.updateNameField(name, vm);
+                            model.lock();
                           },
                           decoration: const InputDecoration(
                             hintText: 'Name',
@@ -140,7 +128,7 @@ class BuildAddProductBody extends StatelessWidget {
                     VariationList(productId: vm.tmpItem.id),
                     AddVariant(
                       onPressedCallback: () {
-                        model.createVariant(vm);
+                        model.createVariant(productId:model.productId);
                       },
                     ),
                     DescriptionWidget()
@@ -153,4 +141,5 @@ class BuildAddProductBody extends StatelessWidget {
       },
     );
   }
+  // 
 }

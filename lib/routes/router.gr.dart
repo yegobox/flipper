@@ -172,16 +172,14 @@ class Routing {
           fullscreenDialog: true,
         );
       case Routing.addVariationScreen:
-        if (hasInvalidArgs<AddVariationScreenArguments>(args,
-            isRequired: true)) {
+        if (hasInvalidArgs<AddVariationScreenArguments>(args)) {
           return misTypedArgsRoute<AddVariationScreenArguments>(args);
         }
-        final typedArgs = args as AddVariationScreenArguments;
+        final typedArgs = args as AddVariationScreenArguments ??
+            AddVariationScreenArguments();
         return MaterialPageRoute<dynamic>(
           builder: (_) => AddVariationScreen(
-              key: typedArgs.key,
-              retailPrice: typedArgs.retailPrice,
-              supplyPrice: typedArgs.supplyPrice),
+              key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -455,10 +453,8 @@ class EditItemTitleArguments {
 //AddVariationScreen arguments holder class
 class AddVariationScreenArguments {
   final Key key;
-  final double retailPrice;
-  final double supplyPrice;
-  AddVariationScreenArguments(
-      {this.key, @required this.retailPrice, @required this.supplyPrice});
+  final String productId;
+  AddVariationScreenArguments({this.key, this.productId});
 }
 
 //AddUnitTypeScreen arguments holder class

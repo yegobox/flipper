@@ -5,7 +5,7 @@ import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-import 'widget/variant_widget.dart';
+import '../variation/variant_widget.dart';
 
 class TForm {
   String price;

@@ -6,27 +6,154 @@ part of 'stock.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<Stock> _$stockSerializer = new _$StockSerializer();
+
+class _$StockSerializer implements StructuredSerializer<Stock> {
+  @override
+  final Iterable<Type> types = const [Stock, _$Stock];
+  @override
+  final String wireName = 'Stock';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, Stock object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[
+      'value',
+      serializers.serialize(object.value,
+          specifiedType: const FullType(String)),
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'branchId',
+      serializers.serialize(object.branchId,
+          specifiedType: const FullType(String)),
+      'variantId',
+      serializers.serialize(object.variantId,
+          specifiedType: const FullType(String)),
+      'lowStock',
+      serializers.serialize(object.lowStock,
+          specifiedType: const FullType(String)),
+      'currentStock',
+      serializers.serialize(object.currentStock,
+          specifiedType: const FullType(String)),
+      'supplyPrice',
+      serializers.serialize(object.supplyPrice,
+          specifiedType: const FullType(double)),
+      'retailPrice',
+      serializers.serialize(object.retailPrice,
+          specifiedType: const FullType(double)),
+      'canTrackingStock',
+      serializers.serialize(object.canTrackingStock,
+          specifiedType: const FullType(bool)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
+      'tableName',
+      serializers.serialize(object.tableName,
+          specifiedType: const FullType(String)),
+    ];
+    if (object.showLowStockAlert != null) {
+      result
+        ..add('showLowStockAlert')
+        ..add(serializers.serialize(object.showLowStockAlert,
+            specifiedType: const FullType(bool)));
+    }
+    return result;
+  }
+
+  @override
+  Stock deserialize(Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new StockBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'value':
+          result.value = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'branchId':
+          result.branchId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'variantId':
+          result.variantId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'lowStock':
+          result.lowStock = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'currentStock':
+          result.currentStock = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'supplyPrice':
+          result.supplyPrice = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
+        case 'retailPrice':
+          result.retailPrice = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
+        case 'canTrackingStock':
+          result.canTrackingStock = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'showLowStockAlert':
+          result.showLowStockAlert = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
+        case 'tableName':
+          result.tableName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$Stock extends Stock {
   @override
   final String value;
   @override
-  final int id;
+  final String id;
   @override
-  final int branchId;
+  final String branchId;
   @override
-  final int variantId;
+  final String variantId;
   @override
-  final int lowStock;
+  final String lowStock;
   @override
-  final int currentStock;
+  final String currentStock;
   @override
-  final int supplyPrice;
+  final double supplyPrice;
   @override
-  final int retailPrice;
+  final double retailPrice;
   @override
   final bool canTrackingStock;
   @override
   final bool showLowStockAlert;
+  @override
+  final BuiltList<String> channels;
+  @override
+  final String tableName;
 
   factory _$Stock([void Function(StockBuilder) updates]) =>
       (new StockBuilder()..update(updates)).build();
@@ -41,7 +168,9 @@ class _$Stock extends Stock {
       this.supplyPrice,
       this.retailPrice,
       this.canTrackingStock,
-      this.showLowStockAlert})
+      this.showLowStockAlert,
+      this.channels,
+      this.tableName})
       : super._() {
     if (value == null) {
       throw new BuiltValueNullFieldError('Stock', 'value');
@@ -70,8 +199,11 @@ class _$Stock extends Stock {
     if (canTrackingStock == null) {
       throw new BuiltValueNullFieldError('Stock', 'canTrackingStock');
     }
-    if (showLowStockAlert == null) {
-      throw new BuiltValueNullFieldError('Stock', 'showLowStockAlert');
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Stock', 'channels');
+    }
+    if (tableName == null) {
+      throw new BuiltValueNullFieldError('Stock', 'tableName');
     }
   }
 
@@ -95,7 +227,9 @@ class _$Stock extends Stock {
         supplyPrice == other.supplyPrice &&
         retailPrice == other.retailPrice &&
         canTrackingStock == other.canTrackingStock &&
-        showLowStockAlert == other.showLowStockAlert;
+        showLowStockAlert == other.showLowStockAlert &&
+        channels == other.channels &&
+        tableName == other.tableName;
   }
 
   @override
@@ -107,15 +241,21 @@ class _$Stock extends Stock {
                     $jc(
                         $jc(
                             $jc(
-                                $jc($jc($jc(0, value.hashCode), id.hashCode),
-                                    branchId.hashCode),
-                                variantId.hashCode),
-                            lowStock.hashCode),
-                        currentStock.hashCode),
-                    supplyPrice.hashCode),
-                retailPrice.hashCode),
-            canTrackingStock.hashCode),
-        showLowStockAlert.hashCode));
+                                $jc(
+                                    $jc(
+                                        $jc(
+                                            $jc($jc(0, value.hashCode),
+                                                id.hashCode),
+                                            branchId.hashCode),
+                                        variantId.hashCode),
+                                    lowStock.hashCode),
+                                currentStock.hashCode),
+                            supplyPrice.hashCode),
+                        retailPrice.hashCode),
+                    canTrackingStock.hashCode),
+                showLowStockAlert.hashCode),
+            channels.hashCode),
+        tableName.hashCode));
   }
 
   @override
@@ -130,7 +270,9 @@ class _$Stock extends Stock {
           ..add('supplyPrice', supplyPrice)
           ..add('retailPrice', retailPrice)
           ..add('canTrackingStock', canTrackingStock)
-          ..add('showLowStockAlert', showLowStockAlert))
+          ..add('showLowStockAlert', showLowStockAlert)
+          ..add('channels', channels)
+          ..add('tableName', tableName))
         .toString();
   }
 }
@@ -142,33 +284,33 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
   String get value => _$this._value;
   set value(String value) => _$this._value = value;
 
-  int _id;
-  int get id => _$this._id;
-  set id(int id) => _$this._id = id;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
-  int _branchId;
-  int get branchId => _$this._branchId;
-  set branchId(int branchId) => _$this._branchId = branchId;
+  String _branchId;
+  String get branchId => _$this._branchId;
+  set branchId(String branchId) => _$this._branchId = branchId;
 
-  int _variantId;
-  int get variantId => _$this._variantId;
-  set variantId(int variantId) => _$this._variantId = variantId;
+  String _variantId;
+  String get variantId => _$this._variantId;
+  set variantId(String variantId) => _$this._variantId = variantId;
 
-  int _lowStock;
-  int get lowStock => _$this._lowStock;
-  set lowStock(int lowStock) => _$this._lowStock = lowStock;
+  String _lowStock;
+  String get lowStock => _$this._lowStock;
+  set lowStock(String lowStock) => _$this._lowStock = lowStock;
 
-  int _currentStock;
-  int get currentStock => _$this._currentStock;
-  set currentStock(int currentStock) => _$this._currentStock = currentStock;
+  String _currentStock;
+  String get currentStock => _$this._currentStock;
+  set currentStock(String currentStock) => _$this._currentStock = currentStock;
 
-  int _supplyPrice;
-  int get supplyPrice => _$this._supplyPrice;
-  set supplyPrice(int supplyPrice) => _$this._supplyPrice = supplyPrice;
+  double _supplyPrice;
+  double get supplyPrice => _$this._supplyPrice;
+  set supplyPrice(double supplyPrice) => _$this._supplyPrice = supplyPrice;
 
-  int _retailPrice;
-  int get retailPrice => _$this._retailPrice;
-  set retailPrice(int retailPrice) => _$this._retailPrice = retailPrice;
+  double _retailPrice;
+  double get retailPrice => _$this._retailPrice;
+  set retailPrice(double retailPrice) => _$this._retailPrice = retailPrice;
 
   bool _canTrackingStock;
   bool get canTrackingStock => _$this._canTrackingStock;
@@ -179,6 +321,15 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
   bool get showLowStockAlert => _$this._showLowStockAlert;
   set showLowStockAlert(bool showLowStockAlert) =>
       _$this._showLowStockAlert = showLowStockAlert;
+
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
+  String _tableName;
+  String get tableName => _$this._tableName;
+  set tableName(String tableName) => _$this._tableName = tableName;
 
   StockBuilder();
 
@@ -194,6 +345,8 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
       _retailPrice = _$v.retailPrice;
       _canTrackingStock = _$v.canTrackingStock;
       _showLowStockAlert = _$v.showLowStockAlert;
+      _channels = _$v.channels?.toBuilder();
+      _tableName = _$v.tableName;
       _$v = null;
     }
     return this;
@@ -214,18 +367,33 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
 
   @override
   _$Stock build() {
-    final _$result = _$v ??
-        new _$Stock._(
-            value: value,
-            id: id,
-            branchId: branchId,
-            variantId: variantId,
-            lowStock: lowStock,
-            currentStock: currentStock,
-            supplyPrice: supplyPrice,
-            retailPrice: retailPrice,
-            canTrackingStock: canTrackingStock,
-            showLowStockAlert: showLowStockAlert);
+    _$Stock _$result;
+    try {
+      _$result = _$v ??
+          new _$Stock._(
+              value: value,
+              id: id,
+              branchId: branchId,
+              variantId: variantId,
+              lowStock: lowStock,
+              currentStock: currentStock,
+              supplyPrice: supplyPrice,
+              retailPrice: retailPrice,
+              canTrackingStock: canTrackingStock,
+              showLowStockAlert: showLowStockAlert,
+              channels: channels.build(),
+              tableName: tableName);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        channels.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Stock', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

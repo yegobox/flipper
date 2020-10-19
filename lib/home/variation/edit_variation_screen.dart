@@ -1,17 +1,20 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/home/variation/variation_viewmodel.dart';
+import 'package:flipper/model/variation.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/util/HexColor.dart';
-import 'package:flipper/util/data_manager.dart';
-import 'package:flipper/util/validators.dart';
+import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/HexColor.dart';
+import 'package:flipper/utils/data_manager.dart';
+import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
+
 
 class EditVariationScreen extends StatefulWidget {
-  EditVariationScreen(
+  const EditVariationScreen(
       {Key key,
       @required this.variationId,
       @required this.productId,
@@ -28,7 +31,6 @@ class EditVariationScreen extends StatefulWidget {
 class _EditVariationScreenState extends State<EditVariationScreen> {
   String sku;
 
-  ActionsTableData _actions;
   // ignore: unused_field
   double _costPrice;
   String _name;
@@ -47,30 +49,19 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
-        return StreamBuilder(
-          stream: vm.database.variationDao
-              .getVariantByItemIdStream(widget.variationId),
-          builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-            if (snapshot.data == null) {
-              return Text('');
-            }
-
-            return Scaffold(
+    return ViewModelBuilder.nonReactive(builder: (BuildContext context,VariationViewModel model, Widget child){
+      return Scaffold(
               appBar: CommonAppBar(
                 onPop: () {
                   Routing.navigator.pop();
                 },
                 title: 'Edit Variation',
                 showActionButton: true,
-                disableButton: snapshot.data[0].name == '' ? true : false,
+                disableButton: model.isLocked,
                 actionButtonName: 'Save',
                 onPressedCallback: () async {
-                  updateVariation(snapshot.data[0], context);
-                  Routing.navigator.pop(true);
+                  model.updateVariation(variation:model.variation);
+                  ProxyService.nav.pop();
                 },
                 icon: Icons.close,
                 multi: 3,
@@ -86,7 +77,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                         ),
                         Container(
                           width: 400,
-                          child: Divider(
+                          child:const Divider(
                             color: Colors.black,
                           ),
                         ),
@@ -107,31 +98,9 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                               leading: Text('Unit Type'),
                               trailing: Wrap(
                                 children: <Widget>[
-                                  StreamBuilder(
-                                      stream: vm.database.productDao
-                                          .getItemByIdStream(widget.productId),
-                                      builder: (context,
-                                          AsyncSnapshot<List<ProductTableData>>
-                                              snapshot) {
-                                        if (snapshot.data == null) {
-                                          return Text('None');
-                                        }
-                                        return StreamBuilder(
-                                            stream: vm.database.unitDao
-                                                .getUnitByIdStream(
-                                                    snapshot.data[0].idLocal),
-                                            builder: (context,
-                                                AsyncSnapshot<
-                                                        List<UnitTableData>>
-                                                    snapshot) {
-                                              if (snapshot.data == null) {
-                                                return Text('');
-                                              }
-                                              return Text(
-                                                  snapshot.data[0].name);
-                                            });
-                                      }),
-                                  Icon(Icons.arrow_forward_ios)
+                                   Text(
+                                                  model.variation.name),
+                                 const Icon(Icons.arrow_forward_ios)
                                 ],
                               ),
                             ),
@@ -140,13 +109,13 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                         Container(
                           width: 300,
                           child: TextFormField(
-                            initialValue: snapshot.data[0].name,
+                            initialValue: model.variation.name,
                             style: TextStyle(color: Colors.black),
                             validator: Validators.isEmpty,
                             onChanged: (name) {
                               if (name != '') {
                                 _name = name;
-                                updateVariation(snapshot.data[0], context);
+                                updateVariation(model.variation, context);
                               }
                             },
                             decoration: InputDecoration(
@@ -154,15 +123,15 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                 focusColor: Colors.blue),
                           ),
                         ),
-                        buildRetailPriceWidget(context, snapshot, vm),
-                        buildCostPriceWidget(context, vm),
+                        buildRetailPriceWidget(context, model),
+                        buildCostPriceWidget(context, model),
                         Container(
                           width: 300,
                           child: TextFormField(
-                            initialValue: snapshot.data[0].sku,
+                            initialValue: model.variation.sku,
                             style: TextStyle(color: HexColor('#2d3436')),
                             validator: Validators.isValid,
-                            onChanged: (_sku) {
+                            onChanged: (String _sku) {
                               if (_sku != '') {
                                 sku = _sku;
                               }
@@ -172,7 +141,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                                 focusColor: HexColor('#0984e3')),
                           ),
                         ),
-                        Text('Leave the price blank to enter at the time of sale.'),
+                        const Text('Leave the price blank to enter at the time of sale.'),
                         Container(
                           height: 50,
                           color: _deleteCount == 1
@@ -201,29 +170,14 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                 ),
               ),
             );
-          },
-        );
-      },
-    );
+    }, 
+    onModelReady: (VariationViewModel model)=>model.getVariationById(productId: widget.productId,context:context),
+    viewModelBuilder: ()=>VariationViewModel());
   }
 
-  Future<void> updateVariation(
-      VariationTableData variation, BuildContext context) async {
-    final store = StoreProvider.of<AppState>(context);
-    double retailPrice = _retailPrice ?? null;
-    double costPrice = _costPrice ?? null;
-    String variantName = _name ?? variation.name;
+ 
 
-    await DataManager.updateVariation(
-      supplyPrice: costPrice,
-      retailPrice: retailPrice,
-      variation: variation,
-      variantName: variantName,
-      store: store,
-    );
-  }
-
-  Center buildCostPriceWidget(BuildContext context, CommonViewModel vm) {
+  Center buildCostPriceWidget(BuildContext context, ViewModelBuilder vm) {
     return Center(
       child: Container(
         width: 300,
@@ -249,7 +203,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                 return Container(
                   width: 300,
                   child: TextFormField(
-                    initialValue: snapshot.data[0].supplyPrice.toString(),
+                    initialValue: model.variation.supplyPrice.toString(),
                     style: TextStyle(color: HexColor('#2d3436')),
                     validator: Validators.isValid,
                     onChanged: (cost) {
@@ -269,7 +223,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
   }
 
   Center buildRetailPriceWidget(BuildContext context,
-      AsyncSnapshot<List<VariationTableData>> snapshot, CommonViewModel vm) {
+      Variation snapshot, VariationViewModel model) {
     return Center(
       child: Container(
         width: 300,
@@ -295,7 +249,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                 return Container(
                   width: 300,
                   child: TextFormField(
-                    initialValue: snapshot.data[0].retailPrice.toString(),
+                    initialValue: model.variation.retailPrice.toString(),
                     style: TextStyle(color: HexColor('#2d3436')),
                     validator: Validators.isValid,
                     onChanged: (price) {

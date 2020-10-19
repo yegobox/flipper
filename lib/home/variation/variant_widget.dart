@@ -13,6 +13,8 @@ import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+import 'build_variation_body.dart';
+
 class VariantWidget extends StatefulWidget {
   const VariantWidget(
       {Key key,
@@ -42,19 +44,7 @@ class _VariantWidgetState extends State<VariantWidget> {
   String _name;
 
 
-  Widget categorySelector(List<ProductTableData> item, CommonViewModel vm) {
-    // TODO(richard): load from couchbase_lite
-    return StreamBuilder(
-        stream:
-            vm.database.categoryDao.getCategoryByIdStream(item[0].categoryId),
-        builder: (BuildContext context,
-            AsyncSnapshot<List<CategoryTableData>> snapshot) {
-          if (snapshot.data == null) {
-            return const Text('');
-          }
-          return Text(snapshot.data[0].name);
-        });
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -135,23 +125,7 @@ class _VariantWidgetState extends State<VariantWidget> {
                             leading: const Text('Category'),
                             trailing: Wrap(
                               children: <Widget>[
-                                StreamBuilder(
-                                  stream: widget.vm.database.productDao
-                                      .getItemByIdStream(widget.productId),
-                                  builder: (context,
-                                      AsyncSnapshot<List<ProductTableData>>
-                                          snapshot) {
-                                    if (snapshot.data == null ||
-                                        snapshot.data.isEmpty) {
-                                      return const Text('Select Category');
-                                    }
-                                    return snapshot.data == null ||
-                                            snapshot.data.isEmpty
-                                        ? const Text('Select Category')
-                                        : categorySelector(
-                                            snapshot.data, widget.vm);
-                                  },
-                                ),
+                                BuildVariationBody(productId: widget.productId,),
                                 const Icon(Icons.arrow_forward_ios)
                               ],
                             ),

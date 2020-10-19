@@ -11,6 +11,7 @@ class AppTables{
   static const String order = 'orders_';  //+ branchId
   static const String branchProduct = 'branchProducts_'; 
   static const String unit = 'unit_'; //+branchId
+  static const String stock = 'stock_'; //+branchId
 
 }
 
