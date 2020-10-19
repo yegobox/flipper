@@ -30,6 +30,21 @@ class VariationViewModel extends BaseModel {
   Variation _variation;
   Variation get variation =>_variation;
 
+  Stock _stock;
+  Stock get stock =>_stock;
+
+  void getStockByProductId({String productId, BuildContext context})async {
+     final List<Map<String, dynamic>> product = await _databaseService.filter(
+        property: 'tableName',
+        equator: AppTables.variation +
+            StoreProvider.of<AppState>(context).state.branch.id,
+        and: true,
+        andProperty: 'productId',
+        andEquator: productId);
+
+    _stock = Stock.fromMap(product[0]['main']);
+    notifyListeners();
+  }
   void getVariationById({String productId,BuildContext context})async {
      final List<Map<String, dynamic>> product = await _databaseService.filter(
         property: 'tableName',
@@ -39,14 +54,14 @@ class VariationViewModel extends BaseModel {
         andProperty: 'productId',
         andEquator: productId);
 
-    _product = Product.fromMap(product[0]['main']);
+    _variation = Variation.fromMap(product[0]['main']);
     notifyListeners();
   }
   Future<void> updateVariation({
     Variation variation,
    
   }) async {
-    
+    log.d('methid updateVariation needs to be implemented');
     // if (variation != null) {
     //   final StockTableData stock = await store.state.database.stockDao
     //       .getStockByVariantId(
@@ -154,6 +169,22 @@ class VariationViewModel extends BaseModel {
   TextEditingController get nameController {
     return _nameController;
   }
+
+  TextEditingController _skuController;
+  TextEditingController get skuController {
+    return _skuController;
+  }
+
+  // editing
+  TextEditingController _costController;
+  TextEditingController get costController {
+    return _costController;
+  }
+  TextEditingController _retailController;
+  TextEditingController get retailController {
+    return _retailController;
+  }
+  // done editing variation
 
   double supplierPrice;
   double get getSupplierPrice {
