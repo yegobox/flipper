@@ -6,7 +6,7 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/stock.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/util/logger.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';

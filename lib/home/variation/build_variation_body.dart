@@ -11,7 +11,7 @@ class BuildVariationBody extends StatelessWidget {
   Widget build(BuildContext context) {
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(builder: (BuildContext context,VariationViewModel model, Widget child){
-      return model.busy ||model.data == null? const Text('Select Category'):Text(model.product.name);
+      return model.busy ||model.data == null? const Text('Variation:)'):Text(model.product.name);
     }, 
     onModelReady: (VariationViewModel model)=>model.getProductById(productId: productId,context:context),
     viewModelBuilder: ()=>VariationViewModel());
