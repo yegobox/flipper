@@ -14,7 +14,7 @@ import 'package:uuid/uuid.dart';
 // query example: https://github.com/SaltechSystems/couchbase_lite/blob/master/example/lib/data/database.dart
 class DatabaseService {
   final Logger log = Logging.getLogger('Database service  Model ....');
-  final Database dbInstance = AppDatabase.instance.database;
+ 
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
   @deprecated //use insert and update function no need to define every action functons here
@@ -89,10 +89,9 @@ class DatabaseService {
   }
 
   // products functions
-  // TODO(richard): save custom product function
-  // TODO(richard): getItemBy name Function
-  Future<dynamic> getById({String id}) async {
-    return await dbInstance.document(id);
+ 
+  Future<Document> getById({String id}) async {
+    return await AppDatabase.instance.database.document(id);
   }
 
   // A filter query to look for a document muck like select * from where name =sth and email =sth
@@ -140,11 +139,11 @@ class DatabaseService {
   }
 
   Future<Document> insert({String id, Map data}) async {
-    log.d(data);
+    final String _id = id ?? Uuid().v1();
     final MutableDocument newDoc =
-        MutableDocument(id: id ?? Uuid().v1(), data: data);
+        MutableDocument(id: _id, data: data);
     await AppDatabase.instance.database.saveDocument(newDoc);
-    return newDoc;
+    return getById(id: _id);
   }
 
   ObservableResponse<ResultSet> observer({

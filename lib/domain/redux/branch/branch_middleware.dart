@@ -1,4 +1,3 @@
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/data/respositories/branch_repository.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
@@ -9,6 +8,7 @@ import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/hint.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -49,7 +49,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
     };
-    AppDatabase.instance.createBranch(_mapBranch);
+
+    ProxyService.database.insert(data:_mapBranch);
     store.dispatch(VerifyAuthenticationState());
   };
 }

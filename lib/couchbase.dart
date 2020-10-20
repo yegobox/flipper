@@ -33,26 +33,6 @@ class AppDatabase {
   lite.ListenerToken _dbListenerToken;
 
   @deprecated
-  Future<dynamic> createBranch(Map map) async {
-    assert(map['_id'] != null);
-    assert(map['name'] != null);
-    assert(map['channels'] != null);
-    assert(map['active'] != null);
-    assert(map['businessId'] != null);
-    assert(map['mapLatitude'] != null);
-    assert(map['mapLongitude'] != null);
-    assert(map['id'] != null);
-    assert(map['updatedAt'] != null);
-    assert(map['createdAt'] != null);
-    assert(map['_id'] != null);
-    // ignore: always_specify_types
-    // final List<Map> m = [map];
-    final DatabaseService _databaseService = ProxyService.database;
-    _databaseService.insert(id:map['id'],data:map);
-    // FIXME(richard): update the document online to remove branch in array just save them and rely on table name
-    return map['id'];
-  }
-  @deprecated
   Future<lite.Document> createDocumentIfNotExists(
       String id, Map<String, dynamic> map) async {
     try {
@@ -121,17 +101,17 @@ class AppDatabase {
           final lite.Document document = await database.document(id);
           //until we save document right in all place keep this code here to keep things smooth.
           if (document != null && !document.getBoolean('touched')) {
-             log.d('change in id: $id');
+            log.d('change in id: $id');
             //only update once to avoid infinite loop
-            // log.i('updated non touched document,we update the document to make the id be usable for update');
-            // final lite.MutableDocument mutableDoc = document
-            //     .toMutable()
-            //     .setBoolean('touched', true)
-            //     .setString(
-            //       'id',
-            //       id,
-            //     ); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
-            // database.saveDocument(mutableDoc);
+            log.i('updated non touched document,we update the document to make the id be usable for update');
+            final lite.MutableDocument mutableDoc = document
+                .toMutable()
+                .setBoolean('touched', true)
+                .setString(
+                  'id',
+                  id,
+                ); //to make sure that the id that is in doc is the one we can use to make update about a single doc, this is a work around as we can not have id in a simple way
+            database.saveDocument(mutableDoc);
           }
         }
       });
@@ -166,49 +146,6 @@ class AppDatabase {
 
   // ignore: sort_constructors_first
   // CouchBase(): super();
-
-  //create lite branch
-  @deprecated
-  // ignore: always_specify_types
-  Future<dynamic> createTax(map) async {
-    assert(map['channels'] != null);
-    assert(map['name'] != null);
-    assert(map['active'] != null);
-    assert(map['isDefault'] != null);
-    assert(map['id'] != null);
-    assert(map['createdAt'] != null);
-    assert(map['updatedAt'] != null);
-    assert(map['businessId'] != null);
-
-    // ignore: always_specify_types
-    final DatabaseService _databaseService = ProxyService.database;
-    // ignore: flutter_style_todos
-    // TODO: discuss with @ganze to abandon saving array within a document
-    _databaseService.insert(id:map['id'],data:map);
-  }
-  @deprecated
-  //create business.
-  Future<String> createBusiness(Map map) async {
-    //if user has business do nothing
-
-    assert(map['_id'] != null);
-
-    assert(map['channels'] != null);
-    assert(map['name'] != null);
-    assert(map['active'] != null);
-    assert(map['categoryId'] != null);
-    assert(map['typeId'] != null);
-    assert(map['country'] != null);
-    assert(map['currency'] != null);
-    assert(map['id'] != null);
-    assert(map['createdAt'] != null);
-    assert(map['updatedAt'] != null);
-    assert(map['userId'] != null);
-
-    final DatabaseService _databaseService = ProxyService.database;
-    _databaseService.insert(id:map['id'],data:map);
-    return map['id'];
-  }
 
   //create user
   // ignore: always_specify_types
@@ -334,50 +271,7 @@ class AppDatabase {
 
     return await database.saveDocument(variants);
   }
-  @deprecated
-  Future<dynamic> createBranchProduct(Map map) async {
-    assert(map['_id'] != null);
-
-    assert(map['channels'] != null);
-    assert(map['productId'] != null);
-    assert(map['branchId'] != null);
-    assert(map['id'] != null);
-
-    // ignore: always_specify_types
-    final List<Map> m = [map];
-    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
-        .from(dbName)
-        .where(lite.Expression.property('id')
-            .equalTo(lite.Expression.string(map['id'])));
-    // Run the query.
-    try {
-      final lite.ResultSet result = await query.execute();
-
-      if (!result.allResults().isNotEmpty) {
-        final lite.MutableDocument mutableDoc = lite.MutableDocument()
-            .setList('branchProducts', m)
-            .setString('id', map['id'])
-            // ignore: always_specify_types
-            .setList('channels', [map['channels']])
-            .setString('uid', Uuid().v1())
-            .setString('_id', map['_id']);
-        try {
-          await database.saveDocument(mutableDoc);
-        } on PlatformException {
-          return 'Error saving document';
-        }
-      } else {
-        //todo: deal with result return [] of them.....
-        final List<Map<String, dynamic>> model = result.map((result) {
-          // return Beer.fromMap();
-          return result.toMap();
-        }).toList();
-      }
-    } on PlatformException {
-      // ignore: prefer_single_quotes
-      return "Error running the query";
-    }
-  }
+ 
   @deprecated
   Future<dynamic> createStockHistory(Map map) async {
     assert(map['_id'] != null);

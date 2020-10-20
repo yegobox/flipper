@@ -1,12 +1,13 @@
-import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/respositories/business_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/business.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
 
 List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
@@ -51,41 +52,42 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'updatedAt': DateTime.now().toIso8601String(),
       };
 
-     final String businessId= await AppDatabase.instance.createBusiness(_mapBusiness);
-
+      
+    final Document business = await ProxyService.database.insert(id:AppTables.business + store.state.user.id.toString(),data:_mapBusiness);
+    
       // ignore: always_specify_types
       final Map<String, dynamic> _notTax = {
         'active': true,
-        '_id': 'taxes_' + businessId,
+        '_id': 'taxes_' + store.state.user.id.toString(),
         'channels': [store.state.user.id.toString()],
-        'businessId': businessId,
-        'tableName': AppTables.tax + businessId,
+        'businessId': business.id,
+        'tableName': AppTables.tax + store.state.user.id.toString(),
         'createdAt': DateTime.now().toIso8601String(),
-        'id': AppTables.tax + businessId,
+        'id': AppTables.tax + store.state.user.id.toString(),
         'updatedAt': DateTime.now().toIso8601String(),
         'isDefault': false,
         'name': 'No Tax',
         'percentage': 0,
       };
 
-      await AppDatabase.instance.createTax(_notTax);
+      await ProxyService.database.insert(data:_notTax);
       // ignore: always_specify_types
       final Map<String, dynamic> vat = {
         'active': true,
-        '_id': 'taxes_' + businessId,
+        '_id': 'taxes_' + store.state.user.id.toString(),
         'channels': [store.state.user.id.toString()],
-        'businessId': businessId,
-        'tableName': AppTables.tax + businessId,
+        'businessId':  business.id,
+        'tableName': AppTables.tax + store.state.user.id.toString(),
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
-        'id': AppTables.tax + businessId,
+        'id': AppTables.tax + store.state.user.id.toString(),
         'isDefault': true,
         'name': 'Vat',
         'percentage': 18,
       };
       // todo(richard): dispatch this tax, and on active business should load that tax.
-      await AppDatabase.instance.createTax(vat);
-      store.dispatch(BusinessId(businessId));
+      await ProxyService.database.insert(data:vat);
+      store.dispatch(BusinessId(store.state.user.id.toString()));
 
       store.dispatch(BusinessCreated());
     }

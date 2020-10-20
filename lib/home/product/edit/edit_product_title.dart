@@ -4,10 +4,11 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/image.dart';
-import 'package:flipper/model/product.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/utils/HexColor.dart';
@@ -225,9 +226,9 @@ class _EditItemTitleState extends State<EditItemTitle> {
 
       // ProductTableData productUpdated = await store.state.database.productDao
       //     .getItemById(productId: widget.productId);
-      final Product productUpdated = await _databaseService.getById(id:widget.productId);
+      final Document productUpdated = await _databaseService.getById(id:widget.productId);
       
-      DataManager.dispatchProduct(store, productUpdated);
+      DataManager.dispatchProduct(store, Product.fromMap(productUpdated.toMap()));
 
       store.dispatch(ImagePreview(
           image: ImageP((ImagePBuilder img) => img

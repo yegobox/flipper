@@ -22,9 +22,6 @@ class _$TaxSerializer implements StructuredSerializer<Tax> {
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'touched',
-      serializers.serialize(object.touched,
-          specifiedType: const FullType(bool)),
       'tableName',
       serializers.serialize(object.tableName,
           specifiedType: const FullType(String)),
@@ -42,7 +39,12 @@ class _$TaxSerializer implements StructuredSerializer<Tax> {
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
     ];
-
+    if (object.touched != null) {
+      result
+        ..add('touched')
+        ..add(serializers.serialize(object.touched,
+            specifiedType: const FullType(bool)));
+    }
     return result;
   }
 
@@ -134,9 +136,6 @@ class _$Tax extends Tax {
     }
     if (id == null) {
       throw new BuiltValueNullFieldError('Tax', 'id');
-    }
-    if (touched == null) {
-      throw new BuiltValueNullFieldError('Tax', 'touched');
     }
     if (tableName == null) {
       throw new BuiltValueNullFieldError('Tax', 'tableName');

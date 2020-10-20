@@ -65,10 +65,10 @@ class DataManager {
       // final ProductTableData product = await store.state.database.productDao
       //     .getItemById(productId: uploadResponse.productId);
       final DatabaseService _databaseService = ProxyService.database;
-      final Map<String, dynamic> productDoc =
+      final Document productDoc =
           await _databaseService.getById(id: uploadResponse.productId);
 
-      final Product product = Product.fromMap(productDoc);
+      final Product product = Product.fromMap(productDoc.toMap());
 
       // TODO(richard): update url here
       // await store.state.database.productDao.updateProduct(

@@ -26,7 +26,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
-
+import 'package:couchbase_lite/couchbase_lite.dart';
 import '../app_state.dart';
 import 'auth_actions.dart';
 
@@ -305,33 +305,21 @@ Future<void> createTemporalOrder(
 
 Future<void> getBusinesses(
     Store<AppState> store, GeneralRepository generalRepository) async {
-  final Logger log = Logging.getLogger('Get business for userId: ');
-  log.d(store.state.user.id);
+  final Logger log = Logging.getLogger('Get business: ');
+  // log.d(store.state.user.id);
   final DatabaseService _databaseService = ProxyService.database;
-  final List<Map<String, dynamic>> business = await _databaseService.filter(
-    equator: AppTables.business + store.state.user.id.toString(),
-    property: 'tableName',
-  );
-  log.d(AppTables.business +store.state.user.id.toString());
+
   // ignore: always_specify_types
-  List<Business> businesses = [];
+  final Document doc =await  _databaseService.getById(id:'business_1');
 
-  if (business.isNotEmpty) {
-    log.d(business[0][AppDatabase.instance.dbName]);
-
-    // ignore: unnecessary_type_check
-    if (business[0][AppDatabase.instance.dbName] is Object) {
-      //one business
-      businesses
-          .add(Business.fromMap(business[0][AppDatabase.instance.dbName]));
-    } else {
-      //in case a user have more than one business this use case is not yet supported
-      businesses = business[0][AppDatabase.instance.dbName]
-          .map((e) => Business.fromMap(e))
-          .toList();
-    }
+  // ignore: always_specify_types
+  final List<Business> businesses = [];
+ 
+  if (doc !=null) {
+       log.i(doc.toMap());
+     businesses.add(Business.fromMap(doc.toMap()));
   }
-
+  log.i(businesses);
   await getBranches(store, generalRepository);
   await createTemporalOrder(generalRepository, store);
 
