@@ -13,6 +13,7 @@ import 'package:flipper/home/widget/supplier/supply_price_widget.dart';
 
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -66,17 +67,26 @@ class BuildAddProductBody extends StatelessWidget {
                       'Product'
                     ),
                     //nameField
-                    Center(
+                    Padding(
+                      padding: const EdgeInsets.only(left:18,right:18),
                       child: Container(
-                        width: 300,
+                        width: double.infinity,
                         child: TextFormField(
                           validator: Validators.isValid,
                           onChanged: (String name) async {
                             model.lock();
                           },
-                          decoration: const InputDecoration(
-                            hintText: 'Name',
-                            focusColor: Colors.black,
+                           decoration: InputDecoration(
+                            hintText: 'Product name',
+                            fillColor: Theme.of(context)
+                                .copyWith(canvasColor: Colors.white)
+                                .canvasColor,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: HexColor('#D0D7E3')),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                           ),
                         ),
                       ),
@@ -88,35 +98,22 @@ class BuildAddProductBody extends StatelessWidget {
                     const ListDivider(
                       height: 24,
                     ),
-                    Center(
+                    Padding(
+                      padding: const EdgeInsets.only(left:18,right:18),
                       child: Container(
-                        width: 300,
-                        child: Text(
+                        width: double.infinity,
+                        child:const Text(
                           'PRICE AND INVENTORY',
-                          style: GoogleFonts.lato(
-                            fontStyle: FontStyle.normal,
-                            color: Theme.of(context).accentColor,
-                            fontSize: Theme.of(context)
-                                .textTheme
-                                .bodyText1
-                                .copyWith(fontSize: 12)
-                                .fontSize,
-                          ),
                         ),
                       ),
                     ),
 
-                    CenterDivider(
-                      width: 300,
+                    const CenterDivider(
+                      width: double.infinity,
                     ),
                     const SectionSelectUnit(),
-                    Center(
-                      child: Container(
-                        width: 300,
-                        child: const Divider(
-                          color: Colors.black,
-                        ),
-                      ),
+                    const CenterDivider(
+                      width: double.infinity,
                     ),
                     RetailPriceWidget(
                       productId: model.productId,
@@ -131,7 +128,10 @@ class BuildAddProductBody extends StatelessWidget {
                         model.createVariant(productId:model.productId);
                       },
                     ),
-                    DescriptionWidget()
+                     const CenterDivider(
+                      width: double.infinity,
+                    ),
+                    const DescriptionWidget()
                   ],
                 ),
               ],

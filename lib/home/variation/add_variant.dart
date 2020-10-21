@@ -1,4 +1,3 @@
-
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
@@ -16,12 +15,12 @@ class AddVariant extends StatefulWidget {
 class _AddVariantState extends State<AddVariant> {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.only(left: 18, right: 18),
       child: SizedBox(
         height: 50,
-        width: 340,
+        width: double.infinity,
         child: OutlineButton(
-          color: HexColor('#ecf0f1'),
           child: const Text('Add Variation'),
           onPressed: widget._onPressedCallback,
         ),

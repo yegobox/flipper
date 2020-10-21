@@ -1,4 +1,3 @@
-import 'package:flipper/domain/redux/functions.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/viewmodels/open_business_model.dart';

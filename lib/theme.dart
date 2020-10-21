@@ -34,7 +34,7 @@ final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
               fontWeight: FontWeight.normal)),
       // Define the default TextTheme. Use this to specify the default
       // text styling for headlines, titles, bodies of text, and more.
-      iconTheme: IconThemeData(color: Colors.grey[350],),
+      iconTheme: IconThemeData(color: Colors.grey[350]),
       textTheme: const TextTheme(
         headline1: TextStyle(
             fontFamily: 'Montserrat',

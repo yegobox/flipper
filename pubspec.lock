@@ -286,9 +286,9 @@ packages:
   customappbar:
     dependency: "direct main"
     description:
-      name: customappbar
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "packages/custom_appbar"
+      relative: true
+    source: path
     version: "1.0.0"
   dart_style:
     dependency: transitive

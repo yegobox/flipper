@@ -1,8 +1,8 @@
 library customappbar;
 
 import 'package:flipper_ui/flipper_ui.dart';
-import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -19,6 +19,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Function _onPressedCallback;
   final Function _onPop;
   final bool _disableButton;
+  // ignore: sort_constructors_first
   const CommonAppBar({
     Widget action,
     bool showActionButton,
@@ -52,7 +53,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Column(
             children: <Widget>[
               ListTile(
-                contentPadding: EdgeInsets.symmetric(horizontal: 0.5),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0.5),
                 leading: IconButton(
                   icon: Icon(
                     _icon ?? Icons.close,
@@ -62,19 +63,18 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                   onPressed: _onPop,
                 ),
                 title: _title == null
-                    ? Text("")
+                    ? const SizedBox.shrink()
                     : Text(
                         _title,
                         overflow: TextOverflow.ellipsis,
-                        // style: AppTheme.appBarTitleTextStyle,
                         style: GoogleFonts.lato(
                           fontStyle: FontStyle.normal,
-                          color: Color.fromRGBO(0, 0, 0, 1.0),
+                          color: const Color.fromRGBO(0, 0, 0, 1.0),
                           fontSize: 20,
                         ),
                       ),
                 trailing: _showActionButton == null || !_showActionButton
-                    ? Text("")
+                    ?const SizedBox.shrink()
                     : Button(
                         disableButton: _disableButton,
                         onPressedCallback: _onPressedCallback,
@@ -85,10 +85,10 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
               Container(
                 child: _additionalText,
               ),
-              Expanded(
+              const Expanded(
                 child: Divider(
-                  color: Colors
-                      .black, //TODO(richard): tweak this divider so it can be visible
+                  // ignore: flutter_style_todos
+                  // color: Colors.black, // TODO(richard): tweak this.
                 ),
               )
             ],

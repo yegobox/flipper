@@ -1,10 +1,10 @@
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 class RetailView extends StatefulWidget {
   const RetailView({Key key}) : super(key: key);
   @override
   _RetailViewState createState() => _RetailViewState();
-  
 }
 
 class _RetailViewState extends State<RetailView> {
@@ -38,8 +38,18 @@ class _RetailViewState extends State<RetailView> {
             //   });
             // }
           },
-          decoration: const InputDecoration(
-              hintText: 'Retail Price', focusColor: Colors.blue),
+          decoration: InputDecoration(
+            hintText: 'Enter Note',
+            fillColor: Theme.of(context)
+                .copyWith(canvasColor: Colors.white)
+                .canvasColor,
+            filled: true,
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: HexColor('#D0D7E3')),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            suffixIcon: const Icon(Icons.book),
+          ),
         ),
       ),
     );

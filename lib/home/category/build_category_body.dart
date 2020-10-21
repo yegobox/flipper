@@ -12,9 +12,10 @@ class BuildCategoryBody extends StatelessWidget {
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, CategoryViewModel model, Widget child) {
-          return Center(
+          return Padding(
+            padding: const EdgeInsets.only(left:18,right:18),
             child: Container(
-              width: 300,
+              width: double.infinity,
               child: GestureDetector(
                 onTap: () {
                   model.navigateTo(path: 'addCategoryScreen');
@@ -29,7 +30,7 @@ class BuildCategoryBody extends StatelessWidget {
                           : CategorySelector(
                               categories: model.data,
                             ),
-                      const Icon(Icons.arrow_forward_ios)
+                      Theme(data:ThemeData(iconTheme: const IconThemeData(color: Colors.black,)) ,child: const Icon(Icons.arrow_forward_ios))
                     ],
                   ),
                 ),

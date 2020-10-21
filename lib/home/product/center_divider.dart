@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CenterDivider extends StatefulWidget {
-  CenterDivider({Key key, this.width}) : super(key: key);
+  const CenterDivider({Key key, this.width}) : super(key: key);
   final double width;
 
   @override
@@ -11,12 +11,9 @@ class CenterDivider extends StatefulWidget {
 class _CenterDividerState extends State<CenterDivider> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: widget.width,
-        child: Divider(
-          color: Colors.black,
-        ),
+    return Container(
+      width: widget.width,
+      child: const Divider(
       ),
     );
   }

@@ -17,13 +17,7 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
  
-  @override
-  void initState() {
-    super.initState();
-    DataManager.supplyPrice = 0;
-    DataManager.retailPrice = 0;
-  }
-
+ 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(

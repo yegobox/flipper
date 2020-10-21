@@ -57,7 +57,10 @@ dependencies:
   cupertino_icons: ^0.1.3
   #local package
   google_fonts:  ^1.1.0
-  customappbar: ^1.0.0
+  customappbar: 
+    path:
+      './packages/custom_appbar'
+      
   flipper_ui: ^1.0.0
   
   rubber: ^0.4.0
