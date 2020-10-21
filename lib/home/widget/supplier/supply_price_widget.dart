@@ -1,31 +1,48 @@
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/product/add/add_product_viewmodel.dart';
+import 'package:flipper/home/widget/supplier/supplier_viewmodel.dart';
 
 import 'package:flipper/presentation/home/common_view_model.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
 
-import 'build_supplier_body.dart';
-
-class SupplyPriceWidget extends StatefulWidget {
+class SupplyPriceWidget extends StatelessWidget {
   const SupplyPriceWidget({Key key, this.vm, this.model}) : super(key: key);
   final CommonViewModel vm;
   final AddProductViewmodel model;
 
   @override
-  _SupplyPriceWidgetState createState() => _SupplyPriceWidgetState();
-}
-
-class _SupplyPriceWidgetState extends State<SupplyPriceWidget> {
-  //show input field to add supply price when variant id in stock is 0 i.e it is still in temp or has not been updated
-  @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return BuildSupplierBody(vm:vm,model:widget.model);
-      },
-    );
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, SupplierViewmodel model, Widget child) {
+          return model.busy == null
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.only(left: 18, right: 18),
+                  child: Container(
+                    width: double.infinity,
+                    child: TextFormField(
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyText1
+                          .copyWith(color: Colors.black),
+                      decoration: InputDecoration(
+                        hintText: 'Supplier Price',
+                        fillColor: Theme.of(context)
+                            .copyWith(canvasColor: Colors.white)
+                            .canvasColor,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: HexColor('#D0D7E3')),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        suffixIcon: const Icon(Icons.book),
+                      ),
+                    ),
+                  ),
+                );
+        },
+        viewModelBuilder: () => SupplierViewmodel());
   }
 }

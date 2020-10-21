@@ -35,7 +35,7 @@ class BuildAddProductBody extends StatelessWidget {
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         if(model.busy){
-          return const CircularProgressIndicator();
+          return const SizedBox.shrink();
         }
         return WillPopScope(
           onWillPop: model.onWillPop,
@@ -123,10 +123,14 @@ class BuildAddProductBody extends StatelessWidget {
                     RetailPriceWidget(
                       models: model, //add productmodel
                     ),
+                    const CenterDivider(
+                      width: double.infinity,
+                    ),
                     SupplyPriceWidget(
                       vm: vm,
                       model: model,
                     ),
+                    
                     const SkuView(),
                     VariationList(productId: vm.tmpItem.id),
                     AddVariant(
