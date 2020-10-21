@@ -1,8 +1,11 @@
+import 'package:flipper/home/product/add/add_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 class RetailView extends StatefulWidget {
-  const RetailView({Key key}) : super(key: key);
+  const RetailView({Key key, this.model}) : super(key: key);
+  final AddProductViewmodel model;
+
   @override
   _RetailViewState createState() => _RetailViewState();
 }
@@ -10,36 +13,15 @@ class RetailView extends StatefulWidget {
 class _RetailViewState extends State<RetailView> {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Padding(
+     padding: const EdgeInsets.only(left:18,right:18),
       child: Container(
-        width: 300,
+        width: double.infinity,
         child: TextFormField(
           keyboardType: TextInputType.number,
-          onChanged: (String retailPrice) async {
-            // FIXME
-            // if (retailPrice != '' || retailPrice == null) {
-            //   final Store<AppState> store = StoreProvider.of<AppState>(context);
-            //   final VariationTableData variation = await widget
-            //       .vm.database.variationDao
-            //       .getVariationById(variantId: widget.vm.variant.id);
-
-            //   await DataManager.updateVariation(
-            //     variation: variation,
-            //     store: store,
-            //     variantName: 'Regular',
-            //     retailPrice: double.parse(retailPrice),
-            //   );
-            //   setState(() {
-            //     DataManager.retailPrice = double.parse(retailPrice);
-            //   });
-            // } else {
-            //   setState(() {
-            //     DataManager.retailPrice = 0.0;
-            //   });
-            // }
-          },
+          controller: widget.model.retailPriceController,
           decoration: InputDecoration(
-            hintText: 'Enter Note',
+            hintText: 'Retail Price',
             fillColor: Theme.of(context)
                 .copyWith(canvasColor: Colors.white)
                 .canvasColor,

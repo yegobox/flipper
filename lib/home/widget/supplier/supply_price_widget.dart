@@ -1,4 +1,5 @@
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/home/product/add/add_product_viewmodel.dart';
 
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +8,9 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'build_supplier_body.dart';
 
 class SupplyPriceWidget extends StatefulWidget {
-  const SupplyPriceWidget({Key key, this.vm}) : super(key: key);
+  const SupplyPriceWidget({Key key, this.vm, this.model}) : super(key: key);
   final CommonViewModel vm;
+  final AddProductViewmodel model;
 
   @override
   _SupplyPriceWidgetState createState() => _SupplyPriceWidgetState();
@@ -22,7 +24,7 @@ class _SupplyPriceWidgetState extends State<SupplyPriceWidget> {
       distinct: true,
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
-        return BuildSupplierBody(vm:vm);
+        return BuildSupplierBody(vm:vm,model:widget.model);
       },
     );
   }

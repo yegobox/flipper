@@ -45,7 +45,7 @@ class ConnectivityService extends StoppableService {
             isOnline = false;
           } on SocketException catch(_) {
             isOnline = false;
-          }
+          }on Exception catch(_){}
         }
         if (isOnline) {
           connectionStatusController.add(_getStatusFromResult(result));

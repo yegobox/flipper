@@ -1,5 +1,7 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/model/variation.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
@@ -18,7 +20,7 @@ class AddProductViewmodel extends BaseModel {
   final Logger log = Logging.getLogger('add product view model:)');
   // ignore: unused_field
   final DatabaseService _databaseService = ProxyService.database;
-  ActionsTableData _actionsSaveItem;
+  
   // ActionsTableData get actions;
 
   ActionsTableData get action {
@@ -39,13 +41,15 @@ class AddProductViewmodel extends BaseModel {
   }
   bool _isLocked = true;
 
-  // bool get fieldIsEmpty {
-  //   return _supplyController.text.length == 0;
-  // }
+  
+  TextEditingController _supplierPriceController;
+  TextEditingController get supplierPriceController {
+    return _supplierPriceController;
+  }
 
-  TextEditingController _supplyController;
-  get textController {
-    return _supplyController;
+  TextEditingController _retailPriceController;
+  TextEditingController get retailPriceController {
+    return _retailPriceController;
   }
 
   Future<bool> onWillPop({BuildContext context}) async {
@@ -82,69 +86,65 @@ class AddProductViewmodel extends BaseModel {
     ProxyService.nav.pop();
   }
 
-  Future<bool> handleCreateItem(
+  Future<void> handleCreateItem(
       {CommonViewModel vm, Store<AppState> store}) async {
-    // final Store<AppState> store = StoreProvider.of<AppState>(context);
-
+   
     await updateProduct(
       productId: vm.tmpItem.id,
       categoryId: store.state.category.id,
       vm: vm,
     );
-    final VariationTableData variation = await vm.database.variationDao
-        .getVariationById(variantId: vm.variant.id);
-
-    await DataManager.updateVariation(
-      variation: variation,
-      supplyPrice: DataManager.supplyPrice ?? 0.0,
+    
+    final Document variation = await _databaseService.getById(id:vm.variant.id);
+    
+    await updateVariation(
+      variation: Variation.fromMap(variation.toMap()),
+      supplyPrice: double.parse(supplierPriceController.text),
       store: store,
       variantName: 'Regular',
-      retailPrice: DataManager.retailPrice ?? 0.0,
+      retailPrice: double.parse(retailPriceController.text),
     );
 
-    await resetSaveButtonStatus(vm);
+    _nameController.text ='';//this will reset button to disabled
 
-    return true;
+    notifyListeners();
+
+  }
+  Future<void> updateVariation({
+    Variation variation,
+    Store<AppState> store,
+    double retailPrice,
+    double supplyPrice,
+    String variantName,
+  }) async {
+    if (variation != null) {
+
+      final Document stock = await _databaseService.getById(id:variation.id);
+
+      final Document variant = await _databaseService.getById(id:variation.id);
+     
+      variant.toMutable()
+      .setString('name',variantName);
+      _databaseService.update(document: variant);
+
+      stock.toMutable()
+      .setDouble('retailPrice',retailPrice)
+      .setDouble('supplyPrice',supplyPrice);
+      _databaseService.update(document: stock);
+    }
   }
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-    final ProductTableData product =
-        await vm.database.productDao.getProductById(productId: productId);
-
-    await vm.database.productDao.updateProduct(
-      product.copyWith(
-        name: DataManager.name,
-        categoryId: categoryId,
-        updatedAt: DateTime.now(),
-        deletedAt: 'null',
-      ),
-    );
+   
+      final Document product = await _databaseService.getById(id:productId);
+      product.toMutable()
+      .setString('name', nameController.text)
+      .setString('categoryId', categoryId)
+      .setString('updatedAt',  DateTime.now().toIso8601String());
+      
+      _databaseService.update(document: product);
     return true;
-  }
-
-  Future<bool> resetSaveButtonStatus(CommonViewModel vm) async {
-    await vm.database.actionsDao
-        .updateAction(_actionsSaveItem.copyWith(isLocked: true));
-
-    await vm.database.actionsDao
-        .updateAction(_actions.copyWith(isLocked: true));
-    return true;
-  }
-
-  void getSaveStatus(CommonViewModel vm) async {
-    final ActionsTableData result =
-        await vm.database.actionsDao.getActionBy('save');
-
-    _actions = result;
-  }
-
-  void getSaveItemStatus(CommonViewModel vm) async {
-    final ActionsTableData result =
-        await vm.database.actionsDao.getActionBy('saveItem');
-
-    _actionsSaveItem = result;
-    notifyListeners();
   }
 
   void createVariant({String productId}) {
@@ -155,18 +155,22 @@ class AddProductViewmodel extends BaseModel {
         arguments: AddVariationScreenArguments(productId:productId));
   }
 
-  
-  
   TextEditingController _nameController;
   TextEditingController get nameController {
     return _nameController;
   }
   void lock() {
     // ignore: prefer_is_empty
-    _nameController.text.length == 0?_isLocked = true:_isLocked = false;
+    log.i(_nameController.text.length);
+    _nameController.text.isEmpty?_isLocked = true:_isLocked = false;
     notifyListeners();
   }
 
+  void initFields(TextEditingController controller) {
+    _nameController = controller;
+    _supplierPriceController = controller;
+    _retailPriceController = controller;
+  }
   // once full refacored
   // ignore: always_specify_types
   Future getTemporalProduct({BuildContext context, CommonViewModel vm}) async {

@@ -16,7 +16,6 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 import 'add_product_viewmodel.dart';
@@ -25,11 +24,15 @@ class BuildAddProductBody extends StatelessWidget {
   const BuildAddProductBody({Key key, this.vm}) : super(key: key);
   final CommonViewModel vm;
 
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<AddProductViewmodel>.reactive(
       viewModelBuilder: () => AddProductViewmodel(),
-      onModelReady: (AddProductViewmodel model) => model.getTemporalProduct(vm: vm,context: context),
+      onModelReady: (AddProductViewmodel model) {
+        model.getTemporalProduct(vm: vm,context: context);
+        model.initFields(TextEditingController());
+      },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         if(model.busy){
           return const CircularProgressIndicator();
@@ -72,6 +75,8 @@ class BuildAddProductBody extends StatelessWidget {
                       child: Container(
                         width: double.infinity,
                         child: TextFormField(
+                          style: Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.black),
+                          controller: model.nameController,
                           validator: Validators.isValid,
                           onChanged: (String name) async {
                             model.lock();
@@ -92,7 +97,7 @@ class BuildAddProductBody extends StatelessWidget {
                       ),
                     ),
                     const CategorySection(),
-                    CenterDivider(
+                    const CenterDivider(
                       width: 300,
                     ),
                     const ListDivider(
@@ -116,10 +121,11 @@ class BuildAddProductBody extends StatelessWidget {
                       width: double.infinity,
                     ),
                     RetailPriceWidget(
-                      productId: model.productId,
+                      models: model, //add productmodel
                     ),
                     SupplyPriceWidget(
                       vm: vm,
+                      model: model,
                     ),
                     const SkuView(),
                     VariationList(productId: vm.tmpItem.id),

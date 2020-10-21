@@ -31,6 +31,7 @@ class DataManager {
   static String description;
   static String sku;
   static String name;
+  
 
   static Future<void> startUploading(
       {String storagePath,
@@ -99,28 +100,29 @@ class DataManager {
     return false;
   }
 
+  @deprecated
   static Future<void> updateVariation({
-    VariationTableData variation,
+    Variation variation,
     Store<AppState> store,
     double retailPrice,
     double supplyPrice,
     String variantName,
   }) async {
+    final DatabaseService _databaseService = ProxyService.database;
     if (variation != null) {
-      final StockTableData stock = await store.state.database.stockDao
-          .getStockByVariantId(
-              branchId: store.state.branch.id, variantId: variation.id);
-      final VariationTableData variant = await store.state.database.variationDao
-          .getVariationById(variantId: variation.id);
-      await store.state.database.variationDao
-          .updateVariation(variant.copyWith(name: variantName));
 
-      await store.state.database.stockDao.updateStock(
-        stock.copyWith(
-          retailPrice: retailPrice,
-          supplyPrice: supplyPrice,
-        ),
-      );
+      final Document stock = await _databaseService.getById(id:variation.id);
+
+      final Document variant = await _databaseService.getById(id:variation.id);
+     
+      variant.toMutable()
+      .setString('name',variantName);
+      _databaseService.update(document: variant);
+
+      stock.toMutable()
+      .setDouble('retailPrice',retailPrice)
+      .setDouble('supplyPrice',supplyPrice);
+      _databaseService.update(document: stock);
     }
   }
 

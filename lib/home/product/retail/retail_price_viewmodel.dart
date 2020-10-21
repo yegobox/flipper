@@ -28,7 +28,7 @@ class RetailPriceViewModel extends BaseModel{
   void getVariations({BuildContext context,String productId}) {
     setBusy(true);
 
-    log.i('loading category of branchId:' +
+    log.i('loading variations of branchId:' +
         StoreProvider.of<AppState>(context).state.branch.id);
     //demo of listening on users table on every entry.
     _databaseService
@@ -46,13 +46,13 @@ class RetailPriceViewModel extends BaseModel{
       final List<Map<String, dynamic>> model = event.map((Result result) {
         return result.toMap();
       }).toList();
-      final List<Unit> list = <Unit>[];
+      final List<Variation> list = <Variation>[];
       // remove unnecessarry nesting "main"appended on each map value
       for (Map<String, dynamic> map in model) {
         // ignore: always_specify_types
         // ignore: always_specify_types
         map.forEach((String key, value) {
-          list.add(Unit.fromMap(value));
+          list.add(Variation.fromMap(value));
         });
       }
       notifyListeners();

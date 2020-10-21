@@ -251,9 +251,9 @@ packages:
   customappbar:
     dependency: transitive
     description:
-      name: customappbar
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../custom_appbar"
+      relative: true
+    source: path
     version: "1.0.0"
   dart_style:
     dependency: transitive
