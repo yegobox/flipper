@@ -110,15 +110,13 @@ class OpenCloseDrawerView extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.all(0.0),
                             onPressed: () {
-                              openBusiness(
-                                  model: model,
-                                  open: businessState == BusinessState.OPEN
-                                      ? true
-                                      : false,
-                                  vm: vm,
-                                  note: _note,
-                                  businessState: businessState,
-                                  float: _float);
+                               model.openBusiness(
+                                vm: vm,
+                                context: context,
+                                float: double.parse(_float.text),
+                                businessState: businessState,
+                                note:_note.text,
+                              );
                             },
                             child: Text(
                               businessState == BusinessState.OPEN

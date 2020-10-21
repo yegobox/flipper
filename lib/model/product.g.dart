@@ -22,9 +22,6 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'touched',
-      serializers.serialize(object.touched,
-          specifiedType: const FullType(bool)),
       'tableName',
       serializers.serialize(object.tableName,
           specifiedType: const FullType(String)),
@@ -67,6 +64,12 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
       result
         ..add('isImageLocal')
         ..add(serializers.serialize(object.isImageLocal,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.touched != null) {
+      result
+        ..add('touched')
+        ..add(serializers.serialize(object.touched,
             specifiedType: const FullType(bool)));
     }
     if (object.isDraft != null) {
@@ -311,9 +314,6 @@ class _$Product extends Product {
     }
     if (id == null) {
       throw new BuiltValueNullFieldError('Product', 'id');
-    }
-    if (touched == null) {
-      throw new BuiltValueNullFieldError('Product', 'touched');
     }
     if (tableName == null) {
       throw new BuiltValueNullFieldError('Product', 'tableName');

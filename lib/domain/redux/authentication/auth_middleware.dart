@@ -21,6 +21,7 @@ import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
@@ -64,8 +65,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     next(action);
 
-    final FlipperNavigationService _navigationService =
-        ProxyService.nav;
+    final FlipperNavigationService _navigationService = ProxyService.nav;
 
     final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
     if (!isLoggedIn) {
@@ -89,9 +89,41 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   };
 }
 
+Future<void> openCloseBusiness({
+  String userId,
+  String name,
+  bool isSocial = false,
+  String businessId,
+  bool isClosed = true,
+}) async {
+  final Document document =
+      await AppDatabase.instance.database.document(userId);
+
+  final Map<String, dynamic> buildMap = {
+    'tableName': AppTables.switchi + userId,
+    'name': name,
+    'isClosed': isClosed,
+    'isSocial': isSocial,
+    'businessId': businessId,
+    // ignore: always_specify_types
+    'channels': [userId]
+  };
+  if (document == null) {
+    try {
+      final MutableDocument newDoc =
+          MutableDocument(id: userId, data: buildMap);
+      await AppDatabase.instance.database.saveDocument(newDoc);
+      // ignore: empty_catches
+    } on PlatformException {}
+  } else {
+    final MutableDocument mutableDoc =
+        document.toMutable().setBoolean('isClosed', isClosed);
+    AppDatabase.instance.database.saveDocument(mutableDoc);
+  }
+}
+
 Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final UserTableData user = await store.state.database.userDao.getUser();
-  final DatabaseService _databaseService = ProxyService.database;
   if (user != null) {
     final Logger log = Logging.getLogger('Current User: ....');
     log.d(user);
@@ -103,12 +135,12 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     await AppDatabase.instance.login(channels: channels);
 
     // start with business closed.
-    await _databaseService.openCloseBusiness(
-        isSocial: false,
-        name: user.username,
-        userId: user.id.toString(),
-        isClosed: true,
-        );
+    await openCloseBusiness(
+      isSocial: false,
+      name: user.username,
+      userId: user.id.toString(),
+      isClosed: true,
+    );
 
     final FUser u = FUser(
       (FUserBuilder p) => p
@@ -310,14 +342,14 @@ Future<void> getBusinesses(
   final DatabaseService _databaseService = ProxyService.database;
 
   // ignore: always_specify_types
-  final Document doc =await  _databaseService.getById(id:'business_1');
+  final Document doc = await _databaseService.getById(id: 'business_1');
 
   // ignore: always_specify_types
   final List<Business> businesses = [];
- 
-  if (doc !=null) {
-       log.i(doc.toMap());
-     businesses.add(Business.fromMap(doc.toMap()));
+
+  if (doc != null) {
+    log.i(doc.toMap());
+    businesses.add(Business.fromMap(doc.toMap()));
   }
   log.i(businesses);
   await getBranches(store, generalRepository);
@@ -331,8 +363,7 @@ Future<void> getBusinesses(
     }
   }
 
-  final FlipperNavigationService _navigationService =
-      ProxyService.nav;
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   if (businesses.isEmpty) {
     if (store.state.user != null) {
