@@ -2,18 +2,18 @@ String appFont = 'HelveticaNeuea';
 // ignore: avoid_classes_with_only_static_members
 class AppTables{
   //table name used to query couchbase_lite data
-  static const String business = 'business_'; //+userId
-  static const String branch = 'branch_'; //+userId
-  static const String tax = 'taxes_'; //+businessId
-  static const String category = 'categories_';  //+ branchId
-  static const String variation = 'variants_';  //+ branchId
-  static const String product = 'products_';  //+ branchId
-  static const String order = 'orders_';  //+ branchId
-  static const String branchProduct = 'branchProducts_'; 
-  static const String unit = 'unit_'; //+branchId
-  static const String stock = 'stock_'; //+branchId
-  static const String switchi = 'switcher_'; //+userId
-  static const String drawerHistory = 'drawerHistory_'; // + branchid
+  static const String business = 'businesses';
+  static const String branch = 'branches';
+  static const String tax = 'taxes';
+  static const String category = 'categories';
+  static const String variation = 'variants';
+  static const String product = 'products'; 
+  static const String order = 'orders';  
+  static const String branchProduct = 'branchProducts'; 
+  static const String unit = 'units'; 
+  static const String stock = 'stock';
+  static const String switchi = 'switchers'; 
+  static const String drawerHistory = 'drawerHistories'; 
 
 }
 
