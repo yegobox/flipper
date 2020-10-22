@@ -213,9 +213,9 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   String get unit => _$this._unit;
   set unit(String unit) => _$this._unit = unit;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
@@ -231,7 +231,7 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
       _productId = _$v.productId;
       _name = _$v.name;
       _unit = _$v.unit;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _channels = _$v.channels?.toBuilder();
       _$v = null;
     }

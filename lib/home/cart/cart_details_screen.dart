@@ -1,7 +1,5 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -59,17 +57,19 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
         ),
         trailing: Padding(
           padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-          child: StreamBuilder(
-              stream: vm.database.stockDao.getStockByProductIdStream(
-                  branchId: vm.branch.id, productId: carts[i].variationId),
-              builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
-                if (snapshot.data == null) {
-                  return Text('');
-                }
-                return Text((snapshot.data[0].retailPrice * carts[i].quantity)
-                        .toString() +
-                    ' RWF');
-              }),
+          child: Text('FIXME')
+          // FIXME:
+          // child: StreamBuilder(
+          //     stream: vm.database.stockDao.getStockByProductIdStream(
+          //         branchId: vm.branch.id, productId: carts[i].variationId),
+          //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+          //       if (snapshot.data == null) {
+          //         return Text('');
+          //       }
+          //       return Text((snapshot.data[0].retailPrice * carts[i].quantity)
+          //               .toString() +
+          //           ' RWF');
+          //     }),
         ),
       ));
     }
@@ -87,15 +87,16 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
   }
 
   void _getTotal(List<Cart> carts, BuildContext context) async {
-    final store = StoreProvider.of<AppState>(context);
-    var total = 0;
-    for (var i = 0; i < carts.length; i++) {
-      final data = await store.state.database.stockDao.getStockByVariantId(
-          variantId: carts[i].variationId, branchId: store.state.branch.id);
-      total += (data.retailPrice.toInt() * carts[i].quantity).toInt();
-    }
-    setState(() {
-      _total = total;
-    });
+    // FIXME:
+    // final store = StoreProvider.of<AppState>(context);
+    // var total = 0;
+    // for (var i = 0; i < carts.length; i++) {
+    //   final data = await store.state.database.stockDao.getStockByVariantId(
+    //       variantId: carts[i].variationId, branchId: store.state.branch.id);
+    //   total += (data.retailPrice.toInt() * carts[i].quantity).toInt();
+    // }
+    // setState(() {
+    //   _total = total;
+    // });
   }
 }

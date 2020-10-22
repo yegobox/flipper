@@ -52,6 +52,12 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
+    if (object.isActive != null) {
+      result
+        ..add('isActive')
+        ..add(serializers.serialize(object.isActive,
+            specifiedType: const FullType(bool)));
+    }
     if (object.showLowStockAlert != null) {
       result
         ..add('showLowStockAlert')
@@ -87,6 +93,10 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
         case 'variantId':
           result.variantId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
+          break;
+        case 'isActive':
+          result.isActive = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
           break;
         case 'lowStock':
           result.lowStock = serializers.deserialize(value,
@@ -139,6 +149,8 @@ class _$Stock extends Stock {
   @override
   final String variantId;
   @override
+  final bool isActive;
+  @override
   final String lowStock;
   @override
   final String currentStock;
@@ -163,6 +175,7 @@ class _$Stock extends Stock {
       this.id,
       this.branchId,
       this.variantId,
+      this.isActive,
       this.lowStock,
       this.currentStock,
       this.supplyPrice,
@@ -222,6 +235,7 @@ class _$Stock extends Stock {
         id == other.id &&
         branchId == other.branchId &&
         variantId == other.variantId &&
+        isActive == other.isActive &&
         lowStock == other.lowStock &&
         currentStock == other.currentStock &&
         supplyPrice == other.supplyPrice &&
@@ -244,10 +258,12 @@ class _$Stock extends Stock {
                                 $jc(
                                     $jc(
                                         $jc(
-                                            $jc($jc(0, value.hashCode),
-                                                id.hashCode),
-                                            branchId.hashCode),
-                                        variantId.hashCode),
+                                            $jc(
+                                                $jc($jc(0, value.hashCode),
+                                                    id.hashCode),
+                                                branchId.hashCode),
+                                            variantId.hashCode),
+                                        isActive.hashCode),
                                     lowStock.hashCode),
                                 currentStock.hashCode),
                             supplyPrice.hashCode),
@@ -265,6 +281,7 @@ class _$Stock extends Stock {
           ..add('id', id)
           ..add('branchId', branchId)
           ..add('variantId', variantId)
+          ..add('isActive', isActive)
           ..add('lowStock', lowStock)
           ..add('currentStock', currentStock)
           ..add('supplyPrice', supplyPrice)
@@ -295,6 +312,10 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
   String _variantId;
   String get variantId => _$this._variantId;
   set variantId(String variantId) => _$this._variantId = variantId;
+
+  bool _isActive;
+  bool get isActive => _$this._isActive;
+  set isActive(bool isActive) => _$this._isActive = isActive;
 
   String _lowStock;
   String get lowStock => _$this._lowStock;
@@ -327,9 +348,9 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
       _$this._channels ??= new ListBuilder<String>();
   set channels(ListBuilder<String> channels) => _$this._channels = channels;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   StockBuilder();
 
@@ -339,6 +360,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
       _id = _$v.id;
       _branchId = _$v.branchId;
       _variantId = _$v.variantId;
+      _isActive = _$v.isActive;
       _lowStock = _$v.lowStock;
       _currentStock = _$v.currentStock;
       _supplyPrice = _$v.supplyPrice;
@@ -346,7 +368,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
       _canTrackingStock = _$v.canTrackingStock;
       _showLowStockAlert = _$v.showLowStockAlert;
       _channels = _$v.channels?.toBuilder();
-      _tableName = _$v.table;
+      _table = _$v.table;
       _$v = null;
     }
     return this;
@@ -375,6 +397,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
               id: id,
               branchId: branchId,
               variantId: variantId,
+              isActive: isActive,
               lowStock: lowStock,
               currentStock: currentStock,
               supplyPrice: supplyPrice,

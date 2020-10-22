@@ -11,8 +11,6 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 
-import 'data/respositories/branch_repository.dart';
-import 'data/respositories/business_repository.dart';
 import 'data/respositories/general_repository.dart';
 import 'data/respositories/user_repository.dart';
 import 'domain/redux/app_actions/app_action_middleware.dart';
@@ -45,8 +43,7 @@ class _FlipperAppState extends State<FlipperApp> {
   static final GlobalKey<NavigatorState> _navigatorKey =
       GlobalKey<NavigatorState>();
   final UserRepository userRepo = UserRepository();
-  final BusinessRepository businessRepo = BusinessRepository();
-  final BranchRepository branchRepo = BranchRepository();
+  
   final GeneralRepository generalRepo = GeneralRepository();
 
 
@@ -61,13 +58,13 @@ class _FlipperAppState extends State<FlipperApp> {
       appReducer,
       initialState: AppState.init(),
       middleware: createAuthenticationMiddleware(
-          userRepo, businessRepo, branchRepo, generalRepo, _navigatorKey)
-        ..addAll(createBusinessMiddleware(_navigatorKey, businessRepo))
+          userRepo, generalRepo, _navigatorKey)
+        ..addAll(createBusinessMiddleware(_navigatorKey))
         ..addAll(permissionMiddleware(_navigatorKey))
         ..addAll(sellMiddleware(_navigatorKey))
         ..addAll(AppActionMiddleware(_navigatorKey, generalRepo))
         ..addAll(userMiddleware(userRepo, _navigatorKey))
-        ..addAll(createBranchMiddleware(_navigatorKey, branchRepo, generalRepo))
+        ..addAll(createBranchMiddleware(_navigatorKey, generalRepo))
         ..addAll(
           createPushMiddleware(
             userRepo,

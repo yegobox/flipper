@@ -89,24 +89,25 @@ class _TabsState extends State<Tabs> {
   }
 
   Future buildReport({String filter}) async {
-    List<OrderDetailTableData> report = await widget
-        .store.state.database.stockDao
-        .getReport(dateFilter: filter);
-    double cost = 0;
-    for (var i = 0; i < report.length; i++) {
-      //load retail and sum them
-      if (report[i].productName != 'custom-product') {
-        //i.e custom sell does not have stock at hand.
-        StockTableData stock = await widget.store.state.database.stockDao
-            .getStockByVariantId(
-                variantId: report[i].variationId,
-                branchId: widget.store.state.branch.id);
+    // FIXME:
+    // List<OrderDetailTableData> report = await widget
+    //     .store.state.database.stockDao
+    //     .getReport(dateFilter: filter);
+    // double cost = 0;
+    // for (var i = 0; i < report.length; i++) {
+    //   //load retail and sum them
+    //   if (report[i].productName != 'custom-product') {
+    //     //i.e custom sell does not have stock at hand.
+    //     StockTableData stock = await widget.store.state.database.stockDao
+    //         .getStockByVariantId(
+    //             variantId: report[i].variationId,
+    //             branchId: widget.store.state.branch.id);
 
-        cost += stock.retailPrice;
-      }
-    }
-    _grossProfit = report.fold(0, (a, b) => a + (b.subTotal));
-    _netProfit = _grossProfit - cost;
+    //     cost += stock.retailPrice;
+    //   }
+    // }
+    // _grossProfit = report.fold(0, (a, b) => a + (b.subTotal));
+    // _netProfit = _grossProfit - cost;
 
     widget.store.dispatch(ReportAction(
         report: Report((report) => report

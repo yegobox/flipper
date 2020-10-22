@@ -1,9 +1,8 @@
-import 'package:flipper/data/main_database.dart';
+import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class VariationWidget extends StatefulWidget {
@@ -14,7 +13,7 @@ class VariationWidget extends StatefulWidget {
       @required this.vm})
       : super(key: key);
 
-  final VariationTableData variation;
+  final Variation variation;
   final BuildContext context;
   final CommonViewModel vm;
 
@@ -38,46 +37,47 @@ class _VariationWidgetState extends State<VariationWidget> {
             // ),
           );
         },
-        child: StreamBuilder(
-            stream: widget.vm.database.stockDao.getStockByProductIdStream(
-                branchId: widget.vm.branch.id, productId: '001'),
-            builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
-              if (snapshot.data == null) {
-                return Text('');
-              }
-              return Column(
-                children:
-                    buildVariantRow(snapshot, context, widget.variation.name),
-              );
-            }),
+        child: SizedBox.shrink()
+        // child: StreamBuilder(
+        //     stream: widget.vm.database.stockDao.getStockByProductIdStream(
+        //         branchId: widget.vm.branch.id, productId: '001'),
+        //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+        //       if (snapshot.data == null) {
+        //         return Text('');
+        //       }
+        //       return Column(
+        //         children:
+        //             buildVariantRow(snapshot, context, widget.variation.name),
+        //       );
+        //     }),
       )
     ]);
   }
 
-  List<Widget> buildVariantRow(AsyncSnapshot<List<StockTableData>> snapshot,
-      BuildContext context, String name) {
-    List<Widget> list = [];
-    for (var i = 0; i < snapshot.data.length; i++) {
-      list.add(ListTile(
-        leading: Icon(
-          Icons.dehaze,
-        ),
-        subtitle: Text('${name}\nRWF${snapshot.data[i].retailPrice}'),
-        trailing: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          FlatButton(
-            child: Text(
-              snapshot.data == null
-                  ? 'Receive Stock'
-                  : '${snapshot.data[i].currentStock}' + 'in Stock',
-            ),
-            onPressed: () {
-              _navigationService.navigateTo(Routing.receiveStock);
-            },
-          )
-        ]),
-        dense: true,
-      ));
-    }
-    return list;
-  }
+  // List<Widget> buildVariantRow(AsyncSnapshot<List<StockTableData>> snapshot,
+  //     BuildContext context, String name) {
+  //   List<Widget> list = [];
+  //   for (var i = 0; i < snapshot.data.length; i++) {
+  //     list.add(ListTile(
+  //       leading: Icon(
+  //         Icons.dehaze,
+  //       ),
+  //       subtitle: Text('${name}\nRWF${snapshot.data[i].retailPrice}'),
+  //       trailing: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+  //         FlatButton(
+  //           child: Text(
+  //             snapshot.data == null
+  //                 ? 'Receive Stock'
+  //                 : '${snapshot.data[i].currentStock}' + 'in Stock',
+  //           ),
+  //           onPressed: () {
+  //             _navigationService.navigateTo(Routing.receiveStock);
+  //           },
+  //         )
+  //       ]),
+  //       dense: true,
+  //     ));
+  //   }
+  //   return list;
+  // }
 }

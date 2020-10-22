@@ -221,9 +221,9 @@ class TaxBuilder implements Builder<Tax, TaxBuilder> {
   bool get touched => _$this._touched;
   set touched(bool touched) => _$this._touched = touched;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   bool _isDefault;
   bool get isDefault => _$this._isDefault;
@@ -249,7 +249,7 @@ class TaxBuilder implements Builder<Tax, TaxBuilder> {
       _name = _$v.name;
       _id = _$v.id;
       _touched = _$v.touched;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _isDefault = _$v.isDefault;
       _percentage = _$v.percentage;
       _businessId = _$v.businessId;

@@ -33,7 +33,7 @@ class VariantWidget extends StatefulWidget {
 }
 
 class _VariantWidgetState extends State<VariantWidget> {
-  ActionsTableData _actions;
+  
 
   int _deleteCount;
   final FlipperNavigationService _navigationService =
@@ -63,7 +63,7 @@ class _VariantWidgetState extends State<VariantWidget> {
                 Routing.navigator.pop();
               },
               title: 'Edit Item',
-              disableButton: _actions == null ? true : _actions.isLocked,
+              disableButton: true,
               showActionButton: true,
               onPressedCallback: () async {
                 model.handleEditItem(selections: _selections);
@@ -174,32 +174,32 @@ class _VariantWidgetState extends State<VariantWidget> {
                             trailing: Wrap(
                               children: <Widget>[
                                 // FIXME(ricahrd):
-                                StreamBuilder(
-                                    stream: widget.vm.database.productDao
-                                        .getItemByIdStream(widget.productId),
-                                    builder: (context,
-                                        AsyncSnapshot<List<ProductTableData>>
-                                            item) {
-                                      if (item.data == null) {
-                                        return Text('');
-                                      }
-                                      if (item.data.length == 0) {
-                                        return Text('');
-                                      }
+                                // StreamBuilder(
+                                //     stream: widget.vm.database.productDao
+                                //         .getItemByIdStream(widget.productId),
+                                //     builder: (context,
+                                //         AsyncSnapshot<List<ProductTableData>>
+                                //             item) {
+                                //       if (item.data == null) {
+                                //         return Text('');
+                                //       }
+                                //       if (item.data.length == 0) {
+                                //         return Text('');
+                                //       }
 
-                                      return StreamBuilder(
-                                          stream: widget.vm.database.unitDao
-                                              .getUnitStream(
-                                                  item.data[0].idLocal),
-                                          builder: (context,
-                                              AsyncSnapshot<List<UnitTableData>>
-                                                  unit) {
-                                            if (unit.data == null) {
-                                              return Text('');
-                                            }
-                                            return Text(unit.data[0].name);
-                                          });
-                                    }),
+                                //       return StreamBuilder(
+                                //           stream: widget.vm.database.unitDao
+                                //               .getUnitStream(
+                                //                   item.data[0].idLocal),
+                                //           builder: (context,
+                                //               AsyncSnapshot<List<UnitTableData>>
+                                //                   unit) {
+                                //             if (unit.data == null) {
+                                //               return Text('');
+                                //             }
+                                //             return Text(unit.data[0].name);
+                                //           });
+                                //     }),
                                 const Icon(Icons.arrow_forward_ios)
                               ],
                             ),
@@ -219,14 +219,15 @@ class _VariantWidgetState extends State<VariantWidget> {
                           color: HexColor('#ecf0f1'),
                           child: const Text('Add Variation'),
                           onPressed: () async {
-                            if (_actions != null) {
+                            // if (_actions != null) {
+                              
                               // FIXME(richard): change storage
-                              widget.vm.database.actionsDao.updateAction(
-                                  _actions.copyWith(isLocked: true));
+                              // widget.vm.database.actionsDao.updateAction(
+                              //     _actions.copyWith(isLocked: true));
 
-                              Routing.navigator
-                                  .pushNamed(Routing.addVariationScreen);
-                            }
+                              // Routing.navigator
+                              //     .pushNamed(Routing.addVariationScreen);
+                            // }
                           },
                         ),
                       ),

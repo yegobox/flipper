@@ -1,11 +1,10 @@
-
 import 'package:couchbase_lite/couchbase_lite.dart';
+import 'package:flipper/helper/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
-import 'package:uuid/uuid.dart';
 
 import 'base_model.dart';
 
@@ -20,7 +19,7 @@ class MainViewModel extends BaseModel {
     setBusy(true);
 
     _databaseService
-        .observer(equator: 'category_'+branchId, property: 'table')
+        .observer(equator: AppTables.category, property: 'table')
         .stream
         .listen((ResultSet event) {
       final List<Map<String, dynamic>> model = event.map((Result result) {
@@ -32,14 +31,14 @@ class MainViewModel extends BaseModel {
       for (Map map in model) {
         // ignore: always_specify_types
         map.forEach((key, value) {
-          _categories.add(Category.fromMap(value));
+          log.i(value);
+          // _categories.add(Category.fromMap(value));
         });
       }
-     
+
       notifyListeners();
 
       setBusy(false);
     });
   }
-  
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:couchbase_lite/couchbase_lite.dart' as lite;
-import 'package:flipper/data/main_database.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
+import 'package:flipper/services/api/fake_api.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/utils/logger.dart';
@@ -9,12 +9,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-
-import 'package:uuid/uuid.dart';
+import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 
 import 'domain/redux/app_state.dart';
 
-typedef ResultSetCallback = void Function(lite.ResultSet results);
+typedef ResultSetCallback = void Function(ResultSet results);
 
 
 class AppDatabase {
@@ -26,23 +25,23 @@ class AppDatabase {
   String dbName = 'main';
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
-  lite.ListenerToken _replicatorListenerToken;
+  ListenerToken _replicatorListenerToken;
   lite.Database database;
-  lite.Replicator replicator;
-  lite.ListenerToken _docListenerToken;
-  lite.ListenerToken _dbListenerToken;
+  Replicator replicator;
+  ListenerToken _docListenerToken;
+  ListenerToken _dbListenerToken;
 
   @deprecated
-  Future<lite.Document> createDocumentIfNotExists(
+  Future<Document> createDocumentIfNotExists(
       String id, Map<String, dynamic> map) async {
     try {
-      final lite.Document oldDoc = await database.document(id);
+      final Document oldDoc = await database.document(id);
       if (oldDoc != null) {
         return oldDoc;
       }
 
-      final lite.MutableDocument newDoc =
-          lite.MutableDocument(id: id, data: map);
+      final MutableDocument newDoc =
+          MutableDocument(id: id, data: map);
       if (await database.saveDocument(newDoc)) {
         return newDoc;
       } else {
@@ -59,10 +58,10 @@ class AppDatabase {
       database = await lite.Database.initWithName(dbName);
       // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
       final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
-      final lite.ReplicatorConfiguration config =
-          lite.ReplicatorConfiguration(database, 'ws://$gatewayUrl/main');
+      final ReplicatorConfiguration config =
+          ReplicatorConfiguration(database, 'ws://$gatewayUrl/main');
 
-      config.replicatorType = lite.ReplicatorType.pushAndPull;
+      config.replicatorType = ReplicatorType.pushAndPull;
       config.continuous = true;
       config.channels = channels;
 
@@ -72,10 +71,10 @@ class AppDatabase {
       log.d('password:' + password);
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
-      // config.authenticator = lite.BasicAuthenticator(username, password);
-      replicator = lite.Replicator(config);
+      // config.authenticator = BasicAuthenticator(username, password);
+      replicator = Replicator(config);
 
-      replicator.addChangeListener((lite.ReplicatorChange event) {
+      replicator.addChangeListener((ReplicatorChange event) {
         if (event.status.error != null) {
           print('Error: ' + event.status.error);
         }
@@ -87,24 +86,24 @@ class AppDatabase {
       const String indexName = 'TypeNameIndex';
       final List<String> indices = await database.indexes;
       if (!indices.contains(indexName)) {
-        final lite.ValueIndex index = lite.IndexBuilder.valueIndex(items: [
-          lite.ValueIndexItem.property('type'),
-          lite.ValueIndexItem.expression(lite.Expression.property('name'))
+        final ValueIndex index = IndexBuilder.valueIndex(items: [
+          ValueIndexItem.property('type'),
+          ValueIndexItem.expression(Expression.property('name'))
         ]);
         await database.createIndex(index, withName: indexName);
       }
 
       _dbListenerToken =
-          database.addChangeListener((lite.DatabaseChange dbChange) async {
+          database.addChangeListener((DatabaseChange dbChange) async {
         for (String id in dbChange.documentIDs) {
          
-          final lite.Document document = await database.document(id);
+          final Document document = await database.document(id);
           //until we save document right in all place keep this code here to keep things smooth.
           if (document != null && !document.getBoolean('touched')) {
             log.d('change in id: $id');
             //only update once to avoid infinite loop
             log.i('updated non touched document,we update the document to make the id be usable for update');
-            final lite.MutableDocument mutableDoc = document
+            final MutableDocument mutableDoc = document
                 .toMutable()
                 .setBoolean('touched', true)
                 .setString(
@@ -132,8 +131,8 @@ class AppDatabase {
 
     await replicator.removeChangeListener(_replicatorListenerToken);
     _replicatorListenerToken =
-        replicator.addChangeListener((lite.ReplicatorChange event) async {
-      if (event.status.activity == lite.ReplicatorActivityLevel.stopped) {
+        replicator.addChangeListener((ReplicatorChange event) async {
+      if (event.status.activity == ReplicatorActivityLevel.stopped) {
         await database.close();
         await replicator.removeChangeListener(_replicatorListenerToken);
         await replicator.dispose();
@@ -143,12 +142,6 @@ class AppDatabase {
     await replicator.stop();
   }
 
-
-  // ignore: sort_constructors_first
-  // CouchBase(): super();
-
-  //create user
-  // ignore: always_specify_types
   @deprecated
   Future<void> createUser(Map map) async {
     assert(map['_id'] != null);
@@ -165,413 +158,18 @@ class AppDatabase {
     final DatabaseService _databaseService = ProxyService.database;
     _databaseService.insert(id:map['id'],data:map);
   }
-  @deprecated
-  Future<void> syncRemoteToLocal({Store<AppState> store}) async {
-    //load all app units:
-    await syncUnit(store);
-  }
-  @deprecated
-  Future<void> syncUnit(Store<AppState> store) async {
+ 
+  Future<void> initialAppData() async {
     // ignore: always_specify_types
-    final List<Map<String, String>> units = [
-      {'name': 'Per Item', 'value': ''},
-      {'name': 'Per Kilogram (kg)', 'value': 'kg'},
-      {'name': 'Per Cup (c)', 'value': 'c'},
-      {'name': 'Per Liter (l)', 'value': 'l'},
-      {'name': 'Per Pound (lb)', 'value': 'lb'},
-      {'name': 'Per Pint (pt)', 'value': 'pt'},
-      {'name': 'Per Acre (ac)', 'value': 'ac'},
-      {'name': 'Per Centimeter (cm)', 'value': 'cm'},
-      {'name': 'Per Cubic Footer (cu ft)', 'value': 'cu ft'},
-      {'name': 'Per Day (day)', 'value': 'day'},
-      {'name': 'Footer (ft)', 'value': 'ft'},
-      {'name': 'Per Gram (g)', 'value': 'g'},
-      {'name': 'Per Hour (hr)', 'value': 'hr'},
-      {'name': 'Per Minute (min)', 'value': 'min'},
-      {'name': 'Per Acre (ac)', 'value': 'ac'},
-      {'name': 'Per Cubic Inch (cu in)', 'value': 'cu in'},
-      {'name': 'Per Cubic Yard (cu yd)', 'value': 'cu yd'},
-      {'name': 'Per Fluid Ounce (fl oz)', 'value': 'fl oz'},
-      {'name': 'Per Gallon (gal)', 'value': 'gal'},
-      {'name': 'Per Inch (in)', 'value': 'in'},
-      {'name': 'Per Kilometer (km)', 'value': 'km'},
-      {'name': 'Per Meter (m)', 'value': 'm'},
-      {'name': 'Per Mile (mi)', 'value': 'mi'},
-      {'name': 'Per Milligram (mg)', 'value': 'mg'},
-      {'name': 'Per Milliliter (mL)', 'value': 'mL'},
-      {'name': 'Per Millimeter (mm)', 'value': 'mm'},
-      {'name': 'Per Millisecond (ms)', 'value': 'ms'},
-      {'name': 'Per Ounce (oz)', 'value': 'oz'},
-      {'name': 'Per  Quart (qt)', 'value': 'qt'},
-      {'name': 'Per Second (sec)', 'value': 'sec'},
-      {'name': 'Per Shot (sh)', 'value': 'sh'},
-      {'name': 'Per Square Centimeter (sq cm)', 'value': 'sq cm'},
-      {'name': 'Per Square Foot (sq ft)', 'value': 'sq ft'},
-      {'name': 'Per Square Inch (sq in)', 'value': 'sq in'},
-      {'name': 'Per Square Kilometer (sq km)', 'value': 'sq km'},
-      {'name': 'Per Square Meter (sq m)', 'value': 'sq m'},
-      {'name': 'Per Square Mile (sq mi)', 'value': 'sq mi'},
-      {'name': 'Per Square Yard (sq yd)', 'value': 'sq yd'},
-      {'name': 'Per Stone (st)', 'value': 'st'},
-      {'name': 'Per Yard (yd)', 'value': 'yd'}
-    ];
-    for (int i = 0; i < units.length; i++) {
-      //insert or update unit in table set focus to false for all.
-      final UnitTableData unit = await store.state.database.unitDao
-          .getUnitByName(name: units[i]['name']);
-
-      UnitTableData unitTableData;
-      if (units[i]['value'] == 'kg') {
-        unitTableData =
-            //ignore:missing_required_param
-            UnitTableData(
-          name: units[i]['name'],
-          focused: true,
-          value: units[i]['value'],
-        );
+    // TODO: should add initial data only once!
+    for (int i = 0; i < mockUnits.length; i++) {
+     
+      if (mockUnits[i]['value'] == 'kg') {
+         database.saveDocument(MutableDocument(data:{'name':mockUnits[i]['name'],'focused': true}));
       } else {
-        unitTableData =
-            //ignore:missing_required_param
-            UnitTableData(
-                name: units[i]['name'],
-                focused: false,
-                value: units[i]['value']);
-      }
-
-      if (unit == null) {
-        await store.state.database.unitDao.insert(unitTableData);
-      } else {
-        await store.state.database.unitDao
-            .updateUnit(unitTableData.copyWith(id: unit.id));
+        database.saveDocument(MutableDocument(data:{'name':mockUnits[i]['name'],'focused': false}));
       }
     }
-  }
-  @deprecated
-  Future<dynamic> createVariant(Map map) async {
-    assert(map['_id'] != null);
-
-    final lite.Document variants = await database.document(map['id']);
-
-    assert(map['channels'] != null);
-    assert(map['SKU'] != null);
-    assert(map['name'] != null);
-    assert(map['productId'] != null);
-    assert(map['id'] != null);
-    assert(map['createdAt'] != null);
-    assert(map['updatedAt'] != null);
-
-    List m = [map];
-
-    variants
-        .toMutable()
-        .setList('variants', m)
-        .setList('channels', [map['channels']])
-        .setString('uid', Uuid().v1())
-        .setString('_id', map['_id']);
-
-    return await database.saveDocument(variants);
   }
  
-  @deprecated
-  Future<dynamic> createStockHistory(Map map) async {
-    assert(map['_id'] != null);
-
-    assert(map['channels'] != null);
-    assert(map['variantId'] != null);
-    assert(map['stockId'] != null);
-    assert(map['quantity'] != null);
-    assert(map['reason'] != null);
-    assert(map['note'] != null);
-    assert(map['updatedAt'] != null);
-    assert(map['createdAt'] != null);
-    assert(map['id'] != null);
-
-    // ignore: always_specify_types
-    final List<Map> m = [map];
-    final lite.Where query = lite.QueryBuilder.select([lite.SelectResult.all()])
-        .from(dbName)
-        .where(lite.Expression.property('id')
-            .equalTo(lite.Expression.string(map['id'])));
-    // Run the query.
-    try {
-      final lite.ResultSet result = await query.execute();
-
-      if (!result.allResults().isNotEmpty) {
-        final lite.MutableDocument mutableDoc = lite.MutableDocument()
-            .setList('stockHistory', m)
-            .setString('id', map['id'])
-            // ignore: always_specify_types
-            .setList('channels', [map['channels']])
-            .setString('uid', Uuid().v1())
-            .setString('_id', map['_id']);
-        try {
-          await database.saveDocument(mutableDoc);
-        } on PlatformException {
-          return 'Error saving document';
-        }
-      } else {
-        //todo: deal with result return [] of them.....
-        final List<Map<String, dynamic>> model = result.map((result) {
-          // return Beer.fromMap();
-          return result.toMap();
-        }).toList();
-      }
-    } on PlatformException {
-      // ignore: prefer_single_quotes
-      return "Error running the query";
-    }
-  }
-  @deprecated
-  Future<dynamic> createStock(Map map) async {
-    assert(map['_id'] != null);
-
-    final lite.Document stocks = await database.document(map['id']);
-
-    assert(map['channels'] != null);
-    assert(map['productId'] != null);
-    assert(map['retailPrice'] != null);
-    assert(map['supplyPrice'] != null);
-    assert(map['canTrackingStock'] != null);
-    assert(map['lowStock'] != null);
-    assert(map['variantId'] != null);
-    assert(map['showLowStockAlert'] != null);
-    assert(map['currentStock'] != null);
-    assert(map['isActive'] != null);
-    assert(map['branchId'] != null);
-    assert(map['branchId'] != null);
-    assert(map['id'] != null);
-    assert(map['createdAt'] != null);
-    assert(map['updatedAt'] != null);
-
-    List m = [map];
-
-    stocks
-        .toMutable()
-        .setList('stocks', m)
-        .setString('channels', map['channels'])
-        .setString('uid', Uuid().v1())
-        .setString('_id', map['_id']);
-
-    return await database.saveDocument(stocks);
-  }
-  @deprecated
-  Future<dynamic> syncLocalToRemote(
-      {Store<AppState> store, String partial}) async {
-    // //L stands for local and R stands for remote.
-    switch (partial) {
-      case 'Business':
-        await syncBusinessLRemote(store);
-        break;
-      case 'Variant':
-        await syncVariantLRemote(store);
-        break;
-      case 'Stock':
-        await syncStockLRemote(store);
-        break;
-      case 'Order':
-        await syncOrderLRemote(store);
-        break;
-      default:
-        await syncBusinessLRemote(store);
-        await syncVariantLRemote(store);
-        await syncProductsLRemote(store);
-        await syncStockLRemote(store);
-    }
-  }
-  @deprecated
-  Future<void> syncBranchProductLRemote(Store<AppState> store) async {
-    final List<BranchProductTableData> branchProducts =
-        await store.state.database.branchProductDao.branchProducts();
-
-    final lite.Document bP = await database
-        .document('branchProducts_' + store.state.user.id.toString());
-    // return await createDocumentIfNotExists(map['_id'], map);
-
-    // ignore: always_specify_types
-    final List mapTypeListBranchProducts = [];
-    for (int i = 0; i < branchProducts.length; i++) {
-      final Map map = {
-        'branchId': branchProducts[i].branchId,
-        'id': branchProducts[i].id,
-        'branchProducts_': store.state.user.id.toString(),
-        'productId': branchProducts[i].productId,
-      };
-      mapTypeListBranchProducts.add(map);
-    }
-
-    bP
-        .toMutable()
-        .setList('branchProducts', mapTypeListBranchProducts)
-        // .setList('channels', [store.state.user.id.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'branchProducts_' + store.state.user.id.toString());
-
-    await database.saveDocument(bP);
-  }
-  @deprecated
-  Future<lite.Document> syncStockLRemote(Store<AppState> store) async {
-    List<StockTableData> stocks =
-        await store.state.database.stockDao.getStocks();
-
-    lite.Document stock =
-        await database.document(store.state.user.id.toString());
-
-    final List mapTypeListStocks = [];
-    for (int i = 0; i < stocks.length; i++) {
-      Map map = {
-        'currentStock': stocks[i].currentStock,
-        'id': stocks[i].id,
-        'lowStock': stocks[i].lowStock,
-        'canTrackingStock': stocks[i].canTrackingStock,
-        'showLowStockAlert': stocks[i].showLowStockAlert,
-        'isActive': stocks[i].isActive,
-        'supplyPrice': stocks[i].supplyPrice,
-        'retailPrice': stocks[i].retailPrice,
-        'variantId': stocks[i].variantId,
-        'branchId': stocks[i].branchId,
-        'productId': stocks[i].productId,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
-      };
-      mapTypeListStocks.add(map);
-    }
-
-    stock
-        .toMutable()
-        .setList('stocks', mapTypeListStocks)
-        // .setList('channels', [store.state.user.id.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'stocks_' + store.state.user.id.toString());
-
-    await database.saveDocument(stock);
-    return stock;
-  }
-  @deprecated
-  Future syncProductsLRemote(Store<AppState> store) async {
-    List<ProductTableData> products =
-        await store.state.database.productDao.getProducts();
-
-    // Document product =
-
-    final lite.Document product =
-        await database.document(store.state.user.id.toString());
-
-    final List mapTypeListProducts = [];
-    for (int i = 0; i < products.length; i++) {
-      Map map = {
-        'name': products[i].name,
-        'id': products[i].id,
-        'color': products[i].color,
-        'picture': products[i].picture,
-        'active': products[i].active,
-        'hasPicture': products[i].hasPicture,
-        'isDraft': products[i].isDraft,
-        'isCurrentUpdate': products[i].isCurrentUpdate,
-        'description': products[i].description,
-        'businessId': products[i].businessId,
-        'supplierId': products[i].supplierId,
-        'categoryId': products[i].categoryId,
-        'taxId': products[i].taxId,
-        'createdAt': products[i].createdAt.toIso8601String(),
-        'updatedAt': products[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : products[i].updatedAt.toIso8601String(),
-      };
-      mapTypeListProducts.add(map);
-    }
-
-    product
-        .toMutable()
-        .setList('products', mapTypeListProducts)
-        // .setList('channels', [store.state.user.id.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'products_' + store.state.user.id.toString());
-
-    await database.saveDocument(product);
-  }
-  @deprecated
-  Future<List<VariationTableData>> syncVariantLRemote(
-      Store<AppState> store) async {
-    List<VariationTableData> variations =
-        await store.state.database.variationDao.getVariations();
-
-    final lite.Document variant =
-        await database.document(store.state.user.id.toString());
-
-    final List mapTypeListVariants = [];
-    for (int i = 0; i < variations.length; i++) {
-      Map map = {
-        'name': variations[i].name,
-        'id': variations[i].id,
-        'sku': variations[i].sku,
-        'unit': variations[i].unit,
-        'productId': variations[i].productId,
-        'createdAt': variations[i].createdAt.toIso8601String(),
-        'updatedAt': variations[i].updatedAt == null
-            ? DateTime.now().toIso8601String()
-            : variations[i].updatedAt.toIso8601String(),
-      };
-      mapTypeListVariants.add(map);
-    }
-
-    variant
-        .toMutable()
-        .setList('variants', mapTypeListVariants)
-        // .setList('channels', [store.state.user.id.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'variants_' + store.state.user.id.toString());
-
-    await database.saveDocument(variant);
-    return variations;
-  }
-  @deprecated
-  Future syncOrderLRemote(Store<AppState> store) async {}
-  @deprecated
-  Future syncOrderDetailLRemote(Store<AppState> store) async {}
-  @deprecated
-  Future<void> syncOrdersLRemote(Store<AppState> store) async {}
-  @deprecated
-  Future<void> syncBusinessLRemote(Store<AppState> store) async {}
-  @deprecated
-  void insertHistory(Store<AppState> store, StockTableData stock) {
-    store.state.database.stockHistoryDao.insert(
-      //ignore:missing_required_param
-      StockHistoryTableData(
-        id: Uuid().v1(),
-        note: stock.action + stock.currentStock.toString() + 'qty',
-        reason: stock.action,
-        stockId: stock.id,
-        variantId: stock.variantId,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        quantity: stock.currentStock,
-      ),
-    );
-  }
-  @deprecated
-  // ignore: always_declare_return_types
-  partialSyncHistory(
-      {StockHistoryTableData history, Store<AppState> store}) async {
-    final lite.Document histo = await database
-        .document('stockHistory_' + store.state.user.id.toString());
-
-    final List mapHistory = [];
-    Map map = {
-      'id': history.id,
-      'stockId': history.id,
-      'reason': history.reason,
-      'variantId': history.variantId,
-      'stockHistory_': store.state.user.id.toString(),
-      'note': history.note,
-      'quantity': history.quantity,
-    };
-    mapHistory.add(map);
-    histo
-        .toMutable()
-        .setList('stockHistory', mapHistory)
-        // .setList('channels', [store.state.user.id.toString()])
-        .setString('uid', Uuid().v1())
-        .setString('_id', 'stockHistory_' + store.state.user.id.toString());
-    await database.saveDocument(histo);
-  }
 }

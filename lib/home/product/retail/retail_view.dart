@@ -18,6 +18,7 @@ class _RetailViewState extends State<RetailView> {
       child: Container(
         width: double.infinity,
         child: TextFormField(
+          style: Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.black),
           keyboardType: TextInputType.number,
           controller: widget.model.retailPriceController,
           decoration: InputDecoration(

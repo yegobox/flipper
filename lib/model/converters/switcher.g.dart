@@ -260,9 +260,9 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
   bool get isSocial => _$this._isSocial;
   set isSocial(bool isSocial) => _$this._isSocial = isSocial;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   double _openingFLoat;
   double get openingFLoat => _$this._openingFLoat;
@@ -292,7 +292,7 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
       _cashierName = _$v.cashierName;
       _isClosed = _$v.isClosed;
       _isSocial = _$v.isSocial;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _openingFLoat = _$v.openingFLoat;
       _closingFloat = _$v.closingFloat;
       _displayText = _$v.displayText;

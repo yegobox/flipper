@@ -179,9 +179,9 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   String _productId;
   String get productId => _$this._productId;
@@ -205,7 +205,7 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
   UnitBuilder get _$this {
     if (_$v != null) {
       _name = _$v.name;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _productId = _$v.productId;
       _focused = _$v.focused;
       _channels = _$v.channels?.toBuilder();

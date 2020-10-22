@@ -127,30 +127,32 @@ class DataManager {
   }
 
   // ignore: always_declare_return_types
-  static updateOrder(Store<AppState> store, OrderTableData order) {
-    store.state.database.orderDao.updateOrder(order);
+  static updateOrder(Store<AppState> store, Order order) {
+    // FIXME:
+    // store.state.database.orderDao.updateOrder(order);
   }
 
   static Future<void> deleteProduct(
       {Store<AppState> store, String productId}) async {
-    final List<StockTableData> stocks = await store.state.database.stockDao
-        .getStockByProductId(
-            branchId: store.state.branch.id, productId: productId);
-    final ProductTableData product = await store.state.database.productDao
-        .getProductById(productId: productId);
+        // FIXME:
+    // final List<StockTableData> stocks = await store.state.database.stockDao
+    //     .getStockByProductId(
+    //         branchId: store.state.branch.id, productId: productId);
+    // final ProductTableData product = await store.state.database.productDao
+    //     .getProductById(productId: productId);
 
-    for (int i = 0; i < stocks.length; i++) {
-      final VariationTableData variant = await store.state.database.variationDao
-          .getVariationById(variantId: stocks[i].variantId);
+    // for (int i = 0; i < stocks.length; i++) {
+    //   final VariationTableData variant = await store.state.database.variationDao
+    //       .getVariationById(variantId: stocks[i].variantId);
 
-      await store.state.database.variationDao.deleteVariation(variant);
+    //   await store.state.database.variationDao.deleteVariation(variant);
 
-      await store.state.database.stockDao.deleteStock(stocks[i]);
-    }
+    //   await store.state.database.stockDao.deleteStock(stocks[i]);
+    // }
 
-    await store.state.database.productDao.deleteItem(product);
+    // await store.state.database.productDao.deleteItem(product);
 
-    AppDatabase.instance.syncLocalToRemote(store: store);
+    // AppDatabase.instance.syncLocalToRemote(store: store);
   }
 
   // ignore: always_declare_return_types

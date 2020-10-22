@@ -1,8 +1,7 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -27,7 +26,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Routing.navigator.pop();
+               ProxyService.nav.pop();
             },
             showActionButton: false,
             title: 'Category',
@@ -47,11 +46,8 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  StoreProvider.of<AppState>(context).dispatch(
-                    CreateEmptyTempCategoryAction(name: 'tmp'),
-                  );
-                  Routing.navigator
-                      .pushNamed(Routing.createCategoryInputScreen);
+                  vm.createTempCategory(store:StoreProvider.of<AppState>(context), name:'tmp');
+                  ProxyService.nav.pop();
                 },
                 child: ListTile(
                   title: const Text('Create Category',

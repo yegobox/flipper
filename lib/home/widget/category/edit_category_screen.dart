@@ -3,6 +3,7 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
+import 'package:flipper/model/category.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -25,7 +26,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
   Wrap _getCategoriesWidgets(
-      List<CategoryTableData> categories, CommonViewModel vm) {
+      List<Category> categories, CommonViewModel vm) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < categories.length; i++) {
       if (categories[i].focused) {
@@ -35,13 +36,14 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
         list.add(
           GestureDetector(
             onTap: () {
+              // FIXME:
               for (int y = 0; y < categories.length; y++) {
-                vm.database.categoryDao
-                    .updateCategory(categories[y].copyWith(focused: false));
+                // vm.database.categoryDao
+                //     .updateCategory(categories[y].copyWith(focused: false));
               }
-              //
-              vm.database.categoryDao.updateCategory(
-                  categories[i].copyWith(focused: !categories[i].focused));
+              // FIXME:
+              // vm.database.categoryDao.updateCategory(
+              //     categories[i].copyWith(focused: !categories[i].focused));
             },
             child: ListTile(
               title: Text(
@@ -71,7 +73,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
   // ignore: always_specify_types
   Future updateItemWithActiveCategory(
-      CommonViewModel vm, List<CategoryTableData> categories, int i) async {
+      CommonViewModel vm, List<Category> categories, int i) async {
     // final DialogService _dialogService = ProxyService.modal;
     // _dialogService.showConfirmationDialog(
     //     description: 'Can not update active product feature deprecated');
@@ -125,16 +127,17 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                   ),
                 ),
               ),
-              StreamBuilder(
-                stream: vm.database.categoryDao.getCategoriesStream(),
-                builder:
-                    (BuildContext context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
-                  if (snapshot.data == null) {
-                    return Container();
-                  }
-                  return _getCategoriesWidgets(snapshot.data, vm);
-                },
-              ),
+              // FIXME
+              // StreamBuilder(
+              //   stream: vm.database.categoryDao.getCategoriesStream(),
+              //   builder:
+              //       (BuildContext context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
+              //     if (snapshot.data == null) {
+              //       return Container();
+              //     }
+              //     return _getCategoriesWidgets(snapshot.data, vm);
+              //   },
+              // ),
             ],
           ),
         );

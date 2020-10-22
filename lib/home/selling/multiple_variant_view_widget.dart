@@ -1,10 +1,10 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/home/selling/actions.dart';
 import 'package:flipper/home/selling/control_widget.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/stock.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class MultipleVariantViewWidget extends StatelessWidget {
-  final List<StockTableData> stocks;
+  final List<Stock> stocks;
   final CommonViewModel vm;
 
   final Product activeItem;
@@ -50,7 +50,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
     );
   }
 
-  Widget _variantsList(BuildContext context, List<StockTableData> stocks) {
+  Widget _variantsList(BuildContext context, List<Stock> stocks) {
     return ListView(
       children: ListTile.divideTiles(
         context: context,
@@ -60,7 +60,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
   }
 
   List<Widget> getVariantsRow(
-      List<StockTableData> stocks, BuildContext context) {
+      List<Stock> stocks, BuildContext context) {
     final List<Widget> list =  <Widget>[];
     list.add(
       chooserRow(),
@@ -86,7 +86,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
   }
 
   void isVariantActive(
-      List<StockTableData> stocks, int i, BuildContext context) {
+      List<Stock> stocks, int i, BuildContext context) {
     if (stocks[i].isActive) {
       StoreProvider.of<AppState>(context).dispatch(
         IncrementAction(
@@ -115,14 +115,15 @@ class MultipleVariantViewWidget extends StatelessWidget {
   }
 
   GestureDetector itemRow(
-      BuildContext context, List<StockTableData> stocks, int i) {
+      BuildContext context, List<Stock> stocks, int i) {
     return GestureDetector(
       onTap: () {
-        for (int y = 0; y < stocks.length; y++) {
-          vm.database.stockDao.updateStock(stocks[y].copyWith(isActive: false));
-        }
-        vm.database.stockDao
-            .updateStock(stocks[i].copyWith(isActive: !stocks[i].isActive));
+        // FIXME:
+        // for (int y = 0; y < stocks.length; y++) {
+        //   vm.database.stockDao.updateStock(stocks[y].copyWith(isActive: false));
+        // }
+        // vm.database.stockDao
+        //     .updateStock(stocks[i].copyWith(isActive: !stocks[i].isActive));
       },
       child: ListTile(
         contentPadding: const EdgeInsets.fromLTRB(20, 20, 40, 10),
@@ -136,25 +137,26 @@ class MultipleVariantViewWidget extends StatelessWidget {
             ),
           ),
         ),
-        leading: StreamBuilder(
-            stream: vm.database.variationDao
-                .getVariationByIdStream(stocks[i].variantId),
-            builder:
-                (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-              if (snapshot.data == null || snapshot.data.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              return Text(
-                snapshot.data[0].name,
-                style:const TextStyle(
-                  color: Colors.black,
-                ),
-              );
-            }),
+        leading:const SizedBox.shrink(),
+        // leading: StreamBuilder(
+        //     stream: vm.database.variationDao
+        //         .getVariationByIdStream(stocks[i].variantId),
+        //     builder:
+        //         (BuildContext context, AsyncSnapshot<List<VariationTableData>> snapshot) {
+        //       if (snapshot.data == null || snapshot.data.isEmpty) {
+        //         return const SizedBox.shrink();
+        //       }
+        //       return Text(
+        //         snapshot.data[0].name,
+        //         style:const TextStyle(
+        //           color: Colors.black,
+        //         ),
+        //       );
+        //     }),
         // ignore: always_specify_types
         trailing: Radio(
-          value: stocks[i].idLocal,
-          groupValue: stocks[i].isActive ? stocks[i].idLocal : 0,
+          value: stocks[i].id, //FIXME: i know value of raido should int and id here is string
+          groupValue: stocks[i].isActive ? stocks[i].id : 0,
           onChanged: (Object value) {},
         ),
       ),
@@ -164,6 +166,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
   // ignore: always_specify_types
   void _saveCart(CommonViewModel vm, context) {
     StoreProvider.of<AppState>(context).dispatch(SaveCart());
-    Routing.navigator.maybePop();
+    // FIXME:
+    // Routing.navigator.maybePop();
   }
 }

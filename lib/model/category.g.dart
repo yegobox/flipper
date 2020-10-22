@@ -204,9 +204,9 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
   bool get focused => _$this._focused;
   set focused(bool focused) => _$this._focused = focused;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   bool _touched;
   bool get touched => _$this._touched;
@@ -228,7 +228,7 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
       _name = _$v.name;
       _id = _$v.id;
       _focused = _$v.focused;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _touched = _$v.touched;
       _branchId = _$v.branchId;
       _channels = _$v.channels?.toBuilder();

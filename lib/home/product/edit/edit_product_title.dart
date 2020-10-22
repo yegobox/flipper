@@ -218,11 +218,12 @@ class _EditItemTitleState extends State<EditItemTitle> {
       String fileName = compresedFile.path.split('/').removeLast();
       String storagePath = compresedFile.path.replaceAll('/' + fileName, '');
 
-      ProductTableData product = await store.state.database.productDao
-          .getItemById(productId: widget.productId);
+      // FIXME(richard): fix bellow code
+      // ProductTableData product = await store.state.database.productDao
+      //     .getItemById(productId: widget.productId);
 
-      store.state.database.productDao.updateProduct(product.copyWith(
-          picture: compresedFile.path, isImageLocal: true, hasPicture: true));
+      // store.state.database.productDao.updateProduct(product.copyWith(
+      //     picture: compresedFile.path, isImageLocal: true, hasPicture: true));
 
       // ProductTableData productUpdated = await store.state.database.productDao
       //     .getItemById(productId: widget.productId);
@@ -234,14 +235,14 @@ class _EditItemTitleState extends State<EditItemTitle> {
           image: ImageP((ImagePBuilder img) => img
             ..path = compresedFile.path
             ..isLocal = true)));
-
-      store.state.database.productImageDao.insertImageProduct(
-        //ignore: missing_required_param
-        ProductImageTableData(
-          localPath: compresedFile.path,
-          productId: widget.productId,
-        ),
-      );
+      // FIXME(richard): fix bellow code
+      // store.state.database.productImageDao.insertImageProduct(
+      //   //ignore: missing_required_param
+      //   ProductImageTableData(
+      //     localPath: compresedFile.path,
+      //     productId: widget.productId,
+      //   ),
+      // );
 
       bool internetAvailable = await DataManager.isInternetAvailable();
       if (internetAvailable) {

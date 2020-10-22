@@ -19,6 +19,8 @@ import 'package:flipper/model/report.dart';
 import 'package:flipper/model/total.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
+import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:redux/redux.dart';
 
 part 'common_view_model.g.dart';
@@ -157,7 +159,11 @@ abstract class CommonViewModel
   static bool _hasSheet(Store<AppState> store) {
     return store.state.sheet != null;
   }
-
+   // ignore: always_declare_return_types
+  createTempCategory({Store<AppState> store,String name})async {
+    final DatabaseService _databaseService = ProxyService.database;
+    await   _databaseService.insert(data: {'branchId': store.state.branch.id,'name':name});
+  }
   static CommonViewModel fromStore(Store<AppState> store) {
     return CommonViewModel(
       (vm) => vm

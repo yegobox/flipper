@@ -466,9 +466,9 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   bool get touched => _$this._touched;
   set touched(bool touched) => _$this._touched = touched;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   bool _isDraft;
   bool get isDraft => _$this._isDraft;
@@ -529,7 +529,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
       _hasPicture = _$v.hasPicture;
       _isImageLocal = _$v.isImageLocal;
       _touched = _$v.touched;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _isDraft = _$v.isDraft;
       _color = _$v.color;
       _isCurrentUpdate = _$v.isCurrentUpdate;

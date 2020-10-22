@@ -1,4 +1,4 @@
-import 'package:flipper/data/respositories/business_repository.dart';
+
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
@@ -11,16 +11,16 @@ import 'package:couchbase_lite/couchbase_lite.dart';
 
 List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
-  BusinessRepository businessRepository,
+  
 ) {
   //
   return [
     TypedMiddleware<AppState, CreateBusinessOnSignUp>(
-        _createBusiness(navigatorKey, businessRepository)),
+        _createBusiness(navigatorKey)),
     TypedMiddleware<AppState, CreateBusiness>(
-        _createBusiness(navigatorKey, businessRepository)),
+        _createBusiness(navigatorKey)),
     TypedMiddleware<AppState, SetActiveBusiness>(
-        _switchActiveBusiness(navigatorKey, businessRepository)),
+        _switchActiveBusiness(navigatorKey)),
   ];
 }
 
@@ -28,7 +28,7 @@ List<Middleware<AppState>> createBusinessMiddleware(
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _createBusiness(
   GlobalKey<NavigatorState> navigatorKey,
-  BusinessRepository businessRepository,
+  
 ) {
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
@@ -96,7 +96,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _switchActiveBusiness(
   GlobalKey<NavigatorState> navigatorKey,
-  BusinessRepository businessRepository,
+  
 ) {
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
@@ -109,12 +109,14 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       //add active to new
       if (store.state.nextActiveBusiness != null) {
         //set business
-        businessRepository.update(store, store.state.nextActiveBusiness,
-            active: true);
+        // FIXME:
+        // businessRepository.update(store, store.state.nextActiveBusiness,
+        //     active: true);
       }
       if (store.state.currentActiveBusiness != null) {
-        businessRepository.update(store, store.state.currentActiveBusiness,
-            active: false);
+        // FIXME:
+        // businessRepository.update(store, store.state.currentActiveBusiness,
+        //     active: false);
       }
       final Business updated = Business((BusinessBuilder b) => b
         ..id = store.state.nextActiveBusiness.id

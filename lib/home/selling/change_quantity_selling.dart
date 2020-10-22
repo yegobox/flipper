@@ -24,18 +24,20 @@ class _ChangeQuantityForSellingState extends State<ChangeQuantityForSelling> {
         distinct: true,
         converter: CommonViewModel.fromStore,
         builder: (context, vm) {
-          return StreamBuilder(
-              stream: vm.database.stockDao.getStockByProductIdStream(
-                  branchId: vm.branch.id, productId: widget.productId),
-              builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
-                if (snapshot.data == null) {
-                  return Text('');
-                }
-                return MultipleVariantViewWidget(
-                  stocks: snapshot.data,
-                  vm: vm,
-                );
-              });
+          return const SizedBox.shrink();
+          // FIXME(richard)
+          // return StreamBuilder(
+          //     stream: vm.database.stockDao.getStockByProductIdStream(
+          //         branchId: vm.branch.id, productId: widget.productId),
+          //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+          //       if (snapshot.data == null) {
+          //         return Text('');
+          //       }
+          //       return MultipleVariantViewWidget(
+          //         stocks: snapshot.data,
+          //         vm: vm,
+          //       );
+          //     });
         });
   }
 }

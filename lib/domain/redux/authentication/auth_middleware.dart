@@ -1,11 +1,9 @@
 // import 'package:background_fetch/background_fetch.dart';
 import 'package:flipper/couchbase.dart';
 import 'package:flipper/data/main_database.dart';
-import 'package:flipper/data/respositories/branch_repository.dart';
-import 'package:flipper/data/respositories/business_repository.dart';
+
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/data/respositories/user_repository.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
@@ -33,31 +31,25 @@ import 'auth_actions.dart';
 
 List<Middleware<AppState>> createAuthenticationMiddleware(
   UserRepository userRepository,
-  BusinessRepository businessRepository,
-  BranchRepository branchRepository,
   GeneralRepository generalRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   return [
     TypedMiddleware<AppState, VerifyAuthenticationState>(_verifyAuthState(
         userRepository,
-        businessRepository,
-        branchRepository,
         generalRepository,
         navigatorKey)),
     TypedMiddleware<AppState, LogIn>(_authLogin(userRepository, navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(
         _authLogout(userRepository, navigatorKey)),
     TypedMiddleware<AppState, AfterLoginAction>(_verifyAuthState(userRepository,
-        businessRepository, branchRepository, generalRepository, navigatorKey)),
+        generalRepository, navigatorKey)),
   ];
 }
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _verifyAuthState(
   UserRepository userRepository,
-  BusinessRepository businessRepository,
-  BranchRepository branchRepository,
   GeneralRepository generalRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
@@ -72,9 +64,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       _navigationService.navigateTo(Routing.afterSplash);
       return;
     }
-    final TabsTableData tab = await generalRepository.getTab(store);
-    dispatchFocusedTab(tab, store);
-
+  
+    AppDatabase.instance.initialAppData();
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
@@ -167,21 +158,22 @@ Future<void> _getCurrentLocation({Store<AppState> store}) async {
   if (store.state.currentActiveBusiness == null) {
     return;
   }
-  final BusinessTableData businessTableData = await store
-      .state.database.businessDao
-      .getBusinesById(id: store.state.currentActiveBusiness.id);
-  geoLocator
-      .getPositionStream(locationOptions)
-      .listen((Position location) async {
-    //time to update data....
-    if (businessTableData != null) {
-      await store.state.database.businessDao.updateBusiness(
-          businessTableData.copyWith(
-              idLocal: businessTableData.idLocal,
-              longitude: location.longitude,
-              latitude: location.latitude));
-    }
-  });
+  // FIXME:
+  // final BusinessTableData businessTableData = await store
+  //     .state.database.businessDao
+  //     .getBusinesById(id: store.state.currentActiveBusiness.id);
+  // geoLocator
+  //     .getPositionStream(locationOptions)
+  //     .listen((Position location) async {
+    
+  //   if (businessTableData != null) {
+  //     await store.state.database.businessDao.updateBusiness(
+  //         businessTableData.copyWith(
+  //             idLocal: businessTableData.idLocal,
+  //             longitude: location.longitude,
+  //             latitude: location.latitude));
+  //   }
+  // });
 }
 
 Future<List<Branch>> getBranches(
@@ -242,12 +234,12 @@ Future<bool> isCategory({String branchId}) async {
   return category.isNotEmpty;
 }
 
-void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
-  final int currentTab = tab == null ? 0 : tab.tab;
-  store.dispatch(
-    CurrentTab(tab: currentTab),
-  );
-}
+// void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
+//   final int currentTab = tab == null ? 0 : tab.tab;
+//   store.dispatch(
+//     CurrentTab(tab: currentTab),
+//   );
+// }
 
 Future<void> generateAppColors(
     GeneralRepository generalRepository, Store<AppState> store) async {
@@ -272,56 +264,58 @@ Future<void> generateAppColors(
 }
 
 Future<void> createSystemStockReasons(Store<AppState> store) async {
-  final List<ReasonTableData> reasons =
-      await store.state.database.reasonDao.getReasons();
-  if (reasons.isEmpty) {
-    await store.state.database.reasonDao.insert(
-        //ignore:missing_required_param
-        ReasonTableData(name: 'Stock Received', action: 'Received'));
-    await store.state.database.reasonDao
-        //ignore:missing_required_param
-        .insert(ReasonTableData(name: 'Lost', action: 'Lost'));
-    await store.state.database.reasonDao
-        //ignore:missing_required_param
-        .insert(ReasonTableData(name: 'Thief', action: 'Thief'));
-    await store.state.database.reasonDao
-        //ignore:missing_required_param
-        .insert(ReasonTableData(name: 'Damaged', action: 'Damaged'));
-    await store.state.database.reasonDao.insert(
-        //ignore:missing_required_param
-        ReasonTableData(name: 'Inventory Re-counted', action: 'Re-counted'));
-    await store.state.database.reasonDao.insert(
-        //ignore:missing_required_param
-        ReasonTableData(name: 'Restocked Return', action: 'Restocked Return'));
-    await store.state.database.reasonDao
-        //ignore:missing_required_param
-        .insert(ReasonTableData(name: 'Sold', action: 'Sold'));
-    await store.state.database.reasonDao.insert(
-        //ignore:missing_required_param
-        ReasonTableData(name: 'Transferred', action: 'Transferred'));
+  // FIXME:
+  // final List<ReasonTableData> reasons =
+  //     await store.state.database.reasonDao.getReasons();
+  // if (reasons.isEmpty) {
+  //   await store.state.database.reasonDao.insert(
+  //       //ignore:missing_required_param
+  //       ReasonTableData(name: 'Stock Received', action: 'Received'));
+  //   await store.state.database.reasonDao
+  //       //ignore:missing_required_param
+  //       .insert(ReasonTableData(name: 'Lost', action: 'Lost'));
+  //   await store.state.database.reasonDao
+  //       //ignore:missing_required_param
+  //       .insert(ReasonTableData(name: 'Thief', action: 'Thief'));
+  //   await store.state.database.reasonDao
+  //       //ignore:missing_required_param
+  //       .insert(ReasonTableData(name: 'Damaged', action: 'Damaged'));
+  //   await store.state.database.reasonDao.insert(
+  //       //ignore:missing_required_param
+  //       ReasonTableData(name: 'Inventory Re-counted', action: 'Re-counted'));
+  //   await store.state.database.reasonDao.insert(
+  //       //ignore:missing_required_param
+  //       ReasonTableData(name: 'Restocked Return', action: 'Restocked Return'));
+  //   await store.state.database.reasonDao
+  //       //ignore:missing_required_param
+  //       .insert(ReasonTableData(name: 'Sold', action: 'Sold'));
+  //   await store.state.database.reasonDao.insert(
+  //       //ignore:missing_required_param
+  //       ReasonTableData(name: 'Transferred', action: 'Transferred'));
 
-    await store.state.database.reasonDao
-        //ignore:missing_required_param
-        .insert(ReasonTableData(name: 'Canceled', action: 'Canceled'));
-  }
+  //   await store.state.database.reasonDao
+  //       //ignore:missing_required_param
+  //       .insert(ReasonTableData(name: 'Canceled', action: 'Canceled'));
+  // }
 }
 
 Future<void> createAppActions(Store<AppState> store) async {
-  final ActionsTableData actionAction =
-      await store.state.database.actionsDao.getActionBy('save');
+  // FIXME:
+  // final ActionsTableData actionAction =
+  //     await store.state.database.actionsDao.getActionBy('save');
 
-  final ActionsTableData saveItem =
-      await store.state.database.actionsDao.getActionBy('saveItem');
-  if (saveItem == null) {
-    await store.state.database.actionsDao.insert(
-        //ignore:missing_required_param
-        ActionsTableData(name: 'saveItem', isLocked: true));
-  }
-  if (actionAction == null) {
-    await store.state.database.actionsDao.insert(
-        //ignore:missing_required_param
-        ActionsTableData(name: 'save', isLocked: true));
-  }
+  // final ActionsTableData saveItem =
+  //     await store.state.database.actionsDao.getActionBy('saveItem');
+  // if (saveItem == null) {
+  //   await store.state.database.actionsDao.insert(
+  //       //ignore:missing_required_param
+  //       ActionsTableData(name: 'saveItem', isLocked: true));
+  // }
+  // if (actionAction == null) {
+  //   await store.state.database.actionsDao.insert(
+  //       //ignore:missing_required_param
+  //       ActionsTableData(name: 'save', isLocked: true));
+  // }
 }
 
 Future<void> createTemporalOrder(

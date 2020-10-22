@@ -46,8 +46,9 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController = TabController(vsync: this, length: 2);
 
     _tabController.addListener(() {
-      final TabsTableData b = TabsTableData(id: 1, tab: _tabController.index);
-      StoreProvider.of<AppState>(context).state.database.tabsDao.updateTab(b);
+      // FIXME(richard): clean sleepy code
+      // final TabsTableData b = TabsTableData(id: 1, tab: _tabController.index);
+      // StoreProvider.of<AppState>(context).state.database.tabsDao.updateTab(b);
     });
   }
 

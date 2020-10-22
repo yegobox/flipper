@@ -1,5 +1,3 @@
-
-
 import 'package:flipper/services/api/http_api.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/database_service.dart';

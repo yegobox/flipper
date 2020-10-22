@@ -1,5 +1,6 @@
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/model/product.dart';
 
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,6 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   final TForm tForm =  TForm();
   
 
-  ActionsTableData _actions;
 
   String _name;
 
@@ -65,45 +65,48 @@ class _ViewSingleItemScreenState extends State<ViewSingleItemScreen> {
   }
 
   void _getSaveStatus() async {
-    final ActionsTableData result = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .actionsDao
-        .getActionBy('save');
+    // FIXME(richard): fix bellow code, I do not know if there is still in use
+    // final ActionsTableData result = await StoreProvider.of<AppState>(context)
+    //     .state
+    //     .database
+    //     .actionsDao
+    //     .getActionBy('save');
 
-    if (_name == null) {
-      await StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .actionsDao
-          .updateAction(result.copyWith(isLocked: true));
-    } else {
-      await StoreProvider.of<AppState>(context)
-          .state
-          .database
-          .actionsDao
-          .updateAction(result.copyWith(isLocked: false));
-    }
-    final ActionsTableData res = await StoreProvider.of<AppState>(context)
-        .state
-        .database
-        .actionsDao
-        .getActionBy('save');
-    setState(() {
-      _actions = res;
-    });
+    // if (_name == null) {
+    //   await StoreProvider.of<AppState>(context)
+    //       .state
+    //       .database
+    //       .actionsDao
+    //       .updateAction(result.copyWith(isLocked: true));
+    // } else {
+    //   await StoreProvider.of<AppState>(context)
+    //       .state
+    //       .database
+    //       .actionsDao
+    //       .updateAction(result.copyWith(isLocked: false));
+    // }
+    // final ActionsTableData res = await StoreProvider.of<AppState>(context)
+    //     .state
+    //     .database
+    //     .actionsDao
+    //     .getActionBy('save');
+    // setState(() {
+    //   _actions = res;
+    // });
   }
 
-  Widget categorySelector(List<ProductTableData> item, CommonViewModel vm) {
-    return StreamBuilder(
-        stream:
-            vm.database.categoryDao.getCategoryByIdStream(item[0].categoryId),
-        builder: (context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
-          if (snapshot.data == null) {
-            return Text('');
-          }
-          return Text(snapshot.data[0].name);
-        });
+  Widget categorySelector(List<Product> item, CommonViewModel vm) {
+    return const SizedBox.shrink();
+    // FIXME(richard):
+    // return StreamBuilder(
+    //     stream:
+    //         vm.database.categoryDao.getCategoryByIdStream(item[0].categoryId),
+    //     builder: (context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
+    //       if (snapshot.data == null) {
+    //         return Text('');
+    //       }
+    //       return Text(snapshot.data[0].name);
+    //     });
   }
 
   

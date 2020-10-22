@@ -478,9 +478,9 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   String get type => _$this._type;
   set type(String type) => _$this._type = type;
 
-  String _tableName;
-  String get table => _$this._tableName;
-  set table(String table) => _$this._tableName = table;
+  String _table;
+  String get table => _$this._table;
+  set table(String table) => _$this._table = table;
 
   BusinessBuilder();
 
@@ -504,7 +504,7 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
       _hexColor = _$v.hexColor;
       _image = _$v.image;
       _type = _$v.type;
-      _tableName = _$v.table;
+      _table = _$v.table;
       _$v = null;
     }
     return this;

@@ -39,14 +39,15 @@ void Function(Store<AppState> store, SaveRegular action, NextDispatcher next)
     _saveRegular(GlobalKey<NavigatorState> navigatorKey,
         GeneralRepository generalRepository) {
   return (store, action, next) async {
-    StockTableData stock;
+    // FIXME:
+    // StockTableData stock;
 
-    await store.state.database.stockDao.updateStock(
-      stock.copyWith(
-        retailPrice: action.retailPrice,
-        supplyPrice: action.costPrice,
-      ),
-    );
+    // await store.state.database.stockDao.updateStock(
+    //   stock.copyWith(
+    //     retailPrice: action.retailPrice,
+    //     supplyPrice: action.costPrice,
+    //   ),
+    // );
   };
 }
 
@@ -124,41 +125,41 @@ void Function(Store<AppState> store, SaveCart action, NextDispatcher next)
     next(action);
     // FIXME(richard): update the code
     //get this stock additional data for selling
-    final StockTableData stock = await store.state.database.stockDao
-        .getStockByVariantId(
-            branchId: store.state.branch.id,
-            variantId: store.state.cartItem.id);
+    // final StockTableData stock = await store.state.database.stockDao
+    //     .getStockByVariantId(
+    //         branchId: store.state.branch.id,
+    //         variantId: store.state.cartItem.id);
 
-    final ProductTableData product = await store.state.database.productDao
-        .getItemById(productId: stock.productId);
+    // final ProductTableData product = await store.state.database.productDao
+    //     .getItemById(productId: stock.productId);
 
-    final VariationTableData variant = await store.state.database.variationDao
-        .getVariationById(variantId: store.state.cartItem.id);
+    // final VariationTableData variant = await store.state.database.variationDao
+    //     .getVariationById(variantId: store.state.cartItem.id);
 
-    await generalRepository.insertOrUpdateCart(
+    // await generalRepository.insertOrUpdateCart(
 
-      store,
-      //ignore: missing_required_param
-      OrderDetailTableData(
-        branchId: store.state.branch.id,
-        quantity: store.state.currentIncrement.toDouble() ?? 1.0,
-        variantName: store.state.cartItem.name,
-        discountAmount: 0,
-        stockId: stock.id,
-        productName: product.name,
-        discountRate: 0,
-        subTotal: stock.retailPrice * store.state.currentIncrement,
-        taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
-                (store.state.defaultTax==null?0:store.state.defaultTax.percentage.toInt())) /
-            100,
-        taxRate: store.state.defaultTax==null?0:store.state.defaultTax.percentage.toInt(),
-        note: store.state.note ?? 'default',
-        unit: variant.unit,
-        orderId: store.state.order.id.toString(),
-        variationId: variant.id,
-        id: Uuid().v1(),
-      ),
-    );
+    //   store,
+    //   //ignore: missing_required_param
+    //   OrderDetailTableData(
+    //     branchId: store.state.branch.id,
+    //     quantity: store.state.currentIncrement.toDouble() ?? 1.0,
+    //     variantName: store.state.cartItem.name,
+    //     discountAmount: 0,
+    //     stockId: stock.id,
+    //     productName: product.name,
+    //     discountRate: 0,
+    //     subTotal: stock.retailPrice * store.state.currentIncrement,
+    //     taxAmount: ((stock.retailPrice * store.state.currentIncrement) *
+    //             (store.state.defaultTax==null?0:store.state.defaultTax.percentage.toInt())) /
+    //         100,
+    //     taxRate: store.state.defaultTax==null?0:store.state.defaultTax.percentage.toInt(),
+    //     note: store.state.note ?? 'default',
+    //     unit: variant.unit,
+    //     orderId: store.state.order.id.toString(),
+    //     variationId: variant.id,
+    //     id: Uuid().v1(),
+    //   ),
+    // );
   };
 }
 
@@ -168,18 +169,19 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
   return (store, action, next) async {
     next(action);
 
-    final order =
-        await store.state.database.orderDao.getOrderById(store.state.order.id);
+  // FIXME:
+    // final order =
+    //     await store.state.database.orderDao.getOrderById(store.state.order.id);
 
-    DataManager.updateOrder(
-      store,
-      order.copyWith(
-        status: 'completed',
-        customerChangeDue: action.customerChangeDue,
-        orderNote: action.note,
-        cashReceived: action.cashReceived,
-      ),
-    );
+    // DataManager.updateOrder(
+    //   store,
+    //   order.copyWith(
+    //     status: 'completed',
+    //     customerChangeDue: action.customerChangeDue,
+    //     orderNote: action.note,
+    //     cashReceived: action.cashReceived,
+    //   ),
+    // );
 
     // TODO(richard): update the quantity of stock.
     //get this order details using this orderId

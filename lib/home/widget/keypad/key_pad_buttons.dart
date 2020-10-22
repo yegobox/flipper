@@ -105,37 +105,40 @@ class _SingleKeyState extends State<SingleKey> {
     }
     if (buttonKeyName == '+') {
       final Store<AppState> store = StoreProvider.of<AppState>(context);
-      final List<VariationTableData> variants = await store
-          .state.database.variationDao
-          .getVariantByProductId(productId: vm.tmpItem.id);
+      // FIXME:
+      // final List<VariationTableData> variants = await store
+      //     .state.database.variationDao
+      //     .getVariantByProductId(productId: vm.tmpItem.id);
 
       StoreProvider.of<AppState>(context).dispatch(
         IncrementAction(
           increment: 1,
         ),
       );
-      final Product cartItem = Product(
-        (ProductBuilder b) => b
-          ..id = variants[0]
-              .id //done intentionally so we can use it while saving cart or orderDetail.
-          ..name = vm.tmpItem.name
-          ..categoryId = vm.tmpItem.categoryId
-          ..unit = 'custom',
-      );
+      // FIXME:
+      // final Product cartItem = Product(
+      //   (ProductBuilder b) => b
+      //     ..id = variants[0]
+      //         .id //done intentionally so we can use it while saving cart or orderDetail.
+      //     ..name = vm.tmpItem.name
+      //     ..categoryId = vm.tmpItem.categoryId
+      //     ..unit = 'custom',
+      // );
 
-      StoreProvider.of<AppState>(context).dispatch(
-        AddItemToCartAction(cartItem: cartItem),
-      );
+      // StoreProvider.of<AppState>(context).dispatch(
+      //   AddItemToCartAction(cartItem: cartItem),
+      // );
 
       final String branchId =
           StoreProvider.of<AppState>(context).state.branch.id;
-      final List<StockTableData> stocks = await store.state.database.stockDao
-          .getStockByProductId(branchId: branchId, productId: vm.tmpItem.id);
+      // FIXME:
+      // final List<StockTableData> stocks = await store.state.database.stockDao
+      //     .getStockByProductId(branchId: branchId, productId: vm.tmpItem.id);
 
-      for (int i = 0; i < stocks.length; i++) {
-        await store.state.database.stockDao.updateStock(stocks[i].copyWith(
-            retailPrice: vm.keypad.amount.toDouble(), branchId: branchId));
-      }
+      // for (int i = 0; i < stocks.length; i++) {
+      //   await store.state.database.stockDao.updateStock(stocks[i].copyWith(
+      //       retailPrice: vm.keypad.amount.toDouble(), branchId: branchId));
+      // }
       StoreProvider.of<AppState>(context).dispatch(SaveCart());
       StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
     } else {

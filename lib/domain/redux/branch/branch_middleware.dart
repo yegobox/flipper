@@ -1,5 +1,3 @@
-import 'package:flipper/data/main_database.dart';
-import 'package:flipper/data/respositories/branch_repository.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
@@ -15,19 +13,18 @@ import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBranchMiddleware(
     GlobalKey<NavigatorState> navigatorKey,
-    BranchRepository branchRepository,
     GeneralRepository generalRepository) {
   return [
     TypedMiddleware<AppState, BusinessCreated>(
-        _onBusinessCreated(navigatorKey, branchRepository, generalRepository)),
+        _onBusinessCreated(navigatorKey, generalRepository)),
     TypedMiddleware<AppState, OnSetBranchHint>(
-        _onSetBranchHint(navigatorKey, branchRepository)),
+        _onSetBranchHint(navigatorKey)),
   ];
 }
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _onBusinessCreated(GlobalKey<NavigatorState> navigatorKey,
-        BranchRepository branchRepo, GeneralRepository generalRepository) {
+         GeneralRepository generalRepository) {
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     store.dispatch(ResetAppAction());
@@ -57,25 +54,26 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _onSetBranchHint(
-        GlobalKey<NavigatorState> navigatorKey, BranchRepository branchRepo) {
+        GlobalKey<NavigatorState> navigatorKey,  ) {
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
-    final List<BranchTableData> branches = await branchRepo.getBranches(store);
+    // FIXME:
+    // final List<Branch> branches = await branchRepo.getBranches(store);
     if (store.state.branch == null) {
-      if (branches.length == 1) {
-        //we have only one branch then set it as hint
+      // if (branches.length == 1) {
+        
         final Hint _hint = Hint((HintBuilder h) => h
-          ..name = branches[0].name
+          ..name = 'FIXME'
           ..type = HintType.Branch);
         store.dispatch(OnHintLoaded(hint: _hint));
-      } else {
-        if (store.state.branch == null) {
-          final Hint _hint = Hint((HintBuilder h) => h
-            ..name = branches[0].name
-            ..type = HintType.Branch);
-          store.dispatch(OnHintLoaded(hint: _hint));
-        }
-      }
+      // } else {
+      //   if (store.state.branch == null) {
+      //     final Hint _hint = Hint((HintBuilder h) => h
+      //       ..name = branches[0].name
+      //       ..type = HintType.Branch);
+      //     store.dispatch(OnHintLoaded(hint: _hint));
+      //   }
+      // }
     }
   };
 }

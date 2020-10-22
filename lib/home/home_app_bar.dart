@@ -1,14 +1,7 @@
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/cart.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../theme.dart';
 
@@ -30,69 +23,74 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         return SafeArea(
           top: true,
           child: ListTile(
-            contentPadding:const EdgeInsets.symmetric(horizontal: 0.0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
             // ignore: always_specify_types
-            leading: _hamburger(),title:  StreamBuilder(
-                    // FIXME(richard): replace this with couchbaselite too
-                    stream: vm.database.orderDetailDao
-                    // there was this: vm.order==null?null:vm.order.id.toString()
-                        .getCartsStream(null),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<List<OrderDetailTableData>>
-                            orderDetail) {
-                      // ignore: always_specify_types
-                      final quantity = orderDetail.data == null
-                          ? 0
-                          : orderDetail.data
-                              // ignore: always_specify_types
-                              .fold(0, (a, OrderDetailTableData b) => a + b.quantity);
-                      return FlatButton(
-                        onPressed: () {
-                          final FlipperNavigationService _navigationService =
-                              ProxyService.nav;
+            leading: _hamburger(),
+            title: const SizedBox.shrink(),
+            // FIXME(richard): fix bellow code
+            //title: StreamBuilder(
+            //         // FIXME(richard): replace this with couchbaselite too
+            //         stream: vm.database.orderDetailDao
+            //         // there was this: vm.order==null?null:vm.order.id.toString()
+            //             .getCartsStream(null),
+            //         builder: (BuildContext context,
+            //             AsyncSnapshot<List<OrderDetailTableData>>
+            //                 orderDetail) {
+            //           // ignore: always_specify_types
+            //           final quantity = orderDetail.data == null
+            //               ? 0
+            //               : orderDetail.data
+            //                   // ignore: always_specify_types
+            //                   .fold(0, (a, OrderDetailTableData b) => a + b.quantity);
+            //           return FlatButton(
+            //             onPressed: () {
+            //               final FlipperNavigationService _navigationService =
+            //                   ProxyService.nav;
 
-                          final List<Cart> cart = <Cart>[];
-                          for (int i = 0; i < orderDetail.data.length; i++) {
-                            cart.add(
-                              Cart((CartBuilder c) => c
-                                    ..id = orderDetail.data[i].id
-                                    ..branchId = orderDetail.data[i].branchId
-                                    ..quantity =
-                                        orderDetail.data[i].quantity.toInt()
-                                    ..variationName =
-                                        orderDetail.data[i].variantName
-                                    ..variationId =
-                                        orderDetail.data[i].variationId
-                                  // ..parentName = snapshot.data[i].parentName,
-                                  ),
-                            );
-                          }
+            //               final List<Cart> cart = <Cart>[];
+            //               for (int i = 0; i < orderDetail.data.length; i++) {
+            //                 cart.add(
+            //                   Cart((CartBuilder c) => c
+            //                         ..id = orderDetail.data[i].id
+            //                         ..branchId = orderDetail.data[i].branchId
+            //                         ..quantity =
+            //                             orderDetail.data[i].quantity.toInt()
+            //                         ..variationName =
+            //                             orderDetail.data[i].variantName
+            //                         ..variationId =
+            //                             orderDetail.data[i].variationId
+            //                       // ..parentName = snapshot.data[i].parentName,
+            //                       ),
+            //                 );
+            //               }
 
-                          _navigationService.navigateTo(
-                            Routing.cartDetailsScreen,
-                            arguments: CartDetailsScreenArguments(
-                              carts: cart,
-                            ),
-                          );
-                        },
-                        child: Center(
-                          
-                          child: Text(
-                            orderDetail.data == null || quantity == 0
-                                ? 'No Sale'
-                                : 'Current Sale' '[' +
-                                    quantity.toInt().toString() +
-                                    ']',
-                            style: GoogleFonts.lato(
-                                fontStyle: FontStyle.normal,
-                                color: Theme.of(context).accentColor,
-                                fontSize:  Theme.of(context).textTheme
-                                    .bodyText1.fontSize),
-                          ),
-                        ),
-                      );
-                    },
-                  ),trailing:const SizedBox.shrink())
+            //               _navigationService.navigateTo(
+            //                 Routing.cartDetailsScreen,
+            //                 arguments: CartDetailsScreenArguments(
+            //                   carts: cart,
+            //                 ),
+            //               );
+            //             },
+            //             child: Center(
+
+            //               child: Text(
+            //                 orderDetail.data == null || quantity == 0
+            //                     ? 'No Sale'
+            //                     : 'Current Sale' '[' +
+            //                         quantity.toInt().toString() +
+            //                         ']',
+            //                 style: GoogleFonts.lato(
+            //                     fontStyle: FontStyle.normal,
+            //                     color: Theme.of(context).accentColor,
+            //                     fontSize:  Theme.of(context).textTheme
+            //                         .bodyText1.fontSize),
+            //               ),
+            //             ),
+            //           );
+            //         },
+            //       ),
+            trailing: const SizedBox.shrink(),
+          ),
         );
       },
     );

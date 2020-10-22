@@ -1,4 +1,3 @@
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
@@ -12,7 +11,6 @@ import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
-import 'package:redux/redux.dart';
 
 class AddProductViewmodel extends BaseModel {
   // FIXME(richard): tomorrow I will work on this after finishing some work on renter app.
@@ -22,12 +20,6 @@ class AddProductViewmodel extends BaseModel {
   final DatabaseService _databaseService = ProxyService.database;
   
   // ActionsTableData get actions;
-
-  ActionsTableData get action {
-    return _actions;
-  }
-
-  ActionsTableData _actions;
 
   
 
@@ -92,11 +84,11 @@ class AddProductViewmodel extends BaseModel {
   }
 
   Future<void> handleCreateItem(
-      {CommonViewModel vm, Store<AppState> store}) async {
-   
+      {CommonViewModel vm}) async {
+    log.i('updating productId:'+vm.tmpItem.id);
     await updateProduct(
       productId: vm.tmpItem.id,
-      categoryId: store.state.category.id,
+      categoryId:vm.category==null?'10': vm.category.id,
       vm: vm,
     );
     
@@ -105,7 +97,6 @@ class AddProductViewmodel extends BaseModel {
     await updateVariation(
       variation: Variation.fromMap(variation.toMap()),
       supplyPrice: double.parse(supplierPriceController.text),
-      store: store,
       variantName: 'Regular',
       retailPrice: double.parse(retailPriceController.text),
     );
@@ -117,7 +108,6 @@ class AddProductViewmodel extends BaseModel {
   }
   Future<void> updateVariation({
     Variation variation,
-    Store<AppState> store,
     double retailPrice,
     double supplyPrice,
     String variantName,
@@ -141,7 +131,9 @@ class AddProductViewmodel extends BaseModel {
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-   
+      log.i('new name for product:'+nameController.text);
+      log.i('categoryId for product:'+categoryId);
+
       final Document product = await _databaseService.getById(id:productId);
       product.toMutable()
       .setString('name', nameController.text)

@@ -4,6 +4,7 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/app_action.dart';
+import 'package:flipper/model/unit.dart';
 import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class AddUnitTypeScreen extends StatefulWidget {
 
 class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
   List<Widget> _getUnitsWidgets(
-      AsyncSnapshot<List<UnitTableData>> snapshot, CommonViewModel vm) {
+      AsyncSnapshot<List<Unit>> snapshot, CommonViewModel vm) {
     List<Widget> list = new List<Widget>();
     for (var i = 0; i < snapshot.data.length; i++) {
       if (snapshot.data[i].focused && widget.productId != null) {
@@ -27,23 +28,25 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
       list.add(
         GestureDetector(
           onTap: () {
-            for (var y = 0; y < snapshot.data.length; y++) {
-              vm.database.unitDao
-                  .updateUnit(snapshot.data[y].copyWith(focused: false));
-            }
-            vm.database.unitDao.updateUnit(
-                snapshot.data[i].copyWith(focused: !snapshot.data[i].focused));
+            // FIXME:
+            // for (var y = 0; y < snapshot.data.length; y++) {
+            //   vm.database.unitDao
+            //       .updateUnit(snapshot.data[y].copyWith(focused: false));
+            // }
+            // vm.database.unitDao.updateUnit(
+            //     snapshot.data[i].copyWith(focused: !snapshot.data[i].focused));
           },
           child: ListTile(
             title: Text(
               snapshot.data[i].name,
               style: TextStyle(color: Colors.black),
             ),
-            trailing: Radio(
-              value: snapshot.data[i].id,
-              groupValue: snapshot.data[i].focused ? snapshot.data[i].id : 0,
-              onChanged: (int value) {},
-            ),
+            // FIXME:
+            // trailing: Radio(
+            //   value: snapshot.data[i].id,
+            //   groupValue: snapshot.data[i].focused ? snapshot.data[i].id : 0,
+            //   onChanged: (int value) {},
+            // ),
           ),
         ),
       );
@@ -52,15 +55,16 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
   }
 
   Future updatedItemWithCurrentUnit(
-      CommonViewModel vm, UnitTableData unit) async {
+      CommonViewModel vm, Unit unit) async {
     //get all variant related to this product and updated it unit.
     //all variant submitted to this product has same unit, can be changed later on.
-    List<VariationTableData> variants = await vm.database.variationDao
-        .getVariantByProductId(productId: widget.productId);
-    for (var i = 0; i < variants.length; i++) {
-      vm.database.variationDao
-          .updateVariation(variants[i].copyWith(unit: unit.value));
-    }
+    // FIXME:
+    // List<Unir> variants = await vm.database.variationDao
+    //     .getVariantByProductId(productId: widget.productId);
+    // for (var i = 0; i < variants.length; i++) {
+    //   vm.database.variationDao
+    //       .updateVariation(variants[i].copyWith(unit: unit.value));
+    // }
   }
 
   @override
@@ -89,19 +93,21 @@ class _AddUnitTypeScreenState extends State<AddUnitTypeScreen> {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: StreamBuilder(
-              stream: vm.database.unitDao.getUnitsStream(),
-              builder: (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
-                if (snapshot.data == null) {
-                  return Text('');
-                }
+          body:const Text('unit need implemetation')
+          // FIXME:
+          // body: StreamBuilder(
+          //     stream: vm.database.unitDao.getUnitsStream(),
+          //     builder: (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
+          //       if (snapshot.data == null) {
+          //         return Text('');
+          //       }
 
-                return ListView(
-                    children: ListTile.divideTiles(
-                  context: context,
-                  tiles: _getUnitsWidgets(snapshot, vm),
-                ).toList());
-              }),
+          //       return ListView(
+          //           children: ListTile.divideTiles(
+          //         context: context,
+          //         tiles: _getUnitsWidgets(snapshot, vm),
+          //       ).toList());
+          //     }),
         );
       },
     );

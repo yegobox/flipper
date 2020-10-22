@@ -19,12 +19,13 @@ void Function(
   return (store, action, next) async {
     next(action);
 
-    StockTableData stock = await store.state.database.stockDao
-        .getStockByVariantId(
-            variantId: action.variantId, branchId: store.state.branch.id);
+    // FIXME:
+    // StockTableData stock = await store.state.database.stockDao
+    //     .getStockByVariantId(
+    //         variantId: action.variantId, branchId: store.state.branch.id);
 
-    store.dispatch(OnNewTotal(
-        total: Total((t) => t
-          ..value = stock.retailPrice.toInt() * store.state.currentIncrement)));
+    // store.dispatch(OnNewTotal(
+    //     total: Total((t) => t
+    //       ..value = stock.retailPrice.toInt() * store.state.currentIncrement)));
   };
 }

@@ -1,6 +1,48 @@
 import 'package:flipper/datamodels/api.dart';
 import 'package:flipper/services/abstractions/api.dart';
 
+final List<Map<String, String>>  mockUnits = [
+      {'name': 'Per Item', 'value': ''},
+      {'name': 'Per Kilogram (kg)', 'value': 'kg'},
+      {'name': 'Per Cup (c)', 'value': 'c'},
+      {'name': 'Per Liter (l)', 'value': 'l'},
+      {'name': 'Per Pound (lb)', 'value': 'lb'},
+      {'name': 'Per Pint (pt)', 'value': 'pt'},
+      {'name': 'Per Acre (ac)', 'value': 'ac'},
+      {'name': 'Per Centimeter (cm)', 'value': 'cm'},
+      {'name': 'Per Cubic Footer (cu ft)', 'value': 'cu ft'},
+      {'name': 'Per Day (day)', 'value': 'day'},
+      {'name': 'Footer (ft)', 'value': 'ft'},
+      {'name': 'Per Gram (g)', 'value': 'g'},
+      {'name': 'Per Hour (hr)', 'value': 'hr'},
+      {'name': 'Per Minute (min)', 'value': 'min'},
+      {'name': 'Per Acre (ac)', 'value': 'ac'},
+      {'name': 'Per Cubic Inch (cu in)', 'value': 'cu in'},
+      {'name': 'Per Cubic Yard (cu yd)', 'value': 'cu yd'},
+      {'name': 'Per Fluid Ounce (fl oz)', 'value': 'fl oz'},
+      {'name': 'Per Gallon (gal)', 'value': 'gal'},
+      {'name': 'Per Inch (in)', 'value': 'in'},
+      {'name': 'Per Kilometer (km)', 'value': 'km'},
+      {'name': 'Per Meter (m)', 'value': 'm'},
+      {'name': 'Per Mile (mi)', 'value': 'mi'},
+      {'name': 'Per Milligram (mg)', 'value': 'mg'},
+      {'name': 'Per Milliliter (mL)', 'value': 'mL'},
+      {'name': 'Per Millimeter (mm)', 'value': 'mm'},
+      {'name': 'Per Millisecond (ms)', 'value': 'ms'},
+      {'name': 'Per Ounce (oz)', 'value': 'oz'},
+      {'name': 'Per  Quart (qt)', 'value': 'qt'},
+      {'name': 'Per Second (sec)', 'value': 'sec'},
+      {'name': 'Per Shot (sh)', 'value': 'sh'},
+      {'name': 'Per Square Centimeter (sq cm)', 'value': 'sq cm'},
+      {'name': 'Per Square Foot (sq ft)', 'value': 'sq ft'},
+      {'name': 'Per Square Inch (sq in)', 'value': 'sq in'},
+      {'name': 'Per Square Kilometer (sq km)', 'value': 'sq km'},
+      {'name': 'Per Square Meter (sq m)', 'value': 'sq m'},
+      {'name': 'Per Square Mile (sq mi)', 'value': 'sq mi'},
+      {'name': 'Per Square Yard (sq yd)', 'value': 'sq yd'},
+      {'name': 'Per Stone (st)', 'value': 'st'},
+      {'name': 'Per Yard (yd)', 'value': 'yd'}
+    ];
 final Map<String, dynamic> mockData = {
   
   // ignore: always_specify_types

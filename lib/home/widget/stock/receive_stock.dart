@@ -1,5 +1,4 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 
 import 'package:flipper/presentation/home/common_view_model.dart';
@@ -47,22 +46,23 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
               padding: const EdgeInsets.fromLTRB(40, 40, 40, 40),
               child: Column(
                 children: <Widget>[
-                  StreamBuilder(
-                      stream: vm.database.stockDao.getStockByVariantStream(
-                          branchId: vm.branch.id,
-                          variationId: widget.variationId),
-                      builder: (context,
-                          AsyncSnapshot<List<StockTableData>> snapshot) {
-                        if (snapshot.data == null) {
-                          return Text('');
-                        } else {
-                          return ReceiveStockInputWidget(
-                            variantId: widget.variationId,
-                            vm: vm,
-                            currentStock: snapshot.data[0].currentStock,
-                          );
-                        }
-                      }),
+                  // FIXME:
+                  // StreamBuilder(
+                  //     stream: vm.database.stockDao.getStockByVariantStream(
+                  //         branchId: vm.branch.id,
+                  //         variationId: widget.variationId),
+                  //     builder: (context,
+                  //         AsyncSnapshot<List<StockTableData>> snapshot) {
+                  //       if (snapshot.data == null) {
+                  //         return Text('');
+                  //       } else {
+                  //         return ReceiveStockInputWidget(
+                  //           variantId: widget.variationId,
+                  //           vm: vm,
+                  //           currentStock: snapshot.data[0].currentStock,
+                  //         );
+                  //       }
+                  //     }),
                   Container(
                     height: 20,
                   ),
@@ -94,40 +94,41 @@ class ReceiveStockInputWidget extends StatefulWidget {
 }
 
 class _ReceiveStockInputWidgetState extends State<ReceiveStockInputWidget> {
-  Future receiveStock(CommonViewModel vm, double quantity) async {
-    StockTableData stock = await vm.database.stockDao.getStockByVariantId(
-        variantId: widget.variantId, branchId: vm.branch.id);
-    //get a stock history by variantId then update it with: Received as reason every time an edit.
-    StockHistoryTableData history = await vm.database.stockHistoryDao
-        .getByVariantId(variantId: widget.variantId);
+  // FIXME:
+  // Future receiveStock(CommonViewModel vm, double quantity) async {
+  //   StockTableData stock = await vm.database.stockDao.getStockByVariantId(
+  //       variantId: widget.variantId, branchId: vm.branch.id);
+  //   //get a stock history by variantId then update it with: Received as reason every time an edit.
+  //   StockHistoryTableData history = await vm.database.stockHistoryDao
+  //       .getByVariantId(variantId: widget.variantId);
 
-    await vm.database.stockDao.updateStock(
-      stock.copyWith(
-        updatedAt: DateTime.now(),
-        action: Defaults.RECEIVE.toString(),
-        currentStock: quantity.toInt(),
-        idLocal: stock.idLocal,
-      ),
-    );
+    // await vm.database.stockDao.updateStock(
+    //   stock.copyWith(
+    //     updatedAt: DateTime.now(),
+    //     action: Defaults.RECEIVE.toString(),
+    //     currentStock: quantity.toInt(),
+    //     idLocal: stock.idLocal,
+    //   ),
+    // );
 
-    if (history == null) {
-      await vm.database.stockHistoryDao.insert(
-        //ignore:missing_required_param
-        StockHistoryTableData(
-            quantity: quantity.toInt(),
-            variantId: widget.variantId,
-            id: Uuid().v1(),
-            note: 'Received ' + quantity.toString() + 'qty',
-            reason: 'Received',
-            stockId: stock.id,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now()),
-      );
-    } else {
-      await vm.database.stockHistoryDao
-          .updateHistory(history.copyWith(quantity: quantity.toInt()));
-    }
-  }
+    // if (history == null) {
+    //   await vm.database.stockHistoryDao.insert(
+    //     //ignore:missing_required_param
+    //     StockHistoryTableData(
+    //         quantity: quantity.toInt(),
+    //         variantId: widget.variantId,
+    //         id: Uuid().v1(),
+    //         note: 'Received ' + quantity.toString() + 'qty',
+    //         reason: 'Received',
+    //         stockId: stock.id,
+    //         createdAt: DateTime.now(),
+    //         updatedAt: DateTime.now()),
+    //   );
+    // } else {
+    //   await vm.database.stockHistoryDao
+    //       .updateHistory(history.copyWith(quantity: quantity.toInt()));
+    // }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -137,13 +138,14 @@ class _ReceiveStockInputWidgetState extends State<ReceiveStockInputWidget> {
       keyboardType: TextInputType.number,
       textDirection: TextDirection.rtl,
       autofocus: true,
-      style: TextStyle(color: Colors.black),
-      onChanged: (count) async {
+      style: const TextStyle(color: Colors.black),
+      onChanged: (String count) async {
         if (count != '') {
-          await receiveStock(widget.vm, double.parse(count));
+          // FIXME:
+          // await receiveStock(widget.vm, double.parse(count));
         }
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         hintText: 'Add Stock',
         focusColor: Colors.blue,
       ),

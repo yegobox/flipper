@@ -14,6 +14,10 @@ abstract class Stock implements Built<Stock, StockBuilder> {
   String get id;
   String get branchId;
   String get variantId;
+
+  @nullable
+  bool get isActive;
+
   String get lowStock;
 
   String get currentStock;

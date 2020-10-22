@@ -62,7 +62,8 @@ class CategoryList extends StatelessWidget {
           if (model.busy || model.data == null) {
             return const SizedBox.shrink();
           }
-          return _getCategoriesWidgets(model.data, vm);
+          return Text('hello');
+          // return _getCategoriesWidgets(model.data, vm);
         });
   }
 }

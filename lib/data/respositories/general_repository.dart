@@ -1,9 +1,10 @@
 import 'package:flipper/couchbase.dart';
-import 'package:flipper/data/dao/item_variation.dart';
+
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/helper/constant.dart';
+import 'package:flipper/model/category.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/model/order.dart';
@@ -19,39 +20,40 @@ import 'package:uuid/uuid.dart';
 
 class GeneralRepository {
   Future<bool> insertOrUpdateCart(
-      Store<AppState> store, OrderDetailTableData data) async {
-    OrderDetailTableData existingCart = await store
-        .state.database.orderDetailDao
-        .getExistingCartItem(variationId: data.variationId);
+      Store<AppState> store, Order data) async {
+        // FIXME(richard): fix this and move the code to related model
+    // OrderDetailTableData existingCart = await store
+    //     .state.database.orderDetailDao
+    //     .getExistingCartItem(variationId: data.variationId);
 
-    if (existingCart == null) {
-      store.state.database.orderDetailDao.insert(
-        data.copyWith(
-          quantity: store.state.currentIncrement.toDouble(),
-          subTotal: data.subTotal, //ask ganza what is a subtotal
-          id: data.id,
-          taxAmount: data.taxAmount, //get current active tax rate * amount /100
-          taxRate: data.taxRate, //get the current active tax rate
-          unit: data.unit, //get unit of this item sold should hav it.
-          note: data.note, //keep it lik this.
-          discountAmount: data.discountAmount,
-          discountRate: data.discountRate,
-          updatedAt: DateTime.now(),
-          createdAt: DateTime.now(),
-        ),
-      );
-      return true;
-    } else {
-      store.state.database.orderDetailDao.updateCart(
-        data.copyWith(
-          id: existingCart.id,
-          idLocal: existingCart.idLocal,
-          createdAt: DateTime.now(), //always keep today's date for the order .
-          updatedAt: DateTime.now(),
-        ),
-      );
-      return true;
-    }
+    // if (existingCart == null) {
+    //   store.state.database.orderDetailDao.insert(
+    //     data.copyWith(
+    //       quantity: store.state.currentIncrement.toDouble(),
+    //       subTotal: data.subTotal, //ask ganza what is a subtotal
+    //       id: data.id,
+    //       taxAmount: data.taxAmount, //get current active tax rate * amount /100
+    //       taxRate: data.taxRate, //get the current active tax rate
+    //       unit: data.unit, //get unit of this item sold should hav it.
+    //       note: data.note, //keep it lik this.
+    //       discountAmount: data.discountAmount,
+    //       discountRate: data.discountRate,
+    //       updatedAt: DateTime.now(),
+    //       createdAt: DateTime.now(),
+    //     ),
+    //   );
+    //   return true;
+    // } else {
+    //   store.state.database.orderDetailDao.updateCart(
+    //     data.copyWith(
+    //       id: existingCart.id,
+    //       idLocal: existingCart.idLocal,
+    //       createdAt: DateTime.now(), //always keep today's date for the order .
+    //       updatedAt: DateTime.now(),
+    //     ),
+    //   );
+    //   return true;
+    // }
   }
 
   Future<void> insertOrUpdateColor(
@@ -67,8 +69,7 @@ class GeneralRepository {
   Future<Order> createDraftOrderOrReturnExistingOne(
       Store<AppState> store) async {
          final Logger log = Logging.getLogger('General repo ....');
-    // OrderTableData order =
-    //     await store.state.database.orderDao.getExistingDraftOrder();
+    
     final DatabaseService _databaseService = ProxyService.database;
     final List<Map<String, dynamic>> or = await _databaseService.filter(
       equator: 'draft',
@@ -78,7 +79,7 @@ class GeneralRepository {
       andEquator: AppTables.order,
     );
     if (or.isEmpty) {
-      // ignore: always_specify_types
+    
       final       String id = Uuid().v1();
       _databaseService.insert(id:id, data: {
         'name': 'draft',
@@ -108,8 +109,9 @@ class GeneralRepository {
 
   Future<int> insertTabs(Store<AppState> store, int value) {
     //ignore:missing_required_param
-    final TabsTableData tab = TabsTableData(tab: value, id: 1);
-    return store.state.database.tabsDao.insert(tab);
+    // FIXME(richard): I am not sure if this is still in use.
+    // final TabsTableData tab = TabsTableData(tab: value, id: 1);
+    // return store.state.database.tabsDao.insert(tab);
   }
 
   Future<bool> updateCategory(Store<AppState> store, String categoryId,
@@ -130,9 +132,10 @@ class GeneralRepository {
   }
 
   Future<bool> updateTab(Store<AppState> store, int value) {
+    // FIXME(richard): I am not sure if this is still in use. I even deleted sql for it no need of it anymore!
     //ignore:missing_required_param
-    final TabsTableData b = TabsTableData(id: 1, tab: value);
-    return store.state.database.tabsDao.updateTab(b);
+    // final TabsTableData b = TabsTableData(id: 1, tab: value);
+    // return store.state.database.tabsDao.updateTab(b);
   }
 
   Future<bool> updateUnit(Store<AppState> store, Unit unit) {
@@ -142,47 +145,51 @@ class GeneralRepository {
     // return store.state.database.unitDao.updateUnit(b);
   }
 
-  Future<TabsTableData> getTab(Store<AppState> store) {
-    return store.state.database.tabsDao.getTab();
+  Future getTab(Store<AppState> store) {
+    // FIXME(richard): I am not sure if this is still in use.
+    // return store.state.database.tabsDao.getTab();
   }
 
-  Future<List<UnitTableData>> getUnits(Store<AppState> store) {
-    return store.state.database.unitDao.getUnits();
+  Future<List<Unit>> getUnits(Store<AppState> store) {
+    // return store.state.database.unitDao.getUnits();
   }
 
   Future<dynamic> insertItem(Store<AppState> store, Product data) async {
     return DataManager.insertProduct(store, data);
   }
 
-  Future<List<CategoryTableData>> getCategories(Store<AppState> store) {
-    return store.state.database.categoryDao.getCategories();
+  Future<List<Category>> getCategories(Store<AppState> store) {
+    // return store.state.database.categoryDao.getCategories();
   }
 
   Future<void> insertCustomCategory(
-      Store<AppState> store, CategoryTableData category) async {
-    CategoryTableData categoryData =
-        await store.state.database.categoryDao.getCategoryName(category.name);
-    if (categoryData == null) {
-      store.state.database.categoryDao
-          .insert(category.copyWith(createdAt: DateTime.now()));
-    }
+      Store<AppState> store, Category category) async {
+      // FIXME(richard): I am not sure if this is still in use.
+    // CategoryTableData categoryData =
+    //     await store.state.database.categoryDao.getCategoryName(category.name);
+    // if (categoryData == null) {
+    //   store.state.database.categoryDao
+    //       .insert(category.copyWith(createdAt: DateTime.now()));
+    // }
 
-    categoryData =
-        await store.state.database.categoryDao.getCategoryName(category.name);
+    // categoryData =
+    //     await store.state.database.categoryDao.getCategoryName(category.name);
   }
 
   Future<int> insertCategory(
-      Store<AppState> store, CategoryTableData category) async {
-    CategoryTableData existingCategory =
-        await store.state.database.categoryDao.getCategoryName(category.name);
-    if (existingCategory == null) {
-      return store.state.database.categoryDao.insert(category);
-    }
-    store.state.database.categoryDao
-        .updateCategory(category.copyWith(updatedAt: DateTime.now()));
-    existingCategory =
-        await store.state.database.categoryDao.getCategoryName(category.name);
-    return existingCategory.idLocal;
+      Store<AppState> store, Category category) async {
+
+        // FIXME(richard): I am not sure if this is still in use.
+    // CategoryTableData existingCategory =
+    //     await store.state.database.categoryDao.getCategoryName(category.name);
+    // if (existingCategory == null) {
+    //   return store.state.database.categoryDao.insert(category);
+    // }
+    // store.state.database.categoryDao
+    //     .updateCategory(category.copyWith(updatedAt: DateTime.now()));
+    // existingCategory =
+    //     await store.state.database.categoryDao.getCategoryName(category.name);
+    // return existingCategory.idLocal;
   }
 
   Future<void> insertVariant(Store<AppState> store, Variation data) async {
@@ -199,77 +206,62 @@ Future<void> insertHistory(Store<AppState> store, int variantId, int count) {
   //     .insert(StockHistoryTableData(quantity: count, variantId: variantId));
 }
 
-Future<List<ProductTableData>> getItems(Store<AppState> store) {
-  return store.state.database.productDao.getProducts();
+
+
+
+
+
+
+Future<bool> updateOrder(Store<AppState> store, Order order) async {
+  // return await store.state.database.orderDao.updateOrder(order);
 }
 
-Future<List<ItemVariation>> getItemVariation(Store<AppState> store) {
-//    return store.state.database.productDao.getItemVariations();
+Future<Order> getOrder(Store<AppState> store, String orderId) async {
+  // FIXME(richard): I am not sure if this is still in use.
+  // return await store.state.database.orderDao.getOrderById(orderId);
 }
 
-Future<List<VariationTableData>> getVariations(
-    {Store<AppState> store, String productId}) {
-  return store.state.database.variationDao.getItemVariations(productId);
-}
-
-Stream<List<OrderDetailTableData>> getCarts(Store<AppState> store) {
-  return store.state.database.orderDetailDao
-      .getCartsStream(store.state.order.id.toString());
-}
-
-Future<List<VariationTableData>> getVariationsByItems(
-    Store<AppState> store, String productId) async {
-  return await store.state.database.variationDao
-      .getVariationByItemId(productId: productId);
-}
-
-Future<bool> updateOrder(Store<AppState> store, OrderTableData order) async {
-  return await store.state.database.orderDao.updateOrder(order);
-}
-
-Future<OrderTableData> getOrder(Store<AppState> store, String orderId) async {
-  return await store.state.database.orderDao.getOrderById(orderId);
-}
-
-Future<VariationTableData> getVariationById(
+Future<Variation> getVariationById(
     Store<AppState> store, String variantId) async {
   // return await store.state.database.variationDao.getVariationById(variantId);
+  // FIXME(richard): I am not sure if this is still in use.
 }
 
 Future<void> insertNewDraftOrder(Store<AppState> store) async {
   if (store.state.branch != null) {
-    return await store.state.database.orderDao.insert(
-      //ignore: missing_required_param
-      OrderTableData(
-        status: 'draft',
-        branchId: store.state.branch.id,
-        id: Uuid().v1(),
-        currency: 'RWF',
-        deviceId: Uuid().v1(),
-        orderDate: DateTime.now(),
-        isDraft: true,
-        orderType: 'sales',
-        reference: Uuid().v1(),
-        cashReceived: 0,
-        customerChangeDue: 0,
-        customerSaving: 0,
-        deliverDate: DateTime.now(),
-        discountAmount: 0,
-        discountRate: 0,
-        orderNote: 'none',
-        variantName: 'custom',
-        count: 1,
-        orderNUmber: 0,
-        paymentId: 0,
-        saleTotal: 0,
-        subTotal: 0,
-        supplierId: 0,
-        supplierInvoiceNumber: 0,
-        taxAmount: 0,
-        taxRate: 0,
-        // userId: store.state.user.id,
-      ),
-    );
+    // FIXME(richard): I am not sure if this is still in use.
+    // return await store.state.database.orderDao.insert(
+    //   //ignore: missing_required_param
+    //   OrderTableData(
+    //     status: 'draft',
+    //     branchId: store.state.branch.id,
+    //     id: Uuid().v1(),
+    //     currency: 'RWF',
+    //     deviceId: Uuid().v1(),
+    //     orderDate: DateTime.now(),
+    //     isDraft: true,
+    //     orderType: 'sales',
+    //     reference: Uuid().v1(),
+    //     cashReceived: 0,
+    //     customerChangeDue: 0,
+    //     customerSaving: 0,
+    //     deliverDate: DateTime.now(),
+    //     discountAmount: 0,
+    //     discountRate: 0,
+    //     orderNote: 'none',
+    //     variantName: 'custom',
+    //     count: 1,
+    //     orderNUmber: 0,
+    //     paymentId: 0,
+    //     saleTotal: 0,
+    //     subTotal: 0,
+    //     supplierId: 0,
+    //     supplierInvoiceNumber: 0,
+    //     taxAmount: 0,
+    //     taxRate: 0,
+    //     // userId: store.state.user.id,
+    //   ),
+    // );
   }
 }
 
