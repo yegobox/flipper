@@ -33,7 +33,7 @@ class UnitViewModel extends BaseModel{
         .observer(
             equator: AppTables.unit +
                 StoreProvider.of<AppState>(context).state.branch.id,
-            property: 'tableName')
+            property: 'table')
         .stream
         .listen((ResultSet event) {
       // _unit = event.allResults();

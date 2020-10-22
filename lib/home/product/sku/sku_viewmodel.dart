@@ -35,7 +35,7 @@ class SkuViewModel extends BaseModel{
         .observer(
             equator: AppTables.variation +
                 StoreProvider.of<AppState>(context).state.branch.id,
-            property: 'tableName',
+            property: 'table',
             and:true,
             andEquator: productId,
             andProperty: 'productId'

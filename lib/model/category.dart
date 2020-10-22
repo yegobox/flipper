@@ -26,9 +26,9 @@ abstract class Category implements Built<Category, CategoryBuilder> {
   @nullable
 
   bool get focused;
-  @BuiltValueField(wireName: 'tableName')
+  @BuiltValueField(wireName: 'table')
 
-  String get tableName;
+  String get table;
   @BuiltValueField(wireName: 'touched')
 
   @nullable

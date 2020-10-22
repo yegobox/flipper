@@ -21,7 +21,7 @@ class SwitchModel extends FutureViewModel {
       
       final List<Map<String, dynamic>> switcher = await _databaseService.filter(
         equator: AppTables.switchi + id,
-        property: 'tableName',
+        property: 'table',
       );
 
       final Switcher  switchi = Switcher.fromMap(switcher[0]['main']); //intrested in first result. FIXME(richard):should be one result.

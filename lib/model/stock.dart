@@ -28,7 +28,7 @@ abstract class Stock implements Built<Stock, StockBuilder> {
 
   BuiltList<String> get channels;
 
-  String get tableName;
+  String get table;
 
   Stock._();
 

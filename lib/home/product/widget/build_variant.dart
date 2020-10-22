@@ -14,7 +14,7 @@ Future<List<Variation>> buildVariantsList(
   final List<Map<String, dynamic>> variation = await _databaseService.filter(
     equator: AppTables.variation +
         StoreProvider.of<AppState>(context).state.branch.id,
-    property: 'tableName',
+    property: 'table',
     and: true, //define that this query is and type.
     andEquator: product.id,
     andProperty: 'productId',

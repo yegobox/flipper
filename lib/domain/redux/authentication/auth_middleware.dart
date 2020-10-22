@@ -100,7 +100,7 @@ Future<void> openCloseBusiness({
       await AppDatabase.instance.database.document(userId);
 
   final Map<String, dynamic> buildMap = {
-    'tableName': AppTables.switchi + userId,
+    'table': AppTables.switchi + userId,
     'name': name,
     'isClosed': isClosed,
     'isSocial': isSocial,
@@ -189,7 +189,7 @@ Future<List<Branch>> getBranches(
   final DatabaseService _databaseService = ProxyService.database;
   final List<Map<String, dynamic>> branche = await _databaseService.filter(
     equator: AppTables.branch + store.state.user.id.toString(),
-    property: 'tableName',
+    property: 'table',
   );
   List<Branch> branches = [];
   if (branche.isNotEmpty) {
@@ -210,7 +210,7 @@ Future<List<Branch>> getBranches(
       if (!weHaveCustomCategory) {
         final String id = Uuid().v1();
         _databaseService.insert(id: id, data: {
-          'tableName': AppTables.category + branch.id,
+          'table': AppTables.category + branch.id,
           'id': id,
           'channels': [store.state.user.id.toString()],
           'name': 'custom'
@@ -236,7 +236,7 @@ Future<bool> isCategory({String branchId}) async {
     equator: 'custom',
     property: 'name',
     and: true,
-    andProperty: 'tableName',
+    andProperty: 'table',
     andEquator: AppTables.category + branchId,
   );
   return category.isNotEmpty;

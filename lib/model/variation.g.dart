@@ -20,8 +20,8 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'tableName',
-      serializers.serialize(object.tableName,
+      'table',
+      serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
     if (object.sku != null) {
@@ -89,8 +89,8 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
           result.unit = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'channels':
@@ -118,7 +118,7 @@ class _$Variation extends Variation {
   @override
   final String unit;
   @override
-  final String tableName;
+  final String table;
   @override
   final BuiltList<String> channels;
 
@@ -131,14 +131,14 @@ class _$Variation extends Variation {
       this.productId,
       this.name,
       this.unit,
-      this.tableName,
+      this.table,
       this.channels})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
     }
-    if (tableName == null) {
-      throw new BuiltValueNullFieldError('Variation', 'tableName');
+    if (table == null) {
+      throw new BuiltValueNullFieldError('Variation', 'table');
     }
   }
 
@@ -158,7 +158,7 @@ class _$Variation extends Variation {
         productId == other.productId &&
         name == other.name &&
         unit == other.unit &&
-        tableName == other.tableName &&
+        table == other.table &&
         channels == other.channels;
   }
 
@@ -172,7 +172,7 @@ class _$Variation extends Variation {
                         productId.hashCode),
                     name.hashCode),
                 unit.hashCode),
-            tableName.hashCode),
+            table.hashCode),
         channels.hashCode));
   }
 
@@ -184,7 +184,7 @@ class _$Variation extends Variation {
           ..add('productId', productId)
           ..add('name', name)
           ..add('unit', unit)
-          ..add('tableName', tableName)
+          ..add('table', table)
           ..add('channels', channels))
         .toString();
   }
@@ -214,8 +214,8 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   set unit(String unit) => _$this._unit = unit;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
@@ -231,7 +231,7 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
       _productId = _$v.productId;
       _name = _$v.name;
       _unit = _$v.unit;
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
@@ -262,7 +262,7 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
               productId: productId,
               name: name,
               unit: unit,
-              tableName: tableName,
+              table: table,
               channels: _channels?.build());
     } catch (_) {
       String _$failedField;

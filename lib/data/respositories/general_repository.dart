@@ -74,7 +74,7 @@ class GeneralRepository {
       equator: 'draft',
       property: 'name',
       and: true,
-      andProperty: 'tableName',
+      andProperty: 'table',
       andEquator: AppTables.order + store.state.branch.id,
     );
     if (or.isEmpty) {
@@ -84,14 +84,14 @@ class GeneralRepository {
         'name': 'draft',
         'id':id,
         'branchId': store.state.branch.id,
-        'tableName':  AppTables.order + store.state.branch.id
+        'table':  AppTables.order + store.state.branch.id
       });
       
       final List<Map<String, dynamic>> or = await _databaseService.filter(
         equator: 'draft',
         property: 'name',
         and: true,
-        andProperty: 'tableName',
+        andProperty: 'table',
         andEquator: AppTables.order + store.state.branch.id,
       );
       

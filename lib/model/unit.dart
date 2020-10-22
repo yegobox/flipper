@@ -12,7 +12,7 @@ abstract class Unit implements Built<Unit, UnitBuilder> {
  
   String get name;
  
-  String get tableName;
+  String get table;
 
   String get productId;
 

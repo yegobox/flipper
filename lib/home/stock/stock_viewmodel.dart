@@ -27,7 +27,7 @@ class StockViewModel extends BaseModel {
     log.d('loading stock with productId:'+productId);
     //demo of listening on users table on every entry.
     _databaseService
-        .observer(equator: AppTables.product + StoreProvider.of<AppState>(context).state.branch.id, property: 'tableName')
+        .observer(equator: AppTables.product + StoreProvider.of<AppState>(context).state.branch.id, property: 'table')
         .stream
         .listen((ResultSet event) {
       // stocks = event.allResults();

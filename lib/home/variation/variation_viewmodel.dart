@@ -16,7 +16,7 @@ import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
 class VariationViewModel extends BaseModel {
-  final Logger log = Logging.getLogger('product observer:)');
+  final Logger log = Logging.getLogger('variation model:)');
   final DatabaseService _databaseService = ProxyService.database;
   List<Variation> variations;
   List<Variation> get data => variations;
@@ -32,7 +32,7 @@ class VariationViewModel extends BaseModel {
 
   void getStockByProductId({String productId, BuildContext context}) async {
     final List<Map<String, dynamic>> product = await _databaseService.filter(
-        property: 'tableName',
+        property: 'table',
         equator: AppTables.variation +
             StoreProvider.of<AppState>(context).state.branch.id,
         and: true,
@@ -45,7 +45,7 @@ class VariationViewModel extends BaseModel {
 
   void getVariationById({String productId, BuildContext context}) async {
     final List<Map<String, dynamic>> product = await _databaseService.filter(
-        property: 'tableName',
+        property: 'table',
         equator: AppTables.variation +
             StoreProvider.of<AppState>(context).state.branch.id,
         and: true,
@@ -59,7 +59,7 @@ class VariationViewModel extends BaseModel {
   void getProductById({String productId, BuildContext context}) async {
     setBusy(true);
     final List<Map<String, dynamic>> product = await _databaseService.filter(
-        property: 'tableName',
+        property: 'table',
         equator: AppTables.product +
             StoreProvider.of<AppState>(context).state.branch.id,
         and: true,
@@ -79,7 +79,7 @@ class VariationViewModel extends BaseModel {
         .observer(
             equator: AppTables.product +
                 StoreProvider.of<AppState>(context).state.branch.id,
-            property: 'tableName')
+            property: 'table')
         .stream
         .listen((ResultSet event) {
       // variations = event.allResults();
@@ -155,7 +155,7 @@ class VariationViewModel extends BaseModel {
       'name': nameController.text,
       'unit': 'kg',
       'channels': <String>[store.state.user.id],
-      'tableName': AppTables.variation + store.state.branch.id,
+      'table': AppTables.variation + store.state.branch.id,
       'productId': productId,
       'sku': Uuid().v1().substring(0, 4),
       'id': Uuid().v1(),
@@ -172,7 +172,7 @@ class VariationViewModel extends BaseModel {
       'retailPrice': double.parse(retailController.text),
       'channels': [store.state.user.id],
       'isActive': true,
-      'tableName': AppTables.stock + store.state.branch.id,
+      'table': AppTables.stock + store.state.branch.id,
       'lowStock': 0,
       'currentStock': 0,
       'id': Uuid().v1(),
@@ -187,5 +187,42 @@ class VariationViewModel extends BaseModel {
     _nameController = name;
     _costController = cost;
     _retailController = retail;
+  }
+
+  void updateVariation({Variation variation})async {
+    
+    // TODO(richard): [lonald] implement update variation
+    log.i(variation);
+    await ProxyService.toast.showCustomSnackBar(
+      title: 'Feedback',
+      message: 'Update method is not implemented',
+      duration: const Duration(
+        milliseconds: 1500,
+      ),
+    );
+  }
+
+  void closeAndDelete({BuildContext context, String productId})async {
+    log.i(productId);
+    // TODO(richard): [lonald] implement delete product
+    await ProxyService.toast.showCustomSnackBar(
+      title: 'Feedback',
+      message: 'delete method is not implemented',
+      duration: const Duration(
+        milliseconds: 1500,
+      ),
+    );
+  }
+
+  void handleEditItem({List<bool> selections})async {
+    // TODO(richard): [lonald] implement edit product
+    
+    await ProxyService.toast.showCustomSnackBar(
+      title: 'Feedback',
+      message: 'edit method is not implemented',
+      duration: const Duration(
+        milliseconds: 1500,
+      ),
+    );
   }
 }

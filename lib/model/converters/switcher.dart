@@ -32,9 +32,9 @@ abstract class Switcher implements Built<Switcher, SwitcherBuilder> {
   @nullable
   bool get isSocial;
 
-  @BuiltValueField(wireName: 'tableName')
+  @BuiltValueField(wireName: 'table')
   @nullable
-  String get tableName;
+  String get table;
 
   @nullable
   @BuiltValueField(wireName: 'openingFLoat')

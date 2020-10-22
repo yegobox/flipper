@@ -40,10 +40,10 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
         ..add(serializers.serialize(object.isSocial,
             specifiedType: const FullType(bool)));
     }
-    if (object.tableName != null) {
+    if (object.table != null) {
       result
-        ..add('tableName')
-        ..add(serializers.serialize(object.tableName,
+        ..add('table')
+        ..add(serializers.serialize(object.table,
             specifiedType: const FullType(String)));
     }
     if (object.openingFLoat != null) {
@@ -106,8 +106,8 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
           result.isSocial = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'openingFLoat':
@@ -147,7 +147,7 @@ class _$Switcher extends Switcher {
   @override
   final bool isSocial;
   @override
-  final String tableName;
+  final String table;
   @override
   final double openingFLoat;
   @override
@@ -167,7 +167,7 @@ class _$Switcher extends Switcher {
       this.cashierName,
       this.isClosed,
       this.isSocial,
-      this.tableName,
+      this.table,
       this.openingFLoat,
       this.closingFloat,
       this.displayText,
@@ -194,7 +194,7 @@ class _$Switcher extends Switcher {
         cashierName == other.cashierName &&
         isClosed == other.isClosed &&
         isSocial == other.isSocial &&
-        tableName == other.tableName &&
+        table == other.table &&
         openingFLoat == other.openingFLoat &&
         closingFloat == other.closingFloat &&
         displayText == other.displayText &&
@@ -216,7 +216,7 @@ class _$Switcher extends Switcher {
                                         cashierName.hashCode),
                                     isClosed.hashCode),
                                 isSocial.hashCode),
-                            tableName.hashCode),
+                            table.hashCode),
                         openingFLoat.hashCode),
                     closingFloat.hashCode),
                 displayText.hashCode),
@@ -231,7 +231,7 @@ class _$Switcher extends Switcher {
           ..add('cashierName', cashierName)
           ..add('isClosed', isClosed)
           ..add('isSocial', isSocial)
-          ..add('tableName', tableName)
+          ..add('table', table)
           ..add('openingFLoat', openingFLoat)
           ..add('closingFloat', closingFloat)
           ..add('displayText', displayText)
@@ -261,8 +261,8 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
   set isSocial(bool isSocial) => _$this._isSocial = isSocial;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   double _openingFLoat;
   double get openingFLoat => _$this._openingFLoat;
@@ -292,7 +292,7 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
       _cashierName = _$v.cashierName;
       _isClosed = _$v.isClosed;
       _isSocial = _$v.isSocial;
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _openingFLoat = _$v.openingFLoat;
       _closingFloat = _$v.closingFloat;
       _displayText = _$v.displayText;
@@ -324,7 +324,7 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
             cashierName: cashierName,
             isClosed: isClosed,
             isSocial: isSocial,
-            tableName: tableName,
+            table: table,
             openingFLoat: openingFLoat,
             closingFloat: closingFloat,
             displayText: displayText,

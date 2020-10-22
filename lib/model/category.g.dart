@@ -22,8 +22,8 @@ class _$CategorySerializer implements StructuredSerializer<Category> {
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'tableName',
-      serializers.serialize(object.tableName,
+      'table',
+      serializers.serialize(object.table,
           specifiedType: const FullType(String)),
       'channels',
       serializers.serialize(object.channels,
@@ -74,8 +74,8 @@ class _$CategorySerializer implements StructuredSerializer<Category> {
           result.focused = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'touched':
@@ -107,7 +107,7 @@ class _$Category extends Category {
   @override
   final bool focused;
   @override
-  final String tableName;
+  final String table;
   @override
   final bool touched;
   @override
@@ -122,7 +122,7 @@ class _$Category extends Category {
       {this.name,
       this.id,
       this.focused,
-      this.tableName,
+      this.table,
       this.touched,
       this.branchId,
       this.channels})
@@ -133,8 +133,8 @@ class _$Category extends Category {
     if (id == null) {
       throw new BuiltValueNullFieldError('Category', 'id');
     }
-    if (tableName == null) {
-      throw new BuiltValueNullFieldError('Category', 'tableName');
+    if (table == null) {
+      throw new BuiltValueNullFieldError('Category', 'table');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Category', 'channels');
@@ -155,7 +155,7 @@ class _$Category extends Category {
         name == other.name &&
         id == other.id &&
         focused == other.focused &&
-        tableName == other.tableName &&
+        table == other.table &&
         touched == other.touched &&
         branchId == other.branchId &&
         channels == other.channels;
@@ -169,7 +169,7 @@ class _$Category extends Category {
                 $jc(
                     $jc($jc($jc(0, name.hashCode), id.hashCode),
                         focused.hashCode),
-                    tableName.hashCode),
+                    table.hashCode),
                 touched.hashCode),
             branchId.hashCode),
         channels.hashCode));
@@ -181,7 +181,7 @@ class _$Category extends Category {
           ..add('name', name)
           ..add('id', id)
           ..add('focused', focused)
-          ..add('tableName', tableName)
+          ..add('table', table)
           ..add('touched', touched)
           ..add('branchId', branchId)
           ..add('channels', channels))
@@ -205,8 +205,8 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
   set focused(bool focused) => _$this._focused = focused;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   bool _touched;
   bool get touched => _$this._touched;
@@ -228,7 +228,7 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
       _name = _$v.name;
       _id = _$v.id;
       _focused = _$v.focused;
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _touched = _$v.touched;
       _branchId = _$v.branchId;
       _channels = _$v.channels?.toBuilder();
@@ -259,7 +259,7 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
               name: name,
               id: id,
               focused: focused,
-              tableName: tableName,
+              table: table,
               touched: touched,
               branchId: branchId,
               channels: channels.build());

@@ -31,7 +31,7 @@ class CategoryViewModel extends BaseModel {
         .observer(
             equator: AppTables.category +
                 StoreProvider.of<AppState>(context).state.branch.id,
-            property: 'tableName')
+            property: 'table')
         .stream
         .listen((ResultSet event) {
       // _category = event.allResults();

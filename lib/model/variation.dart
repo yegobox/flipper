@@ -23,7 +23,7 @@ abstract class Variation implements Built<Variation, VariationBuilder> {
   @nullable
   String get unit;
 
-  String get tableName;
+  String get table;
 
   @nullable
   BuiltList<String> get channels;

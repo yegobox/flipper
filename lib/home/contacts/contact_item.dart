@@ -32,6 +32,7 @@ class ContactItem extends StatelessWidget {
         ),
         title: searchKeyword == null || searchKeyword.isEmpty
             ? Text(
+              
                 contact.displayName == null ? '' : contact.displayName,
                 maxLines: 1,
                 style: Theme.of(context).textTheme.headline5,

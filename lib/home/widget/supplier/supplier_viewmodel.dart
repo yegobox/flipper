@@ -26,7 +26,7 @@ class SupplierViewmodel extends BaseModel {
         .observer(
             equator: AppTables.variation +
                 StoreProvider.of<AppState>(context).state.branch.id,
-            property: 'tableName',
+            property: 'table',
             and: true,
             andProperty: 'productId',
             andEquator: productId)

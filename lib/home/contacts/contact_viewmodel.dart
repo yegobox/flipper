@@ -9,6 +9,7 @@ class ContactViewModel extends FutureViewModel {
   final Logger log = Logging.getLogger('Contact view model');
 
 
+
   @override
   Future futureToRun() async {
     // FIXME(richard): this is fix me:

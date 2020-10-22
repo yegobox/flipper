@@ -19,7 +19,7 @@ abstract class Tax implements Built<Tax, TaxBuilder> {
   String get id;
   @nullable
   bool get touched;
-  String get tableName;
+  String get table;
   
   bool get isDefault;
 

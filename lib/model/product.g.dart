@@ -22,8 +22,8 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'tableName',
-      serializers.serialize(object.tableName,
+      'table',
+      serializers.serialize(object.table,
           specifiedType: const FullType(String)),
       'channels',
       serializers.serialize(object.channels,
@@ -182,8 +182,8 @@ class _$ProductSerializer implements StructuredSerializer<Product> {
           result.touched = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'isDraft':
@@ -259,7 +259,7 @@ class _$Product extends Product {
   @override
   final bool touched;
   @override
-  final String tableName;
+  final String table;
   @override
   final bool isDraft;
   @override
@@ -296,7 +296,7 @@ class _$Product extends Product {
       this.hasPicture,
       this.isImageLocal,
       this.touched,
-      this.tableName,
+      this.table,
       this.isDraft,
       this.color,
       this.isCurrentUpdate,
@@ -315,8 +315,8 @@ class _$Product extends Product {
     if (id == null) {
       throw new BuiltValueNullFieldError('Product', 'id');
     }
-    if (tableName == null) {
-      throw new BuiltValueNullFieldError('Product', 'tableName');
+    if (table == null) {
+      throw new BuiltValueNullFieldError('Product', 'table');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Product', 'channels');
@@ -343,7 +343,7 @@ class _$Product extends Product {
         hasPicture == other.hasPicture &&
         isImageLocal == other.isImageLocal &&
         touched == other.touched &&
-        tableName == other.tableName &&
+        table == other.table &&
         isDraft == other.isDraft &&
         color == other.color &&
         isCurrentUpdate == other.isCurrentUpdate &&
@@ -385,7 +385,7 @@ class _$Product extends Product {
                                                                 hasPicture.hashCode),
                                                             isImageLocal.hashCode),
                                                         touched.hashCode),
-                                                    tableName.hashCode),
+                                                    table.hashCode),
                                                 isDraft.hashCode),
                                             color.hashCode),
                                         isCurrentUpdate.hashCode),
@@ -411,7 +411,7 @@ class _$Product extends Product {
           ..add('hasPicture', hasPicture)
           ..add('isImageLocal', isImageLocal)
           ..add('touched', touched)
-          ..add('tableName', tableName)
+          ..add('table', table)
           ..add('isDraft', isDraft)
           ..add('color', color)
           ..add('isCurrentUpdate', isCurrentUpdate)
@@ -467,8 +467,8 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
   set touched(bool touched) => _$this._touched = touched;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   bool _isDraft;
   bool get isDraft => _$this._isDraft;
@@ -529,7 +529,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
       _hasPicture = _$v.hasPicture;
       _isImageLocal = _$v.isImageLocal;
       _touched = _$v.touched;
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _isDraft = _$v.isDraft;
       _color = _$v.color;
       _isCurrentUpdate = _$v.isCurrentUpdate;
@@ -574,7 +574,7 @@ class ProductBuilder implements Builder<Product, ProductBuilder> {
               hasPicture: hasPicture,
               isImageLocal: isImageLocal,
               touched: touched,
-              tableName: tableName,
+              table: table,
               isDraft: isDraft,
               color: color,
               isCurrentUpdate: isCurrentUpdate,

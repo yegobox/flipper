@@ -48,8 +48,8 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       serializers.serialize(object.channels,
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
-      'tableName',
-      serializers.serialize(object.tableName,
+      'table',
+      serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
     if (object.showLowStockAlert != null) {
@@ -118,8 +118,8 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
                       const FullType(BuiltList, const [const FullType(String)]))
               as BuiltList<Object>);
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -153,7 +153,7 @@ class _$Stock extends Stock {
   @override
   final BuiltList<String> channels;
   @override
-  final String tableName;
+  final String table;
 
   factory _$Stock([void Function(StockBuilder) updates]) =>
       (new StockBuilder()..update(updates)).build();
@@ -170,7 +170,7 @@ class _$Stock extends Stock {
       this.canTrackingStock,
       this.showLowStockAlert,
       this.channels,
-      this.tableName})
+      this.table})
       : super._() {
     if (value == null) {
       throw new BuiltValueNullFieldError('Stock', 'value');
@@ -202,8 +202,8 @@ class _$Stock extends Stock {
     if (channels == null) {
       throw new BuiltValueNullFieldError('Stock', 'channels');
     }
-    if (tableName == null) {
-      throw new BuiltValueNullFieldError('Stock', 'tableName');
+    if (table == null) {
+      throw new BuiltValueNullFieldError('Stock', 'table');
     }
   }
 
@@ -229,7 +229,7 @@ class _$Stock extends Stock {
         canTrackingStock == other.canTrackingStock &&
         showLowStockAlert == other.showLowStockAlert &&
         channels == other.channels &&
-        tableName == other.tableName;
+        table == other.table;
   }
 
   @override
@@ -255,7 +255,7 @@ class _$Stock extends Stock {
                     canTrackingStock.hashCode),
                 showLowStockAlert.hashCode),
             channels.hashCode),
-        tableName.hashCode));
+        table.hashCode));
   }
 
   @override
@@ -272,7 +272,7 @@ class _$Stock extends Stock {
           ..add('canTrackingStock', canTrackingStock)
           ..add('showLowStockAlert', showLowStockAlert)
           ..add('channels', channels)
-          ..add('tableName', tableName))
+          ..add('table', table))
         .toString();
   }
 }
@@ -328,8 +328,8 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
   set channels(ListBuilder<String> channels) => _$this._channels = channels;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   StockBuilder();
 
@@ -346,7 +346,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
       _canTrackingStock = _$v.canTrackingStock;
       _showLowStockAlert = _$v.showLowStockAlert;
       _channels = _$v.channels?.toBuilder();
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _$v = null;
     }
     return this;
@@ -382,7 +382,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
               canTrackingStock: canTrackingStock,
               showLowStockAlert: showLowStockAlert,
               channels: channels.build(),
-              tableName: tableName);
+              table: table);
     } catch (_) {
       String _$failedField;
       try {

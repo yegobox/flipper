@@ -20,8 +20,8 @@ class _$UnitSerializer implements StructuredSerializer<Unit> {
     final result = <Object>[
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
-      'tableName',
-      serializers.serialize(object.tableName,
+      'table',
+      serializers.serialize(object.table,
           specifiedType: const FullType(String)),
       'productId',
       serializers.serialize(object.productId,
@@ -57,8 +57,8 @@ class _$UnitSerializer implements StructuredSerializer<Unit> {
           result.name = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'productId':
@@ -90,7 +90,7 @@ class _$Unit extends Unit {
   @override
   final String name;
   @override
-  final String tableName;
+  final String table;
   @override
   final String productId;
   @override
@@ -105,7 +105,7 @@ class _$Unit extends Unit {
 
   _$Unit._(
       {this.name,
-      this.tableName,
+      this.table,
       this.productId,
       this.focused,
       this.channels,
@@ -114,8 +114,8 @@ class _$Unit extends Unit {
     if (name == null) {
       throw new BuiltValueNullFieldError('Unit', 'name');
     }
-    if (tableName == null) {
-      throw new BuiltValueNullFieldError('Unit', 'tableName');
+    if (table == null) {
+      throw new BuiltValueNullFieldError('Unit', 'table');
     }
     if (productId == null) {
       throw new BuiltValueNullFieldError('Unit', 'productId');
@@ -140,7 +140,7 @@ class _$Unit extends Unit {
     if (identical(other, this)) return true;
     return other is Unit &&
         name == other.name &&
-        tableName == other.tableName &&
+        table == other.table &&
         productId == other.productId &&
         focused == other.focused &&
         channels == other.channels &&
@@ -152,7 +152,7 @@ class _$Unit extends Unit {
     return $jf($jc(
         $jc(
             $jc(
-                $jc($jc($jc(0, name.hashCode), tableName.hashCode),
+                $jc($jc($jc(0, name.hashCode), table.hashCode),
                     productId.hashCode),
                 focused.hashCode),
             channels.hashCode),
@@ -163,7 +163,7 @@ class _$Unit extends Unit {
   String toString() {
     return (newBuiltValueToStringHelper('Unit')
           ..add('name', name)
-          ..add('tableName', tableName)
+          ..add('table', table)
           ..add('productId', productId)
           ..add('focused', focused)
           ..add('channels', channels)
@@ -180,8 +180,8 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
   set name(String name) => _$this._name = name;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   String _productId;
   String get productId => _$this._productId;
@@ -205,7 +205,7 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
   UnitBuilder get _$this {
     if (_$v != null) {
       _name = _$v.name;
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _productId = _$v.productId;
       _focused = _$v.focused;
       _channels = _$v.channels?.toBuilder();
@@ -235,7 +235,7 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
       _$result = _$v ??
           new _$Unit._(
               name: name,
-              tableName: tableName,
+              table: table,
               productId: productId,
               focused: focused,
               channels: channels.build(),

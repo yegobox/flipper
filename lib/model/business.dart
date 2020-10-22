@@ -57,7 +57,7 @@ abstract class Business implements Built<Business, BusinessBuilder> {
   String get type;
 
   @nullable
-  String get tableName;
+  String get table;
 
   // ignore: sort_constructors_first
   Business._();

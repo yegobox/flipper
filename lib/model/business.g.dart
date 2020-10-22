@@ -101,10 +101,10 @@ class _$BusinessSerializer implements StructuredSerializer<Business> {
         ..add(serializers.serialize(object.type,
             specifiedType: const FullType(String)));
     }
-    if (object.tableName != null) {
+    if (object.table != null) {
       result
-        ..add('tableName')
-        ..add(serializers.serialize(object.tableName,
+        ..add('table')
+        ..add(serializers.serialize(object.table,
             specifiedType: const FullType(String)));
     }
     return result;
@@ -195,8 +195,8 @@ class _$BusinessSerializer implements StructuredSerializer<Business> {
           result.type = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'tableName':
-          result.tableName = serializers.deserialize(value,
+        case 'table':
+          result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
       }
@@ -244,7 +244,7 @@ class _$Business extends Business {
   @override
   final String type;
   @override
-  final String tableName;
+  final String table;
 
   factory _$Business([void Function(BusinessBuilder) updates]) =>
       (new BusinessBuilder()..update(updates)).build();
@@ -268,7 +268,7 @@ class _$Business extends Business {
       this.hexColor,
       this.image,
       this.type,
-      this.tableName})
+      this.table})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Business', 'id');
@@ -325,7 +325,7 @@ class _$Business extends Business {
         hexColor == other.hexColor &&
         image == other.image &&
         type == other.type &&
-        tableName == other.tableName;
+        table == other.table;
   }
 
   @override
@@ -373,7 +373,7 @@ class _$Business extends Business {
                     hexColor.hashCode),
                 image.hashCode),
             type.hashCode),
-        tableName.hashCode));
+        table.hashCode));
   }
 
   @override
@@ -397,7 +397,7 @@ class _$Business extends Business {
           ..add('hexColor', hexColor)
           ..add('image', image)
           ..add('type', type)
-          ..add('tableName', tableName))
+          ..add('table', table))
         .toString();
   }
 }
@@ -479,8 +479,8 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
   set type(String type) => _$this._type = type;
 
   String _tableName;
-  String get tableName => _$this._tableName;
-  set tableName(String tableName) => _$this._tableName = tableName;
+  String get table => _$this._tableName;
+  set table(String table) => _$this._tableName = table;
 
   BusinessBuilder();
 
@@ -504,7 +504,7 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
       _hexColor = _$v.hexColor;
       _image = _$v.image;
       _type = _$v.type;
-      _tableName = _$v.tableName;
+      _tableName = _$v.table;
       _$v = null;
     }
     return this;
@@ -547,7 +547,7 @@ class BusinessBuilder implements Builder<Business, BusinessBuilder> {
               hexColor: hexColor,
               image: image,
               type: type,
-              tableName: tableName);
+              table: table);
     } catch (_) {
       String _$failedField;
       try {

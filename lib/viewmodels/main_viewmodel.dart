@@ -20,7 +20,7 @@ class MainViewModel extends BaseModel {
     setBusy(true);
 
     _databaseService
-        .observer(equator: 'category_'+branchId, property: 'tableName')
+        .observer(equator: 'category_'+branchId, property: 'table')
         .stream
         .listen((ResultSet event) {
       final List<Map<String, dynamic>> model = event.map((Result result) {
