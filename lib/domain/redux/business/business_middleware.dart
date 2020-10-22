@@ -57,7 +57,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       // ignore: always_specify_types
       final Map<String, dynamic> _notTax = {
         'active': true,
-        '_id': 'taxes_' + store.state.user.id.toString(),
+        '_id': AppTables.tax + store.state.user.id.toString(),
         'channels': [store.state.user.id.toString()],
         'businessId': business.id,
         'table': AppTables.tax,
@@ -73,7 +73,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       // ignore: always_specify_types
       final Map<String, dynamic> vat = {
         'active': true,
-        '_id': 'taxes_' + store.state.user.id.toString(),
+        '_id':  AppTables.tax + store.state.user.id.toString(),
         'channels': [store.state.user.id.toString()],
         'businessId':  business.id,
         'table': AppTables.tax,

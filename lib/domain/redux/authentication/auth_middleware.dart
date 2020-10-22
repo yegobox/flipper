@@ -341,15 +341,21 @@ Future<void> getBusinesses(
   // log.d(store.state.user.id);
   final DatabaseService _databaseService = ProxyService.database;
 
-  // ignore: always_specify_types
-  final Document doc = await _databaseService.getById(id: 'business_1');
-
+  
+  final  List<Map<String, dynamic>> doc = await _databaseService.filter(
+        equator: AppTables.business,
+        property: 'table',
+        and: true, //define that this query is and type.
+        andEquator: store.state.user.id,
+        andProperty: 'userId',
+      );
+      
   // ignore: always_specify_types
   final List<Business> businesses = [];
 
-  if (doc != null) {
-    log.i(doc.toMap());
-    businesses.add(Business.fromMap(doc.toMap()));
+  if (doc.isNotEmpty) { //this asume that one user has one business
+    log.i(doc[0]['main']);
+    businesses.add(Business.fromMap(doc[0]['main']));
   }
   log.i(businesses);
   await getBranches(store, generalRepository);
