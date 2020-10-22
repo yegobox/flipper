@@ -2,6 +2,7 @@
 import 'package:flipper/locator.dart';
 import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/mail_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'abstractions/api.dart';
 import 'bluethooth_service.dart';
@@ -18,7 +19,7 @@ final Api _apiService = locator<Api>();
 final DatabaseService _databaseService = locator<DatabaseService>();
 final BlueToothService _blue = locator<BlueToothService>();
 final FlipperNavigationService _nav = locator<FlipperNavigationService>();
-// final MailService _mail = locator<MailService>();
+final MailService _mail = locator<MailService>();
 
 // ignore: avoid_classes_with_only_static_members
 abstract class ProxyService {
@@ -31,4 +32,5 @@ abstract class ProxyService {
   static DatabaseService get database => _databaseService;
   static BlueToothService get blue => _blue;
   static FlipperNavigationService get nav => _nav;
+  static MailService get mail =>_mail;
 }

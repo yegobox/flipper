@@ -8,13 +8,14 @@ import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-import 'services/analytics_service.dart';
 import 'services/abstractions/api.dart';
+import 'services/analytics_service.dart';
+import 'services/api/http_api.dart';
 import 'services/bluethooth_service.dart';
 import 'services/connectivity_service.dart';
 import 'services/database_service.dart';
 import 'services/flipperNavigation_service.dart';
-import 'services/api/http_api.dart';
+import 'services/mail_service.dart';
 import 'services/performance_service.dart';
 import 'services/third_party_services_module.dart';
 
@@ -41,6 +42,7 @@ GetIt $initGetIt(
   gh.lazySingleton<FlipperNavigationService>(
       () => thirdPartyServicesModule.flipperNavigationService);
   gh.lazySingleton<HttpApi>(() => HttpApi());
+  gh.lazySingleton<MailService>(() => thirdPartyServicesModule.mailService);
   gh.lazySingleton<NavigationService>(
       () => thirdPartyServicesModule.navigationService);
   gh.lazySingleton<PerformanceService>(
@@ -64,6 +66,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   @override
   FlipperNavigationService get flipperNavigationService =>
       FlipperNavigationService();
+  @override
+  MailService get mailService => MailService();
   @override
   NavigationService get navigationService => NavigationService();
   @override

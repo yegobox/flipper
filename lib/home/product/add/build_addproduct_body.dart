@@ -31,7 +31,7 @@ class BuildAddProductBody extends StatelessWidget {
       viewModelBuilder: () => AddProductViewmodel(),
       onModelReady: (AddProductViewmodel model) {
         model.getTemporalProduct(vm: vm,context: context);
-        model.initFields(TextEditingController());
+        model.initFields(TextEditingController(),TextEditingController(),TextEditingController(),TextEditingController());
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         if(model.busy){
@@ -128,7 +128,7 @@ class BuildAddProductBody extends StatelessWidget {
                     ),
                     SupplyPriceWidget(
                       vm: vm,
-                      model: model,
+                      addModel: model,
                     ),
                     
                     const SkuView(),
@@ -141,7 +141,7 @@ class BuildAddProductBody extends StatelessWidget {
                      const CenterDivider(
                       width: double.infinity,
                     ),
-                    const DescriptionWidget()
+                    DescriptionWidget(model:model)
                   ],
                 ),
               ],
@@ -151,5 +151,4 @@ class BuildAddProductBody extends StatelessWidget {
       },
     );
   }
-  // 
 }

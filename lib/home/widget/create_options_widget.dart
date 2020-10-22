@@ -34,8 +34,8 @@ class CreateOptionsWidget extends StatelessWidget {
                       child: FlatButton(
                         color: Theme.of(context).copyWith(canvasColor:HexColor(FlipperColors.blue)).canvasColor,
                         onPressed: () async {
-
                           //create a temp item that can be deleted anytime on discard
+                          // ProxyService.mail.sendEmail();
                           _navigationService.navigateTo(Routing.addProduct);
                         },
                         child: Text(

@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class SupplyPriceWidget extends StatelessWidget {
-  const SupplyPriceWidget({Key key, this.vm, this.model}) : super(key: key);
+  const SupplyPriceWidget({Key key, this.vm, this.addModel}) : super(key: key);
   final CommonViewModel vm;
-  final AddProductViewmodel model;
+  final AddProductViewmodel addModel;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +23,7 @@ class SupplyPriceWidget extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     child: TextFormField(
+                      controller: addModel.supplierPriceController,
                       style: Theme.of(context)
                           .textTheme
                           .bodyText1

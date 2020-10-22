@@ -1,22 +1,19 @@
 import 'package:flipper/utils/HexColor.dart';
-import 'package:flipper/utils/data_manager.dart';
 import 'package:flutter/material.dart';
 
-class DescriptionWidget extends StatefulWidget {
-  const DescriptionWidget({Key key}) : super(key: key);
+import 'add/add_product_viewmodel.dart';
 
-  @override
-  _DescriptionWidgetState createState() => _DescriptionWidgetState();
-}
-
-class _DescriptionWidgetState extends State<DescriptionWidget> {
+class DescriptionWidget extends StatelessWidget {
+  const DescriptionWidget({Key key, this.model}) : super(key: key);
+  final AddProductViewmodel model;
   @override
   Widget build(BuildContext context) {
     return Padding(
-       padding: const EdgeInsets.only(left:18,right:18),
+      padding: const EdgeInsets.only(left: 18, right: 18),
       child: Container(
         width: double.infinity,
         child: TextFormField(
+          controller: model.description,
           style: Theme.of(context)
               .textTheme
               .bodyText1
@@ -33,11 +30,6 @@ class _DescriptionWidgetState extends State<DescriptionWidget> {
             ),
             suffixIcon: const Icon(Icons.book),
           ),
-          onChanged: (String description) {
-            setState(() {
-              DataManager.description = description;
-            });
-          },
         ),
       ),
     );

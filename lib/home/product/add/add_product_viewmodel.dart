@@ -47,6 +47,11 @@ class AddProductViewmodel extends BaseModel {
     return _supplierPriceController;
   }
 
+  TextEditingController _description;
+  TextEditingController get description {
+    return _description;
+  }
+
   TextEditingController _retailPriceController;
   TextEditingController get retailPriceController {
     return _retailPriceController;
@@ -166,10 +171,11 @@ class AddProductViewmodel extends BaseModel {
     notifyListeners();
   }
 
-  void initFields(TextEditingController controller) {
-    _nameController = controller;
-    _supplierPriceController = controller;
-    _retailPriceController = controller;
+  void initFields(TextEditingController name,TextEditingController supplier,TextEditingController retail,TextEditingController description) {
+    _nameController = name;
+    _supplierPriceController = supplier;
+    _retailPriceController = retail;
+    _description = description;
   }
   // once full refacored
   // ignore: always_specify_types

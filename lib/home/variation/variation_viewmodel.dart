@@ -1,14 +1,11 @@
 import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/helper/constant.dart';
 import 'package:flipper/model/stock.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/utils/data_manager.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
@@ -28,13 +25,13 @@ class VariationViewModel extends BaseModel {
   Product get product => _product;
 
   Variation _variation;
-  Variation get variation =>_variation;
+  Variation get variation => _variation;
 
   Stock _stock;
-  Stock get stock =>_stock;
+  Stock get stock => _stock;
 
-  void getStockByProductId({String productId, BuildContext context})async {
-     final List<Map<String, dynamic>> product = await _databaseService.filter(
+  void getStockByProductId({String productId, BuildContext context}) async {
+    final List<Map<String, dynamic>> product = await _databaseService.filter(
         property: 'tableName',
         equator: AppTables.variation +
             StoreProvider.of<AppState>(context).state.branch.id,
@@ -45,8 +42,9 @@ class VariationViewModel extends BaseModel {
     _stock = Stock.fromMap(product[0]['main']);
     notifyListeners();
   }
-  void getVariationById({String productId,BuildContext context})async {
-     final List<Map<String, dynamic>> product = await _databaseService.filter(
+
+  void getVariationById({String productId, BuildContext context}) async {
+    final List<Map<String, dynamic>> product = await _databaseService.filter(
         property: 'tableName',
         equator: AppTables.variation +
             StoreProvider.of<AppState>(context).state.branch.id,
@@ -57,28 +55,7 @@ class VariationViewModel extends BaseModel {
     _variation = Variation.fromMap(product[0]['main']);
     notifyListeners();
   }
-  Future<void> updateVariation({
-    Variation variation,
-   
-  }) async {
-    log.d('methid updateVariation needs to be implemented');
-    // if (variation != null) {
-    //   final StockTableData stock = await store.state.database.stockDao
-    //       .getStockByVariantId(
-    //           branchId: store.state.branch.id, variantId: variation.id);
-    //   final VariationTableData variant = await store.state.database.variationDao
-    //       .getVariationById(variantId: variation.id);
-    //   await store.state.database.variationDao
-    //       .updateVariation(variant.copyWith(name: variantName));
 
-    //   await store.state.database.stockDao.updateStock(
-    //     stock.copyWith(
-    //       retailPrice: retailPrice,
-    //       supplyPrice: supplyPrice,
-    //     ),
-    //   );
-    // }
-  }
   void getProductById({String productId, BuildContext context}) async {
     setBusy(true);
     final List<Map<String, dynamic>> product = await _databaseService.filter(
@@ -92,37 +69,6 @@ class VariationViewModel extends BaseModel {
     _product = Product.fromMap(product[0]['main']);
     notifyListeners();
     setBusy(false);
-  }
-
-  Future closeAndDelete(
-      {@required String productId, BuildContext context}) async {
-    final Store<AppState> store = StoreProvider.of<AppState>(context);
-    await DataManager.deleteProduct(store: store, productId: productId);
-    ProxyService.nav.pop();
-  }
-
-  Future handleEditItem({dynamic selections}) async {
-    TaxTableData tax;
-    // FIXME(richard): handle updating item
-    if (selections[0] == true) {
-      //then use 18 % known id in database. 0 index we know it is 18% 0 otherwise
-      // tax = await store.state.database.taxDao.getByName(
-      //     name: 'Vat', businessId: store.state.currentActiveBusiness.id);
-    }
-
-    // final ProductTableData product =
-    //     await vm.database.productDao.getItemById(productId: widget.productId);
-
-    // vm.database.actionsDao.updateAction(_actions.copyWith(isLocked: true));
-
-    // vm.database.productDao.updateProduct(
-    //   product.copyWith(
-    //     taxId: tax.id ?? product.taxId,
-    //     name: _name ?? product.name,
-    //     updatedAt: DateTime.now(),
-    //   ),
-    // );
-    ProxyService.nav.pop();
   }
 
   void getProducts({BuildContext context}) {
@@ -161,7 +107,7 @@ class VariationViewModel extends BaseModel {
 
   bool _isLocked = true;
   void lock() {
-    _isLocked = true;
+    _nameController.text.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
   }
 
@@ -180,6 +126,7 @@ class VariationViewModel extends BaseModel {
   TextEditingController get costController {
     return _costController;
   }
+
   TextEditingController _retailController;
   TextEditingController get retailController {
     return _retailController;
@@ -198,31 +145,47 @@ class VariationViewModel extends BaseModel {
 
   // add variant
   // insert default regular variant, the product should have one variant
-
+  // create a variation and create stock related to it with supplier and cost price
   Future<void> createVariant({BuildContext context, String productId}) async {
-    final List<Map<String, dynamic>> _variant = await _databaseService.filter(
-        property: 'tableName',
-        equator: AppTables.variation +
-            StoreProvider.of<AppState>(context).state.branch.id,
-        and: true,
-        andProperty: 'productId',
-        andEquator: productId);
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
-    if (_variant != null && _variant.isNotEmpty) {
-      // a product should have one regular variant
-      //we have regular variation no need to create another one
-      _databaseService.insert(data: {
-        'isActive': false,
-        'name': nameController.text,
-        'unit': 'kg',
-        'channels': <String>[store.state.user.id],
-        'tableName': AppTables.variation + store.state.branch.id,
-        'productId': productId,
-        'sku': Uuid().v1().substring(0, 4),
-        'id': Uuid().v1(),
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-    }
+    // create variation
+    final Document variant = await _databaseService.insert(data: {
+      'isActive': false,
+      'name': nameController.text,
+      'unit': 'kg',
+      'channels': <String>[store.state.user.id],
+      'tableName': AppTables.variation + store.state.branch.id,
+      'productId': productId,
+      'sku': Uuid().v1().substring(0, 4),
+      'id': Uuid().v1(),
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+
+    //create stock
+    // ignore: unused_local_variable
+    final Document stock = await _databaseService.insert(data: {
+      'variantId': variant.id,
+      'supplyPrice': double.parse(costController.text),
+      'canTrackingStock': false,
+      'showLowStockAlert': false,
+      'retailPrice': double.parse(retailController.text),
+      'channels': [store.state.user.id],
+      'isActive': true,
+      'tableName': AppTables.stock + store.state.branch.id,
+      'lowStock': 0,
+      'currentStock': 0,
+      'id': Uuid().v1(),
+      'productId': productId,
+      'branchId': store.state.branch.id,
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  void initFields(TextEditingController name, TextEditingController cost,
+      TextEditingController retail) {
+    _nameController = name;
+    _costController = cost;
+    _retailController = retail;
   }
 }
