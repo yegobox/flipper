@@ -33,8 +33,7 @@ class VariationViewModel extends BaseModel {
   void getStockByProductId({String productId, BuildContext context}) async {
     final List<Map<String, dynamic>> product = await _databaseService.filter(
         property: 'table',
-        equator: AppTables.variation +
-            StoreProvider.of<AppState>(context).state.branch.id,
+        equator: AppTables.variation,
         and: true,
         andProperty: 'productId',
         andEquator: productId);
@@ -46,8 +45,7 @@ class VariationViewModel extends BaseModel {
   void getVariationById({String productId, BuildContext context}) async {
     final List<Map<String, dynamic>> product = await _databaseService.filter(
         property: 'table',
-        equator: AppTables.variation +
-            StoreProvider.of<AppState>(context).state.branch.id,
+        equator: AppTables.variation,
         and: true,
         andProperty: 'productId',
         andEquator: productId);
@@ -60,8 +58,7 @@ class VariationViewModel extends BaseModel {
     setBusy(true);
     final List<Map<String, dynamic>> product = await _databaseService.filter(
         property: 'table',
-        equator: AppTables.product +
-            StoreProvider.of<AppState>(context).state.branch.id,
+        equator: AppTables.product,
         and: true,
         andProperty: 'id',
         andEquator: productId);
@@ -77,8 +74,7 @@ class VariationViewModel extends BaseModel {
     //demo of listening on users table on every entry.
     _databaseService
         .observer(
-            equator: AppTables.product +
-                StoreProvider.of<AppState>(context).state.branch.id,
+            equator: AppTables.product,
             property: 'table')
         .stream
         .listen((ResultSet event) {
@@ -155,7 +151,7 @@ class VariationViewModel extends BaseModel {
       'name': nameController.text,
       'unit': 'kg',
       'channels': <String>[store.state.user.id],
-      'table': AppTables.variation + store.state.branch.id,
+      'table': AppTables.variation,
       'productId': productId,
       'sku': Uuid().v1().substring(0, 4),
       'id': Uuid().v1(),
@@ -172,7 +168,7 @@ class VariationViewModel extends BaseModel {
       'retailPrice': double.parse(retailController.text),
       'channels': [store.state.user.id],
       'isActive': true,
-      'table': AppTables.stock + store.state.branch.id,
+      'table': AppTables.stock,
       'lowStock': 0,
       'currentStock': 0,
       'id': Uuid().v1(),

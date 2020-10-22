@@ -20,7 +20,7 @@ class SwitchModel extends FutureViewModel {
   Future futureToRun() async {
       
       final List<Map<String, dynamic>> switcher = await _databaseService.filter(
-        equator: AppTables.switchi + id,
+        equator: AppTables.switchi,
         property: 'table',
       );
 

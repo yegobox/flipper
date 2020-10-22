@@ -42,10 +42,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'categoryId': '10', //pet store a default id when signup on mobile
         'channels':[ store.state.user.id.toString()],
         'typeId': '1', //pet store a default id when signup on mobile
-        'table': AppTables.business + store.state.user.id.toString(),
+        'table': AppTables.business,
         'country': 'Rwanda',
         'currency': 'RWF',
-        'id':  AppTables.business + store.state.user.id.toString(),
         'name': store.state.business.name,
         'userId': store.state.user.id,
         'createdAt': DateTime.now().toIso8601String(),
@@ -53,7 +52,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       };
 
       
-    final Document business = await ProxyService.database.insert(id:AppTables.business + store.state.user.id.toString(),data:_mapBusiness);
+    final Document business = await ProxyService.database.insert(data:_mapBusiness);
     
       // ignore: always_specify_types
       final Map<String, dynamic> _notTax = {
@@ -61,7 +60,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         '_id': 'taxes_' + store.state.user.id.toString(),
         'channels': [store.state.user.id.toString()],
         'businessId': business.id,
-        'table': AppTables.tax + store.state.user.id.toString(),
+        'table': AppTables.tax,
         'createdAt': DateTime.now().toIso8601String(),
         'id': AppTables.tax + store.state.user.id.toString(),
         'updatedAt': DateTime.now().toIso8601String(),
@@ -77,7 +76,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         '_id': 'taxes_' + store.state.user.id.toString(),
         'channels': [store.state.user.id.toString()],
         'businessId':  business.id,
-        'table': AppTables.tax + store.state.user.id.toString(),
+        'table': AppTables.tax,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'id': AppTables.tax + store.state.user.id.toString(),

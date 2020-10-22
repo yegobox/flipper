@@ -31,7 +31,7 @@ class OpenBusinessModel extends BaseModel {
 
     await _databaseService.insert(data: {
       'float': float,
-      'table': AppTables.drawerHistory + vm.branch.id,
+      'table': AppTables.drawerHistory,
       'businessState': businessState == BusinessState.OPEN ? 'Open' : 'Close',
       'note': note,
       'businessId': vm.currentBusiness.id,
@@ -64,7 +64,7 @@ class OpenBusinessModel extends BaseModel {
         await AppDatabase.instance.database.document(userId);
 
     final Map<String, dynamic> buildMap = {
-      'table': AppTables.switchi + userId,
+      'table': AppTables.switchi,
       'name': name,
       'isClosed': isClosed,
       'isSocial': isSocial,

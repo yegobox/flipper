@@ -26,7 +26,7 @@ class ProductViewModel extends BaseModel {
     log.i('loading product of branchId:'+StoreProvider.of<AppState>(context).state.branch.id);
     //demo of listening on users table on every entry.
     _databaseService
-        .observer(equator: AppTables.product
+        .observer(equator: AppTables.product)
         .stream
         .listen((ResultSet event) {
       // _products = event.allResults();
