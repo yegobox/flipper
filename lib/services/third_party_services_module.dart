@@ -66,8 +66,8 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   MailService get mailService;
 
-  @lazySingleton
-  FetchContactsService fetchContactsService;
+  // @lazySingleton
+  // FetchContactsService fetchContactsService;
 }
 // each time you add a new service run:
 // flutter packages pub run build_runner build --delete-conflicting-outputs

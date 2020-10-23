@@ -170,7 +170,8 @@ class _OtpPageState extends State<OtpPage> {
                                         StoreProvider.of<AppState>(context);
 
                                     final FUser user = FUser(
-                                      (FUserBuilder user) => user
+                                      // ignore: always_specify_types
+                                      (user) async => user
                                         ..email = loginResponse.email
                                         ..active = true
                                         ..createdAt =
