@@ -1,5 +1,5 @@
 import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/helper/constant.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/database_service.dart';

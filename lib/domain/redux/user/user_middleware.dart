@@ -1,12 +1,14 @@
-import 'package:flipper/couchbase.dart';
+import 'package:flipper/core_db.dart';
 import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/fuser.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
+import 'package:couchbase_lite/couchbase_lite.dart';
 
 List<Middleware<AppState>> userMiddleware(
   UserRepository userRepository,
@@ -36,17 +38,16 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'id': userId,
         // ignore: always_specify_types
         'channels': [store.state.user.id.toString()],//users allowed to see a document.
-        'name': user.name, //remove any white space from string
+        'name': user.name.trim(),
         'token': user.token,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'email': user.email
       };
-      await AppDatabase.instance.createUser(mapUser);
 
-      // store.dispatch(UserID(userId: store.state.user.id));
-      
-      // store.dispatch(WithUser(user: user));
+     final Document u =  await ProxyService.database.insert(data:mapUser);
+
+     store.dispatch(WithUser(user: FUser.fromMap(u.toMap())));
       
       store.dispatch(CreateBusinessOnSignUp());
     }

@@ -1,9 +1,9 @@
-import 'package:flipper/couchbase.dart';
+import 'package:flipper/core_db.dart';
 
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/helper/constant.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
@@ -96,12 +96,12 @@ class GeneralRepository {
         andEquator: AppTables.order + store.state.branch.id,
       );
       
-      final Order order = Order.fromMap(or[0][AppDatabase.instance.dbName]);
+      final Order order = Order.fromMap(or[0][CoreDB.instance.dbName]);
       dispatchOrder(store, order);
       return order;
     } else {
       
-      final Order order = Order.fromMap(or[0][AppDatabase.instance.dbName]);
+      final Order order = Order.fromMap(or[0][CoreDB.instance.dbName]);
       dispatchOrder(store, order);
       return order;
     }

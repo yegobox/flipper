@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.5.171
 
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: ">=2.10.2 <3.0.0"
 
 dependencies:
   flutter:
@@ -101,18 +101,19 @@ dependencies:
   flutter_text_drawable: ^0.3.1
   connectivity: ^0.4.3+1
   background_fetch: '^0.5.1'
-  
-  
+
+
 
 dev_dependencies:
   couchbase_lite: 2.7.1+6
   # couchbase_lite:
   #   path: ../
   # flutter_flipperkit:
+
   build_runner: 
   moor_generator: ^3.0.0
-  analyzer: 
-  built_value_generator: 
+  analyzer:
+  built_value_generator:
   auto_route_generator: 0.3.2
   injectable_generator:
   flutter_test:

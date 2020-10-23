@@ -2,7 +2,9 @@
   <dictionary name="Mica">
     <words>
       <w>cupertino</w>
+      <w>dotenv</w>
       <w>firestore</w>
+      <w>redux</w>
       <w>rxdart</w>
     </words>
   </dictionary>

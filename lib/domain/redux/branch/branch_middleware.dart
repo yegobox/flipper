@@ -4,7 +4,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/helper/constant.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';

@@ -1,11 +1,11 @@
-import 'package:flipper/couchbase.dart';
-import 'package:flipper/helper/constant.dart';
-import 'package:flipper/home/open_close_drawerview.dart';
+import 'package:flipper/core_db.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/ui/open_close_drawerview.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/presentation/home/common_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,7 +61,7 @@ class OpenBusinessModel extends BaseModel {
     bool isClosed = true,
   }) async {
     final Document document =
-        await AppDatabase.instance.database.document(userId);
+        await CoreDB.instance.database.document(userId);
 
     final Map<String, dynamic> buildMap = {
       'table': AppTables.switchi,
@@ -76,13 +76,13 @@ class OpenBusinessModel extends BaseModel {
       try {
         final MutableDocument newDoc =
             MutableDocument(id: userId, data: buildMap);
-        await AppDatabase.instance.database.saveDocument(newDoc);
+        await CoreDB.instance.database.saveDocument(newDoc);
         // ignore: empty_catches
       } on PlatformException {}
     } else {
       final MutableDocument mutableDoc =
           document.toMutable().setBoolean('isClosed', isClosed);
-      AppDatabase.instance.database.saveDocument(mutableDoc);
+      CoreDB.instance.database.saveDocument(mutableDoc);
     }
   }
 }

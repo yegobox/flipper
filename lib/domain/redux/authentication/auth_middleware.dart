@@ -1,5 +1,5 @@
 // import 'package:background_fetch/background_fetch.dart';
-import 'package:flipper/couchbase.dart';
+import 'package:flipper/core_db.dart';
 import 'package:flipper/data/main_database.dart';
 
 import 'package:flipper/data/respositories/general_repository.dart';
@@ -7,7 +7,7 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper/helper/constant.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
@@ -65,7 +65,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       return;
     }
   
-    AppDatabase.instance.initialAppData();
+    CoreDB.instance.initialAppData();
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
     await createAppActions(store);
@@ -88,7 +88,7 @@ Future<void> openCloseBusiness({
   bool isClosed = true,
 }) async {
   final Document document =
-      await AppDatabase.instance.database.document(userId);
+      await CoreDB.instance.database.document(userId);
 
   final Map<String, dynamic> buildMap = {
     'table': AppTables.switchi,
@@ -103,13 +103,13 @@ Future<void> openCloseBusiness({
     try {
       final MutableDocument newDoc =
           MutableDocument(id: userId, data: buildMap);
-      await AppDatabase.instance.database.saveDocument(newDoc);
+      await CoreDB.instance.database.saveDocument(newDoc);
       // ignore: empty_catches
     } on PlatformException {}
   } else {
     final MutableDocument mutableDoc =
         document.toMutable().setBoolean('isClosed', isClosed);
-    AppDatabase.instance.database.saveDocument(mutableDoc);
+    CoreDB.instance.database.saveDocument(mutableDoc);
   }
 }
 
@@ -123,7 +123,7 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     final List<String> channels = [];
     channels.add(user.id.toString());
 
-    await AppDatabase.instance.login(channels: channels);
+    await CoreDB.instance.login(channels: channels);
 
     // start with business closed.
     await openCloseBusiness(
@@ -186,10 +186,10 @@ Future<List<Branch>> getBranches(
   List<Branch> branches = [];
   if (branche.isNotEmpty) {
     // ignore: unnecessary_type_check
-    if (branche[0][AppDatabase.instance.dbName] is Object) {
-      branches.add(Branch.fromMap(branche[0][AppDatabase.instance.dbName]));
+    if (branche[0][CoreDB.instance.dbName] is Object) {
+      branches.add(Branch.fromMap(branche[0][CoreDB.instance.dbName]));
     } else {
-      branches = branche[0][AppDatabase.instance.dbName]
+      branches = branche[0][CoreDB.instance.dbName]
           .map((e) => Branch.fromMap(e))
           .toList();
     }

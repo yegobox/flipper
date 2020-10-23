@@ -4,7 +4,7 @@ import 'package:flipper/domain/redux/branch/branch_reducer.dart';
 import 'package:flipper/domain/redux/business/business_reducer.dart';
 import 'package:flipper/domain/redux/push/push_reducer.dart';
 import 'package:flipper/domain/redux/user/user_reducer.dart';
-import 'package:flipper/home/selling/selling_reducer.dart';
+import 'package:flipper/ui/selling/selling_reducer.dart';
 import 'package:redux/redux.dart';
 
 import '../app_actions.dart';

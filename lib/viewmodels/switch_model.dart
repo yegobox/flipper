@@ -1,4 +1,4 @@
-import 'package:flipper/helper/constant.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/converters/switcher.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';

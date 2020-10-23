@@ -25,7 +25,7 @@ import 'domain/redux/permission/permission_middleware.dart';
 import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
-import 'home/selling/selling_middleware.dart';
+import 'ui/selling/selling_middleware.dart';
 import 'lifecycle_manager.dart';
 
 class FlipperApp extends StatefulWidget {

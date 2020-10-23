@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/couchbase.dart';
-import 'package:flipper/data/main_database.dart';
+import 'package:flipper/core_db.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/helper/constant.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/order.dart';
@@ -310,10 +309,10 @@ class DataManager {
         andEquator: product.id,
         andProperty: 'productId',
       );
-      variant = Variation.fromMap(vv[0][AppDatabase.instance.dbName]);
+      variant = Variation.fromMap(vv[0][CoreDB.instance.dbName]);
     } else {
       
-      variant = Variation.fromMap(v[0][AppDatabase.instance.dbName]);
+      variant = Variation.fromMap(v[0][CoreDB.instance.dbName]);
     }
     store.dispatch(
       VariationAction(variation: variant),

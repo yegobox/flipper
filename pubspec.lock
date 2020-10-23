@@ -787,7 +787,7 @@ packages:
       name: moor
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.3.1"
+    version: "3.4.0"
   moor_generator:
     dependency: "direct dev"
     description:
@@ -1184,7 +1184,7 @@ packages:
       name: timezone
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.7"
+    version: "0.5.9"
   timing:
     dependency: transitive
     description:
@@ -1256,5 +1256,5 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.10.0 <2.11.0"
+  dart: ">=2.10.2 <2.11.0"
   flutter: ">=1.20.0 <2.0.0"

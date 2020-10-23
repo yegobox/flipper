@@ -14,7 +14,7 @@
 
 import 'dart:async';
 
-import 'package:flipper/couchbase.dart';
+import 'package:flipper/core_db.dart';
 import 'package:flipper/data/api_provider.dart';
 
 import 'package:flutter/foundation.dart';
@@ -70,10 +70,10 @@ class ReceivedNotification {
 
 class Repository {
   Repository._internal() {
-    _database = AppDatabase.instance;
+    _database = CoreDB.instance;
   }
 
-  AppDatabase _database;
+  CoreDB _database;
 
   static final Repository instance = Repository._internal();
   final _isLoggedInSubject = BehaviorSubject<bool>.seeded(false);

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/couchbase.dart';
+import 'package:flipper/core_db.dart';
 import 'package:flipper/data/observable_response.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +19,7 @@ class DatabaseService {
   
   Future<bool> documentExist({String property, String equator}) async {
     final Where query = QueryBuilder.select([SelectResult.all()])
-        .from(AppDatabase.instance.dbName)
+        .from(CoreDB.instance.dbName)
         .where(
             Expression.property(property).equalTo(Expression.string(equator)));
     final ResultSet result = await query.execute();
@@ -28,7 +28,7 @@ class DatabaseService {
   // products functions
  
   Future<Document> getById({String id}) async {
-    return await AppDatabase.instance.database.document(id);
+    return await CoreDB.instance.database.document(id);
   }
 
   // A filter query to look for a document muck like select * from where name =sth and email =sth
@@ -42,7 +42,7 @@ class DatabaseService {
     Where query;
     if (!and) {
       query = QueryBuilder.select([SelectResult.all()])
-          .from(AppDatabase.instance.dbName)
+          .from(CoreDB.instance.dbName)
           .where(
             Expression.property(property).equalTo(
               Expression.string(equator),
@@ -50,7 +50,7 @@ class DatabaseService {
           );
     } else {
       query = QueryBuilder.select([SelectResult.all()])
-          .from(AppDatabase.instance.dbName)
+          .from(CoreDB.instance.dbName)
           .where(
             Expression.property(property)
                 .equalTo(
@@ -72,14 +72,14 @@ class DatabaseService {
   }
 
   Future<bool> update({Document document}) async {
-    return await AppDatabase.instance.database.saveDocument(document);
+    return await CoreDB.instance.database.saveDocument(document);
   }
 
   Future<Document> insert({String id, Map data}) async {
     final String _id = id ?? Uuid().v1();
     final MutableDocument newDoc =
         MutableDocument(id: _id, data: data);
-    await AppDatabase.instance.database.saveDocument(newDoc);
+    await CoreDB.instance.database.saveDocument(newDoc);
     return getById(id: _id);
   }
 
@@ -95,7 +95,7 @@ class DatabaseService {
     Where query;
     if (!and) {
       query = QueryBuilder.select([SelectResult.all()])
-          .from(AppDatabase.instance.dbName)
+          .from(CoreDB.instance.dbName)
           .where(
             Expression.property(property).equalTo(
               Expression.string(equator),
@@ -103,7 +103,7 @@ class DatabaseService {
           );
     } else {
       query = QueryBuilder.select([SelectResult.all()])
-          .from(AppDatabase.instance.dbName)
+          .from(CoreDB.instance.dbName)
           .where(
             Expression.property(property)
                 .equalTo(
