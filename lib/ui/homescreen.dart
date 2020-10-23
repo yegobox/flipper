@@ -54,12 +54,13 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _nextPage(int delta) {
-    final int newIndex = _tabController.index + delta;
-    if (newIndex < 0 || newIndex >= _tabController.length) {
-      return;
-    }
+    // final int newIndex = _tabController.index + delta;
+    // if (newIndex < 0 || newIndex >= _tabController.length) {
+    //   return;
+    // }
 
-    _tabController.animateTo(newIndex);
+    // _tabController.animateTo(newIndex);
+    _tabController.animateTo(1);
   }
 
   Widget _body() {
@@ -85,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    _nextPage(widget.vm.tab);
+    _nextPage(1);//default to 1
     return Scaffold(
       extendBody: true,
       key: _scaffoldKey,
