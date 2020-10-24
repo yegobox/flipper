@@ -95,6 +95,7 @@ class AddProductViewmodel extends BaseModel {
     
     final Document variation = await _databaseService.getById(id:vm.variant.id);
     
+
     await updateVariation(
       variation: Variation.fromMap(variation.toMap()),
       supplyPrice: double.parse(supplierPriceController.text),
@@ -121,12 +122,12 @@ class AddProductViewmodel extends BaseModel {
      
       variant.toMutable()
       .setString('name',variantName);
-      _databaseService.update(document: variant);
+      _databaseService.update(document: variant.toMutable());
 
       stock.toMutable()
       .setDouble('retailPrice',retailPrice)
       .setDouble('supplyPrice',supplyPrice);
-      _databaseService.update(document: stock);
+      _databaseService.update(document: stock.toMutable());
     }
   }
 
@@ -141,7 +142,7 @@ class AddProductViewmodel extends BaseModel {
       .setString('categoryId', categoryId)
       .setString('updatedAt',  DateTime.now().toIso8601String());
       
-      _databaseService.update(document: product);
+      _databaseService.update(document: product.toMutable());
     return true;
   }
 

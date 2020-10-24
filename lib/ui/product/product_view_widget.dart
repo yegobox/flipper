@@ -11,8 +11,10 @@ import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/dispatcher.dart';
 import 'package:flipper/utils/flitter_color.dart';
+import 'package:flipper/utils/logger.dart';
 
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import 'package:stacked/stacked.dart';
 
@@ -40,25 +42,24 @@ class ProductsView extends StatefulWidget {
 }
 
 class _ProductsViewState extends State<ProductsView> {
-  final FlipperNavigationService _navigationService =
-     ProxyService.nav;
+  final FlipperNavigationService _navigationService = ProxyService.nav;
+  final Logger log = Logging.getLogger('product view');
 
-  List<Widget> getProducts(List<Product> products, BuildContext context) {
+  List<Widget> buildProductView(List<Product> products, BuildContext context) {
+    log.i(products);
     final List<Widget> list = <Widget>[];
-     if (widget.showCreateItemOnTop) {
+    if (widget.showCreateItemOnTop) {
       addItemRow(list, context, widget.createButtonName);
     }
     if (!widget.showCreateItemOnTop) {
       itemRow(list, context);
     }
-    if(products==null) {
+    if (products == null) {
       return list;
     }
-   
 
     for (Product product in products) {
-      if (product != null &&
-          product.name != 'tmp' ) {
+      if (product != null && product.name != 'tmp') {
         list.add(
           GestureDetector(
             onTap: () {
@@ -98,22 +99,22 @@ class _ProductsViewState extends State<ProductsView> {
               ),
               // ignore: always_specify_types
               trailing: ViewModelBuilder<StockViewModel>.reactive(
-                  viewModelBuilder: () => StockViewModel(),
-                  onModelReady: (StockViewModel model) => model.loadStockById(
-                      productId: product.id, context: context),
-                  builder: (BuildContext context, StockViewModel model,
-                      Widget child) {
-                    return model.data.length == 1
-                        ? const Text(
-                            'RWF 500',
-                            // 'RWF ' + model.data[0].retailPrice.toString(),
-                            style: TextStyle(color: Colors.black),
-                          )
-                        : const Text(
-                            ' Prices',
-                            style: TextStyle(color: Colors.black),
-                          );
-                  }),
+                viewModelBuilder: () => StockViewModel(),
+                onModelReady: (StockViewModel stockModel) => stockModel.loadStockById(
+                    productId: product.id, context: context),
+                builder:
+                    (BuildContext context, StockViewModel stockModel, Widget child) {
+                  return stockModel.stock.isEmpty ||stockModel.busy
+                      ? const Text(
+                          ' Prices',
+                          style: TextStyle(color: Colors.black),
+                        )
+                      : Text(
+                          'RWF ' + stockModel.stock[0].retailPrice.toString(),
+                          style: const TextStyle(color: Colors.black),
+                        );
+                },
+              ),
             ),
           ),
         );
@@ -126,16 +127,13 @@ class _ProductsViewState extends State<ProductsView> {
     return list;
   }
 
-  void onSellingItem(
-      BuildContext context, Product product) async {
-    final List<Variation> variants =
-        await buildVariantsList(context, product);
+  void onSellingItem(BuildContext context, Product product) async {
+    final List<Variation> variants = await buildVariantsList(context, product);
 
     dispatchCurrentProductVariants(context, variants, product);
 
     _navigationService.navigateTo(Routing.editQuantityItemScreen,
-        arguments:
-            ChangeQuantityForSellingArguments(productId: product.id));
+        arguments: ChangeQuantityForSellingArguments(productId: product.id));
   }
 
   void itemRow(List<Widget> list, BuildContext context) {
@@ -186,12 +184,14 @@ class _ProductsViewState extends State<ProductsView> {
 
   @override
   Widget build(BuildContext context) {
-    return getProducts(widget.data, context).isEmpty?const SizedBox.shrink(): ListView(
-      shrinkWrap: true,
-      children: ListTile.divideTiles(
-        context: context,
-        tiles: getProducts(widget.data, context),
-      ).toList(),
-    );
+    return buildProductView(widget.data, context).isEmpty
+        ? const SizedBox.shrink()
+        : ListView(
+            shrinkWrap: true,
+            children: ListTile.divideTiles(
+              context: context,
+              tiles: buildProductView(widget.data, context),
+            ).toList(),
+          );
   }
 }

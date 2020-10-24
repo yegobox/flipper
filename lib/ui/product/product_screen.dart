@@ -22,6 +22,8 @@ class _ProductScreenState extends State<ProductScreen> {
       viewModelBuilder: () => ProductViewModel(),
       onModelReady: (ProductViewModel model) => model.getProducts(context: context),
       builder: (BuildContext context, ProductViewModel model, Widget child) {
+        if( model.data ==null)
+          return const Text('data is empty show add button');
         return Column(
           crossAxisAlignment:CrossAxisAlignment.start,
           children: <Widget>[
@@ -36,7 +38,7 @@ class _ProductScreenState extends State<ProductScreen> {
               data: model.data,
               shouldSeeItem: false,
               showCreateItemOnTop: true,
-              createButtonName: 'Add Product',
+              createButtonName: 'Add Products',
             )
           ],
         );

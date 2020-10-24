@@ -24,11 +24,13 @@ class SupplyPriceWidget extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     child: TextFormField(
+
                       controller: addModel.supplierPriceController,
                       style: Theme.of(context)
                           .textTheme
                           .bodyText1
                           .copyWith(color: Colors.black),
+                      keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         hintText: 'Supplier Price',
                         fillColor: Theme.of(context)
