@@ -55,6 +55,9 @@ abstract class Order implements Built<Order, OrderBuilder> {
   String get taxRate;
 
   @nullable
+  double get quantity;
+
+  @nullable
   String get taxAmount;
 
   @nullable
@@ -80,6 +83,10 @@ abstract class Order implements Built<Order, OrderBuilder> {
 
   @nullable
   String get status;
+
+  String get variationId;
+
+  String get productName;
 
   @nullable
   String get customerChangeDue;

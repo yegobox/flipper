@@ -1,41 +1,22 @@
-
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-
-import 'package:flipper/model/key_pad.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
-
+import 'package:flipper/ui/welcome/payable/payable_viewmodel.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/redux.dart';
+import 'package:stacked/stacked.dart';
 
-class KeyPadButtons extends StatefulWidget {
-  const KeyPadButtons({Key key}) : super(key: key);
-
-  @override
-  _KeyPadButtonsState createState() => _KeyPadButtonsState();
-}
-
-class _KeyPadButtonsState extends State<KeyPadButtons> {
+class KeyPadButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return Wrap(
-          // alignment: Alignment.center,
-          children: _buildButtons(vm),
-        );
-      },
+    return Wrap(
+      // alignment: Alignment.center,
+      children: _buildButtons(),
     );
   }
 
-  List<Widget> _buildButtons(CommonViewModel vm) {
+  List<Widget> _buildButtons() {
     final List<int> list = <int>[];
     // ignore: always_specify_types
+    // define keys for keypad exclude C and +
     list.addAll([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
     final List<Widget> widget = <Widget>[];
 
@@ -43,147 +24,107 @@ class _KeyPadButtonsState extends State<KeyPadButtons> {
       widget.add(
         SingleKey(
           buttonKeyName: i.toString(),
-          vm: vm,
         ),
       );
     }
-    widget.add(SingleKey(
+    widget.add(const SingleKey(
       buttonKeyName: '0',
-      vm: vm,
     ));
-    widget.add(SingleKey(
+    widget.add(const SingleKey(
       buttonKeyName: 'C',
-      vm: vm,
     ));
-    widget.add(SingleKey(
+    widget.add(const SingleKey(
       buttonKeyName: '+',
-      vm: vm,
     ));
     return widget;
   }
 }
 
-class SingleKey extends StatefulWidget {
+class SingleKey extends StatelessWidget {
   const SingleKey({
     Key key,
     @required this.buttonKeyName,
-    this.vm,
+    this.temp,
+    this.sum,
+    this.flag,
+    this.count,
+    this.sumString,
+    this.permanentSum,
+    this.permanentSumString,
+    this.temp1,
+    this.temp2,
   }) : super(key: key);
 
   final String buttonKeyName;
-  final CommonViewModel vm;
 
-  @override
-  _SingleKeyState createState() => _SingleKeyState();
-}
+  final double sum;
 
-class _SingleKeyState extends State<SingleKey> {
-  double sum = 0.00;
+  final bool flag;
 
-  bool flag = false;
+  final int count;
 
-  int count = 0;
+  final String sumString;
 
-  String sumString = '0.00';
+  final double temp;
 
-  double temp;
+  final double permanentSum;
 
-  double permanentSum = 0.00;
+  final String permanentSumString;
 
-  String permanentSumString = '0.00';
+  final double temp1;
 
-  double temp1 = 0;
+  final double temp2;
 
-  double temp2 = 0;
-
-  void btnClicked(
-      {String buttonKeyName, BuildContext context, CommonViewModel vm}) async {
+  void btnClicked({
+    String buttonKeyName,
+    BuildContext context,
+    PayableViewModel model,
+  }) async {
     HapticFeedback.vibrate();
     if (buttonKeyName == 'C') {
-      StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
-      return;
+      // StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
+      return model.onClearPad();
     }
     if (buttonKeyName == '+') {
-      final Store<AppState> store = StoreProvider.of<AppState>(context);
-      // FIXME:
-      // final List<VariationTableData> variants = await store
-      //     .state.database.variationDao
-      //     .getVariantByProductId(productId: vm.tmpItem.id);
-
-      StoreProvider.of<AppState>(context).dispatch(
-        IncrementAction(
-          increment: 1,
-        ),
-      );
-      // FIXME:
-      // final Product cartItem = Product(
-      //   (ProductBuilder b) => b
-      //     ..id = variants[0]
-      //         .id //done intentionally so we can use it while saving cart or orderDetail.
-      //     ..name = vm.tmpItem.name
-      //     ..categoryId = vm.tmpItem.categoryId
-      //     ..unit = 'custom',
-      // );
-
-      // StoreProvider.of<AppState>(context).dispatch(
-      //   AddItemToCartAction(cartItem: cartItem),
-      // );
-
-      final String branchId =
-          StoreProvider.of<AppState>(context).state.branch.id;
-      // FIXME:
-      // final List<StockTableData> stocks = await store.state.database.stockDao
-      //     .getStockByProductId(branchId: branchId, productId: vm.tmpItem.id);
-
-      // for (int i = 0; i < stocks.length; i++) {
-      //   await store.state.database.stockDao.updateStock(stocks[i].copyWith(
-      //       retailPrice: vm.keypad.amount.toDouble(), branchId: branchId));
-      // }
-      StoreProvider.of<AppState>(context).dispatch(SaveCart());
-      StoreProvider.of<AppState>(context).dispatch(CleanKeyPad());
+      model.onPlusButtonClicked();
     } else {
-     
-      StoreProvider.of<AppState>(context).dispatch(
-        KayPadAction(
-          keyPad: KeyPad(
-            (KeyPadBuilder k) => k
-              ..amount = vm.keypad == null
-                  ? int.parse(buttonKeyName)
-                 
-                  : int.parse(vm.keypad.amount.toString() + buttonKeyName)
-              ..note = 'note',
-          ),
-        ),
-      );
+      model.normalKeypad();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 136.99,
-      height: 110,
-      child: InkWell(
-        enableFeedback: false,
-        onTap: () =>
-            btnClicked(buttonKeyName: widget.buttonKeyName, context: context, vm: widget.vm),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: const Color.fromRGBO(0, 0, 0, 0.1),
-              width: 0.5,
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, PayableViewModel model, Widget child) {
+          return SizedBox(
+            width: 136.99,
+            height: 110,
+            child: InkWell(
+              enableFeedback: false,
+              onTap: () => btnClicked(
+                  buttonKeyName: buttonKeyName, context: context, model: model),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: const Color.fromRGBO(0, 0, 0, 0.1),
+                    width: 0.5,
+                  ),
+                ),
+                // padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
+                child: Center(
+                  child: Text(
+                    buttonKeyName.toString(),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText1
+                        .copyWith(fontSize: 40, fontWeight: FontWeight.normal),
+                  ),
+                ),
+              ),
             ),
-          ),
-          // padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
-          child: Center(
-            
-            child: Text(
-              widget.buttonKeyName.toString(),
-              style: Theme.of(context).textTheme.bodyText1.copyWith(fontSize: 40,fontWeight: FontWeight.normal),
-            ),
-          ),
-        ),
-      ),
-    );
+          );
+        },
+        viewModelBuilder: () => PayableViewModel());
   }
 }

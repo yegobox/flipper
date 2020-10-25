@@ -4,10 +4,7 @@ import 'package:flipper/ui/in_app_notification/in_app_notification_widget.dart';
 import 'package:flipper/ui/slide_out_screen.dart';
 import 'package:flipper/ui/welcome/branch/event/business_details.dart';
 import 'package:flipper/ui/widget/switch/switch_view.dart';
-import 'package:flipper/services/proxy.dart';
 
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -22,8 +19,6 @@ class DashBoard extends StatefulWidget {
 }
 
 class _DashBoardState extends State<DashBoard> {
-  final FlipperNavigationService _navigationService =
-      ProxyService.nav;
 
   ValueNotifier<bool> _sideOpenController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -55,7 +50,7 @@ class _DashBoardState extends State<DashBoard> {
             converter: CommonViewModel.fromStore,
             // ignore: missing_return
             builder: (BuildContext context, CommonViewModel vm) {
-              if (vm.hasUser) {
+              if (vm.user!= null) {
                 final Scaffold we = Scaffold(
                   backgroundColor: Colors.black,
                   key: _scaffoldKey,
@@ -68,10 +63,6 @@ class _DashBoardState extends State<DashBoard> {
                     sideOpenController: _sideOpenController,
                   ),
                 );
-                if (vm.hasSheet) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) =>
-                      _navigationService.navigateTo(Routing.addNoteScreen));
-                }
                 return we;
               }
             },

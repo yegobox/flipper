@@ -1,68 +1,53 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/model/app_action.dart';
-import 'package:flipper/model/business.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 
-class TBusiness {
-  String name;
-  String password;
-  String agreeTerms;
-  String email;
-}
+import 'package:stacked/stacked.dart';
+
+import 'business_viewmodel.dart';
 
 class CreateBusinessScreen extends StatefulWidget {
-  CreateBusinessScreen({Key key}) : super(key: key);
+  const CreateBusinessScreen({Key key}) : super(key: key);
 
   @override
   _CreateBusinessScreenState createState() => _CreateBusinessScreenState();
 }
 
 class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TBusiness tBusiness = TBusiness();
-
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return Scaffold(
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(builder: (BuildContext context,BusinessViewModel model, Widget child){
+      return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
               Routing.navigator.pop();
             },
-            title: "",
+            title: '',
             disableButton: false,
             showActionButton: true,
-            actionButtonName: "Create",
+            actionButtonName: 'Create',
             onPressedCallback: () {
-              StoreProvider.of<AppState>(context).dispatch(AppAction(
-                  actions: AppActions((a) => a..name = "createBusiness")));
+             model.createBusiness();
             },
             icon: Icons.arrow_back,
             multi: 3,
             bottomSpacer: 120,
             action: Column(
-              children: <Widget>[
+              children: [
                 // ignore: prefer_const_literals_to_create_immutables
                 const Text("Let's get started"),
-                Text("Sign up for flipper and yegobox is fast and free"),
-                Text("No commitment or long-term contracts.")
+                const Text('Sign up for flipper and yegobox is fast and free'),
+                const Text('No commitment or long-term contracts.')
               ],
             ),
           ),
-          backgroundColor: HexColor("#dfe4ea"),
+          backgroundColor: HexColor('#dfe4ea'),
           body: Wrap(
             children: <Widget>[
               Container(
@@ -72,23 +57,21 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
-                    const Text("ACCOUNT INFORMATION"),
+                    const Text('ACCOUNT INFORMATION'),
                     Center(
                       child: Container(
                         width: 300,
                         child: TextFormField(
-                          style: TextStyle(color: Colors.black),
-                          validator: (value) {
+                          style: const TextStyle(color: Colors.black),
+                          validator: (String value) {
                             if (value.isEmpty) {
-                              return "Business name";
+                              return 'Business name';
                             }
                             return null;
                           },
-                          onSaved: (name) {
-                            tBusiness.name = name;
-                          },
-                          decoration: InputDecoration(
-                              hintText: "Business name",
+                          controller: model.name,
+                          decoration: const InputDecoration(
+                              hintText: 'Business name',
                               focusColor: Colors.blue),
                         ),
                       ),
@@ -96,8 +79,8 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
                     Visibility(
                       visible: false,
                       child: FlatButton(
-                        child: Text("invisible button"),
-                        onPressed: vm.hasAction ? _handleFormSubmit() : null,
+                        child:const Text('invisible button'),
+                        onPressed: model.nameisEmpty ? model.handleFormSubmit() : null,
                       ),
                     )
                   ],
@@ -106,24 +89,8 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
             ],
           ),
         );
-      },
-    );
+    }, viewModelBuilder: ()=>BusinessViewModel());
   }
 
-  // ignore: always_declare_return_types
-  _handleFormSubmit() {
-    StoreProvider.of<AppState>(context).dispatch(ResetAppAction());
-    if (_formKey.currentState.validate()) {
-      _formKey.currentState.save();
-    }
-    StoreProvider.of<AppState>(context).dispatch(ResetAppAction());
-    final Business business = Business((BusinessBuilder b) => b
-      ..name = tBusiness.name
-      ..hexColor = '#f5a623'
-      ..type ='NORMAL');
-    StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
-    StoreProvider.of<AppState>(context).dispatch(CreateBusiness());
-    //finally verify if all is good and go to dashboard.
-    StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
-  }
+
 }

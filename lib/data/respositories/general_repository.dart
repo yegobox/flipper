@@ -19,47 +19,49 @@ import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
 class GeneralRepository {
-  Future<bool> insertOrUpdateCart(
-      Store<AppState> store, Order data) async {
-        // FIXME(richard): fix this and move the code to related model
-    // OrderDetailTableData existingCart = await store
-    //     .state.database.orderDetailDao
-    //     .getExistingCartItem(variationId: data.variationId);
+  Future<bool> insertOrUpdateCart(Store<AppState> store, Map data,int quantity) async {
 
-    // if (existingCart == null) {
-    //   store.state.database.orderDetailDao.insert(
-    //     data.copyWith(
-    //       quantity: store.state.currentIncrement.toDouble(),
-    //       subTotal: data.subTotal, //ask ganza what is a subtotal
-    //       id: data.id,
-    //       taxAmount: data.taxAmount, //get current active tax rate * amount /100
-    //       taxRate: data.taxRate, //get the current active tax rate
-    //       unit: data.unit, //get unit of this item sold should hav it.
-    //       note: data.note, //keep it lik this.
-    //       discountAmount: data.discountAmount,
-    //       discountRate: data.discountRate,
-    //       updatedAt: DateTime.now(),
-    //       createdAt: DateTime.now(),
-    //     ),
-    //   );
-    //   return true;
-    // } else {
-    //   store.state.database.orderDetailDao.updateCart(
-    //     data.copyWith(
-    //       id: existingCart.id,
-    //       idLocal: existingCart.idLocal,
-    //       createdAt: DateTime.now(), //always keep today's date for the order .
-    //       updatedAt: DateTime.now(),
-    //     ),
-    //   );
-    //   return true;
-    // }
+    // get the oder for this variationId
+    final List<Map<String, dynamic>> existingCart =
+        await ProxyService.database.filter(
+      property: 'variantId',
+      equator: data['variationId'],
+    );
+
+    if (existingCart.isEmpty) {
+      ProxyService.database.insert(data: {
+        'quantity': quantity,
+        'subTotal': data['subTotal'],
+        'id': data['id'],
+        'channels': [store.state.user.id.toString()],
+        'table': AppTables.order,
+        'taxAmount': data['taxAmount'],
+        'taxRate': data['taxRate'], //get the current active tax rate
+        'unit': data['unit'], //get unit of this item sold should hav it.
+        'note': data['note'], //keep it lik this.
+        'discountAmount': data['discountAmount'],
+        'discountRate': data['discountRate'],
+        'updatedAt': DateTime.now().toIso8601String(),
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+      return true;
+    } else {
+      // keep order fresh
+      final Order order = Order.fromMap(existingCart[0]['main']);
+      final Document orderDoc =
+          await ProxyService.database.getById(id: order.id);
+      orderDoc
+          .toMutable()
+          .setString('createdAt', DateTime.now().toIso8601String())
+          .setString('updatedAt', DateTime.now().toIso8601String());
+      return true;
+    }
   }
 
   Future<void> insertOrUpdateColor(
       Store<AppState> store, ColorTableData data) async {
     //if item with the same variationId exist update content
-    ColorTableData colorsExists =
+    final ColorTableData colorsExists =
         await store.state.database.colorDao.colorExists(data.name);
     if (colorsExists == null) {
       store.state.database.colorDao.insert(data);
@@ -68,8 +70,6 @@ class GeneralRepository {
 
   Future<Order> createDraftOrderOrReturnExistingOne(
       Store<AppState> store) async {
-         final Logger log = Logging.getLogger('General repo ....');
-    
     final DatabaseService _databaseService = ProxyService.database;
     final List<Map<String, dynamic>> or = await _databaseService.filter(
       equator: 'draft',
@@ -79,15 +79,14 @@ class GeneralRepository {
       andEquator: AppTables.order,
     );
     if (or.isEmpty) {
-    
-      final       String id = Uuid().v1();
-      _databaseService.insert(id:id, data: {
+      final String id = Uuid().v1();
+      _databaseService.insert(id: id, data: {
         'name': 'draft',
-        'id':id,
+        'id': id,
         'branchId': store.state.branch.id,
-        'table':  AppTables.order
+        'table': AppTables.order
       });
-      
+
       final List<Map<String, dynamic>> or = await _databaseService.filter(
         equator: 'draft',
         property: 'name',
@@ -95,12 +94,11 @@ class GeneralRepository {
         andProperty: 'table',
         andEquator: AppTables.order + store.state.branch.id,
       );
-      
+
       final Order order = Order.fromMap(or[0][CoreDB.instance.dbName]);
       dispatchOrder(store, order);
       return order;
     } else {
-      
       final Order order = Order.fromMap(or[0][CoreDB.instance.dbName]);
       dispatchOrder(store, order);
       return order;
@@ -164,7 +162,7 @@ class GeneralRepository {
 
   Future<void> insertCustomCategory(
       Store<AppState> store, Category category) async {
-      // FIXME(richard): I am not sure if this is still in use.
+    // FIXME(richard): I am not sure if this is still in use.
     // CategoryTableData categoryData =
     //     await store.state.database.categoryDao.getCategoryName(category.name);
     // if (categoryData == null) {
@@ -176,10 +174,8 @@ class GeneralRepository {
     //     await store.state.database.categoryDao.getCategoryName(category.name);
   }
 
-  Future<int> insertCategory(
-      Store<AppState> store, Category category) async {
-
-        // FIXME(richard): I am not sure if this is still in use.
+  Future<int> insertCategory(Store<AppState> store, Category category) async {
+    // FIXME(richard): I am not sure if this is still in use.
     // CategoryTableData existingCategory =
     //     await store.state.database.categoryDao.getCategoryName(category.name);
     // if (existingCategory == null) {
@@ -205,12 +201,6 @@ Future<void> insertHistory(Store<AppState> store, int variantId, int count) {
   //     // ignore: missing_required_param
   //     .insert(StockHistoryTableData(quantity: count, variantId: variantId));
 }
-
-
-
-
-
-
 
 Future<bool> updateOrder(Store<AppState> store, Order order) async {
   // return await store.state.database.orderDao.updateOrder(order);

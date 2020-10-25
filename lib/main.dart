@@ -42,8 +42,8 @@ Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
-        statusBarColor: AppColors.spennGreen,
-        systemNavigationBarColor: AppColors.spennGreen,
+        statusBarColor: Colors.black,
+        systemNavigationBarColor: AppColors.flipperGreen,
         statusBarIconBrightness: Brightness.light,
       ),
     );

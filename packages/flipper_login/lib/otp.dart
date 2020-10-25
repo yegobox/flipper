@@ -3,9 +3,10 @@ import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/routes/router.gr.dart';
+
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/fuser.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper_login/services/proxy_service.dart';

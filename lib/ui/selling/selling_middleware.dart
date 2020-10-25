@@ -1,7 +1,5 @@
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/ui/selling/actions.dart';
-import 'package:flipper/model/total.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 

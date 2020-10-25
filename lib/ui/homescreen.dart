@@ -1,16 +1,20 @@
-import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_state.dart';
+
+
 import 'package:flipper/ui/flipper_drawer.dart';
 import 'package:flipper/ui/home_app_bar.dart';
 import 'package:flipper/ui/keypad/poswidget.dart';
 import 'package:flipper/ui/product/product_screen.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
-import 'package:flipper/ui/welcome/widgets/payable_widget.dart';
+import 'package:flipper/ui/welcome/payable/payable_view.dart';
+
 
 import 'package:flipper/ui/widget/bottom_menu_bar.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
+
+import 'home_viewmodel.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final ValueNotifier<bool> sideOpenController;
@@ -53,22 +57,19 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  void _nextPage(int delta) {
-    // final int newIndex = _tabController.index + delta;
-    // if (newIndex < 0 || newIndex >= _tabController.length) {
-    //   return;
-    // }
-
-    // _tabController.animateTo(newIndex);
-    _tabController.animateTo(1);
-  }
-
   Widget _body() {
-    return SafeArea(
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(builder: (BuildContext context,HomeViewModel model,Widget child){
+      return SafeArea(
       child: Container(
-        child: _getPage(StoreProvider.of<AppState>(context).state.tab),
+        child: _getPage(model.tab),
       ),
     );
+    }, 
+    onModelReady: (HomeViewModel model){
+      model.initTab();
+    },
+    viewModelBuilder: ()=>HomeViewModel());
   }
 
   // ignore: missing_return
@@ -86,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    _nextPage(1);//default to 1
+    // _nextPage(1);//default to 1
     return Scaffold(
       extendBody: true,
       key: _scaffoldKey,
@@ -99,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(left:5.0,right: 5.0),
-            child: PayableWidget(),
+            child: PayableView(),
           ),
           Expanded(child: Container(child:_body())),
         ],

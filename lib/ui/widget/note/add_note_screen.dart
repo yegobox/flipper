@@ -1,10 +1,10 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/widget/note/note_input.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 
 class AddNoteScreen extends StatefulWidget {
-  AddNoteScreen({Key key}) : super(key: key);
+  const AddNoteScreen({Key key}) : super(key: key);
 
   @override
   _AddNoteScreenState createState() => _AddNoteScreenState();
@@ -16,14 +16,15 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Routing.navigator.pop();
+          ProxyService.nav.pop();
         },
         disableButton: false,
         title: 'Add Note',
       ),
       body: Column(
+        // ignore: prefer_const_literals_to_create_immutables
         children: <Widget>[
-          Center(
+          const Center(
             child: NoteInput(
               hint: 'Add Note',
             ),

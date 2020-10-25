@@ -135,26 +135,27 @@ class _ReportScreenState extends State<ReportScreen>
               body: TabBarView(
                 controller: _tabReportController,
                 children: [
-                  ReportView(
-                    grossProfit: vm.report?.grossProfit,
-                    netProfit: vm.report?.netProfit,
-                  ),
-                  ReportView(
-                    grossProfit: vm.report?.grossProfit,
-                    netProfit: vm.report?.netProfit,
-                  ),
-                  ReportView(
-                    grossProfit: vm.report?.grossProfit,
-                    netProfit: vm.report?.netProfit,
-                  ),
-                  ReportView(
-                    grossProfit: vm.report?.grossProfit,
-                    netProfit: vm.report?.netProfit,
-                  ),
-                  ReportView(
-                    grossProfit: vm.report?.grossProfit,
-                    netProfit: vm.report?.netProfit,
-                  ),
+                  // FIXME:
+                  // ReportView(
+                  //   grossProfit: vm.report?.grossProfit,
+                  //   netProfit: vm.report?.netProfit,
+                  // ),
+                  // ReportView(
+                  //   grossProfit: vm.report?.grossProfit,
+                  //   netProfit: vm.report?.netProfit,
+                  // ),
+                  // ReportView(
+                  //   grossProfit: vm.report?.grossProfit,
+                  //   netProfit: vm.report?.netProfit,
+                  // ),
+                  // ReportView(
+                  //   grossProfit: vm.report?.grossProfit,
+                  //   netProfit: vm.report?.netProfit,
+                  // ),
+                  // ReportView(
+                  //   grossProfit: vm.report?.grossProfit,
+                  //   netProfit: vm.report?.netProfit,
+                  // ),
                 ],
               ),
             ),

@@ -38,7 +38,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       'name': store.state.business.name,
       '_id': 'branches_' + store.state.user.id.toString(),
       'channels': [store.state.user.id.toString()],
-      'businessId': store.state.businessId,
+      'businessId': store.state.currentActiveBusiness.id,
       'id': Uuid().v1(),
       'table':  AppTables.branch,
       'mapLatitude': store.state.business.latitude ?? '0.0',

@@ -1,5 +1,6 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper/services/proxy.dart';
@@ -13,14 +14,14 @@ class CompleteSaleScreen extends StatefulWidget {
 }
 
 class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
-  final _navigationService = ProxyService.nav;
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
-          Routing.navigator.pop();
+          _navigationService.pop();
         },
         disableButton: false,
         showActionButton: true,

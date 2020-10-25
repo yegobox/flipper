@@ -32,13 +32,15 @@ class MultipleVariantViewWidget extends StatelessWidget {
         disableButton: false,
         showActionButton: true,
         actionButtonName: 'Add',
-        title: vm.currentActiveSaleProduct == null
-            ? ''
-            : vm.currentActiveSaleProduct.name +
-                ' ' +
-                vm.total?.value.toString(),
+        title:'hello',
+        // FIXME:
+        // title: vm.currentActiveSaleProduct == null
+        //     ? ''
+        //     : vm.currentActiveSaleProduct.name +
+        //         ' ' +
+        //         vm.total?.value.toString(),
         onPressedCallback: () {
-          _saveCart(vm, context);
+          // _saveCart(vm, context);
         },
       ),
       body: Column(
@@ -89,29 +91,30 @@ class MultipleVariantViewWidget extends StatelessWidget {
   void isVariantActive(
       List<Stock> stocks, int i, BuildContext context) {
     if (stocks[i].isActive) {
-      StoreProvider.of<AppState>(context).dispatch(
-        IncrementAction(
-          increment: vm.currentIncrement == null ? 1 : vm.currentIncrement,
-        ),
-      );
-      StoreProvider.of<AppState>(context)
-          .dispatch(OnSellingVariant(variantId: stocks[i].variantId));
+      // FIXME:
+      // StoreProvider.of<AppState>(context).dispatch(
+      //   IncrementAction(
+      //     increment: vm.currentIncrement == null ? 1 : vm.currentIncrement,
+      //   ),
+      // );
+      // StoreProvider.of<AppState>(context)
+      //     .dispatch(OnSellingVariant(variantId: stocks[i].variantId));
 
-      Variation v =
-          vm.itemVariations.firstWhere((b) => b.id == stocks[i].variantId);
+      // Variation v =
+      //     vm.itemVariations.firstWhere((b) => b.id == stocks[i].variantId);
 
-      Product cartItem = Product(
-        (b) => b
-          ..id = v
-              .id //keep variation id Did it intentionally! so we can use it instead of productId
-          ..name = v.name
-          ..unit = v.unit
-          ..count = vm.currentIncrement,
-      );
+      // Product cartItem = Product(
+      //   (b) => b
+      //     ..id = v
+      //         .id //keep variation id Did it intentionally! so we can use it instead of productId
+      //     ..name = v.name
+      //     ..unit = v.unit
+      //     ..count = vm.currentIncrement,
+      // );
 
-      StoreProvider.of<AppState>(context).dispatch(
-        AddItemToCartAction(cartItem: cartItem),
-      );
+      // StoreProvider.of<AppState>(context).dispatch(
+      //   AddItemToCartAction(cartItem: cartItem),
+      // );
     }
   }
 
@@ -166,7 +169,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
   // ignore: always_specify_types
   void _saveCart(CommonViewModel vm, context) {
-    StoreProvider.of<AppState>(context).dispatch(SaveCart());
+   
     // FIXME:
     // Routing.navigator.maybePop();
   }

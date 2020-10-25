@@ -42,8 +42,9 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
               child: TextFormField(
                 style: const TextStyle(color: Colors.black),
                 onChanged: (String name)async  {
-                  final Document document =  await CoreDB.instance.database.document(vm.tempCategoryId);
-                  _databaseService.update(document: document.toMutable().setString('updatedAt', DateTime.now().toIso8601String()).setString('name', name));
+                  // TODO: re-do this the first implementation was poor and confusing.
+                  // final Document document =  await CoreDB.instance.database.document(vm.tempCategoryId);
+                  // _databaseService.update(document: document.toMutable().setString('updatedAt', DateTime.now().toIso8601String()).setString('name', name));
                 },
                 decoration: const InputDecoration(
                     hintText: 'Name', focusColor: Colors.blue),

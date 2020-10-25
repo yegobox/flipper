@@ -22,8 +22,8 @@ import 'package:flipper/ui/product/add/add_category_screen.dart';
 import 'package:flipper/ui/category/create_category_input_screen.dart';
 import 'package:flipper/ui/widget/stock/receive_stock.dart';
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
-import 'package:flipper/ui/cart/cart_details_screen.dart';
-import 'package:flipper/model/cart.dart';
+import 'package:flipper/ui/order/order_details_view.dart';
+import 'package:flipper/model/order.dart';
 import 'package:flipper/ui/product/products_view.dart';
 import 'package:flipper/ui/product/view_products_screen.dart';
 import 'package:flipper/ui/welcome/login/login_screen.dart';
@@ -58,7 +58,7 @@ class Routing {
   static const createCategoryInputScreen = '/create-category-input-screen';
   static const receiveStock = '/receive-stock';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
-  static const cartDetailsScreen = '/cart-details-screen';
+  static const orderDetailsView = '/order-details-view';
   static const allItemScreen = '/all-item-screen';
   static const viewItemsScreen = '/view-items-screen';
   static const login = '/login';
@@ -238,15 +238,15 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.cartDetailsScreen:
-        if (hasInvalidArgs<CartDetailsScreenArguments>(args)) {
-          return misTypedArgsRoute<CartDetailsScreenArguments>(args);
+      case Routing.orderDetailsView:
+        if (hasInvalidArgs<OrderDetailsViewArguments>(args)) {
+          return misTypedArgsRoute<OrderDetailsViewArguments>(args);
         }
         final typedArgs =
-            args as CartDetailsScreenArguments ?? CartDetailsScreenArguments();
+            args as OrderDetailsViewArguments ?? OrderDetailsViewArguments();
         return MaterialPageRoute<dynamic>(
           builder: (_) =>
-              CartDetailsScreen(key: typedArgs.key, carts: typedArgs.carts),
+              OrderDetailsView(key: typedArgs.key, orders: typedArgs.orders),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -478,11 +478,11 @@ class ChangeQuantityForSellingArguments {
   ChangeQuantityForSellingArguments({this.key, @required this.productId});
 }
 
-//CartDetailsScreen arguments holder class
-class CartDetailsScreenArguments {
+//OrderDetailsView arguments holder class
+class OrderDetailsViewArguments {
   final Key key;
-  final List<Cart> carts;
-  CartDetailsScreenArguments({this.key, this.carts});
+  final List<Order> orders;
+  OrderDetailsViewArguments({this.key, this.orders});
 }
 
 //ViewSingleItemScreen arguments holder class

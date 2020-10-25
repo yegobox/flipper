@@ -17,10 +17,11 @@ class ControlSaleWidget extends StatefulWidget {
 class _ControlSaleWidgetState extends State<ControlSaleWidget> {
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _controller =  TextEditingControllerWorkaroud(
-        text: widget.vm.currentIncrement == null
-            ? '1'
-            : widget.vm.currentIncrement.toString());
+    // FIXME: the code is broken due to change in code flow to make code more understandable
+    // final TextEditingController _controller =  TextEditingControllerWorkaroud(
+    //     text: widget.vm.currentIncrement == null
+    //         ? '1'
+    //         : widget.vm.currentIncrement.toString());
     return ListTile(
       dense: true,
       title: Center(
@@ -46,7 +47,7 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
               }
               //place cursor at end of length of any input
             },
-            controller: _controller,
+            // controller: _controller,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.black),
@@ -57,46 +58,46 @@ class _ControlSaleWidgetState extends State<ControlSaleWidget> {
         enableFeedback: false,
         icon: const Icon(Icons.remove),
         onPressed: () {
-          if (widget.vm.itemVariations.isNotEmpty) {
-            for (int i = 0; i < widget.vm.itemVariations.length; i++) {
-              if (widget.vm.currentActiveSaleProduct.id ==
-                  widget.vm.itemVariations[i].productId) {
-                if (widget.vm.currentIncrement == null) {
-                  return;
-                }
-                if (widget.vm.currentIncrement - 1 == -1) {
-                  return;
-                }
-                final int increment = widget.vm.currentIncrement - 1;
-                StoreProvider.of<AppState>(context).dispatch(
-                  IncrementAction(
-                    increment:
-                        widget.vm.currentIncrement == null ? 0 : increment,
-                  ),
-                );
-              }
-            }
-          }
+          // if (widget.vm.itemVariations.isNotEmpty) {
+          //   for (int i = 0; i < widget.vm.itemVariations.length; i++) {
+          //     if (widget.vm.currentActiveSaleProduct.id ==
+          //         widget.vm.itemVariations[i].productId) {
+          //       if (widget.vm.currentIncrement == null) {
+          //         return;
+          //       }
+          //       if (widget.vm.currentIncrement - 1 == -1) {
+          //         return;
+          //       }
+          //       final int increment = widget.vm.currentIncrement - 1;
+          //       StoreProvider.of<AppState>(context).dispatch(
+          //         IncrementAction(
+          //           increment:
+          //               widget.vm.currentIncrement == null ? 0 : increment,
+          //         ),
+          //       );
+          //     }
+          //   }
+          // }
         },
       ),
       trailing: IconButton(
         enableFeedback: false,
         icon: const Icon(Icons.add),
         onPressed: () {
-          for (int i = 0; i < widget.vm.itemVariations.length; i++) {
-            if (widget.vm.currentActiveSaleProduct.id ==
-                widget.vm.itemVariations[i].productId) {
-              final increment = widget.vm.currentIncrement == null
-                  ? 1
-                  : widget.vm.currentIncrement + 1;
+          // for (int i = 0; i < widget.vm.itemVariations.length; i++) {
+          //   if (widget.vm.currentActiveSaleProduct.id ==
+          //       widget.vm.itemVariations[i].productId) {
+          //     final increment = widget.vm.currentIncrement == null
+          //         ? 1
+          //         : widget.vm.currentIncrement + 1;
 
-              StoreProvider.of<AppState>(context).dispatch(
-                IncrementAction(
-                  increment: widget.vm.currentIncrement == null ? 1 : increment,
-                ),
-              );
-            }
-          }
+          //     StoreProvider.of<AppState>(context).dispatch(
+          //       IncrementAction(
+          //         increment: widget.vm.currentIncrement == null ? 1 : increment,
+          //       ),
+          //     );
+          //   }
+          // }
         },
       ),
     );

@@ -1,14 +1,13 @@
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/ui/home_viewmodel.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/ui/widget/custom_widgets.dart';
 import 'package:flipper/ui/widget/tabItem.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
 
 class BottomMenubar extends StatefulWidget {
-  const BottomMenubar({this.pageController});
-  final PageController pageController;
+  const BottomMenubar();
+  
   @override
   _BottomMenubarState createState() => _BottomMenubarState();
 }
@@ -54,7 +53,8 @@ class _BottomMenubarState extends State<BottomMenubar> {
   Widget _icon(IconData iconData, int index,
       {bool isCustomIcon = false, int icon}) {
    
-    return Expanded(
+    return ViewModelBuilder.reactive(builder: (BuildContext context,HomeViewModel model, Widget child){
+      return Expanded(
       child: Container(
         height: double.infinity,
         width: double.infinity,
@@ -84,13 +84,18 @@ class _BottomMenubarState extends State<BottomMenubar> {
                           : Theme.of(context).textTheme.caption.color,
                     ),
               onPressed: () {
-                StoreProvider.of<AppState>(context).dispatch(CurrentTab(tab: index));
+               model.switchTab(index);
               },
             ),
           ),
         ),
       ),
     );
+    }, 
+    onModelReady: (HomeViewModel model){
+      model.initTab();
+    },
+    viewModelBuilder: ()=>HomeViewModel());
   }
 
   @override

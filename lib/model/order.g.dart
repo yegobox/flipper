@@ -23,6 +23,12 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'branchId',
       serializers.serialize(object.branchId,
           specifiedType: const FullType(String)),
+      'variationId',
+      serializers.serialize(object.variationId,
+          specifiedType: const FullType(String)),
+      'productName',
+      serializers.serialize(object.productName,
+          specifiedType: const FullType(String)),
     ];
     if (object.userId != null) {
       result
@@ -107,6 +113,12 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
         ..add('taxRate')
         ..add(serializers.serialize(object.taxRate,
             specifiedType: const FullType(String)));
+    }
+    if (object.quantity != null) {
+      result
+        ..add('quantity')
+        ..add(serializers.serialize(object.quantity,
+            specifiedType: const FullType(double)));
     }
     if (object.taxAmount != null) {
       result
@@ -246,6 +258,10 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           result.taxRate = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'quantity':
+          result.quantity = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
         case 'taxAmount':
           result.taxAmount = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -280,6 +296,14 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'status':
           result.status = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'variationId':
+          result.variationId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'productName':
+          result.productName = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'customerChangeDue':
@@ -327,6 +351,8 @@ class _$Order extends Order {
   @override
   final String taxRate;
   @override
+  final double quantity;
+  @override
   final String taxAmount;
   @override
   final String discountRate;
@@ -344,6 +370,10 @@ class _$Order extends Order {
   final String orderNote;
   @override
   final String status;
+  @override
+  final String variationId;
+  @override
+  final String productName;
   @override
   final String customerChangeDue;
 
@@ -367,6 +397,7 @@ class _$Order extends Order {
       this.supplierInvoiceNumber,
       this.deliverDate,
       this.taxRate,
+      this.quantity,
       this.taxAmount,
       this.discountRate,
       this.discountAmount,
@@ -376,6 +407,8 @@ class _$Order extends Order {
       this.paymentId,
       this.orderNote,
       this.status,
+      this.variationId,
+      this.productName,
       this.customerChangeDue})
       : super._() {
     if (id == null) {
@@ -383,6 +416,12 @@ class _$Order extends Order {
     }
     if (branchId == null) {
       throw new BuiltValueNullFieldError('Order', 'branchId');
+    }
+    if (variationId == null) {
+      throw new BuiltValueNullFieldError('Order', 'variationId');
+    }
+    if (productName == null) {
+      throw new BuiltValueNullFieldError('Order', 'productName');
     }
   }
 
@@ -413,6 +452,7 @@ class _$Order extends Order {
         supplierInvoiceNumber == other.supplierInvoiceNumber &&
         deliverDate == other.deliverDate &&
         taxRate == other.taxRate &&
+        quantity == other.quantity &&
         taxAmount == other.taxAmount &&
         discountRate == other.discountRate &&
         discountAmount == other.discountAmount &&
@@ -422,6 +462,8 @@ class _$Order extends Order {
         paymentId == other.paymentId &&
         orderNote == other.orderNote &&
         status == other.status &&
+        variationId == other.variationId &&
+        productName == other.productName &&
         customerChangeDue == other.customerChangeDue;
   }
 
@@ -445,25 +487,25 @@ class _$Order extends Order {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc(0, id.hashCode), userId.hashCode), branchId.hashCode), deviceId.hashCode), currency.hashCode), reference.hashCode), idLocal.hashCode),
-                                                                                orderDate.hashCode),
-                                                                            isDraft.hashCode),
-                                                                        orderType.hashCode),
-                                                                    orderNUmber.hashCode),
-                                                                supplierId.hashCode),
-                                                            subTotal.hashCode),
-                                                        supplierInvoiceNumber.hashCode),
-                                                    deliverDate.hashCode),
-                                                taxRate.hashCode),
-                                            taxAmount.hashCode),
-                                        discountRate.hashCode),
-                                    discountAmount.hashCode),
-                                cashReceived.hashCode),
-                            saleTotal.hashCode),
-                        customerSaving.hashCode),
-                    paymentId.hashCode),
-                orderNote.hashCode),
-            status.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, id.hashCode), userId.hashCode), branchId.hashCode), deviceId.hashCode), currency.hashCode), reference.hashCode), idLocal.hashCode), orderDate.hashCode), isDraft.hashCode), orderType.hashCode),
+                                                                                orderNUmber.hashCode),
+                                                                            supplierId.hashCode),
+                                                                        subTotal.hashCode),
+                                                                    supplierInvoiceNumber.hashCode),
+                                                                deliverDate.hashCode),
+                                                            taxRate.hashCode),
+                                                        quantity.hashCode),
+                                                    taxAmount.hashCode),
+                                                discountRate.hashCode),
+                                            discountAmount.hashCode),
+                                        cashReceived.hashCode),
+                                    saleTotal.hashCode),
+                                customerSaving.hashCode),
+                            paymentId.hashCode),
+                        orderNote.hashCode),
+                    status.hashCode),
+                variationId.hashCode),
+            productName.hashCode),
         customerChangeDue.hashCode));
   }
 
@@ -486,6 +528,7 @@ class _$Order extends Order {
           ..add('supplierInvoiceNumber', supplierInvoiceNumber)
           ..add('deliverDate', deliverDate)
           ..add('taxRate', taxRate)
+          ..add('quantity', quantity)
           ..add('taxAmount', taxAmount)
           ..add('discountRate', discountRate)
           ..add('discountAmount', discountAmount)
@@ -495,6 +538,8 @@ class _$Order extends Order {
           ..add('paymentId', paymentId)
           ..add('orderNote', orderNote)
           ..add('status', status)
+          ..add('variationId', variationId)
+          ..add('productName', productName)
           ..add('customerChangeDue', customerChangeDue))
         .toString();
   }
@@ -568,6 +613,10 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get taxRate => _$this._taxRate;
   set taxRate(String taxRate) => _$this._taxRate = taxRate;
 
+  double _quantity;
+  double get quantity => _$this._quantity;
+  set quantity(double quantity) => _$this._quantity = quantity;
+
   String _taxAmount;
   String get taxAmount => _$this._taxAmount;
   set taxAmount(String taxAmount) => _$this._taxAmount = taxAmount;
@@ -606,6 +655,14 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get status => _$this._status;
   set status(String status) => _$this._status = status;
 
+  String _variationId;
+  String get variationId => _$this._variationId;
+  set variationId(String variationId) => _$this._variationId = variationId;
+
+  String _productName;
+  String get productName => _$this._productName;
+  set productName(String productName) => _$this._productName = productName;
+
   String _customerChangeDue;
   String get customerChangeDue => _$this._customerChangeDue;
   set customerChangeDue(String customerChangeDue) =>
@@ -631,6 +688,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _supplierInvoiceNumber = _$v.supplierInvoiceNumber;
       _deliverDate = _$v.deliverDate;
       _taxRate = _$v.taxRate;
+      _quantity = _$v.quantity;
       _taxAmount = _$v.taxAmount;
       _discountRate = _$v.discountRate;
       _discountAmount = _$v.discountAmount;
@@ -640,6 +698,8 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _paymentId = _$v.paymentId;
       _orderNote = _$v.orderNote;
       _status = _$v.status;
+      _variationId = _$v.variationId;
+      _productName = _$v.productName;
       _customerChangeDue = _$v.customerChangeDue;
       _$v = null;
     }
@@ -679,6 +739,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
             supplierInvoiceNumber: supplierInvoiceNumber,
             deliverDate: deliverDate,
             taxRate: taxRate,
+            quantity: quantity,
             taxAmount: taxAmount,
             discountRate: discountRate,
             discountAmount: discountAmount,
@@ -688,6 +749,8 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
             paymentId: paymentId,
             orderNote: orderNote,
             status: status,
+            variationId: variationId,
+            productName: productName,
             customerChangeDue: customerChangeDue);
     replace(_$result);
     return _$result;

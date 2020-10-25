@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
+import 'package:flipper/ui/order/order_details_view.dart';
 import 'package:flipper/ui/product/add/add_category_screen.dart';
 import 'package:flipper/ui/product/add/add_product_screen.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
@@ -21,7 +22,7 @@ import 'package:flipper/ui/widget/note/add_note_screen.dart';
 import 'package:flipper/ui/widget/unit/add_unit_type.dart';
 import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
 import 'package:flipper/ui/camera/camera_preview.dart';
-import 'package:flipper/ui/cart/cart_details_screen.dart';
+
 import 'package:flipper/ui/category/create_category_input_screen.dart';
 
 
@@ -92,7 +93,7 @@ class $Routing {
   ChangeQuantityForSelling editQuantityItemScreen;
 
   @MaterialRoute(fullscreenDialog: true)
-  CartDetailsScreen cartDetailsScreen;
+  OrderDetailsView orderDetailsView;
 
   @MaterialRoute(fullscreenDialog: true)
   AllItemScreen allItemScreen;

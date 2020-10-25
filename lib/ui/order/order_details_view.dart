@@ -1,32 +1,36 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/model/cart.dart';
-import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/model/order.dart';
+
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class CartDetailsScreen extends StatefulWidget {
-  final List<Cart> carts;
-  CartDetailsScreen({Key key, this.carts}) : super(key: key);
+class OrderDetailsView extends StatefulWidget {
+  
+  const OrderDetailsView({Key key, this.orders}) : super(key: key);
+
+  final List<Order> orders;
 
   @override
-  _CartDetailsScreenState createState() => _CartDetailsScreenState();
+  _OrderDetailsViewState createState() => _OrderDetailsViewState();
 }
 
-class _CartDetailsScreenState extends State<CartDetailsScreen> {
-  int _total = 0;
+class _OrderDetailsViewState extends State<OrderDetailsView> {
+  final int _total = 0;
 
   @override
   Widget build(BuildContext context) {
-    _getTotal(widget.carts, context);
+    _getTotal(widget.orders, context);
+    // ignore: always_specify_types
     return StoreConnector(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
+      builder: (BuildContext context,CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Routing.navigator.pop();
+              ProxyService.nav.pop();
             },
             title: 'Total RWF ' + _total.toString(),
             disableButton: false,
@@ -35,37 +39,37 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
             onPressedCallback: () {},
           ),
           body: ListView(
-            children: renderCart(widget.carts, vm),
+            children: renderOrder(widget.orders, vm),
           ),
         );
       },
     );
   }
 
-  List<Widget> renderCart(List<Cart> carts, CommonViewModel vm) {
-    List<Widget> list = List<Widget>();
-    for (var i = 0; i < carts.length; i++) {
+  List<Widget> renderOrder(List<Order> orders, CommonViewModel vm) {
+    final List<Widget> list = <Widget>[];
+    for (int i = 0; i < orders.length; i++) {
       list.add(ListTile(
         title: Text(
-          carts[i].parentName + ' × ' + carts[i].quantity.toString(),
-          style: TextStyle(color: Colors.black),
+          orders[i].productName + ' × ' + orders[i].quantity.toString(),
+          style: const TextStyle(color: Colors.black),
         ),
         subtitle: Padding(
-          padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-          child: Text(carts[i].variationName),
+          padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+          child: Text(orders[i].productName),
         ),
-        trailing: Padding(
-          padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+        trailing: const Padding(
+          padding:  EdgeInsets.fromLTRB(10, 0, 0, 0),
           child: Text('FIXME')
           // FIXME:
           // child: StreamBuilder(
           //     stream: vm.database.stockDao.getStockByProductIdStream(
-          //         branchId: vm.branch.id, productId: carts[i].variationId),
+          //         branchId: vm.branch.id, productId: orders[i].variationId),
           //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
           //       if (snapshot.data == null) {
           //         return Text('');
           //       }
-          //       return Text((snapshot.data[0].retailPrice * carts[i].quantity)
+          //       return Text((snapshot.data[0].retailPrice * orders[i].quantity)
           //               .toString() +
           //           ' RWF');
           //     }),
@@ -73,26 +77,26 @@ class _CartDetailsScreenState extends State<CartDetailsScreen> {
       ));
     }
     list.add(ListTile(
-      title: Text(
+      title: const Text(
         'Total',
         style: TextStyle(color: Colors.black),
       ),
       trailing: Padding(
-        padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+        padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
         child: Text('RWF ' + _total.toString()),
       ),
     ));
     return list;
   }
 
-  void _getTotal(List<Cart> carts, BuildContext context) async {
+  void _getTotal(List<Order> orders, BuildContext context) async {
     // FIXME:
     // final store = StoreProvider.of<AppState>(context);
     // var total = 0;
-    // for (var i = 0; i < carts.length; i++) {
+    // for (var i = 0; i < orders.length; i++) {
     //   final data = await store.state.database.stockDao.getStockByVariantId(
-    //       variantId: carts[i].variationId, branchId: store.state.branch.id);
-    //   total += (data.retailPrice.toInt() * carts[i].quantity).toInt();
+    //       variantId: orders[i].variationId, branchId: store.state.branch.id);
+    //   total += (data.retailPrice.toInt() * orders[i].quantity).toInt();
     // }
     // setState(() {
     //   _total = total;

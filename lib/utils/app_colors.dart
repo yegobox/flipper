@@ -42,7 +42,7 @@ class AppColors {
   static MaterialColor gray = AppColors.factoryColor(0xffA9A9A9);
   static MaterialColor darkGray = AppColors.factoryColor(0xff78797B);
   static MaterialColor green = AppColors.factoryColor(0xff7EC518);
-  static MaterialColor spennGreen = AppColors.factoryColor(0xFF006241);
+  static MaterialColor flipperGreen = AppColors.factoryColor(0xffffffff);
   static MaterialColor houseGreen = AppColors.factoryColor(0xFF1e3932);
   static MaterialColor warmNeutral = AppColors.factoryColor(0xfff2f0eb);
   static MaterialColor lightGreen = AppColors.factoryColor(0xffd4e9e2);

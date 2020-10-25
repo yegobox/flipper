@@ -1,13 +1,8 @@
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
-
+import 'package:flipper/ui/welcome/payable/payable_viewmodel.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
 
 class NoteInput extends StatelessWidget {
-  final String _hint;
-  final String validationMessage;
   const NoteInput({
     String hint,
     this.validationMessage,
@@ -15,34 +10,39 @@ class NoteInput extends StatelessWidget {
   })  : _hint = hint,
         super(key: key);
 
+  final String _hint;
+  final String validationMessage;
+
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-          child: Container(
-            width: 300,
-            child: TextFormField(
-              style: TextStyle(color: Colors.black),
-              autofocus: true,
-              validator: (value) {
-                if (value.isEmpty) {
-                  return this.validationMessage;
-                }
-                return null;
-              },
-              onChanged: (note) async {
-                final store = StoreProvider.of<AppState>(context);
-                store.dispatch(Note(note: note));
-              },
-              decoration: InputDecoration(hintText: _hint ?? ''),
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, PayableViewModel model, Widget child) {
+          return Padding(
+            padding: const EdgeInsets.only(left: 18, right: 18),
+            child: Container(
+              width: double.infinity,
+              child: TextFormField(
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText1
+                    .copyWith(color: Colors.black),
+                autofocus: true,
+                controller: model.note,
+                validator: (String value) {
+                  if (value.isEmpty) {
+                    return validationMessage;
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(hintText: _hint ?? ''),
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+        onModelReady: (PayableViewModel model) {
+          model.initFields();
+        },
+        viewModelBuilder: () => PayableViewModel());
   }
 }

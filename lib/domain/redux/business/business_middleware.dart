@@ -14,7 +14,8 @@ List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
   
 ) {
-  //
+  
+  // ignore: always_specify_types
   return [
     TypedMiddleware<AppState, CreateBusinessOnSignUp>(
         _createBusiness(navigatorKey)),
@@ -103,28 +104,14 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     next(action);
 
-      // todo(richard): on switch business please dispatch taxes, branches etc...
-    if (store.state.currentActiveBusiness != null ||
-        store.state.nextActiveBusiness != null) {
-      //remove active from previous active business
-      //add active to new
-      if (store.state.nextActiveBusiness != null) {
-        //set business
-        // FIXME:
-        // businessRepository.update(store, store.state.nextActiveBusiness,
-        //     active: true);
-      }
-      if (store.state.currentActiveBusiness != null) {
-        // FIXME:
-        // businessRepository.update(store, store.state.currentActiveBusiness,
-        //     active: false);
-      }
+    if (store.state.currentActiveBusiness != null) {
+      
       final Business updated = Business((BusinessBuilder b) => b
-        ..id = store.state.nextActiveBusiness.id
-        ..name = store.state.nextActiveBusiness.name
+        ..id = store.state.currentActiveBusiness.id
+        ..name = store.state.currentActiveBusiness.name
         ..longitude = b.longitude
         ..latitude = b.latitude
-        ..hexColor = store.state.nextActiveBusiness.hexColor
+        ..hexColor = store.state.currentActiveBusiness.hexColor
         ..active = true);
       store.dispatch(RefreshBusinessList(updated));
     }

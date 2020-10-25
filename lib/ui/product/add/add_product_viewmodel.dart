@@ -4,8 +4,10 @@ import 'package:couchbase_lite/couchbase_lite.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
@@ -19,10 +21,8 @@ class AddProductViewmodel extends BaseModel {
   final Logger log = Logging.getLogger('add product view model:)');
   // ignore: unused_field
   final DatabaseService _databaseService = ProxyService.database;
-  
-  // ActionsTableData get actions;
 
-  
+  // ActionsTableData get actions;
 
   String _productId;
   String get productId {
@@ -32,9 +32,9 @@ class AddProductViewmodel extends BaseModel {
   bool get isLocked {
     return _isLocked;
   }
+
   bool _isLocked = true;
 
-  
   TextEditingController _supplierPriceController;
   TextEditingController get supplierPriceController {
     return _supplierPriceController;
@@ -84,17 +84,24 @@ class AddProductViewmodel extends BaseModel {
     ProxyService.nav.pop();
   }
 
-  Future<void> handleCreateItem(
-      {CommonViewModel vm}) async {
-    log.i('updating productId:'+vm.tmpItem.id);
+  Future<void> handleCreateItem({CommonViewModel vm}) async {
+    log.i('updating productId:' + vm.tmpItem.id);
     await updateProduct(
-      productId: vm.tmpItem.id,
-      categoryId:vm.category==null?'10': vm.category.id,
+      productId: vm.tmpItem.id, //productId
+      categoryId: vm.category == null ? '10' : vm.category.id,
       vm: vm,
     );
-    
-    final Document variation = await _databaseService.getById(id:vm.variant.id);
-    
+
+    final List<Map<String, dynamic>> variations = await _databaseService.filter(
+      equator: AppTables.variation,
+      property: 'table',
+      and: true, //define that this query is and type.
+      andEquator: vm.tmpItem.id,
+      andProperty: 'productId',
+    );
+
+    final Document variation = await _databaseService.getById(
+        id: Variation.fromMap(variations[0]['main']).id);
 
     await updateVariation(
       variation: Variation.fromMap(variation.toMap()),
@@ -103,11 +110,11 @@ class AddProductViewmodel extends BaseModel {
       retailPrice: double.parse(retailPriceController.text),
     );
 
-    _nameController.text ='';//this will reset button to disabled
+    _nameController.text = ''; //this will reset button to disabled
 
     notifyListeners();
-
   }
+
   Future<void> updateVariation({
     Variation variation,
     double retailPrice,
@@ -115,34 +122,34 @@ class AddProductViewmodel extends BaseModel {
     String variantName,
   }) async {
     if (variation != null) {
+      final Document stock = await _databaseService.getById(id: variation.id);
 
-      final Document stock = await _databaseService.getById(id:variation.id);
+      final Document variant = await _databaseService.getById(id: variation.id);
 
-      final Document variant = await _databaseService.getById(id:variation.id);
-     
-      variant.toMutable()
-      .setString('name',variantName);
+      variant.toMutable().setString('name', variantName);
       _databaseService.update(document: variant.toMutable());
 
-      stock.toMutable()
-      .setDouble('retailPrice',retailPrice)
-      .setDouble('supplyPrice',supplyPrice);
+      stock
+          .toMutable()
+          .setDouble('retailPrice', retailPrice)
+          .setDouble('supplyPrice', supplyPrice);
       _databaseService.update(document: stock.toMutable());
     }
   }
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-      log.i('new name for product:'+nameController.text);
-      log.i('categoryId for product:'+categoryId);
+    log.i('new name for product:' + nameController.text);
+    log.i('categoryId for product:' + categoryId);
 
-      final Document product = await _databaseService.getById(id:productId);
-      product.toMutable()
-      .setString('name', nameController.text)
-      .setString('categoryId', categoryId)
-      .setString('updatedAt',  DateTime.now().toIso8601String());
-      
-      _databaseService.update(document: product.toMutable());
+    final Document product = await _databaseService.getById(id: productId);
+    product
+        .toMutable()
+        .setString('name', nameController.text)
+        .setString('categoryId', categoryId)
+        .setString('updatedAt', DateTime.now().toIso8601String());
+
+    _databaseService.update(document: product.toMutable());
     return true;
   }
 
@@ -151,26 +158,29 @@ class AddProductViewmodel extends BaseModel {
     notifyListeners();
 
     ProxyService.nav.navigateTo(Routing.addVariationScreen,
-        arguments: AddVariationScreenArguments(productId:productId));
+        arguments: AddVariationScreenArguments(productId: productId));
   }
 
   TextEditingController _nameController;
   TextEditingController get nameController {
     return _nameController;
   }
+
   void lock() {
     // ignore: prefer_is_empty
     log.i(_nameController.text.length);
-    _nameController.text.isEmpty?_isLocked = true:_isLocked = false;
+    _nameController.text.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
   }
 
-  void initFields(TextEditingController name,TextEditingController supplier,TextEditingController retail,TextEditingController description) {
+  void initFields(TextEditingController name, TextEditingController supplier,
+      TextEditingController retail, TextEditingController description) {
     _nameController = name;
     _supplierPriceController = supplier;
     _retailPriceController = retail;
     _description = description;
   }
+
   // once full refacored
   // ignore: always_specify_types
   Future getTemporalProduct({BuildContext context, CommonViewModel vm}) async {
@@ -187,5 +197,10 @@ class AddProductViewmodel extends BaseModel {
     _productId = productId;
     notifyListeners();
     return productId;
+  }
+
+  void navigateAddProduct() {
+    final FlipperNavigationService _navigationService = ProxyService.nav;
+    _navigationService.navigateTo(Routing.addProduct);
   }
 }

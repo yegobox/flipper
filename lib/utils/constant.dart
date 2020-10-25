@@ -13,7 +13,9 @@ class AppTables{
   static const String unit = 'units'; 
   static const String stock = 'stock';
   static const String switchi = 'switchers'; 
-  static const String drawerHistory = 'drawerHistories'; 
+  static const String drawerHistory = 'drawerHistories';
+
+  static const String cart ='cart'; 
 
 }
 

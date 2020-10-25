@@ -1,13 +1,11 @@
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/services/proxy.dart';
 
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
+import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
 
 class CreateOptionsWidget extends StatelessWidget {
   final FlipperNavigationService _navigationService = ProxyService.nav;
@@ -15,11 +13,9 @@ class CreateOptionsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return Dialog(
+    // ignore: always_specify_types
+    return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductViewmodel model, Widget child){
+      return Dialog(
           child: Container(
             width: 400,
             height: 200,
@@ -35,9 +31,7 @@ class CreateOptionsWidget extends StatelessWidget {
                       child: FlatButton(
                         color: Theme.of(context).copyWith(canvasColor:HexColor(FlipperColors.blue)).canvasColor,
                         onPressed: () async {
-                          //create a temp item that can be deleted anytime on discard
-                          // ProxyService.mail.sendEmail();
-                          _navigationService.navigateTo(Routing.addProduct);
+                          model.navigateAddProduct();
                         },
                         child: Text(
                           'Add Product',
@@ -78,7 +72,6 @@ class CreateOptionsWidget extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
+    }, viewModelBuilder: ()=>AddProductViewmodel());
   }
 }

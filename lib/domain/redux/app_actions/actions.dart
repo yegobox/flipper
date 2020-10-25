@@ -1,7 +1,6 @@
 import 'package:flipper/model/app_action.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
-import 'package:flipper/model/cart.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/date_filter.dart';
 import 'package:flipper/model/flipper_color.dart';
@@ -194,15 +193,7 @@ class CurrentActiveSaleProduct {
   CurrentActiveSaleProduct({this.product});
 }
 
-@immutable
-class SaveCart {}
 
-@immutable
-class Carts {
-  final List<Cart> carts;
-  final int quantity;
-  Carts({this.carts, this.quantity});
-}
 
 @immutable
 class CartQuantity {
