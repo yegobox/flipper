@@ -90,6 +90,7 @@ abstract class CommonViewModel
         ..businesses = store.state.businesses
       
         ..units = store.state.units.toBuilder()
+        ..user = store.state.user.toBuilder()
        
         ..currentBusiness = store.state.currentActiveBusiness?.toBuilder()
 

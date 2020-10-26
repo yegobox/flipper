@@ -89,10 +89,12 @@ class PayableViewModel extends BaseViewModel {
             andEquator: AppTables.stock,
           );
 
-          _total += (Stock.fromMap(sto[0]['main']).retailPrice.toInt() *
-                  Order.fromMap(value).quantity)
-              .toInt();
-
+          if (sto.isNotEmpty) {
+            log.d(sto);
+            _total += (Stock.fromMap(sto[0]['main']).retailPrice.toInt() *
+                    Order.fromMap(value).quantity)
+                .toInt();
+          }
           _order.add(Order.fromMap(value));
         });
       }
@@ -116,7 +118,6 @@ class PayableViewModel extends BaseViewModel {
   }
 
   void normalKeypad() {
-    
     //StoreProvider.of<AppState>(context).dispatch(
     //   KayPadAction(
     //     keyPad: KeyPad(
