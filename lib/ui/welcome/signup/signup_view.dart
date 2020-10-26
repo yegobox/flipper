@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
 
-import 'business_viewmodel.dart';
+import 'signup_viewmodel.dart';
 
 class TBusiness {
   String name;
@@ -15,8 +15,8 @@ class TBusiness {
   String email;
 }
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen(
+class SignUpView extends StatefulWidget {
+  const SignUpView(
       {Key key,
       this.token,
       this.email,
@@ -30,17 +30,17 @@ class SignUpScreen extends StatefulWidget {
   final String userId;
   final String avatar;
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  _SignUpViewState createState() => _SignUpViewState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpViewState extends State<SignUpView> {
   
   
   @override
   Widget build(BuildContext context) {
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(
-        builder: (BuildContext context, BusinessViewModel model, Widget child) {
+        builder: (BuildContext context, SignUpViewModel model, Widget child) {
           return Scaffold(
             appBar: CommonAppBar(
               title: '',
@@ -48,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               disableButton: false,
               actionButtonName: 'Sign Up',
               onPressedCallback: () {
-                model.createBusiness();
+                model.singUp(context: context,token:widget.token,userId:widget.userId);
               },
               icon: Icons.arrow_back,
               multi: 3,
@@ -118,15 +118,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                       ),
-                      Visibility(
-                        visible: false,
-                        child: FlatButton(
-                          child: const Text('invisible button'),
-                          onPressed: model.nameisEmpty
-                              ? model.handleFormSubmit(context: context)
-                              : null,
-                        ),
-                      )
                     ],
                   ),
                 )
@@ -134,10 +125,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           );
         },
-        onModelReady: (BusinessViewModel model) {
+        onModelReady: (SignUpViewModel model) {
           model.initFields(name:TextEditingController(),email:TextEditingController(text:widget.email),formKey: GlobalKey<FormState>());
           model.getCurrentLocation(); //first get business location.
         },
-        viewModelBuilder: () => BusinessViewModel());
+        viewModelBuilder: () => SignUpViewModel());
   }
 }

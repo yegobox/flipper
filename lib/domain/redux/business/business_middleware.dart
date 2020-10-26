@@ -6,9 +6,12 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
+import 'package:uuid/uuid.dart';
 
 List<Middleware<AppState>> createBusinessMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
@@ -40,7 +43,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
      
       final Map<String, dynamic> _mapBusiness = {
         'active': true,
-        '_id':  AppTables.business + store.state.user.id.toString(),
+        '_id': Uuid().v1(),
+        'id':  Uuid().v1(),
         'categoryId': '10', //pet store a default id when signup on mobile
         'channels':[ store.state.user.id.toString()],
         'typeId': '1', //pet store a default id when signup on mobile
@@ -59,12 +63,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       // ignore: always_specify_types
       final Map<String, dynamic> _notTax = {
         'active': true,
-        '_id': AppTables.tax + store.state.user.id.toString(),
+        '_id': Uuid().v1(),
         'channels': [store.state.user.id.toString()],
         'businessId': business.id,
         'table': AppTables.tax,
         'createdAt': DateTime.now().toIso8601String(),
-        'id': AppTables.tax + store.state.user.id.toString(),
+        'id': Uuid().v1(),
         'updatedAt': DateTime.now().toIso8601String(),
         'isDefault': false,
         'name': 'No Tax',
@@ -75,20 +79,25 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       // ignore: always_specify_types
       final Map<String, dynamic> vat = {
         'active': true,
-        '_id':  AppTables.tax + store.state.user.id.toString(),
+        '_id':  Uuid().v1(),
         'channels': [store.state.user.id.toString()],
         'businessId':  business.id,
         'table': AppTables.tax,
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
-        'id': AppTables.tax + store.state.user.id.toString(),
+        'id': Uuid().v1(),
         'isDefault': true,
         'name': 'Vat',
         'percentage': 18,
       };
       // todo(richard): dispatch this tax, and on active business should load that tax.
       await ProxyService.database.insert(data:vat);
-      store.dispatch(BusinessId(store.state.user.id.toString()));
+
+      final Logger log = Logging.getLogger('Business middleware');
+
+      log.d(business.toMap());
+
+      store.dispatch(ActiveBusinessAction(Business.fromMap(business.toMap())));
 
       store.dispatch(BusinessCreated());
     }

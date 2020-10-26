@@ -62,7 +62,11 @@ class ConnectivityService extends StoppableService {
   
   ConnectivityService() {
     // Subscribe to the connectivity Chanaged Steam
-    subscription = _startConnectivity();
+    try{
+      subscription = _startConnectivity();
+    }catch (e) {
+      log.d('error in connectivity');
+    }
   }
 
   Stream<ConnectivityStatus> get connectivityStatusStream => connectionStatusController.stream;
@@ -85,7 +89,11 @@ class ConnectivityService extends StoppableService {
   void start() {
     super.start();
     log.d('ConnectivityStatus Service resumed');
-    subscription = _startConnectivity();
+    try{
+      subscription = _startConnectivity();
+    }catch(e){
+      log.d('cought an error in connectivity');
+    }
   }
 
   @override

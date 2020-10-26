@@ -78,7 +78,8 @@ class _BusinessListState extends State<BusinessList> {
                 // TODO(richard): show a toast here that we can not create additional business...
                 return;
               }
-              _navigationService.navigateTo(Routing.createBusiness);
+              // TODO(richard): will suport creation of business within app in 2 years
+              // _navigationService.navigateTo(Routing.createBusiness);
             }),
           ],
         ));

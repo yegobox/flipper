@@ -1,10 +1,7 @@
-import 'package:flipper/ui/welcome/splash/responsive/button_portrait.dart';
-import 'package:flipper/ui/welcome/splash/responsive/portrait_logo.dart';
+import 'package:flipper/ui/welcome/splash/responsive/signup_login_buttons.dart';
+import 'package:flipper/ui/welcome/splash/responsive/uper_body.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
-import 'responsive/button_landscape.dart';
-import 'responsive/logo_landscape.dart';
 
 class AfterSplash extends StatefulWidget {
   @override
@@ -29,24 +26,27 @@ class _AfterSplashState extends State<AfterSplash> {
         MediaQuery.of(context).orientation == Orientation.landscape;
     Widget child;
     if (landscape)
-      child = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child = ListView(
         children: <Widget>[
-          LandscapeLogo(),
+          const UperBody(),
           Theme(
             data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
-            child: const LandscapeButton(),
+            child: SignUpLoginButton(
+              portrait: landscape,
+            ),
           )
         ],
       );
 
     if (!landscape)
-      child = Wrap(
+      child = ListView(
         children: <Widget>[
-          PortraitLogo(),
+          const UperBody(),
           Theme(
             data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
-            child: const ButtonPortrait(),
+            child: SignUpLoginButton(
+              portrait: landscape,
+            ),
           )
         ],
       );
@@ -55,7 +55,10 @@ class _AfterSplashState extends State<AfterSplash> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         key: _scaffoldKey,
-        body: child,
+        body: Container(
+          color: Colors.white,
+          child: child,
+        ),
       ),
     );
   }

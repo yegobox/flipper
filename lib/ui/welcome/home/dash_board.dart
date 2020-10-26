@@ -65,6 +65,7 @@ class _DashBoardState extends State<DashBoard> {
                 );
                 return we;
               }
+              const SizedBox.shrink();
             },
           ),
           StoreConnector<AppState, InAppNotificationViewModel>(

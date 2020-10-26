@@ -12,8 +12,7 @@ import 'package:flipper/ui/welcome/home/dash_board.dart';
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
 import 'package:flipper/ui/widget/note/add_note_screen.dart';
 import 'package:flipper/ui/setting_up_application_screen.dart';
-import 'package:flipper/ui/welcome/business/sign_up_screen.dart';
-import 'package:flipper/ui/welcome/business/create_business_screen.dart';
+import 'package:flipper/ui/welcome/signup/signup_view.dart';
 import 'package:flipper/ui/product/add/add_product_screen.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
 import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
@@ -48,8 +47,7 @@ class Routing {
   static const afterSplash = '/after-splash';
   static const addNoteScreen = '/add-note-screen';
   static const settingUpApplicationScreen = '/setting-up-application-screen';
-  static const signUpScreen = '/sign-up-screen';
-  static const createBusiness = '/create-business';
+  static const signUpView = '/sign-up-view';
   static const addProduct = '/add-product';
   static const editItemTitle = '/edit-item-title';
   static const addVariationScreen = '/add-variation-screen';
@@ -122,13 +120,13 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.signUpScreen:
-        if (hasInvalidArgs<SignUpScreenArguments>(args, isRequired: true)) {
-          return misTypedArgsRoute<SignUpScreenArguments>(args);
+      case Routing.signUpView:
+        if (hasInvalidArgs<SignUpViewArguments>(args, isRequired: true)) {
+          return misTypedArgsRoute<SignUpViewArguments>(args);
         }
-        final typedArgs = args as SignUpScreenArguments;
+        final typedArgs = args as SignUpViewArguments;
         return PageRouteBuilder<dynamic>(
-          pageBuilder: (ctx, animation, secondaryAnimation) => SignUpScreen(
+          pageBuilder: (ctx, animation, secondaryAnimation) => SignUpView(
               key: typedArgs.key,
               token: typedArgs.token,
               email: typedArgs.email,
@@ -138,16 +136,6 @@ class Routing {
           settings: settings,
           transitionsBuilder: TransitionsBuilders.slideLeft,
           transitionDuration: Duration(milliseconds: 200),
-        );
-      case Routing.createBusiness:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => CreateBusinessScreen(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
         );
       case Routing.addProduct:
         if (hasInvalidArgs<Key>(args)) {
@@ -426,15 +414,15 @@ class Routing {
 // Arguments holder classes
 //***************************************************************************
 
-//SignUpScreen arguments holder class
-class SignUpScreenArguments {
+//SignUpView arguments holder class
+class SignUpViewArguments {
   final Key key;
   final String token;
   final String email;
   final String name;
   final String avatar;
   final String userId;
-  SignUpScreenArguments(
+  SignUpViewArguments(
       {this.key,
       this.token,
       this.email,

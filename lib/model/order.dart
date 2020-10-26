@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -25,8 +26,6 @@ abstract class Order implements Built<Order, OrderBuilder> {
   String get reference;
   @nullable
 
-  String get idLocal;
-  @nullable
 
   String get orderDate;
   @nullable
@@ -83,10 +82,12 @@ abstract class Order implements Built<Order, OrderBuilder> {
 
   @nullable
   String get status;
-
+  @nullable
   String get variationId;
-
+  @nullable
   String get productName;
+
+  BuiltList<String> get channels;
 
   @nullable
   String get customerChangeDue;

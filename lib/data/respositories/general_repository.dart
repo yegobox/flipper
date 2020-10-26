@@ -13,8 +13,6 @@ import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/utils/data_manager.dart';
-import 'package:flipper/utils/logger.dart';
-import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
@@ -84,7 +82,8 @@ class GeneralRepository {
         'name': 'draft',
         'id': id,
         'branchId': store.state.branch.id,
-        'table': AppTables.order
+        'table': AppTables.order,
+        'channels':[store.state.user.id.toString()]
       });
 
       final List<Map<String, dynamic>> or = await _databaseService.filter(
@@ -92,7 +91,7 @@ class GeneralRepository {
         property: 'name',
         and: true,
         andProperty: 'table',
-        andEquator: AppTables.order + store.state.branch.id,
+        andEquator: AppTables.order,
       );
 
       final Order order = Order.fromMap(or[0][CoreDB.instance.dbName]);
@@ -103,13 +102,6 @@ class GeneralRepository {
       dispatchOrder(store, order);
       return order;
     }
-  }
-
-  Future<int> insertTabs(Store<AppState> store, int value) {
-    //ignore:missing_required_param
-    // FIXME(richard): I am not sure if this is still in use.
-    // final TabsTableData tab = TabsTableData(tab: value, id: 1);
-    // return store.state.database.tabsDao.insert(tab);
   }
 
   Future<bool> updateCategory(Store<AppState> store, String categoryId,

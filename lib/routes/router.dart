@@ -8,8 +8,8 @@ import 'package:flipper/ui/product/products_view.dart';
 import 'package:flipper/ui/product/single_product_view.dart';
 import 'package:flipper/ui/product/view_products_screen.dart';
 import 'package:flipper/ui/variation/edit_variation_screen.dart';
-import 'package:flipper/ui/welcome/business/create_business_screen.dart';
-import 'package:flipper/ui/welcome/business/sign_up_screen.dart';
+
+import 'package:flipper/ui/welcome/signup/signup_view.dart';
 import 'package:flipper/ui/welcome/home/dash_board.dart';
 import 'package:flipper/ui/welcome/login/login_screen.dart';
 import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
@@ -63,10 +63,7 @@ class $Routing {
       transitionsBuilder: TransitionsBuilders.slideLeft,
       durationInMilliseconds: 200)
   @MaterialRoute(fullscreenDialog: true)
-  SignUpScreen signUpScreen;
-
-  @MaterialRoute(fullscreenDialog: true)
-  CreateBusinessScreen createBusiness;
+  SignUpView signUpView;
 
   @MaterialRoute(fullscreenDialog: true)
   AddProductScreen addProduct;

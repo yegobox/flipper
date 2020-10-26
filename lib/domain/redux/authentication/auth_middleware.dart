@@ -1,4 +1,4 @@
-// import 'package:background_fetch/background_fetch.dart';
+
 import 'package:flipper/core_db.dart';
 import 'package:flipper/data/main_database.dart';
 
@@ -68,7 +68,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     CoreDB.instance.initialAppData();
     await getBusinesses(store, generalRepository);
     await generateAppColors(generalRepository, store);
-    await createAppActions(store);
+    
     // ignore: always_specify_types
 
     if (store.state.user.id != null &&
@@ -299,24 +299,6 @@ Future<void> createSystemStockReasons(Store<AppState> store) async {
   // }
 }
 
-Future<void> createAppActions(Store<AppState> store) async {
-  // FIXME:
-  // final ActionsTableData actionAction =
-  //     await store.state.database.actionsDao.getActionBy('save');
-
-  // final ActionsTableData saveItem =
-  //     await store.state.database.actionsDao.getActionBy('saveItem');
-  // if (saveItem == null) {
-  //   await store.state.database.actionsDao.insert(
-  //       //ignore:missing_required_param
-  //       ActionsTableData(name: 'saveItem', isLocked: true));
-  // }
-  // if (actionAction == null) {
-  //   await store.state.database.actionsDao.insert(
-  //       //ignore:missing_required_param
-  //       ActionsTableData(name: 'save', isLocked: true));
-  // }
-}
 
 Future<void> createTemporalOrder(
     GeneralRepository generalRepository, Store<AppState> store) async {
@@ -368,8 +350,8 @@ Future<void> getBusinesses(
   if (businesses.isEmpty) {
     if (store.state.user != null) {
       _navigationService.navigateTo(
-        Routing.signUpScreen,
-        arguments: SignUpScreenArguments(
+        Routing.signUpView,
+        arguments: SignUpViewArguments(
           userId: store.state.user.id,
           name: store.state.user.name,
           avatar: 'avatar',

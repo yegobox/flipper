@@ -23,12 +23,10 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'branchId',
       serializers.serialize(object.branchId,
           specifiedType: const FullType(String)),
-      'variationId',
-      serializers.serialize(object.variationId,
-          specifiedType: const FullType(String)),
-      'productName',
-      serializers.serialize(object.productName,
-          specifiedType: const FullType(String)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
     ];
     if (object.userId != null) {
       result
@@ -52,12 +50,6 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       result
         ..add('reference')
         ..add(serializers.serialize(object.reference,
-            specifiedType: const FullType(String)));
-    }
-    if (object.idLocal != null) {
-      result
-        ..add('idLocal')
-        ..add(serializers.serialize(object.idLocal,
             specifiedType: const FullType(String)));
     }
     if (object.orderDate != null) {
@@ -174,6 +166,18 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
         ..add(serializers.serialize(object.status,
             specifiedType: const FullType(String)));
     }
+    if (object.variationId != null) {
+      result
+        ..add('variationId')
+        ..add(serializers.serialize(object.variationId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.productName != null) {
+      result
+        ..add('productName')
+        ..add(serializers.serialize(object.productName,
+            specifiedType: const FullType(String)));
+    }
     if (object.customerChangeDue != null) {
       result
         ..add('customerChangeDue')
@@ -216,10 +220,6 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'reference':
           result.reference = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-        case 'idLocal':
-          result.idLocal = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'orderDate':
@@ -306,6 +306,12 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           result.productName = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'channels':
+          result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
         case 'customerChangeDue':
           result.customerChangeDue = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -330,8 +336,6 @@ class _$Order extends Order {
   final String currency;
   @override
   final String reference;
-  @override
-  final String idLocal;
   @override
   final String orderDate;
   @override
@@ -375,6 +379,8 @@ class _$Order extends Order {
   @override
   final String productName;
   @override
+  final BuiltList<String> channels;
+  @override
   final String customerChangeDue;
 
   factory _$Order([void Function(OrderBuilder) updates]) =>
@@ -387,7 +393,6 @@ class _$Order extends Order {
       this.deviceId,
       this.currency,
       this.reference,
-      this.idLocal,
       this.orderDate,
       this.isDraft,
       this.orderType,
@@ -409,6 +414,7 @@ class _$Order extends Order {
       this.status,
       this.variationId,
       this.productName,
+      this.channels,
       this.customerChangeDue})
       : super._() {
     if (id == null) {
@@ -417,11 +423,8 @@ class _$Order extends Order {
     if (branchId == null) {
       throw new BuiltValueNullFieldError('Order', 'branchId');
     }
-    if (variationId == null) {
-      throw new BuiltValueNullFieldError('Order', 'variationId');
-    }
-    if (productName == null) {
-      throw new BuiltValueNullFieldError('Order', 'productName');
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Order', 'channels');
     }
   }
 
@@ -442,7 +445,6 @@ class _$Order extends Order {
         deviceId == other.deviceId &&
         currency == other.currency &&
         reference == other.reference &&
-        idLocal == other.idLocal &&
         orderDate == other.orderDate &&
         isDraft == other.isDraft &&
         orderType == other.orderType &&
@@ -464,6 +466,7 @@ class _$Order extends Order {
         status == other.status &&
         variationId == other.variationId &&
         productName == other.productName &&
+        channels == other.channels &&
         customerChangeDue == other.customerChangeDue;
   }
 
@@ -487,25 +490,25 @@ class _$Order extends Order {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, id.hashCode), userId.hashCode), branchId.hashCode), deviceId.hashCode), currency.hashCode), reference.hashCode), idLocal.hashCode), orderDate.hashCode), isDraft.hashCode), orderType.hashCode),
-                                                                                orderNUmber.hashCode),
-                                                                            supplierId.hashCode),
-                                                                        subTotal.hashCode),
-                                                                    supplierInvoiceNumber.hashCode),
-                                                                deliverDate.hashCode),
-                                                            taxRate.hashCode),
-                                                        quantity.hashCode),
-                                                    taxAmount.hashCode),
-                                                discountRate.hashCode),
-                                            discountAmount.hashCode),
-                                        cashReceived.hashCode),
-                                    saleTotal.hashCode),
-                                customerSaving.hashCode),
-                            paymentId.hashCode),
-                        orderNote.hashCode),
-                    status.hashCode),
-                variationId.hashCode),
-            productName.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, id.hashCode), userId.hashCode), branchId.hashCode), deviceId.hashCode), currency.hashCode), reference.hashCode), orderDate.hashCode), isDraft.hashCode), orderType.hashCode), orderNUmber.hashCode),
+                                                                                supplierId.hashCode),
+                                                                            subTotal.hashCode),
+                                                                        supplierInvoiceNumber.hashCode),
+                                                                    deliverDate.hashCode),
+                                                                taxRate.hashCode),
+                                                            quantity.hashCode),
+                                                        taxAmount.hashCode),
+                                                    discountRate.hashCode),
+                                                discountAmount.hashCode),
+                                            cashReceived.hashCode),
+                                        saleTotal.hashCode),
+                                    customerSaving.hashCode),
+                                paymentId.hashCode),
+                            orderNote.hashCode),
+                        status.hashCode),
+                    variationId.hashCode),
+                productName.hashCode),
+            channels.hashCode),
         customerChangeDue.hashCode));
   }
 
@@ -518,7 +521,6 @@ class _$Order extends Order {
           ..add('deviceId', deviceId)
           ..add('currency', currency)
           ..add('reference', reference)
-          ..add('idLocal', idLocal)
           ..add('orderDate', orderDate)
           ..add('isDraft', isDraft)
           ..add('orderType', orderType)
@@ -540,6 +542,7 @@ class _$Order extends Order {
           ..add('status', status)
           ..add('variationId', variationId)
           ..add('productName', productName)
+          ..add('channels', channels)
           ..add('customerChangeDue', customerChangeDue))
         .toString();
   }
@@ -571,10 +574,6 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String _reference;
   String get reference => _$this._reference;
   set reference(String reference) => _$this._reference = reference;
-
-  String _idLocal;
-  String get idLocal => _$this._idLocal;
-  set idLocal(String idLocal) => _$this._idLocal = idLocal;
 
   String _orderDate;
   String get orderDate => _$this._orderDate;
@@ -663,6 +662,11 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get productName => _$this._productName;
   set productName(String productName) => _$this._productName = productName;
 
+  ListBuilder<String> _channels;
+  ListBuilder<String> get channels =>
+      _$this._channels ??= new ListBuilder<String>();
+  set channels(ListBuilder<String> channels) => _$this._channels = channels;
+
   String _customerChangeDue;
   String get customerChangeDue => _$this._customerChangeDue;
   set customerChangeDue(String customerChangeDue) =>
@@ -678,7 +682,6 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _deviceId = _$v.deviceId;
       _currency = _$v.currency;
       _reference = _$v.reference;
-      _idLocal = _$v.idLocal;
       _orderDate = _$v.orderDate;
       _isDraft = _$v.isDraft;
       _orderType = _$v.orderType;
@@ -700,6 +703,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _status = _$v.status;
       _variationId = _$v.variationId;
       _productName = _$v.productName;
+      _channels = _$v.channels?.toBuilder();
       _customerChangeDue = _$v.customerChangeDue;
       _$v = null;
     }
@@ -721,37 +725,50 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
 
   @override
   _$Order build() {
-    final _$result = _$v ??
-        new _$Order._(
-            id: id,
-            userId: userId,
-            branchId: branchId,
-            deviceId: deviceId,
-            currency: currency,
-            reference: reference,
-            idLocal: idLocal,
-            orderDate: orderDate,
-            isDraft: isDraft,
-            orderType: orderType,
-            orderNUmber: orderNUmber,
-            supplierId: supplierId,
-            subTotal: subTotal,
-            supplierInvoiceNumber: supplierInvoiceNumber,
-            deliverDate: deliverDate,
-            taxRate: taxRate,
-            quantity: quantity,
-            taxAmount: taxAmount,
-            discountRate: discountRate,
-            discountAmount: discountAmount,
-            cashReceived: cashReceived,
-            saleTotal: saleTotal,
-            customerSaving: customerSaving,
-            paymentId: paymentId,
-            orderNote: orderNote,
-            status: status,
-            variationId: variationId,
-            productName: productName,
-            customerChangeDue: customerChangeDue);
+    _$Order _$result;
+    try {
+      _$result = _$v ??
+          new _$Order._(
+              id: id,
+              userId: userId,
+              branchId: branchId,
+              deviceId: deviceId,
+              currency: currency,
+              reference: reference,
+              orderDate: orderDate,
+              isDraft: isDraft,
+              orderType: orderType,
+              orderNUmber: orderNUmber,
+              supplierId: supplierId,
+              subTotal: subTotal,
+              supplierInvoiceNumber: supplierInvoiceNumber,
+              deliverDate: deliverDate,
+              taxRate: taxRate,
+              quantity: quantity,
+              taxAmount: taxAmount,
+              discountRate: discountRate,
+              discountAmount: discountAmount,
+              cashReceived: cashReceived,
+              saleTotal: saleTotal,
+              customerSaving: customerSaving,
+              paymentId: paymentId,
+              orderNote: orderNote,
+              status: status,
+              variationId: variationId,
+              productName: productName,
+              channels: channels.build(),
+              customerChangeDue: customerChangeDue);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'channels';
+        channels.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'Order', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

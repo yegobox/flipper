@@ -204,12 +204,13 @@ class _OtpPageState extends State<OtpPage> {
                                     proxyService.loading.add(false);
                                     // TODO: fix me so I won't have to go on signup page everytime.
                                     _navigationService.navigateTo(
-                                      Routing.signUpScreen,
-                                      arguments: SignUpScreenArguments(
+                                      Routing.signUpView,
+                                      arguments: SignUpViewArguments(
                                         name: loginResponse.name,
                                         avatar: loginResponse.avatar,
                                         email: loginResponse.email,
                                         token: loginResponse.token,
+                                        userId: loginResponse.id.toString()
                                       ),
                                     );
                                     store.dispatch(

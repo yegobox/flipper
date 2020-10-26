@@ -1,15 +1,11 @@
 import 'package:flipper_login/login.dart';
 import 'package:flutter/material.dart';
 
-class ButtonPortrait extends StatefulWidget {
-  const ButtonPortrait({Key key})
+class SignUpLoginButton extends StatelessWidget {
+  const SignUpLoginButton({Key key, this.portrait = false})
       : super(key: key);
+  final bool portrait;
  
-  @override
-  _ButtonPortraitState createState() => _ButtonPortraitState();
-}
-
-class _ButtonPortraitState extends State<ButtonPortrait> {
    // ignore: always_declare_return_types
    _showModalBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -34,19 +30,18 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
   }
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 2 / 2,
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          children: <Widget>[
-            Container(
-              height: 20,
-            ),
-            Container(
+    return Container(
+      margin: const EdgeInsets.only(top:50),
+      child: Column(
+        children: <Widget>[
+         
+          Padding(
+            padding: const EdgeInsets.only(left:18.0,right: 18.0,top:0),
+            child: Container(
               color: Colors.blue,
+              
               child: SizedBox(
-                width: 380,
+                width: double.infinity,
                 height: 60,
                 child: FlatButton(
                   onPressed: (){
@@ -60,31 +55,28 @@ class _ButtonPortraitState extends State<ButtonPortrait> {
                 ),
               ),
             ),
-            Container(
-              height: 20,
-            ),
-            Container(
-              // color: Colors.white,
-              child: SizedBox(
-                width: 380,
-                height: 60,
-                child: OutlineButton(
-                  color: Colors.blue,
-                  child: Text(
-                    'Sign in',
-                    style:   Theme.of(context).textTheme.headline6.copyWith(color:Colors.blue),
-                  ),
-                  onPressed: (){
-                    _showModalBottomSheet(context);
-                  },
+          ),
+          
+          Container(
+            // color: Colors.white,
+             padding: const EdgeInsets.only(left:18.0,right: 18.0,top:40),
+            child: SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: OutlineButton(
+                color: Colors.blue,
+                child: Text(
+                  'Sign in',
+                  style:   Theme.of(context).textTheme.headline6.copyWith(color:Colors.blue),
                 ),
+                onPressed: (){
+                  _showModalBottomSheet(context);
+                },
               ),
             ),
-            Container(
-              height: 10,
-            ),
-          ],
-        ),
+          ),
+         
+        ],
       ),
     );
   }

@@ -12,18 +12,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 
-class BusinessViewModel extends BaseViewModel {
+class SignUpViewModel extends BaseViewModel {
   bool get nameisEmpty {
     return _name.text.isEmpty;
   }
 
   // ignore: always_declare_return_types
-  createBusiness({BuildContext context}) {
-    // this will trigger business middleware for taking action on the old way!
-    StoreProvider.of<AppState>(context).dispatch(AppAction(
-        actions:
-            AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
-  }
+  
 
   GlobalKey<FormState> _formKey;
   GlobalKey<FormState> get formKey {
@@ -57,8 +52,14 @@ class BusinessViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  
   // ignore: always_declare_return_types
-  handleFormSubmit({BuildContext context, String token, String userId}) {
+  singUp({BuildContext context, String token, String userId}) {
+    if(nameisEmpty)return;
+    StoreProvider.of<AppState>(context).dispatch(AppAction(
+        actions:
+            AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
+
     StoreProvider.of<AppState>(context).dispatch(AppAction(
         actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
 
