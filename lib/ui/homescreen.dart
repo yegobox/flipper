@@ -79,7 +79,9 @@ class _HomeScreenState extends State<HomeScreen>
         return const Poswidget();
         break;
       case 1:
-      
+        return const ProductScreen();
+        break;
+      case 2:
         return const ProductScreen();
         break;
     }

@@ -26,8 +26,6 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Branch branch;
   @override
-  final Product currentActiveSaleProduct;
-  @override
   final Database database;
   @override
   final FUser user;
@@ -35,8 +33,6 @@ class _$CommonViewModel extends CommonViewModel {
   final Product customItem;
   @override
   final Product tmpItem;
-  @override
-  final Variation currentActiveSaleVariant;
   @override
   final ImageP image;
   @override
@@ -55,36 +51,21 @@ class _$CommonViewModel extends CommonViewModel {
       this.otpcode,
       this.currentColor,
       this.branch,
-      this.currentActiveSaleProduct,
       this.database,
       this.user,
       this.customItem,
       this.tmpItem,
-      this.currentActiveSaleVariant,
       this.image,
       this.note})
       : super._() {
-    if (currentBusiness == null) {
-      throw new BuiltValueNullFieldError('CommonViewModel', 'currentBusiness');
-    }
     if (branches == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'branches');
     }
     if (businesses == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'businesses');
     }
-    if (hint == null) {
-      throw new BuiltValueNullFieldError('CommonViewModel', 'hint');
-    }
-    if (currentActiveSaleProduct == null) {
-      throw new BuiltValueNullFieldError(
-          'CommonViewModel', 'currentActiveSaleProduct');
-    }
     if (database == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'database');
-    }
-    if (user == null) {
-      throw new BuiltValueNullFieldError('CommonViewModel', 'user');
     }
   }
 
@@ -109,12 +90,10 @@ class _$CommonViewModel extends CommonViewModel {
         otpcode == other.otpcode &&
         currentColor == other.currentColor &&
         branch == other.branch &&
-        currentActiveSaleProduct == other.currentActiveSaleProduct &&
         database == other.database &&
         user == other.user &&
         customItem == other.customItem &&
         tmpItem == other.tmpItem &&
-        currentActiveSaleVariant == other.currentActiveSaleVariant &&
         image == other.image &&
         note == other.note;
   }
@@ -135,29 +114,21 @@ class _$CommonViewModel extends CommonViewModel {
                                                 $jc(
                                                     $jc(
                                                         $jc(
-                                                            $jc(
-                                                                $jc(
-                                                                    $jc(
-                                                                        0,
-                                                                        units
-                                                                            .hashCode),
-                                                                    currentBusiness
-                                                                        .hashCode),
-                                                                branches
-                                                                    .hashCode),
-                                                            businesses
+                                                            $jc(0,
+                                                                units.hashCode),
+                                                            currentBusiness
                                                                 .hashCode),
-                                                        hint.hashCode),
-                                                    category.hashCode),
-                                                otpcode.hashCode),
-                                            currentColor.hashCode),
-                                        branch.hashCode),
-                                    currentActiveSaleProduct.hashCode),
-                                database.hashCode),
-                            user.hashCode),
-                        customItem.hashCode),
-                    tmpItem.hashCode),
-                currentActiveSaleVariant.hashCode),
+                                                        branches.hashCode),
+                                                    businesses.hashCode),
+                                                hint.hashCode),
+                                            category.hashCode),
+                                        otpcode.hashCode),
+                                    currentColor.hashCode),
+                                branch.hashCode),
+                            database.hashCode),
+                        user.hashCode),
+                    customItem.hashCode),
+                tmpItem.hashCode),
             image.hashCode),
         note.hashCode));
   }
@@ -174,12 +145,10 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('otpcode', otpcode)
           ..add('currentColor', currentColor)
           ..add('branch', branch)
-          ..add('currentActiveSaleProduct', currentActiveSaleProduct)
           ..add('database', database)
           ..add('user', user)
           ..add('customItem', customItem)
           ..add('tmpItem', tmpItem)
-          ..add('currentActiveSaleVariant', currentActiveSaleVariant)
           ..add('image', image)
           ..add('note', note))
         .toString();
@@ -230,12 +199,6 @@ class CommonViewModelBuilder
   BranchBuilder get branch => _$this._branch ??= new BranchBuilder();
   set branch(BranchBuilder branch) => _$this._branch = branch;
 
-  ProductBuilder _currentActiveSaleProduct;
-  ProductBuilder get currentActiveSaleProduct =>
-      _$this._currentActiveSaleProduct ??= new ProductBuilder();
-  set currentActiveSaleProduct(ProductBuilder currentActiveSaleProduct) =>
-      _$this._currentActiveSaleProduct = currentActiveSaleProduct;
-
   Database _database;
   Database get database => _$this._database;
   set database(Database database) => _$this._database = database;
@@ -251,12 +214,6 @@ class CommonViewModelBuilder
   ProductBuilder _tmpItem;
   ProductBuilder get tmpItem => _$this._tmpItem ??= new ProductBuilder();
   set tmpItem(ProductBuilder tmpItem) => _$this._tmpItem = tmpItem;
-
-  VariationBuilder _currentActiveSaleVariant;
-  VariationBuilder get currentActiveSaleVariant =>
-      _$this._currentActiveSaleVariant ??= new VariationBuilder();
-  set currentActiveSaleVariant(VariationBuilder currentActiveSaleVariant) =>
-      _$this._currentActiveSaleVariant = currentActiveSaleVariant;
 
   ImagePBuilder _image;
   ImagePBuilder get image => _$this._image ??= new ImagePBuilder();
@@ -279,12 +236,10 @@ class CommonViewModelBuilder
       _otpcode = _$v.otpcode;
       _currentColor = _$v.currentColor?.toBuilder();
       _branch = _$v.branch?.toBuilder();
-      _currentActiveSaleProduct = _$v.currentActiveSaleProduct?.toBuilder();
       _database = _$v.database;
       _user = _$v.user?.toBuilder();
       _customItem = _$v.customItem?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
-      _currentActiveSaleVariant = _$v.currentActiveSaleVariant?.toBuilder();
       _image = _$v.image?.toBuilder();
       _note = _$v.note;
       _$v = null;
@@ -312,20 +267,18 @@ class CommonViewModelBuilder
       _$result = _$v ??
           new _$CommonViewModel._(
               units: _units?.build(),
-              currentBusiness: currentBusiness.build(),
+              currentBusiness: _currentBusiness?.build(),
               branches: branches,
               businesses: businesses,
-              hint: hint.build(),
+              hint: _hint?.build(),
               category: _category?.build(),
               otpcode: otpcode,
               currentColor: _currentColor?.build(),
               branch: _branch?.build(),
-              currentActiveSaleProduct: currentActiveSaleProduct.build(),
               database: database,
-              user: user.build(),
+              user: _user?.build(),
               customItem: _customItem?.build(),
               tmpItem: _tmpItem?.build(),
-              currentActiveSaleVariant: _currentActiveSaleVariant?.build(),
               image: _image?.build(),
               note: note);
     } catch (_) {
@@ -334,10 +287,10 @@ class CommonViewModelBuilder
         _$failedField = 'units';
         _units?.build();
         _$failedField = 'currentBusiness';
-        currentBusiness.build();
+        _currentBusiness?.build();
 
         _$failedField = 'hint';
-        hint.build();
+        _hint?.build();
         _$failedField = 'category';
         _category?.build();
 
@@ -345,17 +298,13 @@ class CommonViewModelBuilder
         _currentColor?.build();
         _$failedField = 'branch';
         _branch?.build();
-        _$failedField = 'currentActiveSaleProduct';
-        currentActiveSaleProduct.build();
 
         _$failedField = 'user';
-        user.build();
+        _user?.build();
         _$failedField = 'customItem';
         _customItem?.build();
         _$failedField = 'tmpItem';
         _tmpItem?.build();
-        _$failedField = 'currentActiveSaleVariant';
-        _currentActiveSaleVariant?.build();
         _$failedField = 'image';
         _image?.build();
       } catch (e) {

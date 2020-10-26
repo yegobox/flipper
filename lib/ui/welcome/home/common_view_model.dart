@@ -26,12 +26,14 @@ abstract class CommonViewModel
   @nullable
   BuiltList<Unit> get units;
 
+  @nullable //because when app start it is null!
   Business get currentBusiness;
 
   List<Branch> get branches;
 
   List<Business> get businesses;
 
+  @nullable //because when app start it is null!
   Hint get hint;
 
   @nullable
@@ -46,11 +48,10 @@ abstract class CommonViewModel
   @nullable
   Branch get branch;
 
-  Product get currentActiveSaleProduct;
 
   Database get database;
 
-    
+  @nullable //because when app start it is null!
   FUser get user;
 
  
@@ -61,8 +62,7 @@ abstract class CommonViewModel
   @nullable
   Product get tmpItem;
 
-  @nullable
-  Variation get currentActiveSaleVariant;
+ 
 
   @nullable
   ImageP get image;

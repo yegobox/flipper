@@ -93,7 +93,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           width: 300,
                           child: TextFormField(
                             keyboardType: TextInputType.emailAddress,
-                            initialValue: widget.email,
+                            
                             enabled: false,
                             style: const TextStyle(color: Colors.black),
                             controller: model.email,
@@ -123,7 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: FlatButton(
                           child: const Text('invisible button'),
                           onPressed: model.nameisEmpty
-                              ? model.handleFormSubmit()
+                              ? model.handleFormSubmit(context: context)
                               : null,
                         ),
                       )
@@ -135,6 +135,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         },
         onModelReady: (BusinessViewModel model) {
+          model.initFields(name:TextEditingController(),email:TextEditingController(text:widget.email),formKey: GlobalKey<FormState>());
           model.getCurrentLocation(); //first get business location.
         },
         viewModelBuilder: () => BusinessViewModel());

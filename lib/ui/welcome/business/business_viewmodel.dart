@@ -99,4 +99,10 @@ class BusinessViewModel extends BaseViewModel {
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));
     }
   }
+
+  void initFields({TextEditingController name,TextEditingController email,GlobalKey<FormState> formKey}) {
+    _name = name;
+    _email = email;
+    _formKey = formKey;
+  }
 }

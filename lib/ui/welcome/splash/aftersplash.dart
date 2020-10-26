@@ -1,10 +1,7 @@
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/welcome/splash/responsive/button_portrait.dart';
 import 'package:flipper/ui/welcome/splash/responsive/portrait_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 
 import 'responsive/button_landscape.dart';
 import 'responsive/logo_landscape.dart';
@@ -17,7 +14,7 @@ class AfterSplash extends StatefulWidget {
 class _AfterSplashState extends State<AfterSplash> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-   Future<bool> _onWillPop() async {
+  Future<bool> _onWillPop() async {
     return false;
   }
 
@@ -25,8 +22,6 @@ class _AfterSplashState extends State<AfterSplash> {
   void initState() {
     super.initState();
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -56,17 +51,12 @@ class _AfterSplashState extends State<AfterSplash> {
         ],
       );
     return WillPopScope(
-          onWillPop: _onWillPop,
-          child: StoreConnector<AppState, CommonViewModel>(
-          distinct: true,
-          converter: CommonViewModel.fromStore,
-          builder: (BuildContext context, CommonViewModel vm) {
-            return Scaffold(
-              backgroundColor: Colors.transparent,
-              key: _scaffoldKey,
-              body: child,
-            );
-          }),
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        key: _scaffoldKey,
+        body: child,
+      ),
     );
   }
 }

@@ -32,7 +32,7 @@ dependencies:
   redux: ^4.0.0
   flutter_redux: ^0.6.0
   flutter_masked_text: ^0.8.0
-  built_value: ^7.0.9
+  built_value: ^7.1.0
   image_picker: ^0.6.4
   built_collection: ^4.3.2
   flutter_date_pickers: ^0.0.6

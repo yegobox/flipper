@@ -24,7 +24,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   
   FUser get user;
 
-
+  @nullable
   Business get currentActiveBusiness;
 
   @nullable

@@ -9,6 +9,8 @@ import 'converters/serializers.dart';
 part 'business.g.dart';
 
 abstract class Business implements Built<Business, BusinessBuilder> {
+
+  @BuiltValueField(wireName: 'id')
   String get id;
 
   String get name;

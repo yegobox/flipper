@@ -80,12 +80,13 @@ class MultipleVariantViewWidget extends StatelessWidget {
   }
 
   ListTile chooserRow() {
-    return ListTile(
-      contentPadding: const EdgeInsets.fromLTRB(20, 20, 0, 0),
-      leading: Text(vm.currentActiveSaleProduct == null
-          ? 'CHOOSE ONE'
-          : vm.currentActiveSaleProduct.name + ' CHOOSE ONE'),
-    );
+    // FIXME:
+    // return ListTile(
+    //   contentPadding: const EdgeInsets.fromLTRB(20, 20, 0, 0),
+    //   leading: Text(vm.currentActiveSaleProduct == null
+    //       ? 'CHOOSE ONE'
+    //       : vm.currentActiveSaleProduct.name + ' CHOOSE ONE'),
+    // );
   }
 
   void isVariantActive(

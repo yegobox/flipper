@@ -91,9 +91,6 @@ class _$AppState extends AppState {
     if (user == null) {
       throw new BuiltValueNullFieldError('AppState', 'user');
     }
-    if (currentActiveBusiness == null) {
-      throw new BuiltValueNullFieldError('AppState', 'currentActiveBusiness');
-    }
     if (database == null) {
       throw new BuiltValueNullFieldError('AppState', 'database');
     }
@@ -379,7 +376,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _$result = _$v ??
           new _$AppState._(
               user: user.build(),
-              currentActiveBusiness: currentActiveBusiness.build(),
+              currentActiveBusiness: _currentActiveBusiness?.build(),
               unit: _unit?.build(),
               otpcode: otpcode,
               units: _units?.build(),
@@ -409,7 +406,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _$failedField = 'user';
         user.build();
         _$failedField = 'currentActiveBusiness';
-        currentActiveBusiness.build();
+        _currentActiveBusiness?.build();
         _$failedField = 'unit';
         _unit?.build();
 
