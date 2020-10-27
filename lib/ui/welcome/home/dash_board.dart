@@ -72,7 +72,7 @@ class _DashBoardState extends State<DashBoard> {
             builder: (BuildContext context, InAppNotificationViewModel vm) {
               return vm.inAppNotification != null
                   ? InAppNotificationWidget(vm)
-                  : Container();
+                  : const SizedBox.shrink();
             },
             converter: InAppNotificationViewModel.fromStore,
             distinct: true,

@@ -295,7 +295,7 @@ class SaveRegular {
 class TempProduct {
   final Product product;
 
-  TempProduct({this.product});
+  const TempProduct({this.product});
 }
 
 @immutable

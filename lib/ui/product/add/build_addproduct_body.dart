@@ -133,6 +133,7 @@ class BuildAddProductBody extends StatelessWidget {
                     
                     const SkuView(),
                     VariationList(productId: vm.tmpItem.id),
+                    
                     AddVariant(
                       onPressedCallback: () {
                         model.createVariant(productId:model.productId);

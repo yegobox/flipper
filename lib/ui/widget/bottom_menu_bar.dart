@@ -3,10 +3,10 @@ import 'package:flipper/utils/constant.dart';
 import 'package:flipper/ui/widget/custom_widgets.dart';
 import 'package:flipper/ui/widget/tabItem.dart';
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
 
 class BottomMenubar extends StatefulWidget {
-  const BottomMenubar();
+  const BottomMenubar({this.model});
+  final HomeViewModel model;
   
   @override
   _BottomMenubarState createState() => _BottomMenubarState();
@@ -53,8 +53,8 @@ class _BottomMenubarState extends State<BottomMenubar> {
   Widget _icon(IconData iconData, int index,
       {bool isCustomIcon = false, int icon}) {
    
-    return ViewModelBuilder.reactive(builder: (BuildContext context,HomeViewModel model, Widget child){
-      return Expanded(
+    // ignore: always_specify_types
+    return Expanded(
       child: Container(
         height: double.infinity,
         width: double.infinity,
@@ -84,18 +84,13 @@ class _BottomMenubarState extends State<BottomMenubar> {
                           : Theme.of(context).textTheme.caption.color,
                     ),
               onPressed: () {
-               model.switchTab(index);
+               widget.model.switchTab(index);
               },
             ),
           ),
         ),
       ),
     );
-    }, 
-    onModelReady: (HomeViewModel model){
-      model.initTab();
-    },
-    viewModelBuilder: ()=>HomeViewModel());
   }
 
   @override

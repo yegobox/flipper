@@ -3,18 +3,14 @@ import 'package:flutter/material.dart';
 
 import 'build_payable.dart';
 
-class PayableView extends StatefulWidget {
-  @override
-  _PayableViewState createState() => _PayableViewState();
-}
-
-class _PayableViewState extends State<PayableView> {
+class PayableView extends StatelessWidget {
+  
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 66,
       color: Theme.of(context)
-          .copyWith(canvasColor: AppColors.darkBlue)
+          .copyWith(canvasColor: Colors.blue)
           .canvasColor,
       child: const BuildPayable(),
     );

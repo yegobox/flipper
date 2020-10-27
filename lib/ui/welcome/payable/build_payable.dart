@@ -1,5 +1,3 @@
-
-import 'package:flipper/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -13,34 +11,36 @@ class BuildPayable extends StatelessWidget {
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, PayableViewModel model, Widget child) {
-          if(model.isBusy)
-            return const SizedBox.shrink();
+          if (model.isBusy) return const SizedBox.shrink();
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               FlatButton(
-                  color: Theme.of(context)
-                      .copyWith(canvasColor: AppColors.darkBlue)
-                      .canvasColor,
-                  onPressed:(){
-                     model.nvaigate();
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Center(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: <Widget>[
-                            const Text(
-                              'Charge  ',
-                            ),
-                            Text(model.payable.text)
-                          ],
-                        ),
-                      )
-                    ],
-                  ))
+                color: Theme.of(context)
+                    .copyWith(canvasColor: Colors.blue)
+                    .canvasColor,
+                onPressed: () {
+                  model.nvaigate();
+                },
+                child: Row(
+                  children: <Widget>[
+                    Center(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text('Charge  ',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText2
+                                  .copyWith(color: Colors.white)),
+                          Text(model.payable.text,style: Theme.of(context).textTheme.bodyText2.copyWith(color:Colors.white),)
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              )
             ],
           );
         },
