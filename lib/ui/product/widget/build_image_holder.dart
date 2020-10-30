@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,10 @@ import 'package:flutter/material.dart';
 import 'build_close_button.dart';
 
 class BuildImageHolder extends StatefulWidget {
-  const BuildImageHolder({Key key, this.vm}) : super(key: key);
+  const BuildImageHolder({Key key, this.vm,@required this.model,}) : super(key: key);
   final CommonViewModel vm;
+  final AddProductViewmodel model;
+
 
   @override
   _BuildImageHolderState createState() => _BuildImageHolderState();
@@ -26,9 +29,9 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
       onTap: () {
         final FlipperNavigationService _navigationService = ProxyService.nav;
         _navigationService.navigateTo(Routing.editItemTitle,
-            arguments: EditItemTitleArguments(productId: widget.vm.tmpItem.id));
+            arguments: EditItemTitleArguments(productId: widget.model.product.id));
       },
-      child: !widget.vm.tmpItem.hasPicture
+      child: !widget.model.product.hasPicture
           ? Container(
               height: 80,
               width: 80,
@@ -43,7 +46,7 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
                       width: 80,
                       height: 80,
                       child: Image.file(
-                        File(widget.vm.tmpItem.picture),
+                        File(widget.model.product.picture),
                         frameBuilder: (BuildContext context, Widget child,
                             int frame, bool wasSynchronouslyLoaded) {
                           if (wasSynchronouslyLoaded) {

@@ -33,17 +33,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // ignore: missing_return
-  Widget _getPage(int index) {
+  Widget _getPage({@required int index,@required CommonViewModel vm}) {
     switch (index) {
       case 0:
         return const Poswidget();
         // return const ProductScreen();
         break;
       case 1:
-        return const ProductScreen();
+        return  ProductScreen(userId: vm.user.id,);
         break;
       case 2:
-        return const ProductScreen();
+        return  ProductScreen(userId: vm.user.id,);
         break;
     }
   }
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     child: SafeArea(
                       child: Container(
-                        child: _getPage(model.tab),
+                        child: _getPage(index:model.tab,vm: widget.vm),
                       ),
                     ),
                   ),

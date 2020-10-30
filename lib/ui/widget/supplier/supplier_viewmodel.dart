@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class SupplierViewmodel extends BaseModel {
-  final Logger log = Logging.getLogger('category observer:)');
+  final Logger log = Logging.getLogger('supplier viewmodel:)');
   final DatabaseService _databaseService = ProxyService.database;
   List<Variation> _variation;
   List<Variation> get data => _variation;

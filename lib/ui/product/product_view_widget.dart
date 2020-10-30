@@ -27,29 +27,31 @@ class ProductsView extends StatefulWidget {
     @required this.data,
     @required this.showCreateItemOnTop,
     @required this.createButtonName,
-    @required this.shouldSeeItem,
+    @required this.shouldSeeItem, 
+    @required this.userId,
   }) : super(key: key);
 
   final BuildContext context;
-  final List<Product> data;
-
-  final bool showCreateItemOnTop;
   final String createButtonName;
+  final List<Product> data;
   final bool shouldSeeItem;
+  final bool showCreateItemOnTop;
+  final String userId;
 
   @override
   _ProductsViewState createState() => _ProductsViewState();
 }
 
 class _ProductsViewState extends State<ProductsView> {
-  final FlipperNavigationService _navigationService = ProxyService.nav;
   final Logger log = Logging.getLogger('product view');
 
-  List<Widget> buildProductView(List<Product> products, BuildContext context) {
+  final FlipperNavigationService _navigationService = ProxyService.nav;
+
+  List<Widget> buildProductView(List<Product> products, BuildContext context, String userId) {
     log.i(products);
     final List<Widget> list = <Widget>[];
     if (widget.showCreateItemOnTop) {
-      addItemRow(list, context, widget.createButtonName);
+      addItemRow(list, context, widget.createButtonName,userId);
     }
     if (!widget.showCreateItemOnTop) {
       itemRow(list, context);
@@ -121,7 +123,7 @@ class _ProductsViewState extends State<ProductsView> {
       }
     }
     if (!widget.showCreateItemOnTop) {
-      addItemRow(list, context, widget.createButtonName);
+      addItemRow(list, context, widget.createButtonName,userId);
     }
 
     return list;
@@ -158,16 +160,15 @@ class _ProductsViewState extends State<ProductsView> {
   }
 
   void addItemRow(
-      List<Widget> list, BuildContext context, String createButtonName) {
+      List<Widget> list, BuildContext context, String createButtonName, String userId) {
     return list.add(
       GestureDetector(
         onTap: () {
-          //clearn state first
-          // clear();
+          
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return CreateOptionsWidget();
+              return CreateOptionsWidget(userId: userId,);
             },
           );
         },
@@ -184,13 +185,13 @@ class _ProductsViewState extends State<ProductsView> {
 
   @override
   Widget build(BuildContext context) {
-    return buildProductView(widget.data, context).isEmpty
+    return buildProductView(widget.data, context,widget.userId).isEmpty
         ? const SizedBox.shrink()
         : ListView(
             shrinkWrap: true,
             children: ListTile.divideTiles(
               context: context,
-              tiles: buildProductView(widget.data, context),
+              tiles: buildProductView(widget.data, context, widget.userId),
             ).toList(),
           );
   }

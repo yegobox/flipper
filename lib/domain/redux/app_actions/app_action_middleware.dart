@@ -102,8 +102,6 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
     //update orderdetails
     DataManager.createTemporalOrder(generalRepository, store);
 
-
-    DataManager.createTempProduct(store: store,userId: store.state.user.id,productName: 'tmp');
     
   };
 }

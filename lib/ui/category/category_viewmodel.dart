@@ -1,4 +1,3 @@
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/category.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
@@ -8,7 +7,6 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 
 class CategoryViewModel extends BaseModel {
@@ -24,8 +22,6 @@ class CategoryViewModel extends BaseModel {
   void getProducts({BuildContext context}) {
     setBusy(true);
 
-    log.i('loading category of branchId:' +
-        StoreProvider.of<AppState>(context).state.branch.id);
     //demo of listening on users table on every entry.
     _databaseService
         .observer(

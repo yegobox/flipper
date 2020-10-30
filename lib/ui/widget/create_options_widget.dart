@@ -1,6 +1,5 @@
 import 'package:flipper/services/proxy.dart';
 
-import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/flitter_color.dart';
@@ -8,8 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class CreateOptionsWidget extends StatelessWidget {
-  final FlipperNavigationService _navigationService = ProxyService.nav;
+  
 
+  const CreateOptionsWidget({Key key,this.userId}) : super(key: key);
+  
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +66,7 @@ class CreateOptionsWidget extends StatelessWidget {
                             'Dismiss'
                           ),
                           onPressed: () {
-                            _navigationService.pop();
+                            ProxyService.nav.pop();
                           },
                         ),
                       ),
@@ -75,6 +77,11 @@ class CreateOptionsWidget extends StatelessWidget {
             ),
           ),
         );
-    }, viewModelBuilder: ()=>AddProductViewmodel());
+    }, 
+    
+    onModelReady: (AddProductViewmodel model){
+      model.createTemporalProduct(productName: 'tmp',userId: userId);
+    },
+    viewModelBuilder: ()=>AddProductViewmodel());
   }
 }

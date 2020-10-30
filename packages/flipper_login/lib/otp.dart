@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as Auth;
 import 'package:flipper/data/main_database.dart';
+
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';

@@ -63,6 +63,7 @@ class SignUpViewModel extends BaseViewModel {
     StoreProvider.of<AppState>(context).dispatch(AppAction(
         actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
 
+
     if (_formKey.currentState == null) {
       return;
     }

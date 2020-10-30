@@ -14,7 +14,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 
 class UnitViewModel extends BaseModel{
-  final Logger log = Logging.getLogger('category observer:)');
+  final Logger log = Logging.getLogger('unit:)');
   final DatabaseService _databaseService = ProxyService.database;
   List<Unit> _unit;
   List<Unit> get data => _unit;

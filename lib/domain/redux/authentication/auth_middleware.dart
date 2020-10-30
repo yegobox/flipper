@@ -73,8 +73,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     if (store.state.user.id != null &&
         store.state.currentActiveBusiness != null) {
-      await DataManager.createTempProduct(
-          store: store, userId: store.state.user.id, productName: 'tmp');
+      // await DataManager.createTempProduct(
+      //     store: store, userId: store.state.user.id, productName: 'tmp');
       _getCurrentLocation(store: store);
     }
   };

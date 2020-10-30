@@ -16,7 +16,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 
 class RetailPriceViewModel extends BaseModel{
-  final Logger log = Logging.getLogger('category observer:)');
+  final Logger log = Logging.getLogger('retail price:)');
   final DatabaseService _databaseService = ProxyService.database;
   List<Variation> _variation;
   List<Variation> get data => _variation;
@@ -28,8 +28,6 @@ class RetailPriceViewModel extends BaseModel{
   void getVariations({BuildContext context,String productId}) {
     setBusy(true);
 
-    log.i('loading variations of branchId:' +
-        StoreProvider.of<AppState>(context).state.branch.id);
     //demo of listening on users table on every entry.
     _databaseService
         .observer(

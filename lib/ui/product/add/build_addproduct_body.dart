@@ -34,7 +34,7 @@ class BuildAddProductBody extends StatelessWidget {
         model.initFields(TextEditingController(),TextEditingController(),TextEditingController(),TextEditingController());
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
-        if(model.busy){
+        if(model.busy || model.productId ==null){
           return const SizedBox.shrink();
         }
         return WillPopScope(
@@ -65,6 +65,7 @@ class BuildAddProductBody extends StatelessWidget {
                     ),
                     BuildImageHolder(
                       vm: vm,
+                      model:model
                     ),
                    const Text(
                       'Product'
@@ -132,7 +133,7 @@ class BuildAddProductBody extends StatelessWidget {
                     ),
                     
                     const SkuView(),
-                    VariationList(productId: vm.tmpItem.id),
+                    VariationList(productId: model.productId),
                     
                     AddVariant(
                       onPressedCallback: () {

@@ -78,6 +78,7 @@ class _FlipperAppState extends State<FlipperApp> {
     store.dispatch(
       ShouldLoadBusiness(),
     );
+    // FIXME: when working on background message then see the fix of crash here https://github.com/Stone2517/Truact-1/blob/master/android/app/src/main/java/com/exanite/truact/Application.java and discussion here: https://github.com/FirebaseExtended/flutterfire/issues/2777
     // _firebaseMessaging.configure(onBackgroundMessage: backgroundMessageHandler);
     _firebaseMessaging.requestNotificationPermissions(
         const IosNotificationSettings(sound: true, badge: true, alert: true));
