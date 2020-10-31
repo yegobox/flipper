@@ -455,9 +455,10 @@ class AddProductViewmodel extends ProductViewModel {
     _databaseService.update(document: colordoc.toMutable().setBoolean('isActive', true));
 
     _currentColor = color;
-    setBusy(false);
-    notifyListeners();
 
+    setBusy(false);
+
+    notifyListeners();
   }
 
   Future handleImage(File image, BuildContext context) async {

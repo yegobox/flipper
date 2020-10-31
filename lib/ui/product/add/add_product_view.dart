@@ -61,9 +61,7 @@ class AddProductView extends StatelessWidget {
                     const SizedBox(
                       height: 10,
                     ),
-                    BuildImageHolder(
-                        model:model
-                    ),
+                    ImagePlaceHolderView(),
                     const Text(
                         'Product'
                     ),
