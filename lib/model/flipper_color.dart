@@ -2,6 +2,7 @@ import 'package:built_value/built_value.dart';
 
 part 'flipper_color.g.dart';
 
+@deprecated
 abstract class FlipperColor
     implements Built<FlipperColor, FlipperColorBuilder> {
   String get hexCode;

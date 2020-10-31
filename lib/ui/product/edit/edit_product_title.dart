@@ -1,47 +1,24 @@
 import 'dart:io';
 
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/product.dart';
+import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/flipper_color.dart';
-import 'package:flipper/model/image.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
+import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
-import 'package:flipper/utils/data_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
-class EditItemTitle extends StatefulWidget {
-  const EditItemTitle({Key key, this.productId}) : super(key: key);
-  final String productId;
+import 'package:stacked/stacked.dart';
 
-  @override
-  _EditItemTitleState createState() => _EditItemTitleState();
-}
+class EditItemTitle extends StatelessWidget {
+  const EditItemTitle({Key key}) : super(key: key);
 
-class _EditItemTitleState extends State<EditItemTitle> {
-  final DatabaseService _databaseService = ProxyService.database;
   
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return Scaffold(
+    return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductViewmodel model, Widget child){
+      if(model.busy || model.colors.isEmpty)
+        return const SizedBox.shrink(); //a nice place to show loading screen.
+      return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
               ProxyService.nav.pop();
@@ -57,7 +34,7 @@ class _EditItemTitleState extends State<EditItemTitle> {
                 alignment: Alignment.center,
                 child: Column(
                   children: <Widget>[
-                    SizedBox(
+                    const SizedBox(
                       height: 10,
                     ),
                     GestureDetector(
@@ -70,38 +47,39 @@ class _EditItemTitleState extends State<EditItemTitle> {
                             child: Theme(
                               data: Theme.of(context)
                                   .copyWith(splashColor: Colors.transparent),
-                              child: vm.image == null
+                              child: model.image == null
                                   ? TextField(
                                       maxLines: 4,
                                       autofocus: false,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 22.0,
                                           color: Color(0xFFbdc6cf)),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: HexColor(
-                                            vm.currentColor == null
+                                            model.currentColor == null
                                                 ? '#0984e3'
-                                                : vm.currentColor.hexCode),
-                                        focusedBorder: OutlineInputBorder(
+                                                : model.currentColor.name),
+                                        focusedBorder: const OutlineInputBorder(
                                           borderSide:
                                               BorderSide(color: Colors.white),
                                         ),
-                                        enabledBorder: UnderlineInputBorder(
+                                        enabledBorder:
+                                            const UnderlineInputBorder(
                                           borderSide:
                                               BorderSide(color: Colors.white),
                                         ),
                                       ),
                                     )
-                                  : vm.image.isLocal
+                                  :model.image.isLocal
                                       ? Image.file(
-                                          File(vm.image.path),
+                                          File(model.image.path),
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.fitWidth,
                                         )
                                       : Image.network(
-                                          vm.image.path,
+                                          model.image.path,
                                           frameBuilder: (BuildContext context,
                                               Widget child,
                                               int frame,
@@ -120,37 +98,31 @@ class _EditItemTitleState extends State<EditItemTitle> {
                                         ),
                             ),
                           ),
-                          Text('New Item')
+                          const Text('New Item')
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(28.0, 0, 0, 28.0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(28.0, 0, 0, 28.0),
                 child: Align(
                   alignment: Alignment.topLeft,
                   child: Text('CHOOSE LABEL COLOR'),
                 ),
               ),
-              StreamBuilder(
-                stream: vm.database.colorDao.getColors(),
-                builder:
-                    (context, AsyncSnapshot<List<ColorTableData>> snapshot) {
-                  return Padding(
+               Padding(
                     padding: const EdgeInsets.fromLTRB(32.0, 0, 0, 32.0),
                     child: Align(
                       alignment: Alignment.topLeft,
                       child: Wrap(
-                        children: buildStack(context, snapshot.data, vm),
+                        children: buildStack(context, model.colors, model),
                       ),
                     ),
-                  );
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(28.0, 0, 0, 28.0),
+                  ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(28.0, 0, 0, 28.0),
                 child: Align(
                   alignment: Alignment.topLeft,
                   child: Text('PHOTO LABEL'),
@@ -167,12 +139,9 @@ class _EditItemTitleState extends State<EditItemTitle> {
                         width: 180,
                         child: OutlineButton(
                           color: HexColor('#ecf0f1'),
-                          child: Text('Choose Photo'),
+                          child: const Text('Choose Photo'),
                           onPressed: () async {
-                            File image = await ImagePicker.pickImage(
-                                source: ImageSource.gallery);
-
-                            await handleImage(image, context);
+                            model.browsePictureFromGallery(context:context);
                           },
                         ),
                       ),
@@ -184,12 +153,9 @@ class _EditItemTitleState extends State<EditItemTitle> {
                         width: 180,
                         child: OutlineButton(
                           color: HexColor('#ecf0f1'),
-                          child: Text('Take Photo'),
-                          onPressed: () async {
-                            File image = await ImagePicker.pickImage(
-                                source: ImageSource.camera);
-
-                            await handleImage(image, context);
+                          child: const Text('Take Photo'),
+                          onPressed: (){
+                            model.takePicture(context:context);
                           },
                         ),
                       )
@@ -200,65 +166,18 @@ class _EditItemTitleState extends State<EditItemTitle> {
             ],
           ),
         );
-      },
-    );
-  }
-
-  Future handleImage(File image, BuildContext context) async {
-    if (image != null) {
-      final store = StoreProvider.of<AppState>(context);
-
-      String targetPath = (await getTemporaryDirectory()).path +
-          '/' +
-          DateTime.now().toIso8601String() +
-          '.jpg';
-
-      File compresedFile = await compress(image, targetPath);
-
-      String fileName = compresedFile.path.split('/').removeLast();
-      String storagePath = compresedFile.path.replaceAll('/' + fileName, '');
-
-      // FIXME(richard): fix bellow code
-      // ProductTableData product = await store.state.database.productDao
-      //     .getItemById(productId: widget.productId);
-
-      // store.state.database.productDao.updateProduct(product.copyWith(
-      //     picture: compresedFile.path, isImageLocal: true, hasPicture: true));
-
-      // ProductTableData productUpdated = await store.state.database.productDao
-      //     .getItemById(productId: widget.productId);
-      final Document productUpdated = await _databaseService.getById(id:widget.productId);
-      
-      DataManager.dispatchProduct(store, Product.fromMap(productUpdated.toMap()));
-
-      store.dispatch(ImagePreview(
-          image: ImageP((ImagePBuilder img) => img
-            ..path = compresedFile.path
-            ..isLocal = true)));
-      // FIXME(richard): fix bellow code
-      // store.state.database.productImageDao.insertImageProduct(
-      //   //ignore: missing_required_param
-      //   ProductImageTableData(
-      //     localPath: compresedFile.path,
-      //     productId: widget.productId,
-      //   ),
-      // );
-
-      bool internetAvailable = await DataManager.isInternetAvailable();
-      if (internetAvailable) {
-        DataManager.startUploading(
-            store: store,
-            fileName: fileName,
-            productId: widget.productId,
-            storagePath: storagePath);
-      }
-    }
+    }, 
+    onModelReady: (AddProductViewmodel model){
+      model.observeColors();
+    },
+    viewModelBuilder: ()=>AddProductViewmodel ());
   }
 
   List<Widget> buildStack(
-      BuildContext context, List<ColorTableData> colors, CommonViewModel vm) {
-    List<Widget> stacks = new List<Widget>();
-    if (colors != null) {
+      BuildContext context, List<PColor> colors, AddProductViewmodel model) {
+    final List<Widget> stacks = <Widget>[];
+    print(colors);
+    if (colors.isNotEmpty) {
       for (var i = 0; i < colors.length; i++) {
         //register a store for each and handle them later.
         stacks.add(
@@ -278,64 +197,28 @@ class _EditItemTitleState extends State<EditItemTitle> {
                   child: null,
                   onPressed: () {
                     //reset all other color to not selected
-                    for (var y = 0; y < colors.length; y++) {
-                      vm.database.colorDao
-                          .updateColor(colors[y].copyWith(isActive: false));
-                    }
-                    vm.database.colorDao.updateColor(
-                        colors[i].copyWith(isActive: !colors[i].isActive));
-                    StoreProvider.of<AppState>(context).dispatch(
-                      CurrentColor(
-                        color: FlipperColor((c) => c..hexCode = colors[i].name),
-                      ),
-                    );
+                    model.switchColor(color:colors[i]);
                   },
                 ),
               ),
               colors[i].isActive
                   ? IconButton(
                       alignment: Alignment.center,
-                      icon: Icon(Icons.check),
+                      icon: const Icon(Icons.check),
                       color: Colors.white,
-                      onPressed: () {
-                        //reset all other color to not selected
-                        for (var y = 0; y < colors.length; y++) {
-                          vm.database.colorDao
-                              .updateColor(colors[y].copyWith(isActive: false));
-                        }
-                        vm.database.colorDao.updateColor(
-                            colors[i].copyWith(isActive: !colors[i].isActive));
-                        StoreProvider.of<AppState>(context).dispatch(
-                          CurrentColor(
-                            color: FlipperColor(
-                                (c) => c..hexCode = colors[i].name),
-                          ),
-                        );
+                      onPressed: (){
+                        model.switchColor(color:colors[i]);
                       },
                     )
-                  : Visibility(
+                  : const Visibility(
                       visible: false,
-                      child: Text(''),
+                      child: SizedBox.shrink(),
                     )
             ],
           ),
         );
       }
     }
-
     return stacks;
-  }
-
-  Future<File> compress(File file, String targetPath) async {
-    var result = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      targetPath,
-      minHeight: 80,
-      minWidth: 80,
-      quality: 95,
-      rotate: 0,
-    );
-
-    return result;
   }
 }

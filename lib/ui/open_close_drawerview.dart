@@ -1,4 +1,3 @@
-
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/viewmodels/open_business_model.dart';
@@ -35,11 +34,12 @@ class OpenCloseDrawerView extends StatelessWidget {
                     ? const Center(child: CircularProgressIndicator())
                     : const SizedBox.shrink(),
                 Padding(
-                  padding: const EdgeInsets.only(left: 18.0,right:18.0 ),
+                  padding: const EdgeInsets.only(left: 18.0, right: 18.0),
                   child: Wrap(
                     children: <Widget>[
                       Container(
                         child: TextFormField(
+                          keyboardType: TextInputType.number,
                           controller: _float,
                           style: Theme.of(context)
                               .textTheme
@@ -64,8 +64,7 @@ class OpenCloseDrawerView extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                             color: Colors.white,
-                            border:
-                                Border.all(color: Colors.blue, width: 0.2),
+                            border: Border.all(color: Colors.blue, width: 0.2),
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
@@ -110,12 +109,12 @@ class OpenCloseDrawerView extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.all(0.0),
                             onPressed: () {
-                               model.openBusiness(
+                              model.openBusiness(
                                 vm: vm,
                                 context: context,
                                 float: double.parse(_float.text),
                                 businessState: businessState,
-                                note:_note.text,
+                                note: _note.text,
                               );
                             },
                             child: Text(

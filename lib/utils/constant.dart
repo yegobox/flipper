@@ -16,6 +16,7 @@ class AppTables{
   static const String drawerHistory = 'drawerHistories';
 
   static const String cart ='cart'; 
+  static const String color ='colors'; 
 
 }
 

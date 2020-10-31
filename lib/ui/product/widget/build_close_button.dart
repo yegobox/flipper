@@ -12,9 +12,9 @@ class BuildCloseButton extends StatefulWidget {
 class _BuildCloseButtonState extends State<BuildCloseButton> {
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return const IconButton(
       alignment: Alignment.topLeft,
-      icon: const Icon(Icons.close),
+      icon:  Icon(Icons.close),
       color: Colors.white,
       onPressed: null
     );

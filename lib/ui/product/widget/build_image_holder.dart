@@ -28,18 +28,17 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
     return GestureDetector(
       onTap: () {
         final FlipperNavigationService _navigationService = ProxyService.nav;
-        _navigationService.navigateTo(Routing.editItemTitle,
-            arguments: EditItemTitleArguments(productId: widget.model.product.id));
+        _navigationService.navigateTo(Routing.editItemTitle);
       },
       child: !widget.model.product.hasPicture
           ? Container(
               height: 80,
               width: 80,
               color: widget.vm.currentColor != null
-                  ? HexColor(widget.vm.currentColor.hexCode)
+                  ? HexColor(widget.model.currentColor.name)
                   : HexColor('#ee5253'),
             )
-          : widget.vm.tmpItem.isImageLocal
+          : widget.model.product.isImageLocal
               ? Stack(
                   children: <Widget>[
                     Container(

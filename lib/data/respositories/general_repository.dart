@@ -3,6 +3,7 @@ import 'package:flipper/core_db.dart';
 import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/proxy.dart';
@@ -17,8 +18,10 @@ import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
 class GeneralRepository {
-  Future<bool> insertOrUpdateCart(Store<AppState> store, Map data,int quantity) async {
+  final DatabaseService _databaseService = ProxyService.database;
 
+  Future<bool> insertOrUpdateCart(
+      Store<AppState> store, Map data, int quantity) async {
     // get the oder for this variationId
     final List<Map<String, dynamic>> existingCart =
         await ProxyService.database.filter(
@@ -56,15 +59,7 @@ class GeneralRepository {
     }
   }
 
-  Future<void> insertOrUpdateColor(
-      Store<AppState> store, ColorTableData data) async {
-    //if item with the same variationId exist update content
-    final ColorTableData colorsExists =
-        await store.state.database.colorDao.colorExists(data.name);
-    if (colorsExists == null) {
-      store.state.database.colorDao.insert(data);
-    }
-  }
+ 
 
   Future<Order> createDraftOrderOrReturnExistingOne(
       Store<AppState> store) async {
@@ -83,7 +78,7 @@ class GeneralRepository {
         'id': id,
         'branchId': store.state.branch.id,
         'table': AppTables.order,
-        'channels':[store.state.user.id.toString()]
+        'channels': [store.state.user.id.toString()]
       });
 
       final List<Map<String, dynamic>> or = await _databaseService.filter(

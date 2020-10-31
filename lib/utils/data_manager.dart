@@ -30,74 +30,7 @@ class DataManager {
   static String description;
   static String sku;
   static String name;
-  
-
-  static Future<void> startUploading(
-      {String storagePath,
-      String fileName,
-      Store<AppState> store,
-      String productId}) async {
-    final FlutterUploader uploader = FlutterUploader();
-
-    await uploader.enqueue(
-        url: 'https://test.flipper.rw/api/upload',
-        // ignore: always_specify_types
-        files: [
-          FileItem(
-              filename: fileName, savedDir: storagePath, fieldname: 'image')
-        ], // required: list of files that you want to upload
-        method: UploadMethod.POST,
-        // ignore: always_specify_types
-        headers: {'Authorization': 'Bearer  ' + store.state.user.token},
-        // ignore: always_specify_types
-        data: {'product_id': productId},
-        showNotification:
-            true, // send local notification (android only) for upload status
-        tag: 'Backup products images...'); // unique tag for upload task
-
-    uploader.progress.listen((UploadTaskProgress progress) {
-      //... code to handle progress
-      print('uploadProgress:' + progress.toString());
-    });
-    uploader.result.listen((UploadTaskResponse result) async {
-      final UploadResponse uploadResponse =
-          uploadResponseFromJson(result.response);
-      // final ProductTableData product = await store.state.database.productDao
-      //     .getItemById(productId: uploadResponse.productId);
-      final DatabaseService _databaseService = ProxyService.database;
-      final Document productDoc =
-          await _databaseService.getById(id: uploadResponse.productId);
-
-      final Product product = Product.fromMap(productDoc.toMap());
-
-      // TODO(richard): update url here
-      // await store.state.database.productDao.updateProduct(
-      //     pro.copyWith(picture: uploadResponse.url, isImageLocal: false));
-
-      // List<ProductImageTableData> p = await store.state.database.productImageDao
-      //     .getByid(productId: productId);
-      // for (var i = 0; i < p.length; i++) {
-      //   store.state.database.productImageDao.deleteImageProduct(p[i]);
-      // }
-      return dispatchProduct(store, product);
-      // ignore: always_specify_types
-    }, onError: (ex, stacktrace) {
-      print('error' + stacktrace.toString());
-    });
-  }
-
-  static Future<bool> isInternetAvailable() async {
-    try {
-      final List<InternetAddress> result =
-          await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } catch (e) {
-      return false;
-    }
-    return false;
-  }
+    
 
   @deprecated
   static Future<void> updateVariation({

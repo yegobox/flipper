@@ -1,4 +1,3 @@
-
 import 'package:flipper/core_db.dart';
 import 'package:flipper/data/main_database.dart';
 
@@ -35,15 +34,13 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   return [
-    TypedMiddleware<AppState, VerifyAuthenticationState>(_verifyAuthState(
-        userRepository,
-        generalRepository,
-        navigatorKey)),
+    TypedMiddleware<AppState, VerifyAuthenticationState>(
+        _verifyAuthState(userRepository, generalRepository, navigatorKey)),
     TypedMiddleware<AppState, LogIn>(_authLogin(userRepository, navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(
         _authLogout(userRepository, navigatorKey)),
-    TypedMiddleware<AppState, AfterLoginAction>(_verifyAuthState(userRepository,
-        generalRepository, navigatorKey)),
+    TypedMiddleware<AppState, AfterLoginAction>(
+        _verifyAuthState(userRepository, generalRepository, navigatorKey)),
   ];
 }
 
@@ -64,11 +61,12 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       _navigationService.navigateTo(Routing.afterSplash);
       return;
     }
-  
+
     CoreDB.instance.initialAppData();
     await getBusinesses(store, generalRepository);
-    await generateAppColors(generalRepository, store);
-    
+    await generateAppColors(store);
+
+     await ProxyService.sharedPref.setIsAppConstantsInitialized();
     // ignore: always_specify_types
 
     if (store.state.user.id != null &&
@@ -87,8 +85,7 @@ Future<void> openCloseBusiness({
   String businessId,
   bool isClosed = true,
 }) async {
-  final Document document =
-      await CoreDB.instance.database.document(userId);
+  final Document document = await CoreDB.instance.database.document(userId);
 
   final Map<String, dynamic> buildMap = {
     'table': AppTables.switchi,
@@ -165,7 +162,7 @@ Future<void> _getCurrentLocation({Store<AppState> store}) async {
   // geoLocator
   //     .getPositionStream(locationOptions)
   //     .listen((Position location) async {
-    
+
   //   if (businessTableData != null) {
   //     await store.state.database.businessDao.updateBusiness(
   //         businessTableData.copyWith(
@@ -234,32 +231,30 @@ Future<bool> isCategory({String branchId}) async {
   return category.isNotEmpty;
 }
 
-// void dispatchFocusedTab(TabsTableData tab, Store<AppState> store) {
-//   final int currentTab = tab == null ? 0 : tab.tab;
-//   store.dispatch(
-//     CurrentTab(tab: currentTab),
-//   );
-// }
-
-Future<void> generateAppColors(
-    GeneralRepository generalRepository, Store<AppState> store) async {
-  final List<String> colors = [
-    '#d63031',
-    '#0984e3',
-    '#e84393',
-    '#2d3436',
-    '#6c5ce7',
-    '#74b9ff',
-    '#ff7675',
-    '#a29bfe'
-  ];
-  //insert default colors for the app
-  for (int i = 0; i < 8; i++) {
-    //create default color items if does not exist
-    await generalRepository.insertOrUpdateColor(
-        store,
-        //ignore: missing_required_param
-        ColorTableData(isActive: false, name: colors[i]));
+Future<void> generateAppColors(Store<AppState> store) async {
+  final bool isAppConstantsInitialized =
+      await ProxyService.sharedPref.isAppConstantsInitialized();
+  if (!isAppConstantsInitialized) {
+    final List<String> colors = [
+      '#d63031',
+      '#0984e3',
+      '#e84393',
+      '#2d3436',
+      '#6c5ce7',
+      '#74b9ff',
+      '#ff7675',
+      '#a29bfe'
+    ];
+    //insert default colors for the app
+    final DatabaseService _databaseService = ProxyService.database;
+    for (int i = 0; i < colors.length; i++) {
+      _databaseService.insert(data: {
+        'name': colors[i],
+        'isActive': false,
+        'channels': [store.state.user.id.toString()],
+        'table': AppTables.color
+      });
+    }
   }
 }
 
@@ -299,7 +294,6 @@ Future<void> createSystemStockReasons(Store<AppState> store) async {
   // }
 }
 
-
 Future<void> createTemporalOrder(
     GeneralRepository generalRepository, Store<AppState> store) async {
   if (store.state.branch == null) {
@@ -317,19 +311,19 @@ Future<void> getBusinesses(
   // log.d(store.state.user.id);
   final DatabaseService _databaseService = ProxyService.database;
 
-  
-  final  List<Map<String, dynamic>> doc = await _databaseService.filter(
-        equator: AppTables.business,
-        property: 'table',
-        and: true, //define that this query is and type.
-        andEquator: store.state.user.id,
-        andProperty: 'userId',
-      );
-      
+  final List<Map<String, dynamic>> doc = await _databaseService.filter(
+    equator: AppTables.business,
+    property: 'table',
+    and: true, //define that this query is and type.
+    andEquator: store.state.user.id,
+    andProperty: 'userId',
+  );
+
   // ignore: always_specify_types
   final List<Business> businesses = [];
 
-  if (doc.isNotEmpty) { //this asume that one user has one business
+  if (doc.isNotEmpty) {
+    //this asume that one user has one business
     log.i(doc[0]['main']);
     businesses.add(Business.fromMap(doc[0]['main']));
   }

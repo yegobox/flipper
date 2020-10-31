@@ -97,7 +97,7 @@ class BuildAddProductBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const CategorySection(),
+                     CategorySection(),
                     const CenterDivider(
                       width: 300,
                     ),

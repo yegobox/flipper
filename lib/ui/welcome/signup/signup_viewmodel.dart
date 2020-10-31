@@ -79,8 +79,8 @@ class SignUpViewModel extends BaseViewModel {
           ..currency = 'RWF'
           ..categoryId = '1'
           ..typeId = '1'
-          ..latitude = _position.latitude.toString() ?? '0'
-          ..longitude = _position.longitude.toString() ?? '0'
+          ..latitude = _position?.latitude.toString() ?? '0'
+          ..longitude = _position?.longitude.toString() ?? '0'
           ..active = true
           ..type = 'NORMAL',
       );

@@ -20,6 +20,7 @@ class EditVariationScreen extends StatefulWidget {
   final String variationId;
   final String unitId;
   final String productId;
+  
 
   @override
   _EditVariationScreenState createState() => _EditVariationScreenState();
@@ -78,7 +79,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                             ProxyService.nav.navigateTo(
                               Routing.addUnitType,
                               arguments: AddUnitTypeScreenArguments(
-                                productId: widget.productId,
+                                model: model,
                               ),
                             );
                           },

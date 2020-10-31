@@ -5,6 +5,7 @@ import 'package:flipper/services/fetch_contacts_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/mail_service.dart';
 import 'package:flipper/services/performance_service.dart';
+import 'package:flipper/services/shared_preference_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -65,6 +66,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   MailService get mailService;
+
+  @lazySingleton
+  SharedPreferenceService get sharedPreferences;
 
   // @lazySingleton
   // FetchContactsService fetchContactsService;

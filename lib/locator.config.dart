@@ -17,6 +17,7 @@ import 'services/flipperNavigation_service.dart';
 import 'services/api/http_api.dart';
 import 'services/mail_service.dart';
 import 'services/performance_service.dart';
+import 'services/shared_preference_service.dart';
 import 'services/third_party_services_module.dart';
 
 /// adds generated dependencies
@@ -47,6 +48,8 @@ GetIt $initGetIt(
       () => thirdPartyServicesModule.navigationService);
   gh.lazySingleton<PerformanceService>(
       () => thirdPartyServicesModule.performanceService);
+  gh.lazySingleton<SharedPreferenceService>(
+      () => thirdPartyServicesModule.sharedPreferences);
   gh.lazySingleton<SnackbarService>(
       () => thirdPartyServicesModule.snackbarService);
   return get;
@@ -72,6 +75,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   NavigationService get navigationService => NavigationService();
   @override
   PerformanceService get performanceService => PerformanceService();
+  @override
+  SharedPreferenceService get sharedPreferences => SharedPreferenceService();
   @override
   SnackbarService get snackbarService => SnackbarService();
 }

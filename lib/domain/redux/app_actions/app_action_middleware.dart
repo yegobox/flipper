@@ -17,8 +17,6 @@ List<Middleware<AppState>> AppActionMiddleware(
 ) {
   // ignore: always_specify_types
   return [
-    TypedMiddleware<AppState, PersistFocusedUnitAction>(
-        _persistUnit(navigatorKey, generalRepository)),
     TypedMiddleware<AppState, CreateEmptyTempCategoryAction>(
         _createTempCategory(navigatorKey, generalRepository)),
    
@@ -43,35 +41,6 @@ void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
   };
 }
 
-void Function(Store<AppState> store, PersistFocusedUnitAction action,
-        NextDispatcher next)
-    _persistUnit(GlobalKey<NavigatorState> navigatorKey,
-        GeneralRepository generalRepository) {
-  return (Store<AppState> store, PersistFocusedUnitAction action, next) {
-    if (store.state.focusedUnit != null) {
-      store.state.units.forEach((u) => {
-            if (u.id == store.state.focusedUnit)
-              {
-                generalRepository.updateUnit(
-                    store,
-                    Unit((j) => j
-                      ..id = u.id
-                      ..focused = true
-                      ..name = u.name))
-              }
-            else
-              {
-                generalRepository.updateUnit(
-                    store,
-                    Unit((j) => j
-                      ..id = u.id
-                      ..focused = false
-                      ..name = u.name))
-              }
-          });
-    }
-  };
-}
 
 
 

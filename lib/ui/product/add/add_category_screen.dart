@@ -46,7 +46,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               ),
               GestureDetector(
                 onTap: () {
+                  // on navigation create a temporal category to update later
                   vm.createTempCategory(store:StoreProvider.of<AppState>(context), name:'tmp');
+
                   ProxyService.nav.pop();
                 },
                 child: ListTile(

@@ -1,5 +1,4 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/generated/l10n.dart';
@@ -124,6 +123,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                   title: const Text('Create Category',
                       style: TextStyle(color: Colors.black)),
                   trailing: Wrap(
+                    // ignore: prefer_const_literals_to_create_immutables
                     children: <Widget>[const Icon(Icons.arrow_forward_ios)],
                   ),
                 ),
