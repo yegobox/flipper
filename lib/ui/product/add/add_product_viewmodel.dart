@@ -32,6 +32,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class AddProductViewmodel extends ProductViewModel {
+  Category _category;
   String _colorName;
   final List<PColor> _colors = <PColor>[];
   PColor _currentColor;
@@ -111,12 +112,15 @@ class AddProductViewmodel extends ProductViewModel {
     ProxyService.nav.pop();
   }
 
-  Future<void> handleCreateItem({CommonViewModel vm}) async {
+  Category get category{
+    return _category;
+  }
+
+  Future<void> handleCreateItem() async {
     log.d(_productId);
     await updateProduct(
       productId: _productId, //productId
-      categoryId: vm.category == null ? '10' : vm.category.id,
-      vm: vm,
+      categoryId: category == null ? '10' : category.id,
     );
 
     final List<Map<String, dynamic>> variations = await _databaseService.filter(
@@ -438,20 +442,22 @@ class AddProductViewmodel extends ProductViewModel {
 
   void switchColor({PColor color}) async {
     //reset all other color to not selected
+    setBusy(true);
     for (var y = 0; y < colors.length; y++) {
       //set all other color to active false then set one to active.
       final Document color = await _databaseService.getById(id: colors[y].id);
-      color.toMutable().setBoolean('isActive', false);
-      _databaseService.update(document: color);
+
+      _databaseService.update(document: color.toMutable().setBoolean('isActive', false));
     }
     final Document colordoc = await _databaseService.getById(id: color.id);
 
-    colordoc.toMutable().setBoolean('isActive', !color.isActive);
-    _databaseService.update(document: colordoc);
+
+    _databaseService.update(document: colordoc.toMutable().setBoolean('isActive', true));
 
     _currentColor = color;
-
+    setBusy(false);
     notifyListeners();
+
   }
 
   Future handleImage(File image, BuildContext context) async {
@@ -528,7 +534,7 @@ class AddProductViewmodel extends ProductViewModel {
       // remove unnecessarry nesting "main"appended on each map value
       for (Map<String, dynamic> map in model) {
         map.forEach((String key, value) {
-          log.i(value);
+          //log.i(value);
           _colors.add(PColor.fromMap(value));
         });
       }

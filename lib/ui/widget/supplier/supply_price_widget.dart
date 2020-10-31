@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class SupplyPriceWidget extends StatelessWidget {
-  const SupplyPriceWidget({Key key, this.vm, this.addModel}) : super(key: key);
-  final CommonViewModel vm;
+  const SupplyPriceWidget({Key key, this.addModel}) : super(key: key);
+ // final CommonViewModel vm;
   final AddProductViewmodel addModel;
 
   @override

@@ -20,6 +20,10 @@ class SkuViewModel extends BaseModel{
   final DatabaseService _databaseService = ProxyService.database;
   List<Variation> _variation;
   List<Variation> get data => _variation;
+  TextEditingController _skuController;
+  TextEditingController get skuController {
+   return _skuController;
+  }
 
   void navigateTo({String path}) {
     ProxyService.nav.navigateTo(Routing.addCategoryScreen);

@@ -78,9 +78,6 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                           onTap: () {
                             ProxyService.nav.navigateTo(
                               Routing.addUnitType,
-                              arguments: AddUnitTypeScreenArguments(
-                                model: model,
-                              ),
                             );
                           },
                           child: ListTile(

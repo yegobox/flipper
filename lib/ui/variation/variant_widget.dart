@@ -165,7 +165,7 @@ class _VariantWidgetState extends State<VariantWidget> {
                         child: GestureDetector(
                           onTap: () {
                             _navigationService.navigateTo(Routing.editUnitType,
-                                arguments: EditUnitTypeScreenArguments(
+                                arguments: EditUnitViewArguments(
                                     itemId: widget.productId));
                           },
                           child: ListTile(
@@ -174,7 +174,7 @@ class _VariantWidgetState extends State<VariantWidget> {
                             leading: const Text('Unit Type'),
                             trailing: Wrap(
                               children: <Widget>[
-                                // FIXME(ricahrd):
+                                // FIXME(richard):
                                 // StreamBuilder(
                                 //     stream: widget.vm.database.productDao
                                 //         .getItemByIdStream(widget.productId),

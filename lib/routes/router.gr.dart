@@ -13,12 +13,11 @@ import 'package:flipper/ui/welcome/splash/aftersplash.dart';
 import 'package:flipper/ui/widget/note/add_note_screen.dart';
 import 'package:flipper/ui/setting_up_application_screen.dart';
 import 'package:flipper/ui/welcome/signup/signup_view.dart';
-import 'package:flipper/ui/product/add/add_product_screen.dart';
+import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
 import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
-import 'package:flipper/ui/widget/unit/add_unit_type.dart';
-import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
-import 'package:flipper/ui/product/add/add_category_screen.dart';
+import 'package:flipper/ui/widget/unit/add_unit_view.dart';
+import 'package:flipper/ui/product/add/add_category_view.dart';
 import 'package:flipper/ui/category/create_category_input_screen.dart';
 import 'package:flipper/ui/widget/stock/receive_stock.dart';
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
@@ -29,8 +28,8 @@ import 'package:flipper/ui/product/view_products_screen.dart';
 import 'package:flipper/ui/welcome/login/login_screen.dart';
 import 'package:flipper/ui/product/single_product_view.dart';
 import 'package:flipper/ui/variation/edit_variation_screen.dart';
-import 'package:flipper/ui/widget/category/edit_category_screen.dart';
-import 'package:flipper/ui/widget/unit/edit_unit_screen.dart';
+import 'package:flipper/ui/widget/category/edit_category_view.dart';
+import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
 import 'package:flipper/ui/transactions/transaction_screen.dart';
 import 'package:flipper/ui/reports/report_screen.dart';
 import 'package:flipper/ui/reports/date_screen.dart';
@@ -144,7 +143,7 @@ class Routing {
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => AddProductScreen(key: typedArgs),
+          builder: (_) => AddProductView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -171,14 +170,12 @@ class Routing {
           fullscreenDialog: true,
         );
       case Routing.addUnitType:
-        if (hasInvalidArgs<AddUnitTypeScreenArguments>(args)) {
-          return misTypedArgsRoute<AddUnitTypeScreenArguments>(args);
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
         }
-        final typedArgs =
-            args as AddUnitTypeScreenArguments ?? AddUnitTypeScreenArguments();
+        final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              AddUnitTypeScreen(key: typedArgs.key, model: typedArgs.model),
+          builder: (_) => AddUnitTypeScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -188,7 +185,7 @@ class Routing {
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => AddCategoryScreen(key: typedArgs),
+          builder: (_) => AddCategoryView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -302,14 +299,13 @@ class Routing {
           settings: settings,
         );
       case Routing.editUnitType:
-        if (hasInvalidArgs<EditUnitTypeScreenArguments>(args,
-            isRequired: true)) {
-          return misTypedArgsRoute<EditUnitTypeScreenArguments>(args);
+        if (hasInvalidArgs<EditUnitViewArguments>(args, isRequired: true)) {
+          return misTypedArgsRoute<EditUnitViewArguments>(args);
         }
-        final typedArgs = args as EditUnitTypeScreenArguments;
+        final typedArgs = args as EditUnitViewArguments;
         return MaterialPageRoute<dynamic>(
           builder: (_) =>
-              EditUnitTypeScreen(key: typedArgs.key, itemId: typedArgs.itemId),
+              EditUnitView(key: typedArgs.key, itemId: typedArgs.itemId),
           settings: settings,
         );
       case Routing.transactionScreen:
@@ -437,13 +433,6 @@ class AddVariationScreenArguments {
   AddVariationScreenArguments({this.key, this.productId});
 }
 
-//AddUnitTypeScreen arguments holder class
-class AddUnitTypeScreenArguments {
-  final Key key;
-  final AddProductViewmodel model;
-  AddUnitTypeScreenArguments({this.key, this.model});
-}
-
 //ReceiveStockScreen arguments holder class
 class ReceiveStockScreenArguments {
   final Key key;
@@ -498,11 +487,11 @@ class EditCategoryScreenArguments {
   EditCategoryScreenArguments({this.key, @required this.productId});
 }
 
-//EditUnitTypeScreen arguments holder class
-class EditUnitTypeScreenArguments {
+//EditUnitView arguments holder class
+class EditUnitViewArguments {
   final Key key;
   final String itemId;
-  EditUnitTypeScreenArguments({this.key, @required this.itemId});
+  EditUnitViewArguments({this.key, @required this.itemId});
 }
 
 //DateScreen arguments holder class

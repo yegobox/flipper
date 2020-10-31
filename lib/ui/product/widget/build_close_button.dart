@@ -1,10 +1,9 @@
 
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 
 class BuildCloseButton extends StatefulWidget {
-  const BuildCloseButton({Key key, this.vm}) : super(key: key);
-  final CommonViewModel vm;
+  const BuildCloseButton({Key key}) : super(key: key);
+
   @override
   _BuildCloseButtonState createState() => _BuildCloseButtonState();
 }

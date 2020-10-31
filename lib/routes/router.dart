@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
 import 'package:flipper/ui/order/order_details_view.dart';
-import 'package:flipper/ui/product/add/add_category_screen.dart';
-import 'package:flipper/ui/product/add/add_product_screen.dart';
+import 'package:flipper/ui/product/add/add_category_view.dart';
+import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
 import 'package:flipper/ui/product/products_view.dart';
 import 'package:flipper/ui/product/single_product_view.dart';
@@ -19,7 +19,7 @@ import 'package:flipper/ui/welcome/splash/splash_screen.dart';
 
 import 'package:flipper/ui/widget/note/add_note_screen.dart';
 
-import 'package:flipper/ui/widget/unit/add_unit_type.dart';
+import 'package:flipper/ui/widget/unit/add_unit_view.dart';
 import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
 import 'package:flipper/ui/camera/camera_preview.dart';
 
@@ -34,8 +34,8 @@ import 'package:flipper/ui/reports/report_screen.dart';
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
 import 'package:flipper/ui/setting_up_application_screen.dart';
 import 'package:flipper/ui/transactions/transaction_screen.dart';
-import 'package:flipper/ui/widget/unit/edit_unit_screen.dart';
-import 'package:flipper/ui/widget/category/edit_category_screen.dart';
+import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
+import 'package:flipper/ui/widget/category/edit_category_view.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
@@ -66,7 +66,11 @@ class $Routing {
   SignUpView signUpView;
 
   @MaterialRoute(fullscreenDialog: true)
-  AddProductScreen addProduct;
+  @CustomRoute(
+    transitionsBuilder: TransitionsBuilders.slideBottom,
+    durationInMilliseconds: 200,
+  )
+  AddProductView addProduct;
 
   @MaterialRoute(fullscreenDialog: true)
   EditItemTitle editItemTitle;
@@ -78,7 +82,7 @@ class $Routing {
   AddUnitTypeScreen addUnitType;
 
   @MaterialRoute(fullscreenDialog: true)
-  AddCategoryScreen addCategoryScreen;
+  AddCategoryView addCategoryScreen;
 
   @MaterialRoute(fullscreenDialog: true)
   CreateCategoryInputScreen createCategoryInputScreen;
@@ -106,7 +110,7 @@ class $Routing {
 
   EditCategoryScreen editCategoryScreen;
 
-  EditUnitTypeScreen editUnitType;
+  EditUnitView editUnitType;
 
   TransactionScreen transactionScreen;
 

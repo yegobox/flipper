@@ -9,7 +9,7 @@ import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:uuid/uuid.dart';
 
-// this calss is about to replace AppDatabase class used for experimental
+// this class is about to replace AppDatabase class used for experimental
 // query example: https://github.com/SaltechSystems/couchbase_lite/blob/master/example/lib/data/database.dart
 class DatabaseService {
   final Logger log = Logging.getLogger('Database service  Model ....');

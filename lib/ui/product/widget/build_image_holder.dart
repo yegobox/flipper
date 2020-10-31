@@ -6,15 +6,14 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 import 'build_close_button.dart';
 
 class BuildImageHolder extends StatefulWidget {
-  const BuildImageHolder({Key key, this.vm,@required this.model,}) : super(key: key);
-  final CommonViewModel vm;
+  const BuildImageHolder({Key key,@required this.model,}) : super(key: key);
+  //final CommonViewModel vm;
   final AddProductViewmodel model;
 
 
@@ -34,7 +33,8 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
           ? Container(
               height: 80,
               width: 80,
-              color: widget.vm.currentColor != null
+
+              color: widget.model.currentColor != null
                   ? HexColor(widget.model.currentColor.name)
                   : HexColor('#ee5253'),
             )
@@ -63,7 +63,7 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
                         fit: BoxFit.fitWidth,
                       ),
                     ),
-                    BuildCloseButton(vm:widget.vm)
+                    BuildCloseButton()
                   ],
                 )
               : Stack(
@@ -72,7 +72,7 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
                       width: 80,
                       height: 80,
                       child: Image.network(
-                        widget.vm.tmpItem.picture,
+                        widget.model.product.picture,
                         frameBuilder: (BuildContext context, Widget child,
                             int frame, bool wasSynchronouslyLoaded) {
                           if (wasSynchronouslyLoaded) {
@@ -90,7 +90,7 @@ class _BuildImageHolderState extends State<BuildImageHolder> {
                         fit: BoxFit.fitWidth,
                       ),
                     ),
-                    BuildCloseButton(vm:widget.vm)
+                    const BuildCloseButton()
                   ],
                 ),
     );

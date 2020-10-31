@@ -9,14 +9,14 @@ import '../../widget/category_list.dart';
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 
-class AddCategoryScreen extends StatefulWidget {
-  const AddCategoryScreen({Key key}) : super(key: key);
+class AddCategoryView extends StatefulWidget {
+  const AddCategoryView({Key key}) : super(key: key);
 
   @override
-  _AddCategoryScreenState createState() => _AddCategoryScreenState();
+  _AddCategoryViewState createState() => _AddCategoryViewState();
 }
 
-class _AddCategoryScreenState extends State<AddCategoryScreen> {
+class _AddCategoryViewState extends State<AddCategoryView> {
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(

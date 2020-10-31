@@ -22,9 +22,6 @@ class SectionSelectUnit extends StatelessWidget {
                 onTap: () {
                   ProxyService.nav.navigateTo(
                     Routing.addUnitType,
-                    arguments: AddUnitTypeScreenArguments(
-                      model: model,
-                    ),
                   );
                 },
                 child: ListTile(
@@ -40,7 +37,7 @@ class SectionSelectUnit extends StatelessWidget {
                           data: ThemeData(
                               iconTheme: const IconThemeData(
                             color: Colors.black,
-                          )),
+                          ),),
                           child: const Icon(Icons.arrow_forward_ios))
                     ],
                   ),

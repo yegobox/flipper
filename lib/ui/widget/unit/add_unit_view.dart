@@ -1,23 +1,19 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/unit.dart';
-
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
 
 class AddUnitTypeScreen extends StatelessWidget {
   const AddUnitTypeScreen({
     Key key,
-    this.model,
+    
   }) : super(key: key);
 
 
-  final AddProductViewmodel model;
-
-  List<Widget> _getUnitsWidgets(List<Unit> units, CommonViewModel vm) {
+  List<Widget> _getUnitsWidgets(List<Unit> units, AddProductViewmodel model) {
     final List<Widget> list = <Widget>[];
     for (var i = 0; i < units.length; i++) {
       if (units[i].focused && model.product.id != null) {
@@ -47,11 +43,8 @@ class AddUnitTypeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
-        return Scaffold(
+    return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductViewmodel model, Widget child){
+      return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
               ProxyService.nav.pop();
@@ -74,13 +67,12 @@ class AddUnitTypeScreen extends StatelessWidget {
                   : ListView(
                       children: ListTile.divideTiles(
                         context: context,
-                        tiles: _getUnitsWidgets(model.units, vm),
+                        tiles: _getUnitsWidgets(model.units,model),
                       ).toList(),
                     )
             ],
           ),
         );
-      },
-    );
+    }, viewModelBuilder: ()=>AddProductViewmodel());
   }
 }

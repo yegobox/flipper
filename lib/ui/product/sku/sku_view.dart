@@ -1,4 +1,3 @@
-import 'package:flipper/utils/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -24,11 +23,7 @@ class _SkuViewState extends State<SkuView> {
                     width: 300,
                     child: TextFormField(
                       style: const TextStyle(color: Colors.black),
-                      onChanged: (String sku) {
-                        setState(() {
-                          DataManager.sku = sku;
-                        });
-                      },
+                      controller:model.skuController,
                       decoration: const InputDecoration(
                           hintText: 'SKU', focusColor: Colors.blue),
                     ),

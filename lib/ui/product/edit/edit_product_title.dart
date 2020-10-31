@@ -16,7 +16,7 @@ class EditItemTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductViewmodel model, Widget child){
-      if(model.busy || model.colors.isEmpty)
+      if(model.colors.isEmpty)
         return const SizedBox.shrink(); //a nice place to show loading screen.
       return Scaffold(
           appBar: CommonAppBar(
@@ -28,7 +28,7 @@ class EditItemTitle extends StatelessWidget {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: Wrap(
+          body: ListView(
             children: <Widget>[
               Align(
                 alignment: Alignment.center,
@@ -176,10 +176,11 @@ class EditItemTitle extends StatelessWidget {
   List<Widget> buildStack(
       BuildContext context, List<PColor> colors, AddProductViewmodel model) {
     final List<Widget> stacks = <Widget>[];
-    print(colors);
+
     if (colors.isNotEmpty) {
-      for (var i = 0; i < colors.length; i++) {
+      for (var i = 0; i < 8; i++) { //FIXME: for some reason using colors.length duplicate the list.
         //register a store for each and handle them later.
+
         stacks.add(
           Stack(
             alignment: Alignment.center,

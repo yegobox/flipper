@@ -1,24 +1,18 @@
 import 'package:flipper/core_db.dart';
 
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/model/order.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/utils/data_manager.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
 class GeneralRepository {
-  final DatabaseService _databaseService = ProxyService.database;
 
   Future<bool> insertOrUpdateCart(
       Store<AppState> store, Map data, int quantity) async {
@@ -116,50 +110,7 @@ class GeneralRepository {
     return false;
   }
 
-  Future<bool> updateTab(Store<AppState> store, int value) {
-    // FIXME(richard): I am not sure if this is still in use. I even deleted sql for it no need of it anymore!
-    //ignore:missing_required_param
-    // final TabsTableData b = TabsTableData(id: 1, tab: value);
-    // return store.state.database.tabsDao.updateTab(b);
-  }
 
-  Future<bool> updateUnit(Store<AppState> store, Unit unit) {
-    //ignore:missing_required_param
-    // final UnitTableData b = UnitTableData(
-    //     id: unit.id, name: unit.name, focused: unit.focused, value: null);
-    // return store.state.database.unitDao.updateUnit(b);
-  }
-
-  Future getTab(Store<AppState> store) {
-    // FIXME(richard): I am not sure if this is still in use.
-    // return store.state.database.tabsDao.getTab();
-  }
-
-  Future<List<Unit>> getUnits(Store<AppState> store) {
-    // return store.state.database.unitDao.getUnits();
-  }
-
-  Future<dynamic> insertItem(Store<AppState> store, Product data) async {
-    return DataManager.insertProduct(store, data);
-  }
-
-  Future<List<Category>> getCategories(Store<AppState> store) {
-    // return store.state.database.categoryDao.getCategories();
-  }
-
-  Future<void> insertCustomCategory(
-      Store<AppState> store, Category category) async {
-    // FIXME(richard): I am not sure if this is still in use.
-    // CategoryTableData categoryData =
-    //     await store.state.database.categoryDao.getCategoryName(category.name);
-    // if (categoryData == null) {
-    //   store.state.database.categoryDao
-    //       .insert(category.copyWith(createdAt: DateTime.now()));
-    // }
-
-    // categoryData =
-    //     await store.state.database.categoryDao.getCategoryName(category.name);
-  }
 
   Future<int> insertCategory(Store<AppState> store, Category category) async {
     // FIXME(richard): I am not sure if this is still in use.

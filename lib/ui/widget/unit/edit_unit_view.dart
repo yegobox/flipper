@@ -1,5 +1,4 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/unit.dart';
@@ -7,19 +6,18 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/app_action.dart';
 
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/dialog_service.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class EditUnitTypeScreen extends StatefulWidget {
-  const EditUnitTypeScreen({Key key, @required this.itemId}) : super(key: key);
+class EditUnitView extends StatefulWidget {
+  const EditUnitView({Key key, @required this.itemId}) : super(key: key);
   final String itemId;
   @override
-  _EditUnitTypeScreenState createState() => _EditUnitTypeScreenState();
+  _EditUnitViewState createState() => _EditUnitViewState();
 }
 
-class _EditUnitTypeScreenState extends State<EditUnitTypeScreen> {
+class _EditUnitViewState extends State<EditUnitView> {
   // FIXME:
   // List<Widget> _getUnitsWidgets(
   //     AsyncSnapshot<List<UnitTableData>> snapshot, CommonViewModel vm) {

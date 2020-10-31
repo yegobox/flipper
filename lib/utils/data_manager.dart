@@ -1,36 +1,17 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/core_db.dart';
 import 'package:flipper/data/respositories/general_repository.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/category.dart';
 import 'package:flipper/model/order.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/utils/upload_response.dart';
-import 'package:flutter_uploader/flutter_uploader.dart';
-import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-import 'package:uuid/uuid.dart';
 
-import 'logger.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class DataManager {
-  //updatable variables
-  static double retailPrice = 0.0;
-  static double supplyPrice = 0.0;
-  static String description;
-  static String sku;
-  static String name;
-    
 
   @deprecated
   static Future<void> updateVariation({
@@ -103,54 +84,4 @@ class DataManager {
     }
   }
 
-  static void dispatchCurrentTmpItem(
-      Store<AppState> store, Product product, String productName,String userId) async {
-    final DatabaseService _databaseService = ProxyService.database;
-    // ignore: always_specify_types
-    final List<Map<String, dynamic>> v = await _databaseService.filter(
-      equator: productName,
-      property: 'name',
-      and: true,
-      andEquator: product.id,
-      andProperty: 'productId',
-    );
-    Variation variant;
-    if (v.isEmpty) {
-      final String id = Uuid().v1();
-      _databaseService.insert(id: id, data: {
-        'name': 'Regular',
-        'id': id,
-        'channels':[userId],
-        'productId': product.id,
-        'table': AppTables.variation
-      });
-
-      final List<Map<String, dynamic>> vv = await _databaseService.filter(
-        equator: 'Regular',
-        property: 'name',
-        and: true,
-        andEquator: product.id,
-        andProperty: 'productId',
-      );
-      variant = Variation.fromMap(vv[0][CoreDB.instance.dbName]);
-    } else {
-      
-      variant = Variation.fromMap(v[0][CoreDB.instance.dbName]);
-    }
-    store.dispatch(
-      VariationAction(variation: variant),
-    );
-    return dispatchProduct(store, product);
-  }
-
-  static dynamic dispatchProduct(Store<AppState> store, Product product) {
-    return store.dispatch(
-      TempProduct(
-        product: product,
-      ),
-    );
-  }
-
-  static Future<void> insertProduct(
-      Store<AppState> store, Product data) async {}
 }
