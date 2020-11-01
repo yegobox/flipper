@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
-import 'package:flipper/ui/product/edit/edit_product_viewmodel.dart';
 import 'package:flipper/ui/product/edit/edit_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
