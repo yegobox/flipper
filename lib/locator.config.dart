@@ -16,6 +16,7 @@ import 'services/database_service.dart';
 import 'services/flipperNavigation_service.dart';
 import 'services/api/http_api.dart';
 import 'services/mail_service.dart';
+import 'services/media_service.dart';
 import 'services/performance_service.dart';
 import 'services/shared_preference_service.dart';
 import 'services/shared_state_service.dart';
@@ -45,6 +46,7 @@ GetIt $initGetIt(
       () => thirdPartyServicesModule.flipperNavigationService);
   gh.lazySingleton<HttpApi>(() => HttpApi());
   gh.lazySingleton<MailService>(() => thirdPartyServicesModule.mailService);
+  gh.lazySingleton<MediaService>(() => MediaService());
   gh.lazySingleton<NavigationService>(
       () => thirdPartyServicesModule.navigationService);
   gh.lazySingleton<PerformanceService>(
@@ -55,7 +57,7 @@ GetIt $initGetIt(
       () => thirdPartyServicesModule.sharedStateService);
   gh.lazySingleton<SnackbarService>(
       () => thirdPartyServicesModule.snackbarService);
-  
+  return get;
 }
 
 class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {

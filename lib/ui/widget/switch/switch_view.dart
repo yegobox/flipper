@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/services/proxy.dart';
 
+import 'package:flipper/utils/HexColor.dart';
+
 class SwitchView extends StatelessWidget {
    SwitchView({
     Key key,
@@ -49,7 +51,7 @@ class SwitchView extends StatelessWidget {
                   const Divider(height:20),
                   Center(
                     child: Container(
-                    color: Colors.blue,
+                    color: HexColor('#2996CC'),
                       child: SizedBox(
                         width: 380,
                         height: 60,

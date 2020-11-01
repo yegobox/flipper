@@ -1,4 +1,4 @@
-import 'package:flipper/utils/app_colors.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 import 'build_payable.dart';
@@ -10,7 +10,7 @@ class PayableView extends StatelessWidget {
     return Container(
       height: 66,
       color: Theme.of(context)
-          .copyWith(canvasColor: Colors.blue)
+          .copyWith(canvasColor: HexColor('#2996CC'))
           .canvasColor,
       child: const BuildPayable(),
     );

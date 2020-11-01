@@ -18,22 +18,34 @@ class _$PColorSerializer implements StructuredSerializer<PColor> {
   Iterable<Object> serialize(Serializers serializers, PColor object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(String)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
-      'table',
-      serializers.serialize(object.table,
-          specifiedType: const FullType(String)),
-      'isActive',
-      serializers.serialize(object.isActive,
-          specifiedType: const FullType(bool)),
-      'channels',
-      serializers.serialize(object.channels,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(String)])),
     ];
-
+    if (object.id != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
+    }
+    if (object.table != null) {
+      result
+        ..add('table')
+        ..add(serializers.serialize(object.table,
+            specifiedType: const FullType(String)));
+    }
+    if (object.isActive != null) {
+      result
+        ..add('isActive')
+        ..add(serializers.serialize(object.isActive,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.channels != null) {
+      result
+        ..add('channels')
+        ..add(serializers.serialize(object.channels,
+            specifiedType:
+                const FullType(BuiltList, const [const FullType(String)])));
+    }
     return result;
   }
 
@@ -94,20 +106,8 @@ class _$PColor extends PColor {
 
   _$PColor._({this.id, this.name, this.table, this.isActive, this.channels})
       : super._() {
-    if (id == null) {
-      throw new BuiltValueNullFieldError('PColor', 'id');
-    }
     if (name == null) {
       throw new BuiltValueNullFieldError('PColor', 'name');
-    }
-    if (table == null) {
-      throw new BuiltValueNullFieldError('PColor', 'table');
-    }
-    if (isActive == null) {
-      throw new BuiltValueNullFieldError('PColor', 'isActive');
-    }
-    if (channels == null) {
-      throw new BuiltValueNullFieldError('PColor', 'channels');
     }
   }
 
@@ -210,12 +210,12 @@ class PColorBuilder implements Builder<PColor, PColorBuilder> {
               name: name,
               table: table,
               isActive: isActive,
-              channels: channels.build());
+              channels: _channels?.build());
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'channels';
-        channels.build();
+        _channels?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'PColor', _$failedField, e.toString());

@@ -1,4 +1,3 @@
-import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 class AddVariant extends StatefulWidget {
@@ -16,7 +15,7 @@ class _AddVariantState extends State<AddVariant> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 18, right: 18),
+      padding: const EdgeInsets.only(left: 18, right: 18,top:10),
       child: SizedBox(
         height: 50,
         width: double.infinity,

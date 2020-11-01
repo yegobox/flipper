@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper/utils/HexColor.dart';
 
 import 'payable_viewmodel.dart';
 
@@ -18,7 +19,7 @@ class BuildPayable extends StatelessWidget {
             children: <Widget>[
               FlatButton(
                 color: Theme.of(context)
-                    .copyWith(canvasColor: Colors.blue)
+                    .copyWith(canvasColor: HexColor('#2996CC'))
                     .canvasColor,
                 onPressed: () {
                   model.nvaigate();

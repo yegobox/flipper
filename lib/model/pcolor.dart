@@ -14,10 +14,19 @@ part 'pcolor.g.dart';
 //comply with this model. a concrete reference of this model and other model can be found
 //in technical document of database design.
 abstract class PColor implements Built<PColor, PColorBuilder> {
+
+  @nullable
   String get id;
+
   String get name;
+
+  @nullable
   String get table;
+
+  @nullable
   bool get isActive;
+
+  @nullable
   BuiltList<String> get channels;
   
   // ignore: sort_constructors_first
