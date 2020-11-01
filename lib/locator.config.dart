@@ -18,6 +18,7 @@ import 'services/api/http_api.dart';
 import 'services/mail_service.dart';
 import 'services/performance_service.dart';
 import 'services/shared_preference_service.dart';
+import 'services/shared_state_service.dart';
 import 'services/third_party_services_module.dart';
 
 /// adds generated dependencies
@@ -50,9 +51,11 @@ GetIt $initGetIt(
       () => thirdPartyServicesModule.performanceService);
   gh.lazySingleton<SharedPreferenceService>(
       () => thirdPartyServicesModule.sharedPreferences);
+  gh.lazySingleton<SharedStateService>(
+      () => thirdPartyServicesModule.sharedStateService);
   gh.lazySingleton<SnackbarService>(
       () => thirdPartyServicesModule.snackbarService);
-  return get;
+  
 }
 
 class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
@@ -77,6 +80,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   PerformanceService get performanceService => PerformanceService();
   @override
   SharedPreferenceService get sharedPreferences => SharedPreferenceService();
+  @override
+  SharedStateService get sharedStateService => SharedStateService();
   @override
   SnackbarService get snackbarService => SnackbarService();
 }

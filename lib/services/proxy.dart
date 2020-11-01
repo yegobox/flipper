@@ -4,6 +4,7 @@ import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/mail_service.dart';
 import 'package:flipper/services/shared_preference_service.dart';
+import 'package:flipper/services/shared_state_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'abstractions/api.dart';
 import 'bluethooth_service.dart';
@@ -22,6 +23,7 @@ final BlueToothService _blue = locator<BlueToothService>();
 final FlipperNavigationService _nav = locator<FlipperNavigationService>();
 final MailService _mail = locator<MailService>();
 final SharedPreferenceService _sharedPref = locator<SharedPreferenceService>();
+final SharedStateService _sharedState = locator<SharedStateService>();
 
 // ignore: avoid_classes_with_only_static_members
 abstract class ProxyService {
@@ -36,4 +38,5 @@ abstract class ProxyService {
   static FlipperNavigationService get nav => _nav;
   static MailService get mail =>_mail;
   static SharedPreferenceService get sharedPref =>_sharedPref;
+  static SharedStateService get sharedState =>_sharedState;
 }

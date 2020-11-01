@@ -32,9 +32,10 @@ class AddProductView extends StatelessWidget {
         model.initFields(TextEditingController(),TextEditingController(),TextEditingController(),TextEditingController());
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
-        if(model.busy || model.productId ==null){
+        if(model.busy || model.product ==null){
           return const SizedBox.shrink();
         }
+
         return WillPopScope(
           onWillPop: model.onWillPop,
           child: Scaffold(
@@ -128,11 +129,11 @@ class AddProductView extends StatelessWidget {
                     ),
 
                     const SkuView(),
-                    VariationList(productId: model.productId),
+                    VariationList(productId: model.product.id),
 
                     AddVariant(
                       onPressedCallback: () {
-                        model.createVariant(productId:model.productId);
+                        model.createVariant(productId:model.product.id);
                       },
                     ),
                     const CenterDivider(
@@ -148,5 +149,4 @@ class AddProductView extends StatelessWidget {
       },
     );
   }
-  
 }

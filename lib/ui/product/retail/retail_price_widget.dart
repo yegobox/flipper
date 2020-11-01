@@ -19,7 +19,7 @@ class RetailPriceWidget
     return ViewModelBuilder.reactive(builder: (BuildContext context,RetailPriceViewModel model, Widget child){
       return model.busy ?const SizedBox.shrink():  RetailView(model: models);
     }, 
-    onModelReady: (RetailPriceViewModel model) => model.getVariations(context: context,productId: models.productId),
+    onModelReady: (RetailPriceViewModel model) => model.getVariations(context: context,productId: models.product.id),
     viewModelBuilder: ()=>RetailPriceViewModel());
   }
 }

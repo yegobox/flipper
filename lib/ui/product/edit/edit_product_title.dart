@@ -4,6 +4,8 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
+import 'package:flipper/ui/product/edit/edit_product_viewmodel.dart';
+import 'package:flipper/ui/product/edit/edit_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +17,7 @@ class EditItemTitle extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductViewmodel model, Widget child){
+    return ViewModelBuilder<EditProductViewModel>.reactive(builder: (BuildContext context,EditProductViewModel model, Widget child){
       if(model.colors.isEmpty)
         return const SizedBox.shrink(); //a nice place to show loading screen.
       return Scaffold(
@@ -167,14 +169,14 @@ class EditItemTitle extends StatelessWidget {
           ),
         );
     }, 
-    onModelReady: (AddProductViewmodel model){
+    onModelReady: (EditProductViewModel model){
       model.observeColors();
     },
-    viewModelBuilder: ()=>AddProductViewmodel ());
+    viewModelBuilder: ()=>EditProductViewModel ());
   }
 
   List<Widget> buildStack(
-      BuildContext context, List<PColor> colors, AddProductViewmodel model) {
+      BuildContext context, List<PColor> colors, EditProductViewModel model) {
     final List<Widget> stacks = <Widget>[];
 
     if (colors.isNotEmpty) {

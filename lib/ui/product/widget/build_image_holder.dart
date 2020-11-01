@@ -6,18 +6,18 @@ import 'dart:io';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
 import 'package:flipper/ui/product/widget/build_close_button.dart';
+import 'package:flipper/ui/product/widget/image_placeholder_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 
-class ImagePlaceHolderView extends ViewModelWidget<AddProductViewmodel> {
+class ImagePlaceHolderView extends StatelessWidget {
   @override
-  // ignore: avoid_renaming_method_parameters
-  Widget build(BuildContext context, AddProductViewmodel model) {
-    return GestureDetector(
+  Widget build(BuildContext context) {
+    return ViewModelBuilder<ImagePlaceholderViewModel>.reactive(builder: (BuildContext context,ImagePlaceholderViewModel model, Widget child){
+      return GestureDetector(
       onTap: () {
         final FlipperNavigationService _navigationService = ProxyService.nav;
         _navigationService.navigateTo(Routing.editItemTitle);
@@ -87,5 +87,7 @@ class ImagePlaceHolderView extends ViewModelWidget<AddProductViewmodel> {
         ],
       ),
     );
+    }, viewModelBuilder: ()=>ImagePlaceholderViewModel());
   }
+ 
 }
