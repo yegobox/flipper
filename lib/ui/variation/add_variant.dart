@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 
-class AddVariant extends StatefulWidget {
+class AddVariant extends StatelessWidget {
   const AddVariant({
     Key key,
     Function onPressedCallback,
   })  : _onPressedCallback = onPressedCallback,
         super(key: key);
   final Function _onPressedCallback;
-  @override
-  _AddVariantState createState() => _AddVariantState();
-}
-
-class _AddVariantState extends State<AddVariant> {
+  
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -21,7 +17,7 @@ class _AddVariantState extends State<AddVariant> {
         width: double.infinity,
         child: OutlineButton(
           child: const Text('Add Variation'),
-          onPressed: widget._onPressedCallback,
+          onPressed: _onPressedCallback,
         ),
       ),
     );

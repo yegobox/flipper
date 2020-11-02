@@ -14,6 +14,7 @@ import 'package:flipper/utils/flitter_color.dart';
 import 'package:flipper/utils/logger.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:logger/logger.dart';
 
 import 'package:stacked/stacked.dart';
@@ -27,7 +28,7 @@ class ProductsView extends StatefulWidget {
     @required this.data,
     @required this.showCreateItemOnTop,
     @required this.createButtonName,
-    @required this.shouldSeeItem, 
+    @required this.shouldSeeItem,
     @required this.userId,
   }) : super(key: key);
 
@@ -47,11 +48,12 @@ class _ProductsViewState extends State<ProductsView> {
 
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
-  List<Widget> buildProductView(List<Product> products, BuildContext context, String userId) {
-    log.i(products);
+  List<Widget> buildProductView(
+      List<Product> products, BuildContext context, String userId) {
+   
     final List<Widget> list = <Widget>[];
     if (widget.showCreateItemOnTop) {
-      addItemRow(list, context, widget.createButtonName,userId);
+      addItemRow(list, context, widget.createButtonName, userId);
     }
     if (!widget.showCreateItemOnTop) {
       itemRow(list, context);
@@ -80,33 +82,29 @@ class _ProductsViewState extends State<ProductsView> {
             },
             child: ListTile(
               contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              leading: Container(
-                color: HexColor(product.color),
-                width: 50,
-                child: FlatButton(
-                  child: Text(
-                    product.name.length > 2
-                        ? product.name.substring(0, 2)
-                        : product.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  onPressed: () {},
+              leading: SizedBox(
+                width: 45.0,
+                height: 45.0,
+                child: TextDrawable(
+                  backgroundColor: HexColor(product.color),
+                  text: product.name,
+                  isTappable: true,
+                  onTap: null,
+                  boxShape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               title: Text(
                 product.name,
                 style: const TextStyle(color: Colors.black),
               ),
-              // ignore: always_specify_types
               trailing: ViewModelBuilder<StockViewModel>.reactive(
                 viewModelBuilder: () => StockViewModel(),
-                onModelReady: (StockViewModel stockModel) => stockModel.loadStockById(
-                    productId: product.id, context: context),
-                builder:
-                    (BuildContext context, StockViewModel stockModel, Widget child) {
-                  return stockModel.stock.isEmpty ||stockModel.busy
+                onModelReady: (StockViewModel stockModel) => stockModel
+                    .loadStockById(productId: product.id, context: context),
+                builder: (BuildContext context, StockViewModel stockModel,
+                    Widget child) {
+                  return stockModel.stock.isEmpty || stockModel.busy
                       ? const Text(
                           ' Prices',
                           style: TextStyle(color: Colors.black),
@@ -123,7 +121,7 @@ class _ProductsViewState extends State<ProductsView> {
       }
     }
     if (!widget.showCreateItemOnTop) {
-      addItemRow(list, context, widget.createButtonName,userId);
+      addItemRow(list, context, widget.createButtonName, userId);
     }
 
     return list;
@@ -159,16 +157,17 @@ class _ProductsViewState extends State<ProductsView> {
     );
   }
 
-  void addItemRow(
-      List<Widget> list, BuildContext context, String createButtonName, String userId) {
+  void addItemRow(List<Widget> list, BuildContext context,
+      String createButtonName, String userId) {
     return list.add(
       GestureDetector(
         onTap: () {
-          
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return CreateOptionsWidget(userId: userId,);
+              return CreateOptionsWidget(
+                userId: userId,
+              );
             },
           );
         },
@@ -185,14 +184,17 @@ class _ProductsViewState extends State<ProductsView> {
 
   @override
   Widget build(BuildContext context) {
-    return buildProductView(widget.data, context,widget.userId).isEmpty
+    return buildProductView(widget.data, context, widget.userId).isEmpty
         ? const SizedBox.shrink()
-        : ListView(
-            shrinkWrap: true,
-            children: ListTile.divideTiles(
-              context: context,
-              tiles: buildProductView(widget.data, context, widget.userId),
-            ).toList(),
+        : Padding(
+            padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+            child: ListView(
+              shrinkWrap: true,
+              children: ListTile.divideTiles(
+                context: context,
+                tiles: buildProductView(widget.data, context, widget.userId),
+              ).toList(),
+            ),
           );
   }
 }

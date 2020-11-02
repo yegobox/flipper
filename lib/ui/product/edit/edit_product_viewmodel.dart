@@ -25,6 +25,7 @@ import 'package:path_provider/path_provider.dart';
 
 class EditProductViewModel extends BaseViewModel{
   final _sharedStateService = locator<SharedStateService>();
+  
   List<PColor> get colors => _sharedStateService.colors;
   ImageP get image => _sharedStateService.image;
 

@@ -1,4 +1,3 @@
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -20,7 +19,8 @@ class _LifeCycleManagerState extends State<LifeCycleManager>
     with WidgetsBindingObserver {
   List<StoppableService> servicesToManage = [
     // ProxyService.modal,
-    ProxyService.connectivity,
+    // FIXME: there is an issue in dependency as sometime it crash not a big deal but would like to see if it was fixed.
+    // ProxyService.connectivity, //stop connectiviry service for now.
   ];
   final Logger log = Logging.getLogger('LifeCycle Manager');
 

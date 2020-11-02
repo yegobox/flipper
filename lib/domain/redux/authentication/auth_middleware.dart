@@ -66,7 +66,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await getBusinesses(store, generalRepository);
     await generateAppColors(store);
 
-     await ProxyService.sharedPref.setIsAppConstantsInitialized();
+    await ProxyService.sharedPref.setIsAppConstantsInitialized();
     // ignore: always_specify_types
 
     if (store.state.user.id != null &&

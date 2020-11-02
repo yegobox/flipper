@@ -2,16 +2,15 @@ import 'dart:async';
 
 import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/services/api/fake_api.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import 'package:couchbase_lite/couchbase_lite.dart' as lite;
 
-
 typedef ResultSetCallback = void Function(ResultSet results);
-
-
+//oct 22  443372
 class CoreDB {
   CoreDB._internal();
 
@@ -31,7 +30,7 @@ class CoreDB {
       {String username, String password, List<String> channels}) async {
     try {
       database = await lite.Database.initWithName(dbName);
-      // Note wss://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
+      // Note wss://10.0.2.2:4984/main || ws://10.0.2.2:4984/main is for the android simulator on your local machine's couchbase database
       final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
       final ReplicatorConfiguration config =
           ReplicatorConfiguration(database, 'ws://$gatewayUrl/main');
@@ -42,18 +41,17 @@ class CoreDB {
 
       final String username = DotEnv().env['PASSWORD'];
       final String password = DotEnv().env['USERNAME'];
-      log.d('username:' + username);
-      log.d('password:' + password);
+
       // Using self signed certificate
       //config.pinnedServerCertificate = 'assets/cert-android.cer';
-      // config.authenticator = BasicAuthenticator(username, password);
+      config.authenticator = BasicAuthenticator(username, password);
       replicator = Replicator(config);
 
       replicator.addChangeListener((ReplicatorChange event) {
         if (event.status.error != null) {
-          print('Error: ' + event.status.error);
+          log.d('Error: ' + event.status.error);
         }
-        print(event.status.activity.toString());
+        log.i(event.status.activity.toString());
       });
 
       await replicator.start();
@@ -71,13 +69,12 @@ class CoreDB {
       _dbListenerToken =
           database.addChangeListener((DatabaseChange dbChange) async {
         for (String id in dbChange.documentIDs) {
-         
           final Document document = await database.document(id);
           //until we save document right in all place keep this code here to keep things smooth.
           if (document != null && !document.getBoolean('touched')) {
             log.d('change in id: $id');
             //only update once to avoid infinite loop
-            log.i('updated non touched document,we update the document to make the id be usable for update');
+            log.i('update::table::' + document.getString('table'));
             final MutableDocument mutableDoc = document
                 .toMutable()
                 .setBoolean('touched', true)
@@ -119,12 +116,17 @@ class CoreDB {
 
   Future<void> initialAppData() async {
     // ignore: always_specify_types
-    // TODO: should add initial data only once!
-    for (int i = 0; i < mockUnits.length; i++) {
-      if (mockUnits[i]['value'] == 'kg') {
-         database.saveDocument(MutableDocument(data:{'name':mockUnits[i]['name'],'focused': true}));
-      } else {
-        database.saveDocument(MutableDocument(data:{'name':mockUnits[i]['name'],'focused': false}));
+    final bool isAppConstantsInitialized =
+        await ProxyService.sharedPref.isAppConstantsInitialized();
+    if (!isAppConstantsInitialized) {
+      for (int i = 0; i < mockUnits.length; i++) {
+        if (mockUnits[i]['value'] == 'kg') {
+          database.saveDocument(MutableDocument(
+              data: {'name': mockUnits[i]['name'], 'focused': true}));
+        } else {
+          database.saveDocument(MutableDocument(
+              data: {'name': mockUnits[i]['name'], 'focused': false}));
+        }
       }
     }
   }
