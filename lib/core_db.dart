@@ -74,7 +74,8 @@ class CoreDB {
           if (document != null && !document.getBoolean('touched')) {
             log.d('change in id: $id');
             //only update once to avoid infinite loop
-            log.i('update::table::' + document.getString('table'));
+            final table = document.getString('table');
+            log.i('update::table::$table');
             final MutableDocument mutableDoc = document
                 .toMutable()
                 .setBoolean('touched', true)

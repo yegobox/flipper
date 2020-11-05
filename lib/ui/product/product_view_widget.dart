@@ -132,6 +132,7 @@ class _ProductsViewState extends State<ProductsView> {
 
     dispatchCurrentProductVariants(context, variants, product);
 
+
     _navigationService.navigateTo(Routing.editQuantityItemScreen,
         arguments: ChangeQuantityForSellingArguments(productId: product.id));
   }

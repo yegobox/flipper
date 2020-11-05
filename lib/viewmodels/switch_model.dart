@@ -6,26 +6,25 @@ import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 
-// ignore: always_specify_types
 class SwitchModel extends FutureViewModel {
-  SwitchModel({this.id});
-
   final Logger log = Logging.getLogger('Switcher....');
-  
-  final String id;
+
   final DatabaseService _databaseService = ProxyService.database;
 
   @override
   // ignore: always_specify_types
   Future futureToRun() async {
-      
-      final List<Map<String, dynamic>> switcher = await _databaseService.filter(
-        equator: AppTables.switchi,
-        property: 'table',
-      );
+    final List<Map<String, dynamic>> switcher = await _databaseService.filter(
+      equator: AppTables.switchi,
+      property: 'table',
+    );
 
-      final Switcher  switchi = Switcher.fromMap(switcher[0]['main']); //intrested in first result. FIXME(richard):should be one result.
+    if (switcher.isNotEmpty) {
+      final Switcher switchi = Switcher.fromMap(switcher[0][
+          'main']); //intrested in first result. FIXME(richard):should be one result.
       log.i(switchi);
       return switchi;
+    }
+    return null;
   }
 }

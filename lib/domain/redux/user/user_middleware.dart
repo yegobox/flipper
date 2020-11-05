@@ -27,17 +27,16 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   return (Store<AppState> store, action, next) async {
     if (store.state.user != null) {
       final FUser user = store.state.user;
-      print(store.state.user);
+     
       assert(store.state.user.id != null);
-      final String userId = Uuid().v1();
+     
       // ignore: always_specify_types
       final Map<String,dynamic> mapUser = {
         'active': true,
         '_id': 'user_' + store.state.user.id.toString(),
         'uid': Uuid().v1(),
-        'id': userId,
-        // ignore: always_specify_types
-        'channels': [store.state.user.id.toString()],//users allowed to see a document.
+        'id': store.state.user.id.toString(),
+        'channels': [store.state.user.id.toString()],
         'name': user.name.trim(),
         'token': user.token,
         'createdAt': DateTime.now().toIso8601String(),
@@ -45,7 +44,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
         'email': user.email
       };
 
-     final Document u =  await ProxyService.database.insert(data:mapUser);
+
+     final Document u =  await ProxyService.database.insert(id:store.state.user.id.toString(),data:mapUser);
 
      store.dispatch(WithUser(user: FUser.fromMap(u.toMap())));
       

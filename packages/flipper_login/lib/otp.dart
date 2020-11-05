@@ -176,6 +176,7 @@ class _OtpPageState extends State<OtpPage> {
                                       (user) async => user
                                         ..email = loginResponse.email
                                         ..active = true
+                                        ..id = loginResponse.id.toString()
                                         ..createdAt =
                                             DateTime.now().toIso8601String()
                                         ..updatedAt =

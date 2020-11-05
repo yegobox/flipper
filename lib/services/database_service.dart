@@ -51,23 +51,23 @@ class DatabaseService {
     } else {
       query = QueryBuilder.select([SelectResult.all()])
           .from(CoreDB.instance.dbName)
-          .where(
-            Expression.property(property)
+          .where(Expression.property(property)
                 .equalTo(
                   Expression.string(equator),
                 )
-                .add(
-                  Expression.property(andProperty).equalTo(
-                    Expression.string(andEquator),
-                  ),
-                ),
+                // This was not working so a workaround is to map where the second Equator is
+                // .add(
+                //   Expression.property(andProperty).iS(
+                //     Expression.string(andEquator),
+                //   ),
+                // ),
           );
     }
     final ResultSet result = await query.execute();
     final List<Map<String, dynamic>> model = result.map((Result result) {
       return result.toMap();
     }).toList();
-
+    
     return model;
   }
 

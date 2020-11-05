@@ -27,10 +27,9 @@ class SwitchView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SwitchModel>.reactive(
-      initialiseSpecialViewModelsOnce: true,
-      viewModelBuilder: () {
-        return SwitchModel(id: vm.user.id.toString());
-      },
+      // initialiseSpecialViewModelsOnce: true,
+     
+
 
       builder: (BuildContext context, SwitchModel model, Widget child) {
         // ignore: always_specify_types
@@ -78,7 +77,7 @@ class SwitchView extends StatelessWidget {
             sideOpenController: sideOpenController,
           );
         }
-      },
+      }, viewModelBuilder: () =>SwitchModel(),
     );
   }
 }

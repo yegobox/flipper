@@ -93,7 +93,6 @@ Future<void> openCloseBusiness({
     'isClosed': isClosed,
     'isSocial': isSocial,
     'businessId': businessId,
-    // ignore: always_specify_types
     'channels': [userId]
   };
   if (document == null) {
@@ -118,7 +117,7 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     //login to couchbase
     // ignore: always_specify_types
     final List<String> channels = [];
-    channels.add(user.id.toString());
+    channels.add(user.userId.toString());
 
     await CoreDB.instance.login(channels: channels);
 
@@ -126,7 +125,7 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     await openCloseBusiness(
       isSocial: false,
       name: user.username,
-      userId: user.id.toString(),
+      userId: user.userId.toString(),
       isClosed: true,
     );
 
@@ -134,7 +133,7 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
       (FUserBuilder p) => p
         ..email = user.email
         ..active = true
-        ..id = user.id.toString()
+        ..id = user.userId.toString()
         ..createdAt = DateTime.now().toIso8601String()
         ..updatedAt = DateTime.now().toIso8601String()
         ..token = user.token
