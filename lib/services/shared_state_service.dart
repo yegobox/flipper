@@ -7,6 +7,7 @@ import 'package:observable_ish/observable_ish.dart';
 import 'package:stacked/stacked.dart';
 
 class SharedStateService with ReactiveServiceMixin {
+  
   SharedStateService() {
     listenToReactiveValues([_colors,_image,_currentColor,_product,_variations]);
   }

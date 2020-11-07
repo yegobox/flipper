@@ -15,6 +15,7 @@ import 'analytics_service.dart';
 import 'api/fake_api.dart';
 import 'connectivity_service.dart';
 
+
 enum ApiProvider {
   Fake,
   Rest,

@@ -23,6 +23,7 @@ import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
 class AddProductViewmodel extends ProductViewModel {
+  
   Category _category;
   String _colorName;
   // ignore: unused_field

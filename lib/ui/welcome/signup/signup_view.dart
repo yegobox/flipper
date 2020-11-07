@@ -8,12 +8,6 @@ import 'package:stacked/stacked.dart';
 
 import 'signup_viewmodel.dart';
 
-class TBusiness {
-  String name;
-  String password;
-  String agreeTerms;
-  String email;
-}
 
 class SignUpView extends StatefulWidget {
   const SignUpView(
@@ -113,7 +107,7 @@ class _SignUpViewState extends State<SignUpView> {
                             Radio(
                               value: '1',
                               groupValue:
-                                  '1', //TODO: get value from radio and save it too
+                                  '1', //TODO(richard): get value from radio and save it too
                             )
                           ],
                         ),

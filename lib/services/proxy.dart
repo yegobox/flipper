@@ -25,6 +25,7 @@ final MailService _mail = locator<MailService>();
 final SharedPreferenceService _sharedPref = locator<SharedPreferenceService>();
 final SharedStateService _sharedState = locator<SharedStateService>();
 
+// this is where we load all third party plugin
 // ignore: avoid_classes_with_only_static_members
 abstract class ProxyService {
   static NavigationService get navigation => _navigationService;

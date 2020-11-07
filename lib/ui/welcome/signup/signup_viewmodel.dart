@@ -95,7 +95,7 @@ class SignUpViewModel extends BaseViewModel {
           ..token = token
           ..name = _name.text,
       );
-      // TODO(richard): submit business on remote, and branch so we wont have issue on next login
+     
       StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
       StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
       StoreProvider.of<AppState>(context).dispatch(CreateUser(user));

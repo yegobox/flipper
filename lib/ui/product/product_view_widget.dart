@@ -128,6 +128,7 @@ class _ProductsViewState extends State<ProductsView> {
   }
 
   void onSellingItem(BuildContext context, Product product) async {
+    // TODO(telesphore): finish selling process.
     final List<Variation> variants = await buildVariantsList(context, product);
 
     dispatchCurrentProductVariants(context, variants, product);

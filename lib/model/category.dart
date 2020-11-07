@@ -10,6 +10,7 @@ part 'category.g.dart';
 
 abstract class Category implements Built<Category, CategoryBuilder> {
 
+
   Category._();
 
   // ignore: sort_constructors_first

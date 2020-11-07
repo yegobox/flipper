@@ -1,5 +1,6 @@
 import 'package:moor/moor.dart';
 
+
 class OrderDetailTable extends Table {
   IntColumn get idLocal => integer().autoIncrement()();
   TextColumn get id => text()();
