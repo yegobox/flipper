@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/data/main_database.dart';
+
 import 'package:flipper/domain/redux/functions.dart';
-import 'package:flipper/ui/product/single_product_view.dart';
+
 import 'package:flipper/ui/variation/variation_list.dart';
 import 'package:flipper/ui/variation/variation_viewmodel.dart';
 
@@ -41,9 +41,6 @@ class _VariantWidgetState extends State<VariantWidget> {
       ProxyService.nav;
   // ignore: always_specify_types
   final List<bool> _selections = List.generate(2, (int index) => false);
-
-  String _name;
-
 
   
 
@@ -174,6 +171,7 @@ class _VariantWidgetState extends State<VariantWidget> {
                             leading: const Text('Unit Type'),
                             trailing: Wrap(
                               children: <Widget>[
+                                // ignore: prefer_const_literals_to_create_immutables
                                 // FIXME(richard):
                                 // StreamBuilder(
                                 //     stream: widget.vm.database.productDao
@@ -208,7 +206,7 @@ class _VariantWidgetState extends State<VariantWidget> {
                         ),
                       ),
                     ),
-                    const CustomDivider(),
+                    const Divider(height:5),
                     VariationList(
                       productId: widget.productId,
                     ),

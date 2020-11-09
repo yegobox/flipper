@@ -4,13 +4,13 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/ui/category/category_view.dart';
 import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
-import 'package:flipper/ui/product/center_divider.dart';
-import 'package:flipper/ui/product/description_widget.dart';
-import 'package:flipper/ui/product/list_divider.dart';
-import 'package:flipper/ui/product/retail/retail_price_widget.dart';
+import 'package:flipper/ui/shared/divider.dart';
+import 'package:flipper/ui/shared/description.dart';
+import 'package:flipper/ui/shared/list_divider.dart';
+import 'package:flipper/ui/product/retail/retail_price.dart';
 import 'package:flipper/ui/product/section_select_unit.dart';
 import 'package:flipper/ui/product/sku/sku_view.dart';
-import 'package:flipper/ui/product/widget/build_image_holder.dart';
+import 'package:flipper/ui/shared/build_image_holder.dart';
 import 'package:flipper/ui/variation/add_variant.dart';
 import 'package:flipper/ui/variation/variation_list.dart';
 import 'package:flipper/ui/widget/supplier/supply_price_widget.dart';
@@ -118,13 +118,13 @@ class AddProductView extends StatelessWidget {
                     const CenterDivider(
                       width: double.infinity,
                     ),
-                    RetailPriceWidget(
+                    RetailPrice(
                       models: model, //add productmodel
                     ),
                     const CenterDivider(
                       width: double.infinity,
                     ),
-                    SupplyPriceWidget(
+                    SupplyPrice(
                       addModel: model,
                     ),
 

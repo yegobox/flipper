@@ -132,11 +132,11 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             }),
                             _menuListRowButton('Lists', icon: AppIcon.lists,
                                 onPressed: () {
-                              _navigateTo(Routing.allItemScreen);
+                              //_navigateTo(Routing.allItemScreen);
                             }),
                             _menuListRowButton('Reports',
                                 icon: AppIcon.bookmark, onPressed: () {
-                              _navigateTo(Routing.reportScreen);
+                              //_navigateTo(Routing.reportScreen);
                             }),
                             _menuListRowButton(
                               'Payroll',

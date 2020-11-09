@@ -23,16 +23,10 @@ import 'package:flipper/ui/widget/stock/receive_stock.dart';
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
 import 'package:flipper/ui/order/order_details_view.dart';
 import 'package:flipper/model/order.dart';
-import 'package:flipper/ui/product/products_view.dart';
-import 'package:flipper/ui/product/view_products_screen.dart';
-import 'package:flipper/ui/welcome/login/login_screen.dart';
-import 'package:flipper/ui/product/single_product_view.dart';
 import 'package:flipper/ui/variation/edit_variation_screen.dart';
 import 'package:flipper/ui/widget/category/edit_category_view.dart';
 import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
 import 'package:flipper/ui/transactions/transaction_screen.dart';
-import 'package:flipper/ui/reports/report_screen.dart';
-import 'package:flipper/ui/reports/date_screen.dart';
 import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/ui/welcome/selling/tender_screen.dart';
 import 'package:flipper/ui/camera/camera_preview.dart';
@@ -57,16 +51,10 @@ class Routing {
   static const receiveStock = '/receive-stock';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
   static const orderDetailsView = '/order-details-view';
-  static const allItemScreen = '/all-item-screen';
-  static const viewItemsScreen = '/view-items-screen';
-  static const login = '/login';
-  static const viewSingleItem = '/view-single-item';
   static const editVariationScreen = '/edit-variation-screen';
   static const editCategoryScreen = '/edit-category-screen';
   static const editUnitType = '/edit-unit-type';
   static const transactionScreen = '/transaction-screen';
-  static const reportScreen = '/report-screen';
-  static const dateScreen = '/date-screen';
   static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
   static const cameraPreview = '/camera-preview';
@@ -234,45 +222,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.allItemScreen:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => AllItemScreen(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.viewItemsScreen:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ViewProductsScreen(key: typedArgs),
-          settings: settings,
-        );
-      case Routing.login:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => LoginScreen(),
-          settings: settings,
-        );
-      case Routing.viewSingleItem:
-        if (hasInvalidArgs<ViewSingleItemScreenArguments>(args,
-            isRequired: true)) {
-          return misTypedArgsRoute<ViewSingleItemScreenArguments>(args);
-        }
-        final typedArgs = args as ViewSingleItemScreenArguments;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ViewSingleItemScreen(
-              key: typedArgs.key,
-              productId: typedArgs.productId,
-              itemName: typedArgs.itemName,
-              itemColor: typedArgs.itemColor),
-          settings: settings,
-          fullscreenDialog: true,
-        );
       case Routing.editVariationScreen:
         if (hasInvalidArgs<EditVariationScreenArguments>(args,
             isRequired: true)) {
@@ -316,23 +265,6 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
-        );
-      case Routing.reportScreen:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ReportScreen(),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.dateScreen:
-        if (hasInvalidArgs<DateScreenArguments>(args)) {
-          return misTypedArgsRoute<DateScreenArguments>(args);
-        }
-        final typedArgs = args as DateScreenArguments ?? DateScreenArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              DateScreen(key: typedArgs.key, title: typedArgs.title),
-          settings: settings,
-          fullscreenDialog: true,
         );
       case Routing.completeSaleScreen:
         if (hasInvalidArgs<CompleteSaleScreenArguments>(args)) {
@@ -454,19 +386,6 @@ class OrderDetailsViewArguments {
   OrderDetailsViewArguments({this.key, this.orders});
 }
 
-//ViewSingleItemScreen arguments holder class
-class ViewSingleItemScreenArguments {
-  final Key key;
-  final String productId;
-  final String itemName;
-  final String itemColor;
-  ViewSingleItemScreenArguments(
-      {this.key,
-      @required this.productId,
-      @required this.itemName,
-      @required this.itemColor});
-}
-
 //EditVariationScreen arguments holder class
 class EditVariationScreenArguments {
   final Key key;
@@ -492,13 +411,6 @@ class EditUnitViewArguments {
   final Key key;
   final String itemId;
   EditUnitViewArguments({this.key, @required this.itemId});
-}
-
-//DateScreen arguments holder class
-class DateScreenArguments {
-  final Key key;
-  final String title;
-  DateScreenArguments({this.key, this.title});
 }
 
 //CompleteSaleScreen arguments holder class

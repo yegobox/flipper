@@ -1,5 +1,5 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/ui/product/center_divider.dart';
+import 'package:flipper/ui/shared/divider.dart';
 import 'package:flipper/ui/product/section_select_unit.dart';
 import 'package:flipper/ui/variation/variation_viewmodel.dart';
 

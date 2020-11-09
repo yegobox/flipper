@@ -1,7 +1,7 @@
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
-import 'add/add_product_viewmodel.dart';
+import '../product/add/add_product_viewmodel.dart';
 
 class DescriptionWidget extends StatelessWidget {
   const DescriptionWidget({Key key, this.model}) : super(key: key);

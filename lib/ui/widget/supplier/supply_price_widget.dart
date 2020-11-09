@@ -1,5 +1,5 @@
 import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
+
 import 'package:flipper/ui/widget/supplier/supplier_viewmodel.dart';
 
 
@@ -7,8 +7,8 @@ import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-class SupplyPriceWidget extends StatelessWidget {
-  const SupplyPriceWidget({Key key, this.addModel}) : super(key: key);
+class SupplyPrice extends StatelessWidget {
+  const SupplyPrice({Key key, this.addModel}) : super(key: key);
  // final CommonViewModel vm;
   final AddProductViewmodel addModel;
 

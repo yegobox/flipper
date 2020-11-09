@@ -4,9 +4,7 @@ import 'package:flipper/ui/order/order_details_view.dart';
 import 'package:flipper/ui/product/add/add_category_view.dart';
 import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
-import 'package:flipper/ui/product/products_view.dart';
-import 'package:flipper/ui/product/single_product_view.dart';
-import 'package:flipper/ui/product/view_products_screen.dart';
+
 import 'package:flipper/ui/variation/edit_variation_screen.dart';
 
 import 'package:flipper/ui/welcome/signup/signup_view.dart';
@@ -29,8 +27,7 @@ import 'package:flipper/ui/category/create_category_input_screen.dart';
 import 'package:flipper/ui/open_close_drawerview.dart';
 
 import 'package:flipper/ui/widget/stock/receive_stock.dart';
-import 'package:flipper/ui/reports/date_screen.dart';
-import 'package:flipper/ui/reports/report_screen.dart';
+
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
 import 'package:flipper/ui/setting_up_application_screen.dart';
 import 'package:flipper/ui/transactions/transaction_screen.dart';
@@ -96,15 +93,6 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   OrderDetailsView orderDetailsView;
 
-  @MaterialRoute(fullscreenDialog: true)
-  AllItemScreen allItemScreen;
-
-  ViewProductsScreen viewItemsScreen;
-  LoginScreen login;
-
-  @MaterialRoute(fullscreenDialog: true)
-  ViewSingleItemScreen viewSingleItem;
-
 
   EditVariationScreen editVariationScreen;
 
@@ -114,11 +102,6 @@ class $Routing {
 
   TransactionScreen transactionScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  ReportScreen reportScreen;
-
-  @MaterialRoute(fullscreenDialog: true)
-  DateScreen dateScreen;
 
   @MaterialRoute(fullscreenDialog: true)
   CompleteSaleScreen completeSaleScreen;

@@ -1,16 +1,18 @@
 
-
-
 import 'dart:io';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/ui/product/widget/build_close_button.dart';
-import 'package:flipper/ui/product/widget/image_placeholder_viewmodel.dart';
+
+import 'package:flipper/ui/shared/close_button.dart';
+
+
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+
+import 'image_placeholder_viewmodel.dart';
 
 
 class ImagePlaceHolderView extends StatelessWidget {

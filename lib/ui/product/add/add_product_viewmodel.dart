@@ -22,7 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
-class AddProductViewmodel extends ProductViewModel {
+class AddProductViewmodel extends ProductsViewModel {
   
   Category _category;
   String _colorName;

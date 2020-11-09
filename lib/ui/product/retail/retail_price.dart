@@ -8,10 +8,8 @@ import 'package:stacked/stacked.dart';
 
 import 'retail_view.dart';
 
-class RetailPriceWidget
-
- extends StatelessWidget {
-  const RetailPriceWidget({Key key, this.models}) : super(key: key);
+class RetailPrice extends StatelessWidget {
+  const RetailPrice({Key key, this.models}) : super(key: key);
   final AddProductViewmodel models;
   @override
   Widget build(BuildContext context) {

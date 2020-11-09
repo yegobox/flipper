@@ -3,6 +3,7 @@ import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
@@ -12,7 +13,7 @@ import 'package:logger/logger.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 
 
-class ProductViewModel extends BaseModel {
+class ProductsViewModel extends BaseModel {
   final Logger log = Logging.getLogger('product observer:)');
 
   String _branchId;
@@ -34,7 +35,7 @@ class ProductViewModel extends BaseModel {
     return category.isNotEmpty;
   }
 
-  String get branchId{
+  String get branchId {
     return _branchId;
   }
 
@@ -69,18 +70,17 @@ class ProductViewModel extends BaseModel {
     }
 
     // load busines
-    final  List<Map<String, dynamic>> doc = await _databaseService.filter(
-        equator: AppTables.business,
-        property: 'table',
-        and: true, //define that this query is and type.
-        andEquator: userId,
-        andProperty: 'userId',
-      );
-      
-  
+    final List<Map<String, dynamic>> doc = await _databaseService.filter(
+      equator: AppTables.business,
+      property: 'table',
+      and: true, //define that this query is and type.
+      andEquator: userId,
+      andProperty: 'userId',
+    );
+
     final List<Business> businesses = [];
 
-    if (doc.isNotEmpty) { 
+    if (doc.isNotEmpty) {
       // log.i(doc[0]['main']);
       businesses.add(Business.fromMap(doc[0]['main']));
     }
@@ -101,7 +101,6 @@ class ProductViewModel extends BaseModel {
         .observer(equator: AppTables.product, property: 'table')
         .stream
         .listen((ResultSet event) {
-      
       final List<Map<String, dynamic>> model = event.map((Result result) {
         return result.toMap();
       }).toList();
@@ -118,5 +117,27 @@ class ProductViewModel extends BaseModel {
 
       setBusy(false);
     });
+  }
+
+  // selling a product
+  void shouldSeeItemOnly(BuildContext context, Product product) {
+    final FlipperNavigationService _navigationService = ProxyService.nav;
+
+    // _navigationService.navigateTo(
+    //   Routing.viewSingleItem,
+    //   arguments: ViewSingleItemScreenArguments(
+    //     productId: product.id,
+    //     itemName: product.name,
+    //     itemColor: product.color,
+    //   ),
+    // );
+  }
+
+  void onSellingItem(BuildContext context, Product product) async {
+    // TODO(telesphore): finish selling process.
+    // final List<Variation> variants = await buildVariantsList(context, product);
+
+    // _navigationService.navigateTo(Routing.editQuantityItemScreen,
+    //     arguments: ChangeQuantityForSellingArguments(productId: product.id));
   }
 }

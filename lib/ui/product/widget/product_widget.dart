@@ -8,7 +8,7 @@ class ProductWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var moneyFormat = new MoneyMaskedTextController(leftSymbol: '\$');
+    final moneyFormat = MoneyMaskedTextController(leftSymbol: '\$');
 
     moneyFormat.updateValue(0);
     //use storeconnector here and get the value broadcasted from store append each at the end of queue
@@ -17,24 +17,24 @@ class ProductWidget extends StatelessWidget {
       Container(
         width: 350,
         child: TextField(
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 25.0,
             color: Colors.blueAccent,
           ),
           decoration: InputDecoration(
-            contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-            prefixIcon: Icon(Icons.search),
+            contentPadding: const EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+            prefixIcon: const Icon(Icons.search),
             hintText: 'Search product',
             border: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blueAccent, width: 0.0),
+                borderSide: const BorderSide(color: Colors.blueAccent, width: 0.0),
                 borderRadius: BorderRadius.circular(0.0)),
             focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white, width: 0.0),
+                borderSide: const BorderSide(color: Colors.white, width: 0.0),
                 borderRadius: BorderRadius.circular(0.0)),
           ),
         ),
       ),
-      SizedBox(
+      const SizedBox(
         height: 10,
       ),
       Expanded(
@@ -47,14 +47,14 @@ class ProductWidget extends StatelessWidget {
               leading: Image.network(
                 'https://picsum.photos/250?image=9',
               ),
-              title: Text(
-                'Yogourt',
+              title: const Text(
+                'Yogurt',
                 style: TextStyle(color: Colors.black),
               ),
             );
           },
           separatorBuilder: (context, index) {
-            return Divider();
+            return const Divider();
           },
         ),
       ),

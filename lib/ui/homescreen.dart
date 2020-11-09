@@ -1,7 +1,7 @@
 import 'package:flipper/ui/flipper_drawer.dart';
 import 'package:flipper/ui/home_app_bar.dart';
 import 'package:flipper/ui/keypad/poswidget.dart';
-import 'package:flipper/ui/product/product_screen.dart';
+import 'package:flipper/ui/product/product_view.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/welcome/payable/payable_view.dart';
 
@@ -37,13 +37,13 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (index) {
       case 0:
         return const Poswidget();
-        // return const ProductScreen();
+        // return const ProductsView();
         break;
       case 1:
-        return  ProductScreen(userId: vm.user.id,);
+        return  ProductsView(userId: vm.user.id,);
         break;
       case 2:
-        return  ProductScreen(userId: vm.user.id,);
+        return  ProductsView(userId: vm.user.id,);
         break;
     }
   }

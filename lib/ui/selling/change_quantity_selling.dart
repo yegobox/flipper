@@ -1,13 +1,12 @@
-import 'package:flipper/data/main_database.dart';
+
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/ui/selling/multiple_variant_view_widget.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class ChangeQuantityForSelling extends StatefulWidget {
-  ChangeQuantityForSelling({Key key, @required this.productId})
+  const ChangeQuantityForSelling({Key key, @required this.productId})
       : super(key: key);
   final String productId;
 
