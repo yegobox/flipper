@@ -12,13 +12,16 @@ jobs:
     - uses: jwsi/secret-parser@v1
       with:
           filename: google-services.json
-          secret-name: important_value
-          FIREBASE_URL: ${{ secrets.FIREBASE_URL }}
-          OAHTH_CLIENT_ID: ${{ secrets.OAHTH_CLIENT_ID }}
-          CLIENT_ID_FLIPPER: ${{ secrets.CLIENT_ID_FLIPPER }}
-          CERTIFICATE_HASH_FLIPPER: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
-         
-          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+          FIREBASE_URL-name: FIREBASE_URL
+          FIREBASE_URL-value: ${{ secrets.FIREBASE_URL }}
+          OAHTH_CLIENT_ID-name: OAHTH_CLIENT_ID
+          OAHTH_CLIENT_ID-value: ${{ secrets.OAHTH_CLIENT_ID }}
+          CLIENT_ID_FLIPPER-name: CLIENT_ID_FLIPPER
+          CLIENT_ID_FLIPPER-value: ${{ secrets.CLIENT_ID_FLIPPER }}
+          CERTIFICATE_HASH_FLIPPER-name: CERTIFICATE_HASH_FLIPPER
+          CERTIFICATE_HASH_FLIPPER-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
+          STORAGE_BUCKET-name: STORAGE_BUCKET
+          STORAGE_BUCKET-value: ${{ secrets.STORAGE_BUCKET }}
   #   - uses: actions/checkout@v1
   #   - name: Fetch all history for all tags and branches
   #     run: |
