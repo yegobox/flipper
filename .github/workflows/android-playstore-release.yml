@@ -46,11 +46,12 @@ jobs:
     - name: Install GitVersion
       uses: gittools/actions/gitreleasemanager/setup@v0.9
       with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          owner: ${{ steps.repo.outputs._0 }}
-          repository: ${{ steps.repo.outputs._1 }}
-          milestone: ${{ steps.gitversion.outputs.majorMinorPatch }}
-          name: 'Release ${{ steps.gitversion.outputs.majorMinorPatch }}'
+        versionSpec: '0.11.x'
+        token: ${{ secrets.GITHUB_TOKEN }}
+        owner: ${{ steps.repo.outputs._0 }}
+        repository: ${{ steps.repo.outputs._1 }}
+        milestone: ${{ steps.gitversion.outputs.majorMinorPatch }}
+        name: 'Release ${{ steps.gitversion.outputs.majorMinorPatch }}'
     - name: Use GitVersion
       id: gitversion
       uses: gittools/actions/gitreleasemanager/create@v0.9
