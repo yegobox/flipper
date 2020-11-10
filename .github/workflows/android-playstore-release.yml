@@ -47,7 +47,6 @@ jobs:
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.5
       with:
-      # 
           versionSpec: '5.5.x'
     - name: Use GitVersion
       id: gitversion
@@ -88,7 +87,7 @@ jobs:
         java-version: '12.x'
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '1.17.0'
+        flutter-version: '1.24.0-8.0.pre.155'
     - run: flutter pub get
     - run: flutter test
     - run: flutter build apk --release --split-per-abi
