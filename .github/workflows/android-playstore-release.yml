@@ -9,27 +9,28 @@ jobs:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-    # - uses: jwsi/secret-parser@v1
-    #   with:
-    #       filename: google-services.json
-    #       FIREBASE_URL-name: FIREBASE_URL
-    #       FIREBASE_URL-value: ${{ secrets.FIREBASE_URL }}
-    #       OAHTH_CLIENT_ID-name: OAHTH_CLIENT_ID
-    #       OAHTH_CLIENT_ID-value: ${{ secrets.OAHTH_CLIENT_ID }}
-    #       CLIENT_ID_FLIPPER-name: CLIENT_ID_FLIPPER
-    #       CLIENT_ID_FLIPPER-value: ${{ secrets.CLIENT_ID_FLIPPER }}
-    #       CERTIFICATE_HASH_FLIPPER-name: CERTIFICATE_HASH_FLIPPER
-    #       CERTIFICATE_HASH_FLIPPER-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
-    #       STORAGE_BUCKET-name: STORAGE_BUCKET
-    #       STORAGE_BUCKET-value: ${{ secrets.STORAGE_BUCKET }}
-    - uses: actions/checkout@v1
-      run: |
-        git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-        git fetch --prune --depth=10000
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.3
+    - uses: jwsi/secret-parser@v1
       with:
-          versionSpec: '5.2.x'
+          filename: google-services.json
+          secret-name: FIREBASE_URL
+          secret-value: ${{ secrets.FIREBASE_URL }}
+          # OAHTH_CLIENT_ID-name: OAHTH_CLIENT_ID
+          # OAHTH_CLIENT_ID-value: ${{ secrets.OAHTH_CLIENT_ID }}
+          # CLIENT_ID_FLIPPER-name: CLIENT_ID_FLIPPER
+          # CLIENT_ID_FLIPPER-value: ${{ secrets.CLIENT_ID_FLIPPER }}
+          # CERTIFICATE_HASH_FLIPPER-name: CERTIFICATE_HASH_FLIPPER
+          # CERTIFICATE_HASH_FLIPPER-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
+          # STORAGE_BUCKET-name: STORAGE_BUCKET
+          # STORAGE_BUCKET-value: ${{ secrets.STORAGE_BUCKET }}
+  #   - uses: actions/checkout@v1
+  #   - name: Fetch all history for all tags and branches
+  #     run: |
+  #       git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
+  #       git fetch --prune --depth=10000
+  #   - name: Install GitVersion
+  #     uses: gittools/actions/gitversion/setup@v0.9.3
+  #     with:
+  #         versionSpec: '5.2.x'
   #   - name: Use GitVersion
   #     id: gitversion
   #     uses: gittools/actions/gitversion/execute@v0.9.3
