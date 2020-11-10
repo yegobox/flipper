@@ -39,7 +39,7 @@ jobs:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: Fetch all history for all tags and branches
       run: |
         git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
@@ -64,7 +64,7 @@ jobs:
     needs: [ version ]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: Get version.txt
       uses: actions/download-artifact@v2
       with:
@@ -109,7 +109,7 @@ jobs:
   #   needs: [ build ]
   #   runs-on: ubuntu-latest
   #   steps:
-  #   - uses: actions/checkout@v2
+  #   - uses: actions/checkout@v1
   #   - name: Get appbundle from artifacts
   #     uses: actions/download-artifact@v2
   #     with:
