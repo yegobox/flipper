@@ -9,7 +9,7 @@ jobs:
     name: 'replace values'
     runs-on: ubuntu-latest
     steps:
-    - uses: jwsi/secret-parser@v1
+    - uses: yegobox/secret-parser@v1.0.1
       with:
           filename: android/app/google-services.json
           secret-name: FIREBASE_URL
