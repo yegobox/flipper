@@ -107,8 +107,8 @@ jobs:
         java-version: '8.x'
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '1.22.3'
-        channel: 'stable'
+        flutter-version: '1.24.0-7.0.pre'
+        channel: 'master'
     - run: flutter pub get
     - run: flutter test
     - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
