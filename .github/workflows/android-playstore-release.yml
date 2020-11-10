@@ -39,10 +39,6 @@ jobs:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-        ref: mobile
-        fetch-depth: 0
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.3
       with:
@@ -57,6 +53,12 @@ jobs:
       with:
         name: gitversion
         path: version.txt
+        
+    - uses: actions/checkout@v2
+      with:
+        ref: mobile
+        fetch-depth: 0
+    
 
   build:
     name: Build APK and Create release
