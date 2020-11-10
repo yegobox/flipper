@@ -39,7 +39,6 @@ class Routing {
   static const dashboard = '/dashboard';
   static const afterSplash = '/after-splash';
   static const addNoteScreen = '/add-note-screen';
-  static const settingUpApplicationScreen = '/setting-up-application-screen';
   static const signUpView = '/sign-up-view';
   static const addProduct = '/add-product';
   static const editItemTitle = '/edit-item-title';
