@@ -9,17 +9,17 @@ jobs:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-    - uses: jwsi/secret-parser@v1
-    - name: Put values in google-services.json file
-      with:
-          filename: google-services.json
-          secret-name: important_value
-          FIREBASE_URL: ${{ secrets.FIREBASE_URL }}
-          OAHTH_CLIENT_ID: ${{ secrets.OAHTH_CLIENT_ID }}
-          CLIENT_ID_FLIPPER: ${{ secrets.CLIENT_ID_FLIPPER }}
-          CERTIFICATE_HASH_FLIPPER: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
+    # - uses: jwsi/secret-parser@v1
+    # - name: Put values in google-services.json file
+    #   with:
+    #       filename: google-services.json
+    #       secret-name: important_value
+    #       FIREBASE_URL: ${{ secrets.FIREBASE_URL }}
+    #       OAHTH_CLIENT_ID: ${{ secrets.OAHTH_CLIENT_ID }}
+    #       CLIENT_ID_FLIPPER: ${{ secrets.CLIENT_ID_FLIPPER }}
+    #       CERTIFICATE_HASH_FLIPPER: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
          
-          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+    #       STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
     - uses: actions/checkout@v1
     - name: Fetch all history for all tags and branches
       run: |
