@@ -12,7 +12,6 @@ jobs:
     # - uses: jwsi/secret-parser@v1
     # - name: Put values in google-services.json file
     #   with:
-    # 
     #       filename: google-services.json
     #       secret-name: important_value
     #       FIREBASE_URL: ${{ secrets.FIREBASE_URL }}
