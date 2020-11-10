@@ -35,31 +35,31 @@ jobs:
           filename: google-services.json
           secret-name: STORAGE_BUCKET
           secret-value: ${{ secrets.STORAGE_BUCKET }}           
-  # version:
-  #   name: Create version number
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: Fetch all history for all tags and branches
-  #     run: |
-  #       git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-  #       git fetch --prune --depth=10000
-  #   - name: Install GitVersion
-  #     uses: gittools/actions/gitversion/setup@v0.9.3
-  #     with:
-  #         versionSpec: '5.2.x'
-  #   - name: Use GitVersion
-  #     id: gitversion
-  #     uses: gittools/actions/gitversion/execute@v0.9.3
-  #   - name: Create version.txt with nuGetVersion
-  #     run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
-  #   - name: Upload version.txt
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: gitversion
-  #       path: version.txt
-
-
+  version:
+    name: Create version number
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Fetch all history for all tags and branches
+      run: |
+        git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
+        git fetch --prune --depth=10000
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.3
+      with:
+          versionSpec: '5.2.x'
+    - name: Use GitVersion
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.3
+    - name: Create version.txt with nuGetVersion
+      run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
+    - name: Upload version.txt
+      uses: actions/upload-artifact@v2
+      with:
+        name: gitversion
+        path: version.txt
+        
+              
   #   - uses: actions/checkout@v1
   #   - name: Fetch all history for all tags and branches
   #     run: |
