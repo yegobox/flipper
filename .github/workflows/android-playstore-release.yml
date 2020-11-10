@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: jwsi/secret-parser@v1
       with:
-          filename: '../android/app/google-services.json'
+          filename: android/app/google-services.json
           secret-name: FIREBASE_URL
           secret-value: ${{ secrets.FIREBASE_URL }}
     - uses: jwsi/secret-parser@v1
