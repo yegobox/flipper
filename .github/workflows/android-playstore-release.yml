@@ -138,7 +138,7 @@ jobs:
     - name: Release app to internal track
       uses: r0adkll/upload-google-play@v1
       with:
-        serviceAccountJson: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+        serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
         packageName: rw.flipper
         releaseFile: app-release.aab
         track: internal
