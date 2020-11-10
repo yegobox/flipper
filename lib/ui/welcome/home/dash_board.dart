@@ -18,15 +18,24 @@ class DashBoard extends StatefulWidget {
   _DashBoardState createState() => _DashBoardState();
 }
 
-class _DashBoardState extends State<DashBoard> {
+class _DashBoardState extends State<DashBoard> with SingleTickerProviderStateMixin {
 
   ValueNotifier<bool> _sideOpenController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  Animation<double> _fadeAnimation;
+  AnimationController _fadeController;
 
   @override
   void initState() {
     super.initState();
+     _setupAnimation();
     _sideOpenController = ValueNotifier<bool>(false);
+  }
+
+  void _setupAnimation() {
+    _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_fadeController);
+    _fadeController.forward(from: 1);
   }
 
   @override
@@ -54,13 +63,15 @@ class _DashBoardState extends State<DashBoard> {
                 final Scaffold we = Scaffold(
                   backgroundColor: Colors.black,
                   key: _scaffoldKey,
-                  body: SlideOutScreen(
-                    main: SwitchView(
+                  body: FadeTransition(opacity:_fadeAnimation,
+                                      child: SlideOutScreen(
+                      main: SwitchView(
+                        sideOpenController: _sideOpenController,
+                        vm: vm,
+                      ),
+                      side: const BusinessDetails(),
                       sideOpenController: _sideOpenController,
-                      vm: vm,
                     ),
-                    side: const BusinessDetails(),
-                    sideOpenController: _sideOpenController,
                   ),
                 );
                 return we;
