@@ -53,8 +53,8 @@ class $Routing {
   // @MaterialRoute(fullscreenDialog: true)
   // SaleScreen saleScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  SettingUpApplicationScreen settingUpApplicationScreen;
+  // @MaterialRoute(fullscreenDialog: true)
+  // SettingUpApplicationScreen settingUpApplicationScreen;
 
   @CustomRoute(
       transitionsBuilder: TransitionsBuilders.slideLeft,
