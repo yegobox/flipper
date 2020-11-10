@@ -9,7 +9,6 @@ import 'package:flipper/ui/variation/edit_variation_screen.dart';
 
 import 'package:flipper/ui/welcome/signup/signup_view.dart';
 import 'package:flipper/ui/welcome/home/dash_board.dart';
-import 'package:flipper/ui/welcome/login/login_screen.dart';
 import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/ui/welcome/selling/tender_screen.dart';
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
@@ -29,7 +28,6 @@ import 'package:flipper/ui/open_close_drawerview.dart';
 import 'package:flipper/ui/widget/stock/receive_stock.dart';
 
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
-import 'package:flipper/ui/setting_up_application_screen.dart';
 import 'package:flipper/ui/transactions/transaction_screen.dart';
 import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
 import 'package:flipper/ui/widget/category/edit_category_view.dart';
