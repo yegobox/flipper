@@ -5,36 +5,36 @@ on:
     branches: [ mobile, develop ]
 
 jobs:
-  replace-values:
-    name: 'replace values'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: yegobox/secret-parser@v1.0.1
-      with:
-          filename: ../android/app/google-services.json
-          secret-name: FIREBASE_URL
-          secret-value: ${{ secrets.FIREBASE_URL }}
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: OAHTH_CLIENT_ID
-          secret-value: ${{ secrets.OAHTH_CLIENT_ID }}
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: CLIENT_ID_FLIPPER
-          secret-value: ${{ secrets.CLIENT_ID_FLIPPER }}     
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: CERTIFICATE_HASH_FLIPPER
-          secret-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}      
+  # replace-values:
+  #   name: 'replace values'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: yegobox/secret-parser@v1.0.1
+  #     with:
+  #         filename: ../android/app/google-services.json
+  #         secret-name: FIREBASE_URL
+  #         secret-value: ${{ secrets.FIREBASE_URL }}
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: OAHTH_CLIENT_ID
+  #         secret-value: ${{ secrets.OAHTH_CLIENT_ID }}
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: CLIENT_ID_FLIPPER
+  #         secret-value: ${{ secrets.CLIENT_ID_FLIPPER }}     
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: CERTIFICATE_HASH_FLIPPER
+  #         secret-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}      
 
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: STORAGE_BUCKET
-          secret-value: ${{ secrets.STORAGE_BUCKET }}           
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: STORAGE_BUCKET
+  #         secret-value: ${{ secrets.STORAGE_BUCKET }}           
   version:
     name: Create version number
     runs-on: ubuntu-latest
