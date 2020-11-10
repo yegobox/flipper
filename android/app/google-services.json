@@ -1,9 +1,9 @@
 {
   "project_info": {
     "project_number": "672237316015",
-    "firebase_url": "#{ secrets.FIREBASE_URL}#",
+    "firebase_url": "${{ secrets.FIREBASE_URL }}",
     "project_id": "yegobox-2ee43",
-    "storage_bucket": "#{SECRETS.STORAGE_BUCKET}#"
+    "storage_bucket": "${{ SECRETS.STORAGE_BUCKET}}"
   },
   "client": [
     {
@@ -52,8 +52,7 @@
       },
       "oauth_client": [
         {
-
-          "client_id": "#{secrets.OAHTH_CLIENT_ID}#",
+          "client_id": "${{secrets.OAHTH_CLIENT_ID }}",
           "client_type": 1,
           "android_info": {
             "package_name": "rw.flipper",
@@ -61,11 +60,11 @@
           }
         },
         {
-          "client_id": "#{ secrets.CLIENT_ID_FLIPPER}#",
+          "client_id": "${{ secrets.CLIENT_ID_FLIPPER }}",
           "client_type": 1,
           "android_info": {
             "package_name": "rw.flipper",
-            "certificate_hash": "#{ secrets.CERTIFICATE_HASH_FLIPPER}#"
+            "certificate_hash": "${{ secrets.CERTIFICATE_HASH_FLIPPER }}"
           }
         },
         {
