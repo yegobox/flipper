@@ -6,6 +6,7 @@ on:
 
 jobs:
   # replace-values:
+  # TODO: should keep google-services.json data private too!
   #   name: 'replace values'
   #   runs-on: ubuntu-latest
   #   steps:
