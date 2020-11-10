@@ -47,11 +47,12 @@ jobs:
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.3
       with:
-          versionSpec: '5.3.x'
-          ref: mobile
+          versionSpec: '5.2.x'
     - name: Use GitVersion
       id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.3
+      with:
+        ref: 'mobile'
     - name: Create version.txt with nuGetVersion
       run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
     - name: Upload version.txt
