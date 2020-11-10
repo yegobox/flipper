@@ -5,8 +5,8 @@ on:
     branches: [ mobile ]
 
 jobs:
-  version:
-    name: Create version number
+  replace-values:
+    name: 'replace values'
     runs-on: ubuntu-latest
     steps:
     - uses: jwsi/secret-parser@v1
@@ -14,14 +14,52 @@ jobs:
           filename: google-services.json
           secret-name: FIREBASE_URL
           secret-value: ${{ secrets.FIREBASE_URL }}
-          # OAHTH_CLIENT_ID-name: OAHTH_CLIENT_ID
-          # OAHTH_CLIENT_ID-value: ${{ secrets.OAHTH_CLIENT_ID }}
-          # CLIENT_ID_FLIPPER-name: CLIENT_ID_FLIPPER
-          # CLIENT_ID_FLIPPER-value: ${{ secrets.CLIENT_ID_FLIPPER }}
-          # CERTIFICATE_HASH_FLIPPER-name: CERTIFICATE_HASH_FLIPPER
-          # CERTIFICATE_HASH_FLIPPER-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}
-          # STORAGE_BUCKET-name: STORAGE_BUCKET
-          # STORAGE_BUCKET-value: ${{ secrets.STORAGE_BUCKET }}
+    - uses: jwsi/secret-parser@v1
+      with: 
+          filename: google-services.json
+          secret-name: OAHTH_CLIENT_ID
+          secret-value: ${{ secrets.OAHTH_CLIENT_ID }}
+    - uses: jwsi/secret-parser@v1
+      with: 
+          filename: google-services.json
+          secret-name: CLIENT_ID_FLIPPER
+          secret-value: ${{ secrets.CLIENT_ID_FLIPPER }}     
+    - uses: jwsi/secret-parser@v1
+      with: 
+          filename: google-services.json
+          secret-name: CERTIFICATE_HASH_FLIPPER
+          secret-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}      
+
+    - uses: jwsi/secret-parser@v1
+      with: 
+          filename: google-services.json
+          secret-name: STORAGE_BUCKET
+          secret-value: ${{ secrets.STORAGE_BUCKET }}           
+  # version:
+  #   name: Create version number
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - name: Fetch all history for all tags and branches
+  #     run: |
+  #       git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
+  #       git fetch --prune --depth=10000
+  #   - name: Install GitVersion
+  #     uses: gittools/actions/gitversion/setup@v0.9.3
+  #     with:
+  #         versionSpec: '5.2.x'
+  #   - name: Use GitVersion
+  #     id: gitversion
+  #     uses: gittools/actions/gitversion/execute@v0.9.3
+  #   - name: Create version.txt with nuGetVersion
+  #     run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
+  #   - name: Upload version.txt
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: gitversion
+  #       path: version.txt
+
+
   #   - uses: actions/checkout@v1
   #   - name: Fetch all history for all tags and branches
   #     run: |
