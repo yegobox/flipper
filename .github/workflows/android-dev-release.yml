@@ -1,4 +1,4 @@
-name: Demo App Android Release
+name: App Android Release
 
 on:
   push:
