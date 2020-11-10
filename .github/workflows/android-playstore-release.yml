@@ -5,52 +5,52 @@ on:
     branches: [ mobile ]
 
 jobs:
-  replace-values:
-    name: 'replace values'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: jwsi/secret-parser@v1
-      with:
-          filename: android/app/google-services.json
-          secret-name: FIREBASE_URL
-          secret-value: ${{ secrets.FIREBASE_URL }}
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: OAHTH_CLIENT_ID
-          secret-value: ${{ secrets.OAHTH_CLIENT_ID }}
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: CLIENT_ID_FLIPPER
-          secret-value: ${{ secrets.CLIENT_ID_FLIPPER }}     
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: CERTIFICATE_HASH_FLIPPER
-          secret-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}      
+  # replace-values:
+  #   name: 'replace values'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: jwsi/secret-parser@v1
+  #     with:
+  #         filename: android/app/google-services.json
+  #         secret-name: FIREBASE_URL
+  #         secret-value: ${{ secrets.FIREBASE_URL }}
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: OAHTH_CLIENT_ID
+  #         secret-value: ${{ secrets.OAHTH_CLIENT_ID }}
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: CLIENT_ID_FLIPPER
+  #         secret-value: ${{ secrets.CLIENT_ID_FLIPPER }}     
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: CERTIFICATE_HASH_FLIPPER
+  #         secret-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}      
 
-    - uses: jwsi/secret-parser@v1
-      with: 
-          filename: google-services.json
-          secret-name: STORAGE_BUCKET
-          secret-value: ${{ secrets.STORAGE_BUCKET }}           
+  #   - uses: jwsi/secret-parser@v1
+  #     with: 
+  #         filename: google-services.json
+  #         secret-name: STORAGE_BUCKET
+  #         secret-value: ${{ secrets.STORAGE_BUCKET }}           
   version:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Fetch all history for all tags and branches
       run: |
         git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
         git fetch --prune --depth=10000
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.3
+      uses: gittools/actions/gitversion/setup@v0.9.5
       with:
-          versionSpec: '5.2.x'
+          versionSpec: '5.5.x'
     - name: Use GitVersion
       id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.3
+      uses: gittools/actions/gitversion/execute@v0.9.5
     - name: Create version.txt with nuGetVersion
       run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
     - name: Upload version.txt
