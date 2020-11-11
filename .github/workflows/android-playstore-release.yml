@@ -2,16 +2,17 @@ name: App PlayStore Release
 
 on:
   push:
-    branches: [ mobile ]
+    branches: [ mobile, develop ]
 
 jobs:
   # replace-values:
+  # TODO: should keep google-services.json data private too!
   #   name: 'replace values'
   #   runs-on: ubuntu-latest
   #   steps:
-  #   - uses: jwsi/secret-parser@v1
+  #   - uses: yegobox/secret-parser@v1.0.1
   #     with:
-  #         filename: android/app/google-services.json
+  #         filename: ../android/app/google-services.json
   #         secret-name: FIREBASE_URL
   #         secret-value: ${{ secrets.FIREBASE_URL }}
   #   - uses: jwsi/secret-parser@v1
@@ -39,11 +40,11 @@ jobs:
     name: Create version number
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: Fetch all history for all tags and branches
       run: |
         git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-        git fetch --prune --depth=10000
+        git fetch --prune --depth=10
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.5
       with:
@@ -82,16 +83,36 @@ jobs:
       run: sed -i 's/#{KEYSTORE_PASS}#/${{ secrets.KEYSTORE_PASS }}/g' android/key.properties
     - name: Update KeyStore key password in gradle properties
       run: sed -i 's/#{KEYSTORE_KEY_PASS}#/${{ secrets.KEYSTORE_KEY_PASS }}/g' android/key.properties
+    - name: Update env URL
+      run: sed -i 's/#{URL}#/${{ secrets.URL }}/g'  .env
+    - name: Update env PASS
+      run: sed -i 's/#{PASS}#/${{ secrets.PASS }}/g' .env
+    - name: Update env GMPASS
+      run: sed -i 's/#{GMPASS}#/${{ secrets.GMPASS }}/g' .env
+    # - name: Update google-services.json
+    #   run: sed -i 's/#{GMPASS}#/${{ secrets.GMPASS }}/g' .env  
+    # - name: JSON
+    #   run: sed -i 's/#{FIREBASE_URL}#/${{ secrets.FIREBASE_URL }}/g' google-services.json
+    # - name: JSON
+    #   run: sed -i 's/#{STORAGE_BUCKET}#/${{ secrets.STORAGE_BUCKET }}/g' google-services.json
+    # - name: JSON
+    #   run: sed -i 's/#{OAHTH_CLIENT_ID}#/${{ secrets.OAHTH_CLIENT_ID }}/g' google-services.json
+    # - name: JSON
+    #   run: sed -i 's/#{CLIENT_ID_FLIPPER}#/${{ secrets.CLIENT_ID_FLIPPER }}/g' google-services.json
+    # - name: JSON
+    #   run: sed -i 's/#{CERTIFICATE_HASH_FLIPPER}#/${{ secrets.CERTIFICATE_HASH_FLIPPER }}/g' google-services.json
+
     - uses: actions/setup-java@v1
       with:
-        java-version: '12.x'
+        java-version: '8.x'
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '1.17.0'
+        flutter-version: '1.22.3'
+        channel: 'stable'
     - run: flutter pub get
     - run: flutter test
-    - run: flutter build apk --release --split-per-abi
-    - run: flutter build appbundle
+    - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
+    - run: flutter build appbundle --no-tree-shake-icons
     - name: Create a Release in GitHub
       uses: ncipollo/release-action@v1
       with:
@@ -104,22 +125,23 @@ jobs:
       with:
         name: appbundle
         path: build/app/outputs/bundle/release/app-release.aab      
-  # release:
-  #   name: Release app to internal track
-  #   needs: [ build ]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - name: Get appbundle from artifacts
-  #     uses: actions/download-artifact@v2
-  #     with:
-  #       name: appbundle
-  #   - name: Release app to internal track
-  #     uses: r0adkll/upload-google-play@v1
-  #     with:
-  #       serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-  #       packageName: com.fluttercicddemo
-  #       releaseFile: app-release.aab
-  #       track: internal
-  #       whatsNewDirectory: distribution/whatsnew            
+  release:
+    name: Release app to internal track
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get appbundle from artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: appbundle
+    - name: Release app to internal track
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+        packageName: rw.flipper
+        releaseFile: app-release.aab
+        track: internal
+        whatsNewDirectory: distribution/whatsnew            
  
+#  another release and here so!@

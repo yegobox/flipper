@@ -5,6 +5,7 @@ import 'package:flipper/flipper_app.dart';
 import 'package:flipper/locator.dart';
 
 import 'package:flipper/utils/app_colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -20,7 +21,12 @@ bool get isInDebugMode {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DotEnv().load('.env');
+
+  if (kReleaseMode) {
+    await DotEnv().load('.env');
+  } else {
+    await DotEnv().load('.env.local');
+  }
   await Firebase.initializeApp();
   setupLocator();
 

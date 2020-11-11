@@ -1,9 +1,9 @@
 {
   "project_info": {
     "project_number": "672237316015",
-    "firebase_url": "${{ secrets.FIREBASE_URL }}",
+    "firebase_url": "https://yegobox-2ee43.firebaseio.com",
     "project_id": "yegobox-2ee43",
-    "storage_bucket": "${{ SECRETS.STORAGE_BUCKET}}"
+    "storage_bucket": "yegobox-2ee43.appspot.com"
   },
   "client": [
     {
@@ -52,7 +52,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "${{secrets.OAHTH_CLIENT_ID }}",
+          "client_id": "672237316015-jh6apvi1qhqd1lvcc20jku1ubsidihvi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "rw.flipper",
@@ -60,11 +60,11 @@
           }
         },
         {
-          "client_id": "${{ secrets.CLIENT_ID_FLIPPER }}",
+          "client_id": "672237316015-i6i9lfi910esvpsddc4fni6g1d4v7b37.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "rw.flipper",
-            "certificate_hash": "${{ secrets.CERTIFICATE_HASH_FLIPPER }}"
+            "certificate_hash": "d5a899b04970c883df90a0981e19512899d0cf17"
           }
         },
         {

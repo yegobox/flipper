@@ -11,7 +11,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'services/analytics_service.dart';
 import 'services/abstractions/api.dart';
 import 'services/bluethooth_service.dart';
-import 'services/connectivity_service.dart';
 import 'services/database_service.dart';
 import 'services/flipperNavigation_service.dart';
 import 'services/api/http_api.dart';
@@ -37,8 +36,6 @@ GetIt $initGetIt(
   gh.lazySingleton<Api>(() => thirdPartyServicesModule.apiService);
   gh.lazySingleton<BlueToothService>(
       () => thirdPartyServicesModule.blueToothService);
-  gh.lazySingleton<ConnectivityService>(
-      () => thirdPartyServicesModule.connectivityService);
   gh.lazySingleton<DatabaseService>(
       () => thirdPartyServicesModule.databaseService);
   gh.lazySingleton<DialogService>(() => thirdPartyServicesModule.dialogService);
@@ -65,8 +62,6 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   AnalyticsService get analyticsService => AnalyticsService();
   @override
   BlueToothService get blueToothService => BlueToothService();
-  @override
-  ConnectivityService get connectivityService => ConnectivityService();
   @override
   DatabaseService get databaseService => DatabaseService();
   @override
