@@ -56,11 +56,11 @@ class DatabaseService {
                   Expression.string(equator),
                 )
                 // This was not working so a workaround is to map where the second Equator is
-                // .add(
-                //   Expression.property(andProperty).iS(
-                //     Expression.string(andEquator),
-                //   ),
-                // ),
+                .add(
+                  Expression.property(andProperty).iS(
+                    Expression.string(andEquator),
+                  ),
+                ),
           );
     }
     final ResultSet result = await query.execute();
@@ -109,7 +109,7 @@ class DatabaseService {
                 .equalTo(
                   Expression.string(equator),
                 )
-                .add(
+                .and(
                   Expression.property(andProperty).equalTo(
                     Expression.string(andEquator),
                   ),
