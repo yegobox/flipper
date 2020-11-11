@@ -72,7 +72,7 @@ dependencies:
   firebase_core: ^0.5.0+1
   firebase_messaging: ^6.0.16
   firebase_analytics: ^5.0.11
-  camera: 0.5.8+2
+  camera: 0.5.8+11
   
   flutter_uploader:
   flipper_login:
@@ -105,9 +105,11 @@ dependencies:
 
 
 dev_dependencies:
-  couchbase_lite: 2.7.1+6
+  couchbase_lite: ^2.7.1+6
   # couchbase_lite:
-  #   path: ../
+  #   git:
+  #     url: 'https://github.com/SaltechSystems/couchbase_lite.git'
+  #     ref: 'master'
   # flutter_flipperkit:
 
   build_runner: 
