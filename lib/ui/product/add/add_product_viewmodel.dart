@@ -4,25 +4,22 @@ import 'package:flipper/model/category.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/model/product.dart';
-import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/shared_state_service.dart';
-import 'package:flipper/ui/product/product_viewmodel.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
+import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:uuid/uuid.dart';
 
-class AddProductViewmodel extends ProductsViewModel {
+class AddProductViewmodel extends BaseModel {
   
   Category _category;
   String _colorName;
@@ -38,7 +35,6 @@ class AddProductViewmodel extends ProductsViewModel {
   TextEditingController _supplierPriceController;
   final List<Unit> _units = <Unit>[];
 
-  @override
   // ignore: overridden_fields
   final Logger log = Logging.getLogger('add product view model:)');
 
@@ -107,7 +103,7 @@ class AddProductViewmodel extends ProductsViewModel {
   }
 
   Future<void> handleCreateItem() async {
-    log.d(product);
+    
     await updateProduct(
       productId: product.id, //productId
       categoryId: category == null ? '10' : category.id,
@@ -160,10 +156,10 @@ class AddProductViewmodel extends ProductsViewModel {
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-    log.i('new name for product:' + nameController.text);
-    log.i('categoryId for product:' + categoryId);
-
+        final List<Map<String, dynamic>> p = await _databaseService.filter(property: 'table',equator:'products');
+    
     final Document product = await _databaseService.getById(id: productId);
+    assert(product !=null);
     product
         .toMutable()
         .setString('name', nameController.text)
@@ -218,104 +214,6 @@ class AddProductViewmodel extends ProductsViewModel {
     }
     setBusy(false);
     notifyListeners();
-  }
-
-  void navigateAddProduct() {
-    final FlipperNavigationService _navigationService = ProxyService.nav;
-    _navigationService.navigateTo(Routing.addProduct);
-  }
-
-  // this is a product to edit later on and add variation on it.
-  Future createTemporalProduct({String productName, String userId}) async {
-    final Logger log = Logging.getLogger('Data manager   Model ....');
-
-    final DatabaseService _databaseService = ProxyService.database;
-
-    final category = await _databaseService.filter(
-      equator: AppTables.category,
-      property: 'table',
-      and: true,
-      andEquator: 'custom',
-      andProperty: 'name',
-    );
-
-    final List<Map<String, dynamic>> product = await _databaseService.filter(
-      equator: productName,
-      property: 'name',
-      and: true,
-      andProperty: 'table',
-      andEquator: AppTables.product,
-    );
-
-    final List<Map<String, dynamic>> gettax = await _databaseService.filter(
-      equator: AppTables.tax,
-      property: 'table',
-      and: true,
-      andEquator: 'Vat',
-      andProperty: 'name',
-    );
-    log.d('categoryId:' + Category.fromMap(category[0]['main']).id);
-    log.d('taxId:' + Tax.fromMap(gettax[0]['main']).id);
-
-    if (product.isEmpty) {
-      final Document productDoc = await _databaseService.insert(data: {
-        'name': productName,
-        'categoryId': Category.fromMap(category[0]['main']).id,
-        'color': '#955be9',
-        'id': Uuid().v1(),
-        'active': true,
-        'hasPicture': false,
-        'channels': <String>[userId],
-        'table': AppTables.product,
-        'isCurrentUpdate': false,
-        'isDraft': true,
-        'taxId': Tax.fromMap(gettax[0]['main']).id,
-        'businessId': businessId,
-        'description': productName,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
-      final Document variant = await _databaseService.insert(data: {
-        'isActive': false,
-        'name': 'Regular',
-        'unit': 'kg',
-        'channels': <String>[userId],
-        'table': AppTables.variation,
-        'productId': productDoc.id,
-        'sku': Uuid().v1().substring(0, 4),
-        'id': Uuid().v1(),
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
-      await _databaseService.insert(data: {
-        'variantId': variant.id,
-        'supplyPrice': 0,
-        'canTrackingStock': false,
-        'showLowStockAlert': false,
-        'retailPrice': 0,
-        'channels': [userId],
-        'isActive': true,
-        'table': AppTables.stock,
-        'lowStock': 0,
-        'currentStock': 0,
-        'id': Uuid().v1(),
-        'productId': productDoc.id,
-        'branchId': branchId,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
-      await _databaseService.insert(data: {
-        'branchId': branchId,
-        'productId': productDoc.id,
-        'table': AppTables.branchProduct,
-        'id': Uuid().v1()
-      });
-
-      return productDoc.id;
-    } else {
-      final Product pro = Product.fromMap(product[0]['main']);
-      return pro.id;
-    }
   }
 
   String get colorName {

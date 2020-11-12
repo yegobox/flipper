@@ -11,7 +11,6 @@ import 'package:flipper/ui/welcome/splash/splash_screen.dart';
 import 'package:flipper/ui/welcome/home/dash_board.dart';
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
 import 'package:flipper/ui/widget/note/add_note_screen.dart';
-import 'package:flipper/ui/setting_up_application_screen.dart';
 import 'package:flipper/ui/welcome/signup/signup_view.dart';
 import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
@@ -34,13 +33,14 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/ui/open_close_drawerview.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
+import 'package:flipper/ui/product/widget/product_description.dart';
+import 'package:flipper/ui/widget/report/build_sales.dart';
 
 class Routing {
   static const splashScreen = '/';
   static const dashboard = '/dashboard';
   static const afterSplash = '/after-splash';
   static const addNoteScreen = '/add-note-screen';
-  static const settingUpApplicationScreen = '/setting-up-application-screen';
   static const signUpView = '/sign-up-view';
   static const addProduct = '/add-product';
   static const editItemTitle = '/edit-item-title';
@@ -61,6 +61,8 @@ class Routing {
   static const otpPage = '/otp-page';
   static const openCloseDrawerview = '/open-close-drawerview';
   static const contactView = '/contact-view';
+  static const productDescription = '/product-description';
+  static const sales = '/sales';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -99,12 +101,6 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => AddNoteScreen(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.settingUpApplicationScreen:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => SettingUpApplicationScreen(),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -329,6 +325,24 @@ class Routing {
       case Routing.contactView:
         return MaterialPageRoute<dynamic>(
           builder: (_) => ContactView(),
+          settings: settings,
+        );
+      case Routing.productDescription:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ProductDescription(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.sales:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => Sales(key: typedArgs),
           settings: settings,
         );
       default:

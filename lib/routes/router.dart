@@ -4,12 +4,12 @@ import 'package:flipper/ui/order/order_details_view.dart';
 import 'package:flipper/ui/product/add/add_category_view.dart';
 import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
+import 'package:flipper/ui/product/widget/product_description.dart';
 
 import 'package:flipper/ui/variation/edit_variation_screen.dart';
 
 import 'package:flipper/ui/welcome/signup/signup_view.dart';
 import 'package:flipper/ui/welcome/home/dash_board.dart';
-import 'package:flipper/ui/welcome/login/login_screen.dart';
 import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/ui/welcome/selling/tender_screen.dart';
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
@@ -23,19 +23,18 @@ import 'package:flipper/ui/camera/camera_preview.dart';
 
 import 'package:flipper/ui/category/create_category_input_screen.dart';
 
-
 import 'package:flipper/ui/open_close_drawerview.dart';
 
 import 'package:flipper/ui/widget/stock/receive_stock.dart';
 
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
-import 'package:flipper/ui/setting_up_application_screen.dart';
 import 'package:flipper/ui/transactions/transaction_screen.dart';
 import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
 import 'package:flipper/ui/widget/category/edit_category_view.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
+import 'package:flipper/ui/widget/report/build_sales.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -53,8 +52,8 @@ class $Routing {
   // @MaterialRoute(fullscreenDialog: true)
   // SaleScreen saleScreen;
 
-  @MaterialRoute(fullscreenDialog: true)
-  SettingUpApplicationScreen settingUpApplicationScreen;
+  // @MaterialRoute(fullscreenDialog: true)
+  // SettingUpApplicationScreen settingUpApplicationScreen;
 
   @CustomRoute(
       transitionsBuilder: TransitionsBuilders.slideLeft,
@@ -93,7 +92,6 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   OrderDetailsView orderDetailsView;
 
-
   EditVariationScreen editVariationScreen;
 
   EditCategoryScreen editCategoryScreen;
@@ -101,7 +99,6 @@ class $Routing {
   EditUnitView editUnitType;
 
   TransactionScreen transactionScreen;
-
 
   @MaterialRoute(fullscreenDialog: true)
   CompleteSaleScreen completeSaleScreen;
@@ -123,7 +120,9 @@ class $Routing {
   OpenCloseDrawerView openCloseDrawerview;
 
   ContactView contactView;
-  
+
+  ProductDescription productDescription;
+  Sales sales;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

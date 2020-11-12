@@ -36,8 +36,13 @@ dependencies:
   image_picker: ^0.6.4
   built_collection: ^4.3.2
   flutter_date_pickers: ^0.0.6
-  flutter_material_color_picker: ^0.0.5
+  # flutter_material_color_picker: ^0.0.5
   flutter_image_compress: ^0.6.5+1
+  tabbar: ^0.1.1
+  intl: ^0.16.1
+  jiffy: ^3.0.1
+  expandable: ^4.1.4
+  syncfusion_flutter_charts: ^18.3.44
   
   uuid: 2.0.4
   bluetooth_print: 
@@ -72,7 +77,7 @@ dependencies:
   firebase_core: ^0.5.0+1
   firebase_messaging: ^6.0.16
   firebase_analytics: ^5.0.11
-  camera: 0.5.8+2
+  camera: 0.5.8+11
   
   flutter_uploader:
   flipper_login:
@@ -97,17 +102,20 @@ dependencies:
   flutter_dotenv: ^2.1.0
   mailer: ^3.2.1
   contacts_service: ^0.4.6
-  flutter_reactive_ble: ^2.5.3
+  # flutter_reactive_ble: ^2.5.3
   flutter_text_drawable: ^0.3.1
-  connectivity: ^0.4.3+1
-  background_fetch: '^0.5.1'
+  # connectivity: ^0.4.3+1
+  # background_fetch: '^0.5.1'
+  flutter_icons: ^1.1.0
 
 
 
 dev_dependencies:
-  couchbase_lite: 2.7.1+6
+  couchbase_lite: ^2.7.1+6
   # couchbase_lite:
-  #   path: ../
+  #   git:
+  #     url: 'https://github.com/SaltechSystems/couchbase_lite.git'
+  #     ref: 'master'
   # flutter_flipperkit:
 
   build_runner: 

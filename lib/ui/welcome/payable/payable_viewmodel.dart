@@ -35,9 +35,28 @@ class PayableViewModel extends BaseViewModel {
     return _payable;
   }
 
+  // initializing state to work with button on keypad
+  String _amount = '';
+  String get amount {
+    return _amount;
+  }
+
+  bool _showButton = false;
+  bool get showButton {
+    return _showButton;
+  }
+
   int _total;
   int get total {
     return _total;
+  }
+
+//TODO:{Telesphore}  Work on Keypad --> get information from typed value
+//FIXME: {Telesphore} fix the responsiviness of keypad
+  void totalString(@required String stringButton) {
+    _amount = '${_amount}' + '${stringButton}';
+    print(_amount);
+    notifyListeners();
   }
 
   void initFields() {

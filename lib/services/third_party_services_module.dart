@@ -1,7 +1,6 @@
 import 'package:flipper/services/api/http_api.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/fetch_contacts_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/mail_service.dart';
 import 'package:flipper/services/performance_service.dart';
@@ -13,7 +12,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'abstractions/api.dart';
 import 'analytics_service.dart';
 import 'api/fake_api.dart';
-import 'connectivity_service.dart';
+// import 'connectivity_service.dart';
 
 
 enum ApiProvider {
@@ -50,8 +49,8 @@ abstract class ThirdPartyServicesModule {
     return apiService;
   }
 
-  @lazySingleton
-  ConnectivityService get connectivityService;
+  // @lazySingleton
+  // ConnectivityService get connectivityService;
   @lazySingleton
   AnalyticsService get analyticsService;
   @lazySingleton

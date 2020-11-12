@@ -1,22 +1,22 @@
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/ui/product/add/add_product_modal_viewmodal.dart';
 
-import 'package:flipper/ui/product/add/add_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-class CreateOptionsWidget extends StatelessWidget {
+class AddProductModal extends StatelessWidget {
   
 
-  const CreateOptionsWidget({Key key,this.userId}) : super(key: key);
+  const AddProductModal({Key key,this.userId}) : super(key: key);
   
   final String userId;
 
   @override
   Widget build(BuildContext context) {
     // ignore: always_specify_types
-    return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductViewmodel model, Widget child){
+    return ViewModelBuilder.reactive(builder: (BuildContext context,AddProductModalViewModal model, Widget child){
       return Dialog(
           child: Padding(
             padding: const EdgeInsets.only(left:18.0,right: 18.0),
@@ -79,9 +79,9 @@ class CreateOptionsWidget extends StatelessWidget {
         );
     }, 
     
-    onModelReady: (AddProductViewmodel model){
+    onModelReady: (AddProductModalViewModal model){
       model.createTemporalProduct(productName: 'tmp',userId: userId);
     },
-    viewModelBuilder: ()=>AddProductViewmodel());
+    viewModelBuilder: ()=>AddProductModalViewModal());
   }
 }
