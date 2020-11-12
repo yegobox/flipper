@@ -107,7 +107,7 @@ class AddProductViewmodel extends ProductsViewModel {
   }
 
   Future<void> handleCreateItem() async {
-    log.d(product);
+    
     await updateProduct(
       productId: product.id, //productId
       categoryId: category == null ? '10' : category.id,
@@ -160,10 +160,10 @@ class AddProductViewmodel extends ProductsViewModel {
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-    log.i('new name for product:' + nameController.text);
-    log.i('categoryId for product:' + categoryId);
-
+        final List<Map<String, dynamic>> p = await _databaseService.filter(property: 'table',equator:'products');
+    log.d(p)  ;
     final Document product = await _databaseService.getById(id: productId);
+    assert(product !=null);
     product
         .toMutable()
         .setString('name', nameController.text)
@@ -257,9 +257,9 @@ class AddProductViewmodel extends ProductsViewModel {
     log.d('categoryId:' + Category.fromMap(category[0]['main']).id);
     log.d('taxId:' + Tax.fromMap(gettax[0]['main']).id);
 
-    if (product.isEmpty) {
+    if (!product.isEmpty) {
       final Document productDoc = await _databaseService.insert(data: {
-        'name': productName,
+        'name': 'productName',
         'categoryId': Category.fromMap(category[0]['main']).id,
         'color': '#955be9',
         'id': Uuid().v1(),
@@ -310,10 +310,11 @@ class AddProductViewmodel extends ProductsViewModel {
         'table': AppTables.branchProduct,
         'id': Uuid().v1()
       });
-
+      log.d(productDoc);
       return productDoc.id;
     } else {
       final Product pro = Product.fromMap(product[0]['main']);
+      log.d(pro);
       return pro.id;
     }
   }

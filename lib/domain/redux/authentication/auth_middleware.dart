@@ -113,12 +113,12 @@ Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final UserTableData user = await store.state.database.userDao.getUser();
   if (user != null) {
     final Logger log = Logging.getLogger('Current User: ....');
-    log.d(user);
+   
     //login to couchbase
     // ignore: always_specify_types
     final List<String> channels = [];
     channels.add(user.userId.toString());
-
+     log.d(user.userId.toString());
     await CoreDB.instance.login(channels: channels);
 
     // start with business closed.

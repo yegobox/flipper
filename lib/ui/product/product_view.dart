@@ -22,18 +22,13 @@ class ProductsView extends StatelessWidget {
       builder: (BuildContext context, ProductsViewModel model, Widget child) {
         if (model.data == null)
           return const Text('Data is empty show add button');
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            BuildProductsView(
-                context: context,
-                data: model.data,
-                shouldSeeItem: false,
-                showCreateItemOnTop: true,
-                createButtonName: 'Add Products',
-                userId: userId)
-          ],
-        );
+        return BuildProductsView(
+            context: context,
+            data: model.data,
+            shouldSeeItem: false,
+            showCreateItemOnTop: true,
+            createButtonName: 'Add Products',
+            userId: userId);
       },
     );
   }
@@ -62,14 +57,15 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
   @override
   Widget build(BuildContext context, ProductsViewModel viewModel) {
     final isMobile = MediaQuery.of(context).size.width < 700;
+
     return buildProductList(
-                products: data,
-                context: context,
-                userId: userId,
-                createButtonName: createButtonName,
-                showCreateItemOnTop: showCreateItemOnTop,
-                shouldSeeItem: shouldSeeItem)
-            .isEmpty
+      products: data,
+      context: context,
+      userId: userId,
+      createButtonName: createButtonName,
+      showCreateItemOnTop: showCreateItemOnTop,
+      shouldSeeItem: shouldSeeItem,
+    ).isEmpty
         ? const SizedBox.shrink()
         : Padding(
             padding: const EdgeInsets.only(left: 10.0, right: 10.0),
@@ -78,7 +74,7 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
               children: ListTile.divideTiles(
                 context: context,
                 tiles: buildProductList(
-                    model:viewModel,
+                    model: viewModel,
                     products: data,
                     context: context,
                     userId: userId,

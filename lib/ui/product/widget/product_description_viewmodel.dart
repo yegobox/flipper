@@ -17,7 +17,7 @@ class ProductDescriptionViewmodel extends BaseViewModel {
     return _paramsDefault;
   }
 
-  double _checked;
+  double _checked =0;
   double get checked {
     return _checked;
   }
@@ -46,16 +46,19 @@ class ProductDescriptionViewmodel extends BaseViewModel {
   void increaseQty() {
     _quantity++;
     _titleAmount = _paramsDefault + (_checked * _quantity);
+    notifyListeners();
   }
 
   void decreaseQty() {
     _quantity--;
     _titleAmount = _paramsDefault + (_checked * _quantity);
+    notifyListeners();
   }
 
   void updateTitleAmountDefault({@required double value}){ // NOTE: [telesphore] in case of func parameter let's use the name parameter as it is much readable
     _checked = value;
     _titleAmount = paramsDefault + _checked;
+    notifyListeners();
   }
   void slide({@required double value}){
     _slider = value;

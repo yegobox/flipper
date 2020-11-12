@@ -36,7 +36,7 @@ class CoreDB {
           ReplicatorConfiguration(database, 'ws://$gatewayUrl/main');
 
       config.replicatorType = ReplicatorType.pushAndPull;
-      config.continuous = true;
+      config.continuous = false;
       config.channels = channels;
 
       final String username = DotEnv().env['PASSWORD'];
@@ -57,6 +57,7 @@ class CoreDB {
       await replicator.start();
 
       const String indexName = 'TypeNameIndex';
+      const String FullTextIndex = 'FullTextIndex';
       final List<String> indices = await database.indexes;
       if (!indices.contains(indexName)) {
         final ValueIndex index = IndexBuilder.valueIndex(items: [
@@ -65,9 +66,18 @@ class CoreDB {
         ]);
         await database.createIndex(index, withName: indexName);
       }
+      // support full Text search see: https://blog.couchbase.com/full-text-search-couchbase-mobile-2-0/ and https://github.com/SaltechSystems/couchbase_lite/commit/c9102f7f0ffa2eb8691cb27f2f3772f6afcbbafb
+      if(!indices.contains(FullTextIndex)){
+         final ValueIndex index = IndexBuilder.valueIndex(items: [
+          ValueIndexItem.property('type'),
+          ValueIndexItem.expression(Expression.property('name'))
+        ]);
+        await database.createIndex(index, withName: FullTextIndex);
+      }
 
       _dbListenerToken =
           database.addChangeListener((DatabaseChange dbChange) async {
+
         for (String id in dbChange.documentIDs) {
           final Document document = await database.document(id);
           //until we save document right in all place keep this code here to keep things smooth.

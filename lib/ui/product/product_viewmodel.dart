@@ -11,7 +11,7 @@ import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
-
+import 'package:flipper/routes/router.gr.dart';
 
 class ProductsViewModel extends BaseModel {
   final Logger log = Logging.getLogger('product observer:)');
@@ -134,10 +134,6 @@ class ProductsViewModel extends BaseModel {
   }
 
   void onSellingItem(BuildContext context, Product product) async {
-    // TODO(telesphore): finish selling process.
-    // final List<Variation> variants = await buildVariantsList(context, product);
-
-    // _navigationService.navigateTo(Routing.editQuantityItemScreen,
-    //     arguments: ChangeQuantityForSellingArguments(productId: product.id));
+    ProxyService.nav.navigateTo(Routing.productDescription);
   }
 }

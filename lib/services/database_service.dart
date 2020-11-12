@@ -49,16 +49,19 @@ class DatabaseService {
             ),
           );
     } else {
-      query = QueryBuilder.select([SelectResult.all()])
+      query = QueryBuilder.select(
+        [
+          SelectResult.all()
+        ])
           .from(CoreDB.instance.dbName)
           .where(Expression.property(property)
                 .equalTo(
-                  Expression.string(equator),
+                  Expression.value(equator),
                 )
                 // This was not working so a workaround is to map where the second Equator is
                 .add(
-                  Expression.property(andProperty).iS(
-                    Expression.string(andEquator),
+                  Expression.property(andProperty).equalTo(
+                    Expression.value(andEquator),
                   ),
                 ),
           );
@@ -80,7 +83,9 @@ class DatabaseService {
     final MutableDocument newDoc =
         MutableDocument(id: _id, data: data);
     await CoreDB.instance.database.saveDocument(newDoc);
-    return getById(id: _id);
+    final Document document = await getById(id: _id);
+    assert(document !=null);
+    return document;
   }
 
   ObservableResponse<ResultSet> observer({

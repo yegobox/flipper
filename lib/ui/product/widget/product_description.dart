@@ -298,7 +298,7 @@ class ProductDescription extends StatelessWidget {
                         _productCategory(title: 'Toyota Ntoya',model: model,values: 5000),
 
                         // endloop  == start/and discounts
-                        _quantityWidget(),
+                        _quantityWidget(context: context,model:model),
                       ],
                     ),
                   ),

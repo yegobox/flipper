@@ -4,6 +4,7 @@ import 'package:flipper/ui/order/order_details_view.dart';
 import 'package:flipper/ui/product/add/add_category_view.dart';
 import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
+import 'package:flipper/ui/product/widget/product_description.dart';
 
 import 'package:flipper/ui/variation/edit_variation_screen.dart';
 
@@ -121,6 +122,8 @@ class $Routing {
   OpenCloseDrawerView openCloseDrawerview;
 
   ContactView contactView;
+
+  ProductDescription productDescription;
   
 }
 
