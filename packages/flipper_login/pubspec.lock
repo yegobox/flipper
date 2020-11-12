@@ -142,7 +142,7 @@ packages:
       name: camera
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.8+2"
+    version: "0.5.8+11"
   characters:
     dependency: transitive
     description:
@@ -192,34 +192,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.15.0-nullsafety.3"
-  connectivity:
-    dependency: transitive
-    description:
-      name: connectivity
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.9+5"
-  connectivity_for_web:
-    dependency: transitive
-    description:
-      name: connectivity_for_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.1+2"
-  connectivity_macos:
-    dependency: transitive
-    description:
-      name: connectivity_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0+5"
-  connectivity_platform_interface:
-    dependency: transitive
-    description:
-      name: connectivity_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.6"
   contacts_service:
     dependency: transitive
     description:
@@ -276,6 +248,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.5"
+  expandable:
+    dependency: transitive
+    description:
+      name: expandable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.4"
   fake_async:
     dependency: transitive
     description:
@@ -388,20 +367,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.11"
-  fl_chart:
-    dependency: transitive
-    description:
-      name: fl_chart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.11.1"
   flipper:
     dependency: "direct main"
     description:
       path: "../.."
       relative: true
     source: path
-    version: "1.5.171"
+    version: "99.99.99+99"
   flipper_ui:
     dependency: transitive
     description:
@@ -435,13 +407,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  flutter_circular_chart:
-    dependency: transitive
-    description:
-      name: flutter_circular_chart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
   flutter_date_pickers:
     dependency: transitive
     description:
@@ -463,6 +428,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.0"
+  flutter_icons:
+    dependency: transitive
+    description:
+      name: flutter_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0"
   flutter_image_compress:
     dependency: transitive
     description:
@@ -655,6 +627,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.4"
+  jiffy:
+    dependency: transitive
+    description:
+      name: jiffy
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.1"
   js:
     dependency: transitive
     description:
@@ -1066,6 +1045,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0-nullsafety.1"
+  syncfusion_flutter_charts:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_charts
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "18.3.48"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "18.3.48"
   synchronized:
     dependency: transitive
     description:
@@ -1073,6 +1066,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.0+2"
+  tabbar:
+    dependency: transitive
+    description:
+      name: tabbar
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1"
   term_glyph:
     dependency: transitive
     description:

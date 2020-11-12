@@ -1,4 +1,3 @@
-
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/widget/custom_widgets.dart';
 import 'package:flipper/services/proxy.dart';
@@ -14,7 +13,6 @@ import 'package:stacked/stacked.dart';
 
 import 'business/business_list.dart';
 
-
 class FlipperDrawer extends StatefulWidget {
   const FlipperDrawer({Key key, this.vm}) : super(key: key);
   final CommonViewModel vm;
@@ -23,8 +21,7 @@ class FlipperDrawer extends StatefulWidget {
 }
 
 class _FlipperDrawerState extends State<FlipperDrawer> {
-  final FlipperNavigationService _navigationService =
-      ProxyService.nav;
+  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   ListTile _menuListRowButton(String title,
       {Function onPressed, int icon, bool isEnable = false}) {
@@ -42,14 +39,23 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 context,
                 icon: icon,
                 size: 25,
-                iconColor: isEnable ? Theme.of(context).iconTheme.color :Colors.grey, // TODO(richard): should come from Theme as it is a single source 
+                iconColor: isEnable
+                    ? Theme.of(context).iconTheme.color
+                    : Colors
+                        .grey, // TODO(richard): should come from Theme as it is a single source
               ),
             ),
       title: customText(
         title,
         style: TextStyle(
           fontSize: 20,
-          color: isEnable ?Theme.of(context).copyWith(canvasColor: Colors.black).canvasColor : Theme.of(context).copyWith(canvasColor:const Color(0xffe2e8ea)).canvasColor,
+          color: isEnable
+              ? Theme.of(context)
+                  .copyWith(canvasColor: Colors.black)
+                  .canvasColor
+              : Theme.of(context)
+                  .copyWith(canvasColor: const Color(0xffe2e8ea))
+                  .canvasColor,
         ),
       ),
     );
@@ -136,7 +142,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             }),
                             _menuListRowButton('Reports',
                                 icon: AppIcon.bookmark, onPressed: () {
-                              //_navigateTo(Routing.reportScreen);
+                              _navigateTo(Routing.sales);
                             }),
                             _menuListRowButton(
                               'Payroll',

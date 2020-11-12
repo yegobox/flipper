@@ -38,6 +38,11 @@ dependencies:
   flutter_date_pickers: ^0.0.6
   # flutter_material_color_picker: ^0.0.5
   flutter_image_compress: ^0.6.5+1
+  tabbar: ^0.1.1
+  intl: ^0.16.1
+  jiffy: ^3.0.1
+  expandable: ^4.1.4
+  syncfusion_flutter_charts: ^18.3.44
   
   uuid: 2.0.4
   bluetooth_print: 

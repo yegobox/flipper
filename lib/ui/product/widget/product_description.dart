@@ -5,14 +5,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductDescription extends StatelessWidget {
- const ProductDescription({Key key}) : super(key: key);
+  const ProductDescription({Key key}) : super(key: key);
 
 //Product category
-  Widget _productCategory({@required String title,@required double values,@required ProductDescriptionViewmodel model}) {
+  Widget _productCategory(
+      {@required String title,
+      @required double values,
+      @required ProductDescriptionViewmodel model}) {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding:const EdgeInsets.symmetric(horizontal: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
           child: Column(
             children: [
               Divider(
@@ -49,7 +52,7 @@ class ProductDescription extends StatelessWidget {
                           value: values,
                           groupValue: model.checked,
                           onChanged: (double value) {
-                            model.updateTitleAmountDefault(value:value);
+                            model.updateTitleAmountDefault(value: value);
                           },
                         ),
                       ),
@@ -64,18 +67,20 @@ class ProductDescription extends StatelessWidget {
     );
   }
 
-  Widget _quantityWidget({ProductDescriptionViewmodel model, BuildContext context}) { // NOTE: [telesphore] in case of func parameter let's use the name parameter as it is much readable
+  Widget _quantityWidget(
+      {ProductDescriptionViewmodel model, BuildContext context}) {
+    // NOTE: [telesphore] in case of func parameter let's use the name parameter as it is much readable
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding:const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
               Divider(
                 color: Colors.grey[300],
               ),
               const SizedBox(
-                height: 8.0,
+                height: 20.0,
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -90,11 +95,11 @@ class ProductDescription extends StatelessWidget {
                                 fontSize: 11.0,
                                 color: Colors.grey[800]))),
                   ),
-                 const Expanded(flex: 2, child: Text('')),
+                  const Expanded(flex: 2, child: Text('')),
                 ],
               ),
               const SizedBox(
-                height: 4.0,
+                height: 10.0,
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -103,9 +108,8 @@ class ProductDescription extends StatelessWidget {
                   Expanded(
                       flex: 1,
                       child: IconButton(
-                        icon:const Icon(FontAwesome.minus),
-                        onPressed: model.decreaseQty
-                      )),
+                          icon: const Icon(FontAwesome.minus),
+                          onPressed: model.decreaseQty)),
                   Expanded(
                       flex: 2,
                       child: Container(
@@ -121,22 +125,24 @@ class ProductDescription extends StatelessWidget {
                           cursorColor: Theme.of(context)
                               .copyWith(canvasColor: Colors.grey[700])
                               .canvasColor,
-                          decoration:const InputDecoration(
-                              hintStyle:TextStyle(color: Colors.grey)),
+                          decoration: const InputDecoration(
+                              hintStyle: TextStyle(color: Colors.grey)),
                         ),
                       )),
                   Expanded(
                       flex: 1,
                       child: Container(
                         child: IconButton(
-                          icon: Icon(FontAwesome.plus),
-                          onPressed: model.increaseQty
-                        ),
+                            icon: Icon(FontAwesome.plus),
+                            onPressed: model.increaseQty),
                       )),
                 ],
               ),
               Divider(
                 color: Colors.grey[300],
+              ),
+              const SizedBox(
+                height: 20.0,
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -151,7 +157,7 @@ class ProductDescription extends StatelessWidget {
                                 fontSize: 11.0,
                                 color: Colors.grey[800]))),
                   ),
-                 const Expanded(flex: 2, child: Text('')),
+                  const Expanded(flex: 2, child: Text('')),
                 ],
               ),
               TextField(
@@ -185,8 +191,14 @@ class ProductDescription extends StatelessWidget {
                               .canvasColor,
                         ))),
                   ),
-                 const Expanded(flex: 2, child: Text('')),
+                  const Expanded(flex: 2, child: Text('')),
                 ],
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              Divider(
+                color: Colors.grey[300],
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -213,11 +225,14 @@ class ProductDescription extends StatelessWidget {
                       max: 100,
                       divisions: 1,
                       onChanged: (double value) {
-                       model.slide(value:value);
+                        model.slide(value: value);
                       },
                     ),
                   ),
                 ],
+              ),
+              Divider(
+                color: Colors.grey[300],
               ),
             ],
           ),
@@ -293,12 +308,14 @@ class ProductDescription extends StatelessWidget {
                         ),
                         //TODO:{telesphore}product category to be looped if necessary!
                         // _productCategory('Benz', 4000),
-                        _productCategory(title: 'Benz',model: model,values: 4000),
-                        
-                        _productCategory(title: 'Toyota Ntoya',model: model,values: 5000),
+                        _productCategory(
+                            title: 'Benz', model: model, values: 4000),
+
+                        _productCategory(
+                            title: 'Toyota Ntoya', model: model, values: 5000),
 
                         // endloop  == start/and discounts
-                        _quantityWidget(context: context,model:model),
+                        _quantityWidget(context: context, model: model),
                       ],
                     ),
                   ),
