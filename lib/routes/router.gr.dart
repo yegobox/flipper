@@ -34,6 +34,7 @@ import 'package:flipper/ui/open_close_drawerview.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
 import 'package:flipper/ui/product/widget/product_description.dart';
+import 'package:flipper/ui/widget/report/build_sales.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -61,6 +62,7 @@ class Routing {
   static const openCloseDrawerview = '/open-close-drawerview';
   static const contactView = '/contact-view';
   static const productDescription = '/product-description';
+  static const sales = '/sales';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -332,6 +334,15 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => ProductDescription(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.sales:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => Sales(key: typedArgs),
           settings: settings,
         );
       default:

@@ -23,7 +23,6 @@ import 'package:flipper/ui/camera/camera_preview.dart';
 
 import 'package:flipper/ui/category/create_category_input_screen.dart';
 
-
 import 'package:flipper/ui/open_close_drawerview.dart';
 
 import 'package:flipper/ui/widget/stock/receive_stock.dart';
@@ -35,6 +34,7 @@ import 'package:flipper/ui/widget/category/edit_category_view.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
+import 'package:flipper/ui/widget/report/build_sales.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -92,7 +92,6 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   OrderDetailsView orderDetailsView;
 
-
   EditVariationScreen editVariationScreen;
 
   EditCategoryScreen editCategoryScreen;
@@ -100,7 +99,6 @@ class $Routing {
   EditUnitView editUnitType;
 
   TransactionScreen transactionScreen;
-
 
   @MaterialRoute(fullscreenDialog: true)
   CompleteSaleScreen completeSaleScreen;
@@ -124,7 +122,7 @@ class $Routing {
   ContactView contactView;
 
   ProductDescription productDescription;
-  
+  Sales sales;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

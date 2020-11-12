@@ -35,7 +35,13 @@ class BuildPayable extends StatelessWidget {
                                   .textTheme
                                   .bodyText2
                                   .copyWith(color: Colors.white)),
-                          Text(model.payable.text,style: Theme.of(context).textTheme.bodyText2.copyWith(color:Colors.white),)
+                          Text(
+                            model.payable.text,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2
+                                .copyWith(color: Colors.white),
+                          )
                         ],
                       ),
                     )

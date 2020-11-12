@@ -7,16 +7,21 @@ import 'package:stacked/stacked.dart';
 class KeyPadButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      // alignment: Alignment.center,
-      children: _buildButtons(),
-    );
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, PayableViewModel model, Widget child) {
+          return Wrap(
+            // alignment: Alignment.center,
+            children: _buildButtons(model.showButton),
+          );
+        },
+        viewModelBuilder: () => PayableViewModel());
   }
 
-  List<Widget> _buildButtons() {
+  List<Widget> _buildButtons(bool showButton) {
     final List<int> list = <int>[];
     // ignore: always_specify_types
     // define keys for keypad exclude C and +
+
     list.addAll([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
     final List<Widget> widget = <Widget>[];
 
@@ -33,9 +38,12 @@ class KeyPadButtons extends StatelessWidget {
     widget.add(const SingleKey(
       buttonKeyName: 'C',
     ));
-    widget.add(const SingleKey(
-      buttonKeyName: '+',
-    ));
+    if (showButton) {
+      widget.add(const SingleKey(
+        buttonKeyName: '+',
+      ));
+    }
+
     return widget;
   }
 }
@@ -97,28 +105,35 @@ class SingleKey extends StatelessWidget {
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, PayableViewModel model, Widget child) {
-          return SizedBox(
-            width: 136.99,
-            height: 110,
-            child: InkWell(
-              enableFeedback: false,
-              onTap: () => btnClicked(
-                  buttonKeyName: buttonKeyName, context: context, model: model),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color.fromRGBO(0, 0, 0, 0.1),
-                    width: 0.5,
-                  ),
-                ),
-                // padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
-                child: Center(
-                  child: Text(
-                    buttonKeyName.toString(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText1
-                        .copyWith(fontSize: 40, fontWeight: FontWeight.normal),
+          return Container(
+            child: SingleChildScrollView(
+              child: SizedBox(
+                width: 100.99,
+                height: 80.0,
+                child: InkWell(
+                  enableFeedback: false,
+                  onTap: () => {
+                    btnClicked(
+                        buttonKeyName: buttonKeyName,
+                        context: context,
+                        model: model),
+                    model.totalString(buttonKeyName)
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: const Color.fromRGBO(0, 0, 0, 0.1),
+                        width: 0.0,
+                      ),
+                    ),
+                    // padding: const EdgeInsets.fromLTRB(55, 21, 20, 20),
+                    child: Center(
+                      child: Text(
+                        buttonKeyName.toString(),
+                        style: Theme.of(context).textTheme.bodyText1.copyWith(
+                            fontSize: 40, fontWeight: FontWeight.normal),
+                      ),
+                    ),
                   ),
                 ),
               ),
