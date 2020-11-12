@@ -12,6 +12,7 @@ class ProductDescriptionViewmodel extends BaseViewModel {
     return _titleAmount;
   }
 
+  // ignore: prefer_final_fields
   double _paramsDefault = 230.8;
   double get paramsDefault {
     return _paramsDefault;
@@ -21,7 +22,7 @@ class ProductDescriptionViewmodel extends BaseViewModel {
   double get checked {
     return _checked;
   }
-   
+  // ignore: prefer_final_fields 
   double _slider = 0;
   double get slider{
     return _slider;
@@ -37,7 +38,7 @@ class ProductDescriptionViewmodel extends BaseViewModel {
     return _quantityController;
   }
 
-  initFields(){
+  void initFields(){
     _quantityController = TextEditingController();
     _notesController = TextEditingController();
   }
