@@ -36,7 +36,7 @@ dependencies:
   image_picker: ^0.6.4
   built_collection: ^4.3.2
   flutter_date_pickers: ^0.0.6
-  flutter_material_color_picker: ^0.0.5
+  # flutter_material_color_picker: ^0.0.5
   flutter_image_compress: ^0.6.5+1
   
   uuid: 2.0.4
@@ -97,10 +97,10 @@ dependencies:
   flutter_dotenv: ^2.1.0
   mailer: ^3.2.1
   contacts_service: ^0.4.6
-  flutter_reactive_ble: ^2.5.3
+  # flutter_reactive_ble: ^2.5.3
   flutter_text_drawable: ^0.3.1
   # connectivity: ^0.4.3+1
-  background_fetch: '^0.5.1'
+  # background_fetch: '^0.5.1'
   flutter_icons: ^1.1.0
 
 

@@ -1,4 +1,4 @@
-import 'package:background_fetch/background_fetch.dart';
+// import 'package:background_fetch/background_fetch.dart';
 import 'package:contacts_service/contacts_service.dart';
 
 class FetchContactsService {

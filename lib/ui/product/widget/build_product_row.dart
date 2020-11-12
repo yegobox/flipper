@@ -1,10 +1,11 @@
-import 'package:flipper/ui/widget/create_options_widget.dart';
+import 'package:flipper/ui/product/add/add_product_modal.dart';
+
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
 
 
-buildProductRowHeader({List<Widget> list, BuildContext context,
+void buildProductRowHeader({List<Widget> list, BuildContext context,
       String createButtonName, String userId,String type='add'}) {
    return type=='add'?
      list.add(
@@ -13,7 +14,7 @@ buildProductRowHeader({List<Widget> list, BuildContext context,
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return CreateOptionsWidget(
+              return AddProductModal(
                 userId: userId,
               );
             },

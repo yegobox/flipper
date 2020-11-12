@@ -1,3 +1,5 @@
+import 'package:flipper/model/branch.dart';
+import 'package:flipper/model/business.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/model/product.dart';
@@ -31,6 +33,14 @@ class SharedStateService with ReactiveServiceMixin {
 
   Product get product => _product.value;
 
+   final RxValue<Business> _business = RxValue<Business>(initial: null);
+
+  Business get business => _business.value;
+
+  final RxValue<Branch> _branch = RxValue<Branch>(initial: null);
+
+  Branch get branch => _branch.value;
+
   // setters
   void setCurrentColor({PColor color}) {
     _currentColor.value = color;
@@ -38,6 +48,14 @@ class SharedStateService with ReactiveServiceMixin {
 
   void setProduct({Product product}) {
     _product.value = product;
+  }
+
+  void setBranch({Branch branch}) {
+    _branch.value = branch;
+  }
+
+  void setBusiness({Business business}) {
+    _business.value = business;
   }
 
   void setImage({ImageP image}) {

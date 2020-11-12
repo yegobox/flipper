@@ -6,6 +6,8 @@ import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/locator.dart';
+import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/branch.dart';
@@ -183,6 +185,8 @@ Future<List<Branch>> getBranches(
   if (branche.isNotEmpty) {
     // ignore: unnecessary_type_check
     if (branche[0][CoreDB.instance.dbName] is Object) {
+      final _sharedStateService = locator<SharedStateService>();
+      _sharedStateService.setBranch(branch: Branch.fromMap(branche[0][CoreDB.instance.dbName]));
       branches.add(Branch.fromMap(branche[0][CoreDB.instance.dbName]));
     } else {
       branches = branche[0][CoreDB.instance.dbName]
@@ -324,6 +328,8 @@ Future<void> getBusinesses(
   if (doc.isNotEmpty) {
     //this asume that one user has one business
     log.i(doc[0]['main']);
+    final _sharedStateService = locator<SharedStateService>();
+    _sharedStateService.setBusiness(business: Business.fromMap(doc[0]['main']));
     businesses.add(Business.fromMap(doc[0]['main']));
   }
   log.i(businesses);
