@@ -1100,7 +1100,7 @@ packages:
       name: syncfusion_flutter_charts
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "18.3.48"
+    version: "18.3.48+1"
   syncfusion_flutter_core:
     dependency: transitive
     description:
