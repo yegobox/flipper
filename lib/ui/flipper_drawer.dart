@@ -142,7 +142,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             }),
                             _menuListRowButton('Reports',
                                 icon: AppIcon.bookmark, onPressed: () {
-                              _navigateTo(Routing.sales);
+                              _navigateTo(Routing.salesView);
                             }),
                             _menuListRowButton(
                               'Payroll',

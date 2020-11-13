@@ -34,7 +34,8 @@ import 'package:flipper/ui/open_close_drawerview.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
 import 'package:flipper/ui/product/widget/product_description.dart';
-import 'package:flipper/ui/widget/report/build_sales.dart';
+import 'package:flipper/ui/widget/report/build_sales_View.dart';
+import 'package:flipper/ui/widget/calendar/calenderView.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -62,7 +63,8 @@ class Routing {
   static const openCloseDrawerview = '/open-close-drawerview';
   static const contactView = '/contact-view';
   static const productDescription = '/product-description';
-  static const sales = '/sales';
+  static const salesView = '/sales-view';
+  static const calendarView = '/calendar-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -336,13 +338,24 @@ class Routing {
           builder: (_) => ProductDescription(key: typedArgs),
           settings: settings,
         );
-      case Routing.sales:
+      case Routing.salesView:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => Sales(key: typedArgs),
+          builder: (_) => SalesView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.calendarView:
+        if (hasInvalidArgs<CalendarViewArguments>(args)) {
+          return misTypedArgsRoute<CalendarViewArguments>(args);
+        }
+        final typedArgs =
+            args as CalendarViewArguments ?? CalendarViewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) =>
+              CalendarView(key: typedArgs.key, title: typedArgs.title),
           settings: settings,
         );
       default:
@@ -455,4 +468,11 @@ class OpenCloseDrawerViewArguments {
   final BusinessState businessState;
   OpenCloseDrawerViewArguments(
       {this.key, this.vm, this.businessState = BusinessState.OPEN});
+}
+
+//CalendarView arguments holder class
+class CalendarViewArguments {
+  final Key key;
+  final String title;
+  CalendarViewArguments({this.key, this.title});
 }

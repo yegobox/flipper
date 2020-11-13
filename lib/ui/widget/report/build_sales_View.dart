@@ -7,10 +7,13 @@ import 'package:tabbar/tabbar.dart';
 import 'package:flipper/data/sales_graph.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:expandable/expandable.dart';
-import './salesReportModel.dart';
+import 'salesReportModel.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 
-class Sales extends StatelessWidget {
-  const Sales({Key key}) : super(key: key);
+class SalesView extends StatelessWidget {
+  const SalesView({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,21 +25,21 @@ class Sales extends StatelessWidget {
               backgroundColor: Colors.white,
               title: Text(
                 'Sales',
-                style: GoogleFonts.fredokaOne(
+                style: GoogleFonts.lato(
                     color: Colors.black,
                     fontSize: 15.0,
                     fontWeight: FontWeight.bold),
               ),
-              iconTheme: IconThemeData(color: Colors.black),
+              iconTheme: const IconThemeData(color: Colors.black),
               actions: [
-                Icon(
+                const Icon(
                   Feather.upload,
                   size: 16.0,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 20.0,
                 ),
-                Padding(
+                const Padding(
                     padding: EdgeInsets.fromLTRB(0.0, 0.0, 20.0, 0.0),
                     child: Icon(
                       Feather.trending_up,
@@ -44,30 +47,38 @@ class Sales extends StatelessWidget {
                     )),
               ],
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(80.0),
+                preferredSize: const Size.fromHeight(80.0),
                 child: Container(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        color: Color(0xFFF6F6F6),
+                        color: const Color(0xFFF6F6F6),
                         child: Column(
                           children: [
                             Padding(
-                              padding: EdgeInsets.fromLTRB(0.0, 7.0, 0.0, 0.0),
+                              padding:
+                                  const EdgeInsets.fromLTRB(0.0, 7.0, 0.0, 0.0),
                               child: Center(
-                                child: Text(
-                                  'Today,${model.date}',
-                                  style: GoogleFonts.poppins(
-                                      textStyle: TextStyle(
-                                          fontSize: 11.0,
-                                          color: Color(0xFF1E96F0),
-                                          fontWeight: FontWeight.bold)),
+                                child: InkWell(
+                                  onTap: () {
+                                    model.navigateTo(
+                                        path: Routing.calendarView);
+                                  },
+                                  child: Text(
+                                    'Today,${model.date}',
+                                    style: GoogleFonts.poppins(
+                                        textStyle: const TextStyle(
+                                            fontSize: 11.0,
+                                            color: Color(0xFF1E96F0),
+                                            fontWeight: FontWeight.bold)),
+                                  ),
                                 ),
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 6.0),
+                              padding:
+                                  const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 6.0),
                               child: Center(
                                 child: Text(
                                     'All device, vs same Day Previous Weak',
@@ -84,17 +95,18 @@ class Sales extends StatelessWidget {
                         backgroundColor: Colors.grey[300],
                         foregroundColor: Colors.black,
                         tabs: [
+                          // ignore: prefer_const_constructors
                           Tab(
                             text: '1D',
                           ),
-                          Tab(text: '1W'),
-                          Tab(
+                          const Tab(text: '1W'),
+                          const Tab(
                             text: '1M',
                           ),
-                          Tab(
+                          const Tab(
                             text: '3M',
                           ),
-                          Tab(
+                          const Tab(
                             text: '1Y',
                           ),
                         ],
@@ -130,7 +142,7 @@ class Sales extends StatelessWidget {
                         //NOTES: to be looped when in need
                         _itemDetails(
                             name: 'benz',
-                            details: "buy new benz",
+                            details: 'buy new benz',
                             cost: 45.0,
                             model: model),
                         //end
@@ -167,7 +179,7 @@ class Sales extends StatelessWidget {
                         //NOTES: to be looped when in need
                         _itemDetails(
                             name: 'benz',
-                            details: "buy new benz",
+                            details: 'buy new benz',
                             cost: 45.0,
                             model: model),
                         //end
@@ -204,7 +216,7 @@ class Sales extends StatelessWidget {
                         //NOTES: to be looped when in need
                         _itemDetails(
                             name: 'benz',
-                            details: "buy new benz",
+                            details: 'buy new benz',
                             cost: 45.0,
                             model: model),
                         //end
@@ -241,7 +253,7 @@ class Sales extends StatelessWidget {
                         //NOTES: to be looped when in need
                         _itemDetails(
                             name: 'benz',
-                            details: "buy new benz",
+                            details: 'buy new benz',
                             cost: 45.0,
                             model: model),
                         //end
@@ -278,7 +290,7 @@ class Sales extends StatelessWidget {
                         //NOTES: to be looped when in need
                         _itemDetails(
                             name: 'benz',
-                            details: "buy new benz",
+                            details: 'buy new benz',
                             cost: 45.0,
                             model: model),
                         //end
@@ -494,8 +506,9 @@ class Sales extends StatelessWidget {
                     child: Text('FRw ${today}',
                         style: GoogleFonts.lato(
                             fontWeight: FontWeight.bold,
-                            textStyle: TextStyle(
-                                fontSize: 15.0, color: Color(0xFF1E96F0)))),
+                            textStyle: const TextStyle(
+                                fontSize: 15.0,
+                                color: const Color(0xFF1E96F0)))),
                   ),
                   Expanded(
                       flex: 1,
@@ -993,7 +1006,7 @@ class Sales extends StatelessWidget {
                       ),
                     ],
                   )),
-              tapHeaderToExpand: true,
+             
             ),
             // Adding Gross button here
           ]),

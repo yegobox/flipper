@@ -34,7 +34,8 @@ import 'package:flipper/ui/widget/category/edit_category_view.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
-import 'package:flipper/ui/widget/report/build_sales.dart';
+import 'package:flipper/ui/widget/report/build_sales_View.dart';
+import 'package:flipper/ui/widget/calendar/calenderView.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -122,7 +123,8 @@ class $Routing {
   ContactView contactView;
 
   ProductDescription productDescription;
-  Sales sales;
+  SalesView salesView;
+  CalendarView calendarView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
