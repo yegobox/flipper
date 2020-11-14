@@ -5,7 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductDescription extends StatelessWidget {
-  const ProductDescription({Key key}) : super(key: key);
+   ProductDescription({Key key}) : super(key: key);
+
+final _quantityController = TextEditingController();
+final _notesController = TextEditingController();
 
 //Product category
   Widget _productCategory(
@@ -325,7 +328,7 @@ class ProductDescription extends StatelessWidget {
           );
         },
         onModelReady: (ProductDescriptionViewmodel model) {
-          model.initFields(); //ini the textEditing controller
+          
         },
         viewModelBuilder: () => ProductDescriptionViewmodel());
   }

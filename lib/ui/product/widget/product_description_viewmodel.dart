@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductDescriptionViewmodel extends BaseViewModel {
+
+  // NOTE: leason learned, never put anything that invoke ui for ex TextEditingController in viewmodel as it will make it hard to test the logic of viewmodel
   double _quantity = 1;
   double get quantity {
     return _quantity;
@@ -28,22 +30,6 @@ class ProductDescriptionViewmodel extends BaseViewModel {
     return _slider;
   }
 
-  TextEditingController _notesController;
-  TextEditingController get notesController{
-    return _notesController;
-  }
-
-  TextEditingController _quantityController;
-  TextEditingController get quantityController{
-    return _quantityController;
-  }
-
-  void initFields(){
-    _quantityController = TextEditingController();
-    _notesController = TextEditingController();
-  }
-
-
   void increaseQty() {
     _quantity++;
     _titleAmount = _paramsDefault + (_checked * _quantity);
@@ -55,6 +41,7 @@ class ProductDescriptionViewmodel extends BaseViewModel {
     _titleAmount = _paramsDefault + (_checked * _quantity);
     notifyListeners();
   }
+
 
   void updateTitleAmountDefault({@required double value}){ // NOTE: [telesphore] in case of func parameter let's use the name parameter as it is much readable
     _checked = value;
