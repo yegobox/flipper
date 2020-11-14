@@ -157,6 +157,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.3"
+  calendarro:
+    dependency: "direct main"
+    description:
+      name: calendarro
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   camera:
     dependency: "direct main"
     description:
@@ -1122,6 +1129,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "18.3.48"
+  syncfusion_flutter_datepicker:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_datepicker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "18.3.48-beta"
   synchronized:
     dependency: transitive
     description:
