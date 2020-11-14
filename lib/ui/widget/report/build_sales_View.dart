@@ -1,16 +1,15 @@
+import 'package:expandable/expandable.dart';
+import 'package:flipper/data/sales_graph.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/ui/widget/report/salesReportModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:tabbar/tabbar.dart';
-import 'package:flipper/data/sales_graph.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:expandable/expandable.dart';
+import 'package:tabbar/tabbar.dart';
+
 import 'salesReportModel.dart';
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
 
 class SalesView extends StatelessWidget {
   const SalesView({Key key}) : super(key: key);
@@ -326,7 +325,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding:const EdgeInsets.all(20.0),
           child: Column(
             children: [
               Row(
@@ -349,7 +348,7 @@ class SalesView extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 30.0),
+              const SizedBox(height: 30.0),
               Divider(
                 color: Colors.grey[300],
               ),
@@ -368,7 +367,7 @@ class SalesView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${averageSale}',
+                    child: Text('FRw $averageSale',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -400,7 +399,7 @@ class SalesView extends StatelessWidget {
               Divider(
                 color: Colors.grey[300],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20.0,
               ),
               Row(
@@ -409,7 +408,7 @@ class SalesView extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${refunds}',
+                    child: Text('FRw $refunds',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -418,7 +417,7 @@ class SalesView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${discount}',
+                    child: Text('FRw $discount',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -450,7 +449,7 @@ class SalesView extends StatelessWidget {
               Divider(
                 color: Colors.grey[300],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10.0,
               ),
               Row(
@@ -464,7 +463,7 @@ class SalesView extends StatelessWidget {
                             textStyle: TextStyle(
                                 fontSize: 12.0, color: Colors.grey[800]))),
                   ),
-                  Expanded(
+                 const Expanded(
                       flex: 1,
                       child: Icon(
                         Entypo.dots_three_horizontal,
@@ -472,7 +471,7 @@ class SalesView extends StatelessWidget {
                       )),
                 ],
               ),
-              SizedBox(
+             const SizedBox(
                 height: 20.0,
               ),
               Row(
@@ -503,18 +502,18 @@ class SalesView extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${today}',
+                    child: Text('FRw $today',
                         style: GoogleFonts.lato(
                             fontWeight: FontWeight.bold,
                             textStyle: const TextStyle(
                                 fontSize: 15.0,
-                                color: const Color(0xFF1E96F0)))),
+                                color:  Color(0xFF1E96F0)))),
                   ),
                   Expanded(
                       flex: 1,
                       child: Text('',
                           style: GoogleFonts.lato(
-                              textStyle: TextStyle(
+                              textStyle: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20.0,
                                   color: Color(0xFF1E96F0))))),
@@ -545,7 +544,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
               Row(
@@ -570,7 +569,7 @@ class SalesView extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30.0,
               ),
               Row(
@@ -588,14 +587,14 @@ class SalesView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${total}',
+                    child: Text('FRw $total',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontSize: 12.0, color: Colors.grey[800]))),
                   ),
                 ],
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               Divider(
                 color: Colors.grey[300],
               ),
@@ -612,7 +611,7 @@ class SalesView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${other}',
+                    child: Text('FRw $other',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -621,7 +620,7 @@ class SalesView extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               Divider(
                 color: Colors.grey[300],
                 height: 20.0,
@@ -639,7 +638,7 @@ class SalesView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text('FRw${fees}',
+                    child: Text('FRw$fees',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontSize: 14.0, color: Colors.grey[800]))),
@@ -649,7 +648,7 @@ class SalesView extends StatelessWidget {
               Divider(
                 color: Colors.grey[300],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20.0,
               ),
               Row(
@@ -667,7 +666,7 @@ class SalesView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text('FRw ${net}',
+                    child: Text('FRw $net',
                         style: GoogleFonts.lato(
                             textStyle: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -689,7 +688,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(children: [
             Row(
               mainAxisSize: MainAxisSize.max,
@@ -704,7 +703,7 @@ class SalesView extends StatelessWidget {
                               fontSize: 11.0,
                               color: Colors.grey[700]))),
                 ),
-                Expanded(
+                const Expanded(
                     flex: 1,
                     child: Icon(
                       Entypo.dots_three_horizontal,
@@ -722,16 +721,16 @@ class SalesView extends StatelessWidget {
                     child: RaisedButton(
                       onPressed: null,
                       elevation: 0.0,
-                      shape: RoundedRectangleBorder(
+                      shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(0.0),
                         ),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
-                      color: Color(0xFF2C2C32),
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      color: const Color(0xFF2C2C32),
                       child: Text('GROSS',
                           style: GoogleFonts.rubik(
-                              textStyle: TextStyle(
+                              textStyle: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold))),
                     )),
@@ -739,12 +738,12 @@ class SalesView extends StatelessWidget {
                     flex: 1,
                     child: OutlineButton(
                       onPressed: null,
-                      shape: RoundedRectangleBorder(
+                      shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(0.0),
                         ),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
                       color: Colors.black,
                       child: Text('Count',
                           style: GoogleFonts.rubik(
@@ -769,7 +768,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(children: [
             Divider(
               color: Colors.grey[300],
@@ -777,7 +776,7 @@ class SalesView extends StatelessWidget {
             ExpandablePanel(
               iconPlacement: ExpandablePanelIconPlacement.left,
               header: Padding(
-                padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -793,7 +792,7 @@ class SalesView extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 1,
-                      child: Text('FRw ${cost}',
+                      child: Text('FRw $cost',
                           style: GoogleFonts.lato(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -804,7 +803,7 @@ class SalesView extends StatelessWidget {
                 ),
               ),
               expanded: Padding(
-                  padding: EdgeInsets.all(15.0),
+                  padding: const EdgeInsets.all(15.0),
                   child: Column(
                     children: [
                       Divider(
@@ -826,7 +825,7 @@ class SalesView extends StatelessWidget {
                           ),
                           Expanded(
                             flex: 1,
-                            child: Text('FRw ${cost}',
+                            child: Text('FRw $cost',
                                 style: GoogleFonts.lato(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.bold,
@@ -854,7 +853,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(children: [
             Row(
               mainAxisSize: MainAxisSize.max,
@@ -869,7 +868,7 @@ class SalesView extends StatelessWidget {
                               fontSize: 11.0,
                               color: Colors.grey[700]))),
                 ),
-                Expanded(
+                const Expanded(
                     flex: 1,
                     child: Icon(
                       Entypo.dots_three_horizontal,
@@ -887,16 +886,16 @@ class SalesView extends StatelessWidget {
                     child: RaisedButton(
                       onPressed: null,
                       elevation: 0.0,
-                      shape: RoundedRectangleBorder(
+                      shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(0.0),
                         ),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
-                      color: Color(0xFF2C2C32),
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      color: const Color(0xFF2C2C32),
                       child: Text('GROSS',
                           style: GoogleFonts.rubik(
-                              textStyle: TextStyle(
+                              textStyle: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold))),
                     )),
@@ -904,12 +903,12 @@ class SalesView extends StatelessWidget {
                     flex: 1,
                     child: OutlineButton(
                       onPressed: null,
-                      shape: RoundedRectangleBorder(
+                      shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(0.0),
                         ),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
                       color: Colors.black,
                       child: Text('Count',
                           style: GoogleFonts.rubik(
@@ -935,7 +934,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(children: [
             Divider(
               color: Colors.grey[300],
@@ -943,7 +942,7 @@ class SalesView extends StatelessWidget {
             ExpandablePanel(
               iconPlacement: ExpandablePanelIconPlacement.left,
               header: Padding(
-                padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -959,7 +958,7 @@ class SalesView extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 1,
-                      child: Text('FRw ${cost}',
+                      child: Text('FRw $cost',
                           style: GoogleFonts.lato(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -970,7 +969,7 @@ class SalesView extends StatelessWidget {
                 ),
               ),
               expanded: Padding(
-                  padding: EdgeInsets.all(15.0),
+                  padding: const EdgeInsets.all(15.0),
                   child: Column(
                     children: [
                       Divider(
@@ -992,7 +991,7 @@ class SalesView extends StatelessWidget {
                           ),
                           Expanded(
                             flex: 1,
-                            child: Text('FRw ${cost}',
+                            child: Text('FRw $cost',
                                 style: GoogleFonts.lato(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.bold,
