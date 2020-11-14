@@ -1,11 +1,7 @@
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
-
 import 'package:stacked/stacked.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
 

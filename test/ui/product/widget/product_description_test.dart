@@ -2,26 +2,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flipper/ui/product/widget/product_description_viewmodel.dart';
 
 void main() {
-  testWidgets('product description ...', (tester) async {
-    //DONE: Test the  increaseQty,decreaseQty,slide
-    //NOTES: {Telesphore} added a Unit test ==> correct me I did wrong -> this is what I got
-    group('canSubmit -', () {
-      test('Test increaseQty can incriment ', () {
+    //NOTE: we learned that we can not put UI invokable class in viewmodel such as TextEditingController as it will make it harder to test our viewmode. see the change I made.
+    //NOTE: {Telesphore} added a Unit test ==> correct me I did wrong -> this is what I got
+    // better, cheaper, faster.
+    group('Test Product Description when about to sell: ', () {
+      test('increaseQty', () {
        final model = ProductDescriptionViewmodel();
         model.increaseQty();
-        expect(model.quantity, 1);
-      });
-      test('Test decreaseQty can decrease ', () {
-        final model = ProductDescriptionViewmodel();
-        model.decreaseQty();
-        expect(model.quantity, -1);
+        expect(model.quantity, 2.0);
       });
 
-      test('Test slide button ', () {
+      test('decreaseQty', () {
+        final model = ProductDescriptionViewmodel();
+        model.decreaseQty();
+        expect(model.quantity, 0.0);
+      });
+
+      test('With Discount', () {
        final  model = ProductDescriptionViewmodel();
         model.slide(value: 0);
-        expect(model.slider, 100);
+        expect(model.slider, 0.0);
       });
     });
-  });
+ 
 }
