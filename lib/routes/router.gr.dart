@@ -36,6 +36,7 @@ import 'package:flipper/ui/contacts/contact_view.dart';
 import 'package:flipper/ui/product/widget/product_description.dart';
 import 'package:flipper/ui/widget/report/build_sales_View.dart';
 import 'package:flipper/ui/widget/calendar/calenderView.dart';
+import 'package:flipper/ui/widget/discounts/discount_view.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -65,6 +66,7 @@ class Routing {
   static const productDescription = '/product-description';
   static const salesView = '/sales-view';
   static const calendarView = '/calendar-view';
+  static const discountView = '/discount-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -356,6 +358,15 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) =>
               CalendarView(key: typedArgs.key, title: typedArgs.title),
+          settings: settings,
+        );
+      case Routing.discountView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => DiscountView(key: typedArgs),
           settings: settings,
         );
       default:

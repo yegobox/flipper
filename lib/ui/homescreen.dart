@@ -9,7 +9,7 @@ import 'package:flipper/ui/widget/bottom_menu_bar.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper/ui/widget/items/items_view.dart';
 import 'home_viewmodel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,47 +33,68 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // ignore: missing_return
-  Widget _getPage({@required int index,@required CommonViewModel vm}) {
+  Widget _getPage({@required int index, @required CommonViewModel vm}) {
     switch (index) {
       case 0:
         return const Poswidget();
         // return const ProductsView();
         break;
       case 1:
-        return  ProductsView(userId: vm.user.id,);
+        return ProductsView(
+          userId: vm.user.id,
+        );
         break;
       case 2:
-        return  ProductsView(userId: vm.user.id,);
+        return ItemsView(
+          userId: vm.user.id,
+          items: false,
+        );
+        break;
+      case 3:
+        return ProductsView(
+          userId: vm.user.id,
+        );
         break;
     }
   }
+
+  bool itemstab = false;
 
   @override
   Widget build(BuildContext context) {
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, HomeViewModel model, Widget child) {
+          if (model.items == 2) {
+            itemstab = true;
+          }
           return Scaffold(
             extendBody: true,
             key: _scaffoldKey,
             appBar: HomeAppBar(
               scaffoldKey: _scaffoldKey,
               sideOpenController: widget.sideOpenController,
+              tabs: itemstab,
             ),
             bottomNavigationBar: BottomMenubar(
               model: model,
             ),
             body: Column(
               children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                  child: PayableView(),
-                ),
+                model.items == 2
+                    ? const Padding(
+                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                        child: Text(''),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                        child: PayableView(),
+                      ),
                 Expanded(
                   child: Container(
                     child: SafeArea(
                       child: Container(
-                        child: _getPage(index:model.tab,vm: widget.vm),
+                        child: _getPage(index: model.tab, vm: widget.vm),
                       ),
                     ),
                   ),

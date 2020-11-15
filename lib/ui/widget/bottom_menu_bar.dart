@@ -7,27 +7,26 @@ import 'package:flutter/material.dart';
 class BottomMenubar extends StatefulWidget {
   const BottomMenubar({this.model});
   final HomeViewModel model;
-  
+
   @override
   _BottomMenubarState createState() => _BottomMenubarState();
 }
 
-
 class _BottomMenubarState extends State<BottomMenubar> {
-  
   @override
   void initState() {
     super.initState();
   }
 
   Widget _iconRow() {
-    
     return Container(
       height: 50,
-      decoration:
-          BoxDecoration(color: Theme.of(context).bottomAppBarColor, boxShadow: [
-        const BoxShadow(color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
-      ]),
+      decoration: BoxDecoration(
+          color: Theme.of(context).bottomAppBarColor,
+          boxShadow: [
+            const BoxShadow(
+                color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
+          ]),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -40,10 +39,13 @@ class _BottomMenubarState extends State<BottomMenubar> {
               icon: 1 == 1 ? AppIcon.searchFill : AppIcon.search,
               isCustomIcon: true),
           _icon(null, 2,
-              icon: 2 == 2 ? AppIcon.notificationFill : AppIcon.notification,
+              icon: 2 == 2 ? AppIcon.lists : AppIcon.lists,
               isCustomIcon: true),
           _icon(null, 3,
-              icon: 3 == 3 ? AppIcon.messageFill : AppIcon.messageEmpty,
+              icon: 3 == 3 ? AppIcon.notificationFill : AppIcon.notification,
+              isCustomIcon: true),
+          _icon(null, 4,
+              icon: 4 == 4 ? AppIcon.messageFill : AppIcon.messageEmpty,
               isCustomIcon: true),
         ],
       ),
@@ -52,7 +54,6 @@ class _BottomMenubarState extends State<BottomMenubar> {
 
   Widget _icon(IconData iconData, int index,
       {bool isCustomIcon = false, int icon}) {
-   
     // ignore: always_specify_types
     return Expanded(
       child: Container(
@@ -71,7 +72,6 @@ class _BottomMenubarState extends State<BottomMenubar> {
               padding: const EdgeInsets.all(0),
               alignment: const Alignment(0, 0),
               icon: isCustomIcon
-              
                   ? customIcon(context,
                       icon: icon,
                       size: 22,
@@ -84,7 +84,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
                           : Theme.of(context).textTheme.caption.color,
                     ),
               onPressed: () {
-               widget.model.switchTab(index);
+                widget.model.switchTab(index);
               },
             ),
           ),

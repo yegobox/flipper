@@ -136,7 +136,7 @@ final _notesController = TextEditingController();
                       flex: 1,
                       child: Container(
                         child: IconButton(
-                            icon: Icon(FontAwesome.plus),
+                            icon:const  Icon(FontAwesome.plus),
                             onPressed: model.increaseQty),
                       )),
                 ],

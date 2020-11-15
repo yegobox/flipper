@@ -157,13 +157,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.3"
-  calendarro:
-    dependency: "direct main"
-    description:
-      name: calendarro
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
   camera:
     dependency: "direct main"
     description:
@@ -1017,6 +1010,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  slider_button:
+    dependency: "direct main"
+    description:
+      name: slider_button
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.0"
   source_gen:
     dependency: transitive
     description:
@@ -1199,6 +1199,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0-nullsafety.3"
+  vibration:
+    dependency: transitive
+    description:
+      name: vibration
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.7.2"
+  vibration_web:
+    dependency: transitive
+    description:
+      name: vibration_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.6.2"
   watcher:
     dependency: transitive
     description:

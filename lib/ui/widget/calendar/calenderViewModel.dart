@@ -26,6 +26,7 @@ class CalendarViewModel extends BaseViewModel {
   String get rangeCount {
     return _rangeCount;
   }
+  
 
   void onSelectionChanged(DateRangePickerSelectionChangedArgs  args) {
     if (args.value is PickerDateRange) {

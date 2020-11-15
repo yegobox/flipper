@@ -14,7 +14,6 @@ import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/ui/welcome/selling/tender_screen.dart';
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
 import 'package:flipper/ui/welcome/splash/splash_screen.dart';
-
 import 'package:flipper/ui/widget/note/add_note_screen.dart';
 
 import 'package:flipper/ui/widget/unit/add_unit_view.dart';
@@ -36,6 +35,7 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/ui/contacts/contact_view.dart';
 import 'package:flipper/ui/widget/report/build_sales_View.dart';
 import 'package:flipper/ui/widget/calendar/calenderView.dart';
+import 'package:flipper/ui/widget/discounts/discount_view.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -125,6 +125,7 @@ class $Routing {
   ProductDescription productDescription;
   SalesView salesView;
   CalendarView calendarView;
+  DiscountView discountView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

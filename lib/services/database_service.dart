@@ -12,13 +12,13 @@ import 'package:uuid/uuid.dart';
 
 // this class is about to replace AppDatabase class used for experimental
 // query example: https://github.com/SaltechSystems/couchbase_lite/blob/master/example/lib/data/database.dart
-@lazySingleton
+// @lazySingleton
 class DatabaseService {
   final Logger log = Logging.getLogger('Database service  Model ....');
- 
+
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
-  
+
   Future<bool> documentExist({String property, String equator}) async {
     final Where query = QueryBuilder.select([SelectResult.all()])
         .from(CoreDB.instance.dbName)
@@ -28,7 +28,7 @@ class DatabaseService {
     return result.allResults().isNotEmpty;
   }
   // products functions
- 
+
   Future<Document> getById({String id}) async {
     return await CoreDB.instance.database.document(id);
   }
@@ -51,12 +51,10 @@ class DatabaseService {
             ),
           );
     } else {
-      query = QueryBuilder.select(
-        [
-          SelectResult.all()
-        ])
+      query = QueryBuilder.select([SelectResult.all()])
           .from(CoreDB.instance.dbName)
-          .where(Expression.property(property)
+          .where(
+            Expression.property(property)
                 .equalTo(
                   Expression.value(equator),
                 )
@@ -72,7 +70,7 @@ class DatabaseService {
     final List<Map<String, dynamic>> model = result.map((Result result) {
       return result.toMap();
     }).toList();
-    
+
     return model;
   }
 
@@ -82,11 +80,10 @@ class DatabaseService {
 
   Future<Document> insert({String id, Map data}) async {
     final String _id = id ?? Uuid().v1();
-    final MutableDocument newDoc =
-        MutableDocument(id: _id, data: data);
+    final MutableDocument newDoc = MutableDocument(id: _id, data: data);
     await CoreDB.instance.database.saveDocument(newDoc);
     final Document document = await getById(id: _id);
-    assert(document !=null);
+    assert(document != null);
     return document;
   }
 

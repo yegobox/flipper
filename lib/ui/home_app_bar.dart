@@ -1,6 +1,6 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -10,7 +10,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({
     @required this.scaffoldKey,
     @required this.sideOpenController,
+    this.tabs,
   });
+  final bool tabs;
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueNotifier<bool> sideOpenController;
@@ -27,7 +29,13 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
             // ignore: always_specify_types
             leading: _hamburger(),
-            title: const SizedBox.shrink(),
+            title: tabs
+                ? const Text('Items',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20.0,
+                        color: Colors.black))
+                : const SizedBox.shrink(),
             // FIXME(richard): fix bellow code
             //title: StreamBuilder(
             //         // FIXME(richard): replace this with couchbaselite too
