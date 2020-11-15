@@ -52,8 +52,9 @@ class CalendarView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    // ignore: prefer_const_literals_to_create_immutables
                     children: [
-                      const Text('Time range:'),
+                       const Text('Time ranges:'),
                     ],
                   ),
                 ),
