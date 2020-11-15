@@ -4,6 +4,7 @@ import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import './discount_view_model.dart';
 
+//TODO:{Telesphore}  finish discount UI
 class DiscountView extends StatelessWidget {
   const DiscountView({Key key}) : super(key: key);
 
