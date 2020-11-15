@@ -1,53 +1,47 @@
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class CalendarViewModel extends BaseViewModel {
   final dateTime = DateTime.now();
   //TODO:{telesphore}start from current date
-  final DateTime _currentDate = DateTime(2020, 2, 3);
-  DateTime _currentDate2 = DateTime(2020, 2, 3);
+  String _selectedDate;
+  String _dateCount;
+  String _range;
+  String _rangeCount;
 
-  String _currentMonth = DateFormat.yMMM().format(DateTime.now());
-  DateTime _targetDateTime = DateTime(2020, 2, 3);
-
-  DateTime get currentDate {
-    return _currentDate;
+  String get selectedDate {
+    return _selectedDate;
   }
 
-  DateTime get currentDate2 {
-    return _currentDate2;
+  String get dateCount {
+    return _dateCount;
   }
 
-  String get currentMonth {
-    return _currentMonth;
+  String get range {
+    return _range;
   }
 
-  DateTime get targetDateTime {
-    return _targetDateTime;
+  String get rangeCount {
+    return _rangeCount;
   }
+  
 
-  void todayDate({@required DateTime date}) {
-    _currentDate2 = date;
-    notifyListeners();
-  }
-
-  void calendarChange({@required DateTime date}) {
-    _targetDateTime = date;
-    _currentMonth = DateFormat.yMMM().format(_targetDateTime);
-    notifyListeners();
-  }
-
-  void previousMonth() {
-    _targetDateTime = DateTime(_targetDateTime.year, _targetDateTime.month - 1);
-    _currentMonth = DateFormat.yMMM().format(_targetDateTime);
-    notifyListeners();
-  }
-
-  void nextMonth() {
-    _targetDateTime = DateTime(_targetDateTime.year, _targetDateTime.month + 1);
-    _currentMonth = DateFormat.yMMM().format(_targetDateTime);
+  void onSelectionChanged(DateRangePickerSelectionChangedArgs  args) {
+    if (args.value is PickerDateRange) {
+      _range =DateFormat('dd/MM/yyyy').format(args.value.startDate).toString() +
+              ' - ' +
+              DateFormat('dd/MM/yyyy')
+                  .format(args.value.endDate ?? args.value.startDate)
+                  .toString();
+    } else if (args.value is DateTime) {
+      _selectedDate = args.value;
+    } else if (args.value is List<DateTime>) {
+      _dateCount = args.value.length.toString();
+    } else {
+      _rangeCount = args.value.length.toString();
+    }
     notifyListeners();
   }
 }
