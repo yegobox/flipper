@@ -1017,6 +1017,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.0"
+  sliding_switch:
+    dependency: "direct main"
+    description:
+      name: sliding_switch
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.3"
   source_gen:
     dependency: transitive
     description:

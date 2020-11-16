@@ -25,26 +25,32 @@ class ItemsView extends StatelessWidget {
                   const SizedBox(
                     height: 20.0,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text('All Items',
-                            style: GoogleFonts.lato(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14.0,
-                                    color: Colors.grey[800]))),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Row(children: [
-                          const Expanded(
-                              child: Icon(FontAwesome.chevron_right, size: 20)),
-                        ]),
-                      ),
-                    ],
+                  InkWell(
+                    onTap: () {
+                      model.navigateTo(path: Routing.itemsListView);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text('All Items',
+                              style: GoogleFonts.lato(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.0,
+                                      color: Colors.grey[800]))),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Row(children: [
+                            const Expanded(
+                                child:
+                                    Icon(FontAwesome.chevron_right, size: 20)),
+                          ]),
+                        ),
+                      ],
+                    ),
                   ),
                   //Categories
                   Divider(
@@ -53,26 +59,32 @@ class ItemsView extends StatelessWidget {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text('Categories',
-                            style: GoogleFonts.lato(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14.0,
-                                    color: Colors.grey[800]))),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Row(children: [
-                          const Expanded(
-                              child: Icon(FontAwesome.chevron_right, size: 20)),
-                        ]),
-                      ),
-                    ],
+                  InkWell(
+                    onTap: () {
+                      model.navigateTo(path: Routing.listCategoryView);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text('Categories',
+                              style: GoogleFonts.lato(
+                                  textStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.0,
+                                      color: Colors.grey[800]))),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Row(children: [
+                            const Expanded(
+                                child:
+                                    Icon(FontAwesome.chevron_right, size: 20)),
+                          ]),
+                        ),
+                      ],
+                    ),
                   ),
                   //===Modifier
                   Divider(

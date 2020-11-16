@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked/stacked.dart';
+import 'package:sliding_switch/sliding_switch.dart';
 import './discount_view_model.dart';
+import 'package:flipper/routes/router.gr.dart';
 
 //TODO:{Telesphore}  finish discount UI
 class DiscountView extends StatelessWidget {
@@ -17,6 +19,15 @@ class DiscountView extends StatelessWidget {
               backgroundColor: Colors.white,
               appBar: AppBar(
                 backgroundColor: Colors.white,
+                leading: IconButton(
+                  icon: const Icon(
+                    FontAwesome.close,
+                    size: 18.0,
+                  ),
+                  onPressed: () {
+                    model.navigateTo(path: Routing.listDiscountView);
+                  },
+                ),
                 title: Text(
                   'Create Discount', // title
                   style: Theme.of(context)
@@ -61,7 +72,35 @@ class DiscountView extends StatelessWidget {
                                     horizontal: 90.0),
                                 width: double.infinity,
                                 height: 80,
-                                color: Colors.grey[700],
+                                color: Colors.grey[500],
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      20.0, 0.0, 0.0, 0.0),
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                              model.discountAmount.toString(),
+                                              style: GoogleFonts.nunito(
+                                                textStyle: TextStyle(
+                                                    color: Colors.grey[200]),
+                                              )),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text(model.toggle,
+                                              style: GoogleFonts.nunito(
+                                                textStyle: TextStyle(
+                                                    color: Colors.grey[200]),
+                                              )),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                               Container(
                                 margin: const EdgeInsets.symmetric(
@@ -71,7 +110,10 @@ class DiscountView extends StatelessWidget {
                                 decoration: BoxDecoration(
                                     border:
                                         Border.all(color: Colors.grey[600])),
-                                child: Text(model.content),
+                                child: Column(children: [
+                                  Expanded(child: Text(model.content)),
+                                  // ValueListenableBuilder(valueListenable: null, builder: null)
+                                ]),
                               )
                             ],
                           ),
@@ -81,8 +123,14 @@ class DiscountView extends StatelessWidget {
                             child: Column(
                               children: [
                                 TextFormField(
+                                  style: TextStyle(color: Colors.grey[600]),
+                                  onChanged: (text) {
+                                    model.discountMethod(value: text);
+                                    // print('text  $text');
+                                  },
+                                  controller: model.discountname,
                                   decoration: const InputDecoration(
-                                      labelText: 'Discount Name'),
+                                      hintText: 'Discount Name'),
                                 ),
                                 Row(
                                   children: [
@@ -90,15 +138,61 @@ class DiscountView extends StatelessWidget {
                                         flex: 2,
                                         child: Container(
                                           child: TextFormField(
-                                            initialValue: '%',
-                                            decoration: const InputDecoration(
-                                              border: InputBorder.none,
-                                            ),
+                                            style: TextStyle(
+                                                color: Colors.grey[600]),
+                                            controller: model.discount,
+                                            onChanged: (text) {
+                                              model.discountName(
+                                                  discount: text);
+                                            },
+                                            decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                fillColor: Colors.grey[700],
+                                                hintText: model.toggle),
                                           ),
-                                        ))
+                                        )),
+                                    Expanded(
+                                      child: SlidingSwitch(
+                                        value: false,
+                                        width: 100,
+                                        onChanged: (bool value) {
+                                          if (value) {
+                                            model.checkToggle(value: 'Frw');
+                                          } else {
+                                            model.checkToggle(value: '%');
+                                          }
+                                          print(value);
+                                        },
+                                        height: 40,
+                                        animationDuration:
+                                            const Duration(milliseconds: 400),
+                                        onTap: () {},
+                                        onDoubleTap: () {},
+                                        onSwipe: () {},
+                                        textOff: '%',
+                                        textOn: 'FRw',
+                                        colorOn: Colors.grey[300],
+                                        colorOff: Colors.grey[700],
+                                        background: const Color(0xffe4e5eb),
+                                        buttonColor: Colors.blue[400],
+                                        inactiveColor: Colors.grey[300],
+                                      ),
+                                    )
                                   ],
                                 ),
                                 const Divider(),
+                                const SizedBox(
+                                  height: 20.0,
+                                ),
+                                Container(
+                                  child: Text(
+                                      'Leave the discount amount blank to enter at the time of sale. \n Discounts are applied to the ticket before tax is calculated',
+                                      style: GoogleFonts.lato(
+                                        textStyle: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14.0),
+                                      )),
+                                )
                               ],
                             ),
                           ),

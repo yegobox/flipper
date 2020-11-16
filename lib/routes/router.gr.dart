@@ -37,6 +37,9 @@ import 'package:flipper/ui/product/widget/product_description.dart';
 import 'package:flipper/ui/widget/report/build_sales_View.dart';
 import 'package:flipper/ui/widget/calendar/calenderView.dart';
 import 'package:flipper/ui/widget/discounts/discount_view.dart';
+import 'package:flipper/ui/widget/items/items_list_view.dart';
+import 'package:flipper/ui/widget/category/category_list_view.dart';
+import 'package:flipper/ui/widget/discounts/discount_list_view.dart';
 
 class Routing {
   static const splashScreen = '/';
@@ -67,6 +70,9 @@ class Routing {
   static const salesView = '/sales-view';
   static const calendarView = '/calendar-view';
   static const discountView = '/discount-view';
+  static const itemsListView = '/items-list-view';
+  static const listCategoryView = '/list-category-view';
+  static const listDiscountView = '/list-discount-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -367,6 +373,33 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => DiscountView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.itemsListView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ItemsListView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.listCategoryView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ListCategoryView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.listDiscountView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ListDiscountView(key: typedArgs),
           settings: settings,
         );
       default:

@@ -36,6 +36,9 @@ import 'package:flipper/ui/contacts/contact_view.dart';
 import 'package:flipper/ui/widget/report/build_sales_View.dart';
 import 'package:flipper/ui/widget/calendar/calenderView.dart';
 import 'package:flipper/ui/widget/discounts/discount_view.dart';
+import 'package:flipper/ui/widget/items/items_list_view.dart';
+import 'package:flipper/ui/widget/category/category_list_view.dart';
+import 'package:flipper/ui/widget/discounts/discount_list_view.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -126,6 +129,9 @@ class $Routing {
   SalesView salesView;
   CalendarView calendarView;
   DiscountView discountView;
+  ItemsListView itemsListView;
+  ListCategoryView listCategoryView;
+  ListDiscountView listDiscountView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
