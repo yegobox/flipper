@@ -6,7 +6,7 @@ import 'package:sliding_switch/sliding_switch.dart';
 import './discount_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 
-//TODO:{Telesphore}  finish discount UI
+//TODO:{Telesphore}  finish discount UI === Link are added  for all screen
 class DiscountView extends StatelessWidget {
   const DiscountView({Key key}) : super(key: key);
 
