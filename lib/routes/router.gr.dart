@@ -7,57 +7,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flipper/ui/welcome/signup/signup_view.dart';
-import 'package:flipper/ui/product/add/add_product_view.dart';
-import 'package:flipper/ui/open_close_drawerview.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
-import 'package:flipper/ui/widget/discounts/discount_view.dart';
-import 'package:flipper/ui/widget/calendar/calenderView.dart';
-import 'package:flipper/ui/contacts/contact_view.dart';
-import 'package:flipper/ui/widget/category/edit_category_view.dart';
-import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
-import 'package:flipper/ui/variation/edit_variation_screen.dart';
-import 'package:flipper/ui/widget/products_edits/product_list_view.dart';
-import 'package:flipper/ui/widget/category/category_list_view.dart';
-import 'package:flipper/ui/widget/discounts/discount_list_view.dart';
-import 'package:flipper/ui/product/widget/product_description.dart';
-import 'package:flipper/ui/widget/report/build_sales_View.dart';
-import 'package:flipper/ui/widget/products_edits/product_view.dart';
-import 'package:flipper/ui/welcome/splash/splash_screen.dart';
-import 'package:flipper/ui/transactions/transaction_screen.dart';
-import 'package:flipper/ui/welcome/home/dash_board.dart';
-import 'package:flipper/ui/welcome/splash/aftersplash.dart';
-import 'package:flipper/ui/widget/note/add_note_screen.dart';
-import 'package:flipper/ui/product/edit/edit_product_title.dart';
-import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
-import 'package:flipper/ui/widget/unit/add_unit_view.dart';
-import 'package:flipper/ui/product/add/add_category_view.dart';
-import 'package:flipper/ui/category/create_category_input_screen.dart';
-import 'package:flipper/ui/widget/stock/receive_stock.dart';
-import 'package:flipper/ui/selling/change_quantity_selling.dart';
-import 'package:flipper/ui/order/order_details_view.dart';
+import 'package:flipper/views/welcome/signup/signup_view.dart';
+import 'package:flipper/views/product/add/add_product_view.dart';
+import 'package:flipper/views/open_close_drawerview.dart';
+import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper/views/reports/build_sales_View.dart';
+import 'package:flipper/widget/calendar/calenderView.dart';
+import 'package:flipper/views/contacts/contact_view.dart';
+import 'package:flipper/views/discounts/discount_view.dart';
+import 'package:flipper/views/category/edit_category_view.dart';
+import 'package:flipper/views/unit/edit_unit_view.dart';
+import 'package:flipper/views/variation/edit_variation_screen.dart';
+import 'package:flipper/views/category/category_list_view.dart';
+import 'package:flipper/views/discounts/discount_list_view.dart';
+import 'package:flipper/views/product/widget/product_description.dart';
+import 'package:flipper/views/product/product_list_view.dart';
+import 'package:flipper/views/product/product_view.dart';
+import 'package:flipper/views/stock/receive_stock.dart';
+import 'package:flipper/views/welcome/splash/splash_screen.dart';
+import 'package:flipper/views/transactions/transaction_screen.dart';
+import 'package:flipper/views/welcome/home/dash_board.dart';
+import 'package:flipper/views/welcome/splash/aftersplash.dart';
+import 'package:flipper/views/note/add_note_screen.dart';
+import 'package:flipper/views/product/edit/edit_product_title.dart';
+import 'package:flipper/views/variation/add_variation_screen.dart';
+import 'package:flipper/views/unit/add_unit_view.dart';
+import 'package:flipper/views/product/add/add_category_view.dart';
+import 'package:flipper/views/category/create_category_input_screen.dart';
+import 'package:flipper/views/selling/change_quantity_selling.dart';
+import 'package:flipper/views/order/order_details_view.dart';
 import 'package:flipper/model/order.dart';
-import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
-import 'package:flipper/ui/welcome/selling/tender_screen.dart';
-import 'package:flipper/ui/camera/camera_preview.dart';
+import 'package:flipper/views/welcome/selling/complete_sale_screen.dart';
+import 'package:flipper/views/welcome/selling/tender_screen.dart';
+import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
   static const addProduct = '/add-product';
   static const openCloseDrawerview = '/open-close-drawerview';
-  static const discountView = '/discount-view';
+  static const salesView = '/sales-view';
   static const calendarView = '/calendar-view';
   static const contactView = '/contact-view';
+  static const discountView = '/discount-view';
   static const editCategoryScreen = '/edit-category-screen';
   static const editUnitType = '/edit-unit-type';
   static const editVariationScreen = '/edit-variation-screen';
-  static const productsListView = '/products-list-view';
   static const listCategoryView = '/list-category-view';
   static const listDiscountView = '/list-discount-view';
   static const productDescription = '/product-description';
-  static const salesView = '/sales-view';
+  static const productsListView = '/products-list-view';
   static const productView = '/product-view';
+  static const receiveStock = '/receive-stock';
   static const splashScreen = '/';
   static const transactionScreen = '/transaction-screen';
   static const dashboard = '/dashboard';
@@ -68,7 +69,6 @@ class Routing {
   static const addUnitType = '/add-unit-type';
   static const addCategoryScreen = '/add-category-screen';
   static const createCategoryInputScreen = '/create-category-input-screen';
-  static const receiveStock = '/receive-stock';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
   static const orderDetailsView = '/order-details-view';
   static const completeSaleScreen = '/complete-sale-screen';
@@ -120,13 +120,13 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.discountView:
+      case Routing.salesView:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => DiscountView(key: typedArgs),
+          builder: (_) => SalesView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -144,6 +144,15 @@ class Routing {
       case Routing.contactView:
         return MaterialPageRoute<dynamic>(
           builder: (_) => ContactView(),
+          settings: settings,
+        );
+      case Routing.discountView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => DiscountView(key: typedArgs),
           settings: settings,
         );
       case Routing.editCategoryScreen:
@@ -181,15 +190,6 @@ class Routing {
               unitId: typedArgs.unitId),
           settings: settings,
         );
-      case Routing.productsListView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ProductListView(key: typedArgs),
-          settings: settings,
-        );
       case Routing.listCategoryView:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
@@ -217,13 +217,13 @@ class Routing {
           builder: (_) => ProductDescription(key: typedArgs),
           settings: settings,
         );
-      case Routing.salesView:
+      case Routing.productsListView:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
         }
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => SalesView(key: typedArgs),
+          builder: (_) => ProductListView(key: typedArgs),
           settings: settings,
         );
       case Routing.productView:
@@ -235,7 +235,19 @@ class Routing {
           builder: (_) => ProductView(
               key: typedArgs.key,
               userId: typedArgs.userId,
-              items: typedArgs.items),
+              items: typedArgs.items,
+              sellingModeView: typedArgs.sellingModeView),
+          settings: settings,
+        );
+      case Routing.receiveStock:
+        if (hasInvalidArgs<ReceiveStockScreenArguments>(args,
+            isRequired: true)) {
+          return misTypedArgsRoute<ReceiveStockScreenArguments>(args);
+        }
+        final typedArgs = args as ReceiveStockScreenArguments;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ReceiveStockScreen(
+              key: typedArgs.key, variationId: typedArgs.variationId),
           settings: settings,
         );
       case Routing.splashScreen:
@@ -335,17 +347,6 @@ class Routing {
           builder: (_) => CreateCategoryInputScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
-        );
-      case Routing.receiveStock:
-        if (hasInvalidArgs<ReceiveStockScreenArguments>(args,
-            isRequired: true)) {
-          return misTypedArgsRoute<ReceiveStockScreenArguments>(args);
-        }
-        final typedArgs = args as ReceiveStockScreenArguments;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ReceiveStockScreen(
-              key: typedArgs.key, variationId: typedArgs.variationId),
-          settings: settings,
         );
       case Routing.editQuantityItemScreen:
         if (hasInvalidArgs<ChangeQuantityForSellingArguments>(args,
@@ -492,14 +493,12 @@ class ProductViewArguments {
   final Key key;
   final String userId;
   final bool items;
-  ProductViewArguments({this.key, @required this.userId, @required this.items});
-}
-
-//AddVariationScreen arguments holder class
-class AddVariationScreenArguments {
-  final Key key;
-  final String productId;
-  AddVariationScreenArguments({this.key, this.productId});
+  final bool sellingModeView;
+  ProductViewArguments(
+      {this.key,
+      @required this.userId,
+      @required this.items,
+      this.sellingModeView = false});
 }
 
 //ReceiveStockScreen arguments holder class
@@ -507,6 +506,13 @@ class ReceiveStockScreenArguments {
   final Key key;
   final String variationId;
   ReceiveStockScreenArguments({this.key, @required this.variationId});
+}
+
+//AddVariationScreen arguments holder class
+class AddVariationScreenArguments {
+  final Key key;
+  final String productId;
+  AddVariationScreenArguments({this.key, this.productId});
 }
 
 //ChangeQuantityForSelling arguments holder class

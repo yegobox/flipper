@@ -1,48 +1,47 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
-import 'package:flipper/ui/order/order_details_view.dart';
-import 'package:flipper/ui/product/add/add_category_view.dart';
-import 'package:flipper/ui/product/add/add_product_view.dart';
-import 'package:flipper/ui/product/edit/edit_product_title.dart';
-import 'package:flipper/ui/product/widget/product_description.dart';
+import 'package:flipper/views/category/category_list_view.dart';
+import 'package:flipper/views/category/edit_category_view.dart';
+import 'package:flipper/views/discounts/discount_list_view.dart';
+import 'package:flipper/views/discounts/discount_view.dart';
+import 'package:flipper/views/note/add_note_screen.dart';
+import 'package:flipper/views/order/order_details_view.dart';
+import 'package:flipper/views/product/add/add_category_view.dart';
+import 'package:flipper/views/product/add/add_product_view.dart';
+import 'package:flipper/views/product/edit/edit_product_title.dart';
+import 'package:flipper/views/product/product_list_view.dart';
+import 'package:flipper/views/product/product_view.dart';
+import 'package:flipper/views/product/widget/product_description.dart';
+import 'package:flipper/views/reports/build_sales_View.dart';
+import 'package:flipper/views/stock/receive_stock.dart';
+import 'package:flipper/views/unit/add_unit_view.dart';
+import 'package:flipper/views/unit/edit_unit_view.dart';
+import 'package:flipper/views/variation/add_variation_screen.dart';
 
-import 'package:flipper/ui/variation/edit_variation_screen.dart';
+import 'package:flipper/views/variation/edit_variation_screen.dart';
 
-import 'package:flipper/ui/welcome/signup/signup_view.dart';
-import 'package:flipper/ui/welcome/home/dash_board.dart';
-import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
-import 'package:flipper/ui/welcome/selling/tender_screen.dart';
+import 'package:flipper/views/welcome/signup/signup_view.dart';
+import 'package:flipper/views/welcome/home/dash_board.dart';
+import 'package:flipper/views/welcome/selling/complete_sale_screen.dart';
+import 'package:flipper/views/welcome/selling/tender_screen.dart';
 
-import 'package:flipper/ui/welcome/splash/aftersplash.dart';
-import 'package:flipper/ui/welcome/splash/splash_screen.dart';
+import 'package:flipper/views/welcome/splash/aftersplash.dart';
+import 'package:flipper/views/welcome/splash/splash_screen.dart';
 
-import 'package:flipper/ui/widget/note/add_note_screen.dart';
-import 'package:flipper/ui/widget/products_edits/product_list_view.dart';
-import 'package:flipper/ui/widget/products_edits/product_view.dart';
+import 'package:flipper/views/camera/camera_preview.dart';
 
-import 'package:flipper/ui/widget/unit/add_unit_view.dart';
-import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
-import 'package:flipper/ui/camera/camera_preview.dart';
+import 'package:flipper/views/category/create_category_input_screen.dart';
 
-import 'package:flipper/ui/category/create_category_input_screen.dart';
+import 'package:flipper/views/open_close_drawerview.dart';
 
-import 'package:flipper/ui/open_close_drawerview.dart';
 
-import 'package:flipper/ui/widget/stock/receive_stock.dart';
+import 'package:flipper/views/selling/change_quantity_selling.dart';
+import 'package:flipper/views/transactions/transaction_screen.dart';
 
-import 'package:flipper/ui/selling/change_quantity_selling.dart';
-import 'package:flipper/ui/transactions/transaction_screen.dart';
-import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
-import 'package:flipper/ui/widget/category/edit_category_view.dart';
+import 'package:flipper/widget/calendar/calenderView.dart';
 
 import 'package:flipper_login/otp.dart';
-import 'package:flipper/ui/contacts/contact_view.dart';
-import 'package:flipper/ui/widget/report/build_sales_View.dart';
-import 'package:flipper/ui/widget/calendar/calenderView.dart';
-import 'package:flipper/ui/widget/discounts/discount_view.dart';
-
-import 'package:flipper/ui/widget/category/category_list_view.dart';
-import 'package:flipper/ui/widget/discounts/discount_list_view.dart';
+import 'package:flipper/views/contacts/contact_view.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -72,19 +71,20 @@ class $Routing {
     durationInMilliseconds: 200,
   )
  
-  DiscountView discountView;
+ SalesView salesView;
 
   CalendarView calendarView;
   ContactView contactView;
+  DiscountView discountView;
   EditCategoryScreen editCategoryScreen;
   EditUnitView editUnitType;
   EditVariationScreen editVariationScreen;
-  ProductListView productsListView;
   ListCategoryView listCategoryView;
   ListDiscountView listDiscountView;
   ProductDescription productDescription;
-  SalesView salesView;
+  ProductListView productsListView;
   ProductView productView;
+  ReceiveStockScreen receiveStock;
   @initial
   SplashScreen splashScreen;
 
@@ -102,12 +102,6 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   AddNoteScreen addNoteScreen;
 
-  // @MaterialRoute(fullscreenDialog: true)
-  // SaleScreen saleScreen;
-
-  // @MaterialRoute(fullscreenDialog: true)
-  // SettingUpApplicationScreen settingUpApplicationScreen;
-
   @MaterialRoute(fullscreenDialog: true)
   EditItemTitle editItemTitle;
 
@@ -122,9 +116,6 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   CreateCategoryInputScreen createCategoryInputScreen;
-
-  // @MaterialRoute(fullscreenDialog: true)
-  ReceiveStockScreen receiveStock;
 
   @MaterialRoute(fullscreenDialog: true)
   ChangeQuantityForSelling editQuantityItemScreen;
