@@ -959,6 +959,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  slider_button:
+    dependency: "direct main"
+    description:
+      name: slider_button
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.0"
+  sliding_switch:
+    dependency: "direct main"
+    description:
+      name: sliding_switch
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.3"
   source_gen:
     dependency: transitive
     description:
@@ -1134,6 +1148,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0-nullsafety.3"
+  vibration:
+    dependency: transitive
+    description:
+      name: vibration
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.7.2"
+  vibration_web:
+    dependency: transitive
+    description:
+      name: vibration_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.6.2"
   watcher:
     dependency: transitive
     description:

@@ -27,6 +27,7 @@ class DatabaseService {
     // ignore: prefer_single_quotes
     db = Database("main", directory: appDocPath);
 
+
     final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
     final String username = DotEnv().env['USERNAME'];
     final String password = DotEnv().env['PASSWORD'];
