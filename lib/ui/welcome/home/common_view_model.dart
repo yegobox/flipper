@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:flipper/data/main_database.dart';
+
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
@@ -11,7 +11,7 @@ import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/image.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
-import 'package:flipper/model/variation.dart';
+
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:redux/redux.dart';
@@ -42,14 +42,11 @@ abstract class CommonViewModel
   @nullable
   String get otpcode;
   
-  @nullable
-  FlipperColor get currentColor;
 
   @nullable
   Branch get branch;
 
 
-  Database get database;
 
   @nullable //because when app start it is null!
   FUser get user;
@@ -75,13 +72,14 @@ abstract class CommonViewModel
   // ignore: sort_constructors_first
   CommonViewModel._();
   // ignore: sort_unnamed_constructors_first
+  // ignore: sort_constructors_first
   factory CommonViewModel([void Function(CommonViewModelBuilder) updates]) =
       _$CommonViewModel;
 
    // ignore: always_declare_return_types
   createTempCategory({Store<AppState> store,String name})async {
     final DatabaseService _databaseService = ProxyService.database;
-    await   _databaseService.insert(data: {'branchId': store.state.branch.id,'name':name});
+    _databaseService.insert(data: {'branchId': store.state.branch.id,'name':name});
   }
   static CommonViewModel fromStore(Store<AppState> store) {
     return CommonViewModel(
@@ -90,18 +88,19 @@ abstract class CommonViewModel
         ..businesses = store.state.businesses
       
         ..units = store.state.units.toBuilder()
-        ..user = store.state.user.toBuilder()
+
+        ..user = store.state.user?.toBuilder()
        
         ..currentBusiness = store.state.currentActiveBusiness?.toBuilder()
-
-        ..database = store.state.database
 
         ..hint = store.state.hint?.toBuilder()
         
         ..category = store.state.category?.toBuilder()
        
         ..branches = store.state.branches
+
         ..tmpItem = store.state.tmpItem?.toBuilder()
+        
         ..note = store.state.note
 
         ..otpcode = store.state.otpcode

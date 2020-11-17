@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flutter_icons/flutter_icons.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper/ui/widget/search/search_view.dart';
-import './items_list_view_model.dart';
+import 'product_list_view_model.dart';
 
-class ItemsListView extends StatelessWidget {
-  const ItemsListView({Key key}) : super(key: key);
+class ProductListView extends StatelessWidget {
+  const ProductListView({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-        builder: (BuildContext context, ItemsViewModel model, Widget child) {
+        builder: (BuildContext context, ProductsViewModel model, Widget child) {
           return Container(
             child: Scaffold(
               backgroundColor: Colors.white,
@@ -43,6 +41,6 @@ class ItemsListView extends StatelessWidget {
             ),
           );
         },
-        viewModelBuilder: () => ItemsViewModel());
+        viewModelBuilder: () => ProductsViewModel());
   }
 }

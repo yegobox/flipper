@@ -1,13 +1,16 @@
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/model/app_action.dart';
+import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
-import 'package:flipper/model/fuser.dart';
+import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
@@ -17,8 +20,15 @@ class SignUpViewModel extends BaseViewModel {
     return _name.text.isEmpty;
   }
 
-  // ignore: always_declare_return_types
-  
+  final List<Business> _business = <Business>[];
+  List<Business> get business {
+    return _business;
+  }
+
+  Branch _branch;
+  Branch get branch {
+    return _branch;
+  }
 
   GlobalKey<FormState> _formKey;
   GlobalKey<FormState> get formKey {
@@ -52,10 +62,9 @@ class SignUpViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  
   // ignore: always_declare_return_types
-  singUp({BuildContext context, String token, String userId}) {
-    if(nameisEmpty)return;
+  singUp({BuildContext context, String token, String userId}) async {
+    if (nameisEmpty) return;
     StoreProvider.of<AppState>(context).dispatch(AppAction(
         actions:
             AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
@@ -63,48 +72,142 @@ class SignUpViewModel extends BaseViewModel {
     StoreProvider.of<AppState>(context).dispatch(AppAction(
         actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
 
-
     if (_formKey.currentState == null) {
       return;
     }
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 
-      final Business business = Business(
-        (BusinessBuilder b) => b
-          ..id = Uuid().v1()
-          ..name = _name.text
-          ..active = true
-          ..country = 'Rwanda'
-          ..currency = 'RWF'
-          ..categoryId = '1'
-          ..typeId = '1'
-          ..latitude = _position?.latitude.toString() ?? '0'
-          ..longitude = _position?.longitude.toString() ?? '0'
-          ..active = true
-          ..type = 'NORMAL',
-      );
+      // create a business
+      final businessId =
+          await createBusiness(userId: userId, businessName: _name.text,context:context);
 
-      final FUser user = FUser(
-        (FUserBuilder user) => user
-          ..email = _email.text
-          ..active = true
-          ..id = userId
-          ..createdAt = DateTime.now().toIso8601String()
-          ..updatedAt = DateTime.now().toIso8601String()
-          ..token = token
-          ..name = _name.text,
-      );
-     
-      StoreProvider.of<AppState>(context).dispatch(WithUser(user: user));
-      StoreProvider.of<AppState>(context).dispatch(WithBusiness(business));
-      StoreProvider.of<AppState>(context).dispatch(CreateUser(user));
+      // create a it's branches
+      await createBranch(
+          businessId: businessId, businessName: _name.text, userId: userId);
+
+      await generateAppColors(userId: userId);
+
+      await ProxyService.database.initialAppData();
+      await ProxyService.sharedPref.setIsAppConstantsInitialized();
+      // then navigate to a right page ditch auth midleware
+      StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
+
     }
   }
 
-  void initFields({TextEditingController name,TextEditingController email,GlobalKey<FormState> formKey}) {
+  Future<void> generateAppColors({String userId}) async {
+    final bool isAppConstantsInitialized =
+        await ProxyService.sharedPref.isAppConstantsInitialized();
+    if (!isAppConstantsInitialized) {
+      final List<String> colors = [
+        '#d63031',
+        '#0984e3',
+        '#e84393',
+        '#2d3436',
+        '#6c5ce7',
+        '#74b9ff',
+        '#ff7675',
+        '#a29bfe'
+      ];
+      //insert default colors for the app
+      final _databaseService = ProxyService.database;
+      for (int i = 0; i < colors.length; i++) {
+        _databaseService.insert(data: {
+          'name': colors[i],
+          'isActive': false,
+          'channels': [userId],
+          'table': AppTables.color
+        });
+      }
+    }
+  }
+
+  void initFields(
+      {TextEditingController name,
+      TextEditingController email,
+      GlobalKey<FormState> formKey}) {
     _name = name;
     _email = email;
     _formKey = formKey;
+  }
+
+  Future<void> createBranch(
+      {String userId, String businessName, String businessId}) async {
+    final Map<String, dynamic> _mapBranch = {
+      'active': true,
+      'name': businessName,
+      '_id': Uuid().v1(),
+      'channels': [userId],
+      'businessId': businessId,
+      'id': Uuid().v1(),
+      'table': AppTables.branch,
+      'mapLatitude': '0.0',
+      'mapLongitude': ' 0.0',
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+
+    ProxyService.database.insert(data: _mapBranch);
+  }
+
+  Future<String> createBusiness({String userId, String businessName,BuildContext context}) async {
+    final Map<String, dynamic> _mapBusiness = {
+      'active': true,
+      'id': Uuid().v1(),
+      'categoryId': '10', //pet store a default id when signup on mobile
+      'channels': [userId],
+      'typeId': '1', //pet store a default id when signup on mobile
+      'table': AppTables.business,
+      'country': 'Rwanda',
+      'currency': 'RWF',
+      'name': businessName,
+      'userId': userId,
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+
+    final businessId = Uuid().v1();
+    final Document business =
+        ProxyService.database.insert(id: businessId, data: _mapBusiness);
+
+    _business.add(Business.fromMap(business.jsonProperties));
+    StoreProvider.of<AppState>(context).dispatch(OnBusinessLoaded(business: _business));
+    // ignore: always_specify_types
+    final taxId = Uuid().v1();
+    final Map<String, dynamic> _notTax = {
+      'active': true,
+      'channels': [userId],
+      'businessId': business.ID,
+      'table': AppTables.tax,
+      'createdAt': DateTime.now().toIso8601String(),
+      'id': taxId,
+      'updatedAt': DateTime.now().toIso8601String(),
+      'isDefault': false,
+      'name': 'No Tax',
+      'percentage': 0,
+    };
+
+    ProxyService.database.insert(id: taxId, data: _notTax);
+
+    final tax2Id = Uuid().v1();
+
+    final Map<String, dynamic> vat = {
+      'active': true,
+      'channels': [userId],
+      'businessId': business.ID,
+      'table': AppTables.tax,
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+      'id': tax2Id,
+      'isDefault': true,
+      'name': 'Vat',
+      'percentage': 18,
+    };
+    // todo(richard): dispatch this tax, and on active business should load that tax.
+
+    ProxyService.database.insert(id: tax2Id, data: vat);
+
+    return business.ID;
   }
 }

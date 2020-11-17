@@ -1,20 +1,25 @@
+
+import 'package:flipper/model/product.dart';
+import 'package:flipper/ui/product/product_viewmodel.dart';
+import 'package:flipper/ui/product/widget/build_product_list.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper/routes/router.gr.dart';
-import './itemsViewModel.dart';
+import 'itemsViewModel.dart';
 
-class ItemsView extends StatelessWidget {
-  const ItemsView({Key key, @required this.userId, @required this.items})
+class ProductView extends StatelessWidget {
+   const ProductView({Key key, @required this.userId, @required this.items, this.sellingModeView=false })
       : super(key: key);
   final String userId;
   final bool items;
-  @override
-  Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(
-        builder: (BuildContext context, ItemViewModel model, Widget child) {
-          return Container(
+  final bool sellingModeView;
+
+  Widget editModeView({ProductsViewModel model}){
+    return Container(
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -27,7 +32,7 @@ class ItemsView extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      model.navigateTo(path: Routing.itemsListView);
+                      model.navigateTo(path: Routing.productsListView);
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -216,7 +221,76 @@ class ItemsView extends StatelessWidget {
               ),
             ),
           );
+  }
+  Widget sellingMode({ProductsViewModel model,BuildContext context}){
+    return BuildProductsView(
+            context: context,
+            data: model.data,
+            shouldSeeItem: false,
+            showCreateItemOnTop: true,
+            createButtonName: 'Add Products',
+            userId: userId,);
+  }
+  @override
+  Widget build(BuildContext context) {
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, ProductsViewModel model, Widget child) {
+          return sellingModeView?editModeView(model: model):sellingMode(model:model);
         },
-        viewModelBuilder: () => ItemViewModel());
+        viewModelBuilder: () => ProductsViewModel());
+  }
+}
+
+
+class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
+  BuildProductsView({
+    Key key,
+    @required this.context,
+    @required this.data,
+    @required this.showCreateItemOnTop,
+    @required this.createButtonName,
+    @required this.shouldSeeItem,
+    @required this.userId,
+  }) : super(key: key);
+
+  final BuildContext context;
+  final String createButtonName;
+  final List<Product> data;
+  final bool shouldSeeItem;
+  final bool showCreateItemOnTop;
+  final String userId;
+
+  final Logger log = Logging.getLogger('product view');
+
+  @override
+  Widget build(BuildContext context, ProductsViewModel viewModel) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    return buildProductList(
+      products: data,
+      context: context,
+      userId: userId,
+      createButtonName: createButtonName,
+      showCreateItemOnTop: showCreateItemOnTop,
+      shouldSeeItem: shouldSeeItem,
+    ).isEmpty
+        ? const SizedBox.shrink()
+        : Padding(
+            padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+            child: ListView(
+              shrinkWrap: true,
+              children: ListTile.divideTiles(
+                context: context,
+                tiles: buildProductList(
+                    model: viewModel,
+                    products: data,
+                    context: context,
+                    userId: userId,
+                    createButtonName: createButtonName,
+                    showCreateItemOnTop: showCreateItemOnTop,
+                    shouldSeeItem: shouldSeeItem),
+              ).toList(),
+            ),
+          );
   }
 }

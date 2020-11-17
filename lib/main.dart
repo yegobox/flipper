@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper/locator.dart';
@@ -21,13 +22,12 @@ bool get isInDebugMode {
 }
 
 Future<void> main() async {
+  Cbl.init();
   WidgetsFlutterBinding.ensureInitialized();
   initializeDateFormatting();
-  if (kReleaseMode) {
-    await DotEnv().load('.env');
-  } else {
-    await DotEnv().load('.env.local');
-  }
+
+  await DotEnv().load('.env');
+
   await Firebase.initializeApp();
   setupLocator();
 

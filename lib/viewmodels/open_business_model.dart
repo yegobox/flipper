@@ -1,4 +1,4 @@
-import 'package:flipper/core_db.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/ui/open_close_drawerview.dart';
 import 'package:flipper/services/proxy.dart';
@@ -10,7 +10,7 @@ import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:uuid/uuid.dart';
 import 'base_model.dart';
 
@@ -29,7 +29,7 @@ class OpenBusinessModel extends BaseModel {
   }) async {
     setBusy(true);
 
-    await _databaseService.insert(data: {
+    _databaseService.insert(data: {
       'float': float,
       'table': AppTables.drawerHistory,
       'businessState': businessState == BusinessState.OPEN ? 'Open' : 'Close',
@@ -60,8 +60,8 @@ class OpenBusinessModel extends BaseModel {
     String businessId,
     bool isClosed = true,
   }) async {
-    final Document document =
-        await CoreDB.instance.database.document(userId);
+    // FIXME: fix this query to look for where there is open drawer for this user
+    final Document document = _databaseService.getById(id: userId);
 
     final Map<String, dynamic> buildMap = {
       'table': AppTables.switchi,
@@ -69,20 +69,16 @@ class OpenBusinessModel extends BaseModel {
       'isClosed': isClosed,
       'isSocial': isSocial,
       'businessId': businessId,
-      // ignore: always_specify_types
       'channels': [userId]
     };
     if (document == null) {
       try {
-        final MutableDocument newDoc =
-            MutableDocument(id: userId, data: buildMap);
-        await CoreDB.instance.database.saveDocument(newDoc);
+        _databaseService.insert(data: buildMap);
         // ignore: empty_catches
       } on PlatformException {}
     } else {
-      final MutableDocument mutableDoc =
-          document.toMutable().setBoolean('isClosed', isClosed);
-      CoreDB.instance.database.saveDocument(mutableDoc);
+      document.properties['isClosed'] = isClosed;
+      _databaseService.update(document: document);
     }
   }
 }

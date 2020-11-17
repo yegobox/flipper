@@ -1,7 +1,7 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/function.dart';
+
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
 
@@ -18,6 +18,7 @@ class BusinessList extends StatefulWidget {
   final CommonViewModel vm;
   // ignore: sort_constructors_first
   const BusinessList({Key key, this.vm}) : super(key: key);
+
 
   @override
   _BusinessListState createState() => _BusinessListState();
@@ -98,8 +99,8 @@ class _BusinessListState extends State<BusinessList> {
               // _openUserAccount(context);
               // TODO(richard): change the icon should be icon of logout.
               final Store<AppState> store = StoreProvider.of<AppState>(context);
-              final int loggedOut = await logout(store: store);
-              if (loggedOut == 1) {
+              final bool loggedOut = await ProxyService.sharedPref.logout();
+              if (loggedOut) {
                 store.dispatch(
                   VerifyAuthenticationState(),
                 );

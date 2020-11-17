@@ -36,11 +36,14 @@ class _BottomMenubarState extends State<BottomMenubar> {
               icon: 0 == 0 ? AppIcon.homeFill : AppIcon.home,
               isCustomIcon: true),
           _icon(null, 1,
-              icon: 1 == 1 ? AppIcon.searchFill : AppIcon.search,
+              // icon: 1 == 1 ? AppIcon.searchFill : AppIcon.search,
+              icon: 1 == 1 ? AppIcon.lists : AppIcon.lists,
               isCustomIcon: true),
-          _icon(null, 2,
-              icon: 2 == 2 ? AppIcon.lists : AppIcon.lists,
-              isCustomIcon: true),
+
+          // NOTE: this was supposed to be in menu drawer
+          // _icon(null, 2,
+          //     icon: 2 == 2 ? AppIcon.lists : AppIcon.lists,
+          //     isCustomIcon: true),
           _icon(null, 3,
               icon: 3 == 3 ? AppIcon.notificationFill : AppIcon.notification,
               isCustomIcon: true),

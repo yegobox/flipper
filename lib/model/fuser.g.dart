@@ -17,13 +17,10 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
   @override
   Iterable<Object> serialize(Serializers serializers, FUser object,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[];
-    if (object.id != null) {
-      result
-        ..add('id')
-        ..add(serializers.serialize(object.id,
-            specifiedType: const FullType(String)));
-    }
+    final result = <Object>[
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
+    ];
     if (object.email != null) {
       result
         ..add('email')
@@ -136,7 +133,11 @@ class _$FUser extends FUser {
       this.createdAt,
       this.updatedAt,
       this.token})
-      : super._();
+      : super._() {
+    if (id == null) {
+      throw new BuiltValueNullFieldError('FUser', 'id');
+    }
+  }
 
   @override
   FUser rebuild(void Function(FUserBuilder) updates) =>

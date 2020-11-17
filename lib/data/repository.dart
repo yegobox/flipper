@@ -14,9 +14,6 @@
 
 import 'dart:async';
 
-import 'package:flipper/core_db.dart';
-import 'package:flipper/data/api_provider.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -41,7 +38,7 @@ enum ResponseCode {
 typedef LogoutCallback = void Function(LogoutMethod method);
 
 class RepoResponse<T> {
-  RepoResponse({this.code, this.result}) : assert(code != null);
+  RepoResponse({@required this.code, this.result}) : assert(code != null);
 
   final ResponseCode code;
   final T result;
@@ -50,8 +47,8 @@ class RepoResponse<T> {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is RepoResponse &&
-        other.code == this.code &&
-        other.result == this.result;
+        other.code == code &&
+        other.result == result;
   }
 }
 
@@ -69,13 +66,7 @@ class ReceivedNotification {
 }
 
 class Repository {
-  Repository._internal() {
-    _database = CoreDB.instance;
-  }
-
-  CoreDB _database;
-
-  static final Repository instance = Repository._internal();
+ 
   final _isLoggedInSubject = BehaviorSubject<bool>.seeded(false);
   final _lastLogoutMethodSubject =
       BehaviorSubject<LogoutMethod>.seeded(LogoutMethod.normal);
@@ -83,39 +74,9 @@ class Repository {
   Stream<bool> get isLoggedIn => _isLoggedInSubject.stream;
   Stream<LogoutMethod> get lastLogoutMethod => _lastLogoutMethodSubject.stream;
 
-  Future<void> login(Environment environment, String username, String password,
-      Function(LoginResult) callback) async {
-    try {
-      var response = await ApiProvider.instance
-          .login(username, password, onLogout: triggerLogout);
-
-      if (response.statusCode == 200) {
-        var success = await _database.login(username: username,password:password);
-        if (success) {
-          callback(LoginResult.authorized);
-          _isLoggedInSubject.add(true);
-        } else {
-          callback(LoginResult.error);
-        }
-      } else if (response.statusCode == 401) {
-        callback(LoginResult.unauthorized);
-      } else {
-        callback(LoginResult.error);
-      }
-    } catch (e) {
-      debugPrint(e);
-      callback(LoginResult.disconnected);
-    }
-  }
-
   void triggerLogout(LogoutMethod method) {
     _isLoggedInSubject.add(false);
     _lastLogoutMethodSubject.add(method);
-  }
-
-  // Call this once all streams / listeners have been cleaned up ( Your homepage )
-  Future<void> logout() async {
-    await _database.logout();
   }
 
   void dispose() async {
@@ -123,7 +84,4 @@ class Repository {
     await _lastLogoutMethodSubject.close();
   }
 
-  // ObservableResponse<BuiltList<Beer>> getBeer(
-  //         int limit, int offset, bool isDescending) =>
-  //     _database.getBeer(limit, offset, isDescending);
 }

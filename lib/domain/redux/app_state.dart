@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:flipper/data/main_database.dart';
+
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 
@@ -21,7 +21,7 @@ part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
   
-  
+  @nullable
   FUser get user;
 
   @nullable
@@ -62,8 +62,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   @nullable
   Hint get hint;
-
-  Database get database;
 
 
   @nullable
@@ -108,7 +106,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   // ignore: sort_constructors_first
   factory AppState.init() => AppState((AppStateBuilder a) => a
-    ..database = Database()
+   
     // ignore: always_specify_types
     ..units = ListBuilder()
     // ignore: always_specify_types

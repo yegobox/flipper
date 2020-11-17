@@ -1,35 +1,31 @@
 import 'package:flipper/ui/flipper_drawer.dart';
 import 'package:flipper/ui/home_app_bar.dart';
 import 'package:flipper/ui/keypad/poswidget.dart';
-import 'package:flipper/ui/product/product_view.dart';
+
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flipper/ui/welcome/payable/payable_view.dart';
 
 import 'package:flipper/ui/widget/bottom_menu_bar.dart';
+import 'package:flipper/ui/widget/products_edits/product_view.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper/ui/widget/items/items_view.dart';
+
 import 'home_viewmodel.dart';
 
-class HomeScreen extends StatefulWidget {
+// ignore: must_be_immutable
+class HomeView extends StatelessWidget {
   final ValueNotifier<bool> sideOpenController;
   final CommonViewModel vm;
   final bool showAppBar;
 
   // ignore: sort_constructors_first
-  const HomeScreen({
+   HomeView({
     Key key,
     @required this.sideOpenController,
     this.showAppBar = false,
     this.vm,
   }) : super(key: key);
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // ignore: missing_return
@@ -37,23 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (index) {
       case 0:
         return const Poswidget();
-        // return const ProductsView();
         break;
       case 1:
-        return ProductsView(
-          userId: vm.user.id,
-        );
-        break;
-      case 2:
-        return ItemsView(
-          userId: vm.user.id,
-          items: false,
-        );
-        break;
-      case 3:
-        return ProductsView(
-          userId: vm.user.id,
-        );
+        // return ProductsView(
+        //   userId: vm.user.id,
+        // );
+        return ProductView(userId:vm.user.id,items:true);
         break;
     }
   }
@@ -73,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
             key: _scaffoldKey,
             appBar: HomeAppBar(
               scaffoldKey: _scaffoldKey,
-              sideOpenController: widget.sideOpenController,
+              sideOpenController: sideOpenController,
               tabs: itemstab,
             ),
             bottomNavigationBar: BottomMenubar(
@@ -84,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 model.items == 2
                     ? const Padding(
                         padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                        child: Text(''),
+                        child: SizedBox.shrink()
                       )
                     : Padding(
                         padding: const EdgeInsets.only(left: 5.0, right: 5.0),
@@ -94,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     child: SafeArea(
                       child: Container(
-                        child: _getPage(index: model.tab, vm: widget.vm),
+                        child: _getPage(index: model.tab, vm: vm),
                       ),
                     ),
                   ),
@@ -102,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             drawer: FlipperDrawer(
-              vm: widget.vm,
+              vm: vm,
             ),
           );
         },

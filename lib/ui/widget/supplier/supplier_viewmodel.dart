@@ -1,9 +1,9 @@
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 
-import 'package:couchbase_lite/couchbase_lite.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/logger.dart';
@@ -22,31 +22,19 @@ class SupplierViewmodel extends BaseModel {
     setBusy(true);
 
     log.i('loading variation of ProductId:' + productId);
-    _databaseService
-        .observer(
-            equator: AppTables.variation,
-            property: 'table',
-            and: true,
-            andProperty: 'productId',
-            andEquator: productId)
-        .stream
-        .listen((ResultSet event) {
-      // _variation = event.allResults();
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
-      final List<Variation> list = <Variation>[];
-      // remove unnecessarry nesting "main"appended on each map value
-      for (Map<String, dynamic> map in model) {
-        // ignore: always_specify_types
-        // ignore: always_specify_types
-        map.forEach((String key, value) {
-          list.add(Variation.fromMap(value));
-        });
-      }
-      notifyListeners();
 
-      setBusy(false);
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+
+    q.parameters = {'VALUE': AppTables.variation};
+
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          _variation.add(Variation.fromMap(value));
+        });
+        setBusy(false);
+        notifyListeners();
+      }
     });
   }
 }

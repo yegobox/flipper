@@ -7,12 +7,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flipper/ui/welcome/signup/signup_view.dart';
+import 'package:flipper/ui/product/add/add_product_view.dart';
+import 'package:flipper/ui/open_close_drawerview.dart';
+import 'package:flipper/ui/welcome/home/common_view_model.dart';
+import 'package:flipper/ui/widget/discounts/discount_view.dart';
+import 'package:flipper/ui/widget/calendar/calenderView.dart';
+import 'package:flipper/ui/contacts/contact_view.dart';
+import 'package:flipper/ui/widget/category/edit_category_view.dart';
+import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
+import 'package:flipper/ui/variation/edit_variation_screen.dart';
+import 'package:flipper/ui/widget/products_edits/product_list_view.dart';
+import 'package:flipper/ui/widget/category/category_list_view.dart';
+import 'package:flipper/ui/widget/discounts/discount_list_view.dart';
+import 'package:flipper/ui/product/widget/product_description.dart';
+import 'package:flipper/ui/widget/report/build_sales_View.dart';
+import 'package:flipper/ui/widget/products_edits/product_view.dart';
 import 'package:flipper/ui/welcome/splash/splash_screen.dart';
+import 'package:flipper/ui/transactions/transaction_screen.dart';
 import 'package:flipper/ui/welcome/home/dash_board.dart';
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
 import 'package:flipper/ui/widget/note/add_note_screen.dart';
-import 'package:flipper/ui/welcome/signup/signup_view.dart';
-import 'package:flipper/ui/product/add/add_product_view.dart';
 import 'package:flipper/ui/product/edit/edit_product_title.dart';
 import 'package:flipper/ui/widget/variation/add_variation_screen.dart';
 import 'package:flipper/ui/widget/unit/add_unit_view.dart';
@@ -22,32 +37,32 @@ import 'package:flipper/ui/widget/stock/receive_stock.dart';
 import 'package:flipper/ui/selling/change_quantity_selling.dart';
 import 'package:flipper/ui/order/order_details_view.dart';
 import 'package:flipper/model/order.dart';
-import 'package:flipper/ui/variation/edit_variation_screen.dart';
-import 'package:flipper/ui/widget/category/edit_category_view.dart';
-import 'package:flipper/ui/widget/unit/edit_unit_view.dart';
-import 'package:flipper/ui/transactions/transaction_screen.dart';
 import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/ui/welcome/selling/tender_screen.dart';
 import 'package:flipper/ui/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
-import 'package:flipper/ui/open_close_drawerview.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
-import 'package:flipper/ui/contacts/contact_view.dart';
-import 'package:flipper/ui/product/widget/product_description.dart';
-import 'package:flipper/ui/widget/report/build_sales_View.dart';
-import 'package:flipper/ui/widget/calendar/calenderView.dart';
-import 'package:flipper/ui/widget/discounts/discount_view.dart';
-import 'package:flipper/ui/widget/items/items_list_view.dart';
-import 'package:flipper/ui/widget/category/category_list_view.dart';
-import 'package:flipper/ui/widget/discounts/discount_list_view.dart';
 
 class Routing {
+  static const signUpView = '/sign-up-view';
+  static const addProduct = '/add-product';
+  static const openCloseDrawerview = '/open-close-drawerview';
+  static const discountView = '/discount-view';
+  static const calendarView = '/calendar-view';
+  static const contactView = '/contact-view';
+  static const editCategoryScreen = '/edit-category-screen';
+  static const editUnitType = '/edit-unit-type';
+  static const editVariationScreen = '/edit-variation-screen';
+  static const productsListView = '/products-list-view';
+  static const listCategoryView = '/list-category-view';
+  static const listDiscountView = '/list-discount-view';
+  static const productDescription = '/product-description';
+  static const salesView = '/sales-view';
+  static const productView = '/product-view';
   static const splashScreen = '/';
+  static const transactionScreen = '/transaction-screen';
   static const dashboard = '/dashboard';
   static const afterSplash = '/after-splash';
   static const addNoteScreen = '/add-note-screen';
-  static const signUpView = '/sign-up-view';
-  static const addProduct = '/add-product';
   static const editItemTitle = '/edit-item-title';
   static const addVariationScreen = '/add-variation-screen';
   static const addUnitType = '/add-unit-type';
@@ -56,27 +71,173 @@ class Routing {
   static const receiveStock = '/receive-stock';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
   static const orderDetailsView = '/order-details-view';
-  static const editVariationScreen = '/edit-variation-screen';
-  static const editCategoryScreen = '/edit-category-screen';
-  static const editUnitType = '/edit-unit-type';
-  static const transactionScreen = '/transaction-screen';
   static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
-  static const openCloseDrawerview = '/open-close-drawerview';
-  static const contactView = '/contact-view';
-  static const productDescription = '/product-description';
-  static const salesView = '/sales-view';
-  static const calendarView = '/calendar-view';
-  static const discountView = '/discount-view';
-  static const itemsListView = '/items-list-view';
-  static const listCategoryView = '/list-category-view';
-  static const listDiscountView = '/list-discount-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
     switch (settings.name) {
+      case Routing.signUpView:
+        if (hasInvalidArgs<SignUpViewArguments>(args, isRequired: true)) {
+          return misTypedArgsRoute<SignUpViewArguments>(args);
+        }
+        final typedArgs = args as SignUpViewArguments;
+        return PageRouteBuilder<dynamic>(
+          pageBuilder: (ctx, animation, secondaryAnimation) => SignUpView(
+              key: typedArgs.key,
+              token: typedArgs.token,
+              email: typedArgs.email,
+              name: typedArgs.name,
+              avatar: typedArgs.avatar,
+              userId: typedArgs.userId),
+          settings: settings,
+          transitionsBuilder: TransitionsBuilders.slideLeft,
+          transitionDuration: Duration(milliseconds: 200),
+        );
+      case Routing.addProduct:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AddProductView(key: typedArgs),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Routing.openCloseDrawerview:
+        if (hasInvalidArgs<OpenCloseDrawerViewArguments>(args)) {
+          return misTypedArgsRoute<OpenCloseDrawerViewArguments>(args);
+        }
+        final typedArgs = args as OpenCloseDrawerViewArguments ??
+            OpenCloseDrawerViewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => OpenCloseDrawerView(
+              key: typedArgs.key,
+              vm: typedArgs.vm,
+              businessState: typedArgs.businessState),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Routing.discountView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => DiscountView(key: typedArgs),
+          settings: settings,
+          fullscreenDialog: true,
+        );
+      case Routing.calendarView:
+        if (hasInvalidArgs<CalendarViewArguments>(args)) {
+          return misTypedArgsRoute<CalendarViewArguments>(args);
+        }
+        final typedArgs =
+            args as CalendarViewArguments ?? CalendarViewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) =>
+              CalendarView(key: typedArgs.key, title: typedArgs.title),
+          settings: settings,
+        );
+      case Routing.contactView:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ContactView(),
+          settings: settings,
+        );
+      case Routing.editCategoryScreen:
+        if (hasInvalidArgs<EditCategoryScreenArguments>(args,
+            isRequired: true)) {
+          return misTypedArgsRoute<EditCategoryScreenArguments>(args);
+        }
+        final typedArgs = args as EditCategoryScreenArguments;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => EditCategoryScreen(
+              key: typedArgs.key, productId: typedArgs.productId),
+          settings: settings,
+        );
+      case Routing.editUnitType:
+        if (hasInvalidArgs<EditUnitViewArguments>(args, isRequired: true)) {
+          return misTypedArgsRoute<EditUnitViewArguments>(args);
+        }
+        final typedArgs = args as EditUnitViewArguments;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) =>
+              EditUnitView(key: typedArgs.key, itemId: typedArgs.itemId),
+          settings: settings,
+        );
+      case Routing.editVariationScreen:
+        if (hasInvalidArgs<EditVariationScreenArguments>(args,
+            isRequired: true)) {
+          return misTypedArgsRoute<EditVariationScreenArguments>(args);
+        }
+        final typedArgs = args as EditVariationScreenArguments;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => EditVariationScreen(
+              key: typedArgs.key,
+              variationId: typedArgs.variationId,
+              productId: typedArgs.productId,
+              unitId: typedArgs.unitId),
+          settings: settings,
+        );
+      case Routing.productsListView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ProductListView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.listCategoryView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ListCategoryView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.listDiscountView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ListDiscountView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.productDescription:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ProductDescription(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.salesView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => SalesView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.productView:
+        if (hasInvalidArgs<ProductViewArguments>(args, isRequired: true)) {
+          return misTypedArgsRoute<ProductViewArguments>(args);
+        }
+        final typedArgs = args as ProductViewArguments;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ProductView(
+              key: typedArgs.key,
+              userId: typedArgs.userId,
+              items: typedArgs.items),
+          settings: settings,
+        );
       case Routing.splashScreen:
         if (hasInvalidArgs<Key>(args)) {
           return misTypedArgsRoute<Key>(args);
@@ -84,6 +245,15 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => SplashScreen(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.transactionScreen:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => TransactionScreen(key: typedArgs),
           settings: settings,
         );
       case Routing.dashboard:
@@ -111,33 +281,6 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => AddNoteScreen(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.signUpView:
-        if (hasInvalidArgs<SignUpViewArguments>(args, isRequired: true)) {
-          return misTypedArgsRoute<SignUpViewArguments>(args);
-        }
-        final typedArgs = args as SignUpViewArguments;
-        return PageRouteBuilder<dynamic>(
-          pageBuilder: (ctx, animation, secondaryAnimation) => SignUpView(
-              key: typedArgs.key,
-              token: typedArgs.token,
-              email: typedArgs.email,
-              name: typedArgs.name,
-              avatar: typedArgs.avatar,
-              userId: typedArgs.userId),
-          settings: settings,
-          transitionsBuilder: TransitionsBuilders.slideLeft,
-          transitionDuration: Duration(milliseconds: 200),
-        );
-      case Routing.addProduct:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => AddProductView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -228,50 +371,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.editVariationScreen:
-        if (hasInvalidArgs<EditVariationScreenArguments>(args,
-            isRequired: true)) {
-          return misTypedArgsRoute<EditVariationScreenArguments>(args);
-        }
-        final typedArgs = args as EditVariationScreenArguments;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => EditVariationScreen(
-              key: typedArgs.key,
-              variationId: typedArgs.variationId,
-              productId: typedArgs.productId,
-              unitId: typedArgs.unitId),
-          settings: settings,
-        );
-      case Routing.editCategoryScreen:
-        if (hasInvalidArgs<EditCategoryScreenArguments>(args,
-            isRequired: true)) {
-          return misTypedArgsRoute<EditCategoryScreenArguments>(args);
-        }
-        final typedArgs = args as EditCategoryScreenArguments;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => EditCategoryScreen(
-              key: typedArgs.key, productId: typedArgs.productId),
-          settings: settings,
-        );
-      case Routing.editUnitType:
-        if (hasInvalidArgs<EditUnitViewArguments>(args, isRequired: true)) {
-          return misTypedArgsRoute<EditUnitViewArguments>(args);
-        }
-        final typedArgs = args as EditUnitViewArguments;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              EditUnitView(key: typedArgs.key, itemId: typedArgs.itemId),
-          settings: settings,
-        );
-      case Routing.transactionScreen:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => TransactionScreen(key: typedArgs),
-          settings: settings,
-        );
       case Routing.completeSaleScreen:
         if (hasInvalidArgs<CompleteSaleScreenArguments>(args)) {
           return misTypedArgsRoute<CompleteSaleScreenArguments>(args);
@@ -318,90 +417,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.openCloseDrawerview:
-        if (hasInvalidArgs<OpenCloseDrawerViewArguments>(args)) {
-          return misTypedArgsRoute<OpenCloseDrawerViewArguments>(args);
-        }
-        final typedArgs = args as OpenCloseDrawerViewArguments ??
-            OpenCloseDrawerViewArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => OpenCloseDrawerView(
-              key: typedArgs.key,
-              vm: typedArgs.vm,
-              businessState: typedArgs.businessState),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.contactView:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ContactView(),
-          settings: settings,
-        );
-      case Routing.productDescription:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ProductDescription(key: typedArgs),
-          settings: settings,
-        );
-      case Routing.salesView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => SalesView(key: typedArgs),
-          settings: settings,
-        );
-      case Routing.calendarView:
-        if (hasInvalidArgs<CalendarViewArguments>(args)) {
-          return misTypedArgsRoute<CalendarViewArguments>(args);
-        }
-        final typedArgs =
-            args as CalendarViewArguments ?? CalendarViewArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              CalendarView(key: typedArgs.key, title: typedArgs.title),
-          settings: settings,
-        );
-      case Routing.discountView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => DiscountView(key: typedArgs),
-          settings: settings,
-        );
-      case Routing.itemsListView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ItemsListView(key: typedArgs),
-          settings: settings,
-        );
-      case Routing.listCategoryView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ListCategoryView(key: typedArgs),
-          settings: settings,
-        );
-      case Routing.listDiscountView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ListDiscountView(key: typedArgs),
-          settings: settings,
-        );
       default:
         return unknownRoutePage(settings.name);
     }
@@ -427,6 +442,57 @@ class SignUpViewArguments {
       this.name,
       this.avatar,
       @required this.userId});
+}
+
+//OpenCloseDrawerView arguments holder class
+class OpenCloseDrawerViewArguments {
+  final Key key;
+  final CommonViewModel vm;
+  final BusinessState businessState;
+  OpenCloseDrawerViewArguments(
+      {this.key, this.vm, this.businessState = BusinessState.OPEN});
+}
+
+//CalendarView arguments holder class
+class CalendarViewArguments {
+  final Key key;
+  final String title;
+  CalendarViewArguments({this.key, this.title});
+}
+
+//EditCategoryScreen arguments holder class
+class EditCategoryScreenArguments {
+  final Key key;
+  final String productId;
+  EditCategoryScreenArguments({this.key, @required this.productId});
+}
+
+//EditUnitView arguments holder class
+class EditUnitViewArguments {
+  final Key key;
+  final String itemId;
+  EditUnitViewArguments({this.key, @required this.itemId});
+}
+
+//EditVariationScreen arguments holder class
+class EditVariationScreenArguments {
+  final Key key;
+  final String variationId;
+  final String productId;
+  final String unitId;
+  EditVariationScreenArguments(
+      {this.key,
+      @required this.variationId,
+      @required this.productId,
+      this.unitId});
+}
+
+//ProductView arguments holder class
+class ProductViewArguments {
+  final Key key;
+  final String userId;
+  final bool items;
+  ProductViewArguments({this.key, @required this.userId, @required this.items});
 }
 
 //AddVariationScreen arguments holder class
@@ -457,33 +523,6 @@ class OrderDetailsViewArguments {
   OrderDetailsViewArguments({this.key, this.orders});
 }
 
-//EditVariationScreen arguments holder class
-class EditVariationScreenArguments {
-  final Key key;
-  final String variationId;
-  final String productId;
-  final String unitId;
-  EditVariationScreenArguments(
-      {this.key,
-      @required this.variationId,
-      @required this.productId,
-      this.unitId});
-}
-
-//EditCategoryScreen arguments holder class
-class EditCategoryScreenArguments {
-  final Key key;
-  final String productId;
-  EditCategoryScreenArguments({this.key, @required this.productId});
-}
-
-//EditUnitView arguments holder class
-class EditUnitViewArguments {
-  final Key key;
-  final String itemId;
-  EditUnitViewArguments({this.key, @required this.itemId});
-}
-
 //CompleteSaleScreen arguments holder class
 class CompleteSaleScreenArguments {
   final Key key;
@@ -503,20 +542,4 @@ class CameraPreviewArguments {
   final Key key;
   final dynamic image;
   CameraPreviewArguments({this.key, this.image});
-}
-
-//OpenCloseDrawerView arguments holder class
-class OpenCloseDrawerViewArguments {
-  final Key key;
-  final CommonViewModel vm;
-  final BusinessState businessState;
-  OpenCloseDrawerViewArguments(
-      {this.key, this.vm, this.businessState = BusinessState.OPEN});
-}
-
-//CalendarView arguments holder class
-class CalendarViewArguments {
-  final Key key;
-  final String title;
-  CalendarViewArguments({this.key, this.title});
 }

@@ -1,4 +1,4 @@
-import 'package:flipper/core_db.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/product.dart';
@@ -10,7 +10,7 @@ import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:flipper/routes/router.gr.dart';
 
 class ProductsViewModel extends BaseModel {
@@ -24,15 +24,12 @@ class ProductsViewModel extends BaseModel {
   List<Product> get data => _products;
 
   Future<bool> isCategory({String branchId}) async {
-    final DatabaseService _databaseService = ProxyService.database;
-    final List<Map<String, dynamic>> category = await _databaseService.filter(
-      equator: 'custom',
-      property: 'name',
-      and: true,
-      andProperty: 'table',
-      andEquator: AppTables.category,
-    );
-    return category.isNotEmpty;
+
+    final q = Query(
+        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+
+    q.parameters = {'VALUE': AppTables.category, 'NAME': 'custom'};
+    return q.execute().isNotEmpty;
   }
 
   String get branchId {
@@ -47,19 +44,21 @@ class ProductsViewModel extends BaseModel {
     setBusy(true);
     //load the branch
     final DatabaseService _databaseService = ProxyService.database;
-    final List<Map<String, dynamic>> branche = await _databaseService.filter(
-      equator: AppTables.branch,
-      property: 'table',
-    );
-    List<Branch> branches = [];
-    if (branche.isNotEmpty) {
+    // final List<Map<String, dynamic>> branche = await _databaseService.filter(
+    //   equator: AppTables.branch,
+    //   property: 'table',
+    // );
+    final branche = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE ');
+
+    branche.parameters = {'VALUE': AppTables.branch};
+    final brancheResult = branche.execute();
+    final List<Branch> branches = [];
+    if (brancheResult.isNotEmpty) {
       // ignore: unnecessary_type_check
-      if (branche[0][CoreDB.instance.dbName] is Object) {
-        branches.add(Branch.fromMap(branche[0][CoreDB.instance.dbName]));
-      } else {
-        branches = branche[0][CoreDB.instance.dbName]
-            .map((e) => Branch.fromMap(e))
-            .toList();
+      for (Map map in brancheResult) {
+        map.forEach((key, value) {
+          branches.add(Branch.fromMap(value));
+        });
       }
     }
 
@@ -68,21 +67,21 @@ class ProductsViewModel extends BaseModel {
         _branchId = branch.id;
       }
     }
+    final doc = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
 
-    // load busines
-    final List<Map<String, dynamic>> doc = await _databaseService.filter(
-      equator: AppTables.business,
-      property: 'table',
-      and: true, //define that this query is and type.
-      andEquator: userId,
-      andProperty: 'userId',
-    );
+    doc.parameters = {'VALUE': AppTables.business, 'USERID': userId};
+
+    final docResults = doc.execute();
 
     final List<Business> businesses = [];
 
-    if (doc.isNotEmpty) {
-      // log.i(doc[0]['main']);
-      businesses.add(Business.fromMap(doc[0]['main']));
+    if (docResults.isNotEmpty) {
+      for (Map map in docResults) {
+        map.forEach((key, value) {
+          businesses.add(Business.fromMap(value));
+        });
+      }
     }
 
     for (Business business in businesses) {
@@ -97,25 +96,18 @@ class ProductsViewModel extends BaseModel {
   void getProducts({BuildContext context}) {
     setBusy(true);
 
-    _databaseService
-        .observer(equator: AppTables.product, property: 'table')
-        .stream
-        .listen((ResultSet event) {
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
-      // remove unnecessarry nesting "main"appended on each map value
-      for (Map<String, dynamic> map in model) {
-        // ignore: always_specify_types
-        // ignore: always_specify_types
-        map.forEach((String key, value) {
+    q.parameters = {'VALUE': AppTables.product};
+
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+        map.forEach((key, value) {
           _products.add(Product.fromMap(value));
         });
+        setBusy(false);
+        notifyListeners();
       }
-      notifyListeners();
-
-      setBusy(false);
     });
   }
 
@@ -135,5 +127,9 @@ class ProductsViewModel extends BaseModel {
 
   void onSellingItem(BuildContext context, Product product) async {
     ProxyService.nav.navigateTo(Routing.productDescription);
+  }
+
+  void navigateTo({@required String path}) {
+    ProxyService.nav.navigateTo(path);
   }
 }

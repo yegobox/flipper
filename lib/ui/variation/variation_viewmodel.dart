@@ -1,5 +1,8 @@
-import 'package:couchbase_lite/couchbase_lite.dart';
+
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/locator.dart';
+import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/stock.dart';
 import 'package:flipper/services/proxy.dart';
@@ -30,71 +33,87 @@ class VariationViewModel extends BaseModel {
   Stock _stock;
   Stock get stock => _stock;
 
-  void getStockByProductId({String productId, BuildContext context}) async {
-    final List<Map<String, dynamic>> product = await _databaseService.filter(
-        property: 'table',
-        equator: AppTables.variation,
-        and: true,
-        andProperty: 'productId',
-        andEquator: productId);
+  final sharedStateService = locator<SharedStateService>();
 
-    _stock = Stock.fromMap(product[0]['main']);
-    notifyListeners();
+  void getStockByProductId({String productId, BuildContext context}) async {
+    
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$productId');
+
+    q.parameters = {'VALUE': AppTables.variation,'productId':productId};
+
+    
+    q.addChangeListener((List results) {
+   
+       for (Map map in results) {
+
+        map.forEach((key,value){
+           _stock = Stock.fromMap(value);
+        });
+        notifyListeners();
+      }
+    });
   }
 
   void getVariationById({String productId, BuildContext context}) async {
-    final List<Map<String, dynamic>> product = await _databaseService.filter(
-        property: 'table',
-        equator: AppTables.variation,
-        and: true,
-        andProperty: 'productId',
-        andEquator: productId);
+   
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$productId');
 
-    _variation = Variation.fromMap(product[0]['main']);
-    notifyListeners();
+    q.parameters = {'VALUE': AppTables.variation,'productId':productId};
+
+    
+    q.addChangeListener((List results) {
+   
+       for (Map map in results) {
+
+        map.forEach((key,value){
+           _variation = Variation.fromMap(value);
+        });
+        notifyListeners();
+      }
+    });
+    
   }
 
   void getProductById({String productId, BuildContext context}) async {
     setBusy(true);
-    final List<Map<String, dynamic>> product = await _databaseService.filter(
-        property: 'table',
-        equator: AppTables.product,
-        and: true,
-        andProperty: 'id',
-        andEquator: productId);
 
-    _product = Product.fromMap(product[0]['main']);
-    notifyListeners();
-    setBusy(false);
+     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND id=\$productId');
+
+    q.parameters = {'VALUE': AppTables.product,'productId':productId};
+
+    final productResults = q.execute();
+     for (Map map in productResults) {
+
+        map.forEach((key,value){
+           _product = Product.fromMap(value);
+        });
+        notifyListeners();
+      }
+   
   }
 
   void getProducts({BuildContext context}) {
     setBusy(true);
 
-    //demo of listening on users table on every entry.
-    _databaseService
-        .observer(
-            equator: AppTables.product,
-            property: 'table')
-        .stream
-        .listen((ResultSet event) {
-      // variations = event.allResults();
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
-      final List<Product> list = <Product>[];
-      // remove unnecessarry nesting "main"appended on each map value
-      for (Map<String, dynamic> map in model) {
-        // ignore: always_specify_types
-        // ignore: always_specify_types
-        map.forEach((String key, value) {
-          list.add(value);
-        });
-      }
-      notifyListeners();
+  final List<Product> list = <Product>[];
 
-      setBusy(false);
+  final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+
+    q.parameters = {'VALUE': AppTables.variation};
+
+    
+    q.addChangeListener((List results) {
+   
+       for (Map map in results) {
+
+        map.forEach((key,value){
+           list.add(Product.fromMap(value));
+        });
+        setBusy(false);
+        notifyListeners();
+      }
     });
+    
   }
 
   bool get isLocked {
@@ -146,7 +165,7 @@ class VariationViewModel extends BaseModel {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     // create variation
-    final Document variant = await _databaseService.insert(data: {
+    final Document variant = _databaseService.insert(data: {
       'isActive': false,
       'name': nameController.text,
       'unit': 'kg',
@@ -160,8 +179,8 @@ class VariationViewModel extends BaseModel {
 
     //create stock
     // ignore: unused_local_variable
-    final Document stock = await _databaseService.insert(data: {
-      'variantId': variant.id,
+    final Document stock = _databaseService.insert(data: {
+      'variantId': variant.ID,
       'supplyPrice': double.parse(costController.text),
       'canTrackingStock': false,
       'showLowStockAlert': false,

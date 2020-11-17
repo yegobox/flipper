@@ -9,7 +9,7 @@ import 'package:stacked/stacked.dart';
 import 'signup_viewmodel.dart';
 
 
-class SignUpView extends StatefulWidget {
+class SignUpView extends StatelessWidget {
   const SignUpView(
       {Key key,
       this.token,
@@ -23,11 +23,6 @@ class SignUpView extends StatefulWidget {
   final String name;
   final String userId;
   final String avatar;
-  @override
-  _SignUpViewState createState() => _SignUpViewState();
-}
-
-class _SignUpViewState extends State<SignUpView> {
   
   
   @override
@@ -42,7 +37,7 @@ class _SignUpViewState extends State<SignUpView> {
               disableButton: false,
               actionButtonName: 'Sign Up',
               onPressedCallback: () {
-                model.singUp(context: context,token:widget.token,userId:widget.userId);
+                model.singUp(context: context,token:token,userId:userId);
               },
               icon: Icons.arrow_back,
               multi: 3,
@@ -120,8 +115,8 @@ class _SignUpViewState extends State<SignUpView> {
           );
         },
         onModelReady: (SignUpViewModel model) {
-          model.initFields(name:TextEditingController(),email:TextEditingController(text:widget.email),formKey: GlobalKey<FormState>());
-          model.getCurrentLocation(); //first get business location.
+          model.initFields(name:TextEditingController(),email:TextEditingController(text:email),formKey: GlobalKey<FormState>());
+          // model.getCurrentLocation(); //first get business location.
         },
         viewModelBuilder: () => SignUpViewModel());
   }

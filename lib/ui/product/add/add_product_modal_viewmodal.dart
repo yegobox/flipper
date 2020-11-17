@@ -1,3 +1,4 @@
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/product.dart';
@@ -7,51 +8,74 @@ import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
-import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:flipper/services/shared_state_service.dart';
 
 class AddProductModalViewModal extends BaseModel {
+  String _taxId;
+  String get taxId {
+    return _taxId;
+  }
+
+   String _productId;
+  String get productId {
+    return _productId;
+  }
+  Category _category;
+  Category get category{
+    return _category;
+  }
+  final _sharedStateService = locator<SharedStateService>();
+
   // this is a product to edit later on and add variation on it.
   Future createTemporalProduct({String productName, String userId}) async {
-    final Logger log = Logging.getLogger('Data manager   Model ....');
-    final _sharedStateService = locator<SharedStateService>();
+    
 
     final DatabaseService _databaseService = ProxyService.database;
+    
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    final category = await _databaseService.filter(
-      equator: AppTables.category,
-      property: 'table',
-      and: true,
-      andEquator: 'custom',
-      andProperty: 'name',
-    );
+    q.parameters = {'VALUE': AppTables.category,'NAME':'custom'};
 
-    final List<Map<String, dynamic>> product = await _databaseService.filter(
-      equator: productName,
-      property: 'name',
-      and: true,
-      andProperty: 'table',
-      andEquator: AppTables.product,
-    );
+    final categories = q.execute();
 
-    final List<Map<String, dynamic>> gettax = await _databaseService.filter(
-      equator: AppTables.tax,
-      property: 'table',
-      and: true,
-      andEquator: 'Vat',
-      andProperty: 'name',
-    );
-    log.d('categoryId:' + Category.fromMap(category[0]['main']).id);
-    log.d('taxId:' + Tax.fromMap(gettax[0]['main']).id);
+    if (categories.isNotEmpty) {
+   
+      for (Map map in categories) {
+        map.forEach((key,value){
+           _category = Category.fromMap(value);
+        });
+        notifyListeners();
+      }
+    }
+   
+    final product = Query(
+        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    if (!product.isEmpty) {
-      final Document productDoc = await _databaseService.insert(data: {
+    product.parameters = {'VALUE': AppTables.product, 'NAME': productName};
+
+    final gettax = Query(
+        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+
+    gettax.parameters = {'VALUE': AppTables.tax, 'NAME': 'Vat'};
+
+    final taxResults = gettax.execute();
+    final productResults = product.execute();
+    if (productResults.isEmpty) {
+
+      if (taxResults.isNotEmpty) {
+        for (Map map in taxResults) {
+          map.forEach((key, value) {
+            _taxId = Tax.fromMap(value).id;
+          });
+          notifyListeners();
+        }
+      }
+      final Document productDoc = _databaseService.insert(data: {
         'name': 'productName',
-        'categoryId': Category.fromMap(category[0]['main']).id,
+        'categoryId': category.id,
         'color': '#955be9',
         'id': Uuid().v1(),
         'active': true,
@@ -60,26 +84,26 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.product,
         'isCurrentUpdate': false,
         'isDraft': true,
-        'taxId': Tax.fromMap(gettax[0]['main']).id,
+        'taxId': _taxId,
         'businessId': _sharedStateService.product.id,
         'description': productName,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      final Document variant = await _databaseService.insert(data: {
+      final Document variant = _databaseService.insert(data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
         'channels': <String>[userId],
         'table': AppTables.variation,
-        'productId': productDoc.id,
+        'productId': productDoc.ID,
         'sku': Uuid().v1().substring(0, 4),
         'id': Uuid().v1(),
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      await _databaseService.insert(data: {
-        'variantId': variant.id,
+       _databaseService.insert(data: {
+        'variantId': variant.ID,
         'supplyPrice': 0,
         'canTrackingStock': false,
         'showLowStockAlert': false,
@@ -90,28 +114,32 @@ class AddProductModalViewModal extends BaseModel {
         'lowStock': 0,
         'currentStock': 0,
         'id': Uuid().v1(),
-        'productId': productDoc.id,
+        'productId': productDoc.ID,
         'branchId': _sharedStateService.branch.id,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      await _databaseService.insert(data: {
+       _databaseService.insert(data: {
         'branchId': _sharedStateService.branch.id,
-        'productId': productDoc.id,
+        'productId': productDoc.ID,
         'table': AppTables.branchProduct,
         'id': Uuid().v1()
       });
-      log.d(productDoc);
-      return productDoc.id;
+    
+      return productId;
     } else {
-      final Product pro = Product.fromMap(product[0]['main']);
-      log.d(pro);
-      return pro.id;
+        for (Map map in productResults) {
+          map.forEach((key, value) {
+            _productId = Product.fromMap(value).id;
+          });
+          notifyListeners();
+        }
+        return productId;
     }
   }
 
   void navigateAddProduct() {
-      final FlipperNavigationService _navigationService = ProxyService.nav;
-      _navigationService.navigateTo(Routing.addProduct);
-    }
+    final FlipperNavigationService _navigationService = ProxyService.nav;
+    _navigationService.navigateTo(Routing.addProduct);
+  }
 }

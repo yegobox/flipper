@@ -1,4 +1,4 @@
-import 'package:flipper/ui/homescreen.dart';
+import 'package:flipper/ui/home_view.dart';
 import 'package:flipper/ui/open_close_drawerview.dart';
 
 import 'package:flipper/model/converters/switcher.dart';
@@ -72,7 +72,7 @@ class SwitchView extends StatelessWidget {
             ),
           );
         } else {
-          return HomeScreen(
+          return HomeView(
             vm: vm,
             sideOpenController: sideOpenController,
           );

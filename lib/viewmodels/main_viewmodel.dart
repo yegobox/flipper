@@ -1,4 +1,4 @@
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/category.dart';
@@ -18,27 +18,25 @@ class MainViewModel extends BaseModel {
   void listenCategory({String branchId}) {
     setBusy(true);
 
-    _databaseService
-        .observer(equator: AppTables.category, property: 'table')
-        .stream
-        .listen((ResultSet event) {
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
-      // ignore: always_specify_types
-      // remove unnecessarry nesting "main"appended on each map value
-      // ignore: always_specify_types
-      for (Map map in model) {
-        // ignore: always_specify_types
-        map.forEach((key, value) {
-          log.i(value);
-          // _categories.add(Category.fromMap(value));
-        });
-      }
+    // _databaseService
+    //     .observer(equator: AppTables.category, property: 'table')
+    //     .stream
+    //     .listen((ResultSet event) {
+    //   final List<Map<String, dynamic>> model = event.map((Result result) {
+    //     return result.toMap();
+    //   }).toList();
+     
+    //   for (Map map in model) {
+        
+    //     map.forEach((key, value) {
+    //       log.i(value);
+          
+    //     });
+    //   }
 
-      notifyListeners();
+    //   notifyListeners();
 
-      setBusy(false);
-    });
+    //   setBusy(false);
+    // });
   }
 }

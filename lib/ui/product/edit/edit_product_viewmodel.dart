@@ -1,6 +1,6 @@
-
 import 'dart:io';
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/locator.dart';
@@ -19,23 +19,21 @@ import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:path_provider/path_provider.dart';
 
-
-class EditProductViewModel extends BaseViewModel{
+class EditProductViewModel extends BaseViewModel {
   final _sharedStateService = locator<SharedStateService>();
-  
+
   List<PColor> get colors => _sharedStateService.colors;
   ImageP get image => _sharedStateService.image;
 
   PColor get currentColor => _sharedStateService.currentColor;
-  
+
   Product get product => _sharedStateService.product;
 
   final DatabaseService _databaseService = ProxyService.database;
 
-  
   Future takePicture({BuildContext context}) async {
     final File image = await ImagePicker.pickImage(source: ImageSource.camera);
 
@@ -48,7 +46,6 @@ class EditProductViewModel extends BaseViewModel{
     await handleImage(image, context);
   }
 
-  
   Future<File> compress(File file, String targetPath) async {
     final result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,
@@ -61,6 +58,7 @@ class EditProductViewModel extends BaseViewModel{
 
     return result;
   }
+
   Future handleImage(File image, BuildContext context) async {
     if (image != null) {
       final store = StoreProvider.of<AppState>(context);
@@ -85,10 +83,10 @@ class EditProductViewModel extends BaseViewModel{
 
       // ProductTableData productUpdated = await store.state.database.productDao
       //     .getItemById(productId: widget.productId);
-      final Document productUpdated =
-          await _databaseService.getById(id: product.id);
+      final Document productUpdated = _databaseService.getById(id: product.id);
 
-      _sharedStateService.setProduct(product: Product.fromMap(productUpdated.toMap()));
+      _sharedStateService.setProduct(
+          product: Product.fromMap(productUpdated.jsonProperties));
 
       store.dispatch(
         ImagePreview(
@@ -118,6 +116,7 @@ class EditProductViewModel extends BaseViewModel{
       }
     }
   }
+
   Future<bool> isInternetAvailable() async {
     try {
       final List<InternetAddress> result =
@@ -130,7 +129,8 @@ class EditProductViewModel extends BaseViewModel{
     }
     return false;
   }
-   Future<void> upload(
+
+  Future<void> upload(
       {String storagePath,
       String fileName,
       Store<AppState> store,
@@ -164,9 +164,9 @@ class EditProductViewModel extends BaseViewModel{
       //     .getItemById(productId: uploadResponse.productId);
       final DatabaseService _databaseService = ProxyService.database;
       final Document productDoc =
-          await _databaseService.getById(id: uploadResponse.productId);
+          _databaseService.getById(id: uploadResponse.productId);
 
-      final Product product = Product.fromMap(productDoc.toMap());
+      final Product product = Product.fromMap(productDoc.jsonProperties);
 
       // TODO(richard): update url here
       // await store.state.database.productDao.updateProduct(
@@ -177,7 +177,7 @@ class EditProductViewModel extends BaseViewModel{
       // for (var i = 0; i < p.length; i++) {
       //   store.state.database.productImageDao.deleteImageProduct(p[i]);
       // }
-      
+
       // ignore: always_specify_types
     }, onError: (ex, stacktrace) {
       print('error' + stacktrace.toString());
@@ -187,27 +187,21 @@ class EditProductViewModel extends BaseViewModel{
   void observeColors() {
     setBusy(true);
 
-    _databaseService
-        .observer(equator: AppTables.color, property: 'table')
-        .stream
-        .listen((ResultSet event) {
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
+    final List<PColor> colors = [];
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
-      final List<PColor>  colors=[];
-      
-      for (Map<String, dynamic> map in model) {
-        map.forEach((String key, value) {
+    q.parameters = {'VALUE': AppTables.color};
+
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+        map.forEach((key, value) {
           colors.add(PColor.fromMap(value));
         });
+        _sharedStateService.setColors(colors: colors);
+
+        setBusy(false);
+        notifyListeners();
       }
-
-      _sharedStateService.setColors(colors: colors);
-
-      notifyListeners();
-
-      setBusy(false);
     });
   }
 
@@ -216,16 +210,17 @@ class EditProductViewModel extends BaseViewModel{
     setBusy(true);
     for (var y = 0; y < colors.length; y++) {
       //set all other color to active false then set one to active.
-      final Document color = await _databaseService.getById(id: colors[y].id);
+      final Document color = _databaseService.getById(id: colors[y].id);
 
-      _databaseService.update(document: color.toMutable().setBoolean('isActive', false));
+      color.properties['isActive'] = false;
+      _databaseService.update(document: color);
     }
-    final Document colordoc = await _databaseService.getById(id: color.id);
+    final Document colordoc = _databaseService.getById(id: color.id);
 
+    colordoc.properties['isActive'] = true;
+    _databaseService.update(document: colordoc);
 
-    _databaseService.update(document: colordoc.toMutable().setBoolean('isActive', true));
-
-    _sharedStateService.setCurrentColor(color:color);
+    _sharedStateService.setCurrentColor(color: color);
 
     setBusy(false);
 

@@ -8,7 +8,7 @@ class SharedPreferenceService {
 
   Future<String> getUserId() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('userId') ? prefs.getString('userId') : '';
+    return prefs.containsKey('userId') ? prefs.getString('userId') : null;
   }
 
   Future<bool> logout()async {

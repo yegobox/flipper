@@ -1,12 +1,12 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/core_db.dart';
+
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/ui/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:flutter_redux/flutter_redux.dart';
 
 class CreateCategoryInputScreen extends StatefulWidget {

@@ -15,10 +15,13 @@ import 'business/business_list.dart';
 
 class FlipperDrawer extends StatefulWidget {
   const FlipperDrawer({Key key, this.vm}) : super(key: key);
+
   final CommonViewModel vm;
+
   @override
   _FlipperDrawerState createState() => _FlipperDrawerState();
 }
+
 
 class _FlipperDrawerState extends State<FlipperDrawer> {
   final FlipperNavigationService _navigationService = ProxyService.nav;
