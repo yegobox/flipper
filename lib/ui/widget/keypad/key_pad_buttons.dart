@@ -117,7 +117,7 @@ class SingleKey extends StatelessWidget {
                         buttonKeyName: buttonKeyName,
                         context: context,
                         model: model),
-                    model.totalString(buttonKeyName)
+                    model.totalString(stringButton: buttonKeyName)
                   },
                   child: Container(
                     decoration: BoxDecoration(

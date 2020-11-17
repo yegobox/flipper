@@ -15,16 +15,16 @@ class LoginScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: Text('Flipper inc', style: TextStyle(color: Colors.black)),
+        title: const Text('Flipper inc', style: const TextStyle(color: Colors.black)),
       ),
       body: Container(
         child: Column(
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.all(40.0),
+              padding: const EdgeInsets.all(40.0),
               child: _LoginForm(),
             ),
-            PrivacySettingsButton(),
+            const PrivacySettingsButton(),
           ],
         ),
       ),

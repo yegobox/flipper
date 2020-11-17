@@ -1,3 +1,4 @@
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/order.dart';
@@ -14,7 +15,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 
 class PayableViewModel extends BaseViewModel {
   final Logger log = Logging.getLogger('payable:)');
@@ -41,7 +42,7 @@ class PayableViewModel extends BaseViewModel {
     return _amount;
   }
 
-  bool _showButton = false;
+  final bool _showButton = false;
   bool get showButton {
     return _showButton;
   }
@@ -53,8 +54,8 @@ class PayableViewModel extends BaseViewModel {
 
 //TODO:{Telesphore}  Work on Keypad --> get information from typed value
 //FIXME: {Telesphore} fix the responsiviness of keypad
-  void totalString(@required String stringButton) {
-    _amount = '${_amount}' + '${stringButton}';
+  void totalString({@required String stringButton}) {
+    _amount = '$_amount $stringButton';
     print(_amount);
     notifyListeners();
   }
@@ -83,52 +84,65 @@ class PayableViewModel extends BaseViewModel {
   void getOrder() {
     setBusy(true);
 
-    //demo of listening on users table on every entry.
-    _databaseService
-        .observer(
-            equator: AppTables.order,
-            property: 'table') //order is what we refer to as cart
-        .stream
-        .listen((ResultSet event) {
-      final List<Map<String, dynamic>> carts = event.map((Result result) {
-        return result.toMap();
-      }).toList();
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
-      for (Map<String, dynamic> cart in carts) {
-        // ignore: always_specify_types
-        cart.forEach((String key, value) async {
-          log.i(value);
-          // final  Document stock = await _databaseService.getById(id:Cart.fromMap(value).variationId);
+    q.parameters = {'VALUE':  AppTables.order};
 
-          final List<Map<String, dynamic>> sto = await _databaseService.filter(
-            equator: Order.fromMap(value).variationId,
-            property: 'variationId',
-            and: true,
-            andProperty: 'table',
-            andEquator: AppTables.stock,
-          );
+    q.addChangeListener((List results) {
+   
+       for (Map map in results) {
 
-          if (sto.isNotEmpty) {
-            log.d(sto);
-            _total += (Stock.fromMap(sto[0]['main']).retailPrice.toInt() *
-                    Order.fromMap(value).quantity)
-                .toInt();
-          }
-          _order.add(Order.fromMap(value));
+        map.forEach((key,value){
+          //  _users.add(User.fromMap(value));
         });
+        notifyListeners();
       }
-      notifyListeners();
-
-      setBusy(false);
     });
+    
+    // _databaseService
+    //     .observer(
+    //         equator: AppTables.order,
+    //         property: 'table') 
+    //     .stream
+    //     .listen((ResultSet event) {
+    //   final List<Map<String, dynamic>> carts = event.map((Result result) {
+    //     return result.toMap();
+    //   }).toList();
+
+    //   for (Map<String, dynamic> cart in carts) {
+       
+    //     cart.forEach((String key, value) async {
+    //       log.i(value);
+         
+
+    //       final List<Map<String, dynamic>> sto = await _databaseService.filter(
+    //         equator: Order.fromMap(value).variationId,
+    //         property: 'variationId',
+    //         and: true,
+    //         andProperty: 'table',
+    //         andEquator: AppTables.stock,
+    //       );
+
+    //       if (sto.isNotEmpty) {
+    //         log.d(sto);
+    //         _total += (Stock.fromMap(sto[0]['main']).retailPrice.toInt() *
+    //                 Order.fromMap(value).quantity)
+    //             .toInt();
+    //       }
+    //       _order.add(Order.fromMap(value));
+    //     });
+    //   }
+    //   notifyListeners();
+
+    //   setBusy(false);
+    // });
   }
 
   // ignore: always_declare_return_types
   onPlusButtonClicked({BuildContext context}) async {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
-    final List<Map<String, dynamic>> variants = await _databaseService.filter(
-        property: 'productId', equator: store.state.tmpItem.id);
+    
     // assume this is a custom product get it and update stock with the right amount from keypad
   }
 

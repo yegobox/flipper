@@ -12,6 +12,7 @@ import 'package:flipper/ui/welcome/signup/signup_view.dart';
 import 'package:flipper/ui/welcome/home/dash_board.dart';
 import 'package:flipper/ui/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/ui/welcome/selling/tender_screen.dart';
+
 import 'package:flipper/ui/welcome/splash/aftersplash.dart';
 import 'package:flipper/ui/welcome/splash/splash_screen.dart';
 
@@ -39,23 +40,6 @@ import 'package:flipper/ui/widget/calendar/calenderView.dart';
 
 @MaterialAutoRouter()
 class $Routing {
-  @initial
-  SplashScreen splashScreen;
-  @CustomRoute(
-    transitionsBuilder: TransitionsBuilders.zoomIn,
-    durationInMilliseconds: 200,
-  )
-  DashBoard dashboard;
-  @MaterialRoute(fullscreenDialog: true)
-  AfterSplash afterSplash;
-  @MaterialRoute(fullscreenDialog: true)
-  AddNoteScreen addNoteScreen;
-  // @MaterialRoute(fullscreenDialog: true)
-  // SaleScreen saleScreen;
-
-  // @MaterialRoute(fullscreenDialog: true)
-  // SettingUpApplicationScreen settingUpApplicationScreen;
-
   @CustomRoute(
       transitionsBuilder: TransitionsBuilders.slideLeft,
       durationInMilliseconds: 200)
@@ -68,6 +52,43 @@ class $Routing {
     durationInMilliseconds: 200,
   )
   AddProductView addProduct;
+
+  @MaterialRoute(fullscreenDialog: true)
+  @CustomRoute(
+    transitionsBuilder: TransitionsBuilders.zoomIn,
+    durationInMilliseconds: 200,
+  )
+  OpenCloseDrawerView openCloseDrawerview;
+
+  CalendarView calendarView;
+  ContactView contactView;
+  EditCategoryScreen editCategoryScreen;
+  EditUnitView editUnitType;
+  EditVariationScreen editVariationScreen;
+  ProductDescription productDescription;
+  SalesView salesView;
+  @initial
+  SplashScreen splashScreen;
+
+  TransactionScreen transactionScreen;
+
+  @CustomRoute(
+    transitionsBuilder: TransitionsBuilders.zoomIn,
+    durationInMilliseconds: 200,
+  )
+  DashBoard dashboard;
+
+  @MaterialRoute(fullscreenDialog: true)
+  AfterSplash afterSplash;
+
+  @MaterialRoute(fullscreenDialog: true)
+  AddNoteScreen addNoteScreen;
+
+  // @MaterialRoute(fullscreenDialog: true)
+  // SaleScreen saleScreen;
+
+  // @MaterialRoute(fullscreenDialog: true)
+  // SettingUpApplicationScreen settingUpApplicationScreen;
 
   @MaterialRoute(fullscreenDialog: true)
   EditItemTitle editItemTitle;
@@ -93,14 +114,6 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   OrderDetailsView orderDetailsView;
 
-  EditVariationScreen editVariationScreen;
-
-  EditCategoryScreen editCategoryScreen;
-
-  EditUnitView editUnitType;
-
-  TransactionScreen transactionScreen;
-
   @MaterialRoute(fullscreenDialog: true)
   CompleteSaleScreen completeSaleScreen;
 
@@ -112,19 +125,6 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   OtpPage otpPage;
-
-  @MaterialRoute(fullscreenDialog: true)
-  @CustomRoute(
-    transitionsBuilder: TransitionsBuilders.zoomIn,
-    durationInMilliseconds: 200,
-  )
-  OpenCloseDrawerView openCloseDrawerview;
-
-  ContactView contactView;
-
-  ProductDescription productDescription;
-  SalesView salesView;
-  CalendarView calendarView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

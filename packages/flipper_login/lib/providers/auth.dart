@@ -35,11 +35,12 @@ class AuthProvider {
   TextEditingController address = TextEditingController();
 
   // ignore: sort_constructors_first
-  AuthProvider.initialize() {}
+  AuthProvider.initialize();
 
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
     proxyService.loading.add(true);
+    
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {

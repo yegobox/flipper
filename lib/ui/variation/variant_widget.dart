@@ -85,9 +85,9 @@ class _VariantWidgetState extends State<VariantWidget> {
                       child: Container(
                           height: 80,
                           width: 80,
-                          color: HexColor(widget.vm.currentColor == null
+                          color: HexColor(model.sharedStateService.currentColor == null
                               ? widget.itemColor
-                              : widget.vm.currentColor.hexCode)),
+                              : model.sharedStateService.currentColor.name)),
                     ),
                     const Text('New Item'),
                     Center(

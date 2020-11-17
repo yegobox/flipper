@@ -1,13 +1,8 @@
-import 'package:flipper/core_db.dart';
-import 'package:flipper/data/main_database.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
-import 'package:flipper/data/respositories/general_repository.dart';
-import 'package:flipper/data/respositories/user_repository.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/branch.dart';
@@ -26,30 +21,24 @@ import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import '../app_state.dart';
 import 'auth_actions.dart';
 
 List<Middleware<AppState>> createAuthenticationMiddleware(
-  UserRepository userRepository,
-  GeneralRepository generalRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   return [
     TypedMiddleware<AppState, VerifyAuthenticationState>(
-        _verifyAuthState(userRepository, generalRepository, navigatorKey)),
-    TypedMiddleware<AppState, LogIn>(_authLogin(userRepository, navigatorKey)),
-    TypedMiddleware<AppState, LogOutAction>(
-        _authLogout(userRepository, navigatorKey)),
-    TypedMiddleware<AppState, AfterLoginAction>(
-        _verifyAuthState(userRepository, generalRepository, navigatorKey)),
+        _verifyAuthState(navigatorKey)),
+    TypedMiddleware<AppState, LogIn>(_authLogin(navigatorKey)),
+    TypedMiddleware<AppState, LogOutAction>(_authLogout(navigatorKey)),
+    TypedMiddleware<AppState, AfterLoginAction>(_verifyAuthState(navigatorKey)),
   ];
 }
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _verifyAuthState(
-  UserRepository userRepository,
-  GeneralRepository generalRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   // ignore: always_specify_types
@@ -58,25 +47,13 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     final FlipperNavigationService _navigationService = ProxyService.nav;
 
-    final bool isLoggedIn = await isUserCurrentlyLoggedIn(store);
-    if (!isLoggedIn) {
+    final String userId = await isUserCurrentlyLoggedIn(store);
+    if (userId ==null) {
       _navigationService.navigateTo(Routing.afterSplash);
       return;
     }
 
-    CoreDB.instance.initialAppData();
-    await getBusinesses(store, generalRepository);
-    await generateAppColors(store);
-
-    await ProxyService.sharedPref.setIsAppConstantsInitialized();
-    // ignore: always_specify_types
-
-    if (store.state.user.id != null &&
-        store.state.currentActiveBusiness != null) {
-      // await DataManager.createTempProduct(
-      //     store: store, userId: store.state.user.id, productName: 'tmp');
-      _getCurrentLocation(store: store);
-    }
+    await getBusinesses(store:store,userId:userId);
   };
 }
 
@@ -87,7 +64,8 @@ Future<void> openCloseBusiness({
   String businessId,
   bool isClosed = true,
 }) async {
-  final Document document = await CoreDB.instance.database.document(userId);
+  final DatabaseService _databaseService = ProxyService.database;
+  final openDrawer = _databaseService.getById(id: null);
 
   final Map<String, dynamic> buildMap = {
     'table': AppTables.switchi,
@@ -97,101 +75,84 @@ Future<void> openCloseBusiness({
     'businessId': businessId,
     'channels': [userId]
   };
-  if (document == null) {
+  if (openDrawer == null) {
     try {
-      final MutableDocument newDoc =
-          MutableDocument(id: userId, data: buildMap);
-      await CoreDB.instance.database.saveDocument(newDoc);
+      // final MutableDocument newDoc =
+      //     MutableDocument(id: userId, data: buildMap);
+      // await CoreDB.instance.database.saveDocument(newDoc);
       // ignore: empty_catches
     } on PlatformException {}
   } else {
-    final MutableDocument mutableDoc =
-        document.toMutable().setBoolean('isClosed', isClosed);
-    CoreDB.instance.database.saveDocument(mutableDoc);
+    // final MutableDocument mutableDoc =
+    //     document.toMutable().setBoolean('isClosed', isClosed);
+    // CoreDB.instance.database.saveDocument(mutableDoc);
   }
 }
 
-Future<bool> isUserCurrentlyLoggedIn(Store<AppState> store) async {
-  final UserTableData user = await store.state.database.userDao.getUser();
-  if (user != null) {
-    final Logger log = Logging.getLogger('Current User: ....');
-   
-    //login to couchbase
-    // ignore: always_specify_types
-    final List<String> channels = [];
-    channels.add(user.userId.toString());
-     log.d(user.userId.toString());
-    await CoreDB.instance.login(channels: channels);
-
-    // start with business closed.
-    await openCloseBusiness(
-      isSocial: false,
-      name: user.username,
-      userId: user.userId.toString(),
-      isClosed: true,
-    );
-
-    final FUser u = FUser(
-      (FUserBuilder p) => p
-        ..email = user.email
-        ..active = true
-        ..id = user.userId.toString()
-        ..createdAt = DateTime.now().toIso8601String()
-        ..updatedAt = DateTime.now().toIso8601String()
-        ..token = user.token
-        ..name = user.username,
-    );
-    store.dispatch(WithUser(user: u));
-    return true;
-  }
-
-  return false;
-}
-
-Future<void> _getCurrentLocation({Store<AppState> store}) async {
-  final Geolocator geoLocator = Geolocator();
-  const LocationOptions locationOptions =
-      LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
-
-  if (store.state.currentActiveBusiness == null) {
-    return;
-  }
-  // FIXME:
-  // final BusinessTableData businessTableData = await store
-  //     .state.database.businessDao
-  //     .getBusinesById(id: store.state.currentActiveBusiness.id);
-  // geoLocator
-  //     .getPositionStream(locationOptions)
-  //     .listen((Position location) async {
-
-  //   if (businessTableData != null) {
-  //     await store.state.database.businessDao.updateBusiness(
-  //         businessTableData.copyWith(
-  //             idLocal: businessTableData.idLocal,
-  //             longitude: location.longitude,
-  //             latitude: location.latitude));
-  //   }
-  // });
-}
-
-Future<List<Branch>> getBranches(
-    Store<AppState> store, GeneralRepository generalRepository) async {
+Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
-  final List<Map<String, dynamic>> branche = await _databaseService.filter(
-    equator: AppTables.branch,
-    property: 'table',
-  );
-  List<Branch> branches = [];
-  if (branche.isNotEmpty) {
-    // ignore: unnecessary_type_check
-    if (branche[0][CoreDB.instance.dbName] is Object) {
-      final _sharedStateService = locator<SharedStateService>();
-      _sharedStateService.setBranch(branch: Branch.fromMap(branche[0][CoreDB.instance.dbName]));
-      branches.add(Branch.fromMap(branche[0][CoreDB.instance.dbName]));
-    } else {
-      branches = branche[0][CoreDB.instance.dbName]
-          .map((e) => Branch.fromMap(e))
-          .toList();
+  final Logger log = Logging.getLogger('Get User: ');
+  final String userExist = await ProxyService.sharedPref.getUserId();
+  if (userExist == null) {
+    final List<String> channels = [];
+
+    channels.add(userExist);
+
+    await _databaseService.login();
+    return null;
+  } else {
+    final List<String> channels = [];
+
+    channels.add(userExist);
+
+    await _databaseService.login(channels: channels);
+
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+
+    q.parameters = {
+      'VALUE': AppTables.user,
+    };
+
+    final results = q.execute();
+
+    if (results.isNotEmpty) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          // FIXME(richard): fix bellow code.
+          // openCloseBusiness(
+          //   isSocial: false,
+          //   name: FUser.fromMap(value).name,
+          //   userId: FUser.fromMap(value).id.toString(),
+          //   isClosed: true,
+          // );
+         
+          log.d(FUser.fromMap(value));
+          store.dispatch(WithUser(user: FUser.fromMap(value)));
+        });
+      }
+     
+    }
+
+    return userExist;
+  }
+}
+
+Future<List<Branch>> getBranches(Store<AppState> store) async {
+  final DatabaseService _databaseService = ProxyService.database;
+
+  final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+
+  final List<Branch> branches = [];
+  q.parameters = {
+    'VALUE': AppTables.branch,
+  };
+
+  final results = q.execute();
+  if (results.isNotEmpty) {
+    for (Map map in results) {
+      map.forEach((key, value) {
+        branches.add(Branch.fromMap(value));
+      });
     }
   }
 
@@ -224,41 +185,14 @@ Future<List<Branch>> getBranches(
 
 Future<bool> isCategory({String branchId}) async {
   final DatabaseService _databaseService = ProxyService.database;
-  final List<Map<String, dynamic>> category = await _databaseService.filter(
-    equator: 'custom',
-    property: 'name',
-    and: true,
-    andProperty: 'table',
-    andEquator: AppTables.category,
-  );
-  return category.isNotEmpty;
-}
 
-Future<void> generateAppColors(Store<AppState> store) async {
-  final bool isAppConstantsInitialized =
-      await ProxyService.sharedPref.isAppConstantsInitialized();
-  if (!isAppConstantsInitialized) {
-    final List<String> colors = [
-      '#d63031',
-      '#0984e3',
-      '#e84393',
-      '#2d3436',
-      '#6c5ce7',
-      '#74b9ff',
-      '#ff7675',
-      '#a29bfe'
-    ];
-    //insert default colors for the app
-    final DatabaseService _databaseService = ProxyService.database;
-    for (int i = 0; i < colors.length; i++) {
-      _databaseService.insert(data: {
-        'name': colors[i],
-        'isActive': false,
-        'channels': [store.state.user.id.toString()],
-        'table': AppTables.color
-      });
-    }
-  }
+  final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+
+  q.parameters = {
+    'VALUE': AppTables.category,
+  };
+
+  return q.execute().isNotEmpty;
 }
 
 Future<void> createSystemStockReasons(Store<AppState> store) async {
@@ -297,44 +231,40 @@ Future<void> createSystemStockReasons(Store<AppState> store) async {
   // }
 }
 
-Future<void> createTemporalOrder(
-    GeneralRepository generalRepository, Store<AppState> store) async {
+Future<void> createTemporalOrder(Store<AppState> store) async {
   if (store.state.branch == null) {
     return;
   }
   if (store.state.user.id == null) {
     return;
   }
-  DataManager.createTemporalOrder(generalRepository, store);
+  DataManager.createTemporalOrder(store);
 }
 
-Future<void> getBusinesses(
-    Store<AppState> store, GeneralRepository generalRepository) async {
+Future<void> getBusinesses({Store<AppState> store, String userId}) async {
   final Logger log = Logging.getLogger('Get business: ');
-  // log.d(store.state.user.id);
+  log.d(userId);
   final DatabaseService _databaseService = ProxyService.database;
 
-  final List<Map<String, dynamic>> doc = await _databaseService.filter(
-    equator: AppTables.business,
-    property: 'table',
-    and: true, //define that this query is and type.
-    andEquator: store.state.user.id,
-    andProperty: 'userId',
-  );
-
-  // ignore: always_specify_types
   final List<Business> businesses = [];
 
-  if (doc.isNotEmpty) {
-    //this asume that one user has one business
-    log.i(doc[0]['main']);
-    final _sharedStateService = locator<SharedStateService>();
-    _sharedStateService.setBusiness(business: Business.fromMap(doc[0]['main']));
-    businesses.add(Business.fromMap(doc[0]['main']));
+  final q = Query(
+      _databaseService.db, 'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
+
+  q.parameters = {'VALUE': AppTables.business, 'USERID': userId};
+
+  final results = q.execute();
+  if (results.isNotEmpty) {
+    for (Map map in results) {
+      map.forEach((key, value) {
+        businesses.add(Business.fromMap(value));
+      });
+    }
   }
-  log.i(businesses);
-  await getBranches(store, generalRepository);
-  await createTemporalOrder(generalRepository, store);
+
+  
+  await getBranches(store);
+  await createTemporalOrder(store);
 
   for (Business business in businesses) {
     if (business.active) {
@@ -346,12 +276,13 @@ Future<void> getBusinesses(
 
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
+
   if (businesses.isEmpty) {
-    if (store.state.user != null) {
+    if (userId != null) {
       _navigationService.navigateTo(
         Routing.signUpView,
         arguments: SignUpViewArguments(
-          userId: store.state.user.id,
+          userId: userId,
           name: store.state.user.name,
           avatar: 'avatar',
           email: store.state.user.email,
@@ -361,7 +292,7 @@ Future<void> getBusinesses(
     } else {
       _navigationService.navigateTo(Routing.afterSplash);
     }
-  } else if (store.state.user.id == null) {
+  } else if (userId == null) {
     _navigationService.navigateTo(Routing.afterSplash);
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));
@@ -374,14 +305,13 @@ void Function(
   dynamic action,
   NextDispatcher next,
 ) _authLogout(
-  UserRepository userRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   // ignore: always_specify_types
   return (store, action, next) async {
     next(action);
     try {
-      await userRepository.logOut(store);
+      // await userRepository.logOut(store);
       store.dispatch(OnLogoutSuccess());
     } catch (e) {
       // Logger.w('Failed logout', e: e);
@@ -395,7 +325,6 @@ void Function(
   dynamic action,
   NextDispatcher next,
 ) _authLogin(
-  UserRepository userRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   // ignore: always_specify_types

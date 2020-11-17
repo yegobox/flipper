@@ -1,6 +1,7 @@
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/model/category.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
@@ -22,29 +23,18 @@ class CategoryViewModel extends BaseModel {
   void getProducts({BuildContext context}) {
     setBusy(true);
 
-    //demo of listening on users table on every entry.
-    _databaseService
-        .observer(
-            equator: AppTables.category,
-            property: 'table')
-        .stream
-        .listen((ResultSet event) {
-      // _category = event.allResults();
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
-      final List<Category> list = <Category>[];
-      // remove unnecessarry nesting "main"appended on each map value
-      for (Map<String, dynamic> map in model) {
-        // ignore: always_specify_types
-        // ignore: always_specify_types
-        map.forEach((String key, value) {
-          list.add(Category.fromMap(value));
-        });
-      }
-      notifyListeners();
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
-      setBusy(false);
+    q.parameters = {'VALUE': AppTables.category};
+
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          _category.add(Category.fromMap(value));
+        });
+        setBusy(false);
+        notifyListeners();
+      }
     });
   }
 }

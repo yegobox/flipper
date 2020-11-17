@@ -23,7 +23,7 @@ class _TenderScreenState extends State<TenderScreen> {
   final bool _isEmpty = true;
   final bool _hasErrors = false;
   final FlipperNavigationService _navigationService = ProxyService.nav;
-  final BlueToothService _bluetoothService = ProxyService.blue;
+  // final BlueToothService _bluetoothService = ProxyService.blue;
   bool _isButtonDisabled;
 
   String _customerChangeDue;
@@ -126,7 +126,7 @@ class _TenderScreenState extends State<TenderScreen> {
           ),
         );
         // TODO(richard): finish printing to work proper
-        await _bluetoothService.printReceipt();
+        // await _bluetoothService.printReceipt();
         _navigationService.popUntil(Routing.dashboard);
       };
     }

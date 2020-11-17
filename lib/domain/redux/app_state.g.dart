@@ -36,8 +36,6 @@ class _$AppState extends AppState {
   @override
   final Hint hint;
   @override
-  final Database database;
-  @override
   final String tempCategoryId;
   @override
   final Variation variant;
@@ -76,7 +74,6 @@ class _$AppState extends AppState {
       this.branch,
       this.business,
       this.hint,
-      this.database,
       this.tempCategoryId,
       this.variant,
       this.items,
@@ -88,12 +85,6 @@ class _$AppState extends AppState {
       this.inAppNotification,
       this.report})
       : super._() {
-    if (user == null) {
-      throw new BuiltValueNullFieldError('AppState', 'user');
-    }
-    if (database == null) {
-      throw new BuiltValueNullFieldError('AppState', 'database');
-    }
     if (items == null) {
       throw new BuiltValueNullFieldError('AppState', 'items');
     }
@@ -124,7 +115,6 @@ class _$AppState extends AppState {
         branch == other.branch &&
         business == other.business &&
         hint == other.hint &&
-        database == other.database &&
         tempCategoryId == other.tempCategoryId &&
         variant == other.variant &&
         items == other.items &&
@@ -157,16 +147,16 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), unit.hashCode), otpcode.hashCode), units.hashCode), users.hashCode),
-                                                                                focusedUnit.hashCode),
-                                                                            category.hashCode),
-                                                                        permissions.hashCode),
-                                                                    branches.hashCode),
-                                                                businesses.hashCode),
-                                                            branch.hashCode),
-                                                        business.hashCode),
-                                                    hint.hashCode),
-                                                database.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), unit.hashCode), otpcode.hashCode), units.hashCode),
+                                                                                users.hashCode),
+                                                                            focusedUnit.hashCode),
+                                                                        category.hashCode),
+                                                                    permissions.hashCode),
+                                                                branches.hashCode),
+                                                            businesses.hashCode),
+                                                        branch.hashCode),
+                                                    business.hashCode),
+                                                hint.hashCode),
                                             tempCategoryId.hashCode),
                                         variant.hashCode),
                                     items.hashCode),
@@ -196,7 +186,6 @@ class _$AppState extends AppState {
           ..add('branch', branch)
           ..add('business', business)
           ..add('hint', hint)
-          ..add('database', database)
           ..add('tempCategoryId', tempCategoryId)
           ..add('variant', variant)
           ..add('items', items)
@@ -274,10 +263,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   HintBuilder get hint => _$this._hint ??= new HintBuilder();
   set hint(HintBuilder hint) => _$this._hint = hint;
 
-  Database _database;
-  Database get database => _$this._database;
-  set database(Database database) => _$this._database = database;
-
   String _tempCategoryId;
   String get tempCategoryId => _$this._tempCategoryId;
   set tempCategoryId(String tempCategoryId) =>
@@ -340,7 +325,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _branch = _$v.branch?.toBuilder();
       _business = _$v.business?.toBuilder();
       _hint = _$v.hint?.toBuilder();
-      _database = _$v.database;
       _tempCategoryId = _$v.tempCategoryId;
       _variant = _$v.variant?.toBuilder();
       _items = _$v.items?.toBuilder();
@@ -375,7 +359,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
     try {
       _$result = _$v ??
           new _$AppState._(
-              user: user.build(),
+              user: _user?.build(),
               currentActiveBusiness: _currentActiveBusiness?.build(),
               unit: _unit?.build(),
               otpcode: otpcode,
@@ -389,7 +373,6 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               branch: _branch?.build(),
               business: _business?.build(),
               hint: _hint?.build(),
-              database: database,
               tempCategoryId: tempCategoryId,
               variant: _variant?.build(),
               items: items.build(),
@@ -404,7 +387,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       String _$failedField;
       try {
         _$failedField = 'user';
-        user.build();
+        _user?.build();
         _$failedField = 'currentActiveBusiness';
         _currentActiveBusiness?.build();
         _$failedField = 'unit';

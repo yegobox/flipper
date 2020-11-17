@@ -1,4 +1,4 @@
-
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/model/image.dart';
@@ -6,7 +6,6 @@ import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/database_service.dart';
@@ -20,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class AddProductViewmodel extends BaseModel {
-  
   Category _category;
   String _colorName;
   // ignore: unused_field
@@ -98,34 +96,42 @@ class AddProductViewmodel extends BaseModel {
     ProxyService.nav.pop();
   }
 
-  Category get category{
+  Category get category {
     return _category;
   }
 
   Future<void> handleCreateItem() async {
-    
     await updateProduct(
       productId: product.id, //productId
       categoryId: category == null ? '10' : category.id,
     );
 
-    final List<Map<String, dynamic>> variations = await _databaseService.filter(
-      equator: AppTables.variation,
-      property: 'table',
-      and: true, //define that this query is and type.
-      andEquator: product.id,
-      andProperty: 'productId',
-    );
+    final variations = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
 
-    final Document variation = await _databaseService.getById(
-        id: Variation.fromMap(variations[0]['main']).id);
+    variations.parameters = {
+      'VALUE': AppTables.variation,
+      'PRODUCTID': product.id
+    };
 
-    await updateVariation(
-      variation: Variation.fromMap(variation.toMap()),
-      supplyPrice: double.parse(supplierPriceController.text),
-      variantName: 'Regular',
-      retailPrice: double.parse(retailPriceController.text),
-    );
+    final variationsResults = variations.execute();
+
+    if (variationsResults.isNotEmpty) {
+      for (Map map in variationsResults) {
+        map.forEach((key, value) {
+          final Document variation =
+              _databaseService.getById(id: Variation.fromMap(value).id);
+
+          updateVariation(
+            variation: Variation.fromMap(variation.jsonProperties),
+            supplyPrice: double.parse(supplierPriceController.text),
+            variantName: 'Regular',
+            retailPrice: double.parse(retailPriceController.text),
+          );
+        });
+        notifyListeners();
+      }
+    }
 
     _nameController.text = ''; //this will reset button to disabled
 
@@ -139,34 +145,31 @@ class AddProductViewmodel extends BaseModel {
     String variantName,
   }) async {
     if (variation != null) {
-      final Document stock = await _databaseService.getById(id: variation.id);
+      final Document stock = _databaseService.getById(id: variation.id);
 
-      final Document variant = await _databaseService.getById(id: variation.id);
+      final Document variant = _databaseService.getById(id: variation.id);
+        
+      variant.properties['name']  =variantName;
+      
+      _databaseService.update(document: variant);
 
-      variant.toMutable().setString('name', variantName);
-      _databaseService.update(document: variant.toMutable());
-
-      stock
-          .toMutable()
-          .setDouble('retailPrice', retailPrice)
-          .setDouble('supplyPrice', supplyPrice);
-      _databaseService.update(document: stock.toMutable());
+      stock.properties['retailPrice'] = retailPrice;
+      stock.properties['supplyPrice'] = supplyPrice;
+      
+      _databaseService.update(document: stock);
     }
   }
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-        final List<Map<String, dynamic>> p = await _databaseService.filter(property: 'table',equator:'products');
-    
-    final Document product = await _databaseService.getById(id: productId);
-    assert(product !=null);
-    product
-        .toMutable()
-        .setString('name', nameController.text)
-        .setString('categoryId', categoryId)
-        .setString('updatedAt', DateTime.now().toIso8601String());
 
-    _databaseService.update(document: product.toMutable());
+    final Document product = _databaseService.getById(id: productId);
+    assert(product != null);
+    product.properties['name'] = nameController.text;
+    product.properties['categoryId'] = categoryId;
+    product.properties['updatedAt'] = DateTime.now().toIso8601String();
+
+    _databaseService.update(document: product);
     return true;
   }
 
@@ -197,21 +200,28 @@ class AddProductViewmodel extends BaseModel {
     _description = description;
   }
 
+ 
   // once full refacored
   // ignore: always_specify_types
   Future getTemporalProduct({BuildContext context, CommonViewModel vm}) async {
     setBusy(true);
+    
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    final List<Map<String, dynamic>> products = await _databaseService.filter(
-      equator: 'tmp',
-      property: 'name',
-      and: true,
-      andProperty: 'table',
-      andEquator: AppTables.product,
-    );
+    q.parameters = {'VALUE': AppTables.product,'NAME':'tmp'};
+
+    final products = q.execute();
+
     if (products.isNotEmpty) {
-      _sharedStateService.setProduct(product: Product.fromMap(products[0]['main']));
+   
+      for (Map map in products) {
+        map.forEach((key,value){
+           _sharedStateService.setProduct(product: Product.fromMap(value));
+        });
+        notifyListeners();
+      }
     }
+    
     setBusy(false);
     notifyListeners();
   }
@@ -225,42 +235,50 @@ class AddProductViewmodel extends BaseModel {
   void loadUnits() {
     setBusy(true);
 
-    _databaseService
-        .observer(equator: AppTables.unit, property: 'table')
-        .stream
-        .listen((ResultSet event) {
-      final List<Map<String, dynamic>> model = event.map((Result result) {
-        return result.toMap();
-      }).toList();
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
-      // remove unnecessarry nesting "main"appended on each map value
-      for (Map<String, dynamic> map in model) {
-        map.forEach((String key, value) {
-          log.i(value);
-          _units.add(Unit.fromMap(value));
+    q.parameters = {'VALUE':  AppTables.unit};
+    
+    q.addChangeListener((List results) {
+   
+       for (Map map in results) {
+
+        map.forEach((key,value){
+           _units.add(Unit.fromMap(value));
         });
+        notifyListeners();
       }
-      notifyListeners();
-
-      setBusy(false);
     });
   }
 
-  void updateProductWithCurrentUnit({Unit unit}) async { //NOTE: we update product variation not actual product as the unit is associated with variation.
-    final List<Map<String, dynamic>> variants = await _databaseService.filter(
-      and: true,
-      property: 'table',
-      equator: AppTables.variation,
-      andProperty: 'productId',
-      andEquator: product.id,
-    );
-    for (var i = 0; i < variants.length; i++) {
-      final Variation variation = Variation.fromMap(variants[i]);
-      final Document variationDocument =
-          await _databaseService.getById(id: variation.id);
-      variationDocument.toMutable().setString('unit', unit.name);
-      _databaseService.update(document: variationDocument);
+  void updateProductWithCurrentUnit({Unit unit}) async {
+    //NOTE: we update product variation not actual product as the unit is associated with variation.
+   
+     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$productId');
+
+    q.parameters = {'VALUE': AppTables.variation,'productId':product.id};
+
+    final variants = q.execute();
+
+    if (variants.isNotEmpty) {
+   
+      for (Map map in variants) {
+        map.forEach((key,value){
+          //  _sharedStateService.setProduct(product: Product.fromMap(value));
+        });
+        notifyListeners();
+      }
     }
+    // FIXME(richard): finish the logic this logic seems to be invalid or too complicated for nothing
+    // for (var i = 0; i < variants.length; i++) {
+    //   final Variation variation = Variation.fromMap(variants[i]);
+    //   final Document variationDocument =
+    //       _databaseService.getById(id: variation.id);
+
+    //   variationDocument.properties['unit']    =unit.name;
+      
+    //   _databaseService.update(document: variationDocument);
+    // }
   }
 
   Unit get focusedUnit {
@@ -270,15 +288,16 @@ class AddProductViewmodel extends BaseModel {
   void saveFocusedUnit({Unit unit}) async {
     // reset other focused if any!
     for (Unit unit in units) {
-      final Document unitDoc = await _databaseService.getById(id: unit.id);
+      final Document unitDoc = _databaseService.getById(id: unit.id);
       if (unit.focused) {
-        unitDoc.toMutable().setBoolean('focused', false);
+        unitDoc.properties['focused'] = false;
         _databaseService.update(document: unitDoc);
       }
     }
     _focusedUnit = unit;
-    final Document unitDoc = await _databaseService.getById(id: unit.id);
-    unitDoc.toMutable().setBoolean('focused', false);
+    final Document unitDoc = _databaseService.getById(id: unit.id);
+    
+    unitDoc.properties['focused'] = false;
     _databaseService.update(document: unitDoc);
     notifyListeners();
   }

@@ -22,11 +22,7 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final String otpcode;
   @override
-  final FlipperColor currentColor;
-  @override
   final Branch branch;
-  @override
-  final Database database;
   @override
   final FUser user;
   @override
@@ -49,9 +45,7 @@ class _$CommonViewModel extends CommonViewModel {
       this.hint,
       this.category,
       this.otpcode,
-      this.currentColor,
       this.branch,
-      this.database,
       this.user,
       this.customItem,
       this.tmpItem,
@@ -63,9 +57,6 @@ class _$CommonViewModel extends CommonViewModel {
     }
     if (businesses == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'businesses');
-    }
-    if (database == null) {
-      throw new BuiltValueNullFieldError('CommonViewModel', 'database');
     }
   }
 
@@ -88,9 +79,7 @@ class _$CommonViewModel extends CommonViewModel {
         hint == other.hint &&
         category == other.category &&
         otpcode == other.otpcode &&
-        currentColor == other.currentColor &&
         branch == other.branch &&
-        database == other.database &&
         user == other.user &&
         customItem == other.customItem &&
         tmpItem == other.tmpItem &&
@@ -111,21 +100,14 @@ class _$CommonViewModel extends CommonViewModel {
                                     $jc(
                                         $jc(
                                             $jc(
-                                                $jc(
-                                                    $jc(
-                                                        $jc(
-                                                            $jc(0,
-                                                                units.hashCode),
-                                                            currentBusiness
-                                                                .hashCode),
-                                                        branches.hashCode),
-                                                    businesses.hashCode),
-                                                hint.hashCode),
-                                            category.hashCode),
-                                        otpcode.hashCode),
-                                    currentColor.hashCode),
-                                branch.hashCode),
-                            database.hashCode),
+                                                $jc($jc(0, units.hashCode),
+                                                    currentBusiness.hashCode),
+                                                branches.hashCode),
+                                            businesses.hashCode),
+                                        hint.hashCode),
+                                    category.hashCode),
+                                otpcode.hashCode),
+                            branch.hashCode),
                         user.hashCode),
                     customItem.hashCode),
                 tmpItem.hashCode),
@@ -143,9 +125,7 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('hint', hint)
           ..add('category', category)
           ..add('otpcode', otpcode)
-          ..add('currentColor', currentColor)
           ..add('branch', branch)
-          ..add('database', database)
           ..add('user', user)
           ..add('customItem', customItem)
           ..add('tmpItem', tmpItem)
@@ -189,19 +169,9 @@ class CommonViewModelBuilder
   String get otpcode => _$this._otpcode;
   set otpcode(String otpcode) => _$this._otpcode = otpcode;
 
-  FlipperColorBuilder _currentColor;
-  FlipperColorBuilder get currentColor =>
-      _$this._currentColor ??= new FlipperColorBuilder();
-  set currentColor(FlipperColorBuilder currentColor) =>
-      _$this._currentColor = currentColor;
-
   BranchBuilder _branch;
   BranchBuilder get branch => _$this._branch ??= new BranchBuilder();
   set branch(BranchBuilder branch) => _$this._branch = branch;
-
-  Database _database;
-  Database get database => _$this._database;
-  set database(Database database) => _$this._database = database;
 
   FUserBuilder _user;
   FUserBuilder get user => _$this._user ??= new FUserBuilder();
@@ -234,9 +204,7 @@ class CommonViewModelBuilder
       _hint = _$v.hint?.toBuilder();
       _category = _$v.category?.toBuilder();
       _otpcode = _$v.otpcode;
-      _currentColor = _$v.currentColor?.toBuilder();
       _branch = _$v.branch?.toBuilder();
-      _database = _$v.database;
       _user = _$v.user?.toBuilder();
       _customItem = _$v.customItem?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
@@ -273,9 +241,7 @@ class CommonViewModelBuilder
               hint: _hint?.build(),
               category: _category?.build(),
               otpcode: otpcode,
-              currentColor: _currentColor?.build(),
               branch: _branch?.build(),
-              database: database,
               user: _user?.build(),
               customItem: _customItem?.build(),
               tmpItem: _tmpItem?.build(),
@@ -294,11 +260,8 @@ class CommonViewModelBuilder
         _$failedField = 'category';
         _category?.build();
 
-        _$failedField = 'currentColor';
-        _currentColor?.build();
         _$failedField = 'branch';
         _branch?.build();
-
         _$failedField = 'user';
         _user?.build();
         _$failedField = 'customItem';

@@ -32,12 +32,6 @@ class WithUser {
 }
 
 @deprecated
-@immutable
-class UserID {
-  final int userId;
-
-  const UserID({this.userId});
-}
 
 @immutable
 class CreateUser {

@@ -1,20 +1,11 @@
 name: flipper
 
-description: A new Flutter project.
+description: A business application
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
-# Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 99.99.99+99
 
@@ -35,7 +26,7 @@ dependencies:
   built_value: ^7.1.0
   image_picker: ^0.6.4
   built_collection: ^4.3.2
-  flutter_date_pickers: ^0.0.6
+  # flutter_date_pickers: ^0.0.6
   # flutter_material_color_picker: ^0.0.5
   flutter_image_compress: ^0.6.5+1
   tabbar: ^0.1.1
@@ -44,17 +35,17 @@ dependencies:
   expandable: ^4.1.4
   syncfusion_flutter_charts: ^18.3.44
   
-  uuid: 2.0.4
-  bluetooth_print: 
-    git:
-      url: 'https://github.com/yegobox/bluetooth_print.git'
-      ref: 'yegobox'
+  uuid: 2.2.2
+  # bluetooth_print: 
+  #   git:
+  #     url: 'https://github.com/yegobox/bluetooth_print.git'
+  #     ref: 'yegobox'
   timezone: ^0.5.6
   # this will deprecate soon do not use them
   flutter_barcode_scanner: 
-  moor: ^3.0.0
-  sqlite3_flutter_libs:
-  sqflite: ^1.1.7 
+  # moor: ^3.0.0
+  # sqlite3_flutter_libs:
+  # sqflite: ^1.1.7 
   # end of deprecation
   #  built_collection: ^4.2.2
   # The following adds the Cupertino Icons font to your application.
@@ -110,17 +101,13 @@ dependencies:
   # connectivity: ^0.4.3+1
   # background_fetch: '^0.5.1'
   flutter_icons: ^1.1.0
+  couchbase_lite_dart: ^0.3.1
   
 
 
 
 dev_dependencies:
-  couchbase_lite: ^2.7.1+6
-  # couchbase_lite:
-  #   git:
-  #     url: 'https://github.com/SaltechSystems/couchbase_lite.git'
-  #     ref: 'master'
-  # flutter_flipperkit:
+  
 
   build_runner: 
   moor_generator: ^3.0.0

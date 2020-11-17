@@ -20,6 +20,7 @@ class FlipperDrawer extends StatefulWidget {
   _FlipperDrawerState createState() => _FlipperDrawerState();
 }
 
+
 class _FlipperDrawerState extends State<FlipperDrawer> {
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
