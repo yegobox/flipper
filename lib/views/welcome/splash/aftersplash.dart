@@ -3,23 +3,14 @@ import 'package:flipper/views/welcome/splash/responsive/uper_body.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class AfterSplash extends StatefulWidget {
-  @override
-  _AfterSplashState createState() => _AfterSplashState();
-}
+class AfterSplash extends StatelessWidget {
 
-class _AfterSplashState extends State<AfterSplash> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future<bool> _onWillPop() async {
     return false;
   }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
+ 
   @override
   Widget build(BuildContext context) {
     final bool landscape =

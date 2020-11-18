@@ -6,23 +6,24 @@ import 'package:stacked/stacked.dart';
 
 
 class KeyPadButtons extends StatelessWidget {
+
+  const KeyPadButtons({Key key, this.simplifiedKeypad = false}) : super(key: key);
+  final bool simplifiedKeypad;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, PayableViewModel model, Widget child) {
           return Wrap(
             // alignment: Alignment.center,
-            children: _buildButtons(model.showButton),
+            children: _buildButtons(simplifiedKeypad: simplifiedKeypad),
           );
         },
         viewModelBuilder: () => PayableViewModel());
   }
 
-  List<Widget> _buildButtons(bool showButton) {
+  List<Widget> _buildButtons({bool simplifiedKeypad}) {
     final List<int> list = <int>[];
-    // ignore: always_specify_types
-    // define keys for keypad exclude C and +
-
+    
     list.addAll([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
     final List<Widget> widget = <Widget>[];
 
@@ -33,13 +34,14 @@ class KeyPadButtons extends StatelessWidget {
         ),
       );
     }
-    widget.add(const SingleKey(
-      buttonKeyName: '0',
-    ));
+  
     widget.add(const SingleKey(
       buttonKeyName: 'C',
     ));
-    if (showButton) {
+      widget.add(const SingleKey(
+      buttonKeyName: '0',
+    ));
+    if (!simplifiedKeypad) {
       widget.add(const SingleKey(
         buttonKeyName: '+',
       ));
@@ -109,8 +111,8 @@ class SingleKey extends StatelessWidget {
           return Container(
             child: SingleChildScrollView(
               child: SizedBox(
-                width: 100.99,
-                height: 80.0,
+                width: 130.99,
+                height: 120.0,
                 child: InkWell(
                   enableFeedback: false,
                   onTap: () => {

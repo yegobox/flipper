@@ -1,6 +1,7 @@
 import 'package:flipper/views/flipper_drawer.dart';
 import 'package:flipper/views/home_app_bar.dart';
-import 'package:flipper/views/keypad/poswidget.dart';
+import 'package:flipper/views/keypad/keypad_view.dart';
+
 import 'package:flipper/views/product/product_view.dart';
 
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -19,7 +20,7 @@ class HomeView extends StatelessWidget {
   final bool showAppBar;
 
   // ignore: sort_constructors_first
-   HomeView({
+  HomeView({
     Key key,
     @required this.sideOpenController,
     this.showAppBar = false,
@@ -31,13 +32,10 @@ class HomeView extends StatelessWidget {
   Widget _getPage({@required int index, @required CommonViewModel vm}) {
     switch (index) {
       case 0:
-        return const Poswidget();
+        return KeyPadView();
         break;
       case 1:
-        // return ProductsView(
-        //   userId: vm.user.id,
-        // );
-        return ProductView(userId:vm.user.id,items:true);
+        return ProductView(userId: vm.user.id, items: true);
         break;
     }
   }
@@ -58,7 +56,6 @@ class HomeView extends StatelessWidget {
             appBar: HomeAppBar(
               scaffoldKey: _scaffoldKey,
               sideOpenController: sideOpenController,
-              tabs: itemstab,
             ),
             bottomNavigationBar: BottomMenubar(
               model: model,
@@ -68,8 +65,7 @@ class HomeView extends StatelessWidget {
                 model.items == 2
                     ? const Padding(
                         padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                        child: SizedBox.shrink()
-                      )
+                        child: SizedBox.shrink())
                     : Padding(
                         padding: const EdgeInsets.only(left: 5.0, right: 5.0),
                         child: PayableView(),

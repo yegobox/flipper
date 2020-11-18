@@ -1,6 +1,5 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -10,9 +9,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({
     @required this.scaffoldKey,
     @required this.sideOpenController,
-    this.tabs,
   });
-  final bool tabs;
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueNotifier<bool> sideOpenController;
@@ -27,15 +24,24 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           top: true,
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
-            // ignore: always_specify_types
             leading: _hamburger(),
-            title: tabs
-                ? const Text('Items',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20.0,
-                        color: Colors.black))
-                : const SizedBox.shrink(),
+            title:  Container(
+                  color: Theme.of(context).copyWith(canvasColor:Colors.transparent).canvasColor,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: FlatButton(
+                      onPressed: null,
+                      child: Text(
+                        'No Sale',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headline4
+                            .copyWith(color: Colors.black),
+                      ),
+                    ),
+                  ),
+                ),
             // FIXME(richard): fix bellow code
             //title: StreamBuilder(
             //         // FIXME(richard): replace this with couchbaselite too
