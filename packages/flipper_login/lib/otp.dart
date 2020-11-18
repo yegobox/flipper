@@ -194,6 +194,8 @@ class _OtpPageState extends State<OtpPage> {
                                         'email': loginResponse.email,
                                         'token': loginResponse.token,
                                         'table':  AppTables.user,
+                                        'userId':  loginResponse.id.toString(),
+                                        'expiresAt': loginResponse.expiresAt,
                                         'id': loginResponse.id.toString(),
                                       });
                                       ProxyService.sharedPref.setUserLoggedIn(userId: loginResponse.id.toString());
