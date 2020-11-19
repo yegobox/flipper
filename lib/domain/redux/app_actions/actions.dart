@@ -336,11 +336,6 @@ class NavigateOtp {
 
 @immutable
 class OtpCode {
+  const OtpCode({this.otpcode});
   final String otpcode;
-
-  OtpCode({this.otpcode});
 }
-
-
-
-class CleanTotal {}

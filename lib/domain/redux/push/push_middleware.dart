@@ -2,7 +2,7 @@ import 'dart:io';
 
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper/data/respositories/user_repository.dart';
+
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/push/push_actions.dart';
@@ -10,51 +10,17 @@ import 'package:flipper/model/in_app_notification.dart';
 import 'package:redux/redux.dart';
 
 List<Middleware<AppState>> createPushMiddleware(
-  UserRepository userRespository,
+  
   FirebaseMessaging firebaseMessaging,
 ) {
   return [
-    TypedMiddleware<AppState, UpdateUserTokenAction>(
-        _updateUserAction(userRespository)),
-    TypedMiddleware<AppState, OnAuthenticated>(
-        _setTokenAfterLogin(userRespository)),
+   
     TypedMiddleware<AppState, OnPushNotificationReceivedAction>(
         _onPushNotificationReceived()),
   ];
 }
 
-void Function(
-  Store<AppState> store,
-  UpdateUserTokenAction action,
-  NextDispatcher next,
-) _updateUserAction(UserRepository userRepository) {
-  return (store, action, next) async {
-    next(action);
-    try {
-      await userRepository.updateUserToken(action.token, store);
-    } catch (e) {
-      // Logger.e('Failed to update token', e: e, s: StackTrace.current);
-    }
-  };
-}
 
-void Function(
-  Store<AppState> store,
-  OnAuthenticated action,
-  NextDispatcher next,
-) _setTokenAfterLogin(UserRepository userRepository) {
-  return (store, action, next) async {
-    next(action);
-    try {
-      /// Set the token after the user is authenticated if the token exists
-      // if (store.state.fcmToken != null) {
-      //   await userRepository.updateUserToken(store.state.fcmToken);
-      // }
-    } catch (e) {
-      // Logger.e('Failed to update token', e: e, s: StackTrace.current);
-    }
-  };
-}
 
 void Function(
   Store<AppState> store,

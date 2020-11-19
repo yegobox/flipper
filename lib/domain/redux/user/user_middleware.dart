@@ -1,5 +1,5 @@
-import 'package:flipper/core_db.dart';
-import 'package:flipper/data/respositories/user_repository.dart';
+
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
@@ -8,21 +8,20 @@ import 'package:flipper/services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 
 List<Middleware<AppState>> userMiddleware(
-  UserRepository userRepository,
   GlobalKey<NavigatorState> navigatorKey,
 ) {
   return [
     TypedMiddleware<AppState, CreateUser>(
-        _createUser(navigatorKey, userRepository)),
+        _createUser(navigatorKey)),
   ];
 }
 
 void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     _createUser(
-        GlobalKey<NavigatorState> navigatorKey, UserRepository userRepository) {
+        GlobalKey<NavigatorState> navigatorKey) {
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     if (store.state.user != null) {
@@ -45,9 +44,9 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       };
 
 
-     final Document u =  await ProxyService.database.insert(id:store.state.user.id.toString(),data:mapUser);
+     final Document u =  ProxyService.database.insert(id:store.state.user.id.toString(),data:mapUser);
 
-     store.dispatch(WithUser(user: FUser.fromMap(u.toMap())));
+     store.dispatch(WithUser(user: FUser.fromMap(u.jsonProperties)));
       
       store.dispatch(CreateBusinessOnSignUp());
     }

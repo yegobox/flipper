@@ -1,42 +1,41 @@
 
-import 'package:flipper/data/respositories/general_repository.dart';
+
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/unit.dart';
-import 'package:couchbase_lite/couchbase_lite.dart';
+
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:uuid/uuid.dart';
 
 // ignore: non_constant_identifier_names
 List<Middleware<AppState>> AppActionMiddleware(
   GlobalKey<NavigatorState> navigatorKey,
-  GeneralRepository generalRepository,
 ) {
   // ignore: always_specify_types
   return [
     TypedMiddleware<AppState, CreateEmptyTempCategoryAction>(
-        _createTempCategory(navigatorKey, generalRepository)),
+        _createTempCategory(navigatorKey)),
    
     TypedMiddleware<AppState, SavePayment>(
-        _savePayment(navigatorKey, generalRepository)),
+        _savePayment(navigatorKey)),
   ];
 }
 
 
 void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
         NextDispatcher next)
-    _createTempCategory(GlobalKey<NavigatorState> navigatorKey,
-        GeneralRepository generalRepository) {
+    _createTempCategory(GlobalKey<NavigatorState> navigatorKey,) {
   // ignore: always_specify_types
   return (Store<AppState> store, CreateEmptyTempCategoryAction action, next) async {
     if (store.state.branch != null) {
       final DatabaseService _databaseService = ProxyService.database;
-      final Document doc =await   _databaseService.insert(data: {'branchId': store.state.branch.id,'name':action.name});
-      
-      store.dispatch(TempCategoryIdAction(categoryId: doc.id));
+      final id = Uuid().v1();
+      _databaseService.insert(id:id, data: {'branchId': store.state.branch.id,'name':action.name});
+     
+      store.dispatch(TempCategoryIdAction(categoryId: id));
     }
   };
 }
@@ -46,7 +45,7 @@ void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
 
 void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
     _savePayment(GlobalKey<NavigatorState> navigatorKey,
-        GeneralRepository generalRepository) {
+        ) {
   return (store, action, next) async {
     next(action);
 
@@ -69,7 +68,7 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
     //get variantId then update the stock current quantity minus the orderDetail quantity
 
     //update orderdetails
-    DataManager.createTemporalOrder(generalRepository, store);
+    DataManager.createTemporalOrder(store);
 
     
   };

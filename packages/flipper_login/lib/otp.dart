@@ -1,15 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart' as Auth;
-import 'package:flipper/data/main_database.dart';
+
 
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/routes/router.gr.dart';
+
 
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/ui/welcome/home/common_view_model.dart';
+import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -185,26 +186,24 @@ class _OtpPageState extends State<OtpPage> {
                                         ..name = loginResponse.name,
                                     );
                                     store.dispatch(WithUser(user: user));
-                                    store.dispatch(
-                                        UserID(userId: loginResponse.id));
-                                    final UserTableData userExist = await store
-                                        .state.database.userDao
-                                        .getUser();
+                                   
+                                    final userExist = await  ProxyService.sharedPref.getUserId();
                                     if (userExist == null) {
-                                      await store.state.database.userDao
-                                          .insertUser(
-                                        UserTableData(
-                                          username: loginResponse.name,
-                                          email: loginResponse.email,
-                                          token: loginResponse.token,
-                                          userId: loginResponse.id,
-                                          id: null,
-                                        ),
-                                      );
+                                      ProxyService.database.insert(data:{
+                                        'name': loginResponse.name,
+                                        'email': loginResponse.email,
+                                        'token': loginResponse.token,
+                                        'table':  AppTables.user,
+                                        'userId':  loginResponse.id.toString(),
+                                        'expiresAt': loginResponse.expiresAt,
+                                        'id': loginResponse.id.toString(),
+                                      });
+                                      ProxyService.sharedPref.setUserLoggedIn(userId: loginResponse.id.toString());
                                     }
 
                                     proxyService.loading.add(false);
-                                    // TODO: fix me so I won't have to go on signup page everytime.
+                                    
+                                   
                                     _navigationService.navigateTo(
                                       Routing.signUpView,
                                       arguments: SignUpViewArguments(
@@ -215,8 +214,8 @@ class _OtpPageState extends State<OtpPage> {
                                         userId: loginResponse.id.toString()
                                       ),
                                     );
-                                    store.dispatch(
-                                        VerifyAuthenticationState()); //todo check subscription later refere to auth_webview.dart
+                                    // store.dispatch(
+                                    //     VerifyAuthenticationState()); //todo check subscription later refere to auth_webview.dart
 
                                   }
                                 } catch (e) {
