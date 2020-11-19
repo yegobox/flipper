@@ -1,4 +1,5 @@
 String appFont = 'HelveticaNeuea';
+String dbName = 'main';
 // ignore: avoid_classes_with_only_static_members
 class AppTables{
   //table name used to query couchbase_lite data
@@ -16,7 +17,9 @@ class AppTables{
   static const String drawerHistory = 'drawerHistories';
 
   static const String cart ='cart'; 
-  static const String color ='colors'; 
+  static const String color ='colors';
+
+  static const String user ='users';
 
 }
 

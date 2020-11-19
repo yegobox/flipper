@@ -1,4 +1,5 @@
-import 'package:couchbase_lite/couchbase_lite.dart';
+
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/locator.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/shared_preference_service.dart';
@@ -38,7 +39,7 @@ DatabaseService getAndRegisterDatabaseMock({bool returnAddress = true}) {
   final database = DatabaseServiceMock();
 
   when(database.getById(id:'id')).thenAnswer((realInvocation) {
-    if (returnAddress) return Future.value(MutableDocument());
+    if (returnAddress) return ;
     return null;
   });
 

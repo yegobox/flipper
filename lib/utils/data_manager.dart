@@ -1,18 +1,16 @@
 import 'dart:async';
-import 'package:couchbase_lite/couchbase_lite.dart';
-import 'package:flipper/data/respositories/general_repository.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/order.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:redux/redux.dart';
 
-
 // ignore: avoid_classes_with_only_static_members
 class DataManager {
-
   @deprecated
   static Future<void> updateVariation({
     Variation variation,
@@ -23,18 +21,17 @@ class DataManager {
   }) async {
     final DatabaseService _databaseService = ProxyService.database;
     if (variation != null) {
+      final Document stock = _databaseService.getById(id: variation.id);
 
-      final Document stock = await _databaseService.getById(id:variation.id);
+      final Document variant = _databaseService.getById(id: variation.id);
 
-      final Document variant = await _databaseService.getById(id:variation.id);
-     
-      variant.toMutable()
-      .setString('name',variantName);
+      variant.properties['name'] = variantName;
+
       _databaseService.update(document: variant);
 
-      stock.toMutable()
-      .setDouble('retailPrice',retailPrice)
-      .setDouble('supplyPrice',supplyPrice);
+      stock.properties['retailPrice'] = retailPrice;
+      stock.properties['supplyPrice'] = supplyPrice;
+
       _databaseService.update(document: stock);
     }
   }
@@ -47,7 +44,7 @@ class DataManager {
 
   static Future<void> deleteProduct(
       {Store<AppState> store, String productId}) async {
-        // FIXME:
+    // FIXME:
     // final List<StockTableData> stocks = await store.state.database.stockDao
     //     .getStockByProductId(
     //         branchId: store.state.branch.id, productId: productId);
@@ -70,18 +67,17 @@ class DataManager {
 
   // ignore: always_declare_return_types
   static createTemporalOrder(
-      GeneralRepository generalRepository, Store<AppState> store) async {
-    final Order order =
-        await generalRepository.createDraftOrderOrReturnExistingOne(store);
+      Store<AppState> store) async {
+    // final Order order =
+        // await generalRepository.createDraftOrderOrReturnExistingOne(store);
 
     //broadcast order to be used later when creating a sale
-    if (order != null) {
-      store.dispatch(
-        OrderCreated(
-          order: order,
-        ),
-      );
-    }
+    // if (order != null) {
+    //   store.dispatch(
+    //     OrderCreated(
+    //       order: order,
+    //     ),
+    //   );
+    // }
   }
-
 }

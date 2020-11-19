@@ -1,5 +1,5 @@
 import 'package:flipper/services/api/http_api.dart';
-import 'package:flipper/services/bluethooth_service.dart';
+// import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/mail_service.dart';
@@ -62,8 +62,8 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   DatabaseService get databaseService;
 
-  @lazySingleton
-  BlueToothService get blueToothService;
+  // @lazySingleton
+  // BlueToothService get blueToothService;
 
   @lazySingleton
   MailService get mailService;

@@ -11,22 +11,20 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 
-import 'data/respositories/general_repository.dart';
-import 'data/respositories/user_repository.dart';
 import 'domain/redux/app_actions/app_action_middleware.dart';
 import 'domain/redux/app_reducer.dart';
 import 'domain/redux/app_state.dart';
 import 'domain/redux/authentication/auth_actions.dart';
 import 'domain/redux/authentication/auth_middleware.dart';
-import 'domain/redux/branch/branch_middleware.dart';
+
 import 'domain/redux/business/business_actions.dart';
-import 'domain/redux/business/business_middleware.dart';
+
 import 'domain/redux/permission/permission_middleware.dart';
 import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
 import 'lifecycle_manager.dart';
-import 'ui/selling/selling_middleware.dart';
+
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key key}) : super(key: key);
@@ -42,10 +40,7 @@ class _FlipperAppState extends State<FlipperApp> {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   static final GlobalKey<NavigatorState> _navigatorKey =
       GlobalKey<NavigatorState>();
-  final UserRepository userRepo = UserRepository();
-  
-  final GeneralRepository generalRepo = GeneralRepository();
-
+ 
 
   @override
   void initState() {
@@ -58,16 +53,15 @@ class _FlipperAppState extends State<FlipperApp> {
       appReducer,
       initialState: AppState.init(),
       middleware: createAuthenticationMiddleware(
-          userRepo, generalRepo, _navigatorKey)
-        ..addAll(createBusinessMiddleware(_navigatorKey))
+           _navigatorKey)
+        
         ..addAll(permissionMiddleware(_navigatorKey))
-        ..addAll(sellMiddleware(_navigatorKey))
-        ..addAll(AppActionMiddleware(_navigatorKey, generalRepo))
-        ..addAll(userMiddleware(userRepo, _navigatorKey))
-        ..addAll(createBranchMiddleware(_navigatorKey, generalRepo))
+        
+        ..addAll(AppActionMiddleware(_navigatorKey))
+        ..addAll(userMiddleware( _navigatorKey))
+        
         ..addAll(
           createPushMiddleware(
-            userRepo,
             _firebaseMessaging,
           ),
         ),

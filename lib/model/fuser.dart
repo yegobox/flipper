@@ -8,7 +8,7 @@ import 'converters/serializers.dart';
 part 'fuser.g.dart';
 
 abstract class FUser implements Built<FUser, FUserBuilder> {
-  @nullable
+  
   String get id;
 
   @nullable
