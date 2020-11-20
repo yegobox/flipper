@@ -17,6 +17,7 @@ class RouteModel extends InheritedWidget {
   }
 
   @override
+  // ignore: missing_return
   bool updateShouldNotify(RouteModel oldWidget) {
     // return route != oldWidget.route;
   }

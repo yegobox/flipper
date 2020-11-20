@@ -191,6 +191,7 @@ class AppDetailSheetState extends State<AppDetailSheet>
     );
   }
 
+  // ignore: missing_return
   Widget _buildHeaderOverflow() {
     // if (_isEditing)
     //   return IconButton(

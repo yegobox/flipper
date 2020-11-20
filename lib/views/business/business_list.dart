@@ -5,8 +5,6 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
 
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
@@ -19,15 +17,12 @@ class BusinessList extends StatefulWidget {
   // ignore: sort_constructors_first
   const BusinessList({Key key, this.vm}) : super(key: key);
 
-
   @override
   _BusinessListState createState() => _BusinessListState();
 }
 
 class _BusinessListState extends State<BusinessList> {
   bool _businessSelected = false;
-  final FlipperNavigationService _navigationService =
-     ProxyService.nav;
 
   Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(
@@ -79,6 +74,7 @@ class _BusinessListState extends State<BusinessList> {
                 // TODO(richard): show a toast here that we can not create additional business...
                 return;
               }
+              // TODO: implement adding a business and more than 5 business should show ... dots for expand also load business in viewmodel instead.
               // TODO(richard): will suport creation of business within app in 2 years
               // _navigationService.navigateTo(Routing.createBusiness);
             }),
@@ -156,6 +152,7 @@ class _BusinessListState extends State<BusinessList> {
       child: Column(
         children: <Widget>[
           _buildFirstSectionFlipperLogo(context),
+
           getRenderableBusinessList(widget.vm.businesses),
           //setting on click set highlight on side.
           _buildThirdSection(context),
@@ -180,15 +177,17 @@ class _GroupSettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: _Style.flipperButtonWidth,
-        height: _Style.flipperButtonWidth,
-        child: FittedBox(
-            fit: BoxFit.cover,
-            child: FlatButton(
-              shape: const CircleBorder(),
-              child: image,
-              onPressed: onPressed,
-            )));
+      width: _Style.flipperButtonWidth,
+      height: _Style.flipperButtonWidth,
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: FlatButton(
+          shape: const CircleBorder(),
+          child: image,
+          onPressed: onPressed,
+        ),
+      ),
+    );
   }
 }
 

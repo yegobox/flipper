@@ -8,11 +8,9 @@ class PrivacySettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
+    return const FlatButton(
+      onPressed: null,
       child: Text('Privacy Button'),
-//      onPressed: () {
-//        launch(CirclesLocalizations.of(context).privacyLink);
-//      },
     );
   }
 }
