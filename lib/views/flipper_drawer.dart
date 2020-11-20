@@ -23,7 +23,6 @@ class FlipperDrawer extends StatefulWidget {
   _FlipperDrawerState createState() => _FlipperDrawerState();
 }
 
-
 class _FlipperDrawerState extends State<FlipperDrawer> {
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
@@ -147,6 +146,14 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             _menuListRowButton('Reports',
                                 icon: AppIcon.bookmark, onPressed: () {
                               _navigateTo(Routing.salesView);
+                            }),
+                            _menuListRowButton('Items', icon: AppIcon.lists,
+                                onPressed: () {
+                              _navigationService.navigateTo(Routing.productView,
+                                  arguments: ProductViewArguments(
+                                      items: true,
+                                      sellingModeView: true,
+                                      userId: '1'));
                             }),
                             _menuListRowButton(
                               'Payroll',

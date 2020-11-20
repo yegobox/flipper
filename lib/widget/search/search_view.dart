@@ -5,6 +5,7 @@ import 'package:stacked/stacked.dart';
 import 'package:sliding_switch/sliding_switch.dart';
 import './search_view_model.dart';
 
+// FIXME:{Telesphore} make looks like square Search
 class SearchView extends StatelessWidget {
   const SearchView({Key key}) : super(key: key);
 
@@ -16,23 +17,24 @@ class SearchView extends StatelessWidget {
               child: Column(
             children: [
               Container(
-                height: 40,
-                child: TextField(
-                  controller: model.searchController,
-                  style: TextStyle(color: Colors.grey[600]),
-                  decoration: InputDecoration(
-                      hintText: 'Search Items',
-                      border: InputBorder.none,
-                      icon: Icon(
-                        FontAwesome.search,
-                        color: Colors.grey[600],
-                        size: 14.0,
-                      )),
+                height: 50,
+                color: Colors.grey[300],
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextField(
+                    controller: model.searchController,
+                    style: const TextStyle(color: Color(0xFF1F2227)),
+                    decoration: InputDecoration(
+                        hintText: 'Search ',
+                        border: InputBorder.none,
+                        icon: Icon(
+                          FontAwesome.search,
+                          color: Colors.grey[500],
+                          size: 20.0,
+                        )),
+                  ),
                 ),
               ),
-              Divider(
-                color: Colors.grey[600],
-              )
             ],
           ));
         },
