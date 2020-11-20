@@ -227,10 +227,11 @@ class Routing {
           settings: settings,
         );
       case Routing.productView:
-        if (hasInvalidArgs<ProductViewArguments>(args, isRequired: true)) {
+        if (hasInvalidArgs<ProductViewArguments>(args)) {
           return misTypedArgsRoute<ProductViewArguments>(args);
         }
-        final typedArgs = args as ProductViewArguments;
+        final typedArgs =
+            args as ProductViewArguments ?? ProductViewArguments();
         return MaterialPageRoute<dynamic>(
           builder: (_) => ProductView(
               key: typedArgs.key,
@@ -495,10 +496,7 @@ class ProductViewArguments {
   final bool items;
   final bool sellingModeView;
   ProductViewArguments(
-      {this.key,
-      @required this.userId,
-      @required this.items,
-      this.sellingModeView = false});
+      {this.key, this.userId, this.items, this.sellingModeView = false});
 }
 
 //ReceiveStockScreen arguments holder class
