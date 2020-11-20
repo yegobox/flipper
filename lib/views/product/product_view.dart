@@ -276,7 +276,7 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
 
   @override
   Widget build(BuildContext context, ProductsViewModel viewModel) {
-    final isMobile = MediaQuery.of(context).size.width < 700;
+    // final isMobile = MediaQuery.of(context).size.width < 700;
 
     return buildProductList(
       products: data,

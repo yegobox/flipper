@@ -8,12 +8,16 @@ import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
+import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flipper/services/shared_state_service.dart';
 
 class AddProductModalViewModal extends BaseModel {
+  final Logger log = Logging.getLogger('Add Product:');
+
   String _taxId;
   String get taxId {
     return _taxId;
@@ -32,7 +36,7 @@ class AddProductModalViewModal extends BaseModel {
   // this is a product to edit later on and add variation on it.
   Future createTemporalProduct({String productName, String userId}) async {
     
-
+    log.i('adding product'+_sharedStateService.business.id);
     final DatabaseService _databaseService = ProxyService.database;
     
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
@@ -74,7 +78,7 @@ class AddProductModalViewModal extends BaseModel {
         }
       }
       final Document productDoc = _databaseService.insert(data: {
-        'name': 'productName',
+        'name': productName,
         'categoryId': category.id,
         'color': '#955be9',
         'id': Uuid().v1(),
@@ -85,7 +89,7 @@ class AddProductModalViewModal extends BaseModel {
         'isCurrentUpdate': false,
         'isDraft': true,
         'taxId': _taxId,
-        'businessId': _sharedStateService.product.id,
+        'businessId': _sharedStateService.business.id,
         'description': productName,
         'createdAt': DateTime.now().toIso8601String(),
       });
@@ -125,15 +129,17 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.branchProduct,
         'id': Uuid().v1()
       });
-    
-      return productId;
+      log.d('productId:'+ productDoc.ID);
+      return productDoc.ID;
     } else {
+     
         for (Map map in productResults) {
           map.forEach((key, value) {
             _productId = Product.fromMap(value).id;
           });
           notifyListeners();
         }
+        log.d('productId:'+productId);
         return productId;
     }
   }

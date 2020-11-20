@@ -243,7 +243,7 @@ Future<void> createTemporalOrder(Store<AppState> store) async {
 
 Future<void> getBusinesses({Store<AppState> store, String userId}) async {
   final Logger log = Logging.getLogger('Get business: ');
-  log.d(userId);
+  // log.d(userId);
   final DatabaseService _databaseService = ProxyService.database;
 
   final List<Business> businesses = [];
@@ -268,6 +268,7 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
 
   for (Business business in businesses) {
     if (business.active) {
+      ProxyService.sharedState.setBusiness(business:business);
       store.dispatch(
         ActiveBusinessAction(business),
       );

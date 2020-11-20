@@ -99,7 +99,7 @@ dependencies:
   contacts_service: ^0.4.6
   # flutter_reactive_ble: ^2.5.3
   flutter_text_drawable: ^0.3.1
-  # connectivity: ^0.4.3+1
+  connectivity: ^2.0.2
   # background_fetch: '^0.5.1'
   flutter_icons: ^1.1.0
   couchbase_lite_dart: ^0.3.1

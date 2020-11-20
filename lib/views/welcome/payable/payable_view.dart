@@ -15,7 +15,7 @@ class PayableView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Container(
-                width:MediaQuery.of(context).size.width -80,
+                width:MediaQuery.of(context).size.width -20,
                 height:60,
                 child: FlatButton(
                   color: Theme.of(context)
