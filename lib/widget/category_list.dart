@@ -1,19 +1,19 @@
 
 
 import 'package:flipper/viewmodels/main_viewmodel.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper/model/category.dart';
 
 class CategoryList extends StatelessWidget {
   const CategoryList({
     Key key,
-    this.vm,
+    this.categories,
   }) : super(key: key);
 
-  final CommonViewModel vm;
+  final List <Category> categories;
 
-  Wrap _getCategoriesWidgets(List<dynamic> categories, CommonViewModel vm) {
+  Wrap _getCategoriesWidgets(List<Category> categories) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < categories.length; i++) {
       if (categories[i].name != 'custom') {
@@ -61,11 +61,7 @@ class CategoryList extends StatelessWidget {
         viewModelBuilder: () => MainViewModel(),
         onModelReady: (MainViewModel model) => model.listenCategory(),
         builder: (BuildContext context, MainViewModel model, Widget child) {
-          if (model.busy || model.data == null) {
-            return const SizedBox.shrink();
-          }
-          return Text('hello');
-          // return _getCategoriesWidgets(model.data, vm);
+          return _getCategoriesWidgets(categories);
         });
   }
 }
