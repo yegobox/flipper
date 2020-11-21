@@ -1,32 +1,15 @@
 import 'package:customappbar/customappbar.dart';
 
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter_redux/flutter_redux.dart';
 
-class CreateCategoryInputScreen extends StatefulWidget {
+class CreateCategoryInputScreen extends StatelessWidget {
   const CreateCategoryInputScreen({Key key}) : super(key: key);
-
-  @override
-  _CreateCategoryInputScreenState createState() =>
-      _CreateCategoryInputScreenState();
-}
-
-class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
-
-  final DatabaseService _databaseService = ProxyService.database;
+  
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return Scaffold(
+    return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
               Routing.navigator.pop();
@@ -52,7 +35,5 @@ class _CreateCategoryInputScreenState extends State<CreateCategoryInputScreen> {
             ),
           ),
         );
-      },
-    );
   }
 }

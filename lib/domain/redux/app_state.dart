@@ -16,6 +16,7 @@ import 'package:flipper/model/product.dart';
 import 'package:flipper/model/report.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
+import 'package:flipper/model/pcolor.dart';
 
 part 'app_state.g.dart';
 
@@ -98,6 +99,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   Report get report;
 
   
+  @nullable
+  PColor get currentColor;
   // ignore: sort_constructors_first
   AppState._();
   // ignore: sort_constructors_first

@@ -5,6 +5,7 @@ import 'package:flipper/views/category/category_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+
 class CategoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,9 @@ class CategoryView extends StatelessWidget {
             ),
           );
         },
+        onModelReady: (CategoryViewModel model){
+          model.getCategory();
+        },  
         viewModelBuilder: () => CategoryViewModel());
   }
 }

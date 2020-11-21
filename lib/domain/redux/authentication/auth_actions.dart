@@ -1,6 +1,3 @@
-import 'dart:async';
-
-import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/order.dart';
 import 'package:meta/meta.dart';
 
@@ -8,27 +5,6 @@ import 'package:meta/meta.dart';
 class VerifyAuthenticationState {}
 
 class AfterLoginAction {}
-
-class LogIn {
-  final String email;
-  final String password;
-  final Completer completer;
-
-  LogIn({this.email, this.password, Completer completer})
-      : completer = completer ?? Completer();
-}
-
-@immutable
-class OnAuthenticated {
-  final FUser user;
-
-  const OnAuthenticated({@required this.user});
-
-  @override
-  String toString() {
-    return 'OnAuthenticated{user: $user}';
-  }
-}
 
 class LogOutAction {}
 
@@ -41,38 +17,37 @@ class OnLogoutSuccess {
   }
 }
 
-class Unauthenticated {
-  final dynamic error;
-
-  Unauthenticated(this.error);
-
-  @override
-  String toString() {
-    return 'OnLogoutFail{There was an error logging in: $error}';
-  }
-}
-
-class OnLogoutFail {
-  final dynamic error;
-
-  OnLogoutFail(this.error);
-
-  @override
-  String toString() {
-    return 'OnLogoutFail{There was an error logging in: $error}';
-  }
-}
-
 @immutable
 class OrderCreated {
-  final Order order;
+  const OrderCreated({this.order});
 
-  OrderCreated({this.order});
+  final Order order;
 }
 
 @immutable
 class OnDbLoaded {
-  final String name;
+  const OnDbLoaded({this.name});
 
-  OnDbLoaded({this.name});
+  final String name;
+}
+
+class Unauthenticated {
+  Unauthenticated(this.error);
+
+  final dynamic error;
+
+  @override
+  String toString() {
+    return 'OnLogoutFail{There was an error logging in: $error}';
+  }
+}
+
+@immutable
+class OnAuthenticated {
+  const OnAuthenticated({@required this.user});
+  final dynamic user;
+  @override
+  String toString() {
+    return 'OnAuthenticated{user: $user}';
+  }
 }

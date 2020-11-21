@@ -7,8 +7,12 @@ import 'package:flutter_redux/flutter_redux.dart';
 class CategorySelector extends StatelessWidget {
   const CategorySelector({Key key, this.categories}) : super(key: key);
   final List<Category> categories;
-  Text categorySelector({List<Category> categories, BuildContext context}) {
+
+  Widget categorySelector({List<Category> categories, BuildContext context}) {
     Text text;
+    if(categories.isEmpty){
+      return const SizedBox.shrink();
+    }
     for (Category category in categories) {
       if (category.focused) {
         text = Text(category.name);

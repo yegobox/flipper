@@ -5,10 +5,10 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
-import 'package:flipper/model/flipper_color.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/hint.dart';
 import 'package:flipper/model/image.dart';
+import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/unit.dart';
 
@@ -46,6 +46,8 @@ abstract class CommonViewModel
   @nullable
   Branch get branch;
 
+  @nullable
+  PColor get currentColor;
 
 
   @nullable //because when app start it is null!
@@ -98,6 +100,8 @@ abstract class CommonViewModel
         ..category = store.state.category?.toBuilder()
        
         ..branches = store.state.branches
+
+        ..currentColor = store.state.currentColor?.toBuilder()
 
         ..tmpItem = store.state.tmpItem?.toBuilder()
         

@@ -19,16 +19,20 @@ import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper/utils/logger.dart';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 class EditProductViewModel extends BaseViewModel {
   final _sharedStateService = locator<SharedStateService>();
+  final Logger log = Logging.getLogger('Edit Color:');
 
   List<PColor> get colors => _sharedStateService.colors;
   ImageP get image => _sharedStateService.image;
-
-  PColor get currentColor => _sharedStateService.currentColor;
+  PColor _currentColor;
+  PColor get currentColor {
+    return _currentColor;
+  }
 
   Product get product => _sharedStateService.product;
 
@@ -205,22 +209,25 @@ class EditProductViewModel extends BaseViewModel {
     });
   }
 
-  void switchColor({PColor color}) async {
+  void switchColor({PColor color, @required BuildContext context}) async {
     //reset all other color to not selected
+    log.d(colors.length);
     setBusy(true);
-    for (var y = 0; y < colors.length; y++) {
+    for (var y = 0; y < 8; y++) { //we know color lenght is 8, using colors.lenght was giving dups!
       //set all other color to active false then set one to active.
-      final Document color = _databaseService.getById(id: colors[y].id);
+      final Document _color = _databaseService.getById(id: colors[y].id);
 
-      color.properties['isActive'] = false;
-      _databaseService.update(document: color);
+      _color.properties['isActive'] = false;
+      _databaseService.update(document: _color);
     }
-    final Document colordoc = _databaseService.getById(id: color.id);
+    final Document _colordoc = _databaseService.getById(id: color.id);
 
-    colordoc.properties['isActive'] = true;
-    _databaseService.update(document: colordoc);
+    _colordoc.properties['isActive'] = true;
+    _databaseService.update(document: _colordoc);
 
-    _sharedStateService.setCurrentColor(color: color);
+    _sharedStateService.setCurrentColor(color: color, context: context);
+
+    _currentColor = color;
 
     setBusy(false);
 

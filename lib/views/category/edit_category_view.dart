@@ -1,16 +1,14 @@
-import 'package:customappbar/customappbar.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/generated/l10n.dart';
 import 'package:flipper/model/category.dart';
 import 'package:flipper/services/proxy.dart';
 
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:customappbar/customappbar.dart';
+import 'package:flipper/generated/l10n.dart';
 
+
+import 'package:flipper/views/category/category_viewmodel.dart';
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 
@@ -22,15 +20,16 @@ class EditCategoryScreen extends StatefulWidget {
   _EditCategoryScreenState createState() => _EditCategoryScreenState();
 }
 
+
 class _EditCategoryScreenState extends State<EditCategoryScreen> {
-  final FlipperNavigationService _navigationService = ProxyService.nav;
+  
 
   Wrap _getCategoriesWidgets(
-      List<Category> categories, CommonViewModel vm) {
+      List<Category> categories) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < categories.length; i++) {
       if (categories[i].focused) {
-        updateItemWithActiveCategory(vm, categories, i);
+        updateItemWithActiveCategory(categories, i);
       }
       if (categories[i].name != 'custom') {
         list.add(
@@ -52,7 +51,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
               ),
               trailing: Radio(
                 value: categories[i].id,
-                groupValue: categories[i].focused ? categories[i].id : 0,
+                groupValue: categories[i].focused ? categories[i].id : 0, onChanged: (Object value) {  },
                 // onChanged: (int categoryId) {},
               ),
             ),
@@ -73,7 +72,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
   // ignore: always_specify_types
   Future updateItemWithActiveCategory(
-      CommonViewModel vm, List<Category> categories, int i) async {
+       List<Category> categories, int i) async {
     // final DialogService _dialogService = ProxyService.modal;
     // _dialogService.showConfirmationDialog(
     //     description: 'Can not update active product feature deprecated');
@@ -86,14 +85,14 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
+    return ViewModelBuilder.reactive(
+      viewModelBuilder: () => CategoryViewModel(),
+      builder: (BuildContext context,CategoryViewModel model, Widget child){
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Routing.navigator.pop();
+              
+              ProxyService.nav.pop();
             },
             showActionButton: false,
             title: S.of(context).editCategory,
@@ -113,14 +112,10 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  StoreProvider.of<AppState>(context).dispatch(
-                    CreateEmptyTempCategoryAction(name: 'tmp'),
-                  );
-                  _navigationService
-                      .navigateTo(Routing.createCategoryInputScreen);
+                  ProxyService.nav.navigateTo(Routing.createCategoryInputScreen);
                 },
                 child: ListTile(
-                  title: const Text('Create Category',
+                  title: const Text('Create Categoryi',
                       style: TextStyle(color: Colors.black)),
                   trailing: Wrap(
                     // ignore: prefer_const_literals_to_create_immutables
@@ -128,21 +123,13 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                   ),
                 ),
               ),
-              // FIXME
-              // StreamBuilder(
-              //   stream: vm.database.categoryDao.getCategoriesStream(),
-              //   builder:
-              //       (BuildContext context, AsyncSnapshot<List<CategoryTableData>> snapshot) {
-              //     if (snapshot.data == null) {
-              //       return Container();
-              //     }
-              //     return _getCategoriesWidgets(snapshot.data, vm);
-              //   },
-              // ),
+              
+              _getCategoriesWidgets(model.data)
             ],
           ),
         );
-      },
+      } 
     );
+    
   }
 }

@@ -3,6 +3,7 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/branch.dart';
@@ -31,7 +32,6 @@ List<Middleware<AppState>> createAuthenticationMiddleware(
   return [
     TypedMiddleware<AppState, VerifyAuthenticationState>(
         _verifyAuthState(navigatorKey)),
-    TypedMiddleware<AppState, LogIn>(_authLogin(navigatorKey)),
     TypedMiddleware<AppState, LogOutAction>(_authLogout(navigatorKey)),
     TypedMiddleware<AppState, AfterLoginAction>(_verifyAuthState(navigatorKey)),
   ];
@@ -48,13 +48,36 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     final FlipperNavigationService _navigationService = ProxyService.nav;
 
     final String userId = await isUserCurrentlyLoggedIn(store);
-    if (userId ==null) {
+    if (userId == null) {
       _navigationService.navigateTo(Routing.afterSplash);
       return;
     }
 
-    await getBusinesses(store:store,userId:userId);
+    await getBusinesses(store: store, userId: userId);
+    await getAppColors();
   };
+}
+
+Future getAppColors() async {
+  final Logger log = Logging.getLogger('Get business: ');
+  final DatabaseService _databaseService = ProxyService.database;
+
+  final List<PColor> colors = [];
+
+  final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+
+  q.parameters = {'VALUE': AppTables.color};
+
+  final results = q.execute();
+  if (results.isNotEmpty) {
+    for (Map map in results) {
+      map.forEach((key, value) {
+        colors.add(PColor.fromMap(value));
+        log.d(colors);
+      });
+    }
+    // five feet apart.
+  }
 }
 
 Future<void> openCloseBusiness({
@@ -125,19 +148,18 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           //   userId: FUser.fromMap(value).id.toString(),
           //   isClosed: true,
           // );
-         
+
           log.d(FUser.fromMap(value));
           store.dispatch(WithUser(user: FUser.fromMap(value)));
         });
       }
-     
     }
 
     return userExist;
   }
 }
 
-Future<List<Branch>> getBranches(Store<AppState> store) async {
+Future<List<Branch>> getBranches(Store<AppState> store, String userId) async {
   final DatabaseService _databaseService = ProxyService.database;
 
   final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
@@ -159,16 +181,23 @@ Future<List<Branch>> getBranches(Store<AppState> store) async {
   for (Branch branch in branches) {
     if (branch.active) {
       //set current active branch
+      ProxyService.sharedState.setBranch(branch: branch);
+
       final bool weHaveCustomCategory = await isCategory(branchId: branch.id);
+
       if (!weHaveCustomCategory) {
         final String id = Uuid().v1();
         _databaseService.insert(id: id, data: {
+          'active': true,
           'table': AppTables.category,
+          'branchId': branch.id,
+          'focused': true,
           'id': id,
-          'channels': [store.state.user.id.toString()],
+          'channels': [userId],
           'name': 'custom'
         });
       }
+
       store.dispatch(
         OnCurrentBranchAction(branch: branch),
       );
@@ -262,13 +291,12 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
     }
   }
 
-  
-  await getBranches(store);
+  await getBranches(store, userId);
   await createTemporalOrder(store);
 
   for (Business business in businesses) {
     if (business.active) {
-      ProxyService.sharedState.setBusiness(business:business);
+      ProxyService.sharedState.setBusiness(business: business);
       store.dispatch(
         ActiveBusinessAction(business),
       );
@@ -276,7 +304,6 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
   }
 
   final FlipperNavigationService _navigationService = ProxyService.nav;
-
 
   if (businesses.isEmpty) {
     if (userId != null) {
@@ -316,7 +343,7 @@ void Function(
       store.dispatch(OnLogoutSuccess());
     } catch (e) {
       // Logger.w('Failed logout', e: e);
-      store.dispatch(OnLogoutFail(e));
+      // store.dispatch(OnLogoutFail(e));
     }
   };
 }

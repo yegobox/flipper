@@ -2,28 +2,21 @@ import 'package:built_collection/built_collection.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:redux/redux.dart';
-
+import 'package:flipper/domain/app_actions.dart';
 import 'actions.dart';
 
 final appActionReducer = <AppState Function(AppState, dynamic)>[
-  
   TypedReducer<AppState, UnitR>(_onUnits),
-  
   TypedReducer<AppState, TempCategoryIdAction>(_onTempCategoryId),
   TypedReducer<AppState, UpdateUnitAction>(_onUpdateUnit),
   TypedReducer<AppState, WithUnitId>(_withUnitId),
- 
   TypedReducer<AppState, ItemLoaded>(_onItemLoaded),
- 
   TypedReducer<AppState, ImagePreview>(_onImagePreview),
   TypedReducer<AppState, Note>(_onNote),
-  
   TypedReducer<AppState, ReportAction>(onReport),
-  
   TypedReducer<AppState, OtpCode>(onOtpCode),
+  TypedReducer<AppState, CurrentColor>(_currentColor),
 ];
-
-
 
 AppState _onUpdateUnit(AppState state, UpdateUnitAction action) {
   List<Unit> updatedUnits = [];
@@ -48,12 +41,9 @@ AppState _onUpdateUnit(AppState state, UpdateUnitAction action) {
   return state.rebuild((a) => a..units = ListBuilder(updatedUnits));
 }
 
-
 AppState _onUnits(AppState state, UnitR action) {
   return state.rebuild((a) => a..units = ListBuilder(action.units));
 }
-
-
 
 AppState _withUnitId(AppState state, WithUnitId action) {
   return state.rebuild((a) => a..focusedUnit = action.unitId);
@@ -62,7 +52,6 @@ AppState _withUnitId(AppState state, WithUnitId action) {
 AppState _onTempCategoryId(AppState state, TempCategoryIdAction action) {
   return state.rebuild((a) => a..tempCategoryId = action.categoryId);
 }
-
 
 AppState _onItemLoaded(AppState state, ItemLoaded action) {
   return state.rebuild((a) => a..items = ListBuilder(action.items));
@@ -88,8 +77,11 @@ AppState onReport(AppState state, ReportAction action) {
   return state.rebuild((a) => a..report = action.report?.toBuilder());
 }
 
-
-
 AppState onOtpCode(AppState state, OtpCode action) {
   return state.rebuild((AppStateBuilder a) => a..otpcode = action.otpcode);
+}
+
+AppState _currentColor(AppState state, CurrentColor action) {
+  return state.rebuild(
+      (AppStateBuilder a) => a..currentColor = action.color.toBuilder());
 }

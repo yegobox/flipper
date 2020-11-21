@@ -35,7 +35,7 @@ abstract class Category implements Built<Category, CategoryBuilder> {
   @nullable
   bool get touched;
   
-  @nullable
+  
   @BuiltValueField(wireName: 'branchId')
   
   String get branchId;

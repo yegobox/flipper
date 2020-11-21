@@ -105,13 +105,6 @@ class CurrentUnit {
 }
 
 @immutable
-class CurrentColor {
-  final FlipperColor color;
-
-  const CurrentColor({@required this.color});
-}
-
-@immutable
 class ResetAppAction {
   final String type;
 

@@ -24,6 +24,8 @@ class _$CommonViewModel extends CommonViewModel {
   @override
   final Branch branch;
   @override
+  final PColor currentColor;
+  @override
   final FUser user;
   @override
   final Product customItem;
@@ -46,6 +48,7 @@ class _$CommonViewModel extends CommonViewModel {
       this.category,
       this.otpcode,
       this.branch,
+      this.currentColor,
       this.user,
       this.customItem,
       this.tmpItem,
@@ -80,6 +83,7 @@ class _$CommonViewModel extends CommonViewModel {
         category == other.category &&
         otpcode == other.otpcode &&
         branch == other.branch &&
+        currentColor == other.currentColor &&
         user == other.user &&
         customItem == other.customItem &&
         tmpItem == other.tmpItem &&
@@ -100,14 +104,18 @@ class _$CommonViewModel extends CommonViewModel {
                                     $jc(
                                         $jc(
                                             $jc(
-                                                $jc($jc(0, units.hashCode),
-                                                    currentBusiness.hashCode),
-                                                branches.hashCode),
-                                            businesses.hashCode),
-                                        hint.hashCode),
-                                    category.hashCode),
-                                otpcode.hashCode),
-                            branch.hashCode),
+                                                $jc(
+                                                    $jc(
+                                                        $jc(0, units.hashCode),
+                                                        currentBusiness
+                                                            .hashCode),
+                                                    branches.hashCode),
+                                                businesses.hashCode),
+                                            hint.hashCode),
+                                        category.hashCode),
+                                    otpcode.hashCode),
+                                branch.hashCode),
+                            currentColor.hashCode),
                         user.hashCode),
                     customItem.hashCode),
                 tmpItem.hashCode),
@@ -126,6 +134,7 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('category', category)
           ..add('otpcode', otpcode)
           ..add('branch', branch)
+          ..add('currentColor', currentColor)
           ..add('user', user)
           ..add('customItem', customItem)
           ..add('tmpItem', tmpItem)
@@ -173,6 +182,12 @@ class CommonViewModelBuilder
   BranchBuilder get branch => _$this._branch ??= new BranchBuilder();
   set branch(BranchBuilder branch) => _$this._branch = branch;
 
+  PColorBuilder _currentColor;
+  PColorBuilder get currentColor =>
+      _$this._currentColor ??= new PColorBuilder();
+  set currentColor(PColorBuilder currentColor) =>
+      _$this._currentColor = currentColor;
+
   FUserBuilder _user;
   FUserBuilder get user => _$this._user ??= new FUserBuilder();
   set user(FUserBuilder user) => _$this._user = user;
@@ -205,6 +220,7 @@ class CommonViewModelBuilder
       _category = _$v.category?.toBuilder();
       _otpcode = _$v.otpcode;
       _branch = _$v.branch?.toBuilder();
+      _currentColor = _$v.currentColor?.toBuilder();
       _user = _$v.user?.toBuilder();
       _customItem = _$v.customItem?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
@@ -242,6 +258,7 @@ class CommonViewModelBuilder
               category: _category?.build(),
               otpcode: otpcode,
               branch: _branch?.build(),
+              currentColor: _currentColor?.build(),
               user: _user?.build(),
               customItem: _customItem?.build(),
               tmpItem: _tmpItem?.build(),
@@ -262,6 +279,8 @@ class CommonViewModelBuilder
 
         _$failedField = 'branch';
         _branch?.build();
+        _$failedField = 'currentColor';
+        _currentColor?.build();
         _$failedField = 'user';
         _user?.build();
         _$failedField = 'customItem';

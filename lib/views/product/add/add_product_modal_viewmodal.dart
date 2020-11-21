@@ -41,7 +41,7 @@ class AddProductModalViewModal extends BaseModel {
     
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    q.parameters = {'VALUE': AppTables.category,'NAME':'custom'};
+    q.parameters = {'VALUE': AppTables.category,'NAME':'NONE'};
 
     final categories = q.execute();
 
@@ -77,11 +77,12 @@ class AddProductModalViewModal extends BaseModel {
           notifyListeners();
         }
       }
-      final Document productDoc = _databaseService.insert(data: {
+      final id1 = Uuid().v1();
+      final Document productDoc = _databaseService.insert(id:id1,data: {
         'name': productName,
         'categoryId': category.id,
         'color': '#955be9',
-        'id': Uuid().v1(),
+        'id': id1,
         'active': true,
         'hasPicture': false,
         'channels': <String>[userId],
@@ -94,7 +95,8 @@ class AddProductModalViewModal extends BaseModel {
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      final Document variant = _databaseService.insert(data: {
+      final id2 = Uuid().v1();
+      final Document variant = _databaseService.insert(id:id2,data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
@@ -102,11 +104,12 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.variation,
         'productId': productDoc.ID,
         'sku': Uuid().v1().substring(0, 4),
-        'id': Uuid().v1(),
+        'id': id2,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-       _databaseService.insert(data: {
+      final id3 = Uuid().v1();
+       _databaseService.insert(id:id3,data: {
         'variantId': variant.ID,
         'supplyPrice': 0,
         'canTrackingStock': false,
@@ -117,17 +120,17 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.stock,
         'lowStock': 0,
         'currentStock': 0,
-        'id': Uuid().v1(),
+        'id': id3,
         'productId': productDoc.ID,
         'branchId': _sharedStateService.branch.id,
         'createdAt': DateTime.now().toIso8601String(),
       });
-
-       _databaseService.insert(data: {
+      final id4 = Uuid().v1();
+       _databaseService.insert(id:id4,data: {
         'branchId': _sharedStateService.branch.id,
         'productId': productDoc.ID,
         'table': AppTables.branchProduct,
-        'id': Uuid().v1()
+        'id': id4
       });
       log.d('productId:'+ productDoc.ID);
       return productDoc.ID;

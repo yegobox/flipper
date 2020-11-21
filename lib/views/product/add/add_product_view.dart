@@ -78,6 +78,7 @@ class AddProductView extends StatelessWidget {
                           validator: Validators.isValid,
                           onChanged: (String name) async {
                             model.lock();
+                            
                           },
                           decoration: InputDecoration(
                             hintText: 'Product name',

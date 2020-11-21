@@ -3,15 +3,18 @@ import 'dart:io';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper/views/product/edit/edit_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import 'package:stacked/stacked.dart';
 
 class EditItemTitle extends StatelessWidget {
-  const EditItemTitle({Key key}) : super(key: key);
+   EditItemTitle({Key key}) : super(key: key);
 
+  final Logger log = Logging.getLogger('Add Product:');
   
   @override
   Widget build(BuildContext context) {
@@ -178,9 +181,8 @@ class EditItemTitle extends StatelessWidget {
     final List<Widget> stacks = <Widget>[];
 
     if (colors.isNotEmpty) {
-      for (var i = 0; i < 8; i++) { //FIXME: for some reason using colors.length duplicate the list.
-        //register a store for each and handle them later.
-
+      
+      for (var i = 0; i < 8; i++) { 
         stacks.add(
           Stack(
             alignment: Alignment.center,
@@ -198,17 +200,18 @@ class EditItemTitle extends StatelessWidget {
                   child: null,
                   onPressed: () {
                     //reset all other color to not selected
-                    model.switchColor(color:colors[i]);
+                    model.switchColor(color:colors[i],context: context);
                   },
                 ),
               ),
+              // FIXME: add checkmark on active color is not working propper.
               colors[i].isActive
                   ? IconButton(
                       alignment: Alignment.center,
                       icon: const Icon(Icons.check),
                       color: Colors.white,
                       onPressed: (){
-                        model.switchColor(color:colors[i]);
+                        model.switchColor(color:colors[i],context: context);
                       },
                     )
                   : const Visibility(

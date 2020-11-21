@@ -13,14 +13,14 @@ import 'package:logger/logger.dart';
 class CategoryViewModel extends BaseModel {
   final Logger log = Logging.getLogger('category observer:)');
   final DatabaseService _databaseService = ProxyService.database;
-  List<Category> _category;
+  final List<Category> _category =[];
   List<Category> get data => _category;
 
   void navigateTo({String path}) {
     ProxyService.nav.navigateTo(Routing.addCategoryScreen);
   }
 
-  void getProducts({BuildContext context}) {
+  void getCategory({BuildContext context}) {
     setBusy(true);
 
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');

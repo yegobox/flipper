@@ -55,6 +55,8 @@ class _$AppState extends AppState {
   final InAppNotification inAppNotification;
   @override
   final Report report;
+  @override
+  final PColor currentColor;
 
   factory _$AppState([void Function(AppStateBuilder) updates]) =>
       (new AppStateBuilder()..update(updates)).build();
@@ -83,7 +85,8 @@ class _$AppState extends AppState {
       this.image,
       this.note,
       this.inAppNotification,
-      this.report})
+      this.report,
+      this.currentColor})
       : super._() {
     if (items == null) {
       throw new BuiltValueNullFieldError('AppState', 'items');
@@ -124,7 +127,8 @@ class _$AppState extends AppState {
         image == other.image &&
         note == other.note &&
         inAppNotification == other.inAppNotification &&
-        report == other.report;
+        report == other.report &&
+        currentColor == other.currentColor;
   }
 
   @override
@@ -147,26 +151,26 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), unit.hashCode), otpcode.hashCode), units.hashCode),
-                                                                                users.hashCode),
-                                                                            focusedUnit.hashCode),
-                                                                        category.hashCode),
-                                                                    permissions.hashCode),
-                                                                branches.hashCode),
-                                                            businesses.hashCode),
-                                                        branch.hashCode),
-                                                    business.hashCode),
-                                                hint.hashCode),
-                                            tempCategoryId.hashCode),
-                                        variant.hashCode),
-                                    items.hashCode),
-                                order.hashCode),
-                            tmpItem.hashCode),
-                        fcmToken.hashCode),
-                    image.hashCode),
-                note.hashCode),
-            inAppNotification.hashCode),
-        report.hashCode));
+                                                                            $jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), unit.hashCode), otpcode.hashCode), units.hashCode), users.hashCode),
+                                                                                focusedUnit.hashCode),
+                                                                            category.hashCode),
+                                                                        permissions.hashCode),
+                                                                    branches.hashCode),
+                                                                businesses.hashCode),
+                                                            branch.hashCode),
+                                                        business.hashCode),
+                                                    hint.hashCode),
+                                                tempCategoryId.hashCode),
+                                            variant.hashCode),
+                                        items.hashCode),
+                                    order.hashCode),
+                                tmpItem.hashCode),
+                            fcmToken.hashCode),
+                        image.hashCode),
+                    note.hashCode),
+                inAppNotification.hashCode),
+            report.hashCode),
+        currentColor.hashCode));
   }
 
   @override
@@ -195,7 +199,8 @@ class _$AppState extends AppState {
           ..add('image', image)
           ..add('note', note)
           ..add('inAppNotification', inAppNotification)
-          ..add('report', report))
+          ..add('report', report)
+          ..add('currentColor', currentColor))
         .toString();
   }
 }
@@ -307,6 +312,12 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   ReportBuilder get report => _$this._report ??= new ReportBuilder();
   set report(ReportBuilder report) => _$this._report = report;
 
+  PColorBuilder _currentColor;
+  PColorBuilder get currentColor =>
+      _$this._currentColor ??= new PColorBuilder();
+  set currentColor(PColorBuilder currentColor) =>
+      _$this._currentColor = currentColor;
+
   AppStateBuilder();
 
   AppStateBuilder get _$this {
@@ -335,6 +346,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _note = _$v.note;
       _inAppNotification = _$v.inAppNotification?.toBuilder();
       _report = _$v.report?.toBuilder();
+      _currentColor = _$v.currentColor?.toBuilder();
       _$v = null;
     }
     return this;
@@ -382,7 +394,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               image: _image?.build(),
               note: note,
               inAppNotification: _inAppNotification?.build(),
-              report: _report?.build());
+              report: _report?.build(),
+              currentColor: _currentColor?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -426,6 +439,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
         _inAppNotification?.build();
         _$failedField = 'report';
         _report?.build();
+        _$failedField = 'currentColor';
+        _currentColor?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'AppState', _$failedField, e.toString());
