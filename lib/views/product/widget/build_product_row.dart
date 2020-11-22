@@ -5,6 +5,7 @@ import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
 
 
+// NOTE: this is a product row
 void buildProductRowHeader({List<Widget> list, BuildContext context,
       String createButtonName, String userId,String type='add'}) {
    return type=='add'?

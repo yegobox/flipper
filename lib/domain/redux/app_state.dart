@@ -71,6 +71,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   Variation get variant;
 
+  @nullable
+  BuiltList<Variation> get variants;
+
 
   BuiltList<Product> get items;
 

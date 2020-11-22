@@ -40,6 +40,8 @@ class _$AppState extends AppState {
   @override
   final Variation variant;
   @override
+  final BuiltList<Variation> variants;
+  @override
   final BuiltList<Product> items;
   @override
   final Order order;
@@ -78,6 +80,7 @@ class _$AppState extends AppState {
       this.hint,
       this.tempCategoryId,
       this.variant,
+      this.variants,
       this.items,
       this.order,
       this.tmpItem,
@@ -120,6 +123,7 @@ class _$AppState extends AppState {
         hint == other.hint &&
         tempCategoryId == other.tempCategoryId &&
         variant == other.variant &&
+        variants == other.variants &&
         items == other.items &&
         order == other.order &&
         tmpItem == other.tmpItem &&
@@ -151,17 +155,17 @@ class _$AppState extends AppState {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), unit.hashCode), otpcode.hashCode), units.hashCode), users.hashCode),
-                                                                                focusedUnit.hashCode),
-                                                                            category.hashCode),
-                                                                        permissions.hashCode),
-                                                                    branches.hashCode),
-                                                                businesses.hashCode),
-                                                            branch.hashCode),
-                                                        business.hashCode),
-                                                    hint.hashCode),
-                                                tempCategoryId.hashCode),
-                                            variant.hashCode),
+                                                                            $jc($jc($jc($jc($jc($jc($jc($jc(0, user.hashCode), currentActiveBusiness.hashCode), unit.hashCode), otpcode.hashCode), units.hashCode), users.hashCode), focusedUnit.hashCode),
+                                                                                category.hashCode),
+                                                                            permissions.hashCode),
+                                                                        branches.hashCode),
+                                                                    businesses.hashCode),
+                                                                branch.hashCode),
+                                                            business.hashCode),
+                                                        hint.hashCode),
+                                                    tempCategoryId.hashCode),
+                                                variant.hashCode),
+                                            variants.hashCode),
                                         items.hashCode),
                                     order.hashCode),
                                 tmpItem.hashCode),
@@ -192,6 +196,7 @@ class _$AppState extends AppState {
           ..add('hint', hint)
           ..add('tempCategoryId', tempCategoryId)
           ..add('variant', variant)
+          ..add('variants', variants)
           ..add('items', items)
           ..add('order', order)
           ..add('tmpItem', tmpItem)
@@ -277,6 +282,11 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
   VariationBuilder get variant => _$this._variant ??= new VariationBuilder();
   set variant(VariationBuilder variant) => _$this._variant = variant;
 
+  ListBuilder<Variation> _variants;
+  ListBuilder<Variation> get variants =>
+      _$this._variants ??= new ListBuilder<Variation>();
+  set variants(ListBuilder<Variation> variants) => _$this._variants = variants;
+
   ListBuilder<Product> _items;
   ListBuilder<Product> get items =>
       _$this._items ??= new ListBuilder<Product>();
@@ -338,6 +348,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
       _hint = _$v.hint?.toBuilder();
       _tempCategoryId = _$v.tempCategoryId;
       _variant = _$v.variant?.toBuilder();
+      _variants = _$v.variants?.toBuilder();
       _items = _$v.items?.toBuilder();
       _order = _$v.order?.toBuilder();
       _tmpItem = _$v.tmpItem?.toBuilder();
@@ -387,6 +398,7 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
               hint: _hint?.build(),
               tempCategoryId: tempCategoryId,
               variant: _variant?.build(),
+              variants: _variants?.build(),
               items: items.build(),
               order: _order?.build(),
               tmpItem: _tmpItem?.build(),
@@ -425,6 +437,8 @@ class AppStateBuilder implements Builder<AppState, AppStateBuilder> {
 
         _$failedField = 'variant';
         _variant?.build();
+        _$failedField = 'variants';
+        _variants?.build();
         _$failedField = 'items';
         items.build();
         _$failedField = 'order';

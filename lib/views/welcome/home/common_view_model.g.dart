@@ -35,6 +35,8 @@ class _$CommonViewModel extends CommonViewModel {
   final ImageP image;
   @override
   final String note;
+  @override
+  final BuiltList<Variation> variants;
 
   factory _$CommonViewModel([void Function(CommonViewModelBuilder) updates]) =>
       (new CommonViewModelBuilder()..update(updates)).build();
@@ -53,7 +55,8 @@ class _$CommonViewModel extends CommonViewModel {
       this.customItem,
       this.tmpItem,
       this.image,
-      this.note})
+      this.note,
+      this.variants})
       : super._() {
     if (branches == null) {
       throw new BuiltValueNullFieldError('CommonViewModel', 'branches');
@@ -88,7 +91,8 @@ class _$CommonViewModel extends CommonViewModel {
         customItem == other.customItem &&
         tmpItem == other.tmpItem &&
         image == other.image &&
-        note == other.note;
+        note == other.note &&
+        variants == other.variants;
   }
 
   @override
@@ -106,21 +110,24 @@ class _$CommonViewModel extends CommonViewModel {
                                             $jc(
                                                 $jc(
                                                     $jc(
-                                                        $jc(0, units.hashCode),
-                                                        currentBusiness
-                                                            .hashCode),
-                                                    branches.hashCode),
-                                                businesses.hashCode),
-                                            hint.hashCode),
-                                        category.hashCode),
-                                    otpcode.hashCode),
-                                branch.hashCode),
-                            currentColor.hashCode),
-                        user.hashCode),
-                    customItem.hashCode),
-                tmpItem.hashCode),
-            image.hashCode),
-        note.hashCode));
+                                                        $jc(
+                                                            $jc(0,
+                                                                units.hashCode),
+                                                            currentBusiness
+                                                                .hashCode),
+                                                        branches.hashCode),
+                                                    businesses.hashCode),
+                                                hint.hashCode),
+                                            category.hashCode),
+                                        otpcode.hashCode),
+                                    branch.hashCode),
+                                currentColor.hashCode),
+                            user.hashCode),
+                        customItem.hashCode),
+                    tmpItem.hashCode),
+                image.hashCode),
+            note.hashCode),
+        variants.hashCode));
   }
 
   @override
@@ -139,7 +146,8 @@ class _$CommonViewModel extends CommonViewModel {
           ..add('customItem', customItem)
           ..add('tmpItem', tmpItem)
           ..add('image', image)
-          ..add('note', note))
+          ..add('note', note)
+          ..add('variants', variants))
         .toString();
   }
 }
@@ -208,6 +216,11 @@ class CommonViewModelBuilder
   String get note => _$this._note;
   set note(String note) => _$this._note = note;
 
+  ListBuilder<Variation> _variants;
+  ListBuilder<Variation> get variants =>
+      _$this._variants ??= new ListBuilder<Variation>();
+  set variants(ListBuilder<Variation> variants) => _$this._variants = variants;
+
   CommonViewModelBuilder();
 
   CommonViewModelBuilder get _$this {
@@ -226,6 +239,7 @@ class CommonViewModelBuilder
       _tmpItem = _$v.tmpItem?.toBuilder();
       _image = _$v.image?.toBuilder();
       _note = _$v.note;
+      _variants = _$v.variants?.toBuilder();
       _$v = null;
     }
     return this;
@@ -263,7 +277,8 @@ class CommonViewModelBuilder
               customItem: _customItem?.build(),
               tmpItem: _tmpItem?.build(),
               image: _image?.build(),
-              note: note);
+              note: note,
+              variants: _variants?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -289,6 +304,9 @@ class CommonViewModelBuilder
         _tmpItem?.build();
         _$failedField = 'image';
         _image?.build();
+
+        _$failedField = 'variants';
+        _variants?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'CommonViewModel', _$failedField, e.toString());

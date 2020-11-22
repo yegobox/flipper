@@ -1,8 +1,7 @@
-
-
 import 'package:flipper/viewmodels/main_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/model/category.dart';
 
 class CategoryList extends StatelessWidget {
@@ -11,9 +10,9 @@ class CategoryList extends StatelessWidget {
     this.categories,
   }) : super(key: key);
 
-  final List <Category> categories;
+  final List<Category> categories;
 
-  Wrap _getCategoriesWidgets(List<Category> categories) {
+  Wrap _getCategoriesWidgets(List<Category> categories, BuildContext context) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < categories.length; i++) {
       if (categories[i].name != 'custom') {
@@ -32,12 +31,15 @@ class CategoryList extends StatelessWidget {
                 categories[i].name,
                 style: const TextStyle(color: Colors.black),
               ),
-              // ignore: always_specify_types
-              // ignore: missing_required_param
               trailing: Radio(
                 value: categories[i].id,
+                activeColor: Theme.of(context)
+                    .copyWith(canvasColor: HexColor('#2996CC'))
+                    .canvasColor,
+                toggleable: true,
+                autofocus: true,
                 groupValue: categories[i].focused ? categories[i].id : 0,
-                // onChanged: (int categoryId) {},
+                onChanged: (Object value) {},
               ),
             ),
           ),
@@ -58,10 +60,11 @@ class CategoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<MainViewModel>.reactive(
-        viewModelBuilder: () => MainViewModel(),
-        onModelReady: (MainViewModel model) => model.listenCategory(),
-        builder: (BuildContext context, MainViewModel model, Widget child) {
-          return _getCategoriesWidgets(categories);
-        });
+      viewModelBuilder: () => MainViewModel(),
+      onModelReady: (MainViewModel model) => model.listenCategory(),
+      builder: (BuildContext context, MainViewModel model, Widget child) {
+        return _getCategoriesWidgets(categories, context);
+      },
+    );
   }
 }

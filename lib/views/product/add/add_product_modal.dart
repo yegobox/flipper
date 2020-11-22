@@ -6,6 +6,7 @@ import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+// TODO: this is where we show the modal  to add a product
 class AddProductModal extends StatelessWidget {
   
 
@@ -35,6 +36,7 @@ class AddProductModal extends StatelessWidget {
                         child: FlatButton(
                           color: Theme.of(context).copyWith(canvasColor:HexColor(FlipperColors.blue)).canvasColor,
                           onPressed: () async {
+                            // NOTE: navigate to add product screen
                             model.navigateAddProduct();
                           },
                           child: Text(
@@ -80,6 +82,7 @@ class AddProductModal extends StatelessWidget {
     }, 
     
     onModelReady: (AddProductModalViewModal model){
+      // NOTE: this is where we start adding a product, create a temporal prroduct
       model.createTemporalProduct(productName: 'tmp',userId: userId);
     },
     viewModelBuilder: ()=>AddProductModalViewModal());

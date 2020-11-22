@@ -4,6 +4,7 @@ import 'package:stacked/stacked.dart';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/widget/category_list.dart';
+import 'package:flipper/routes/router.gr.dart';
 
 class AddCategoryView extends StatelessWidget {
   const AddCategoryView({Key key}) : super(key: key);
@@ -39,7 +40,7 @@ class AddCategoryView extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    ProxyService.nav.pop();
+                    ProxyService.nav.navigateTo(Routing.createCategoryInputScreen);
                   },
                   child: ListTile(
                     title: const Text('Create Category',

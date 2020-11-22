@@ -15,7 +15,7 @@ import 'package:flipper/model/unit.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:redux/redux.dart';
-
+import 'package:flipper/model/variation.dart';
 part 'common_view_model.g.dart';
 
 
@@ -70,6 +70,9 @@ abstract class CommonViewModel
   @nullable
   String get note;
 
+  @nullable
+  BuiltList<Variation> get variants;
+
 
   // ignore: sort_constructors_first
   CommonViewModel._();
@@ -90,7 +93,7 @@ abstract class CommonViewModel
         ..businesses = store.state.businesses
       
         ..units = store.state.units.toBuilder()
-
+        ..variants = store.state.variants.toBuilder()
         ..user = store.state.user?.toBuilder()
        
         ..currentBusiness = store.state.currentActiveBusiness?.toBuilder()

@@ -24,8 +24,7 @@ class RetailPriceViewModel extends BaseModel {
   }
 
   void getVariations({BuildContext context, String productId}) {
-    setBusy(true);
-
+   
     final List<Variation> list = <Variation>[];
     final q = Query(_databaseService.db,
         'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
@@ -35,11 +34,12 @@ class RetailPriceViewModel extends BaseModel {
     q.addChangeListener((List results) {
       for (Map map in results) {
         map.forEach((key, value) {
-          list.add(Variation.fromMap(value));
+          if(!list.contains(Variation.fromMap(value))){
+             list.add(Variation.fromMap(value));
+             _sharedStateService.setVariations(variations: list);
+              notifyListeners();
+          }
         });
-        _sharedStateService.setVariations(variations: list);
-
-        notifyListeners();
       }
     });
   }

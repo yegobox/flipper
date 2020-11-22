@@ -117,10 +117,6 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final Logger log = Logging.getLogger('Get User: ');
   final String userExist = await ProxyService.sharedPref.getUserId();
   if (userExist == null) {
-    final List<String> channels = [];
-
-    channels.add(userExist);
-
     await _databaseService.login();
     return null;
   } else {
@@ -148,7 +144,7 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           //   userId: FUser.fromMap(value).id.toString(),
           //   isClosed: true,
           // );
-
+          ProxyService.sharedState.setUser(user: FUser.fromMap(value));
           log.d(FUser.fromMap(value));
           store.dispatch(WithUser(user: FUser.fromMap(value)));
         });

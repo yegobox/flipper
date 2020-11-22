@@ -25,6 +25,9 @@ class _$CategorySerializer implements StructuredSerializer<Category> {
       'table',
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
+      'branchId',
+      serializers.serialize(object.branchId,
+          specifiedType: const FullType(String)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
@@ -41,12 +44,6 @@ class _$CategorySerializer implements StructuredSerializer<Category> {
         ..add('touched')
         ..add(serializers.serialize(object.touched,
             specifiedType: const FullType(bool)));
-    }
-    if (object.branchId != null) {
-      result
-        ..add('branchId')
-        ..add(serializers.serialize(object.branchId,
-            specifiedType: const FullType(String)));
     }
     return result;
   }
@@ -135,6 +132,9 @@ class _$Category extends Category {
     }
     if (table == null) {
       throw new BuiltValueNullFieldError('Category', 'table');
+    }
+    if (branchId == null) {
+      throw new BuiltValueNullFieldError('Category', 'branchId');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Category', 'channels');

@@ -13,6 +13,7 @@ class RetailPrice extends StatelessWidget {
   final AddProductViewmodel models;
   @override
   Widget build(BuildContext context) {
+    
     // ignore: always_specify_types
     return ViewModelBuilder.reactive(builder: (BuildContext context,RetailPriceViewModel model, Widget child){
       return model.busy ?const SizedBox.shrink():  RetailView(model: models);

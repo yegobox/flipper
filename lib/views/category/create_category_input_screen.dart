@@ -2,17 +2,22 @@ import 'package:customappbar/customappbar.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
-
+import 'package:stacked/stacked.dart';
+import 'package:flipper/views/category/category_viewmodel.dart';
+import 'package:flipper/services/proxy.dart';
 
 class CreateCategoryInputScreen extends StatelessWidget {
-  const CreateCategoryInputScreen({Key key}) : super(key: key);
-  
+   CreateCategoryInputScreen({Key key}) : super(key: key);
+  final TextEditingController _name = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ViewModelBuilder.reactive(
+      builder: (BuildContext context, CategoryViewModel model, Widget child) {
+        return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              Routing.navigator.pop();
+              model.createCategory(name:_name.text);
+              ProxyService.nav.pop();
             },
             title: 'Create Category',
             icon: Icons.keyboard_backspace,
@@ -24,16 +29,16 @@ class CreateCategoryInputScreen extends StatelessWidget {
             child: Container(
               child: TextFormField(
                 style: const TextStyle(color: Colors.black),
-                onChanged: (String name)async  {
-                  // TODO: re-do this the first implementation was poor and confusing.
-                  // final Document document =  await CoreDB.instance.database.document(vm.tempCategoryId);
-                  // _databaseService.update(document: document.toMutable().setString('updatedAt', DateTime.now().toIso8601String()).setString('name', name));
-                },
+                controller: _name,
                 decoration: const InputDecoration(
                     hintText: 'Name', focusColor: Colors.blue),
               ),
             ),
           ),
         );
+      }, 
+      
+      viewModelBuilder: () =>CategoryViewModel(),
+    );
   }
 }

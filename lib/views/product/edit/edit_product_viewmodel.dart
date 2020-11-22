@@ -199,7 +199,9 @@ class EditProductViewModel extends BaseViewModel {
     q.addChangeListener((List results) {
       for (Map map in results) {
         map.forEach((key, value) {
-          colors.add(PColor.fromMap(value));
+          if(!colors.contains(PColor.fromMap(value))){
+            colors.add(PColor.fromMap(value));
+          }
         });
         _sharedStateService.setColors(colors: colors);
 

@@ -10,6 +10,7 @@ import 'package:observable_ish/observable_ish.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper/domain/app_actions.dart'; //the entire app action no more actions! since we may reject redux fully!
+import 'package:flipper/model/fuser.dart';
 
 class SharedStateService with ReactiveServiceMixin {
   SharedStateService() {
@@ -28,6 +29,9 @@ class SharedStateService with ReactiveServiceMixin {
         ..isActive = false));
   final RxValue<ImageP> _image = RxValue<ImageP>(initial: null);
   final RxValue<Product> _product = RxValue<Product>(initial: null);
+
+  final RxValue<FUser> _user = RxValue<FUser>(initial: null);
+
   final RxValue<List<Variation>> _variations =
       RxValue<List<Variation>>(initial: []);
 
@@ -40,6 +44,8 @@ class SharedStateService with ReactiveServiceMixin {
   PColor get currentColor => _currentColor.value;
 
   Product get product => _product.value;
+
+  FUser get user => _user.value;
 
   Business get business => _business.value;
 
@@ -54,6 +60,9 @@ class SharedStateService with ReactiveServiceMixin {
 
   void setProduct({Product product}) {
     _product.value = product;
+  }
+  void setUser({FUser user}) {
+    _user.value = user;
   }
 
   void setBranch({Branch branch}) {

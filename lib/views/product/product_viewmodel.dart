@@ -19,9 +19,10 @@ class ProductsViewModel extends BaseModel {
   String _branchId;
   String _businessId;
   final DatabaseService _databaseService = ProxyService.database;
+  
   final List<Product> _products = <Product>[];
 
-  List<Product> get data => _products;
+  List<Product> get products => _products;
 
   Future<bool> isCategory({String branchId}) async {
 
@@ -57,7 +58,9 @@ class ProductsViewModel extends BaseModel {
       // ignore: unnecessary_type_check
       for (Map map in brancheResult) {
         map.forEach((key, value) {
-          branches.add(Branch.fromMap(value));
+          if(!branches.contains(Branch.fromMap(value))){
+             branches.add(Branch.fromMap(value));
+          }
         });
       }
     }
@@ -79,7 +82,10 @@ class ProductsViewModel extends BaseModel {
     if (docResults.isNotEmpty) {
       for (Map map in docResults) {
         map.forEach((key, value) {
-          businesses.add(Business.fromMap(value));
+          if(!businesses.contains(Business.fromMap(value))){
+             businesses.add(Business.fromMap(value));
+          }
+         
         });
       }
     }
@@ -94,7 +100,6 @@ class ProductsViewModel extends BaseModel {
   }
 
   void getProducts({BuildContext context}) {
-    setBusy(true);
 
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
@@ -102,11 +107,13 @@ class ProductsViewModel extends BaseModel {
 
     q.addChangeListener((List results) {
       for (Map map in results) {
+        
         map.forEach((key, value) {
-          _products.add(Product.fromMap(value));
+          if(!_products.contains(Product.fromMap(value))){
+             _products.add(Product.fromMap(value));
+             notifyListeners();
+          }
         });
-        setBusy(false);
-        notifyListeners();
       }
     });
   }

@@ -9,6 +9,7 @@ import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper/routes/router.gr.dart';
 
+
 class ProductView extends StatelessWidget {
   const ProductView(
       {Key key, this.userId, this.items, this.sellingModeView = false})
@@ -232,9 +233,10 @@ class ProductView extends StatelessWidget {
   }
 
   Widget sellingMode({ProductsViewModel model, BuildContext context}) {
+
     return BuildProductsView(
       context: context,
-      data: model.data,
+      data: model.products,
       shouldSeeItem: false,
       showCreateItemOnTop: true,
       createButtonName: 'Add Products',
@@ -249,6 +251,9 @@ class ProductView extends StatelessWidget {
           return sellingModeView
               ? editModeView(model: model)
               : sellingMode(model: model);
+        },
+        onModelReady:(ProductsViewModel model){
+          model.getProducts();
         },
         viewModelBuilder: () => ProductsViewModel());
   }
