@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 
+// NOTE: this is to add a product and there related variants.
 class AddProductView extends StatelessWidget {
   const AddProductView({Key key}) : super(key: key);
 
@@ -30,6 +31,7 @@ class AddProductView extends StatelessWidget {
       viewModelBuilder: () => AddProductViewmodel(),
       onModelReady: (AddProductViewmodel model) {
         model.getTemporalProduct(context: context);
+        
         model.initFields(TextEditingController(),TextEditingController(),TextEditingController(),TextEditingController());
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
