@@ -1,5 +1,3 @@
-
-
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/views/category/category_view.dart';
@@ -20,7 +18,6 @@ import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-
 // NOTE: this is to add a product and there related variants.
 class AddProductView extends StatelessWidget {
   const AddProductView({Key key}) : super(key: key);
@@ -31,11 +28,13 @@ class AddProductView extends StatelessWidget {
       viewModelBuilder: () => AddProductViewmodel(),
       onModelReady: (AddProductViewmodel model) {
         model.getTemporalProduct(context: context);
-        
-        model.initFields(TextEditingController(),TextEditingController(),TextEditingController(),TextEditingController());
+
+        model.initFields(TextEditingController(), TextEditingController(),
+            TextEditingController(), TextEditingController());
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
-        if(model.busy || model.product ==null){
+        if (model.busy || model.product == null) {
+          //NOTE: fix this problem
           return const SizedBox.shrink();
         }
 
@@ -66,21 +65,21 @@ class AddProductView extends StatelessWidget {
                       height: 10,
                     ),
                     ImagePlaceHolderView(),
-                    const Text(
-                        'Product'
-                    ),
+                    const Text('Product'),
                     //nameField
                     Padding(
-                      padding: const EdgeInsets.only(left:18,right:18),
+                      padding: const EdgeInsets.only(left: 18, right: 18),
                       child: Container(
                         width: double.infinity,
                         child: TextFormField(
-                          style: Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.black),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              .copyWith(color: Colors.black),
                           controller: model.nameController,
                           validator: Validators.isValid,
                           onChanged: (String name) async {
                             model.lock();
-                            
                           },
                           decoration: InputDecoration(
                             hintText: 'Product name',
@@ -90,7 +89,7 @@ class AddProductView extends StatelessWidget {
                             filled: true,
                             border: OutlineInputBorder(
                               borderSide:
-                              BorderSide(color: HexColor('#D0D7E3')),
+                                  BorderSide(color: HexColor('#D0D7E3')),
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
@@ -106,10 +105,10 @@ class AddProductView extends StatelessWidget {
                       height: 24,
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left:18,right:18),
+                      padding: const EdgeInsets.only(left: 18, right: 18),
                       child: Container(
                         width: double.infinity,
-                        child:const Text(
+                        child: const Text(
                           'PRICE AND INVENTORY',
                         ),
                       ),
@@ -137,13 +136,13 @@ class AddProductView extends StatelessWidget {
 
                     AddVariant(
                       onPressedCallback: () {
-                        model.createVariant(productId:model.product.id);
+                        model.createVariant(productId: model.product.id);
                       },
                     ),
                     const CenterDivider(
                       width: double.infinity,
                     ),
-                    DescriptionWidget(model:model)
+                    DescriptionWidget(model: model)
                   ],
                 ),
               ],
@@ -153,4 +152,6 @@ class AddProductView extends StatelessWidget {
       },
     );
   }
+
+  pop() {}
 }

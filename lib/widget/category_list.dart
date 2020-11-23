@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/model/category.dart';
+import 'package:flipper/views/category/category_viewmodel.dart';
 
 class CategoryList extends StatelessWidget {
   const CategoryList({
@@ -12,34 +13,43 @@ class CategoryList extends StatelessWidget {
 
   final List<Category> categories;
 
-  Wrap _getCategoriesWidgets(List<Category> categories, BuildContext context) {
+  Wrap _getCategoriesWidgets(
+    List<Category> categories,
+    CategoryViewModel model,
+    BuildContext context,
+  ) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < categories.length; i++) {
       if (categories[i].name != 'custom') {
         list.add(
           GestureDetector(
             onTap: () {
-              for (int y = 0; y < categories.length; y++) {
-                // vm.database.categoryDao
-                //     .updateCategory(categories[y].copyWith(focused: false));
-              }
+              // for (int y = 0; y < categories.length; y++) {
+              //   // vm.database.categoryDao
+              //   //     .updateCategory(categories[y].copyWith(focused: false));
+              // }
               // vm.database.categoryDao.updateCategory(
               //     categories[i].copyWith(focused: !categories[i].focused));
+              model.updateCategory(
+                  category: categories[i].name.toString(),
+                  id: categories[i].id.toString());
             },
-            child: ListTile(
-              title: Text(
-                categories[i].name,
-                style: const TextStyle(color: Colors.black),
-              ),
-              trailing: Radio(
-                value: categories[i].id,
-                activeColor: Theme.of(context)
-                    .copyWith(canvasColor: HexColor('#2996CC'))
-                    .canvasColor,
-                toggleable: true,
-                autofocus: true,
-                groupValue: categories[i].focused ? categories[i].id : 0,
-                onChanged: (Object value) {},
+            child: SingleChildScrollView(
+              child: ListTile(
+                title: Text(
+                  categories[i].name,
+                  style: const TextStyle(color: Colors.black),
+                ),
+                trailing: Radio(
+                  value: categories[i].id,
+                  activeColor: Theme.of(context)
+                      .copyWith(canvasColor: HexColor('#2996CC'))
+                      .canvasColor,
+                  // toggleable: true,
+                  // autofocus: true,
+                  groupValue: model.myid,
+                  onChanged: (Object value) {},
+                ),
               ),
             ),
           ),
@@ -59,11 +69,11 @@ class CategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<MainViewModel>.reactive(
-      viewModelBuilder: () => MainViewModel(),
-      onModelReady: (MainViewModel model) => model.listenCategory(),
-      builder: (BuildContext context, MainViewModel model, Widget child) {
-        return _getCategoriesWidgets(categories, context);
+    return ViewModelBuilder<CategoryViewModel>.reactive(
+      viewModelBuilder: () => CategoryViewModel(),
+      onModelReady: (CategoryViewModel model) => model.getCategory(),
+      builder: (BuildContext context, CategoryViewModel model, Widget child) {
+        return _getCategoriesWidgets(categories, model, context);
       },
     );
   }

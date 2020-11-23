@@ -23,38 +23,39 @@ class AddProductModalViewModal extends BaseModel {
     return _taxId;
   }
 
-   String _productId;
+  String _productId;
   String get productId {
     return _productId;
   }
+
   Category _category;
-  Category get category{
+  Category get category {
     return _category;
   }
+
   final _sharedStateService = locator<SharedStateService>();
 
   // this is a product to edit later on and add variation on it.
   Future createTemporalProduct({String productName, String userId}) async {
-    
-    log.i('adding product'+_sharedStateService.business.id);
+    log.i('adding product' + _sharedStateService.business.id);
     final DatabaseService _databaseService = ProxyService.database;
-    
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    q.parameters = {'VALUE': AppTables.category,'NAME':'NONE'};
+    final q = Query(
+        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+
+    q.parameters = {'VALUE': AppTables.category, 'NAME': 'NONE'};
 
     final categories = q.execute();
 
     if (categories.isNotEmpty) {
-   
       for (Map map in categories) {
-        map.forEach((key,value){
-           _category = Category.fromMap(value);
+        map.forEach((key, value) {
+          _category = Category.fromMap(value);
         });
         notifyListeners();
       }
     }
-   
+    //  find tmp product
     final product = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
@@ -68,7 +69,7 @@ class AddProductModalViewModal extends BaseModel {
     final taxResults = gettax.execute();
     final productResults = product.execute();
     if (productResults.isEmpty) {
-
+      log.i('product id nabuze:');
       if (taxResults.isNotEmpty) {
         for (Map map in taxResults) {
           map.forEach((key, value) {
@@ -78,8 +79,8 @@ class AddProductModalViewModal extends BaseModel {
         }
       }
       final id1 = Uuid().v1();
-      
-      final Document productDoc = _databaseService.insert(id:id1,data: {
+
+      final Document productDoc = _databaseService.insert(id: id1, data: {
         'name': productName,
         'categoryId': category.id,
         'color': '#955be9',
@@ -97,7 +98,7 @@ class AddProductModalViewModal extends BaseModel {
       });
 
       final id2 = Uuid().v1();
-      final Document variant = _databaseService.insert(id:id2,data: {
+      final Document variant = _databaseService.insert(id: id2, data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
@@ -110,7 +111,7 @@ class AddProductModalViewModal extends BaseModel {
       });
 
       final id3 = Uuid().v1();
-       _databaseService.insert(id:id3,data: {
+      _databaseService.insert(id: id3, data: {
         'variantId': variant.ID,
         'supplyPrice': 0,
         'canTrackingStock': false,
@@ -127,27 +128,27 @@ class AddProductModalViewModal extends BaseModel {
         'createdAt': DateTime.now().toIso8601String(),
       });
       final id4 = Uuid().v1();
-       _databaseService.insert(id:id4,data: {
+      _databaseService.insert(id: id4, data: {
         'branchId': _sharedStateService.branch.id,
         'productId': productDoc.ID,
         'table': AppTables.branchProduct,
         'id': id4
       });
-      log.d('productId:'+ productDoc.ID);
+      log.d('productId:' + productDoc.ID);
+      print('product id nabuze:' + productDoc.ID);
       return productDoc.ID;
     } else {
-     
-        for (Map map in productResults) {
-          map.forEach((key, value) {
-            _productId = Product.fromMap(value).id;
-          });
-          notifyListeners();
-        }
-        log.d('productId:'+productId);
-        return productId;
+      for (Map map in productResults) {
+        map.forEach((key, value) {
+          _productId = Product.fromMap(value).id;
+        });
+        notifyListeners();
+      }
+      log.d('productId:' + productId);
+
+      return productId;
     }
   }
-
 
   void navigateAddProduct() {
     final FlipperNavigationService _navigationService = ProxyService.nav;

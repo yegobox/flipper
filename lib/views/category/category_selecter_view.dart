@@ -10,11 +10,11 @@ class CategorySelector extends StatelessWidget {
 
   Widget categorySelector({List<Category> categories, BuildContext context}) {
     Text text;
-    if(categories.isEmpty){
+    if (categories.isEmpty) {
       return const SizedBox.shrink();
     }
     for (Category category in categories) {
-      if (category.focused) {
+      if (category.focused && category.name!='NONE') {
         text = Text(category.name);
         StoreProvider.of<AppState>(context).dispatch(
           CategoryAction(

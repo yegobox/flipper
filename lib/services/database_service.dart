@@ -55,6 +55,8 @@ class DatabaseService {
     return db.getMutableDocument(id);
   }
 
+  
+
   Future<Document> update({@required Document document}) async {
     return await db.saveDocument(document);
   }

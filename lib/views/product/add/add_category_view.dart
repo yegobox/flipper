@@ -40,10 +40,11 @@ class AddCategoryView extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    ProxyService.nav.navigateTo(Routing.createCategoryInputScreen);
+                    ProxyService.nav
+                        .navigateTo(Routing.createCategoryInputScreen);
                   },
                   child: ListTile(
-                    title: const Text('Create Category',
+                    title: const Text('Create Category ',
                         style: TextStyle(color: Colors.black)),
                     trailing: Wrap(
                       // ignore: prefer_const_literals_to_create_immutables
