@@ -34,7 +34,6 @@ import 'package:flipper/views/category/create_category_input_screen.dart';
 
 import 'package:flipper/views/open_close_drawerview.dart';
 
-
 import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/transactions/transaction_screen.dart';
 
@@ -42,6 +41,8 @@ import 'package:flipper/widget/calendar/calenderView.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/contacts/contact_view.dart';
+import 'package:flipper/views/product/stock/stock_view.dart';
+import 'package:flipper/views/product/stock/stock_input.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -70,8 +71,7 @@ class $Routing {
     transitionsBuilder: TransitionsBuilders.zoomIn,
     durationInMilliseconds: 200,
   )
- 
- SalesView salesView;
+  SalesView salesView;
 
   CalendarView calendarView;
   ContactView contactView;
@@ -85,6 +85,8 @@ class $Routing {
   ProductListView productsListView;
   ProductView productView;
   ReceiveStockScreen receiveStock;
+  StockView stockView;
+  AddStockView addStockView;
   @initial
   SplashScreen splashScreen;
 

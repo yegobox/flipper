@@ -24,6 +24,8 @@ import 'package:flipper/views/product/widget/product_description.dart';
 import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
+import 'package:flipper/views/product/stock/stock_view.dart';
+import 'package:flipper/views/product/stock/stock_input.dart';
 import 'package:flipper/views/welcome/splash/splash_screen.dart';
 import 'package:flipper/views/transactions/transaction_screen.dart';
 import 'package:flipper/views/welcome/home/dash_board.dart';
@@ -59,6 +61,8 @@ class Routing {
   static const productsListView = '/products-list-view';
   static const productView = '/product-view';
   static const receiveStock = '/receive-stock';
+  static const stockView = '/stock-view';
+  static const addStockView = '/add-stock-view';
   static const splashScreen = '/';
   static const transactionScreen = '/transaction-screen';
   static const dashboard = '/dashboard';
@@ -249,6 +253,25 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) => ReceiveStockScreen(
               key: typedArgs.key, variationId: typedArgs.variationId),
+          settings: settings,
+        );
+      case Routing.stockView:
+        if (hasInvalidArgs<StockViewArguments>(args, isRequired: true)) {
+          return misTypedArgsRoute<StockViewArguments>(args);
+        }
+        final typedArgs = args as StockViewArguments;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) =>
+              StockView(key: typedArgs.key, productId: typedArgs.productId),
+          settings: settings,
+        );
+      case Routing.addStockView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AddStockView(key: typedArgs),
           settings: settings,
         );
       case Routing.splashScreen:
@@ -504,6 +527,13 @@ class ReceiveStockScreenArguments {
   final Key key;
   final String variationId;
   ReceiveStockScreenArguments({this.key, @required this.variationId});
+}
+
+//StockView arguments holder class
+class StockViewArguments {
+  final Key key;
+  final String productId;
+  StockViewArguments({this.key, @required this.productId});
 }
 
 //AddVariationScreen arguments holder class
