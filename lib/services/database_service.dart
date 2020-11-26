@@ -31,7 +31,7 @@ class DatabaseService {
     final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
     final String username = DotEnv().env['USERNAME'];
     final String password = DotEnv().env['PASSWORD'];
-    // 1.7.0-mobile0017
+    // 1.7.0-mobile0020
     final Replicator replicator = Replicator(
       db,
       endpointUrl: 'ws://$gatewayUrl/main/',
