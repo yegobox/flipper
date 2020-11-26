@@ -137,6 +137,9 @@ class SignUpViewModel extends BaseViewModel {
 
   Future<String> createBranch(
       {String userId, String businessName, String businessId}) async {
+         assert(userId!=null);
+
+         
     final Map<String, dynamic> _mapBranch = {
       'active': true,
       'name': businessName,
@@ -157,6 +160,7 @@ class SignUpViewModel extends BaseViewModel {
 
   Future<String> createBusiness(
       {String userId, String businessName, BuildContext context}) async {
+        assert(userId!=null);
     final Map<String, dynamic> _mapBusiness = {
       'active': true,
       'id': Uuid().v1(),

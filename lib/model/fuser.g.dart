@@ -18,9 +18,16 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
   Iterable<Object> serialize(Serializers serializers, FUser object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'userId',
+      serializers.serialize(object.userId,
+          specifiedType: const FullType(String)),
     ];
+    if (object.id != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
+    }
     if (object.email != null) {
       result
         ..add('email')
@@ -87,6 +94,10 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
           result.name = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'userId':
+          result.userId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
         case 'createdAt':
           result.createdAt = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -116,6 +127,8 @@ class _$FUser extends FUser {
   @override
   final String name;
   @override
+  final String userId;
+  @override
   final String createdAt;
   @override
   final String updatedAt;
@@ -130,12 +143,13 @@ class _$FUser extends FUser {
       this.email,
       this.active,
       this.name,
+      this.userId,
       this.createdAt,
       this.updatedAt,
       this.token})
       : super._() {
-    if (id == null) {
-      throw new BuiltValueNullFieldError('FUser', 'id');
+    if (userId == null) {
+      throw new BuiltValueNullFieldError('FUser', 'userId');
     }
   }
 
@@ -154,6 +168,7 @@ class _$FUser extends FUser {
         email == other.email &&
         active == other.active &&
         name == other.name &&
+        userId == other.userId &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
         token == other.token;
@@ -165,9 +180,11 @@ class _$FUser extends FUser {
         $jc(
             $jc(
                 $jc(
-                    $jc($jc($jc(0, id.hashCode), email.hashCode),
-                        active.hashCode),
-                    name.hashCode),
+                    $jc(
+                        $jc($jc($jc(0, id.hashCode), email.hashCode),
+                            active.hashCode),
+                        name.hashCode),
+                    userId.hashCode),
                 createdAt.hashCode),
             updatedAt.hashCode),
         token.hashCode));
@@ -180,6 +197,7 @@ class _$FUser extends FUser {
           ..add('email', email)
           ..add('active', active)
           ..add('name', name)
+          ..add('userId', userId)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
           ..add('token', token))
@@ -206,6 +224,10 @@ class FUserBuilder implements Builder<FUser, FUserBuilder> {
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
 
+  String _userId;
+  String get userId => _$this._userId;
+  set userId(String userId) => _$this._userId = userId;
+
   String _createdAt;
   String get createdAt => _$this._createdAt;
   set createdAt(String createdAt) => _$this._createdAt = createdAt;
@@ -226,6 +248,7 @@ class FUserBuilder implements Builder<FUser, FUserBuilder> {
       _email = _$v.email;
       _active = _$v.active;
       _name = _$v.name;
+      _userId = _$v.userId;
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
       _token = _$v.token;
@@ -255,6 +278,7 @@ class FUserBuilder implements Builder<FUser, FUserBuilder> {
             email: email,
             active: active,
             name: name,
+            userId: userId,
             createdAt: createdAt,
             updatedAt: updatedAt,
             token: token);

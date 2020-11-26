@@ -18,7 +18,7 @@ import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:geolocator/geolocator.dart';
+
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -47,13 +47,13 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
 
     final FlipperNavigationService _navigationService = ProxyService.nav;
 
-    final String userId = await isUserCurrentlyLoggedIn(store);
-    if (userId == null) {
+    final String loggedInuserId = await isUserCurrentlyLoggedIn(store);
+    if (loggedInuserId == null) {
       _navigationService.navigateTo(Routing.afterSplash);
       return;
     }
 
-    await getBusinesses(store: store, userId: userId);
+    await getBusinesses(store: store, loggedInuserId: loggedInuserId);
     await getAppColors();
   };
 }
@@ -81,7 +81,7 @@ Future getAppColors() async {
 }
 
 Future<void> openCloseBusiness({
-  String userId,
+  String loggedInuserId,
   String name,
   bool isSocial = false,
   String businessId,
@@ -96,12 +96,12 @@ Future<void> openCloseBusiness({
     'isClosed': isClosed,
     'isSocial': isSocial,
     'businessId': businessId,
-    'channels': [userId]
+    'channels': [loggedInuserId]
   };
   if (openDrawer == null) {
     try {
       // final MutableDocument newDoc =
-      //     MutableDocument(id: userId, data: buildMap);
+      //     MutableDocument(id: loggedInuserId, data: buildMap);
       // await CoreDB.instance.database.saveDocument(newDoc);
       // ignore: empty_catches
     } on PlatformException {}
@@ -115,14 +115,14 @@ Future<void> openCloseBusiness({
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
   final Logger log = Logging.getLogger('Get User: ');
-  final String userExist = await ProxyService.sharedPref.getUserId();
-  if (userExist == null) {
+  final String loggedInuserId = await ProxyService.sharedPref.getUserId();
+  if (loggedInuserId == null) {
     await _databaseService.login();
     return null;
   } else {
     final List<String> channels = [];
 
-    channels.add(userExist);
+    channels.add(loggedInuserId);
 
     await _databaseService.login(channels: channels);
 
@@ -141,21 +141,23 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           // openCloseBusiness(
           //   isSocial: false,
           //   name: FUser.fromMap(value).name,
-          //   userId: FUser.fromMap(value).id.toString(),
+          //   loggedInuserId: FUser.fromMap(value).id.toString(),
           //   isClosed: true,
           // );
-          ProxyService.sharedState.setUser(user: FUser.fromMap(value));
-          log.d(FUser.fromMap(value));
-          store.dispatch(WithUser(user: FUser.fromMap(value)));
+          if(value.containsKey('userId') &&  loggedInuserId == FUser.fromMap(value).userId){
+            ProxyService.sharedState.setUser(user: FUser.fromMap(value));
+            log.d(FUser.fromMap(value));
+            store.dispatch(WithUser(user: FUser.fromMap(value)));
+          }
         });
       }
     }
 
-    return userExist;
+    return loggedInuserId;
   }
 }
 
-Future<List<Branch>> getBranches(Store<AppState> store, String userId) async {
+Future<List<Branch>> getBranches(Store<AppState> store, String loggedInuserId) async {
   final DatabaseService _databaseService = ProxyService.database;
 
   final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
@@ -189,7 +191,7 @@ Future<List<Branch>> getBranches(Store<AppState> store, String userId) async {
           'branchId': branch.id,
           'focused': true,
           'id': id,
-          'channels': [userId],
+          'channels': [loggedInuserId],
           'name': 'custom'
         });
       }
@@ -266,9 +268,9 @@ Future<void> createTemporalOrder(Store<AppState> store) async {
   DataManager.createTemporalOrder(store);
 }
 
-Future<void> getBusinesses({Store<AppState> store, String userId}) async {
+Future<void> getBusinesses({Store<AppState> store, String loggedInuserId}) async {
   final Logger log = Logging.getLogger('Get business: ');
-  // log.d(userId);
+  // log.d(loggedInuserId);
   final DatabaseService _databaseService = ProxyService.database;
 
   final List<Business> businesses = [];
@@ -276,7 +278,7 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
   final q = Query(
       _databaseService.db, 'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
 
-  q.parameters = {'VALUE': AppTables.business, 'USERID': userId};
+  q.parameters = {'VALUE': AppTables.business, 'USERID': loggedInuserId};
 
   final results = q.execute();
   if (results.isNotEmpty) {
@@ -287,7 +289,7 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
     }
   }
 
-  await getBranches(store, userId);
+  await getBranches(store, loggedInuserId);
   await createTemporalOrder(store);
 
   for (Business business in businesses) {
@@ -302,11 +304,11 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
   if (businesses.isEmpty) {
-    if (userId != null) {
+    if (loggedInuserId != null) {
       _navigationService.navigateTo(
         Routing.signUpView,
         arguments: SignUpViewArguments(
-          userId: userId,
+          userId: loggedInuserId,
           name: store.state.user.name,
           avatar: 'avatar',
           email: store.state.user.email,
@@ -316,7 +318,7 @@ Future<void> getBusinesses({Store<AppState> store, String userId}) async {
     } else {
       _navigationService.navigateTo(Routing.afterSplash);
     }
-  } else if (userId == null) {
+  } else if (loggedInuserId == null) {
     _navigationService.navigateTo(Routing.afterSplash);
   } else {
     store.dispatch(OnBusinessLoaded(business: businesses));

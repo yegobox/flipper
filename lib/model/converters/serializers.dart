@@ -20,6 +20,8 @@ import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/unit.dart';
 import 'package:flipper/model/variation.dart';
 
+import 'int_to_string_serializer.dart';
+
 
 part 'serializers.g.dart';
 
@@ -43,6 +45,7 @@ Serializers standardSerializers = (serializers.toBuilder()
           () =>  ListBuilder<String>()) //if I want to return a list of business for example I will add it here like that
       ..addPlugin(StandardJsonPlugin())
       ..add(Iso8601DateTimeSerializer())
+      ..add(StringSerializer()) //convert anything that comes as int to string.
      
       ..add(BooleanSerializer()))
     .build();

@@ -21,25 +21,37 @@ class _$BranchSerializer implements StructuredSerializer<Branch> {
       'businessId',
       serializers.serialize(object.businessId,
           specifiedType: const FullType(String)),
-      'createdAt',
-      serializers.serialize(object.createdAt,
-          specifiedType: const FullType(String)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
-      'mapLatitude',
-      serializers.serialize(object.mapLatitude,
-          specifiedType: const FullType(String)),
-      'mapLongitude',
-      serializers.serialize(object.mapLongitude,
-          specifiedType: const FullType(String)),
-      'updatedAt',
-      serializers.serialize(object.updatedAt,
-          specifiedType: const FullType(String)),
     ];
     if (object.id != null) {
       result
         ..add('id')
         ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
+    }
+    if (object.createdAt != null) {
+      result
+        ..add('createdAt')
+        ..add(serializers.serialize(object.createdAt,
+            specifiedType: const FullType(String)));
+    }
+    if (object.mapLatitude != null) {
+      result
+        ..add('mapLatitude')
+        ..add(serializers.serialize(object.mapLatitude,
+            specifiedType: const FullType(String)));
+    }
+    if (object.mapLongitude != null) {
+      result
+        ..add('mapLongitude')
+        ..add(serializers.serialize(object.mapLongitude,
+            specifiedType: const FullType(String)));
+    }
+    if (object.updatedAt != null) {
+      result
+        ..add('updatedAt')
+        ..add(serializers.serialize(object.updatedAt,
             specifiedType: const FullType(String)));
     }
     if (object.description != null) {
@@ -177,20 +189,8 @@ class _$Branch extends Branch {
     if (businessId == null) {
       throw new BuiltValueNullFieldError('Branch', 'businessId');
     }
-    if (createdAt == null) {
-      throw new BuiltValueNullFieldError('Branch', 'createdAt');
-    }
     if (name == null) {
       throw new BuiltValueNullFieldError('Branch', 'name');
-    }
-    if (mapLatitude == null) {
-      throw new BuiltValueNullFieldError('Branch', 'mapLatitude');
-    }
-    if (mapLongitude == null) {
-      throw new BuiltValueNullFieldError('Branch', 'mapLongitude');
-    }
-    if (updatedAt == null) {
-      throw new BuiltValueNullFieldError('Branch', 'updatedAt');
     }
   }
 

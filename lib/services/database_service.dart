@@ -31,24 +31,26 @@ class DatabaseService {
     final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
     final String username = DotEnv().env['USERNAME'];
     final String password = DotEnv().env['PASSWORD'];
+    // 1.7.0-mobile0017
+    final Replicator replicator = Replicator(
+      db,
+      endpointUrl: 'ws://$gatewayUrl/main/',
+      username: username,
+      password: password, // or
+      // 'sessionId': 'dfhfsdyf8dfenfajfoadnf83c4dfhdfad3228yrsefd',
+    );
 
-    // final replicator = Replicator(
-    //   db,
-    //   endpointUrl: 'ws://$gatewayUrl/main/',
-    //   username: username,
-    //   password: password, // or
-    //   // 'sessionId': 'dfhfsdyf8dfenfajfoadnf83c4dfhdfad3228yrsefd',
-    // );
-
-    // // Set up a status listener
-    // replicator.addChangeListener((status) {
-    //   print('Replicator status: ' + status.activityLevel.toString());
-    // });
-    // if(channels!=null){
-    //   replicator.channels = channels;
-    // }
-    // // Start the replicator
-    // replicator.start();
+    // Set up a status listener
+    replicator.addChangeListener((status) {
+      print('Replicator status: ' + status.activityLevel.toString());
+    });
+    replicator.continuous = true;
+    if(channels!=null){
+      log.d(channels);
+      replicator.channels = channels;
+    }
+    // Start the replicator
+    replicator.start();
   }
 
   Document getById({@required String id}) {

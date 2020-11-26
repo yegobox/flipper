@@ -41,8 +41,8 @@ import 'package:flipper/widget/calendar/calenderView.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/contacts/contact_view.dart';
-import 'package:flipper/views/product/stock/stock_view.dart';
-import 'package:flipper/views/product/stock/stock_input.dart';
+// import 'package:flipper/views/product/stock/stock_view.dart';
+// import 'package:flipper/views/product/stock/stock_input.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -85,8 +85,8 @@ class $Routing {
   ProductListView productsListView;
   ProductView productView;
   ReceiveStockScreen receiveStock;
-  StockView stockView;
-  AddStockView addStockView;
+  // StockView stockView;
+  // AddStockView addStockView;
   @initial
   SplashScreen splashScreen;
 

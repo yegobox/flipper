@@ -9,6 +9,7 @@ part 'fuser.g.dart';
 
 abstract class FUser implements Built<FUser, FUserBuilder> {
   
+  @nullable
   String get id;
 
   @nullable
@@ -20,6 +21,8 @@ abstract class FUser implements Built<FUser, FUserBuilder> {
 
   @nullable
   String get name;
+
+  String get userId;
 
   @nullable
   String get createdAt;

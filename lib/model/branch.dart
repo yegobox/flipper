@@ -14,14 +14,18 @@ abstract class Branch implements Built<Branch, BranchBuilder> {
 
   String get businessId;
 
+  @nullable
   String get createdAt;
 
   String get name;
 
+  @nullable
   String get mapLatitude;
 
+  @nullable
   String get mapLongitude;
 
+  @nullable
   String get updatedAt;
   @nullable
 
