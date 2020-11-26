@@ -280,11 +280,14 @@ Future<void> getBusinesses({Store<AppState> store, String loggedInuserId}) async
 
   q.parameters = {'VALUE': AppTables.business, 'USERID': loggedInuserId};
 
+
   final results = q.execute();
   if (results.isNotEmpty) {
     for (Map map in results) {
       map.forEach((key, value) {
-        businesses.add(Business.fromMap(value));
+        if(!businesses.contains(Business.fromMap(value))){
+          businesses.add(Business.fromMap(value));
+        }
       });
     }
   }
