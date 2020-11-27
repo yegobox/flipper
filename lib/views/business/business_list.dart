@@ -4,6 +4,7 @@ import 'package:flipper/domain/redux/business/business_actions.dart';
 
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
+import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
@@ -13,9 +14,10 @@ import 'package:redux/redux.dart';
 
 class BusinessList extends StatefulWidget {
 //  final Function(DrawerState) stateChangeCallback;
-  final CommonViewModel vm;
+  
+  final DrawerViewModel model;
   // ignore: sort_constructors_first
-  const BusinessList({Key key, this.vm}) : super(key: key);
+  const BusinessList({Key key,this.model}) : super(key: key);
 
   @override
   _BusinessListState createState() => _BusinessListState();
@@ -34,9 +36,9 @@ class _BusinessListState extends State<BusinessList> {
             child: Row(children: <Widget>[
               // ..._buildSelectionHighlight(_businessSelected, Colors.white),
               _selectableListItem(
-                  userIcon: Text(widget.vm.user.name.length > 2
-                      ? widget.vm.user.name.substring(0, 1).toUpperCase()
-                      : widget.vm.user.name.toUpperCase()),
+                  userIcon: Text(widget.model.user.name.length > 2
+                      ? widget.model.user.name.substring(0, 1).toUpperCase()
+                      : widget.model.user.name.toUpperCase()),
                   isSquareShape: _businessSelected,
                   action: () {
                     setState(() {
@@ -70,7 +72,7 @@ class _BusinessListState extends State<BusinessList> {
             _GroupSettingsButton(
                 Image.asset('assets/graphics/drawer/create_topic.png'), () {
               // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
-              if (widget.vm.businesses.length >= 3) {
+              if (widget.model.businesses.length >= 3) {
                 // TODO(richard): show a toast here that we can not create additional business...
                 return;
               }
@@ -153,7 +155,7 @@ class _BusinessListState extends State<BusinessList> {
         children: <Widget>[
           _buildFirstSectionFlipperLogo(context),
 
-          getRenderableBusinessList(widget.vm.businesses),
+          getRenderableBusinessList(widget.model.businesses),
           //setting on click set highlight on side.
           _buildThirdSection(context),
           _buildFourthSection(context)

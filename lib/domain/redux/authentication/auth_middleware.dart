@@ -269,7 +269,7 @@ Future<void> createTemporalOrder(Store<AppState> store) async {
 }
 
 Future<void> getBusinesses({Store<AppState> store, String loggedInuserId}) async {
-  final Logger log = Logging.getLogger('Get business: ');
+  
   // log.d(loggedInuserId);
   final DatabaseService _databaseService = ProxyService.database;
 
@@ -349,15 +349,3 @@ void Function(
   };
 }
 
-void Function(
-  Store<AppState> store,
-  dynamic action,
-  NextDispatcher next,
-) _authLogin(
-  GlobalKey<NavigatorState> navigatorKey,
-) {
-  // ignore: always_specify_types
-  return (Store<AppState> store, action, next) async {
-    next(action);
-  };
-}

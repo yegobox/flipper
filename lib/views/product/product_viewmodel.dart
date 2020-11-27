@@ -120,8 +120,6 @@ class ProductsViewModel extends BaseModel {
 
   // selling a product
   void shouldSeeItemOnly(BuildContext context, Product product) {
-    final FlipperNavigationService _navigationService = ProxyService.nav;
-
     // _navigationService.navigateTo(
     //   Routing.viewSingleItem,
     //   arguments: ViewSingleItemScreenArguments(

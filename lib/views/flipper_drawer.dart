@@ -114,6 +114,10 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<DrawerViewModel>.reactive(
       viewModelBuilder: () => DrawerViewModel(),
+      onModelReady: (DrawerViewModel model){
+        model.getBranches();
+        model.getBusiness();
+      },
       builder: (BuildContext context, DrawerViewModel model, Widget child) =>
           Container(
         child: Drawer(
@@ -123,13 +127,15 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+
                 BusinessList(
-                  vm: widget.vm,
+                  model: model,
                 ),
                 Expanded(
                   child: Stack(
                     children: <Widget>[
                       Padding(
+
                         padding: const EdgeInsets.only(bottom: 45),
                         child: ListView(
                           physics: const BouncingScrollPhysics(),
