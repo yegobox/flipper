@@ -81,9 +81,7 @@ class HomeView extends StatelessWidget {
                 ),
               ],
             ),
-            drawer: FlipperDrawer(
-              vm: vm,
-            ),
+            drawer: FlipperDrawer(),
           );
         },
         onModelReady: (HomeViewModel model) {

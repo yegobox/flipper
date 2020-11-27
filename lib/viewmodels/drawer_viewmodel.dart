@@ -7,19 +7,21 @@ import 'package:flipper/model/fuser.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
-
 
 class DrawerViewModel extends ReactiveViewModel {
   final _sharedStateService = locator<SharedStateService>();
 
   FUser get user => _sharedStateService.user;
+  Business get business => _sharedStateService.business;
 
   final List<Branch> _branches = <Branch>[];
 
@@ -47,20 +49,42 @@ class DrawerViewModel extends ReactiveViewModel {
   }
 
   Future getBusiness() async {
-    final q = Query(ProxyService.database.db, 'SELECT * WHERE table=\$VALUE');
+    assert(user.id != null);
 
-    q.parameters = {'VALUE': AppTables.business};
+    final Logger log = Logging.getLogger('get business:');
+
+    // log.d(user.id);
+    final q = Query(ProxyService.database.db,
+        'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
+
+    q.parameters = {'VALUE': AppTables.business, 'USERID': user.id};
 
     q.addChangeListener((List results) {
       for (Map map in results) {
         map.forEach((key, value) {
           if (!_businesses.contains(Business.fromMap(value))) {
+            if (Business.fromMap(value).active) {
+              _sharedStateService.setBusiness(
+                  business: Business.fromMap(value));
+            }
             _businesses.add(Business.fromMap(value));
             notifyListeners();
           }
         });
       }
     });
+
+    //NOTE: in case a listner is not registered because the query has no change!
+    final results = q.execute();
+    if (results.isNotEmpty) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          if (!businesses.contains(Business.fromMap(value))) {
+            businesses.add(Business.fromMap(value));
+          }
+        });
+      }
+    }
   }
 
   Future<void> desktopLogin({BuildContext context, String code}) async {
@@ -100,4 +124,24 @@ class DrawerViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+
+  Future<void> switchBusiness(
+      {@required Business from, @required Business to}) async {
+    final Logger log = Logging.getLogger('Switch business:');
+
+    final Document fromBusiness = ProxyService.database.getById(id: from.id);
+
+    log.d(from.id);
+
+    // fromBusiness.properties['active'] = false;
+    // ProxyService.database.update(document: fromBusiness);
+
+    // final Document toBusiness =  ProxyService.database.getById(id: to.id);
+    // fromBusiness.properties['active'] = false;
+    // final k =  ProxyService.database.update(document: toBusiness);
+
+    // _sharedStateService.setBusiness(business: Business.fromMap(k.jsonProperties));
+
+    // notifyListeners();
+  }
 }

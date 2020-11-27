@@ -83,11 +83,11 @@ class SignUpViewModel extends BaseViewModel {
           userId: userId, businessName: _name.text, context: context);
 
       // create a it's branches
-     final branchId =  await createBranch(
+      final branchId = await createBranch(
           businessId: businessId, businessName: _name.text, userId: userId);
 
       await generateAppColors(userId: userId);
-      await generateAppDefaultCategory(branchId: branchId,userId:userId);
+      await generateAppDefaultCategory(branchId: branchId, userId: userId);
 
       await ProxyService.database.initialAppData();
       await ProxyService.sharedPref.setIsAppConstantsInitialized();
@@ -137,9 +137,8 @@ class SignUpViewModel extends BaseViewModel {
 
   Future<String> createBranch(
       {String userId, String businessName, String businessId}) async {
-         assert(userId!=null);
+    assert(userId != null);
 
-         
     final Map<String, dynamic> _mapBranch = {
       'active': true,
       'name': businessName,
@@ -154,16 +153,18 @@ class SignUpViewModel extends BaseViewModel {
       'updatedAt': DateTime.now().toIso8601String(),
     };
 
-   Document branch =  ProxyService.database.insert(data: _mapBranch);
-   return branch.ID;
+    final Document branch = ProxyService.database.insert(data: _mapBranch);
+    return branch.ID;
   }
 
   Future<String> createBusiness(
-      {String userId, String businessName, BuildContext context}) async {
-        assert(userId!=null);
+      {@required String userId, String businessName, BuildContext context}) async {
+    assert(userId != null);
+
+    final businessId = Uuid().v1();
     final Map<String, dynamic> _mapBusiness = {
       'active': true,
-      'id': Uuid().v1(),
+      'id': businessId,
       'categoryId': '10', //pet store a default id when signup on mobile
       'channels': [userId],
       'typeId': '1', //pet store a default id when signup on mobile
@@ -176,7 +177,6 @@ class SignUpViewModel extends BaseViewModel {
       'updatedAt': DateTime.now().toIso8601String(),
     };
 
-    final businessId = Uuid().v1();
     final Document business =
         ProxyService.database.insert(id: businessId, data: _mapBusiness);
 
@@ -220,15 +220,15 @@ class SignUpViewModel extends BaseViewModel {
     return business.ID;
   }
 
-  Future generateAppDefaultCategory({String branchId,String userId })async {
+  Future generateAppDefaultCategory({String branchId, String userId}) async {
     final id = Uuid().v1();
-     final Map<String, dynamic> category = {
+    final Map<String, dynamic> category = {
       'active': true,
       'table': AppTables.category,
       'branchId': branchId,
       'focused': true,
-      'id':id,
-      'channels':[userId],
+      'id': id,
+      'channels': [userId],
       'name': 'NONE'
     };
     ProxyService.database.insert(id: id, data: category);

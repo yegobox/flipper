@@ -1,6 +1,11 @@
-import 'package:flipper/viewmodels/base_model.dart';
+import 'package:flipper/locator.dart';
+import 'package:flipper/services/shared_state_service.dart';
+import 'package:stacked/stacked.dart';
 
-class HomeViewModel extends BaseModel {
+class HomeViewModel extends ReactiveViewModel {
+
+  final _sharedStateService = locator<SharedStateService>();
+
   int _tab;
   int get tab {
     return _tab;
@@ -26,4 +31,7 @@ class HomeViewModel extends BaseModel {
     _tab = 0;
     notifyListeners();
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
 }

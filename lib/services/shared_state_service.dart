@@ -19,7 +19,7 @@ class SharedStateService with ReactiveServiceMixin {
   }
 
   final RxValue<Branch> _branch = RxValue<Branch>(initial: null);
-  final RxValue<Business> _business = RxValue<Business>(initial: null);
+  final RxValue<Business> _businesses = RxValue<Business>(initial: null);
   final RxValue<List<PColor>> _colors = RxValue<List<PColor>>(initial: []);
   final RxValue<PColor> _currentColor = RxValue<PColor>(
       initial: PColor((p) => p
@@ -27,6 +27,7 @@ class SharedStateService with ReactiveServiceMixin {
         ..id = '1'
         ..table = 'table'
         ..isActive = false));
+
   final RxValue<ImageP> _image = RxValue<ImageP>(initial: null);
   final RxValue<Product> _product = RxValue<Product>(initial: null);
 
@@ -47,7 +48,7 @@ class SharedStateService with ReactiveServiceMixin {
 
   FUser get user => _user.value;
 
-  Business get business => _business.value;
+  Business get business => _businesses.value;
 
   Branch get branch => _branch.value;
 
@@ -61,6 +62,7 @@ class SharedStateService with ReactiveServiceMixin {
   void setProduct({Product product}) {
     _product.value = product;
   }
+
   void setUser({FUser user}) {
     _user.value = user;
   }
@@ -70,7 +72,7 @@ class SharedStateService with ReactiveServiceMixin {
   }
 
   void setBusiness({Business business}) {
-    _business.value = business;
+    _businesses.value = business;
   }
 
   void setImage({ImageP image}) {

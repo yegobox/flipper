@@ -1,31 +1,27 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/domain/redux/business/business_actions.dart';
 
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
+
 class BusinessList extends StatefulWidget {
-//  final Function(DrawerState) stateChangeCallback;
-  
-  final DrawerViewModel model;
-  // ignore: sort_constructors_first
   const BusinessList({Key key,this.model}) : super(key: key);
+
+  final DrawerViewModel model;
 
   @override
   _BusinessListState createState() => _BusinessListState();
+
 }
 
 class _BusinessListState extends State<BusinessList> {
-  bool _businessSelected = false;
-
   Container _buildFirstSectionFlipperLogo(BuildContext context) {
     return Container(
       height: _Style.firstSectionHeight,
@@ -34,16 +30,16 @@ class _BusinessListState extends State<BusinessList> {
         children: <Widget>[
           Container(
             child: Row(children: <Widget>[
-              // ..._buildSelectionHighlight(_businessSelected, Colors.white),
+              ..._buildSelectionHighlight(false, Colors.white),
               _selectableListItem(
                   userIcon: Text(widget.model.user.name.length > 2
                       ? widget.model.user.name.substring(0, 1).toUpperCase()
                       : widget.model.user.name.toUpperCase()),
-                  isSquareShape: _businessSelected,
+                  isSquareShape: false,
                   action: () {
-                    setState(() {
-                      _businessSelected = true;
-                    });
+                    // setState(() {
+                    //   _businessSelected = false;
+                    // });
                   }),
             ]),
           ),
@@ -53,8 +49,8 @@ class _BusinessListState extends State<BusinessList> {
             ),
           ),
           Container(
-            color: const Color.fromRGBO(
-                33, 127, 125, 1.0), // TODO(lonald): should app theme instead
+            color: Theme.of(context).copyWith(canvasColor: const Color.fromRGBO(
+                33, 127, 125, 1.0)).canvasColor,
             height: _Style.separatorHeight,
             width: _Style.separatorWidth,
           ),
@@ -99,6 +95,7 @@ class _BusinessListState extends State<BusinessList> {
               final Store<AppState> store = StoreProvider.of<AppState>(context);
               final bool loggedOut = await ProxyService.sharedPref.logout();
               if (loggedOut) {
+                ProxyService.database.logout();
                 store.dispatch(
                   VerifyAuthenticationState(),
                 );
@@ -112,9 +109,7 @@ class _BusinessListState extends State<BusinessList> {
   }
 
   Container _buildSecondSectionBusinessList(BuildContext context,
-      // ignore: always_specify_types
-      {onClick = true,
-      hasNotification = true,
+      {
       data}) {
     return Container(
       height: _Style.itemHeight,
@@ -122,15 +117,12 @@ class _BusinessListState extends State<BusinessList> {
         padding:
             const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
         child: _GroupButton(
-          data,
-          (Business business) {
-            StoreProvider.of<AppState>(context)
-                .dispatch(NextActiveBussiness(business));
-            StoreProvider.of<AppState>(context)
-                .dispatch(SetActiveBusiness(business));
+          business:data,
+          onPressedCircle:(Business business) {
+            widget.model.switchBusiness(from:widget.model.business,to:business);
           },
-          onClick,
-          hasNotification,
+          isActive:true,
+          hasUpdates: true,
         ),
       ),
     );
@@ -140,7 +132,7 @@ class _BusinessListState extends State<BusinessList> {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < businesses.length; i++) {
       list.add(_buildSecondSectionBusinessList(context,
-          onClick: false, data: businesses[i]));
+           data: businesses[i]));
     }
     return Expanded(
       child: Column(children: list),
@@ -166,16 +158,15 @@ class _BusinessListState extends State<BusinessList> {
 }
 
 class _GroupSettingsButton extends StatelessWidget {
-  final Image image;
-  final Function onPressed;
-
-  // ignore: sort_constructors_first
   const _GroupSettingsButton(
     this.image,
     this.onPressed, {
     Key key,
   }) : super(key: key);
 
+  final Image image;
+  final Function onPressed;
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -194,32 +185,29 @@ class _GroupSettingsButton extends StatelessWidget {
 }
 
 class _GroupButton extends StatelessWidget {
-  final Business business;
-  final Function(Business) onPressedCircle;
-  final bool isActive;
-  final bool hasUpdates;
-
-  // ignore: sort_constructors_first
   const _GroupButton(
-    this.business,
-    this.onPressedCircle,
+    {@required this.business,
+    @required this.onPressedCircle,
     this.isActive,
-    this.hasUpdates, {
+    this.hasUpdates, 
     Key key,
   })  : assert(business != null),
         assert(onPressedCircle != null),
         super(key: key);
 
+  final Business business;
+  final bool hasUpdates;
+  final bool isActive;
+
+
+  final Function(Business) onPressedCircle;
+
   @override
   Widget build(BuildContext context) {
-    final HexColor _circleColor = HexColor(
-        '#f5a623'); // TODO(richard): make this color comes from setting in v.2
+    final HexColor _circleColor = Theme.of(context).copyWith(canvasColor:HexColor(
+        '#f5a623')).canvasColor; 
     final String _groupText = business.name.substring(0, 1).toUpperCase();
 
-    if (business.active) {
-      StoreProvider.of<AppState>(context)
-          .dispatch(ActiveBusinessAction(business));
-    }
     return Container(
       child: Row(
         children: <Widget>[
@@ -315,21 +303,18 @@ List<Widget> _buildSelectionHighlight(isSelected, circleColor) {
 }
 
 class _Style {
-  static const double flipperButtonWidth = 44.0;
-
-  static const double circleHighlightWidth = 4.0;
   static const double circleHighlightBorderRadius = 10.0;
+  static const double circleHighlightWidth = 4.0;
   static const double circleUnreadIndicatorWidth = 14.0;
-
-  static const double separatorHeight = 2.0;
-  static const double separatorWidth = 48.0;
-  static const double padding = 8.0;
   static const Padding defaultPadding =
       Padding(padding: EdgeInsets.only(top: padding));
 
-  static const double itemHeight = 52.0;
   static const double firstSectionHeight = 100.0;
-  static const double thirdSectionHeight = 60.0;
+  static const double flipperButtonWidth = 44.0;
   static const double fourthSectionHeight = 180.0;
-// Sum of all sections without itemHeight
+  static const double itemHeight = 52.0;
+  static const double padding = 8.0;
+  static const double separatorHeight = 2.0;
+  static const double separatorWidth = 48.0;
+  static const double thirdSectionHeight = 60.0;
 }

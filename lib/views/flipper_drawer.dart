@@ -1,4 +1,3 @@
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 
 import 'package:flipper/services/proxy.dart';
 
@@ -14,20 +13,13 @@ import 'package:stacked/stacked.dart';
 
 import 'business/business_list.dart';
 
-class FlipperDrawer extends StatefulWidget {
-  const FlipperDrawer({Key key, this.vm}) : super(key: key);
-
-  final CommonViewModel vm;
-
-  @override
-  _FlipperDrawerState createState() => _FlipperDrawerState();
-}
-
-class _FlipperDrawerState extends State<FlipperDrawer> {
+class FlipperDrawer extends StatelessWidget {
+   FlipperDrawer({Key key}) : super(key: key);
+ 
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
   ListTile _menuListRowButton(String title,
-      {Function onPressed, int icon, bool isEnable = false}) {
+      {Function onPressed, int icon, bool isEnable = false, BuildContext context}) {
     return ListTile(
       onTap: () {
         if (onPressed != null) {
@@ -44,8 +36,8 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 size: 25,
                 iconColor: isEnable
                     ? Theme.of(context).iconTheme.color
-                    : Colors
-                        .grey, // TODO(richard): should come from Theme as it is a single source
+                    : Theme.of(context).copyWith(canvasColor:Colors
+                        .grey).canvasColor,
               ),
             ),
       title: customText(
@@ -64,7 +56,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     );
   }
 
-  Positioned _footer({DrawerViewModel drawerViewmodel}) {
+  Positioned _footer({DrawerViewModel drawerViewmodel,BuildContext context}) {
     return Positioned(
       bottom: 0,
       right: 0,
@@ -142,18 +134,24 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                           children: <Widget>[
                             _menuListRowButton('Profile',
                                 icon: AppIcon.profile,
+                                context: context,
                                 isEnable: true, onPressed: () {
                               _navigateTo('ProfilePage');
                             }),
-                            _menuListRowButton('Lists', icon: AppIcon.lists,
+                            _menuListRowButton('Lists',
+                            context: context, 
+                            icon: AppIcon.lists,
                                 onPressed: () {
                               //_navigateTo(Routing.allItemScreen);
                             }),
                             _menuListRowButton('Reports',
+                            context: context,
                                 icon: AppIcon.bookmark, onPressed: () {
                               _navigateTo(Routing.salesView);
                             }),
-                            _menuListRowButton('Items', icon: AppIcon.lists,
+                            _menuListRowButton('Items', 
+                            context: context,
+                            icon: AppIcon.lists,
                                 onPressed: () {
                               _navigationService.navigateTo(Routing.productView,
                                   arguments: ProductViewArguments(
@@ -163,26 +161,30 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             }),
                             _menuListRowButton(
                               'Payroll',
+                              context: context,
                               icon: AppIcon.moments,
                               onPressed: () {
                                 _navigateTo(Routing.contactView);
                               },
                             ),
                             _menuListRowButton('Flipper deals',
+                            context: context,
                                 icon: AppIcon.twitterAds),
                             const Divider(),
                             _menuListRowButton('Settings and privacy',
+                            context: context,
                                 isEnable: true, onPressed: () {
                               _navigateTo('SettingsAndPrivacyPage');
                             }),
-                            _menuListRowButton('Help Center'),
+                            _menuListRowButton('Help Center',context: context,),
                             const Divider(),
                             _menuListRowButton('Logout',
+                            context: context,
                                 icon: null, onPressed: _logOut, isEnable: true),
                           ],
                         ),
                       ),
-                      _footer(drawerViewmodel: model)
+                      _footer(drawerViewmodel: model,context: context,)
                     ],
                   ),
                 )

@@ -30,6 +30,7 @@ class AddProductViewmodel extends BaseModel {
   TextEditingController _nameController;
   TextEditingController _retailPriceController;
   final _sharedStateService = locator<SharedStateService>();
+  
   TextEditingController _supplierPriceController;
   final List<Unit> _units = <Unit>[];
 
@@ -150,6 +151,7 @@ class AddProductViewmodel extends BaseModel {
       final Document variant = _databaseService.getById(id: variation.id);
         
       variant.properties['name']  =variantName;
+      
       
       _databaseService.update(document: variant);
 

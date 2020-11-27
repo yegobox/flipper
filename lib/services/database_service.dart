@@ -19,7 +19,8 @@ class DatabaseService {
   List<Future> pendingListeners = [];
 
   // ignore: prefer_typing_uninitialized_variables
-  var db;
+  Database db;
+  Replicator replicator;
 
   Future login({List<String> channels}) async {
     final Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -32,7 +33,7 @@ class DatabaseService {
     final String username = DotEnv().env['USERNAME'];
     final String password = DotEnv().env['PASSWORD'];
     // 1.7.0-mobile0020
-    final Replicator replicator = Replicator(
+    replicator = Replicator(
       db,
       endpointUrl: 'ws://$gatewayUrl/main/',
       username: username,
@@ -57,10 +58,8 @@ class DatabaseService {
     return db.getMutableDocument(id);
   }
 
-  
-
-  Future<Document> update({@required Document document}) async {
-    return await db.saveDocument(document);
+  Document update({@required Document document})  {
+    return db.saveDocument(document);
   }
 
   Document insert({String id, Map data}) {
@@ -82,6 +81,13 @@ class DatabaseService {
           insert(data: {'name': mockUnits[i]['name'], 'focused': false});
         }
       }
+    }
+  }
+
+  void logout() {
+    if(db.isOpen){
+      replicator.stop();
+      db.close();
     }
   }
 }
