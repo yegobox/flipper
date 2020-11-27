@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/services/api/fake_api.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -84,10 +87,13 @@ class DatabaseService {
     }
   }
 
-  void logout() {
+  void logout({dynamic context}) {
     if(db.isOpen){
       replicator.stop();
       db.close();
+      StoreProvider.of<AppState>(context).dispatch(
+                  VerifyAuthenticationState(),
+                );
     }
   }
 }

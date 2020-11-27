@@ -15,7 +15,7 @@ import 'package:flipper/model/fuser.dart';
 class SharedStateService with ReactiveServiceMixin {
   SharedStateService() {
     listenToReactiveValues(
-        [_colors, _image, _currentColor, _product, _variations]);
+        [_colors, _image, _currentColor, _product, _variations,_businesses]);
   }
 
   final RxValue<Branch> _branch = RxValue<Branch>(initial: null);

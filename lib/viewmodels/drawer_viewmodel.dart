@@ -81,6 +81,11 @@ class DrawerViewModel extends ReactiveViewModel {
         map.forEach((key, value) {
           if (!businesses.contains(Business.fromMap(value))) {
             businesses.add(Business.fromMap(value));
+             if (Business.fromMap(value).active) {
+              _sharedStateService.setBusiness(
+                  business: Business.fromMap(value));
+            }
+            notifyListeners();
           }
         });
       }
@@ -127,21 +132,26 @@ class DrawerViewModel extends ReactiveViewModel {
 
   Future<void> switchBusiness(
       {@required Business from, @required Business to}) async {
-    final Logger log = Logging.getLogger('Switch business:');
+    final Logger log = Logging.getLogger('Switch Business:');
 
+  
     final Document fromBusiness = ProxyService.database.getById(id: from.id);
 
-    log.d(from.id);
+    if (from != to) {
+      fromBusiness.properties['active'] = false;
+      ProxyService.database.update(document: fromBusiness);
+    }
 
-    // fromBusiness.properties['active'] = false;
-    // ProxyService.database.update(document: fromBusiness);
+    final Document toBusiness = ProxyService.database.getById(id: to.id);
 
-    // final Document toBusiness =  ProxyService.database.getById(id: to.id);
-    // fromBusiness.properties['active'] = false;
-    // final k =  ProxyService.database.update(document: toBusiness);
+    toBusiness.properties['active'] =
+        !Business.fromMap(toBusiness.jsonProperties).active;
 
-    // _sharedStateService.setBusiness(business: Business.fromMap(k.jsonProperties));
+    final k = ProxyService.database.update(document: toBusiness);
 
-    // notifyListeners();
+    _sharedStateService.setBusiness(
+        business: Business.fromMap(k.jsonProperties));
+
+    notifyListeners();
   }
 }

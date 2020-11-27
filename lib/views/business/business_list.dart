@@ -7,22 +7,15 @@ import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:redux/redux.dart';
+// import 'package:flutter_redux/flutter_redux.dart';
+// import 'package:redux/redux.dart';
+import 'package:stacked/stacked.dart';
+// import 'package:stacked/stacked.dart';
+class BusinessList extends StatelessWidget {
+  const BusinessList({Key key}) : super(key: key);
 
 
-class BusinessList extends StatefulWidget {
-  const BusinessList({Key key,this.model}) : super(key: key);
-
-  final DrawerViewModel model;
-
-  @override
-  _BusinessListState createState() => _BusinessListState();
-
-}
-
-class _BusinessListState extends State<BusinessList> {
-  Container _buildFirstSectionFlipperLogo(BuildContext context) {
+  Container _buildFirstSectionFlipperLogo({@required DrawerViewModel model,BuildContext context}) {
     return Container(
       height: _Style.firstSectionHeight,
       child: Column(
@@ -32,9 +25,9 @@ class _BusinessListState extends State<BusinessList> {
             child: Row(children: <Widget>[
               ..._buildSelectionHighlight(false, Colors.white),
               _selectableListItem(
-                  userIcon: Text(widget.model.user.name.length > 2
-                      ? widget.model.user.name.substring(0, 1).toUpperCase()
-                      : widget.model.user.name.toUpperCase()),
+                  userIcon: Text(model.user.name.length > 2
+                      ? model.user.name.substring(0, 1).toUpperCase()
+                      : model.user.name.toUpperCase()),
                   isSquareShape: false,
                   action: () {
                     // setState(() {
@@ -59,7 +52,7 @@ class _BusinessListState extends State<BusinessList> {
     );
   }
 
-  Container _buildThirdSection(BuildContext context) {
+  Container _buildThirdSection({@required DrawerViewModel model}) {
     return Container(
         height: _Style.thirdSectionHeight,
         child: Column(
@@ -68,7 +61,7 @@ class _BusinessListState extends State<BusinessList> {
             _GroupSettingsButton(
                 Image.asset('assets/graphics/drawer/create_topic.png'), () {
               // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
-              if (widget.model.businesses.length >= 3) {
+              if (model.businesses.length >= 3) {
                 // TODO(richard): show a toast here that we can not create additional business...
                 return;
               }
@@ -92,13 +85,9 @@ class _BusinessListState extends State<BusinessList> {
             () async {
               // _openUserAccount(context);
               // TODO(richard): change the icon should be icon of logout.
-              final Store<AppState> store = StoreProvider.of<AppState>(context);
               final bool loggedOut = await ProxyService.sharedPref.logout();
               if (loggedOut) {
-                ProxyService.database.logout();
-                store.dispatch(
-                  VerifyAuthenticationState(),
-                );
+                ProxyService.database.logout(context:context);
               }
             },
           ),
@@ -108,18 +97,18 @@ class _BusinessListState extends State<BusinessList> {
     );
   }
 
-  Container _buildSecondSectionBusinessList(BuildContext context,
-      {
-      data}) {
+  Container _buildSecondSectionBusinessList({@required DrawerViewModel model, BuildContext context,
+      
+    Business  business}) {
     return Container(
       height: _Style.itemHeight,
       child: Padding(
         padding:
             const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
         child: _GroupButton(
-          business:data,
+          business:business,
           onPressedCircle:(Business business) {
-            widget.model.switchBusiness(from:widget.model.business,to:business);
+            model.switchBusiness(from:model.business,to:business);
           },
           isActive:true,
           hasUpdates: true,
@@ -128,11 +117,11 @@ class _BusinessListState extends State<BusinessList> {
     );
   }
 
-  Widget getRenderableBusinessList(List<Business> businesses) {
+  Widget getRenderableBusinessList({List<Business> businesses, BuildContext context, DrawerViewModel model}) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < businesses.length; i++) {
-      list.add(_buildSecondSectionBusinessList(context,
-           data: businesses[i]));
+      list.add(_buildSecondSectionBusinessList(context:context, model:model,
+           business: businesses[i]));
     }
     return Expanded(
       child: Column(children: list),
@@ -141,19 +130,26 @@ class _BusinessListState extends State<BusinessList> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ViewModelBuilder.reactive(builder: (BuildContext context,DrawerViewModel model, Widget child){
+      return Container(
       color: HexColor('#130f1f'),
       child: Column(
         children: <Widget>[
-          _buildFirstSectionFlipperLogo(context),
+          _buildFirstSectionFlipperLogo(context:context, model: model),
 
-          getRenderableBusinessList(widget.model.businesses),
+          getRenderableBusinessList(businesses:model.businesses,context: context, model: model),
           //setting on click set highlight on side.
-          _buildThirdSection(context),
+          _buildThirdSection(model: model),
           _buildFourthSection(context)
         ],
       ),
     );
+    }, 
+    onModelReady:(DrawerViewModel model){
+      model.getBusiness();
+      model.getBranches();
+    },
+    viewModelBuilder: ()=> DrawerViewModel());
   }
 }
 
@@ -211,7 +207,7 @@ class _GroupButton extends StatelessWidget {
     return Container(
       child: Row(
         children: <Widget>[
-          ..._buildSelectionHighlight(business.active, _circleColor),
+          ..._buildSelectionHighlight(business.active, Colors.green),
           _selectableListItem(
             color: _circleColor,
             text: _groupText,

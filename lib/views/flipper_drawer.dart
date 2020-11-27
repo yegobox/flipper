@@ -7,6 +7,7 @@ import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
+
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -104,12 +105,8 @@ class FlipperDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<DrawerViewModel>.reactive(
+    return ViewModelBuilder<DrawerViewModel>.nonReactive(
       viewModelBuilder: () => DrawerViewModel(),
-      onModelReady: (DrawerViewModel model){
-        model.getBranches();
-        model.getBusiness();
-      },
       builder: (BuildContext context, DrawerViewModel model, Widget child) =>
           Container(
         child: Drawer(
@@ -120,9 +117,7 @@ class FlipperDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
 
-                BusinessList(
-                  model: model,
-                ),
+                const BusinessList(),
                 Expanded(
                   child: Stack(
                     children: <Widget>[
