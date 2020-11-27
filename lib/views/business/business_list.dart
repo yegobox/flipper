@@ -26,7 +26,7 @@ class BusinessList extends StatelessWidget {
               ..._buildSelectionHighlight(false, Colors.white),
               _selectableListItem(
                   userIcon: Text(model.user.name.length > 2
-                      ? model.user.name.substring(0, 1).toUpperCase()
+                      ? model.user.name.substring(0, 3).toUpperCase()
                       : model.user.name.toUpperCase()),
                   isSquareShape: false,
                   action: () {
@@ -106,7 +106,7 @@ class BusinessList extends StatelessWidget {
         padding:
             const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
         child: _GroupButton(
-          business:business,
+          business:model.business,
           onPressedCircle:(Business business) {
             model.switchBusiness(from:model.business,to:business);
           },
