@@ -17,8 +17,9 @@ import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:stacked/stacked.dart';
 
-class AddProductViewmodel extends BaseModel {
+class AddProductViewmodel extends ReactiveViewModel {
   Category _category;
   String _colorName;
   // ignore: unused_field
@@ -152,7 +153,7 @@ class AddProductViewmodel extends BaseModel {
         
       variant.properties['name']  =variantName;
       
-      
+
       _databaseService.update(document: variant);
 
       stock.properties['retailPrice'] = retailPrice;
@@ -303,4 +304,9 @@ class AddProductViewmodel extends BaseModel {
     _databaseService.update(document: unitDoc);
     notifyListeners();
   }
+
+  
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
 }

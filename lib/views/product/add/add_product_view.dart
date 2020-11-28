@@ -34,7 +34,7 @@ class AddProductView extends StatelessWidget {
             TextEditingController(), TextEditingController());
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
-        if (model.busy || model.product == null) {
+        if ( model.product == null) {
           //NOTE: fix this problem
           return const SizedBox.shrink();
         }

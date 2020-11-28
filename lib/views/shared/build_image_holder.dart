@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/views/shared/close_button.dart';
-import 'package:flipper/widget/atoms/color.dart';
+
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -23,7 +24,13 @@ class ImagePlaceHolderView extends StatelessWidget {
               _navigationService.navigateTo(Routing.editItemTitle);
             },
             child: !model.product.hasPicture
-                ? const ReactiveColor()
+                ? Container(
+                    height: 80,
+                    width: 80,
+                    color: model.currentColor != null
+                        ? HexColor(model.currentColor.name)
+                        : HexColor('#ee5253'),
+                  )
                 : model.product.isImageLocal
                     ? Stack(
                         children: <Widget>[

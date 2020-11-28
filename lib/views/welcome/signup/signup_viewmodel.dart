@@ -97,9 +97,7 @@ class SignUpViewModel extends BaseViewModel {
   }
 
   Future<void> generateAppColors({String userId}) async {
-    final bool isAppConstantsInitialized =
-        await ProxyService.sharedPref.isAppConstantsInitialized();
-    if (!isAppConstantsInitialized) {
+    
       final List<String> colors = [
         '#d63031',
         '#0984e3',
@@ -123,7 +121,6 @@ class SignUpViewModel extends BaseViewModel {
           'table': AppTables.color
         });
       }
-    }
   }
 
   void initFields(

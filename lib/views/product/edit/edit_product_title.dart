@@ -16,6 +16,7 @@ class EditItemTitle extends StatelessWidget {
 
   final Logger log = Logging.getLogger('Add Product:');
   
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<EditProductViewModel>.reactive(builder: (BuildContext context,EditProductViewModel model, Widget child){
@@ -172,6 +173,7 @@ class EditItemTitle extends StatelessWidget {
     }, 
     onModelReady: (EditProductViewModel model){
       model.observeColors();
+      
     },
     viewModelBuilder: ()=>EditProductViewModel ());
   }

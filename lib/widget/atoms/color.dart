@@ -10,19 +10,14 @@ import 'package:flipper/views/welcome/home/common_view_model.dart';
 class ReactiveColor extends StatelessWidget {
   const ReactiveColor({Key key}) : super(key: key);
 
+
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, CommonViewModel>(
       distinct: true,
       converter: CommonViewModel.fromStore,
       builder: (BuildContext context, CommonViewModel vm) {
-        return Container(
-          height: 80,
-          width: 80,
-          color: vm.currentColor != null
-              ? HexColor(vm.currentColor.name)
-              : HexColor('#ee5253'),
-        );
+        return ;
       },
     );
   }

@@ -23,20 +23,26 @@ import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
-class EditProductViewModel extends BaseViewModel {
-  final _sharedStateService = locator<SharedStateService>();
+
+class EditProductViewModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('Edit Color:');
 
-  List<PColor> get colors => _sharedStateService.colors;
-  ImageP get image => _sharedStateService.image;
   PColor _currentColor;
+  final DatabaseService _databaseService = ProxyService.database;
+  final _sharedStateService = locator<SharedStateService>();
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+
+  List<PColor> get colors => _sharedStateService.colors;
+
+  ImageP get image => _sharedStateService.image;
+
   PColor get currentColor {
     return _currentColor;
   }
 
   Product get product => _sharedStateService.product;
-
-  final DatabaseService _databaseService = ProxyService.database;
 
   Future takePicture({BuildContext context}) async {
     final File image = await ImagePicker.pickImage(source: ImageSource.camera);
@@ -189,8 +195,7 @@ class EditProductViewModel extends BaseViewModel {
   }
 
   void observeColors() {
-    setBusy(true);
-
+    
     final List<PColor> colors = [];
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
@@ -205,15 +210,30 @@ class EditProductViewModel extends BaseViewModel {
         });
         _sharedStateService.setColors(colors: colors);
 
-        setBusy(false);
         notifyListeners();
       }
     });
+
+    //NOTE: in case a listner is not registered because the query has no change!
+    final results = q.execute();
+    if (results.isNotEmpty) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          if (!colors.contains(PColor.fromMap(value))) {
+            if (PColor.fromMap(value).isActive) {
+              _sharedStateService.setCurrentColor(color: PColor.fromMap(value));
+            }
+            colors.add(PColor.fromMap(value));
+            notifyListeners();
+          }
+        });
+      }
+    }
   }
 
   void switchColor({PColor color, @required BuildContext context}) async {
     //reset all other color to not selected
-    log.d(colors.length);
+    
     setBusy(true);
     for (var y = 0; y < 8; y++) { //we know color lenght is 8, using colors.lenght was giving dups!
       //set all other color to active false then set one to active.
@@ -225,9 +245,10 @@ class EditProductViewModel extends BaseViewModel {
     final Document _colordoc = _databaseService.getById(id: color.id);
 
     _colordoc.properties['isActive'] = true;
+    
     _databaseService.update(document: _colordoc);
 
-    _sharedStateService.setCurrentColor(color: color, context: context);
+    _sharedStateService.setCurrentColor(color: color);
 
     _currentColor = color;
 

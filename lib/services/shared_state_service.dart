@@ -4,12 +4,9 @@ import 'package:flipper/model/image.dart';
 import 'package:flipper/model/pcolor.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/model/variation.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flutter/material.dart';
-import 'package:flipper/domain/app_actions.dart'; //the entire app action no more actions! since we may reject redux fully!
+//the entire app action no more actions! since we may reject redux fully!
 import 'package:flipper/model/fuser.dart';
 
 class SharedStateService with ReactiveServiceMixin {
@@ -53,10 +50,8 @@ class SharedStateService with ReactiveServiceMixin {
   Branch get branch => _branch.value;
 
   // setters
-  void setCurrentColor({PColor color,@required BuildContext context}) {
+  void setCurrentColor({PColor color}) {
     _currentColor.value = color;
-    
-    StoreProvider.of<AppState>(context).dispatch(CurrentColor(color:color));
   }
 
   void setProduct({Product product}) {
