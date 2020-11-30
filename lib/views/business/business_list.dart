@@ -187,7 +187,7 @@ class _GroupButton extends StatelessWidget {
     this.isActive,
     this.hasUpdates, 
     Key key,
-  })  : assert(business != null),
+  })  : 
         assert(onPressedCircle != null),
         super(key: key);
 
@@ -202,7 +202,7 @@ class _GroupButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final HexColor _circleColor = Theme.of(context).copyWith(canvasColor:HexColor(
         '#f5a623')).canvasColor; 
-    final String _groupText = business.name.substring(0, 1).toUpperCase();
+    final String _groupText = business?.name?.substring(0, 1)?.toUpperCase();
 
     return Container(
       child: Row(

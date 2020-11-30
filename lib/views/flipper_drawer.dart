@@ -1,4 +1,3 @@
-
 import 'package:flipper/services/proxy.dart';
 
 import 'package:flipper/routes/router.gr.dart';
@@ -15,12 +14,15 @@ import 'package:stacked/stacked.dart';
 import 'business/business_list.dart';
 
 class FlipperDrawer extends StatelessWidget {
-   FlipperDrawer({Key key}) : super(key: key);
- 
+  FlipperDrawer({Key key}) : super(key: key);
+
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
   ListTile _menuListRowButton(String title,
-      {Function onPressed, int icon, bool isEnable = false, BuildContext context}) {
+      {Function onPressed,
+      int icon,
+      bool isEnable = false,
+      BuildContext context}) {
     return ListTile(
       onTap: () {
         if (onPressed != null) {
@@ -37,8 +39,9 @@ class FlipperDrawer extends StatelessWidget {
                 size: 25,
                 iconColor: isEnable
                     ? Theme.of(context).iconTheme.color
-                    : Theme.of(context).copyWith(canvasColor:Colors
-                        .grey).canvasColor,
+                    : Theme.of(context)
+                        .copyWith(canvasColor: Colors.grey)
+                        .canvasColor,
               ),
             ),
       title: customText(
@@ -57,7 +60,7 @@ class FlipperDrawer extends StatelessWidget {
     );
   }
 
-  Positioned _footer({DrawerViewModel drawerViewmodel,BuildContext context}) {
+  Positioned _footer({DrawerViewModel drawerViewmodel, BuildContext context}) {
     return Positioned(
       bottom: 0,
       right: 0,
@@ -107,6 +110,10 @@ class FlipperDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<DrawerViewModel>.nonReactive(
       viewModelBuilder: () => DrawerViewModel(),
+      onModelReady: (DrawerViewModel model) {
+        model.getBusiness();
+        model.getBranches();
+      },
       builder: (BuildContext context, DrawerViewModel model, Widget child) =>
           Container(
         child: Drawer(
@@ -116,13 +123,11 @@ class FlipperDrawer extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-
                 const BusinessList(),
                 Expanded(
                   child: Stack(
                     children: <Widget>[
                       Padding(
-
                         padding: const EdgeInsets.only(bottom: 45),
                         child: ListView(
                           physics: const BouncingScrollPhysics(),
@@ -134,20 +139,18 @@ class FlipperDrawer extends StatelessWidget {
                               _navigateTo('ProfilePage');
                             }),
                             _menuListRowButton('Lists',
-                            context: context, 
-                            icon: AppIcon.lists,
-                                onPressed: () {
+                                context: context,
+                                icon: AppIcon.lists, onPressed: () {
                               //_navigateTo(Routing.allItemScreen);
                             }),
                             _menuListRowButton('Reports',
-                            context: context,
+                                context: context,
                                 icon: AppIcon.bookmark, onPressed: () {
                               _navigateTo(Routing.salesView);
                             }),
-                            _menuListRowButton('Items', 
-                            context: context,
-                            icon: AppIcon.lists,
-                                onPressed: () {
+                            _menuListRowButton('Items',
+                                context: context,
+                                icon: AppIcon.lists, onPressed: () {
                               _navigationService.navigateTo(Routing.productView,
                                   arguments: ProductViewArguments(
                                       items: true,
@@ -163,24 +166,30 @@ class FlipperDrawer extends StatelessWidget {
                               },
                             ),
                             _menuListRowButton('Flipper deals',
-                            context: context,
-                                icon: AppIcon.twitterAds),
+                                context: context, icon: AppIcon.twitterAds),
                             const Divider(),
                             _menuListRowButton('Settings and privacy',
-                            context: context,
+                                context: context,
                                 isEnable: true, onPressed: () {
                               _navigateTo(Routing.settingsView);
                             }),
-                            
-                            _menuListRowButton('Help Center',context: context,),
+                            _menuListRowButton(
+                              'Help Center',
+                              context: context,
+                            ),
                             const Divider(),
                             _menuListRowButton('Logout',
-                            context: context,
-                                icon: null, onPressed: _logOut, isEnable: true),
+                                context: context,
+                                icon: null,
+                                onPressed: _logOut,
+                                isEnable: true),
                           ],
                         ),
                       ),
-                      _footer(drawerViewmodel: model,context: context,)
+                      _footer(
+                        drawerViewmodel: model,
+                        context: context,
+                      )
                     ],
                   ),
                 )

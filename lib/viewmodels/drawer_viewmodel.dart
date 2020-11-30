@@ -81,10 +81,10 @@ class DrawerViewModel extends ReactiveViewModel {
         map.forEach((key, value) {
           if (!businesses.contains(Business.fromMap(value))) {
             businesses.add(Business.fromMap(value));
-             if (Business.fromMap(value).active) {
+            
               _sharedStateService.setBusiness(
                   business: Business.fromMap(value));
-            }
+            
             notifyListeners();
           }
         });
