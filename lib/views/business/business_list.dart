@@ -1,5 +1,3 @@
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
@@ -131,6 +129,7 @@ class BusinessList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(builder: (BuildContext context,DrawerViewModel model, Widget child){
+      
       return Container(
       color: HexColor('#130f1f'),
       child: Column(
@@ -207,7 +206,7 @@ class _GroupButton extends StatelessWidget {
     return Container(
       child: Row(
         children: <Widget>[
-          ..._buildSelectionHighlight(business.active, Colors.green),
+          ..._buildSelectionHighlight(business?.active, Colors.green),
           _selectableListItem(
             color: _circleColor,
             text: _groupText,

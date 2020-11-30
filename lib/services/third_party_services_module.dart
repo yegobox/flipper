@@ -9,7 +9,7 @@ import 'package:flipper/services/shared_preference_service.dart';
 import 'package:flipper/services/shared_state_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
-
+import 'package:flipper/services/bluethooth_service.dart';
 import 'abstractions/api.dart';
 import 'analytics_service.dart';
 import 'api/fake_api.dart';
@@ -63,8 +63,8 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   DatabaseService get databaseService;
 
-  // @lazySingleton
-  // BlueToothService get blueToothService;
+  @lazySingleton
+  BlueToothService get blueToothService;
 
   @lazySingleton
   MailService get mailService;
