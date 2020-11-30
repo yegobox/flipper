@@ -13,6 +13,7 @@ import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
 import 'package:flipper/views/product/widget/product_description.dart';
 import 'package:flipper/views/reports/build_sales_View.dart';
+import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/unit/add_unit_view.dart';
 import 'package:flipper/views/unit/edit_unit_view.dart';
@@ -136,6 +137,9 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   OtpPage otpPage;
+
+  @MaterialRoute(fullscreenDialog: true)
+  SettingsView settingsView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

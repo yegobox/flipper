@@ -30,6 +30,7 @@ class AddProductView extends StatelessWidget {
       onModelReady: (AddProductViewmodel model) {
         model.getTemporalProduct(context: context);
 
+
         model.initFields(TextEditingController(), TextEditingController(),
             TextEditingController(), TextEditingController());
       },
@@ -75,6 +76,7 @@ class AddProductView extends StatelessWidget {
                         child: TextFormField(
                           style: Theme.of(context)
                               .textTheme
+                              
                               .bodyText1
                               .copyWith(color: Colors.black),
                           controller: model.nameController,

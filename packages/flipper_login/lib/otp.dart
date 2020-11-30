@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart' as Auth;
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
@@ -158,8 +160,10 @@ class _OtpPageState extends State<OtpPage> {
                                   await auth.signInWithCredential(credential);
                                   final Auth.User currentUser =
                                       auth.currentUser;
-
+                                  final _analytics = locator<AnalyticsService>();
+                                  
                                   if (currentUser != null) {
+                                  
                                     final http.Response response = await http
                                         .post('https://flipper.rw/open-login',
                                             body: {
@@ -171,7 +175,6 @@ class _OtpPageState extends State<OtpPage> {
                                           'Accept': 'application/json'
                                         });
 
-print(response.body);
                                     final LoginResponse loginResponse =
                                         loginResponseFromJson(response.body);
                                     final Store<AppState> store =
@@ -192,7 +195,9 @@ print(response.body);
                                         ..name = loginResponse.name,
                                     );
                                     store.dispatch(WithUser(user: user));
-
+                                      _analytics.setUserProperties(userId:loginResponse.id.toString(),userRole:'Adamin');
+                                      _analytics.logLogin();
+                                      
                                     final loggedInUserId = await ProxyService
                                         .sharedPref
                                         .getUserId();

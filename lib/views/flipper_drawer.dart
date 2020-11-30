@@ -169,8 +169,9 @@ class FlipperDrawer extends StatelessWidget {
                             _menuListRowButton('Settings and privacy',
                             context: context,
                                 isEnable: true, onPressed: () {
-                              _navigateTo('SettingsAndPrivacyPage');
+                              _navigateTo(Routing.settingsView);
                             }),
+                            
                             _menuListRowButton('Help Center',context: context,),
                             const Divider(),
                             _menuListRowButton('Logout',

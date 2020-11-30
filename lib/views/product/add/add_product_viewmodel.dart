@@ -14,7 +14,6 @@ import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
@@ -31,7 +30,7 @@ class AddProductViewmodel extends ReactiveViewModel {
   TextEditingController _nameController;
   TextEditingController _retailPriceController;
   final _sharedStateService = locator<SharedStateService>();
-  
+
   TextEditingController _supplierPriceController;
   final List<Unit> _units = <Unit>[];
 
@@ -51,6 +50,15 @@ class AddProductViewmodel extends ReactiveViewModel {
   bool get isLocked {
     return _isLocked;
   }
+
+   int _test;
+    int get test{
+      return _test;
+    }
+    void tee(){
+      _test++;
+      notifyListeners() ;
+    }
 
   TextEditingController get supplierPriceController {
     return _supplierPriceController;
@@ -103,37 +111,23 @@ class AddProductViewmodel extends ReactiveViewModel {
   }
 
   Future<void> handleCreateItem() async {
+
+    assert(product!=null);
+    assert(category!=null);
+
     await updateProduct(
-      productId: product.id, //productId
+      productId: product
+          .id, //to make life easy we make a regular variant have the same id as product
       categoryId: category == null ? '10' : category.id,
     );
-
-    final variations = Query(_databaseService.db,
-        'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
-
-    variations.parameters = {
-      'VALUE': AppTables.variation,
-      'PRODUCTID': product.id
-    };
-
-    final variationsResults = variations.execute();
-
-    if (variationsResults.isNotEmpty) {
-      for (Map map in variationsResults) {
-        map.forEach((key, value) {
-          final Document variation =
-              _databaseService.getById(id: Variation.fromMap(value).id);
-
-          updateVariation(
-            variation: Variation.fromMap(variation.jsonProperties),
-            supplyPrice: double.parse(supplierPriceController.text),
-            variantName: 'Regular',
-            retailPrice: double.parse(retailPriceController.text),
-          );
-        });
-        notifyListeners();
-      }
-    }
+    // we look for a regular variant which is always have id=to productID and updated it with pricing.
+    final Document variation = _databaseService.getById(id: product.id);
+    updateVariation(
+      variation: Variation.fromMap(variation.jsonProperties),
+      supplyPrice: double.parse(supplierPriceController.text),
+      variantName: 'Regular',
+      retailPrice: double.parse(retailPriceController.text),
+    );
 
     _nameController.text = ''; //this will reset button to disabled
 
@@ -150,22 +144,20 @@ class AddProductViewmodel extends ReactiveViewModel {
       final Document stock = _databaseService.getById(id: variation.id);
 
       final Document variant = _databaseService.getById(id: variation.id);
-        
-      variant.properties['name']  =variantName;
-      
+
+      variant.properties['name'] = variantName;
 
       _databaseService.update(document: variant);
 
       stock.properties['retailPrice'] = retailPrice;
       stock.properties['supplyPrice'] = supplyPrice;
-      
+
       _databaseService.update(document: stock);
     }
   }
 
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
-
     final Document product = _databaseService.getById(id: productId);
     assert(product != null);
     product.properties['name'] = nameController.text;
@@ -203,28 +195,27 @@ class AddProductViewmodel extends ReactiveViewModel {
     _description = description;
   }
 
- 
   // once full refacored
   // ignore: always_specify_types
   Future getTemporalProduct({BuildContext context, CommonViewModel vm}) async {
     setBusy(true);
-    
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    q.parameters = {'VALUE': AppTables.product,'NAME':'tmp'};
+    final q = Query(
+        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+
+    q.parameters = {'VALUE': AppTables.product, 'NAME': 'tmp'};
 
     final products = q.execute();
 
     if (products.isNotEmpty) {
-   
       for (Map map in products) {
-        map.forEach((key,value){
-           _sharedStateService.setProduct(product: Product.fromMap(value));
+        map.forEach((key, value) {
+          _sharedStateService.setProduct(product: Product.fromMap(value));
         });
         notifyListeners();
       }
     }
-    
+
     setBusy(false);
     notifyListeners();
   }
@@ -240,14 +231,12 @@ class AddProductViewmodel extends ReactiveViewModel {
 
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
-    q.parameters = {'VALUE':  AppTables.unit};
-    
-    q.addChangeListener((List results) {
-   
-       for (Map map in results) {
+    q.parameters = {'VALUE': AppTables.unit};
 
-        map.forEach((key,value){
-           _units.add(Unit.fromMap(value));
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          _units.add(Unit.fromMap(value));
         });
         notifyListeners();
       }
@@ -256,17 +245,17 @@ class AddProductViewmodel extends ReactiveViewModel {
 
   void updateProductWithCurrentUnit({Unit unit}) async {
     //NOTE: we update product variation not actual product as the unit is associated with variation.
-   
-     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$productId');
 
-    q.parameters = {'VALUE': AppTables.variation,'productId':product.id};
+    final q = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND productId=\$productId');
+
+    q.parameters = {'VALUE': AppTables.variation, 'productId': product.id};
 
     final variants = q.execute();
 
     if (variants.isNotEmpty) {
-   
       for (Map map in variants) {
-        map.forEach((key,value){
+        map.forEach((key, value) {
           //  _sharedStateService.setProduct(product: Product.fromMap(value));
         });
         notifyListeners();
@@ -279,7 +268,7 @@ class AddProductViewmodel extends ReactiveViewModel {
     //       _databaseService.getById(id: variation.id);
 
     //   variationDocument.properties['unit']    =unit.name;
-      
+
     //   _databaseService.update(document: variationDocument);
     // }
   }
@@ -299,13 +288,11 @@ class AddProductViewmodel extends ReactiveViewModel {
     }
     _focusedUnit = unit;
     final Document unitDoc = _databaseService.getById(id: unit.id);
-    
+
     unitDoc.properties['focused'] = false;
     _databaseService.update(document: unitDoc);
     notifyListeners();
   }
-
-  
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];

@@ -13,7 +13,9 @@ import 'package:flipper/viewmodels/base_model.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
+
 import 'package:flipper/services/shared_state_service.dart';
+
 
 class AddProductModalViewModal extends BaseModel {
   final Logger log = Logging.getLogger('Add Product:');
@@ -69,7 +71,6 @@ class AddProductModalViewModal extends BaseModel {
     final taxResults = gettax.execute();
     final productResults = product.execute();
     if (productResults.isEmpty) {
-      log.i('product id nabuze:');
       if (taxResults.isNotEmpty) {
         for (Map map in taxResults) {
           map.forEach((key, value) {
@@ -97,8 +98,9 @@ class AddProductModalViewModal extends BaseModel {
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      final id2 = Uuid().v1();
-      final Document variant = _databaseService.insert(id: id2, data: {
+      // we make productDoc.ID equal to variation.ID on regular variant to make it easy to update the regular variant
+      // otherwise other variant should have independent ID to avoid mixeup
+      final Document variant = _databaseService.insert(id: productDoc.ID, data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
@@ -106,7 +108,7 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.variation,
         'productId': productDoc.ID,
         'sku': Uuid().v1().substring(0, 4),
-        'id': id2,
+        'id': productDoc.ID,
         'createdAt': DateTime.now().toIso8601String(),
       });
 

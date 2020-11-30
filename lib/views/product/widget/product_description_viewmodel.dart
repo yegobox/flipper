@@ -20,6 +20,7 @@ class ProductDescriptionViewmodel extends BaseViewModel {
     return _paramsDefault;
   }
 
+
   double _checked =0;
   double get checked {
     return _checked;

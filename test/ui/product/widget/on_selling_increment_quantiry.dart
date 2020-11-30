@@ -12,7 +12,6 @@ void main() {
         expect(model.quantity, 2.0);
       });
 
-
       test('decreaseQty', () {
         final model = ProductDescriptionViewmodel();
         model.decreaseQty();

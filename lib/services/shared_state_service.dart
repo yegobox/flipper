@@ -12,7 +12,7 @@ import 'package:flipper/model/fuser.dart';
 class SharedStateService with ReactiveServiceMixin {
   SharedStateService() {
     listenToReactiveValues(
-        [_colors, _image, _currentColor, _product, _variations,_businesses]);
+        [_colors, _image, _currentColor, _product, _variations,_businesses,_blueConnected,_bluethoothDevices]);
   }
 
   final RxValue<Branch> _branch = RxValue<Branch>(initial: null);
@@ -81,4 +81,23 @@ class SharedStateService with ReactiveServiceMixin {
   void setVariations({List<Variation> variations}) {
     _variations.value = variations;
   }
+
+  final RxValue<bool> _blueConnected = RxValue<bool>(initial: false);
+
+  final RxValue<List<dynamic>> _bluethoothDevices = RxValue<List<dynamic>>(initial: null);
+
+
+   bool get blueConnected => _blueConnected.value;
+
+   List<dynamic> get bluethioothDevices => _bluethoothDevices.value;
+
+  // setters
+  void setBluethoothConnected({bool connected}) {
+    _blueConnected.value = connected;
+  }
+
+  void setBluethoothDevices({List<dynamic> devices}) {
+    _bluethoothDevices.value = devices;
+  }
+
 }
