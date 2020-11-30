@@ -14,28 +14,49 @@ import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flutter/material.dart';
+
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 
 class AddProductViewmodel extends ReactiveViewModel {
+  final Logger log = Logging.getLogger('add product view model:)');
+
   Category _category;
+
   String _colorName;
-  // ignore: unused_field
+
   final DatabaseService _databaseService = ProxyService.database;
 
-  TextEditingController _description;
+  String _description;
+
   Unit _focusedUnit;
+
   bool _isLocked = true;
-  TextEditingController _nameController;
-  TextEditingController _retailPriceController;
+
+  String _name;
+
+  double _retailPriceController;
+
   final _sharedStateService = locator<SharedStateService>();
 
-  TextEditingController _supplierPriceController;
+  double _supplierPriceController;
+
+  int _test;
   final List<Unit> _units = <Unit>[];
 
-  // ignore: overridden_fields
-  final Logger log = Logging.getLogger('add product view model:)');
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+
+  // ignore: missing_return
+  String setName({String name}) {
+    _name = name;
+    notifyListeners();
+  }
+
+  void setSupplierPriceController({double price}) {
+    _supplierPriceController = price;
+    notifyListeners();
+  }
 
   List<PColor> get colors => _sharedStateService.colors;
 
@@ -45,64 +66,25 @@ class AddProductViewmodel extends ReactiveViewModel {
 
   Product get product => _sharedStateService.product;
 
-  // ActionsTableData get actions;
-
   bool get isLocked {
     return _isLocked;
   }
 
-   int _test;
-    int get test{
-      return _test;
-    }
-    void tee(){
-      _test++;
-      notifyListeners() ;
-    }
-
-  TextEditingController get supplierPriceController {
-    return _supplierPriceController;
+  int get test {
+    return _test;
   }
 
-  TextEditingController get description {
-    return _description;
+  void tee() {
+    _test++;
+    notifyListeners();
   }
 
-  TextEditingController get retailPriceController {
-    return _retailPriceController;
+  void setRetailPriceController({double price}) {
+    _retailPriceController = price;
+    notifyListeners();
   }
 
-  Future<bool> onWillPop({BuildContext context}) async {
-    return (await showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text(
-              'Are you sure?',
-              style: TextStyle(color: Colors.black),
-            ),
-            content: const Text(
-              'Do you want to exit',
-              style: TextStyle(color: Colors.black),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                onPressed: () {},
-                child: const Text('No'),
-              ),
-              FlatButton(
-                onPressed: () {
-                  onClose(context);
-                },
-                child: const Text('Yes'),
-              ),
-            ],
-          ),
-        )) ??
-        false;
-  }
-
-  // ignore: always_declare_return_types
-  onClose(BuildContext context) async {
+  void onClose() async {
     ProxyService.nav.pop();
   }
 
@@ -111,9 +93,8 @@ class AddProductViewmodel extends ReactiveViewModel {
   }
 
   Future<void> handleCreateItem() async {
-
-    assert(product!=null);
-    assert(category!=null);
+    assert(product != null);
+    assert(category != null);
 
     await updateProduct(
       productId: product
@@ -124,12 +105,10 @@ class AddProductViewmodel extends ReactiveViewModel {
     final Document variation = _databaseService.getById(id: product.id);
     updateVariation(
       variation: Variation.fromMap(variation.jsonProperties),
-      supplyPrice: double.parse(supplierPriceController.text),
+      supplyPrice: _supplierPriceController,
       variantName: 'Regular',
-      retailPrice: double.parse(retailPriceController.text),
+      retailPrice: _retailPriceController,
     );
-
-    _nameController.text = ''; //this will reset button to disabled
 
     notifyListeners();
   }
@@ -160,7 +139,7 @@ class AddProductViewmodel extends ReactiveViewModel {
       {CommonViewModel vm, String productId, String categoryId}) async {
     final Document product = _databaseService.getById(id: productId);
     assert(product != null);
-    product.properties['name'] = nameController.text;
+    product.properties['name'] = _name;
     product.properties['categoryId'] = categoryId;
     product.properties['updatedAt'] = DateTime.now().toIso8601String();
 
@@ -176,28 +155,16 @@ class AddProductViewmodel extends ReactiveViewModel {
         arguments: AddVariationScreenArguments(productId: productId));
   }
 
-  TextEditingController get nameController {
-    return _nameController;
-  }
-
   void lock() {
     // ignore: prefer_is_empty
-    log.i(_nameController.text.length);
-    _nameController.text.isEmpty ? _isLocked = true : _isLocked = false;
+    log.i(_name.length);
+    _name.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
-  }
-
-  void initFields(TextEditingController name, TextEditingController supplier,
-      TextEditingController retail, TextEditingController description) {
-    _nameController = name;
-    _supplierPriceController = supplier;
-    _retailPriceController = retail;
-    _description = description;
   }
 
   // once full refacored
   // ignore: always_specify_types
-  Future getTemporalProduct({BuildContext context, CommonViewModel vm}) async {
+  Future getTemporalProduct({CommonViewModel vm}) async {
     setBusy(true);
 
     final q = Query(
@@ -294,6 +261,8 @@ class AddProductViewmodel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+  void setDescription({String description}) {
+    _description = _description;
+    notifyListeners();
+  }
 }

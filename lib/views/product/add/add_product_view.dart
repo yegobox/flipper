@@ -22,26 +22,51 @@ import 'package:stacked/stacked.dart';
 // NOTE: this is to add a product and there related variants.
 class AddProductView extends StatelessWidget {
   const AddProductView({Key key}) : super(key: key);
+  Future<bool> _onWillPop(
+      {BuildContext context, AddProductViewmodel model}) async {
+    return (await showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text(
+              'Are you sure?',
+              style: TextStyle(color: Colors.black),
+            ),
+            content: const Text(
+              'Do you want to exit',
+              style: TextStyle(color: Colors.black),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () {},
+                child: const Text('No'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  model.onClose();
+                },
+                child: const Text('Yes'),
+              ),
+            ],
+          ),
+        )) ??
+        false;
+  }
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<AddProductViewmodel>.reactive(
       viewModelBuilder: () => AddProductViewmodel(),
       onModelReady: (AddProductViewmodel model) {
-        model.getTemporalProduct(context: context);
-
-
-        model.initFields(TextEditingController(), TextEditingController(),
-            TextEditingController(), TextEditingController());
+        model.getTemporalProduct();
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
-        if ( model.product == null) {
+        if (model.product == null) {
           //NOTE: fix this problem
           return const SizedBox.shrink();
         }
 
         return WillPopScope(
-          onWillPop: model.onWillPop,
+          onWillPop: _onWillPop,
           child: Scaffold(
             appBar: CommonAppBar(
               onPop: () {
@@ -76,12 +101,11 @@ class AddProductView extends StatelessWidget {
                         child: TextFormField(
                           style: Theme.of(context)
                               .textTheme
-                              
                               .bodyText1
                               .copyWith(color: Colors.black),
-                          controller: model.nameController,
                           validator: Validators.isValid,
                           onChanged: (String name) async {
+                            model.setName(name: name);
                             model.lock();
                           },
                           decoration: InputDecoration(

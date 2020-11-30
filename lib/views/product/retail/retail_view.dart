@@ -20,7 +20,10 @@ class _RetailViewState extends State<RetailView> {
         child: TextFormField(
           style: Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.black),
           keyboardType: TextInputType.number,
-          controller: widget.model.retailPriceController,
+          // controller: widget.model.retailPriceController,
+          onChanged: (value){
+            widget.model.setRetailPriceController(price:double.parse(value));
+          },
           decoration: InputDecoration(
             hintText: 'Retail Price',
             fillColor: Theme.of(context)
