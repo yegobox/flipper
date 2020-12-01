@@ -27,7 +27,6 @@ class SignUpView extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // ignore: always_specify_types
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, SignUpViewModel model, Widget child) {
           return Scaffold(

@@ -1,3 +1,4 @@
+
 String appFont = 'HelveticaNeuea';
 String dbName = 'main';
 // ignore: avoid_classes_with_only_static_members

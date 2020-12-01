@@ -17,7 +17,6 @@ import 'package:flipper/utils/validators.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-// import 'package:flipper/views/product/stock/stock_view.dart';
 
 // NOTE: this is to add a product and there related variants.
 class AddProductView extends StatelessWidget {

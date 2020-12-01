@@ -135,14 +135,15 @@ class SignUpViewModel extends BaseViewModel {
   Future<String> createBranch(
       {String userId, String businessName, String businessId}) async {
     assert(userId != null);
-
+    final String branchId = Uuid().v1();
     final Map<String, dynamic> _mapBranch = {
       'active': true,
       'name': businessName,
-      '_id': Uuid().v1(),
       'channels': [userId],
       'businessId': businessId,
-      'id': Uuid().v1(),
+      'id': branchId,
+      'syncedOnline':true, //we don't need  really
+      'channel':userId,//we don't need  really
       'table': AppTables.branch,
       'mapLatitude': '0.0',
       'mapLongitude': ' 0.0',
@@ -150,7 +151,7 @@ class SignUpViewModel extends BaseViewModel {
       'updatedAt': DateTime.now().toIso8601String(),
     };
 
-    final Document branch = ProxyService.database.insert(data: _mapBranch);
+    final Document branch = ProxyService.database.insert(id:branchId,data: _mapBranch);
     return branch.ID;
   }
 
