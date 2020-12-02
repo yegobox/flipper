@@ -18,8 +18,8 @@ class DashBoard extends StatefulWidget {
   _DashBoardState createState() => _DashBoardState();
 }
 
-class _DashBoardState extends State<DashBoard> with SingleTickerProviderStateMixin {
-
+class _DashBoardState extends State<DashBoard>
+    with SingleTickerProviderStateMixin {
   ValueNotifier<bool> _sideOpenController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Animation<double> _fadeAnimation;
@@ -28,12 +28,13 @@ class _DashBoardState extends State<DashBoard> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-     _setupAnimation();
+    _setupAnimation();
     _sideOpenController = ValueNotifier<bool>(false);
   }
 
   void _setupAnimation() {
-    _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _fadeController =
+        AnimationController(duration: const Duration(milliseconds: 300));
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_fadeController);
     _fadeController.forward(from: 1);
   }
@@ -59,12 +60,13 @@ class _DashBoardState extends State<DashBoard> with SingleTickerProviderStateMix
             converter: CommonViewModel.fromStore,
             // ignore: missing_return
             builder: (BuildContext context, CommonViewModel vm) {
-              if (vm.user!= null) {
+              if (vm.user != null) {
                 final Scaffold we = Scaffold(
                   backgroundColor: Colors.black,
                   key: _scaffoldKey,
-                  body: FadeTransition(opacity:_fadeAnimation,
-                                      child: SlideOutScreen(
+                  body: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideOutScreen(
                       main: SwitchView(
                         sideOpenController: _sideOpenController,
                         vm: vm,
@@ -92,5 +94,4 @@ class _DashBoardState extends State<DashBoard> with SingleTickerProviderStateMix
       ),
     );
   }
-  
 }

@@ -45,7 +45,6 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
       curve: Curves.fastOutSlowIn,
     ));
     _controller = AnimationController(
-      vsync: this,
       duration: Duration(milliseconds: 500),
     );
     _position = _controller.drive(_tween);
@@ -110,9 +109,7 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                               child: Text(
                                 'Busines: Branch',
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                    .textTheme
-                    .headline5,
+                                style: Theme.of(context).textTheme.headline5,
                               )),
                         ),
                       ],
@@ -120,9 +117,7 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                     Text(
                       'Flipper: ${widget._vm.inAppNotification.message}',
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                    .textTheme
-                    .headline5,
+                      style: Theme.of(context).textTheme.headline5,
                     )
                   ],
                 ),
