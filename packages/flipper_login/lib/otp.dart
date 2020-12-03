@@ -160,10 +160,10 @@ class _OtpPageState extends State<OtpPage> {
                                   await auth.signInWithCredential(credential);
                                   final Auth.User currentUser =
                                       auth.currentUser;
-                                  final _analytics = locator<AnalyticsService>();
-                                  
+                                  final _analytics =
+                                      locator<AnalyticsService>();
+
                                   if (currentUser != null) {
-                                  
                                     final http.Response response = await http
                                         .post('https://flipper.rw/open-login',
                                             body: {
@@ -186,7 +186,7 @@ class _OtpPageState extends State<OtpPage> {
                                         ..email = loginResponse.email
                                         ..active = true
                                         ..id = loginResponse.id.toString()
-                                        ..userId =  loginResponse.id.toString()
+                                        ..userId = loginResponse.id.toString()
                                         ..createdAt =
                                             DateTime.now().toIso8601String()
                                         ..updatedAt =
@@ -195,9 +195,11 @@ class _OtpPageState extends State<OtpPage> {
                                         ..name = loginResponse.name,
                                     );
                                     store.dispatch(WithUser(user: user));
-                                      _analytics.setUserProperties(userId:loginResponse.id.toString(),userRole:'Adamin');
-                                      _analytics.logLogin();
-                                      
+                                    _analytics.setUserProperties(
+                                        userId: loginResponse.id.toString(),
+                                        userRole: 'Adamin');
+                                    _analytics.logLogin();
+
                                     final loggedInUserId = await ProxyService
                                         .sharedPref
                                         .getUserId();
@@ -217,8 +219,10 @@ class _OtpPageState extends State<OtpPage> {
                                         bool userInCouch = false;
                                         for (Map map in user) {
                                           map.forEach((key, value) {
-                                            if (value.containsKey('userId') && FUser.fromMap(value).userId ==
-                                                loginResponse.id.toString()) {
+                                            if (value.containsKey('userId') &&
+                                                FUser.fromMap(value).userId ==
+                                                    loginResponse.id
+                                                        .toString()) {
                                               userInCouch = true;
                                               ProxyService.sharedPref
                                                   .setUserLoggedIn(
@@ -236,17 +240,20 @@ class _OtpPageState extends State<OtpPage> {
                                           proxyService.loading.add(false);
                                           return;
                                         } else {
-                                          ProxyService.database.insert(data: {
-                                            'name': loginResponse.name,
-                                            'email': loginResponse.email,
-                                            'token': loginResponse.token,
-                                            'table': AppTables.user,
-                                            'userId':
-                                                loginResponse.id.toString(),
-                                            'expiresAt':
-                                                loginResponse.expiresAt,
-                                            'id': loginResponse.id.toString(),
-                                          });
+                                          ProxyService.database.insert(
+                                              id: loginResponse.id.toString(),
+                                              data: {
+                                                'name': loginResponse.name,
+                                                'email': loginResponse.email,
+                                                'token': loginResponse.token,
+                                                'table': AppTables.user,
+                                                'userId':
+                                                    loginResponse.id.toString(),
+                                                'expiresAt':
+                                                    loginResponse.expiresAt,
+                                                'id':
+                                                    loginResponse.id.toString(),
+                                              });
                                           ProxyService.sharedPref
                                               .setUserLoggedIn(
                                                   userId: loginResponse.id

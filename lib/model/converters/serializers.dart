@@ -1,4 +1,3 @@
-
 library serializers;
 
 import 'package:built_collection/built_collection.dart';
@@ -22,7 +21,6 @@ import 'package:flipper/model/variation.dart';
 
 import 'int_to_string_serializer.dart';
 
-
 part 'serializers.g.dart';
 
 /// Example of how to use built_value serialization.
@@ -36,16 +34,31 @@ part 'serializers.g.dart';
 /// types needed transitively via fields.
 ///
 /// You usually only need to do this once per project.
-@SerializersFor([Switcher,Unit, Category,Stock,Tax,Product,Business,Branch,Order,Variation,FUser,PColor])
+@SerializersFor([
+  Switcher,
+  Unit,
+  Category,
+  Stock,
+  Tax,
+  Product,
+  Business,
+  Branch,
+  Order,
+  Variation,
+  FUser,
+  PColor
+])
 Serializers serializers = _$serializers;
 
 Serializers standardSerializers = (serializers.toBuilder()
-        ..addBuilderFactory(  // add this builder factory
+      ..addBuilderFactory(
+          // add this builder factory
           const FullType(BuiltList, [FullType(String)]),
-          () =>  ListBuilder<String>()) //if I want to return a list of business for example I will add it here like that
+          () => ListBuilder<
+              String>()) //if I want to return a list of business for example I will add it here like that
       ..addPlugin(StandardJsonPlugin())
       ..add(Iso8601DateTimeSerializer())
       ..add(StringSerializer()) //convert anything that comes as int to string.
-     
+
       ..add(BooleanSerializer()))
     .build();

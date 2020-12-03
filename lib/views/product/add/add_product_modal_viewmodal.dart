@@ -13,9 +13,7 @@ import 'package:flipper/viewmodels/base_model.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
-
 import 'package:flipper/services/shared_state_service.dart';
-
 
 class AddProductModalViewModal extends BaseModel {
   final Logger log = Logging.getLogger('Add Product:');
@@ -39,8 +37,9 @@ class AddProductModalViewModal extends BaseModel {
 
   // this is a product to edit later on and add variation on it.
   Future createTemporalProduct({String productName, String userId}) async {
-    log.i('adding product' + _sharedStateService.business.id);
     final DatabaseService _databaseService = ProxyService.database;
+
+    assert(_sharedStateService.branch.id != null);
 
     final q = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
@@ -63,12 +62,12 @@ class AddProductModalViewModal extends BaseModel {
 
     product.parameters = {'VALUE': AppTables.product, 'NAME': productName};
 
-    final gettax = Query(
+    final getTax = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-    gettax.parameters = {'VALUE': AppTables.tax, 'NAME': 'Vat'};
+    getTax.parameters = {'VALUE': AppTables.tax, 'NAME': 'Vat'};
 
-    final taxResults = gettax.execute();
+    final taxResults = getTax.execute();
     final productResults = product.execute();
     if (productResults.isEmpty) {
       if (taxResults.isNotEmpty) {
@@ -88,27 +87,31 @@ class AddProductModalViewModal extends BaseModel {
         'id': id1,
         'active': true,
         'hasPicture': false,
-        'channels': <String>[userId],
+        'channels': [userId],
         'table': AppTables.product,
         'isCurrentUpdate': false,
         'isDraft': true,
         'taxId': _taxId,
         'businessId': _sharedStateService.business.id,
+        'branchId': _sharedStateService.branch.id,
         'description': productName,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
       // we make productDoc.ID equal to variation.ID on regular variant to make it easy to update the regular variant
       // otherwise other variant should have independent ID to avoid mixeup
-      final Document variant = _databaseService.insert(id: productDoc.ID, data: {
+      final id2 = Uuid().v1();
+      final Document variant = _databaseService.insert(id: id2, data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
-        'channels': <String>[userId],
+        'channels': [userId],
         'table': AppTables.variation,
         'productId': productDoc.ID,
         'sku': Uuid().v1().substring(0, 4),
-        'id': productDoc.ID,
+        'id': id2,
+        'userId': userId,
+        'productName': productName,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
@@ -137,7 +140,6 @@ class AddProductModalViewModal extends BaseModel {
         'id': id4
       });
       log.d('productId:' + productDoc.ID);
-      print('product id nabuze:' + productDoc.ID);
       return productDoc.ID;
     } else {
       for (Map map in productResults) {

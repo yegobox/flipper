@@ -33,8 +33,8 @@ class _DashBoardState extends State<DashBoard>
   }
 
   void _setupAnimation() {
-    _fadeController =
-        AnimationController(duration: const Duration(milliseconds: 300));
+    _fadeController = AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this);
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_fadeController);
     _fadeController.forward(from: 1);
   }

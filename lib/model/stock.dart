@@ -10,9 +10,11 @@ import 'converters/serializers.dart';
 part 'stock.g.dart';
 
 abstract class Stock implements Built<Stock, StockBuilder> {
+  @nullable
   String get value;
   String get id;
   String get branchId;
+
   String get variantId;
 
   @nullable

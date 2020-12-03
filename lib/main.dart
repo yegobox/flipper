@@ -34,6 +34,7 @@ Future<void> main() async {
   if (isInDebugMode) {
     // enableFlipper();
   }
+  //
   Logger.level = isInDebugMode ? Level.verbose : Level.info;
   // Set `enableInDevMode` to true to see reports while in debug mode
   // This is only to be used for confirming that reports are being
@@ -46,6 +47,7 @@ Future<void> main() async {
     // Crashlytics.instance.log("{\"test\":\"this is a json error\"}");
     await Crashlytics.instance.recordFlutterError(e);
   };
+//
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(

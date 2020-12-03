@@ -1,31 +1,30 @@
-
 String appFont = 'HelveticaNeuea';
 String dbName = 'main';
+
 // ignore: avoid_classes_with_only_static_members
-class AppTables{
+class AppTables {
   //table name used to query couchbase_lite data
   static const String business = 'businesses';
   static const String branch = 'branches';
   static const String tax = 'taxes';
   static const String category = 'categories';
   static const String variation = 'variants';
-  static const String product = 'products'; 
-  static const String order = 'orders';  
-  static const String branchProduct = 'branchProducts'; 
-  static const String unit = 'units'; 
-  static const String stock = 'stock';
-  static const String switchi = 'switchers'; 
+  static const String product = 'products';
+  static const String order = 'orders';
+  static const String branchProduct = 'branchProducts';
+  static const String unit = 'units';
+  static const String stock = 'stocks';
+  static const String switchi = 'switchers';
   static const String drawerHistory = 'drawerHistories';
 
-  static const String cart ='cart'; 
-  static const String color ='colors';
+  static const String cart = 'cart';
+  static const String color = 'colors';
 
-  static const String user ='users';
-
+  static const String user = 'users';
 }
 
 // ignore: avoid_classes_with_only_static_members
-class AppIcon{
+class AppIcon {
   static const int fabTweet = 0xf029;
   static const int messageEmpty = 0xf187;
   static const int messageFill = 0xf554;
@@ -63,7 +62,7 @@ class AppIcon{
   static const int twitterAds = 0xf504;
   static const int bulb = 0xf567;
   static const int newMessage = 0xf035;
-  
+
   static const int sadFace = 0xf430;
   static const int bulbOn = 0xf066;
   static const int bulbOff = 0xf567;
@@ -72,6 +71,4 @@ class AppIcon{
   static const int calender = 0xf203;
   static const int locationPin = 0xf031;
   static const int edit = 0xf112;
-
-  
 }

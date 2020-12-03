@@ -18,9 +18,6 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
   Iterable<Object> serialize(Serializers serializers, Stock object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'value',
-      serializers.serialize(object.value,
-          specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
       'branchId',
@@ -52,6 +49,12 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
+    if (object.value != null) {
+      result
+        ..add('value')
+        ..add(serializers.serialize(object.value,
+            specifiedType: const FullType(String)));
+    }
     if (object.isActive != null) {
       result
         ..add('isActive')
@@ -185,9 +188,6 @@ class _$Stock extends Stock {
       this.channels,
       this.table})
       : super._() {
-    if (value == null) {
-      throw new BuiltValueNullFieldError('Stock', 'value');
-    }
     if (id == null) {
       throw new BuiltValueNullFieldError('Stock', 'id');
     }

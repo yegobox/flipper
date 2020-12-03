@@ -94,7 +94,8 @@ class AddProductViewmodel extends ReactiveViewModel {
 
   Future<void> handleCreateItem() async {
     assert(product != null);
-    assert(category != null);
+    // assert(category != null);
+    assert(_name != null);
 
     await updateProduct(
       productId: product

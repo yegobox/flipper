@@ -120,7 +120,7 @@ class ProductView extends StatelessWidget {
                   Expanded(
                     flex: 1,
                     child: Row(children: [
-                      const Expanded(
+                       Expanded(
                           child: Icon(FontAwesome.chevron_right, size: 20)),
                     ]),
                   ),

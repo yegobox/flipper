@@ -58,9 +58,13 @@ class StockViewModel extends BaseModel {
       q.addChangeListener((List results) {
         for (Map map in results) {
           map.forEach((key, value) {
-            _stocks.add(Stock.fromMap(value));
+            if (!_stocks.contains(Stock.fromMap(value))) {
+              log.d(value);
+              _stocks.add(Stock.fromMap(value));
+              notifyListeners();
+            }
           });
-          notifyListeners();
+
         }
       });
     }

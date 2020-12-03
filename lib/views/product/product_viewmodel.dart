@@ -1,30 +1,33 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:flipper/locator.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/product.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:flipper/routes/router.gr.dart';
+import 'package:stacked/stacked.dart';
 
-class ProductsViewModel extends BaseModel {
+class ProductsViewModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('product observer:)');
+  final _sharedState = locator<SharedStateService>();
+
 
   String _branchId;
   String _businessId;
   final DatabaseService _databaseService = ProxyService.database;
-  
+
   final List<Product> _products = <Product>[];
 
   List<Product> get products => _products;
 
   Future<bool> isCategory({String branchId}) async {
-
     final q = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
@@ -57,8 +60,8 @@ class ProductsViewModel extends BaseModel {
       // ignore: unnecessary_type_check
       for (Map map in brancheResult) {
         map.forEach((key, value) {
-          if(!branches.contains(Branch.fromMap(value))){
-             branches.add(Branch.fromMap(value));
+          if (!branches.contains(Branch.fromMap(value))) {
+            branches.add(Branch.fromMap(value));
           }
         });
       }
@@ -81,10 +84,9 @@ class ProductsViewModel extends BaseModel {
     if (docResults.isNotEmpty) {
       for (Map map in docResults) {
         map.forEach((key, value) {
-          if(!businesses.contains(Business.fromMap(value))){
-             businesses.add(Business.fromMap(value));
+          if (!businesses.contains(Business.fromMap(value))) {
+            businesses.add(Business.fromMap(value));
           }
-         
         });
       }
     }
@@ -99,18 +101,18 @@ class ProductsViewModel extends BaseModel {
   }
 
   void getProducts({BuildContext context}) {
+    assert(_sharedState.branch.id != null);
 
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
-
-    q.parameters = {'VALUE': AppTables.product};
+    final q = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND branchId=\$BID');
+    q.parameters = {'VALUE': AppTables.product, 'BID': _sharedState.branch.id};
 
     q.addChangeListener((List results) {
       for (Map map in results) {
-        
         map.forEach((key, value) {
-          if(!_products.contains(Product.fromMap(value))){
-             _products.add(Product.fromMap(value));
-             notifyListeners();
+          if (!_products.contains(Product.fromMap(value))) {
+            _products.add(Product.fromMap(value));
+            notifyListeners();
           }
         });
       }
@@ -136,4 +138,8 @@ class ProductsViewModel extends BaseModel {
   void navigateTo({@required String path}) {
     ProxyService.nav.navigateTo(path);
   }
+
+  @override
+  // TODO: implement reactiveServices
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
 }

@@ -63,7 +63,6 @@ class AddProductView extends StatelessWidget {
           //NOTE: fix this problem
           return const SizedBox.shrink();
         }
-
         return WillPopScope(
           onWillPop: _onWillPop,
           child: Scaffold(
@@ -148,7 +147,7 @@ class AddProductView extends StatelessWidget {
                       width: double.infinity,
                     ),
                     RetailPrice(
-                      models: model, //add productmodel
+                      models: model, //add product model
                     ),
                     const CenterDivider(
                       width: double.infinity,
