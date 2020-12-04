@@ -109,39 +109,45 @@ class _LoginState extends State<Login> {
         Stack(
           children: [
             _loading
-                ? SizedBox(
-                    width: 380,
-                    height: 60,
-                    child: RaisedButton(
-                      color: Colors.blue,
-                      onPressed: () {},
-                      child: Loading(
-                        indicator: BallPulseIndicator(),
-                        size: 50.0,
-                        color: Colors.white,
+                ? Padding(
+                  padding: const EdgeInsets.only(left:8.0,right: 8.0),
+                  child: SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: RaisedButton(
+                        color: Colors.blue,
+                        onPressed: () {},
+                        child: Loading(
+                          indicator: BallPulseIndicator(),
+                          size: 50.0,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  )
-                : SizedBox(
-                    width: 380,
-                    height: 60,
-                    child: RaisedButton(
-                      color: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5.0),
-                          side: const BorderSide(
-                            color: Colors.blue,
-                          )),
-                      padding: const EdgeInsets.all(0.0),
-                      onPressed: () {
-                        auth.verifyPhone(context, number.text);
-                      },
-                      child: const Text(
-                        'Verify',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                )
+                : Padding(
+                  padding: const EdgeInsets.only(left:8.0,right: 8.0),
+                  child: SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: RaisedButton(
+                        color: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                            side: const BorderSide(
+                              color: Colors.blue,
+                            )),
+                        padding: const EdgeInsets.all(0.0),
+                        onPressed: () {
+                          auth.verifyPhone(context, number.text.replaceAll(RegExp(r'\s+\b|\b\s'), ''));
+                        },
+                        child: const Text(
+                          'Verify',
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
                       ),
                     ),
-                  )
+                )
           ],
         ),
       ]),
