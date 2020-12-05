@@ -96,7 +96,6 @@ class AddProductViewmodel extends ReactiveViewModel {
     assert(product != null);
     // assert(category != null);
     assert(_name != null);
-
     await updateProduct(
       productId: product
           .id, //to make life easy we make a regular variant have the same id as product
@@ -141,6 +140,7 @@ class AddProductViewmodel extends ReactiveViewModel {
     final Document product = _databaseService.getById(id: productId);
     assert(product != null);
     product.properties['name'] = _name;
+    product.properties['isDraft'] = false;
     product.properties['categoryId'] = categoryId;
     product.properties['updatedAt'] = DateTime.now().toIso8601String();
 

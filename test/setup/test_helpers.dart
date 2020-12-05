@@ -1,8 +1,10 @@
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/locator.dart';
+import 'package:flipper/model/business.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/shared_preference_service.dart';
+import 'package:flipper/services/shared_state_service.dart';
 import 'package:mockito/mockito.dart';
 
 
@@ -10,6 +12,8 @@ import 'package:mockito/mockito.dart';
 
 class SharedPreferenceServiceMock extends Mock
     implements SharedPreferenceService {}
+
+    class ShareStateServiceMock extends Mock implements SharedStateService{}
 
 // class NavigationServiceMock extends Mock implements NavigationService {}
 
@@ -19,10 +23,10 @@ SharedPreferenceService getAndRegisterSharedPreferencesMock(
     {bool hasUser = true}) {
   _removeRegistrationIfExists<SharedPreferenceService>();
   final service = SharedPreferenceServiceMock();
-
+  final _state = ShareStateServiceMock();
   // stubbing
   when(service.isAppConstantsInitialized()).thenAnswer( (_) async => true);
-
+  when(_state.business).thenAnswer((_)=>Business.fromMap({'name':'richie'}));
   locator.registerSingleton<SharedPreferenceService>(service);
   return service;
 }
