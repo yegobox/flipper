@@ -49,6 +49,7 @@ class DatabaseService {
       print('Replicator status: ' + status.activityLevel.toString());
     });
     replicator.continuous = true;
+    replicator.replicatorType = ReplicatorType.pushAndPull;
     if(channels!=null){
       log.d(channels);
       replicator.channels = channels;

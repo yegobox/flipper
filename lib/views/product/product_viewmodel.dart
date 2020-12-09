@@ -102,10 +102,10 @@ class ProductsViewModel extends ReactiveViewModel {
   void getProducts({BuildContext context}) {
     assert(_sharedState.branch.id != null);
 
+    log.d(_sharedState.branch.id);
     final q = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BID');
-
-    // FIXME: it seems like when I log in with different number I can still see the product of other business branch
+    
     q.parameters = {'VALUE': AppTables.product, 'BID': _sharedState.branch.id};
 
     q.addChangeListener((List results) {
