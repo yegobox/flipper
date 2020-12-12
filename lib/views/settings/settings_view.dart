@@ -11,7 +11,7 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder:
-            (BuildContext context, BlueThoothViewModel model, Widget child) {
+            (BuildContext context, BlueToothViewModel model, Widget child) {
           return Scaffold(
             appBar: CommonAppBar(
               onPop: () {
@@ -83,6 +83,6 @@ class SettingsView extends StatelessWidget {
             ),
           );
         },
-        viewModelBuilder: () => BlueThoothViewModel());
+        viewModelBuilder: () => BlueToothViewModel());
   }
 }

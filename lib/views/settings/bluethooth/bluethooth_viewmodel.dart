@@ -6,22 +6,22 @@ import 'package:stacked/stacked.dart';
 import 'package:bluetooth_thermal_printer/bluetooth_thermal_printer.dart';
 
 
-class BlueThoothViewModel extends ReactiveViewModel{
+class BlueToothViewModel extends ReactiveViewModel{
    final state = locator<SharedStateService>();
 
   final blue = locator<BlueToothService>();
   
    Future<void> getBluetooth() async {
-    final List bluetooths = await BluetoothThermalPrinter.getBluetooths;
-    print('Print $bluetooths');
-      state.setBluethoothDevices(devices:bluetooths);
+    final List bluetooth = await BluetoothThermalPrinter.getBluetooths;
+    print('Print $bluetooth');
+      state.setBluethoothDevices(devices:bluetooth);
     notifyListeners();
   }
 
   Future<void> setConnect(String mac) async {
     print(mac);
     final String result = await BluetoothThermalPrinter.connect(mac);
-    print('state conneected $result');
+    print('state connected $result');
     if (result == 'true') {
         state.setBluethoothConnected(connected:true);
     }else{

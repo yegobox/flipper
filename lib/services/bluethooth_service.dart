@@ -3,6 +3,8 @@ import 'dart:async';
 
 import 'package:bluetooth_thermal_printer/bluetooth_thermal_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:flipper/locator.dart';
+import 'package:flipper/services/shared_state_service.dart';
 
 
 
@@ -11,6 +13,7 @@ class BlueToothService {
   
   // BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   // final Logger log = Logging.getLogger('Bluetooth service ....');
+  final state = locator<SharedStateService>();
 
   Future<void> printTicket() async {
     final String isConnected = await BluetoothThermalPrinter.connectionStatus;
@@ -53,7 +56,7 @@ class BlueToothService {
    Future<Ticket> getTicket() async {
     final CapabilityProfile profile = await CapabilityProfile.load();
     final Ticket ticket = Ticket(PaperSize.mm80, profile);
-    ticket.text('Demo Shop',
+    ticket.text(state.business.name,
         styles: const PosStyles(
           align: PosAlign.center,
           height: PosTextSize.size2,
@@ -61,107 +64,8 @@ class BlueToothService {
         ),
         linesAfter: 1);
 
-    ticket.text(
-        '18th Main Road, 2nd Phase, J. P. Nagar, Bengaluru, Karnataka 560078',
+    ticket.text(state.user.name, //(this is a phone number)
         styles: const PosStyles(align: PosAlign.center));
-    ticket.text('Tel: +919591708470',
-        styles: const PosStyles(align: PosAlign.center));
-
-    ticket.hr();
-    ticket.row([
-      PosColumn(
-          text: 'No',
-          width: 1,
-          styles: const PosStyles(align: PosAlign.left, bold: true)),
-      PosColumn(
-          text: 'Item',
-          width: 5,
-          styles: const PosStyles(align: PosAlign.left, bold: true)),
-      PosColumn(
-          text: 'Price',
-          width: 2,
-          styles: const PosStyles(align: PosAlign.center, bold: true)),
-      PosColumn(
-          text: 'Qty',
-          width: 2,
-          styles: const PosStyles(align: PosAlign.center, bold: true)),
-      PosColumn(
-          text: 'Total',
-          width: 2,
-          styles: const PosStyles(align: PosAlign.right, bold: true)),
-    ]);
-
-    ticket.row([
-      PosColumn(text: '1', width: 1),
-      PosColumn(
-          text: 'Tea',
-          width: 5,
-          styles: const PosStyles(
-            align: PosAlign.left,
-          )),
-      PosColumn(
-          text: '10',
-          width: 2,
-          styles: const PosStyles(
-            align: PosAlign.center,
-          )),
-      PosColumn(text: '1', width: 2, styles: const PosStyles(align: PosAlign.center)),
-      PosColumn(text: '10', width: 2, styles: const PosStyles(align: PosAlign.right)),
-    ]);
-
-    ticket.row([
-      PosColumn(text: '2', width: 1),
-      PosColumn(
-          text: 'Sada Dosa',
-          width: 5,
-          styles: const PosStyles(
-            align: PosAlign.left,
-          )),
-      PosColumn(
-          text: '30',
-          width: 2,
-          styles: const PosStyles(
-            align: PosAlign.center,
-          )),
-      PosColumn(text: '1', width: 2, styles: const PosStyles(align: PosAlign.center)),
-      PosColumn(text: '30', width: 2, styles: const PosStyles(align: PosAlign.right)),
-    ]);
-
-    ticket.row([
-      PosColumn(text: '3', width: 1),
-      PosColumn(
-          text: 'Masala Dosa',
-          width: 5,
-          styles: const PosStyles(
-            align: PosAlign.left,
-          )),
-      PosColumn(
-          text: '50',
-          width: 2,
-          styles: const PosStyles(
-            align: PosAlign.center,
-          )),
-      PosColumn(text: '1', width: 2, styles: const PosStyles(align: PosAlign.center)),
-      PosColumn(text: '50', width: 2, styles: const PosStyles(align: PosAlign.right)),
-    ]);
-
-    ticket.row([
-      PosColumn(text: '4', width: 1),
-      PosColumn(
-          text: 'Rova Dosa',
-          width: 5,
-          styles: const PosStyles(
-            align: PosAlign.left,
-          )),
-      PosColumn(
-          text: '70',
-          width: 2,
-          styles: const PosStyles(
-            align: PosAlign.center,
-          )),
-      PosColumn(text: '1', width: 2, styles: const PosStyles(align: PosAlign.center)),
-      PosColumn(text: '70', width: 2, styles: const PosStyles(align: PosAlign.right)),
-    ]);
 
     ticket.hr();
 
@@ -184,13 +88,15 @@ class BlueToothService {
           )),
     ]);
 
-    ticket.hr(ch: '=', linesAfter: 1);
+    // ticket.hr(ch: '=', linesAfter: 1);
 
+    final DateTime now = DateTime.now();
+    final DateTime date =  DateTime(now.year, now.month, now.day,now.hour,now.minute,now.second);
     // ticket.feed(2);
     ticket.text('Thank you!',
         styles: const PosStyles(align: PosAlign.center, bold: true));
 
-    ticket.text('26-11-2020 15:22:45',
+    ticket.text(date.toLocal().toString(),
         styles: const PosStyles(align: PosAlign.center), linesAfter: 1);
 
     ticket.text('Note: Goods once sold will not be taken back or exchanged.',
