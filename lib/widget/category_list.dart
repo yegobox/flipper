@@ -24,18 +24,12 @@ class CategoryList extends StatelessWidget {
         list.add(
           GestureDetector(
             onTap: () {
-              // for (int y = 0; y < categories.length; y++) {
-              //   // vm.database.categoryDao
-              //   //     .updateCategory(categories[y].copyWith(focused: false));
-              // }
-              // vm.database.categoryDao.updateCategory(
-              //     categories[i].copyWith(focused: !categories[i].focused));
               model.updateCategory(
-                  category: categories[i].name.toString(),
-                  id: categories[i].id.toString());
+                  categoryId: categories[i].id.toString());
             },
             child: SingleChildScrollView(
               child: ListTile(
+
                 title: Text(
                   categories[i].name,
                   style: const TextStyle(color: Colors.black),
@@ -45,10 +39,11 @@ class CategoryList extends StatelessWidget {
                   activeColor: Theme.of(context)
                       .copyWith(canvasColor: HexColor('#2996CC'))
                       .canvasColor,
-                  // toggleable: true,
-                  // autofocus: true,
-                  groupValue: model.sharedStateService.user.id,
-                  onChanged: (Object value) {},
+                  //This radio button is considered selected if its value matches the groupValue.
+                  groupValue: categories[i].id,
+                  onChanged: (Object value) {
+                    model.highlight(value);
+                  },
                 ),
               ),
             ),

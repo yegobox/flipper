@@ -59,27 +59,28 @@ class CategoryViewModel extends BaseModel {
 
   // selection
   Future<void> updateCategory(
-      {@required String category, @required String id}) async {
+      {@required String categoryId}) async {
     //NOTE updating a value  based on select// this may load to more information  // Need  update other category different to id parsedto fix it
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BRANCHID');
 
-    q.parameters = {'VALUE': AppTables.category};
+    q.parameters = {'VALUE': AppTables.category,'BRANCHID':sharedStateService.branch.id};
 
     q.addChangeListener((List results) {
       for (Map map in results) {
         map.forEach((key, value) {
+
           if (!_category.contains(Category.fromMap(value))) {
             _category.add(Category.fromMap(value));
           }
           for (int i = 0; i < _category.length; i++) {
-            print(_category[i].id);
-            if (_category[i].id == id) {
+
+            if (_category[i].id == categoryId) {
               final Document categories =
                   _databaseService.getById(id: _category[i].id);
 
               assert(categories != null);
               categories.properties['name'] = _category[i].name;
-              categories.properties['focused'] = true;
+              categories.properties['focused'] = !_category[i].focused;
 
               _databaseService.update(document: categories);
               notifyListeners();
@@ -99,5 +100,9 @@ class CategoryViewModel extends BaseModel {
     });
 
     notifyListeners();
+  }
+
+  void highlight(Object value) {
+    log.d(value);
   }
 }
