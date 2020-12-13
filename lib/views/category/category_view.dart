@@ -24,10 +24,10 @@ class CategoryView extends StatelessWidget {
                     leading: const Text('Category'),
                     trailing: Wrap(
                       children: <Widget>[
-                        model.data == null
+                        model.categories == null
                             ? const Text('Select Category')
                             : CategorySelector(
-                                categories: model.data,
+                                categories: model.categories,
                               ),
                         Theme(
                             data: ThemeData(

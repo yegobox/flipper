@@ -7,7 +7,7 @@ import 'package:bluetooth_thermal_printer/bluetooth_thermal_printer.dart';
 
 
 class BlueToothViewModel extends ReactiveViewModel{
-   final state = locator<SharedStateService>();
+  final state = locator<SharedStateService>();
 
   final blue = locator<BlueToothService>();
   

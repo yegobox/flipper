@@ -138,7 +138,6 @@ class AddProductView extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const CenterDivider(
                       width: double.infinity,
                     ),

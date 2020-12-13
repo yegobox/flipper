@@ -14,13 +14,8 @@ class CategorySelector extends StatelessWidget {
       return const SizedBox.shrink();
     }
     for (Category category in categories) {
-      if (category.focused && category.name!='NONE') {
-        text = Text(category.name);
-        StoreProvider.of<AppState>(context).dispatch(
-          CategoryAction(
-            category: category,
-          ),
-        );
+      if (category.focused) {
+        text = Text(category.name,style: Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.black),);
         return text;
       } else {
         text = const Text('Select Category');

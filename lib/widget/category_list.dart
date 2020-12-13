@@ -1,4 +1,4 @@
-import 'package:flipper/viewmodels/main_viewmodel.dart';
+
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/utils/HexColor.dart';
@@ -47,7 +47,7 @@ class CategoryList extends StatelessWidget {
                       .canvasColor,
                   // toggleable: true,
                   // autofocus: true,
-                  groupValue: model.myid,
+                  groupValue: model.sharedStateService.user.id,
                   onChanged: (Object value) {},
                 ),
               ),

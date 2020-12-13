@@ -121,7 +121,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                     ),
                   ),
                 ),
-                _getCategoriesWidgets(model.data)
+                _getCategoriesWidgets(model.categories)
               ],
             ),
           );

@@ -1,5 +1,5 @@
 import 'package:flipper/model/product.dart';
-import 'package:flipper/views/product/product_viewmodel.dart';
+import 'package:flipper/views/product/products_viewmodel.dart';
 import 'package:flipper/views/product/widget/build_product_list.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';

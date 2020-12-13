@@ -1,8 +1,8 @@
-import 'package:flipper/views/product/product_list_view_model.dart';
+
 import 'package:flipper/widget/search/search_view.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'products_viewmodel.dart';
 class ProductListView extends StatelessWidget {
   const ProductListView({Key key}) : super(key: key);
 

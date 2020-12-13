@@ -79,7 +79,7 @@ class AddProductModalViewModal extends BaseModel {
         }
       }
       final id1 = Uuid().v1();
-      log.d(userId);
+
       final Document productDoc = _databaseService.insert(id: id1, data: {
         'name': productName,
         'categoryId': category.id,

@@ -2,6 +2,8 @@
   <dictionary name="Sone">
     <words>
       <w>bluethooth</w>
+      <w>branchid</w>
+      <w>nameis</w>
       <w>redux</w>
       <w>telesphore</w>
       <w>viewmodel</w>

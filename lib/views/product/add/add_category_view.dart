@@ -55,7 +55,7 @@ class AddCategoryView extends StatelessWidget {
                   ),
                 ),
                 CategoryList(
-                  categories: model.data,
+                  categories: model.categories,
                 ),
               ],
             ),
