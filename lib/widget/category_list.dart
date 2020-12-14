@@ -42,7 +42,6 @@ class CategoryList extends StatelessWidget {
                   //This radio button is considered selected if its value matches the groupValue.
                   groupValue: categories[i].focused==true? categories[i].id:0,
                   onChanged: (Object value) {
-                    model.highlight(value);
                   },
                 ),
               ),

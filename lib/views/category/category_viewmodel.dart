@@ -17,6 +17,8 @@ class CategoryViewModel extends BaseModel {
   final Logger log = Logging.getLogger('category observer:)');
   final DatabaseService _databaseService = ProxyService.database;
   final List<Category> _category = [];
+  Category _focusedCategory;
+  Category get focusedCategory => _focusedCategory;
   final sharedStateService = locator<SharedStateService>();
   List<Category> get categories => _category;
 
@@ -40,6 +42,9 @@ class CategoryViewModel extends BaseModel {
                 //the object was in the list so no need to re-add it twice we need to change the object in list first
                 _category.removeWhere((item) => item.id == _category[i].id);
               }
+            }
+            if(Category.fromMap(value).focused){
+              _focusedCategory = Category.fromMap(value);
             }
             _category.add(Category.fromMap(value));
             notifyListeners();
@@ -69,6 +74,15 @@ class CategoryViewModel extends BaseModel {
   Future<void> updateCategory(
       {@required Category category}) async {
 
+    //remove focus from previous focused category
+    final prevCategory = _databaseService.getById(id: _focusedCategory.id);
+    assert(prevCategory !=null);
+    prevCategory.properties['focused'] = false;
+
+    _databaseService.update(document: prevCategory);
+    //done updating previous selected category
+
+    //then update the current category to select
     final Document getCategory =
     _databaseService.getById(id: category.id);
 
@@ -79,9 +93,5 @@ class CategoryViewModel extends BaseModel {
     _databaseService.update(document: getCategory);
 
     notifyListeners();
-  }
-
-  void highlight(Object value) {
-    log.d(value);
   }
 }
