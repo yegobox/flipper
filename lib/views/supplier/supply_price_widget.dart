@@ -25,7 +25,7 @@ class SupplyPrice extends StatelessWidget {
                     child: TextFormField(
                       // controller: addModel.supplierPriceController,
                       onChanged: (value){
-                        addModel.setRetailPriceController(price:double.parse(value));
+                        addModel.setSupplierPriceController(price:double.parse(value));
                       },
                       style: Theme.of(context)
                           .textTheme

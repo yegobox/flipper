@@ -154,7 +154,13 @@ class AddProductView extends StatelessWidget {
                     SupplyPrice(
                       addModel: model,
                     ),
-
+                    const Padding(
+                      padding:  EdgeInsets.only(left: 18, right: 18),
+                      child: ListTile(
+                        leading: Text('Stock'),
+                        trailing: Text('Add Stock',style:TextStyle(color:Colors.blue)),
+                      ),
+                    ),
                     const SkuView(),
                     const ListDivider(
                       height: 10,

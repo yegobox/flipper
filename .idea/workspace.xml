@@ -22,8 +22,10 @@
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/database_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/database_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/category_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_modal_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_modal_viewmodal.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/supplier/supply_price_widget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/supplier/supply_price_widget.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -129,38 +131,38 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1607769342851" />
-    <state width="1491" height="237" key="GridCell.Tab.0.bottom" timestamp="1607935286724">
+    <state width="1491" height="236" key="GridCell.Tab.0.bottom" timestamp="1607966782342">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1607935286724" />
-    <state width="1491" height="237" key="GridCell.Tab.0.center" timestamp="1607935286724">
+    <state width="1491" height="236" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1607966782342" />
+    <state width="1491" height="236" key="GridCell.Tab.0.center" timestamp="1607966782342">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1607935286724" />
-    <state width="1491" height="237" key="GridCell.Tab.0.left" timestamp="1607935286724">
+    <state width="1491" height="236" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1607966782342" />
+    <state width="1491" height="236" key="GridCell.Tab.0.left" timestamp="1607966782342">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1607935286724" />
-    <state width="1491" height="237" key="GridCell.Tab.0.right" timestamp="1607935286724">
+    <state width="1491" height="236" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1607966782342" />
+    <state width="1491" height="236" key="GridCell.Tab.0.right" timestamp="1607966782342">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1607935286724" />
-    <state width="1491" height="237" key="GridCell.Tab.1.bottom" timestamp="1607935286725">
+    <state width="1491" height="236" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1607966782342" />
+    <state width="1491" height="236" key="GridCell.Tab.1.bottom" timestamp="1607966782259">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1607935286725" />
-    <state width="1491" height="237" key="GridCell.Tab.1.center" timestamp="1607935286724">
+    <state width="1491" height="236" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1607966782259" />
+    <state width="1491" height="236" key="GridCell.Tab.1.center" timestamp="1607966782259">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1607935286724" />
-    <state width="1491" height="237" key="GridCell.Tab.1.left" timestamp="1607935286724">
+    <state width="1491" height="236" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1607966782259" />
+    <state width="1491" height="236" key="GridCell.Tab.1.left" timestamp="1607966782259">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1607935286724" />
-    <state width="1491" height="237" key="GridCell.Tab.1.right" timestamp="1607935286725">
+    <state width="1491" height="236" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1607966782259" />
+    <state width="1491" height="236" key="GridCell.Tab.1.right" timestamp="1607966782259">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1491" height="237" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1607935286725" />
+    <state width="1491" height="236" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1607966782259" />
     <state x="277" y="57" key="SettingsEditor" timestamp="1607003707902">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -173,9 +175,25 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="426" y="189" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1607083915007" />
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1607919382828">
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1607966402910">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1607919382828" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1607966402910" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/views/product/add/add_product_viewmodel.dart</url>
+          <line>127</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/views/product/add/add_product_viewmodel.dart</url>
+          <line>128</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

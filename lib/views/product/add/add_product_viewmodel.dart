@@ -103,30 +103,28 @@ class AddProductViewmodel extends ReactiveViewModel {
     );
     // we look for a regular variant which is always have id=to productID and updated it with pricing.
     final Document variation = _databaseService.getById(id: product.id);
-    updateVariation(
+    assert(variation !=null);
+
+    updateRegularVariationStock(
       variation: Variation.fromMap(variation.jsonProperties),
       supplyPrice: _supplierPriceController,
-      variantName: 'Regular',
       retailPrice: _retailPriceController,
     );
 
     notifyListeners();
   }
 
-  Future<void> updateVariation({
+  Future<void> updateRegularVariationStock({
     Variation variation,
     double retailPrice,
     double supplyPrice,
-    String variantName,
   }) async {
     if (variation != null) {
       final Document stock = _databaseService.getById(id: variation.id);
 
-      final Document variant = _databaseService.getById(id: variation.id);
-
-      variant.properties['name'] = variantName;
-
-      _databaseService.update(document: variant);
+      assert(stock!=null);
+      assert(retailPrice!=null);
+      assert(supplyPrice!=null);
 
       stock.properties['retailPrice'] = retailPrice;
       stock.properties['supplyPrice'] = supplyPrice;
