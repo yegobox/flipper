@@ -77,7 +77,7 @@ class CategoryViewModel extends BaseModel {
     //remove focus from previous focused category
     final prevCategory = _databaseService.getById(id: _focusedCategory.id);
     assert(prevCategory !=null);
-    prevCategory.properties['focused'] = false;
+    prevCategory.properties['focused'] = false; //should always set the prev category to false
 
     _databaseService.update(document: prevCategory);
     //done updating previous selected category
@@ -92,6 +92,5 @@ class CategoryViewModel extends BaseModel {
 
     _databaseService.update(document: getCategory);
 
-    notifyListeners();
   }
 }
