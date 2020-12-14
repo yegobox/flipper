@@ -32,7 +32,15 @@ class CategoryViewModel extends BaseModel {
     q.addChangeListener((List results) {
       for (Map map in results) {
         map.forEach((key, value) {
+
           if (!_category.contains(Category.fromMap(value))) {
+            //if we get the category that exist that only changed from one property change it from a list
+            for(var i=0; i< _category.length; i++){
+              if(_category[i].id == Category.fromMap(value).id){
+                //the object was in the list so no need to re-add it twice we need to change the object in list first
+                _category.removeWhere((item) => item.id == _category[i].id);
+              }
+            }
             _category.add(Category.fromMap(value));
             notifyListeners();
           }
@@ -59,45 +67,16 @@ class CategoryViewModel extends BaseModel {
 
   // selection
   Future<void> updateCategory(
-      {@required String categoryId}) async {
-    //NOTE updating a value  based on select// this may load to more information  // Need  update other category different to id parsedto fix it
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BRANCHID');
+      {@required Category category}) async {
 
-    q.parameters = {'VALUE': AppTables.category,'BRANCHID':sharedStateService.branch.id};
+    final Document getCategory =
+    _databaseService.getById(id: category.id);
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
-        map.forEach((key, value) {
+    assert(getCategory != null);
 
-          if (!_category.contains(Category.fromMap(value))) {
-            _category.add(Category.fromMap(value));
-          }
-          for (int i = 0; i < _category.length; i++) {
+    getCategory.properties['focused'] = category.focused==true? false:true;
 
-            if (_category[i].id == categoryId) {
-              final Document categories =
-                  _databaseService.getById(id: _category[i].id);
-
-              assert(categories != null);
-              categories.properties['name'] = _category[i].name;
-              categories.properties['focused'] = !_category[i].focused;
-
-              _databaseService.update(document: categories);
-              notifyListeners();
-            } else {
-              final Document categories =
-                  _databaseService.getById(id: _category[i].id);
-              assert(categories != null);
-              categories.properties['name'] = _category[i].name;
-              categories.properties['focused'] = false;
-
-              _databaseService.update(document: categories);
-              notifyListeners();
-            }
-          }
-        });
-      }
-    });
+    _databaseService.update(document: getCategory);
 
     notifyListeners();
   }

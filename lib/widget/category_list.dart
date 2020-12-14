@@ -25,7 +25,7 @@ class CategoryList extends StatelessWidget {
           GestureDetector(
             onTap: () {
               model.updateCategory(
-                  categoryId: categories[i].id.toString());
+                  category: categories[i]);
             },
             child: SingleChildScrollView(
               child: ListTile(
@@ -40,7 +40,7 @@ class CategoryList extends StatelessWidget {
                       .copyWith(canvasColor: HexColor('#2996CC'))
                       .canvasColor,
                   //This radio button is considered selected if its value matches the groupValue.
-                  groupValue: categories[i].id,
+                  groupValue: categories[i].focused==true? categories[i].id:0,
                   onChanged: (Object value) {
                     model.highlight(value);
                   },
