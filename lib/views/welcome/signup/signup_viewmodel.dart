@@ -89,9 +89,9 @@ class SignUpViewModel extends BaseViewModel {
       await generateAppColors(userId: userId);
       await generateAppDefaultCategory(branchId: branchId, userId: userId);
 
-      await ProxyService.database.initialAppData();
+      await ProxyService.database.initialAppData(branchId: branchId);
       await ProxyService.sharedPref.setIsAppConstantsInitialized();
-      // then navigate to a right page ditch auth midleware
+      // then navigate to a right page ditch auth middleware
       StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
     }
   }
@@ -133,7 +133,7 @@ class SignUpViewModel extends BaseViewModel {
   }
 
   Future<String> createBranch(
-      {String userId, String businessName, String businessId}) async {
+      {@required String userId, String businessName, String businessId}) async {
     assert(userId != null);
     final String branchId = Uuid().v1();
     final Map<String, dynamic> _mapBranch = {

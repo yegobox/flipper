@@ -94,11 +94,11 @@ class SignUpView extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(55, 20, 0, 0),
                         child: Row(
                           children: [
-                            const Flexible(
+                             const Flexible(
                               child: Text(
                                   "Accept Flipper's Seller Agreement and Privacy Policy"),
                             ),
-                            Radio(
+                            const Radio(
                               value: '1',
                               groupValue:
                                   '1', //TODO(richard): get value from radio and save it too

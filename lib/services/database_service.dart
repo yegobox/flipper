@@ -72,17 +72,17 @@ class DatabaseService {
     return db.saveDocument(doc);
   }
 
-  // initializers
-  Future<void> initialAppData() async {
+  // initializer
+  Future<void> initialAppData({String branchId}) async {
     // ignore: always_specify_types
     final bool isAppConstantsInitialized =
         await ProxyService.sharedPref.isAppConstantsInitialized();
     if (!isAppConstantsInitialized) {
       for (int i = 0; i < mockUnits.length; i++) {
         if (mockUnits[i]['value'] == 'kg') {
-          insert(data: {'name': mockUnits[i]['name'], 'focused': true});
+          insert(data: {'name': mockUnits[i]['name'],'branchId':branchId, 'focused': true});
         } else {
-          insert(data: {'name': mockUnits[i]['name'], 'focused': false});
+          insert(data: {'name': mockUnits[i]['name'],'branchId':branchId, 'focused': false});
         }
       }
     }
