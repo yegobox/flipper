@@ -92,5 +92,11 @@ class CategoryViewModel extends BaseModel {
 
     _databaseService.update(document: getCategory);
 
+    final Document updatedCategory =
+    _databaseService.getById(id: category.id);
+    if(Category.fromMap(updatedCategory.jsonProperties).focused){
+      _focusedCategory = Category.fromMap(updatedCategory.jsonProperties);
+    }
+
   }
 }

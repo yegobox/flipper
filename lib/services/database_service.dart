@@ -73,7 +73,7 @@ class DatabaseService {
   }
 
   // initializer
-  Future<void> initialAppData({String branchId}) async {
+  Future<void> initialAppData({@required String branchId}) async {
     // ignore: always_specify_types
     final bool isAppConstantsInitialized =
         await ProxyService.sharedPref.isAppConstantsInitialized();
