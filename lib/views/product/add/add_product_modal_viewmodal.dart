@@ -102,8 +102,8 @@ class AddProductModalViewModal extends BaseModel {
 
       // we make productDoc.ID equal to variation.ID on regular variant to make it easy to update the regular variant
       // otherwise other variant should have independent ID to avoid mixeup
-      final id2 = Uuid().v1();
-      final Document variant = _databaseService.insert(id: id2, data: {
+      final variantId = Uuid().v1();
+      _databaseService.insert(id: variantId, data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
@@ -111,15 +111,17 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.variation,
         'productId': productDoc.ID,
         'sku': Uuid().v1().substring(0, 4),
-        'id': id2,
+        'id': variantId,
         'userId': userId,
         'productName': productName,
         'createdAt': DateTime.now().toIso8601String(),
       });
 
+      log.i(variantId);
+
       final id3 = Uuid().v1();
       _databaseService.insert(id: id3, data: {
-        'variantId': variant.ID,
+        'variantId': variantId,
         'supplyPrice': 0,
         'canTrackingStock': false,
         'showLowStockAlert': false,
@@ -141,7 +143,7 @@ class AddProductModalViewModal extends BaseModel {
         'table': AppTables.branchProduct,
         'id': id4
       });
-      log.d('productId:' + productDoc.ID);
+      // log.d('productId:' + productDoc.ID);
       return productDoc.ID;
     } else {
       for (Map map in productResults) {
@@ -150,7 +152,7 @@ class AddProductModalViewModal extends BaseModel {
         });
         notifyListeners();
       }
-      log.d('productId:' + productId);
+      // log.d('productId:' + productId);
 
       return productId;
     }
