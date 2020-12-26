@@ -31,38 +31,37 @@ class DatabaseService {
     // ignore: prefer_single_quotes
     db = Database("main", directory: appDocPath);
 
-
     final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
     final String username = DotEnv().env['USERNAME'];
     final String password = DotEnv().env['PASSWORD'];
-    // 1.7.0-mobile0020
-    replicator = Replicator(
-      db,
-      endpointUrl: 'ws://$gatewayUrl/main/',
-      username: username,
-      password: password, // or
-      // 'sessionId': 'dfhfsdyf8dfenfajfoadnf83c4dfhdfad3228yrsefd',
-    );
 
-    // Set up a status listener
-    replicator.addChangeListener((status) {
-      print('Replicator status: ' + status.activityLevel.toString());
-    });
-    replicator.continuous = true;
-    replicator.replicatorType = ReplicatorType.pushAndPull;
-    if(channels!=null){
-      log.d(channels);
-      replicator.channels = channels;
+    if (channels != null) {
+      log.i(channels);
+      replicator = Replicator(
+        db,
+        endpointUrl: 'ws://$gatewayUrl/main/',
+        username: username,
+        password: password,
+        channels: channels,
+      );
+
+      // Set up a status listener
+      replicator.addChangeListener((status) {
+        print('Replicator status: ' + status.activityLevel.toString());
+      });
+      replicator.continuous = true;
+      replicator.replicatorType = ReplicatorType.pushAndPull;
+
+      // Start the replicator
+      replicator.start();
     }
-    // Start the replicator
-    replicator.start();
   }
 
   Document getById({@required String id}) {
     return db.getMutableDocument(id);
   }
 
-  Document update({@required Document document})  {
+  Document update({@required Document document}) {
     return db.saveDocument(document);
   }
 
@@ -80,21 +79,29 @@ class DatabaseService {
     if (!isAppConstantsInitialized) {
       for (int i = 0; i < mockUnits.length; i++) {
         if (mockUnits[i]['value'] == 'kg') {
-          insert(data: {'name': mockUnits[i]['name'],'branchId':branchId, 'focused': true});
+          insert(data: {
+            'name': mockUnits[i]['name'],
+            'branchId': branchId,
+            'focused': true
+          });
         } else {
-          insert(data: {'name': mockUnits[i]['name'],'branchId':branchId, 'focused': false});
+          insert(data: {
+            'name': mockUnits[i]['name'],
+            'branchId': branchId,
+            'focused': false
+          });
         }
       }
     }
   }
 
   void logout({dynamic context}) {
-    if(db.isOpen){
+    if (db.isOpen) {
       replicator.stop();
       db.close();
       StoreProvider.of<AppState>(context).dispatch(
-                  VerifyAuthenticationState(),
-                );
+        VerifyAuthenticationState(),
+      );
     }
   }
 }

@@ -1,4 +1,3 @@
-
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
@@ -8,12 +7,13 @@ import 'package:flutter/material.dart';
 // import 'package:flutter_redux/flutter_redux.dart';
 // import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
+
 // import 'package:stacked/stacked.dart';
 class BusinessList extends StatelessWidget {
   const BusinessList({Key key}) : super(key: key);
 
-
-  Container _buildFirstSectionFlipperLogo({@required DrawerViewModel model,BuildContext context}) {
+  Container _buildFirstSectionFlipperLogo(
+      {@required DrawerViewModel model, BuildContext context}) {
     return Container(
       height: _Style.firstSectionHeight,
       child: Column(
@@ -40,8 +40,9 @@ class BusinessList extends StatelessWidget {
             ),
           ),
           Container(
-            color: Theme.of(context).copyWith(canvasColor: const Color.fromRGBO(
-                33, 127, 125, 1.0)).canvasColor,
+            color: Theme.of(context)
+                .copyWith(canvasColor: const Color.fromRGBO(33, 127, 125, 1.0))
+                .canvasColor,
             height: _Style.separatorHeight,
             width: _Style.separatorWidth,
           ),
@@ -83,9 +84,10 @@ class BusinessList extends StatelessWidget {
             () async {
               // _openUserAccount(context);
               // TODO(richard): change the icon should be icon of logout.
+
               final bool loggedOut = await ProxyService.sharedPref.logout();
               if (loggedOut) {
-                ProxyService.database.logout(context:context);
+                ProxyService.database.logout(context: context);
               }
             },
           ),
@@ -95,31 +97,35 @@ class BusinessList extends StatelessWidget {
     );
   }
 
-  Container _buildSecondSectionBusinessList({@required DrawerViewModel model, BuildContext context,
-      
-    Business  business}) {
+  Container _buildSecondSectionBusinessList(
+      {@required DrawerViewModel model,
+      BuildContext context,
+      Business business}) {
     return Container(
       height: _Style.itemHeight,
       child: Padding(
         padding:
             const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
         child: _GroupButton(
-          business:model.business,
-          onPressedCircle:(Business business) {
-            model.switchBusiness(from:model.business,to:business);
+          business: model.business,
+          onPressedCircle: (Business business) {
+            model.switchBusiness(from: model.business, to: business);
           },
-          isActive:true,
+          isActive: true,
           hasUpdates: true,
         ),
       ),
     );
   }
 
-  Widget getRenderableBusinessList({List<Business> businesses, BuildContext context, DrawerViewModel model}) {
+  Widget getRenderableBusinessList(
+      {List<Business> businesses,
+      BuildContext context,
+      DrawerViewModel model}) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < businesses.length; i++) {
-      list.add(_buildSecondSectionBusinessList(context:context, model:model,
-           business: businesses[i]));
+      list.add(_buildSecondSectionBusinessList(
+          context: context, model: model, business: businesses[i]));
     }
     return Expanded(
       child: Column(children: list),
@@ -128,27 +134,30 @@ class BusinessList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(builder: (BuildContext context,DrawerViewModel model, Widget child){
-      
-      return Container(
-      color: HexColor('#130f1f'),
-      child: Column(
-        children: <Widget>[
-          _buildFirstSectionFlipperLogo(context:context, model: model),
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, DrawerViewModel model, Widget child) {
+          return Container(
+            color: HexColor('#130f1f'),
+            child: Column(
+              children: <Widget>[
+                _buildFirstSectionFlipperLogo(context: context, model: model),
 
-          getRenderableBusinessList(businesses:model.businesses,context: context, model: model),
-          //setting on click set highlight on side.
-          _buildThirdSection(model: model),
-          _buildFourthSection(context)
-        ],
-      ),
-    );
-    }, 
-    onModelReady:(DrawerViewModel model){
-      model.getBusiness();
-      model.getBranches();
-    },
-    viewModelBuilder: ()=> DrawerViewModel());
+                getRenderableBusinessList(
+                    businesses: model.businesses,
+                    context: context,
+                    model: model),
+                //setting on click set highlight on side.
+                _buildThirdSection(model: model),
+                _buildFourthSection(context)
+              ],
+            ),
+          );
+        },
+        onModelReady: (DrawerViewModel model) {
+          model.getBusiness();
+          model.getBranches();
+        },
+        viewModelBuilder: () => DrawerViewModel());
   }
 }
 
@@ -161,7 +170,7 @@ class _GroupSettingsButton extends StatelessWidget {
 
   final Image image;
   final Function onPressed;
- 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -180,27 +189,26 @@ class _GroupSettingsButton extends StatelessWidget {
 }
 
 class _GroupButton extends StatelessWidget {
-  const _GroupButton(
-    {@required this.business,
+  const _GroupButton({
+    @required this.business,
     @required this.onPressedCircle,
     this.isActive,
-    this.hasUpdates, 
+    this.hasUpdates,
     Key key,
-  })  : 
-        assert(onPressedCircle != null),
+  })  : assert(onPressedCircle != null),
         super(key: key);
 
   final Business business;
   final bool hasUpdates;
   final bool isActive;
 
-
   final Function(Business) onPressedCircle;
 
   @override
   Widget build(BuildContext context) {
-    final HexColor _circleColor = Theme.of(context).copyWith(canvasColor:HexColor(
-        '#f5a623')).canvasColor; 
+    final HexColor _circleColor = Theme.of(context)
+        .copyWith(canvasColor: HexColor('#f5a623'))
+        .canvasColor;
     final String _groupText = business?.name?.substring(0, 1)?.toUpperCase();
 
     return Container(

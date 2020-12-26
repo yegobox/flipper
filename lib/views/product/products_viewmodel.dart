@@ -103,6 +103,7 @@ class ProductsViewModel extends ReactiveViewModel {
     assert(_sharedState.branch.id != null);
 
     log.d(_sharedState.branch.id);
+    log.d(_sharedState.user);
     final q = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BID');
     

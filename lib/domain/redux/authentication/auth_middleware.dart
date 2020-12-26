@@ -115,6 +115,7 @@ Future<void> openCloseBusiness({
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
   final Logger log = Logging.getLogger('Get User: ');
+
   final String loggedInuserId = await ProxyService.sharedPref.getUserId();
   if (loggedInuserId == null) {
     await _databaseService.login();
@@ -144,7 +145,9 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           //   loggedInuserId: FUser.fromMap(value).id.toString(),
           //   isClosed: true,
           // );
-          if(value.containsKey('userId') &&  loggedInuserId == FUser.fromMap(value).userId){
+          if (value.containsKey('userId') &&
+              loggedInuserId == FUser.fromMap(value).userId) {
+            log.d("UUU::" + loggedInuserId);
             ProxyService.sharedState.setUser(user: FUser.fromMap(value));
             log.d(FUser.fromMap(value));
             store.dispatch(WithUser(user: FUser.fromMap(value)));
@@ -157,7 +160,8 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   }
 }
 
-Future<List<Branch>> getBranches(Store<AppState> store, String loggedInuserId) async {
+Future<List<Branch>> getBranches(
+    Store<AppState> store, String loggedInuserId) async {
   final DatabaseService _databaseService = ProxyService.database;
 
   final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
@@ -268,8 +272,8 @@ Future<void> createTemporalOrder(Store<AppState> store) async {
   DataManager.createTemporalOrder(store);
 }
 
-Future<void> getBusinesses({Store<AppState> store, String loggedInuserId}) async {
-  
+Future<void> getBusinesses(
+    {Store<AppState> store, String loggedInuserId}) async {
   // log.d(loggedInuserId);
   final DatabaseService _databaseService = ProxyService.database;
 
@@ -280,12 +284,11 @@ Future<void> getBusinesses({Store<AppState> store, String loggedInuserId}) async
 
   q.parameters = {'VALUE': AppTables.business, 'USERID': loggedInuserId};
 
-
   final results = q.execute();
   if (results.isNotEmpty) {
     for (Map map in results) {
       map.forEach((key, value) {
-        if(!businesses.contains(Business.fromMap(value))){
+        if (!businesses.contains(Business.fromMap(value))) {
           businesses.add(Business.fromMap(value));
         }
       });
@@ -348,4 +351,3 @@ void Function(
     }
   };
 }
-
