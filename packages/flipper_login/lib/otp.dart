@@ -11,7 +11,6 @@ import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper_login/services/proxy_service.dart';
@@ -164,37 +163,18 @@ class _OtpPageState extends State<OtpPage> {
                                       locator<AnalyticsService>();
 
                                   if (currentUser != null) {
-                                    final http.Response response = await http
-                                        .post('https://flipper.rw/open-login',
-                                            body: {
-                                          'phone': widget.phone.replaceAll(
-                                              RegExp(r'\s+\b|\b\s'), '')
-                                        },
-                                            headers: {
-                                          'Content-Type':
-                                              'application/x-www-form-urlencoded',
-                                          'Accept': 'application/json'
-                                        });
+                                    final http.Response response =
+                                        await loginToFlipper();
 
                                     final LoginResponse loginResponse =
                                         loginResponseFromJson(response.body);
                                     final Store<AppState> store =
                                         StoreProvider.of<AppState>(context);
-
-                                    final FUser user = FUser(
-                                      (user) async => user
-                                        ..email = loginResponse.email
-                                        ..active = true
-                                        ..id = loginResponse.id.toString()
-                                        ..userId = loginResponse.id.toString()
-                                        ..createdAt =
-                                            DateTime.now().toIso8601String()
-                                        ..updatedAt =
-                                            DateTime.now().toIso8601String()
-                                        ..token = loginResponse.token
-                                        ..name = loginResponse.name,
-                                    );
-                                    store.dispatch(WithUser(user: user));
+                                    //the user does not exist into the couch adding him will trigger the listner and proceed
+                                    // if he is synced i.e exist in couch then the sync which was started will add the user to local
+                                    // database then trigger a change and continue as expected
+                                    await userExistInCouchbase(loginResponse);
+                                    await buildUser(loginResponse, store);
                                     _analytics.setUserProperties(
                                         userId: loginResponse.id.toString(),
                                         userRole: 'Admin');
@@ -202,8 +182,7 @@ class _OtpPageState extends State<OtpPage> {
                                     ProxyService.database.login(channels: [
                                       loginResponse.id.toString()
                                     ]);
-                                    final log = Logging.getLogger('OTP:');
-
+                                    // final log = Logging.getLogger('OTP:');
                                     final loggedInUserId = await ProxyService
                                         .sharedPref
                                         .getUserId();
@@ -217,106 +196,22 @@ class _OtpPageState extends State<OtpPage> {
                                             RegExp(r'\s+\b|\b\s'), '')
                                       };
                                       q.addChangeListener((results) {
-                                        //for the first time, the database is not initialized, then we need to wait until we get user in db
                                         for (Map map in results) {
                                           map.forEach((key, value) {
                                             final FUser user =
                                                 FUser.fromMap(value);
-                                            log.i(user);
-
+                                            //  a user exist in couchbase then go to auth verification this,
                                             if (user != null) {
-                                              bool userInCouch = false;
-
-                                              if (user.userId != null) {
-                                                userInCouch = true;
-                                                ProxyService.sharedPref
-                                                    .setUserLoggedIn(
-                                                        userId: loginResponse.id
-                                                            .toString());
-                                              } else {
-                                                userInCouch = false;
-                                              }
-
-                                              if (userInCouch) {
-                                                StoreProvider.of<AppState>(
-                                                        context)
-                                                    .dispatch(
-                                                        VerifyAuthenticationState());
-                                                //proceed with checking auth which will check the database status
-                                                proxyService.loading.add(false);
-                                                return;
-                                              } else {
-                                                ProxyService.database.insert(
-                                                    id: loginResponse.id
-                                                        .toString(),
-                                                    data: {
-                                                      'name': widget.phone
-                                                          .replaceAll(
-                                                              RegExp(
-                                                                  r'\s+\b|\b\s'),
-                                                              ''),
-                                                      'email':
-                                                          loginResponse.email,
-                                                      'token':
-                                                          loginResponse.token,
-                                                      'table': AppTables.user,
-                                                      'userId': loginResponse.id
-                                                          .toString(),
-                                                      'expiresAt': loginResponse
-                                                          .expiresAt,
-                                                      'id': loginResponse.id
-                                                          .toString(),
-                                                    });
-                                                ProxyService.sharedPref
-                                                    .setUserLoggedIn(
-                                                        userId: loginResponse.id
-                                                            .toString());
-                                                proxyService.loading.add(false);
-
-                                                _navigationService.navigateTo(
-                                                  Routing.signUpView,
-                                                  arguments:
-                                                      SignUpViewArguments(
-                                                    name: loginResponse.name,
-                                                    avatar:
-                                                        loginResponse.avatar,
-                                                    email: loginResponse.email,
-                                                    token: loginResponse.token,
-                                                    userId: loginResponse.id
-                                                        .toString(),
-                                                  ),
-                                                );
-                                              }
-                                            } else {
-                                              ProxyService.database
-                                                  .insert(data: {
-                                                'name': loginResponse.name,
-                                                'email': loginResponse.email,
-                                                'token': loginResponse.token,
-                                                'table': AppTables.user,
-                                                'userId':
-                                                    loginResponse.id.toString(),
-                                                'expiresAt':
-                                                    loginResponse.expiresAt,
-                                                'id':
-                                                    loginResponse.id.toString(),
-                                              });
                                               ProxyService.sharedPref
                                                   .setUserLoggedIn(
                                                       userId: loginResponse.id
                                                           .toString());
+                                              StoreProvider.of<AppState>(
+                                                      context)
+                                                  .dispatch(
+                                                      VerifyAuthenticationState());
 
-                                              _navigationService.navigateTo(
-                                                Routing.signUpView,
-                                                arguments: SignUpViewArguments(
-                                                    name: loginResponse.name,
-                                                    avatar:
-                                                        loginResponse.avatar,
-                                                    email: loginResponse.email,
-                                                    token: loginResponse.token,
-                                                    userId: loginResponse.id
-                                                        .toString()),
-                                              );
+                                              proxyService.loading.add(false);
                                             }
                                           });
                                         }
@@ -340,5 +235,82 @@ class _OtpPageState extends State<OtpPage> {
             ),
           );
         });
+  }
+
+  Future<http.Response> loginToFlipper() async {
+    final http.Response response =
+        await http.post('https://flipper.rw/open-login', body: {
+      'phone': widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '')
+    }, headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    });
+    // save a device token for this client
+    final String token = await ProxyService.sharedPref.getToken();
+    final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
+    await http.post('https://flipper.rw/save-token', body: {
+      'phone': phone,
+      'token': token
+    }, headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    });
+    //end saving the token
+    return response;
+  }
+
+  Future<void> userExistInCouchbase(LoginResponse loginResponse) async {
+    if (loginResponse.synced == 0) {
+      ProxyService.database.insert(data: {
+        'name': loginResponse.name,
+        'email': loginResponse.email,
+        'token': loginResponse.token,
+        'table': AppTables.user,
+        'channels': [loginResponse.id.toString()],
+        'userId': loginResponse.id.toString(),
+        'expiresAt': loginResponse.expiresAt,
+        'id': loginResponse.id.toString(),
+      });
+      // call the API to update the user synced status
+
+      final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
+      await http.post('https://flipper.rw/synced', body: {
+        'synced': 'true',
+        'phone': phone,
+      }, headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      });
+      // end of updating the status
+      ProxyService.sharedPref
+          .setUserLoggedIn(userId: loginResponse.id.toString());
+
+      _navigationService.navigateTo(
+        Routing.signUpView,
+        arguments: SignUpViewArguments(
+          name: loginResponse.name,
+          avatar: loginResponse.avatar,
+          email: loginResponse.email,
+          token: loginResponse.token,
+          userId: loginResponse.id.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> buildUser(
+      LoginResponse loginResponse, Store<AppState> store) async {
+    final FUser user = FUser(
+      (user) async => user
+        ..email = loginResponse.email
+        ..active = true
+        ..id = loginResponse.id.toString()
+        ..userId = loginResponse.id.toString()
+        ..createdAt = DateTime.now().toIso8601String()
+        ..updatedAt = DateTime.now().toIso8601String()
+        ..token = loginResponse.token
+        ..name = loginResponse.name,
+    );
+    store.dispatch(WithUser(user: user));
   }
 }

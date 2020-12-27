@@ -4,13 +4,14 @@ import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper/services/proxy.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-
+import 'package:http/http.dart' as http;
 import 'domain/redux/app_actions/app_action_middleware.dart';
 import 'domain/redux/app_reducer.dart';
 import 'domain/redux/app_state.dart';
@@ -24,7 +25,6 @@ import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
 import 'lifecycle_manager.dart';
-
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key key}) : super(key: key);
@@ -50,14 +50,10 @@ class _FlipperAppState extends State<FlipperApp> {
     store = Store<AppState>(
       appReducer,
       initialState: AppState.init(),
-      middleware: createAuthenticationMiddleware(
-           _navigatorKey)
-        
+      middleware: createAuthenticationMiddleware(_navigatorKey)
         ..addAll(permissionMiddleware(_navigatorKey))
-        
         ..addAll(AppActionMiddleware(_navigatorKey))
-        ..addAll(userMiddleware( _navigatorKey))
-        
+        ..addAll(userMiddleware(_navigatorKey))
         ..addAll(
           createPushMiddleware(
             _firebaseMessaging,
@@ -78,10 +74,13 @@ class _FlipperAppState extends State<FlipperApp> {
         .listen((IosNotificationSettings settings) {
       log.i('Settings registered: $settings');
     });
-    _firebaseMessaging.getToken().then((String token) {
+    _firebaseMessaging.getToken().then((String token) async {
       assert(token != null);
       if (token != null) {
+        // save the token to the server for later use. (first save it in shared pref wait until we have a logged in user.)
         log.i('Push Messaging token: $token');
+
+        ProxyService.sharedPref.setToken(token: token);
 
         store.dispatch(UpdateUserTokenAction(token, store));
       }
