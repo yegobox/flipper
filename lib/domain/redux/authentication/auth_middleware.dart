@@ -18,7 +18,7 @@ import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -127,6 +127,8 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
 
     await _databaseService.login(channels: channels);
 
+    //save a device token
+
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
     q.parameters = {
@@ -137,7 +139,7 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
 
     if (results.isNotEmpty) {
       for (Map map in results) {
-        map.forEach((key, value) {
+        map.forEach((key, value) async {
           // FIXME(richard): fix bellow code.
           // openCloseBusiness(
           //   isSocial: false,
@@ -147,10 +149,9 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           // );
           if (value.containsKey('userId') &&
               loggedInuserId == FUser.fromMap(value).userId) {
-            log.d("UUU::" + loggedInuserId);
             ProxyService.sharedState.setUser(user: FUser.fromMap(value));
-            log.d(FUser.fromMap(value));
             store.dispatch(WithUser(user: FUser.fromMap(value)));
+            saveDeviceToken(value);
           }
         });
       }
@@ -158,6 +159,17 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
 
     return loggedInuserId;
   }
+}
+
+Future saveDeviceToken(value) async {
+  final String token = await ProxyService.sharedPref.getToken();
+  await http.post('https://flipper.rw/save-token', body: {
+    'phone': FUser.fromMap(value).name, // a name is a phone number in flipper!
+    'token': token
+  }, headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Accept': 'application/json'
+  });
 }
 
 Future<List<Branch>> getBranches(

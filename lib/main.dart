@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
@@ -24,6 +25,19 @@ bool get isInDebugMode {
 Future<void> main() async {
   Cbl.init();
   WidgetsFlutterBinding.ensureInitialized();
+  AwesomeNotifications().initialize(
+      // set the icon to null if you want to use the default app icon
+      // 'resource://drawable/res_app_icon'
+      null,
+      [
+        NotificationChannel(
+            channelKey: 'basic_channel',
+            channelName: 'Basic',
+            channelDescription: 'flipper notifications',
+            // ignore: prefer_const_constructors
+            defaultColor: Color(0xFF9D50DD),
+            ledColor: Colors.white)
+      ]);
   initializeDateFormatting();
 
   await DotEnv().load('.env');

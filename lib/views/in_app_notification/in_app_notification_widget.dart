@@ -1,17 +1,15 @@
 import 'dart:async';
 
-import 'package:flipper/theme.dart';
 import 'package:flutter/material.dart';
 
 import 'in_app_notification_viewmodel.dart';
 
 class InAppNotificationWidget extends StatefulWidget {
-  final InAppNotificationViewModel _vm;
-
   const InAppNotificationWidget(
     this._vm, {
     Key key,
   }) : super(key: key);
+  final InAppNotificationViewModel _vm;
 
   @override
   _InAppNotificationWidgetState createState() =>
@@ -45,7 +43,8 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
       curve: Curves.fastOutSlowIn,
     ));
     _controller = AnimationController(
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
     );
     _position = _controller.drive(_tween);
   }
@@ -60,11 +59,12 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
   Widget build(BuildContext context) {
     _controller.reset();
     _controller.forward();
-    _timer = Timer(Duration(seconds: 3), _dismiss);
+    _timer = Timer(const Duration(seconds: 30), _dismiss);
 
     return SlideTransition(
       position: _position,
       child: Dismissible(
+        // movementDuration: const Duration(milliseconds: 20000),
         key: Key(widget._vm.hashCode.toString()),
         onDismissed: (direction) => widget._vm.onDismissed(),
         child: GestureDetector(
@@ -76,7 +76,7 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
               right: 12,
             ),
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey,
@@ -85,11 +85,11 @@ class _InAppNotificationWidgetState extends State<InAppNotificationWidget>
                   )
                 ],
                 borderRadius: BorderRadius.all(Radius.circular(8)),
-                image: DecorationImage(
-                  //TODO(richard): replace with a notification designed icon.
-                  image: AssetImage('assets/graphics/visual_twist.png'),
-                  fit: BoxFit.cover,
-                ),
+                // image: DecorationImage(
+                //   //TODO(richard): replace with a notification designed icon.
+                //   image: AssetImage('assets/graphics/visual_twist.png'),
+                //   fit: BoxFit.cover,
+                // ),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
