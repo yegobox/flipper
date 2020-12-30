@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-import 'package:http/http.dart' as http;
 import 'domain/redux/app_actions/app_action_middleware.dart';
 import 'domain/redux/app_reducer.dart';
 import 'domain/redux/app_state.dart';

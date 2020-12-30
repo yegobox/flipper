@@ -72,7 +72,8 @@ class DatabaseService {
   }
 
   // initializer
-  Future<void> initialAppData({@required String branchId}) async {
+  Future<void> initialAppData(
+      {@required String branchId, @required String userId}) async {
     // ignore: always_specify_types
     final bool isAppConstantsInitialized =
         await ProxyService.sharedPref.isAppConstantsInitialized();
@@ -82,12 +83,14 @@ class DatabaseService {
           insert(data: {
             'name': mockUnits[i]['name'],
             'branchId': branchId,
+            'channels': [userId],
             'focused': true
           });
         } else {
           insert(data: {
             'name': mockUnits[i]['name'],
             'branchId': branchId,
+            'channels': [userId],
             'focused': false
           });
         }

@@ -89,7 +89,8 @@ class SignUpViewModel extends BaseViewModel {
       await generateAppColors(userId: userId);
       await generateAppDefaultCategory(branchId: branchId, userId: userId);
 
-      await ProxyService.database.initialAppData(branchId: branchId);
+      await ProxyService.database
+          .initialAppData(branchId: branchId, userId: userId);
       await ProxyService.sharedPref.setIsAppConstantsInitialized();
       // then navigate to a right page ditch auth middleware
       StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
@@ -97,30 +98,29 @@ class SignUpViewModel extends BaseViewModel {
   }
 
   Future<void> generateAppColors({String userId}) async {
-    
-      final List<String> colors = [
-        '#d63031',
-        '#0984e3',
-        '#e84393',
-        '#2d3436',
-        '#6c5ce7',
-        '#74b9ff',
-        '#ff7675',
-        '#a29bfe'
-      ];
-      //insert default colors for the app
-      final _databaseService = ProxyService.database;
+    final List<String> colors = [
+      '#d63031',
+      '#0984e3',
+      '#e84393',
+      '#2d3436',
+      '#6c5ce7',
+      '#74b9ff',
+      '#ff7675',
+      '#a29bfe'
+    ];
+    //insert default colors for the app
+    final _databaseService = ProxyService.database;
 
-      for (int i = 0; i < colors.length; i++) {
-        final id = Uuid().v1();
-        _databaseService.insert(id: id, data: {
-          'name': colors[i],
-          'id': id,
-          'isActive': false,
-          'channels': [userId],
-          'table': AppTables.color
-        });
-      }
+    for (int i = 0; i < colors.length; i++) {
+      final id = Uuid().v1();
+      _databaseService.insert(id: id, data: {
+        'name': colors[i],
+        'id': id,
+        'isActive': false,
+        'channels': [userId],
+        'table': AppTables.color
+      });
+    }
   }
 
   void initFields(
@@ -142,8 +142,8 @@ class SignUpViewModel extends BaseViewModel {
       'channels': [userId],
       'businessId': businessId,
       'id': branchId,
-      'syncedOnline':true, //we don't need  really
-      'channel':userId,//we don't need  really
+      'syncedOnline': true, //we don't need  really
+      'channel': userId, //we don't need  really
       'table': AppTables.branch,
       'mapLatitude': '0.0',
       'mapLongitude': ' 0.0',
@@ -151,12 +151,15 @@ class SignUpViewModel extends BaseViewModel {
       'updatedAt': DateTime.now().toIso8601String(),
     };
 
-    final Document branch = ProxyService.database.insert(id:branchId,data: _mapBranch);
+    final Document branch =
+        ProxyService.database.insert(id: branchId, data: _mapBranch);
     return branch.ID;
   }
 
   Future<String> createBusiness(
-      {@required String userId, String businessName, BuildContext context}) async {
+      {@required String userId,
+      String businessName,
+      BuildContext context}) async {
     assert(userId != null);
 
     final businessId = Uuid().v1();
