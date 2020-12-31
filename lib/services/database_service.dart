@@ -6,6 +6,7 @@ import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/services/api/fake_api.dart';
 import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -83,6 +84,7 @@ class DatabaseService {
           insert(data: {
             'name': mockUnits[i]['name'],
             'branchId': branchId,
+            'table': AppTables.unit,
             'channels': [userId],
             'focused': true
           });
@@ -90,6 +92,7 @@ class DatabaseService {
           insert(data: {
             'name': mockUnits[i]['name'],
             'branchId': branchId,
+            'table': AppTables.unit,
             'channels': [userId],
             'focused': false
           });
