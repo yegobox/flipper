@@ -1,9 +1,9 @@
-
 import 'package:flipper/locator.dart';
 import 'package:flipper/services/analytics_service.dart';
 import 'package:flipper/services/connectivity_service.dart';
 import 'package:flipper/services/database_service.dart';
 import 'package:flipper/services/bluethooth_service.dart';
+import 'package:flipper/services/firestore_service.dart';
 import 'package:flipper/services/mail_service.dart';
 import 'package:flipper/services/shared_preference_service.dart';
 import 'package:flipper/services/shared_state_service.dart';
@@ -26,6 +26,7 @@ final FlipperNavigationService _nav = locator<FlipperNavigationService>();
 final MailService _mail = locator<MailService>();
 final SharedPreferenceService _sharedPref = locator<SharedPreferenceService>();
 final SharedStateService _sharedState = locator<SharedStateService>();
+final FirestoreService _firestore = locator<FirestoreService>();
 
 // this is where we load all third party plugin
 // ignore: avoid_classes_with_only_static_members
@@ -39,7 +40,8 @@ abstract class ProxyService {
   static DatabaseService get database => _databaseService;
   static BlueToothService get blue => _blue;
   static FlipperNavigationService get nav => _nav;
-  static MailService get mail =>_mail;
-  static SharedPreferenceService get sharedPref =>_sharedPref;
-  static SharedStateService get sharedState =>_sharedState;
+  static MailService get mail => _mail;
+  static SharedPreferenceService get sharedPref => _sharedPref;
+  static SharedStateService get sharedState => _sharedState;
+  static FirestoreService get firestore => _firestore;
 }

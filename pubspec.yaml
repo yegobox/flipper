@@ -103,7 +103,7 @@ dependencies:
   bluetooth_thermal_printer: ^0.0.4
   esc_pos_utils: ^0.4.9
   awesome_notifications: ^0.0.5+4
-
+  cloud_firestore: ^0.14.4
 
 
 dev_dependencies:

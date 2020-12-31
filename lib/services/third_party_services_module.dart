@@ -2,6 +2,7 @@ import 'package:flipper/services/api/http_api.dart';
 import 'package:flipper/services/connectivity_service.dart';
 // import 'package:flipper/services/bluethooth_service.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/firestore_service.dart';
 import 'package:flipper/services/flipperNavigation_service.dart';
 import 'package:flipper/services/mail_service.dart';
 import 'package:flipper/services/performance_service.dart';
@@ -15,7 +16,6 @@ import 'analytics_service.dart';
 import 'api/fake_api.dart';
 // import 'connectivity_service.dart';
 
-
 enum ApiProvider {
   Fake,
   Rest,
@@ -23,7 +23,6 @@ enum ApiProvider {
 
 @module
 abstract class ThirdPartyServicesModule {
-  
   @lazySingleton
   NavigationService get navigationService;
   @lazySingleton
@@ -74,6 +73,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   SharedStateService get sharedStateService;
+
+  @lazySingleton
+  FirestoreService get firestoreService;
 
   // @lazySingleton
   // FetchContactsService fetchContactsService;

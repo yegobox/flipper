@@ -37,7 +37,6 @@ class DatabaseService {
     final String password = DotEnv().env['PASSWORD'];
 
     if (channels != null) {
-      log.i(channels);
       replicator = Replicator(
         db,
         endpointUrl: 'ws://$gatewayUrl/main/',

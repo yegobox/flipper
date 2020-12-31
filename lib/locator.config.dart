@@ -13,6 +13,7 @@ import 'services/abstractions/api.dart';
 import 'services/bluethooth_service.dart';
 import 'services/connectivity_service.dart';
 import 'services/database_service.dart';
+import 'services/firestore_service.dart';
 import 'services/flipperNavigation_service.dart';
 import 'services/api/http_api.dart';
 import 'services/mail_service.dart';
@@ -42,6 +43,8 @@ GetIt $initGetIt(
   gh.lazySingleton<DatabaseService>(
       () => thirdPartyServicesModule.databaseService);
   gh.lazySingleton<DialogService>(() => thirdPartyServicesModule.dialogService);
+  gh.lazySingleton<FirestoreService>(
+      () => thirdPartyServicesModule.firestoreService);
   gh.lazySingleton<FlipperNavigationService>(
       () => thirdPartyServicesModule.flipperNavigationService);
   gh.lazySingleton<HttpApi>(() => HttpApi());
@@ -71,6 +74,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   DatabaseService get databaseService => DatabaseService();
   @override
   DialogService get dialogService => DialogService();
+  @override
+  FirestoreService get firestoreService => FirestoreService();
   @override
   FlipperNavigationService get flipperNavigationService =>
       FlipperNavigationService();
