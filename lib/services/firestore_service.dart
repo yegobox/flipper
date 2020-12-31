@@ -13,17 +13,18 @@ class FirestoreService {
   final CollectionReference _configsCollectionReference =
       FirebaseFirestore.instance.collection('flipper-configs');
 
-  Future<FlipperConfig> getCongigs() async {
-    // FirebaseFirestore.instance.enablePersistence();
+  Future<FlipperConfig> getConfigs() async {
     try {
       final DocumentSnapshot doc =
-          await _configsCollectionReference.doc('OkPbVIkBPz5jsVdYihbA').get();
+          await _configsCollectionReference.doc('bsNzGihYlNbcODhKmhqJ').get();
 
       if (doc.exists) {
-        FlipperConfig flipper_config = FlipperConfig.fromData(doc.data());
-        log.i(flipper_config);
-        return flipper_config;
+        final FlipperConfig flipperConfig = FlipperConfig.fromData(doc.data());
+
+        return flipperConfig;
       }
-    } catch (e) {}
+    } catch (e) {
+      log.d(e);
+    }
   }
 }

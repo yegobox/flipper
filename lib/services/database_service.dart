@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/locator.dart';
+import 'package:flipper/model/flipper_config.dart';
 import 'package:flipper/services/api/fake_api.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/constant.dart';
@@ -32,9 +34,12 @@ class DatabaseService {
     // ignore: prefer_single_quotes
     db = Database("main", directory: appDocPath);
 
-    final String gatewayUrl = DotEnv().env['GATEWAY_URL'];
-    final String username = DotEnv().env['USERNAME'];
-    final String password = DotEnv().env['PASSWORD'];
+    final FlipperConfig flipperConfig =
+        await ProxyService.firestore.getConfigs();
+
+    final String gatewayUrl = flipperConfig.gateway;
+    final String username = flipperConfig.username;
+    final String password = flipperConfig.password;
 
     if (channels != null) {
       replicator = Replicator(
