@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper/model/flipper_config.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flutter/services.dart';
 
 import 'package:logger/logger.dart';
 
@@ -13,6 +12,7 @@ class FirestoreService {
   final CollectionReference _configsCollectionReference =
       FirebaseFirestore.instance.collection('flipper-configs');
 
+  // ignore: missing_return
   Future<FlipperConfig> getConfigs() async {
     try {
       final DocumentSnapshot doc =

@@ -4,14 +4,12 @@ import 'dart:io';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/model/flipper_config.dart';
 import 'package:flipper/services/api/fake_api.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:logger/logger.dart';
@@ -69,13 +67,17 @@ class DatabaseService {
   }
 
   Document update({@required Document document}) {
-    return db.saveDocument(document);
+    final data = db.saveDocument(document);
+    ProxyService.pusher.syncToClients();
+    return data;
   }
 
   Document insert({String id, Map data}) {
     final _id = id ?? Uuid().v1();
     final doc = Document(_id, data: data);
-    return db.saveDocument(doc);
+    final datas = db.saveDocument(doc);
+    ProxyService.pusher.syncToClients();
+    return datas;
   }
 
   // initializer
