@@ -104,6 +104,7 @@ dependencies:
   esc_pos_utils: ^0.4.9
   awesome_notifications: ^0.0.5+4
   cloud_firestore: ^0.14.4
+  pusher: ^1.0.0
 
 
 dev_dependencies:

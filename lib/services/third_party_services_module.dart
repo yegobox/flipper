@@ -13,6 +13,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper/services/bluethooth_service.dart';
 import 'abstractions/api.dart';
 import 'analytics_service.dart';
+import 'pusher_service.dart';
 import 'api/fake_api.dart';
 // import 'connectivity_service.dart';
 
@@ -76,6 +77,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   FirestoreService get firestoreService;
+
+  @lazySingleton
+  PusherService get pusherService;
 
   // @lazySingleton
   // FetchContactsService fetchContactsService;

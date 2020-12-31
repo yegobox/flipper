@@ -40,7 +40,9 @@ class DatabaseService {
     final String gatewayUrl = flipperConfig.gateway;
     final String username = flipperConfig.username;
     final String password = flipperConfig.password;
-
+    assert(gatewayUrl != null);
+    assert(username != null);
+    assert(password != null);
     if (channels != null) {
       replicator = Replicator(
         db,

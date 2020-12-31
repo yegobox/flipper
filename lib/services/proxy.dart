@@ -12,6 +12,7 @@ import 'abstractions/api.dart';
 // import 'bluethooth_service.dart';
 // import 'connectivity_service.dart';
 import 'flipperNavigation_service.dart';
+import 'pusher_service.dart';
 
 final DialogService _dialogService = locator<DialogService>();
 final NavigationService _navigationService = locator<NavigationService>();
@@ -27,6 +28,7 @@ final MailService _mail = locator<MailService>();
 final SharedPreferenceService _sharedPref = locator<SharedPreferenceService>();
 final SharedStateService _sharedState = locator<SharedStateService>();
 final FirestoreService _firestore = locator<FirestoreService>();
+final PusherService _pusher = locator<PusherService>();
 
 // this is where we load all third party plugin
 // ignore: avoid_classes_with_only_static_members
@@ -44,4 +46,5 @@ abstract class ProxyService {
   static SharedPreferenceService get sharedPref => _sharedPref;
   static SharedStateService get sharedState => _sharedState;
   static FirestoreService get firestore => _firestore;
+  static PusherService get pusher => _pusher;
 }
