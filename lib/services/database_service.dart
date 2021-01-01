@@ -88,8 +88,10 @@ class DatabaseService {
         await ProxyService.sharedPref.isAppConstantsInitialized();
     if (!isAppConstantsInitialized) {
       for (int i = 0; i < mockUnits.length; i++) {
+        final String id = Uuid().v1();
         if (mockUnits[i]['value'] == 'kg') {
-          insert(data: {
+          insert(id: id, data: {
+            'id': id,
             'name': mockUnits[i]['name'],
             'branchId': branchId,
             'table': AppTables.unit,
@@ -97,7 +99,8 @@ class DatabaseService {
             'focused': true
           });
         } else {
-          insert(data: {
+          insert(id: id, data: {
+            'id': id,
             'name': mockUnits[i]['name'],
             'branchId': branchId,
             'table': AppTables.unit,

@@ -1,36 +1,33 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/model/unit.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/views/product/add/add_product_viewmodel.dart';
+import 'package:flipper/views/unit/add_unit_viewmodal.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper/widget/atoms/unit_viewmodel.dart';
 
 class AddUnitTypeScreen extends StatelessWidget {
   const AddUnitTypeScreen({
     Key key,
   }) : super(key: key);
 
-  List<Widget> _getUnitsWidgets(List<Unit> units, UnitViewModel model) {
+  List<Widget> _getUnitsWidgets(AddUnitViewModel model) {
     final List<Widget> list = <Widget>[];
-    for (var i = 0; i < units.length; i++) {
-      if (units[i].focused && model.sharedStateService.product.id != null) {
-        model.updateProductWithCurrentUnit(unit: units[i]);
-      }
+    for (var i = 0; i < model.sharedStateService.units.length; i++) {
       list.add(
         GestureDetector(
           onTap: () {
-            model.saveFocusedUnit(unit: units[i]);
+            model.saveFocusedUnit(unit: model.sharedStateService.units[i]);
           },
           child: ListTile(
             title: Text(
-              units[i].name,
+              model.sharedStateService.units[i].name,
               style: const TextStyle(color: Colors.black),
             ),
             trailing: Radio(
-              value: units[i].id,
-              groupValue: units[i].focused ? units[i].id : 0,
+              value: model.sharedStateService.units[i].id,
+              groupValue: model.sharedStateService.units[i].focused
+                  ? model.sharedStateService.units[i].id
+                  : 0,
               onChanged: (Object value) {},
             ),
           ),
@@ -43,13 +40,13 @@ class AddUnitTypeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-        builder: (BuildContext context, UnitViewModel model, Widget child) {
+        builder: (BuildContext context, AddUnitViewModel model, Widget child) {
           return Scaffold(
             appBar: CommonAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },
-              title: 'Edit Unit',
+              title: 'Unit Type',
               showActionButton: true,
               disableButton: false,
               actionButtonName: 'Save',
@@ -62,18 +59,18 @@ class AddUnitTypeScreen extends StatelessWidget {
             ),
             body: Stack(
               children: [
-                model.units.isEmpty
+                model.sharedStateService.units.isEmpty
                     ? const SizedBox.shrink()
                     : ListView(
                         children: ListTile.divideTiles(
                           context: context,
-                          tiles: _getUnitsWidgets(model.units, model),
+                          tiles: _getUnitsWidgets(model),
                         ).toList(),
                       )
               ],
             ),
           );
         },
-        viewModelBuilder: () => UnitViewModel());
+        viewModelBuilder: () => AddUnitViewModel());
   }
 }

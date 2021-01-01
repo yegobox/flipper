@@ -38,10 +38,10 @@ class SectionSelectUnit extends StatelessWidget {
                   leading: const Text(
                     'Unit Type',
                   ),
-                  trailing: model.units.isNotEmpty
+                  trailing: model.sharedStateService.units.isNotEmpty
                       ? Wrap(
                           children: [
-                            unitSelector(model.units),
+                            unitSelector(model.sharedStateService.units),
                             Theme(
                                 data: ThemeData(
                                   iconTheme: const IconThemeData(

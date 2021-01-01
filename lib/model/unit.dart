@@ -29,16 +29,6 @@ abstract class Unit implements Built<Unit, UnitBuilder> {
   String toJson() {
     return json.encode(toMap());
   }
-//   {
-//         "id": "2f72b460-4b52-11eb-a1e3-93571367a26b",
-//         "branchId": "2f6e95b0-4b52-11eb-a113-97b712c57a92",
-//         "name": "Per Item",
-//         "table": "units",
-//         "focused": false,
-//         "channels": [
-//             "51"
-//         ]
-// }
 
   // ignore: always_specify_types
   Map toMap() {

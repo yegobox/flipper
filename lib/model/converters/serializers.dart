@@ -55,8 +55,11 @@ Serializers standardSerializers = (serializers.toBuilder()
       ..addBuilderFactory(
           // add this builder factory
           const FullType(BuiltList, [FullType(String)]),
-          () => ListBuilder<
-              String>()) //if I want to return a list of business for example I will add it here like that
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          // add this builder factory
+          const FullType(BuiltList, [FullType(Unit)]),
+          () => ListBuilder<Unit>())
       ..addPlugin(
           RemoveNullInMapConvertedListPlugin()) //https://github.com/google/built_value.dart/issues/653
       ..add(StringSerializer()) //convert anything that comes as int to string.
