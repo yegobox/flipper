@@ -43,7 +43,6 @@ class AddProductViewmodel extends ReactiveViewModel {
   double _supplierPriceController;
 
   int _test;
-  final List<Unit> _units = <Unit>[];
 
   Stock _stock;
 
@@ -106,8 +105,8 @@ class AddProductViewmodel extends ReactiveViewModel {
     );
     // we look for a regular variant which is always have id=to productID and updated it with pricing.
     // final Document variation = _databaseService.getById(id: product.id);
-    final q = Query(
-        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
+    final q = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
 
     q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': product.id};
 
@@ -133,11 +132,10 @@ class AddProductViewmodel extends ReactiveViewModel {
     double supplyPrice,
   }) async {
     if (variation != null) {
-
       log.i(variation.id);
 
-      final q = Query(
-          _databaseService.db, 'SELECT * WHERE table=\$VALUE AND variantId=\$VARIANT_ID');
+      final q = Query(_databaseService.db,
+          'SELECT * WHERE table=\$VALUE AND variantId=\$VARIANT_ID');
 
       q.parameters = {'VALUE': AppTables.stock, 'VARIANT_ID': variation.id};
 
@@ -149,9 +147,9 @@ class AddProductViewmodel extends ReactiveViewModel {
             //expect stock to be 1 as variant = one stock
             _stock = Stock.fromMap(value);
             final stock = _databaseService.getById(id: _stock.id);
-            assert(stock!=null);
-            assert(retailPrice!=null);
-            assert(supplyPrice!=null);
+            assert(stock != null);
+            assert(retailPrice != null);
+            assert(supplyPrice != null);
 
             stock.properties['retailPrice'] = retailPrice;
             stock.properties['supplyPrice'] = supplyPrice;
@@ -219,74 +217,8 @@ class AddProductViewmodel extends ReactiveViewModel {
     return _colorName;
   }
 
-  List<Unit> get units => _units;
-
-  void loadUnits() {
-    setBusy(true);
-
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
-
-    q.parameters = {'VALUE': AppTables.unit};
-
-    q.addChangeListener((List results) {
-      for (Map map in results) {
-        map.forEach((key, value) {
-          _units.add(Unit.fromMap(value));
-        });
-        notifyListeners();
-      }
-    });
-  }
-
-  void updateProductWithCurrentUnit({Unit unit}) async {
-    //NOTE: we update product variation not actual product as the unit is associated with variation.
-
-    final q = Query(_databaseService.db,
-        'SELECT * WHERE table=\$VALUE AND productId=\$productId');
-
-    q.parameters = {'VALUE': AppTables.variation, 'productId': product.id};
-
-    final variants = q.execute();
-
-    if (variants.isNotEmpty) {
-      for (Map map in variants) {
-        map.forEach((key, value) {
-          //  _sharedStateService.setProduct(product: Product.fromMap(value));
-        });
-        notifyListeners();
-      }
-    }
-    // FIXME(richard): finish the logic this logic seems to be invalid or too complicated for nothing
-    // for (var i = 0; i < variants.length; i++) {
-    //   final Variation variation = Variation.fromMap(variants[i]);
-    //   final Document variationDocument =
-    //       _databaseService.getById(id: variation.id);
-
-    //   variationDocument.properties['unit']    =unit.name;
-
-    //   _databaseService.update(document: variationDocument);
-    // }
-  }
-
   Unit get focusedUnit {
     return _focusedUnit;
-  }
-
-  void saveFocusedUnit({Unit unit}) async {
-    // reset other focused if any!
-    for (Unit unit in units) {
-      final Document unitDoc = _databaseService.getById(id: unit.id);
-      if (unit.focused) {
-        unitDoc.properties['focused'] = false;
-        _databaseService.update(document: unitDoc);
-      }
-    }
-    _focusedUnit = unit;
-    final Document unitDoc = _databaseService.getById(id: unit.id);
-
-    unitDoc.properties['focused'] = false;
-    _databaseService.update(document: unitDoc);
-    notifyListeners();
   }
 
   void setDescription({String description}) {

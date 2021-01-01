@@ -141,6 +141,7 @@ class AddProductView extends StatelessWidget {
                     const CenterDivider(
                       width: double.infinity,
                     ),
+
                     const SectionSelectUnit(),
                     const CenterDivider(
                       width: double.infinity,
@@ -155,10 +156,11 @@ class AddProductView extends StatelessWidget {
                       addModel: model,
                     ),
                     const Padding(
-                      padding:  EdgeInsets.only(left: 18, right: 18),
+                      padding: EdgeInsets.only(left: 18, right: 18),
                       child: ListTile(
                         leading: Text('Stock'),
-                        trailing: Text('Add Stock',style:TextStyle(color:Colors.blue)),
+                        trailing: Text('Add Stock',
+                            style: TextStyle(color: Colors.blue)),
                       ),
                     ),
                     const SkuView(),

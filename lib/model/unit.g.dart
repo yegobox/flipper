@@ -23,21 +23,22 @@ class _$UnitSerializer implements StructuredSerializer<Unit> {
       'table',
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
-      'productId',
-      serializers.serialize(object.productId,
+      'branchId',
+      serializers.serialize(object.branchId,
           specifiedType: const FullType(String)),
+      'focused',
+      serializers.serialize(object.focused,
+          specifiedType: const FullType(bool)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
-      'id',
-      serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
-    if (object.focused != null) {
+    if (object.id != null) {
       result
-        ..add('focused')
-        ..add(serializers.serialize(object.focused,
-            specifiedType: const FullType(bool)));
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
     }
     return result;
   }
@@ -61,8 +62,8 @@ class _$UnitSerializer implements StructuredSerializer<Unit> {
           result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'productId':
-          result.productId = serializers.deserialize(value,
+        case 'branchId':
+          result.branchId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'focused':
@@ -92,7 +93,7 @@ class _$Unit extends Unit {
   @override
   final String table;
   @override
-  final String productId;
+  final String branchId;
   @override
   final bool focused;
   @override
@@ -106,7 +107,7 @@ class _$Unit extends Unit {
   _$Unit._(
       {this.name,
       this.table,
-      this.productId,
+      this.branchId,
       this.focused,
       this.channels,
       this.id})
@@ -117,14 +118,14 @@ class _$Unit extends Unit {
     if (table == null) {
       throw new BuiltValueNullFieldError('Unit', 'table');
     }
-    if (productId == null) {
-      throw new BuiltValueNullFieldError('Unit', 'productId');
+    if (branchId == null) {
+      throw new BuiltValueNullFieldError('Unit', 'branchId');
+    }
+    if (focused == null) {
+      throw new BuiltValueNullFieldError('Unit', 'focused');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Unit', 'channels');
-    }
-    if (id == null) {
-      throw new BuiltValueNullFieldError('Unit', 'id');
     }
   }
 
@@ -141,7 +142,7 @@ class _$Unit extends Unit {
     return other is Unit &&
         name == other.name &&
         table == other.table &&
-        productId == other.productId &&
+        branchId == other.branchId &&
         focused == other.focused &&
         channels == other.channels &&
         id == other.id;
@@ -153,7 +154,7 @@ class _$Unit extends Unit {
         $jc(
             $jc(
                 $jc($jc($jc(0, name.hashCode), table.hashCode),
-                    productId.hashCode),
+                    branchId.hashCode),
                 focused.hashCode),
             channels.hashCode),
         id.hashCode));
@@ -164,7 +165,7 @@ class _$Unit extends Unit {
     return (newBuiltValueToStringHelper('Unit')
           ..add('name', name)
           ..add('table', table)
-          ..add('productId', productId)
+          ..add('branchId', branchId)
           ..add('focused', focused)
           ..add('channels', channels)
           ..add('id', id))
@@ -183,9 +184,9 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
   String get table => _$this._table;
   set table(String table) => _$this._table = table;
 
-  String _productId;
-  String get productId => _$this._productId;
-  set productId(String productId) => _$this._productId = productId;
+  String _branchId;
+  String get branchId => _$this._branchId;
+  set branchId(String branchId) => _$this._branchId = branchId;
 
   bool _focused;
   bool get focused => _$this._focused;
@@ -206,7 +207,7 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
     if (_$v != null) {
       _name = _$v.name;
       _table = _$v.table;
-      _productId = _$v.productId;
+      _branchId = _$v.branchId;
       _focused = _$v.focused;
       _channels = _$v.channels?.toBuilder();
       _id = _$v.id;
@@ -236,7 +237,7 @@ class UnitBuilder implements Builder<Unit, UnitBuilder> {
           new _$Unit._(
               name: name,
               table: table,
-              productId: productId,
+              branchId: branchId,
               focused: focused,
               channels: channels.build(),
               id: id);

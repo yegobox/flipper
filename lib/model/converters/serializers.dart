@@ -9,6 +9,7 @@ import 'package:flipper/data/models/serializers/boolean_serializer.dart';
 import 'package:flipper/model/branch.dart';
 import 'package:flipper/model/business.dart';
 import 'package:flipper/model/category.dart';
+import 'package:flipper/model/converters/null_serializer.dart';
 import 'package:flipper/model/converters/switcher.dart';
 import 'package:flipper/model/fuser.dart';
 import 'package:flipper/model/order.dart';
@@ -56,9 +57,10 @@ Serializers standardSerializers = (serializers.toBuilder()
           const FullType(BuiltList, [FullType(String)]),
           () => ListBuilder<
               String>()) //if I want to return a list of business for example I will add it here like that
+      ..addPlugin(
+          RemoveNullInMapConvertedListPlugin()) //https://github.com/google/built_value.dart/issues/653
+      ..add(StringSerializer()) //convert anything that comes as int to string.
       ..addPlugin(StandardJsonPlugin())
       ..add(Iso8601DateTimeSerializer())
-      ..add(StringSerializer()) //convert anything that comes as int to string.
-
       ..add(BooleanSerializer()))
     .build();
