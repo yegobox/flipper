@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class BuildRetailWidget extends StatelessWidget {
-  
-
-   const BuildRetailWidget({Key key, this.productId}) : super(key: key);
+  const BuildRetailWidget({Key key, this.productId}) : super(key: key);
   final String productId;
   static final GlobalKey<FormState> _textKey = GlobalKey<FormState>();
 
@@ -18,9 +16,9 @@ class BuildRetailWidget extends StatelessWidget {
       child: ViewModelBuilder.reactive(
           builder:
               (BuildContext context, VariationViewModel model, Widget child) {
-            return model.busy || model.data == null
+            return model.busy || model.variations == null
                 ? TextFormField(
-                  key: _textKey,
+                    key: _textKey,
                     keyboardType: TextInputType.number,
                     style: const TextStyle(color: Colors.black),
                     validator: Validators.isValid,

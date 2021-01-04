@@ -18,9 +18,10 @@ import 'package:flipper/model/product.dart';
 import 'package:flipper/model/stock.dart';
 import 'package:flipper/model/tax.dart';
 import 'package:flipper/model/unit.dart';
+import 'package:flipper/model/variant_stock.dart';
 import 'package:flipper/model/variation.dart';
 
-import 'int_to_string_serializer.dart';
+import 'convert_int_to_double.dart';
 
 part 'serializers.g.dart';
 
@@ -47,7 +48,8 @@ part 'serializers.g.dart';
   Order,
   Variation,
   FUser,
-  PColor
+  PColor,
+  VariantStock
 ])
 Serializers serializers = _$serializers;
 
@@ -56,13 +58,14 @@ Serializers standardSerializers = (serializers.toBuilder()
           // add this builder factory
           const FullType(BuiltList, [FullType(String)]),
           () => ListBuilder<String>())
-      ..addBuilderFactory(
-          // add this builder factory
-          const FullType(BuiltList, [FullType(Unit)]),
-          () => ListBuilder<Unit>())
+      // ..addBuilderFactory(
+      //     // add this builder factory
+      //     const FullType(BuiltList, [FullType(Unit)]),
+      //     () => ListBuilder<Unit>())
       ..addPlugin(
           RemoveNullInMapConvertedListPlugin()) //https://github.com/google/built_value.dart/issues/653
-      ..add(StringSerializer()) //convert anything that comes as int to string.
+      // ..add(StringSerializer()) //convert anything that comes as int to string.
+      // ..add(ConvertIntToDouble())
       ..addPlugin(StandardJsonPlugin())
       ..add(Iso8601DateTimeSerializer())
       ..add(BooleanSerializer()))

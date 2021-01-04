@@ -34,15 +34,10 @@ class VariantWidget extends StatefulWidget {
 }
 
 class _VariantWidgetState extends State<VariantWidget> {
-  
-
   int _deleteCount;
-  final FlipperNavigationService _navigationService =
-      ProxyService.nav;
+  final FlipperNavigationService _navigationService = ProxyService.nav;
   // ignore: always_specify_types
   final List<bool> _selections = List.generate(2, (int index) => false);
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -85,9 +80,11 @@ class _VariantWidgetState extends State<VariantWidget> {
                       child: Container(
                           height: 80,
                           width: 80,
-                          color: HexColor(model.sharedStateService.currentColor == null
-                              ? widget.itemColor
-                              : model.sharedStateService.currentColor.name)),
+                          color: HexColor(
+                              model.sharedStateService.currentColor == null
+                                  ? widget.itemColor
+                                  : model
+                                      .sharedStateService.currentColor.name)),
                     ),
                     const Text('New Item'),
                     Center(
@@ -123,7 +120,9 @@ class _VariantWidgetState extends State<VariantWidget> {
                             leading: const Text('Category'),
                             trailing: Wrap(
                               children: <Widget>[
-                                BuildVariationBody(productId: widget.productId,),
+                                BuildVariationBody(
+                                  productId: widget.productId,
+                                ),
                                 const Icon(Icons.arrow_forward_ios)
                               ],
                             ),
@@ -206,10 +205,8 @@ class _VariantWidgetState extends State<VariantWidget> {
                         ),
                       ),
                     ),
-                    const Divider(height:5),
-                    VariationList(
-                      productId: widget.productId,
-                    ),
+                    const Divider(height: 5),
+                    const VariationList(),
                     Center(
                       child: SizedBox(
                         height: 50,
@@ -219,13 +216,13 @@ class _VariantWidgetState extends State<VariantWidget> {
                           child: const Text('Add Variation'),
                           onPressed: () async {
                             // if (_actions != null) {
-                              
-                              // FIXME(richard): change storage
-                              // widget.vm.database.actionsDao.updateAction(
-                              //     _actions.copyWith(isLocked: true));
 
-                              // Routing.navigator
-                              //     .pushNamed(Routing.addVariationScreen);
+                            // FIXME(richard): change storage
+                            // widget.vm.database.actionsDao.updateAction(
+                            //     _actions.copyWith(isLocked: true));
+
+                            // Routing.navigator
+                            //     .pushNamed(Routing.addVariationScreen);
                             // }
                           },
                         ),
@@ -263,7 +260,8 @@ class _VariantWidgetState extends State<VariantWidget> {
                           });
                           if (_deleteCount == 2) {
                             // TODO(richard): pass real productId
-                            model.closeAndDelete(context: context,productId:'1');
+                            model.closeAndDelete(
+                                context: context, productId: '1');
                           }
                         },
                         child: Text('Delete Item',

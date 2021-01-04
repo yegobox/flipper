@@ -20,16 +20,14 @@ class EditVariationScreen extends StatefulWidget {
   final String variationId;
   final String unitId;
   final String productId;
-  
 
   @override
   _EditVariationScreenState createState() => _EditVariationScreenState();
 }
 
 class _EditVariationScreenState extends State<EditVariationScreen> {
-  
   static final GlobalKey<FormState> _textKey = GlobalKey<FormState>();
- 
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -96,11 +94,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
                       Container(
                         width: 300,
                         child: TextFormField(
-                          key:_textKey,
+                          key: _textKey,
                           initialValue: model.variation.name,
                           style: const TextStyle(color: Colors.black),
                           validator: Validators.isEmpty,
-                          controller:model.nameController,
+                          controller: model.nameController,
                           decoration: const InputDecoration(
                               hintText: 'Name', focusColor: Colors.blue),
                         ),
@@ -145,10 +143,11 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
             ),
           );
         },
-        onModelReady: (VariationViewModel model) => model.getVariationById(
-            productId: widget.productId, context: context),
+        onModelReady: (VariationViewModel model) =>
+            model.getVariationsByProductId(productId: widget.productId),
         viewModelBuilder: () => VariationViewModel());
   }
+
   void _closeAndDelete(BuildContext context) async {
     ProxyService.nav.pop();
   }

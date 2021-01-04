@@ -1,19 +1,18 @@
-
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/locator.dart';
-import 'package:flipper/services/shared_state_service.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/model/stock.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/model/product.dart';
+import 'package:flipper/model/stock.dart';
+import 'package:flipper/model/variant_stock.dart';
 import 'package:flipper/model/variation.dart';
 import 'package:flipper/services/database_service.dart';
+import 'package:flipper/services/proxy.dart';
+import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
@@ -21,8 +20,8 @@ import 'package:uuid/uuid.dart';
 class VariationViewModel extends BaseModel {
   final Logger log = Logging.getLogger('variation model:)');
   final DatabaseService _databaseService = ProxyService.database;
-  List<Variation> variations;
-  List<Variation> get data => variations;
+  final List<VariantStock> _variations = [];
+  List<VariantStock> get variations => _variations;
 
   Product _product;
   Product get product => _product;
@@ -36,84 +35,76 @@ class VariationViewModel extends BaseModel {
   final sharedStateService = locator<SharedStateService>();
 
   void getStockByProductId({String productId, BuildContext context}) async {
-    
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$productId');
+    final q = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND productId=\$productId');
 
-    q.parameters = {'VALUE': AppTables.variation,'productId':productId};
+    q.parameters = {'VALUE': AppTables.variation, 'productId': productId};
 
-    
     q.addChangeListener((List results) {
-   
-       for (Map map in results) {
-
-        map.forEach((key,value){
-           _stock = Stock.fromMap(value);
+      for (Map map in results) {
+        map.forEach((key, value) {
+          _stock = Stock.fromMap(value);
         });
         notifyListeners();
       }
     });
   }
 
-  void getVariationById({String productId, BuildContext context}) async {
-   
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND productId=\$productId');
+  void getVariationsByProductId({String productId}) async {
+    final q = Query(_databaseService.db,
+        'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID');
 
-    q.parameters = {'VALUE': AppTables.variation,'productId':productId};
+    q.parameters = {'PRODUCTID': productId ?? sharedStateService.product.id};
 
-    
     q.addChangeListener((List results) {
-   
-       for (Map map in results) {
-
-        map.forEach((key,value){
-           _variation = Variation.fromMap(value);
-        });
+      // issue found in the joun query is that it show result of two joined doc eventhoug I expect one!
+      for (Map map in results) {
+        log.i(map);
+        if (map.length > 2) {
+          if (!_variations.contains(VariantStock.fromMap(map))) {
+            _variations.add(VariantStock.fromMap(map));
+          }
+        }
         notifyListeners();
       }
     });
-    
   }
 
   void getProductById({String productId, BuildContext context}) async {
     setBusy(true);
 
-     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE AND id=\$productId');
+    final q = Query(
+        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND id=\$productId');
 
-    q.parameters = {'VALUE': AppTables.product,'productId':productId};
+    q.parameters = {'VALUE': AppTables.product, 'productId': productId};
 
     final productResults = q.execute();
-     for (Map map in productResults) {
-
-        map.forEach((key,value){
-           _product = Product.fromMap(value);
-        });
-        notifyListeners();
-      }
-   
+    for (Map map in productResults) {
+      map.forEach((key, value) {
+        _product = Product.fromMap(value);
+      });
+      notifyListeners();
+    }
   }
 
   void getProducts({BuildContext context}) {
     setBusy(true);
 
-  final List<Product> list = <Product>[];
+    final List<Product> list = <Product>[];
 
-  final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
     q.parameters = {'VALUE': AppTables.variation};
 
-    
     q.addChangeListener((List results) {
-   
-       for (Map map in results) {
-
-        map.forEach((key,value){
-           list.add(Product.fromMap(value));
+      for (Map map in results) {
+        map.forEach((key, value) {
+          list.add(Product.fromMap(value));
         });
         setBusy(false);
         notifyListeners();
       }
     });
-    
   }
 
   bool get isLocked {
@@ -165,21 +156,23 @@ class VariationViewModel extends BaseModel {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     // create variation
-    final Document variant = _databaseService.insert(data: {
-      'isActive': false,
+    final String id = Uuid().v1();
+    final Document variant = _databaseService.insert(id: id, data: {
+      'isActive': true,
       'name': nameController.text,
-      'unit': 'kg',
+      'unit': 'kg', //TODO: get unit from the sharedStateService
       'channels': <String>[store.state.user.id],
       'table': AppTables.variation,
       'productId': productId,
       'sku': Uuid().v1().substring(0, 4),
-      'id': Uuid().v1(),
+      'id': id,
       'createdAt': DateTime.now().toIso8601String(),
     });
 
     //create stock
     // ignore: unused_local_variable
-    final Document stock = _databaseService.insert(data: {
+    final stockId = Uuid().v1();
+    _databaseService.insert(id: stockId, data: {
       'variantId': variant.ID,
       'supplyPrice': double.parse(costController.text),
       'canTrackingStock': false,
@@ -188,9 +181,9 @@ class VariationViewModel extends BaseModel {
       'channels': [store.state.user.id],
       'isActive': true,
       'table': AppTables.stock,
-      'lowStock': 0,
-      'currentStock': 0,
-      'id': Uuid().v1(),
+      'lowStock': 0.0,
+      'currentStock': 0.0,
+      'id': stockId,
       'productId': productId,
       'branchId': store.state.branch.id,
       'createdAt': DateTime.now().toIso8601String(),
@@ -204,10 +197,8 @@ class VariationViewModel extends BaseModel {
     _retailController = retail;
   }
 
-  void updateVariation({Variation variation})async {
-    
-    // TODO(richard): [lonald] implement update variation
-    log.i(variation);
+  void updateVariation({Variation variation}) async {
+    // log.i(variation);
     await ProxyService.toast.showCustomSnackBar(
       title: 'Feedback',
       message: 'Update method is not implemented',
@@ -217,9 +208,9 @@ class VariationViewModel extends BaseModel {
     );
   }
 
-  void closeAndDelete({BuildContext context, String productId})async {
+  void closeAndDelete({BuildContext context, String productId}) async {
     log.i(productId);
-    // TODO(richard): [lonald] implement delete product
+    // TODO(richard): implement delete product
     await ProxyService.toast.showCustomSnackBar(
       title: 'Feedback',
       message: 'delete method is not implemented',
@@ -229,9 +220,9 @@ class VariationViewModel extends BaseModel {
     );
   }
 
-  void handleEditItem({List<bool> selections})async {
-    // TODO(richard): [lonald] implement edit product
-    
+  void handleEditItem({List<bool> selections}) async {
+    // TODO(richard):  implement edit product
+
     await ProxyService.toast.showCustomSnackBar(
       title: 'Feedback',
       message: 'edit method is not implemented',

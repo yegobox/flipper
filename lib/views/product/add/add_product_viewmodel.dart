@@ -38,7 +38,7 @@ class AddProductViewmodel extends ReactiveViewModel {
 
   double _retailPriceController;
 
-  final _sharedStateService = locator<SharedStateService>();
+  final sharedStateService = locator<SharedStateService>();
 
   double _supplierPriceController;
 
@@ -47,7 +47,7 @@ class AddProductViewmodel extends ReactiveViewModel {
   Stock _stock;
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+  List<ReactiveServiceMixin> get reactiveServices => [sharedStateService];
 
   // ignore: missing_return
   String setName({String name}) {
@@ -60,13 +60,13 @@ class AddProductViewmodel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  List<PColor> get colors => _sharedStateService.colors;
+  List<PColor> get colors => sharedStateService.colors;
 
-  ImageP get image => _sharedStateService.image;
+  ImageP get image => sharedStateService.image;
 
-  PColor get currentColor => _sharedStateService.currentColor;
+  PColor get currentColor => sharedStateService.currentColor;
 
-  Product get product => _sharedStateService.product;
+  Product get product => sharedStateService.product;
 
   bool get isLocked {
     return _isLocked;
@@ -166,6 +166,8 @@ class AddProductViewmodel extends ReactiveViewModel {
     assert(product != null);
     product.properties['name'] = _name;
     product.properties['isDraft'] = false;
+    product.properties['description'] = _description ?? 'No Description';
+
     product.properties['categoryId'] = categoryId;
     product.properties['updatedAt'] = DateTime.now().toIso8601String();
 
@@ -188,7 +190,6 @@ class AddProductViewmodel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  // once full refacored
   // ignore: always_specify_types
   Future getTemporalProduct({CommonViewModel vm}) async {
     setBusy(true);
@@ -203,7 +204,7 @@ class AddProductViewmodel extends ReactiveViewModel {
     if (products.isNotEmpty) {
       for (Map map in products) {
         map.forEach((key, value) {
-          _sharedStateService.setProduct(product: Product.fromMap(value));
+          sharedStateService.setProduct(product: Product.fromMap(value));
         });
         notifyListeners();
       }

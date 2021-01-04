@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -10,8 +9,7 @@ import 'converters/serializers.dart';
 part 'stock.g.dart';
 
 abstract class Stock implements Built<Stock, StockBuilder> {
-  @nullable
-  String get value;
+  double get value;
   String get id;
   String get branchId;
 
@@ -20,10 +18,12 @@ abstract class Stock implements Built<Stock, StockBuilder> {
   @nullable
   bool get isActive;
 
-  String get lowStock;
+  String get productId;
 
-  String get currentStock;
-  
+  double get lowStock;
+
+  double get currentStock;
+
   double get supplyPrice;
 
   double get retailPrice;
@@ -41,10 +41,10 @@ abstract class Stock implements Built<Stock, StockBuilder> {
   // ignore: sort_unnamed_constructors_first
   factory Stock([void Function(StockBuilder) updates]) = _$Stock;
 
-  
   String toJson() {
     return json.encode(toMap());
   }
+
   // ignore: always_specify_types
   Map toMap() {
     return standardSerializers.serializeWith(Stock.serializer, this);

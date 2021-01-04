@@ -106,10 +106,12 @@ class ProductsViewModel extends ReactiveViewModel {
     log.d(_sharedState.user);
     final q = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BID');
-    
+
     q.parameters = {'VALUE': AppTables.product, 'BID': _sharedState.branch.id};
 
     q.addChangeListener((List results) {
+      // TODO: work on refreshing data when they are deleted!
+      // _products.clear();
       for (Map map in results) {
         map.forEach((key, value) {
           if (!_products.contains(Product.fromMap(value))) {
@@ -120,7 +122,6 @@ class ProductsViewModel extends ReactiveViewModel {
       }
     });
   }
-
 
   // selling a product
   void shouldSeeItemOnly(BuildContext context, Product product) {

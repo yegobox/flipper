@@ -1,4 +1,5 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/views/category/category_view.dart';
 import 'package:flipper/views/product/add/add_product_viewmodel.dart';
@@ -141,7 +142,6 @@ class AddProductView extends StatelessWidget {
                     const CenterDivider(
                       width: double.infinity,
                     ),
-
                     const SectionSelectUnit(),
                     const CenterDivider(
                       width: double.infinity,
@@ -155,12 +155,18 @@ class AddProductView extends StatelessWidget {
                     SupplyPrice(
                       addModel: model,
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 18, right: 18),
-                      child: ListTile(
-                        leading: Text('Stock'),
-                        trailing: Text('Add Stock',
-                            style: TextStyle(color: Colors.blue)),
+                    GestureDetector(
+                      onTap: () {
+                        ProxyService.nav.navigateTo(Routing.receiveStock,
+                            arguments: ReceiveStockScreenArguments(id: null));
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 18, right: 18),
+                        child: ListTile(
+                          leading: Text('Stock'),
+                          trailing: Text('Add Stock',
+                              style: TextStyle(color: Colors.blue)),
+                        ),
                       ),
                     ),
                     const SkuView(),
@@ -171,11 +177,12 @@ class AddProductView extends StatelessWidget {
                     const ListDivider(
                       height: 10,
                     ),
-                    VariationList(productId: model.product.id),
+                    const VariationList(),
 
                     AddVariant(
                       onPressedCallback: () {
-                        model.createVariant(productId: model.product.id);
+                        model.createVariant(
+                            productId: model.sharedStateService.product.id);
                       },
                     ),
                     const CenterDivider(
@@ -191,6 +198,4 @@ class AddProductView extends StatelessWidget {
       },
     );
   }
-
-  pop() {}
 }

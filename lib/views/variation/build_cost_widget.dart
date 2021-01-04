@@ -16,7 +16,7 @@ class BuildCostWidget extends StatelessWidget {
       child: ViewModelBuilder.reactive(
           builder:
               (BuildContext context, VariationViewModel model, Widget child) {
-            return model.busy || model.data == null
+            return model.busy || model.variation == null
                 ? TextFormField(
                     key: _textKey,
                     keyboardType: TextInputType.number,

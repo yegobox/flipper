@@ -249,8 +249,8 @@ class Routing {
         }
         final typedArgs = args as ReceiveStockScreenArguments;
         return MaterialPageRoute<dynamic>(
-          builder: (_) => ReceiveStockScreen(
-              key: typedArgs.key, variationId: typedArgs.variationId),
+          builder: (_) =>
+              ReceiveStockScreen(key: typedArgs.key, id: typedArgs.id),
           settings: settings,
         );
       case Routing.splashScreen:
@@ -514,8 +514,8 @@ class ProductViewArguments {
 //ReceiveStockScreen arguments holder class
 class ReceiveStockScreenArguments {
   final Key key;
-  final String variationId;
-  ReceiveStockScreenArguments({this.key, @required this.variationId});
+  final String id;
+  ReceiveStockScreenArguments({this.key, @required this.id});
 }
 
 //AddVariationScreen arguments holder class

@@ -18,6 +18,9 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
   Iterable<Object> serialize(Serializers serializers, Stock object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
+      'value',
+      serializers.serialize(object.value,
+          specifiedType: const FullType(double)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
       'branchId',
@@ -26,12 +29,15 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       'variantId',
       serializers.serialize(object.variantId,
           specifiedType: const FullType(String)),
+      'productId',
+      serializers.serialize(object.productId,
+          specifiedType: const FullType(String)),
       'lowStock',
       serializers.serialize(object.lowStock,
-          specifiedType: const FullType(String)),
+          specifiedType: const FullType(double)),
       'currentStock',
       serializers.serialize(object.currentStock,
-          specifiedType: const FullType(String)),
+          specifiedType: const FullType(double)),
       'supplyPrice',
       serializers.serialize(object.supplyPrice,
           specifiedType: const FullType(double)),
@@ -49,12 +55,6 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
-    if (object.value != null) {
-      result
-        ..add('value')
-        ..add(serializers.serialize(object.value,
-            specifiedType: const FullType(String)));
-    }
     if (object.isActive != null) {
       result
         ..add('isActive')
@@ -83,7 +83,7 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       switch (key) {
         case 'value':
           result.value = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'id':
           result.id = serializers.deserialize(value,
@@ -101,13 +101,17 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
           result.isActive = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
+        case 'productId':
+          result.productId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
         case 'lowStock':
           result.lowStock = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'currentStock':
           result.currentStock = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'supplyPrice':
           result.supplyPrice = serializers.deserialize(value,
@@ -144,7 +148,7 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
 
 class _$Stock extends Stock {
   @override
-  final String value;
+  final double value;
   @override
   final String id;
   @override
@@ -154,9 +158,11 @@ class _$Stock extends Stock {
   @override
   final bool isActive;
   @override
-  final String lowStock;
+  final String productId;
   @override
-  final String currentStock;
+  final double lowStock;
+  @override
+  final double currentStock;
   @override
   final double supplyPrice;
   @override
@@ -179,6 +185,7 @@ class _$Stock extends Stock {
       this.branchId,
       this.variantId,
       this.isActive,
+      this.productId,
       this.lowStock,
       this.currentStock,
       this.supplyPrice,
@@ -188,6 +195,9 @@ class _$Stock extends Stock {
       this.channels,
       this.table})
       : super._() {
+    if (value == null) {
+      throw new BuiltValueNullFieldError('Stock', 'value');
+    }
     if (id == null) {
       throw new BuiltValueNullFieldError('Stock', 'id');
     }
@@ -196,6 +206,9 @@ class _$Stock extends Stock {
     }
     if (variantId == null) {
       throw new BuiltValueNullFieldError('Stock', 'variantId');
+    }
+    if (productId == null) {
+      throw new BuiltValueNullFieldError('Stock', 'productId');
     }
     if (lowStock == null) {
       throw new BuiltValueNullFieldError('Stock', 'lowStock');
@@ -236,6 +249,7 @@ class _$Stock extends Stock {
         branchId == other.branchId &&
         variantId == other.variantId &&
         isActive == other.isActive &&
+        productId == other.productId &&
         lowStock == other.lowStock &&
         currentStock == other.currentStock &&
         supplyPrice == other.supplyPrice &&
@@ -259,11 +273,13 @@ class _$Stock extends Stock {
                                     $jc(
                                         $jc(
                                             $jc(
-                                                $jc($jc(0, value.hashCode),
-                                                    id.hashCode),
-                                                branchId.hashCode),
-                                            variantId.hashCode),
-                                        isActive.hashCode),
+                                                $jc(
+                                                    $jc($jc(0, value.hashCode),
+                                                        id.hashCode),
+                                                    branchId.hashCode),
+                                                variantId.hashCode),
+                                            isActive.hashCode),
+                                        productId.hashCode),
                                     lowStock.hashCode),
                                 currentStock.hashCode),
                             supplyPrice.hashCode),
@@ -282,6 +298,7 @@ class _$Stock extends Stock {
           ..add('branchId', branchId)
           ..add('variantId', variantId)
           ..add('isActive', isActive)
+          ..add('productId', productId)
           ..add('lowStock', lowStock)
           ..add('currentStock', currentStock)
           ..add('supplyPrice', supplyPrice)
@@ -297,9 +314,9 @@ class _$Stock extends Stock {
 class StockBuilder implements Builder<Stock, StockBuilder> {
   _$Stock _$v;
 
-  String _value;
-  String get value => _$this._value;
-  set value(String value) => _$this._value = value;
+  double _value;
+  double get value => _$this._value;
+  set value(double value) => _$this._value = value;
 
   String _id;
   String get id => _$this._id;
@@ -317,13 +334,17 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
   bool get isActive => _$this._isActive;
   set isActive(bool isActive) => _$this._isActive = isActive;
 
-  String _lowStock;
-  String get lowStock => _$this._lowStock;
-  set lowStock(String lowStock) => _$this._lowStock = lowStock;
+  String _productId;
+  String get productId => _$this._productId;
+  set productId(String productId) => _$this._productId = productId;
 
-  String _currentStock;
-  String get currentStock => _$this._currentStock;
-  set currentStock(String currentStock) => _$this._currentStock = currentStock;
+  double _lowStock;
+  double get lowStock => _$this._lowStock;
+  set lowStock(double lowStock) => _$this._lowStock = lowStock;
+
+  double _currentStock;
+  double get currentStock => _$this._currentStock;
+  set currentStock(double currentStock) => _$this._currentStock = currentStock;
 
   double _supplyPrice;
   double get supplyPrice => _$this._supplyPrice;
@@ -361,6 +382,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
       _branchId = _$v.branchId;
       _variantId = _$v.variantId;
       _isActive = _$v.isActive;
+      _productId = _$v.productId;
       _lowStock = _$v.lowStock;
       _currentStock = _$v.currentStock;
       _supplyPrice = _$v.supplyPrice;
@@ -398,6 +420,7 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
               branchId: branchId,
               variantId: variantId,
               isActive: isActive,
+              productId: productId,
               lowStock: lowStock,
               currentStock: currentStock,
               supplyPrice: supplyPrice,

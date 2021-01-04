@@ -61,7 +61,6 @@ class AddVariationScreen extends StatelessWidget {
                             validator: Validators.isValid,
                             onChanged: (String _name) {
                               model.lock();
-                              //lock the fields until the field is dirty!
                             },
                             decoration: InputDecoration(
                               hintText: 'Name',
@@ -137,7 +136,8 @@ class AddVariationScreen extends StatelessWidget {
           );
         },
         onModelReady: (VariationViewModel model) {
-          model.initFields(TextEditingController(),TextEditingController(),TextEditingController());
+          model.initFields(TextEditingController(), TextEditingController(),
+              TextEditingController());
         },
         viewModelBuilder: () => VariationViewModel());
   }

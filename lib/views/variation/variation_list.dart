@@ -1,105 +1,82 @@
-import 'package:flipper/domain/redux/app_state.dart';
+import 'package:flipper/model/variant_stock.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/services/proxy.dart';
+import 'package:flipper/utils/logger.dart';
 
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper/views/variation/variation_viewmodel.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:logger/logger.dart';
+import 'package:stacked/stacked.dart';
 
-class VariationList extends StatefulWidget {
-  const VariationList({Key key, this.productId}) : super(key: key);
+class VariationList extends StatelessWidget {
+  const VariationList({Key key}) : super(key: key);
 
-  @override
-  _VariationListState createState() => _VariationListState();
-  final String productId;
-}
+  Widget _buildVariationsList({List<VariantStock> variations}) {
+    // final Logger log = Logging.getLogger('variation List:)');
+    final List<Widget> list = <Widget>[];
 
-class _VariationListState extends State<VariationList> {
-  final FlipperNavigationService _navigationService = ProxyService.nav;
-
-  // _buildVariationsList(
-  //     List<VariationTableData> variations, CommonViewModel vm) {
-  //   List<Widget> list = new List<Widget>();
-  //   for (var i = 0; i < variations.length; i++) {
-  //     if (variations[i].name != 'tmp') {
-  //       list.add(
-  //         Center(
-  //           child: SizedBox(
-  //             height: 90,
-  //             width: 350,
-  //             child: ListView(children: <Widget>[
-  //               StreamBuilder(
-  //                   stream: vm.database.stockDao.getStockByVariantStream(
-  //                       branchId: vm.branch.id, variationId: variations[i].id),
-  //                   builder: (context,
-  //                       AsyncSnapshot<List<StockTableData>> snapshot) {
-  //                     if (snapshot.data == null) {
-  //                       return Text('');
-  //                     }
-  //                     return ListTile(
-  //                       leading: Icon(
-  //                         Icons.dehaze,
-  //                       ),
-  //                       subtitle: Text(
-  //                           '${variations[i].name} \nRWF ${snapshot.data[0].retailPrice}'),
-  //                       trailing: Row(
-  //                           mainAxisSize: MainAxisSize.min,
-  //                           children: <Widget>[
-  //                             FlatButton(
-  //                               child: Text(
-  //                                 snapshot.data[0].currentStock == 0
-  //                                     ? 'Receive Stock'
-  //                                     : snapshot.data[0].currentStock
-  //                                             .toString() +
-  //                                         ' ' +
-  //                                         'in Stock',
-  //                               ),
-  //                               onPressed: () {
-  //                                 _navigationService.navigateTo(
-  //                                   Routing.receiveStock,
-  //                                   arguments: ReceiveStockScreenArguments(
-  //                                     variationId: variations[i].id,
-  //                                   ),
-  //                                 );
-  //                               },
-  //                             ),
-  //                           ]),
-  //                       dense: true,
-  //                     );
-  //                   })
-  //             ]),
-  //           ),
-  //         ),
-  //       );
-  //     }
-  //   }
-  //   if (list.length == 0) {
-  //     return Container();
-  //   }
-  //   return Column(children: list);
-  // }
+    if (variations.length < 2) {
+      return const SizedBox
+          .shrink(); //we do not show a regular variant if it is only variant we have, otherwise if a user has added other non default variants then show them
+    }
+    for (var i = 0; i < variations.length; i++) {
+      if (variations[i].name != 'tmp') {
+        list.add(
+          Center(
+            child: SizedBox(
+              height: 90,
+              width: 350,
+              child: ListView(children: <Widget>[
+                ListTile(
+                  leading: const Icon(
+                    Icons.dehaze,
+                  ),
+                  subtitle: Text(
+                      '${variations[i].name} \nRWF ${variations[i].retailPrice}'),
+                  trailing:
+                      Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                    FlatButton(
+                      child: Text(
+                        variations[i].currentStock == 0
+                            ? 'Receive Stock'
+                            : variations[i].currentStock.toString() +
+                                ' ' +
+                                'in Stock',
+                      ),
+                      onPressed: () {
+                        ProxyService.nav.navigateTo(
+                          Routing.receiveStock,
+                          arguments: ReceiveStockScreenArguments(
+                            id: variations[i].id,
+                          ),
+                        );
+                      },
+                    ),
+                  ]),
+                  dense: true,
+                )
+              ]),
+            ),
+          ),
+        );
+      }
+    }
+    if (list.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(children: list);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (context, vm) {
-        return const SizedBox.shrink();
-        // FIXME:
-        // return StreamBuilder(
-        //   stream: vm.database.variationDao
-        //       .getItemVariationsByItemId(widget.productId),
-        //   builder: (context, AsyncSnapshot<List<VariationTableData>> snapshot) {
-        //     if (snapshot.data == null) {
-        //       return Text('');
-        //     }
-        //     return snapshot.data.length > 1
-        //         ? _buildVariationsList(snapshot.data, vm)
-        //         : Text('');
-        //   },
-        // );
+    return ViewModelBuilder.reactive(
+      viewModelBuilder: () => VariationViewModel(),
+      onModelReady: (VariationViewModel model) {
+        model.getVariationsByProductId();
+      },
+      builder: (BuildContext context, VariationViewModel model, Widget child) {
+        return _buildVariationsList(variations: model.variations);
       },
     );
   }

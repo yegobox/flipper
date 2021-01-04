@@ -76,7 +76,6 @@ class _FlipperAppState extends State<FlipperApp> {
     _firebaseMessaging.getToken().then((String token) async {
       assert(token != null);
       if (token != null) {
-        // save the token to the server for later use. (first save it in shared pref wait until we have a logged in user.)
         log.i('Push Messaging token: $token');
 
         ProxyService.sharedPref.setToken(token: token);

@@ -18,6 +18,7 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Switcher.serializer)
       ..add(Tax.serializer)
       ..add(Unit.serializer)
+      ..add(VariantStock.serializer)
       ..add(Variation.serializer)
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
