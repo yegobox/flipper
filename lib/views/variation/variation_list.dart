@@ -1,12 +1,10 @@
 import 'package:flipper/model/variant_stock.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/services/proxy.dart';
-import 'package:flipper/utils/logger.dart';
 
 import 'package:flipper/views/variation/variation_viewmodel.dart';
 
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 
 class VariationList extends StatelessWidget {
