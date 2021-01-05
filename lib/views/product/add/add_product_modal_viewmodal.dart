@@ -117,12 +117,11 @@ class AddProductModalViewModal extends BaseModel {
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      log.i(variantId);
-
       final id3 = Uuid().v1();
       _databaseService.insert(id: id3, data: {
         'variantId': variantId,
         'supplyPrice': 0.0,
+        'value': 0.0,
         'canTrackingStock': false,
         'showLowStockAlert': false,
         'retailPrice': 0.0,
@@ -152,8 +151,6 @@ class AddProductModalViewModal extends BaseModel {
         });
         notifyListeners();
       }
-      // log.d('productId:' + productId);
-
       return productId;
     }
   }

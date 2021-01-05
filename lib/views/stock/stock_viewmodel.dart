@@ -10,12 +10,36 @@ import 'package:flutter/material.dart';
 
 import 'package:logger/logger.dart';
 
-// comment
 class StockViewModel extends BaseModel {
   final Logger log = Logging.getLogger('stocks observer:)');
   final DatabaseService _databaseService = ProxyService.database;
   final List<Stock> _stocks = <Stock>[];
   List<Stock> get stock => _stocks;
+  double stockValue;
+
+  void setStockValue({double value}) async {
+    stockValue = value;
+    notifyListeners();
+  }
+
+  void updateStock({String variantId}) {
+    //the Id we get we are sure it stands for variant no need to run complicated query!
+    final q = Query(_databaseService.db,
+        'SELECT * WHERE table=\$VALUE AND variantId=\$VID');
+    q.parameters = {'VALUE': AppTables.stock, 'VID': variantId};
+
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+        map.forEach((key, value) {
+          final Document variantDocument =
+              _databaseService.getById(id: Stock.fromMap(value).id);
+          variantDocument.properties['value'] = stockValue;
+
+          _databaseService.update(document: variantDocument);
+        });
+      }
+    });
+  }
 
   Future<List<Map<String, dynamic>>> geetVariantsBy({String productId}) async {
     final q = Query(_databaseService.db,
@@ -32,8 +56,6 @@ class StockViewModel extends BaseModel {
 
   void loadStockById({BuildContext context, String productId}) async {
     setBusy(true);
-
-    log.d('loading stock with productId: ' + productId);
 
     // final List<dynamic> variants = await _databaseService(productId: productId);
     final q = Query(_databaseService.db,
@@ -64,7 +86,6 @@ class StockViewModel extends BaseModel {
               notifyListeners();
             }
           });
-
         }
       });
     }

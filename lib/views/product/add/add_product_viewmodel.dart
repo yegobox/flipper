@@ -204,7 +204,22 @@ class AddProductViewmodel extends ReactiveViewModel {
     if (products.isNotEmpty) {
       for (Map map in products) {
         map.forEach((key, value) {
+          //get the Regular variant to update when needed
+          final regularVariant = Query(_databaseService.db,
+              'SELECT id,name,sku,productId,unit,table,channels WHERE table=\$VALUE AND name=\$NAME AND productId=\$PRODUCTID');
           sharedStateService.setProduct(product: Product.fromMap(value));
+          regularVariant.parameters = {
+            'VALUE': AppTables.variation,
+            'NAME': 'Regular',
+            'PRODUCTID': Product.fromMap(value).id
+          };
+          final results = regularVariant.execute();
+          if (results.isNotEmpty) {
+            for (Map map in results) {
+              sharedStateService.setVariation(
+                  variation: Variation.fromMap(map));
+            }
+          }
         });
         notifyListeners();
       }

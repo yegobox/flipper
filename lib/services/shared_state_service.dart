@@ -20,19 +20,24 @@ class SharedStateService with ReactiveServiceMixin {
       _variations,
       _businesses,
       _blueConnected,
-      _bluethoothDevices
+      _bluethoothDevices,
+      _variation
     ]);
   }
 
   final RxValue<Branch> _branch = RxValue<Branch>(initial: null);
   final RxValue<Business> _businesses = RxValue<Business>(initial: null);
+  final RxValue<Variation> _variation = RxValue<Variation>(initial: null);
   final RxValue<List<PColor>> _colors = RxValue<List<PColor>>(initial: []);
   final RxValue<PColor> _currentColor = RxValue<PColor>(
-      initial: PColor((p) => p
+    initial: PColor(
+      (p) => p
         ..name = '#ee5253'
         ..id = '1'
         ..table = 'table'
-        ..isActive = false));
+        ..isActive = false,
+    ),
+  );
 
   final RxValue<ImageP> _image = RxValue<ImageP>(initial: null);
   final RxValue<Product> _product = RxValue<Product>(initial: null);
@@ -59,6 +64,7 @@ class SharedStateService with ReactiveServiceMixin {
   FUser get user => _user.value;
 
   Business get business => _businesses.value;
+  Variation get variation => _variation.value;
 
   Branch get branch => _branch.value;
 
@@ -73,6 +79,10 @@ class SharedStateService with ReactiveServiceMixin {
 
   void setUser({FUser user}) {
     _user.value = user;
+  }
+
+  void setVariation({Variation variation}) {
+    _variation.value = variation;
   }
 
   void setBranch({Branch branch}) {

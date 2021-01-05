@@ -9,14 +9,16 @@ import 'converters/serializers.dart';
 part 'stock.g.dart';
 
 abstract class Stock implements Built<Stock, StockBuilder> {
+  @nullable //TODO: remove after devs the issue will be gone!
   double get value;
   String get id;
   String get branchId;
 
   String get variantId;
 
-  @nullable
   bool get isActive;
+
+  bool get canTrackingStock;
 
   String get productId;
 
@@ -27,7 +29,6 @@ abstract class Stock implements Built<Stock, StockBuilder> {
   double get supplyPrice;
 
   double get retailPrice;
-  bool get canTrackingStock;
 
   @nullable
   bool get showLowStockAlert;

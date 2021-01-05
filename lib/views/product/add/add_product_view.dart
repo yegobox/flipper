@@ -157,8 +157,12 @@ class AddProductView extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        ProxyService.nav.navigateTo(Routing.receiveStock,
-                            arguments: ReceiveStockScreenArguments(id: null));
+                        ProxyService.nav.navigateTo(
+                          Routing.receiveStock,
+                          arguments: ReceiveStockScreenArguments(
+                            id: model.sharedStateService.variation.id,
+                          ),
+                        ); //passing a regular variantId to update
                       },
                       child: const Padding(
                         padding: EdgeInsets.only(left: 18, right: 18),
