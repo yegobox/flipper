@@ -53,11 +53,11 @@ class ProductsViewModel extends ReactiveViewModel {
     final branche = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE ');
 
     branche.parameters = {'VALUE': AppTables.branch};
-    final brancheResult = branche.execute();
+    final branchResult = branche.execute();
     final List<Branch> branches = [];
-    if (brancheResult.isNotEmpty) {
+    if (branchResult.isNotEmpty) {
       // ignore: unnecessary_type_check
-      for (Map map in brancheResult) {
+      for (Map map in branchResult) {
         map.forEach((key, value) {
           if (!branches.contains(Branch.fromMap(value))) {
             branches.add(Branch.fromMap(value));
@@ -102,8 +102,6 @@ class ProductsViewModel extends ReactiveViewModel {
   void getProducts({BuildContext context}) {
     assert(_sharedState.branch.id != null);
 
-    log.d(_sharedState.branch.id);
-    log.d(_sharedState.user);
     final q = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BID');
 
@@ -136,7 +134,10 @@ class ProductsViewModel extends ReactiveViewModel {
   }
 
   void onSellingItem(BuildContext context, Product product) async {
-    ProxyService.nav.navigateTo(Routing.productDescription);
+    ProxyService.nav.navigateTo(
+      Routing.onSellingView,
+      arguments: OnSellingViewArguments(product: product),
+    );
   }
 
   void navigateTo({@required String path}) {

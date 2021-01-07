@@ -23,20 +23,49 @@ class _$VariantStockSerializer implements StructuredSerializer<VariantStock> {
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'lowStock',
-      serializers.serialize(object.lowStock,
-          specifiedType: const FullType(double)),
-      'currentStock',
-      serializers.serialize(object.currentStock,
-          specifiedType: const FullType(double)),
-      'supplyPrice',
-      serializers.serialize(object.supplyPrice,
-          specifiedType: const FullType(double)),
-      'retailPrice',
-      serializers.serialize(object.retailPrice,
-          specifiedType: const FullType(double)),
     ];
-
+    if (object.lowStock != null) {
+      result
+        ..add('lowStock')
+        ..add(serializers.serialize(object.lowStock,
+            specifiedType: const FullType(double)));
+    }
+    if (object.currentStock != null) {
+      result
+        ..add('currentStock')
+        ..add(serializers.serialize(object.currentStock,
+            specifiedType: const FullType(double)));
+    }
+    if (object.supplyPrice != null) {
+      result
+        ..add('supplyPrice')
+        ..add(serializers.serialize(object.supplyPrice,
+            specifiedType: const FullType(double)));
+    }
+    if (object.retailPrice != null) {
+      result
+        ..add('retailPrice')
+        ..add(serializers.serialize(object.retailPrice,
+            specifiedType: const FullType(double)));
+    }
+    if (object.sku != null) {
+      result
+        ..add('sku')
+        ..add(serializers.serialize(object.sku,
+            specifiedType: const FullType(String)));
+    }
+    if (object.productId != null) {
+      result
+        ..add('productId')
+        ..add(serializers.serialize(object.productId,
+            specifiedType: const FullType(String)));
+    }
+    if (object.unit != null) {
+      result
+        ..add('unit')
+        ..add(serializers.serialize(object.unit,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -75,6 +104,18 @@ class _$VariantStockSerializer implements StructuredSerializer<VariantStock> {
           result.retailPrice = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
+        case 'sku':
+          result.sku = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'productId':
+          result.productId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'unit':
+          result.unit = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -95,6 +136,12 @@ class _$VariantStock extends VariantStock {
   final double supplyPrice;
   @override
   final double retailPrice;
+  @override
+  final String sku;
+  @override
+  final String productId;
+  @override
+  final String unit;
 
   factory _$VariantStock([void Function(VariantStockBuilder) updates]) =>
       (new VariantStockBuilder()..update(updates)).build();
@@ -105,25 +152,16 @@ class _$VariantStock extends VariantStock {
       this.lowStock,
       this.currentStock,
       this.supplyPrice,
-      this.retailPrice})
+      this.retailPrice,
+      this.sku,
+      this.productId,
+      this.unit})
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('VariantStock', 'name');
     }
     if (id == null) {
       throw new BuiltValueNullFieldError('VariantStock', 'id');
-    }
-    if (lowStock == null) {
-      throw new BuiltValueNullFieldError('VariantStock', 'lowStock');
-    }
-    if (currentStock == null) {
-      throw new BuiltValueNullFieldError('VariantStock', 'currentStock');
-    }
-    if (supplyPrice == null) {
-      throw new BuiltValueNullFieldError('VariantStock', 'supplyPrice');
-    }
-    if (retailPrice == null) {
-      throw new BuiltValueNullFieldError('VariantStock', 'retailPrice');
     }
   }
 
@@ -143,17 +181,28 @@ class _$VariantStock extends VariantStock {
         lowStock == other.lowStock &&
         currentStock == other.currentStock &&
         supplyPrice == other.supplyPrice &&
-        retailPrice == other.retailPrice;
+        retailPrice == other.retailPrice &&
+        sku == other.sku &&
+        productId == other.productId &&
+        unit == other.unit;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc($jc($jc($jc(0, name.hashCode), id.hashCode), lowStock.hashCode),
-                currentStock.hashCode),
-            supplyPrice.hashCode),
-        retailPrice.hashCode));
+            $jc(
+                $jc(
+                    $jc(
+                        $jc(
+                            $jc($jc($jc(0, name.hashCode), id.hashCode),
+                                lowStock.hashCode),
+                            currentStock.hashCode),
+                        supplyPrice.hashCode),
+                    retailPrice.hashCode),
+                sku.hashCode),
+            productId.hashCode),
+        unit.hashCode));
   }
 
   @override
@@ -164,7 +213,10 @@ class _$VariantStock extends VariantStock {
           ..add('lowStock', lowStock)
           ..add('currentStock', currentStock)
           ..add('supplyPrice', supplyPrice)
-          ..add('retailPrice', retailPrice))
+          ..add('retailPrice', retailPrice)
+          ..add('sku', sku)
+          ..add('productId', productId)
+          ..add('unit', unit))
         .toString();
   }
 }
@@ -197,6 +249,18 @@ class VariantStockBuilder
   double get retailPrice => _$this._retailPrice;
   set retailPrice(double retailPrice) => _$this._retailPrice = retailPrice;
 
+  String _sku;
+  String get sku => _$this._sku;
+  set sku(String sku) => _$this._sku = sku;
+
+  String _productId;
+  String get productId => _$this._productId;
+  set productId(String productId) => _$this._productId = productId;
+
+  String _unit;
+  String get unit => _$this._unit;
+  set unit(String unit) => _$this._unit = unit;
+
   VariantStockBuilder();
 
   VariantStockBuilder get _$this {
@@ -207,6 +271,9 @@ class VariantStockBuilder
       _currentStock = _$v.currentStock;
       _supplyPrice = _$v.supplyPrice;
       _retailPrice = _$v.retailPrice;
+      _sku = _$v.sku;
+      _productId = _$v.productId;
+      _unit = _$v.unit;
       _$v = null;
     }
     return this;
@@ -234,7 +301,10 @@ class VariantStockBuilder
             lowStock: lowStock,
             currentStock: currentStock,
             supplyPrice: supplyPrice,
-            retailPrice: retailPrice);
+            retailPrice: retailPrice,
+            sku: sku,
+            productId: productId,
+            unit: unit);
     replace(_$result);
     return _$result;
   }

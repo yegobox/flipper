@@ -11,7 +11,7 @@ import 'package:flipper/views/product/add/add_product_view.dart';
 import 'package:flipper/views/product/edit/edit_product_title.dart';
 import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
-import 'package:flipper/views/product/widget/product_description.dart';
+import 'package:flipper/views/product/widget/on_selling_view.dart';
 import 'package:flipper/views/reports/build_sales_View.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
@@ -82,7 +82,7 @@ class $Routing {
   EditVariationScreen editVariationScreen;
   ListCategoryView listCategoryView;
   ListDiscountView listDiscountView;
-  ProductDescription productDescription;
+  OnSellingView onSellingView;
   ProductListView productsListView;
   ProductView productView;
   ReceiveStockScreen receiveStock;

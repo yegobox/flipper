@@ -16,23 +16,16 @@ abstract class Order implements Built<Order, OrderBuilder> {
 
   String get branchId;
   @nullable
-
   String get deviceId;
   @nullable
-
   String get currency;
   @nullable
-
   String get reference;
   @nullable
-
-
   String get orderDate;
   @nullable
-
   bool get isDraft;
   @nullable
-
   String get orderType;
 
   @nullable
@@ -44,6 +37,8 @@ abstract class Order implements Built<Order, OrderBuilder> {
   @nullable
   String get subTotal;
 
+  @nullable
+  String variantName;
   @nullable
   String get supplierInvoiceNumber;
 

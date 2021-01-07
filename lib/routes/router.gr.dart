@@ -20,7 +20,8 @@ import 'package:flipper/views/unit/edit_unit_view.dart';
 import 'package:flipper/views/variation/edit_variation_screen.dart';
 import 'package:flipper/views/category/category_list_view.dart';
 import 'package:flipper/views/discounts/discount_list_view.dart';
-import 'package:flipper/views/product/widget/product_description.dart';
+import 'package:flipper/views/product/widget/on_selling_view.dart';
+import 'package:flipper/model/product.dart';
 import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
@@ -56,7 +57,7 @@ class Routing {
   static const editVariationScreen = '/edit-variation-screen';
   static const listCategoryView = '/list-category-view';
   static const listDiscountView = '/list-discount-view';
-  static const productDescription = '/product-description';
+  static const onSellingView = '/on-selling-view';
   static const productsListView = '/products-list-view';
   static const productView = '/product-view';
   static const receiveStock = '/receive-stock';
@@ -210,13 +211,15 @@ class Routing {
           builder: (_) => ListDiscountView(key: typedArgs),
           settings: settings,
         );
-      case Routing.productDescription:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
+      case Routing.onSellingView:
+        if (hasInvalidArgs<OnSellingViewArguments>(args)) {
+          return misTypedArgsRoute<OnSellingViewArguments>(args);
         }
-        final typedArgs = args as Key;
+        final typedArgs =
+            args as OnSellingViewArguments ?? OnSellingViewArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => ProductDescription(key: typedArgs),
+          builder: (_) =>
+              OnSellingView(key: typedArgs.key, product: typedArgs.product),
           settings: settings,
         );
       case Routing.productsListView:
@@ -499,6 +502,13 @@ class EditVariationScreenArguments {
       @required this.variationId,
       @required this.productId,
       this.unitId});
+}
+
+//OnSellingView arguments holder class
+class OnSellingViewArguments {
+  final Key key;
+  final Product product;
+  OnSellingViewArguments({this.key, this.product});
 }
 
 //ProductView arguments holder class

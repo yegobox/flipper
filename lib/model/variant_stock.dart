@@ -11,14 +11,23 @@ abstract class VariantStock
     implements Built<VariantStock, VariantStockBuilder> {
   String get name;
   String get id;
-
+  @nullable
   double get lowStock;
-
+  @nullable
   double get currentStock;
-
+  @nullable
   double get supplyPrice;
-
+  @nullable
   double get retailPrice;
+
+  @nullable
+  String get sku;
+
+  @nullable
+  String get productId;
+
+  @nullable
+  String get unit;
 
   VariantStock._();
 

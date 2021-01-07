@@ -20,31 +20,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/lib/model/converters/convert_int_to_double.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/model/variant_stock.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/model/variant_stock.g.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/flipper_app.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/flipper_app.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/model/converters/serializers.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/converters/serializers.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/model/converters/serializers.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/converters/serializers.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/model/stock.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/stock.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/model/stock.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/stock.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/routes/router.gr.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.gr.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_modal_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_modal_viewmodal.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/stock/receive_stock.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/stock/receive_stock.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/add_variation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/add_variation_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/build_cost_widget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/build_cost_widget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/build_retail_widget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/build_retail_widget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/build_variation_body.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/build_variation_body.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/edit_variation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/edit_variation_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/variant_widget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/variant_widget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/variation_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/variation_list.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/variation_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/variation_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.gr.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/product_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_list_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/products_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/products_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/product_description.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/product_selling_view.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +53,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../BluetoothThermalPrinter" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
@@ -146,42 +130,42 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="168" y="120" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1609773895638" />
-    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1607769342851">
+    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1609865754634">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1607769342851" />
-    <state width="1060" height="537" key="GridCell.Tab.0.bottom" timestamp="1608788130415">
+    <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1609865754634" />
+    <state width="1491" height="219" key="GridCell.Tab.0.bottom" timestamp="1609867851406">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1608788130415" />
-    <state width="1060" height="537" key="GridCell.Tab.0.center" timestamp="1608788130414">
+    <state width="1491" height="219" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1609867851406" />
+    <state width="1491" height="219" key="GridCell.Tab.0.center" timestamp="1609867851405">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1608788130414" />
-    <state width="1060" height="537" key="GridCell.Tab.0.left" timestamp="1608788130413">
+    <state width="1491" height="219" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1609867851405" />
+    <state width="1491" height="219" key="GridCell.Tab.0.left" timestamp="1609867851400">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1608788130413" />
-    <state width="1060" height="537" key="GridCell.Tab.0.right" timestamp="1608788130414">
+    <state width="1491" height="219" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1609867851400" />
+    <state width="1491" height="219" key="GridCell.Tab.0.right" timestamp="1609867851406">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1608788130414" />
-    <state width="1060" height="537" key="GridCell.Tab.1.bottom" timestamp="1608788130416">
+    <state width="1491" height="219" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1609867851406" />
+    <state width="1491" height="219" key="GridCell.Tab.1.bottom" timestamp="1609867851407">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1608788130416" />
-    <state width="1060" height="537" key="GridCell.Tab.1.center" timestamp="1608788130415">
+    <state width="1491" height="219" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1609867851407" />
+    <state width="1491" height="219" key="GridCell.Tab.1.center" timestamp="1609867851406">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1608788130415" />
-    <state width="1060" height="537" key="GridCell.Tab.1.left" timestamp="1608788130415">
+    <state width="1491" height="219" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1609867851406" />
+    <state width="1491" height="219" key="GridCell.Tab.1.left" timestamp="1609867851406">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1608788130415" />
-    <state width="1060" height="537" key="GridCell.Tab.1.right" timestamp="1608788130416">
+    <state width="1491" height="219" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1609867851406" />
+    <state width="1491" height="219" key="GridCell.Tab.1.right" timestamp="1609867851407">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1060" height="537" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1608788130416" />
+    <state width="1491" height="219" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1609867851407" />
     <state x="277" y="57" key="SettingsEditor" timestamp="1607003707902">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -194,10 +178,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="426" y="189" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1607083915007" />
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1608786795728">
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1609866515145">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1608786795728" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1609866515145" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -206,11 +190,6 @@
           <url>file://$PROJECT_DIR$/packages/flipper_login/lib/otp.dart</url>
           <line>181</line>
           <option name="timeStamp" value="13" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/product/products_viewmodel.dart</url>
-          <line>105</line>
-          <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

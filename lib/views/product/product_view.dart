@@ -120,7 +120,7 @@ class ProductView extends StatelessWidget {
                   Expanded(
                     flex: 1,
                     child: Row(children: [
-                       Expanded(
+                      const Expanded(
                           child: Icon(FontAwesome.chevron_right, size: 20)),
                     ]),
                   ),
@@ -232,7 +232,6 @@ class ProductView extends StatelessWidget {
   }
 
   Widget sellingMode({ProductsViewModel model, BuildContext context}) {
-
     return BuildProductsView(
       context: context,
       data: model.products,
@@ -251,7 +250,7 @@ class ProductView extends StatelessWidget {
               ? editModeView(model: model)
               : sellingMode(model: model);
         },
-        onModelReady:(ProductsViewModel model){
+        onModelReady: (ProductsViewModel model) {
           model.getProducts();
         },
         viewModelBuilder: () => ProductsViewModel());
