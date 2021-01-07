@@ -15,7 +15,7 @@ void main() {
 
     test('decreaseQty', () {
       // final model = OnProductSellingViewModal();
-      // model.decreaseQty();
+      // model.decreaseQty(); //fixing
       // expect(model.quantity, 0.0);
       expect(1, 1);
     });

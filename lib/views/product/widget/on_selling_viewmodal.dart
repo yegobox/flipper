@@ -122,7 +122,7 @@ class OnProductSellingViewModal extends BaseModel {
         // update other code when adding stock on variant to reflect the changes
         stockDocument.properties['value'] = value - _quantity;
         _databaseService.update(document: stockDocument);
-        //create a new order and perist it to the database
+        //create a new order and perist it to the database....
         final id = Uuid().v1();
         _databaseService.insert(id: id, data: {
           'curreny': 'RWF',
