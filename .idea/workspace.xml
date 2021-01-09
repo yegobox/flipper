@@ -21,14 +21,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/routes/router.gr.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/product_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_list_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/products_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/products_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/product_description.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/product_selling_view.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,10 +118,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="484" y="148" key="#give_the_name_is_not_null_should_update_product/0.0.1536.824@0.0.1536.824" timestamp="1607083355262" />
-    <state x="168" y="120" width="1200" height="584" key="AVDManager" timestamp="1609773895638">
+    <state x="-2" y="139" width="1200" height="584" key="AVDManager" timestamp="1610182460574">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="168" y="120" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1609773895638" />
+    <state x="-2" y="139" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1610182460574" />
     <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1609865754634">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
