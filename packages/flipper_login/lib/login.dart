@@ -1,10 +1,11 @@
 library flipper_login;
 
+import 'package:country_code_picker/country_codes.dart';
 import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
-
+import 'package:country_code_picker/country_code_picker.dart';
 import 'helpers/style.dart';
 import 'providers/auth.dart';
 import 'widgets/custom_text.dart';
@@ -31,8 +32,8 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   TextEditingController number = TextEditingController();
-   static final _textKey = GlobalKey<
-      FormState>();
+  var code = '+250';
+  static final _textKey = GlobalKey<FormState>();
   bool _loading = false;
   @override
   void initState() {
@@ -41,6 +42,12 @@ class _LoginState extends State<Login> {
       setState(() {
         _loading = loading;
       });
+    });
+  }
+
+  void _code(String code) {
+    setState(() {
+      code = code;
     });
   }
 
@@ -77,22 +84,43 @@ class _LoginState extends State<Login> {
                       offset: const Offset(2, 1),
                       blurRadius: 2)
                 ]),
-            child: Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: TextField(
-                 key: _textKey,
-                 textInputAction: TextInputAction.next,
-                keyboardType: TextInputType.phone,
-                style: Theme.of(context).textTheme.bodyText2.copyWith(color:Colors.black),
-                controller: number,
-                decoration: const InputDecoration(
-                  focusColor: Colors.black,
-                    icon: Icon(Icons.phone_android, color: grey),
-                    border: InputBorder.none,
-                    hintText: '+250 788 3600 58',
-                    hintStyle: TextStyle(
-                        color: grey, fontFamily: 'Sen', fontSize: 18)),
-              ),
+            child: Row(
+              children: [
+                CountryCodePicker(
+                    onChanged: (Object object) {
+                      String line = object.toString();
+                      _code(code);
+                    },
+                    // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
+                    initialSelection: 'RW',
+                    favorite: ['+250', 'RWF'],
+                    showFlagDialog: true,
+                    showOnlyCountryWhenClosed: false,
+                    comparator: (a, b) => b.name.compareTo(a.name),
+                    //Get the country information relevant to the initial selection
+                    onInit: (code) => {}),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: TextField(
+                      key: _textKey,
+                      textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.phone,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyText2
+                          .copyWith(color: Colors.black),
+                      controller: number,
+                      decoration: const InputDecoration(
+                          focusColor: Colors.black,
+                          border: InputBorder.none,
+                          hintText: '788 3600 58',
+                          hintStyle: TextStyle(
+                              color: grey, fontFamily: 'Sen', fontSize: 18)),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -110,8 +138,8 @@ class _LoginState extends State<Login> {
           children: [
             _loading
                 ? Padding(
-                  padding: const EdgeInsets.only(left:8.0,right: 8.0),
-                  child: SizedBox(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: SizedBox(
                       width: double.infinity,
                       height: 60,
                       child: RaisedButton(
@@ -124,10 +152,10 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                     ),
-                )
+                  )
                 : Padding(
-                  padding: const EdgeInsets.only(left:8.0,right: 8.0),
-                  child: SizedBox(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: SizedBox(
                       width: double.infinity,
                       height: 60,
                       child: RaisedButton(
@@ -139,7 +167,11 @@ class _LoginState extends State<Login> {
                             )),
                         padding: const EdgeInsets.all(0.0),
                         onPressed: () {
-                          auth.verifyPhone(context, number.text.replaceAll(RegExp(r'\s+\b|\b\s'), ''));
+                          auth.verifyPhone(
+                              context,
+                              code +
+                                  number.text
+                                      .replaceAll(RegExp(r'\s+\b|\b\s'), ''));
                         },
                         child: const Text(
                           'Verify',
@@ -147,7 +179,7 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                     ),
-                )
+                  )
           ],
         ),
       ]),
