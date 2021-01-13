@@ -38,8 +38,8 @@ class AuthProvider {
 
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
-    print(number);
-    print('here');
+    // print(number);
+    // print('here');
     proxyService.loading.add(true);
 
     final Store<AppState> store = StoreProvider.of<AppState>(context);
