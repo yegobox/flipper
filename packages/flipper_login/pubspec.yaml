@@ -12,8 +12,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core: "^0.5.0"
-  firebase_auth: "^0.18.0+1"
+  firebase_core: "^0.7.0"
+  firebase_auth: "^0.20.0"
   flipper:
     path: ../../
 

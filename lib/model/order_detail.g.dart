@@ -20,35 +20,20 @@ class _$OrderDetailSerializer implements StructuredSerializer<OrderDetail> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'price',
-      serializers.serialize(object.price,
-          specifiedType: const FullType(String)),
-      'variantName',
-      serializers.serialize(object.variantName,
-          specifiedType: const FullType(String)),
       'productName',
       serializers.serialize(object.productName,
-          specifiedType: const FullType(String)),
-      'canTrackStock',
-      serializers.serialize(object.canTrackStock,
           specifiedType: const FullType(String)),
       'stockId',
       serializers.serialize(object.stockId,
           specifiedType: const FullType(String)),
-      'unit',
-      serializers.serialize(object.unit, specifiedType: const FullType(String)),
-      'sku',
-      serializers.serialize(object.sku, specifiedType: const FullType(String)),
       'quantity',
       serializers.serialize(object.quantity,
           specifiedType: const FullType(String)),
       'variantId',
       serializers.serialize(object.variantId,
           specifiedType: const FullType(String)),
-      'taxRate',
-      serializers.serialize(object.taxRate, specifiedType: const FullType(int)),
-      'taxAmount',
-      serializers.serialize(object.taxAmount,
+      'discountAmount',
+      serializers.serialize(object.discountAmount,
           specifiedType: const FullType(double)),
       'orderId',
       serializers.serialize(object.orderId,
@@ -70,7 +55,60 @@ class _$OrderDetailSerializer implements StructuredSerializer<OrderDetail> {
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
     ];
-
+    if (object.price != null) {
+      result
+        ..add('price')
+        ..add(serializers.serialize(object.price,
+            specifiedType: const FullType(String)));
+    }
+    if (object.variantName != null) {
+      result
+        ..add('variantName')
+        ..add(serializers.serialize(object.variantName,
+            specifiedType: const FullType(String)));
+    }
+    if (object.canTrackStock != null) {
+      result
+        ..add('canTrackStock')
+        ..add(serializers.serialize(object.canTrackStock,
+            specifiedType: const FullType(String)));
+    }
+    if (object.unit != null) {
+      result
+        ..add('unit')
+        ..add(serializers.serialize(object.unit,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sku != null) {
+      result
+        ..add('sku')
+        ..add(serializers.serialize(object.sku,
+            specifiedType: const FullType(String)));
+    }
+    if (object.taxRate != null) {
+      result
+        ..add('taxRate')
+        ..add(serializers.serialize(object.taxRate,
+            specifiedType: const FullType(int)));
+    }
+    if (object.taxAmount != null) {
+      result
+        ..add('taxAmount')
+        ..add(serializers.serialize(object.taxAmount,
+            specifiedType: const FullType(double)));
+    }
+    if (object.discountRate != null) {
+      result
+        ..add('discountRate')
+        ..add(serializers.serialize(object.discountRate,
+            specifiedType: const FullType(double)));
+    }
+    if (object.note != null) {
+      result
+        ..add('note')
+        ..add(serializers.serialize(object.note,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -133,6 +171,18 @@ class _$OrderDetailSerializer implements StructuredSerializer<OrderDetail> {
           result.taxAmount = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
+        case 'discountRate':
+          result.discountRate = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
+        case 'note':
+          result.note = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'discountAmount':
+          result.discountAmount = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
         case 'orderId':
           result.orderId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -192,6 +242,12 @@ class _$OrderDetail extends OrderDetail {
   @override
   final double taxAmount;
   @override
+  final double discountRate;
+  @override
+  final String note;
+  @override
+  final double discountAmount;
+  @override
   final String orderId;
   @override
   final double subTotal;
@@ -220,6 +276,9 @@ class _$OrderDetail extends OrderDetail {
       this.variantId,
       this.taxRate,
       this.taxAmount,
+      this.discountRate,
+      this.note,
+      this.discountAmount,
       this.orderId,
       this.subTotal,
       this.table,
@@ -230,26 +289,11 @@ class _$OrderDetail extends OrderDetail {
     if (id == null) {
       throw new BuiltValueNullFieldError('OrderDetail', 'id');
     }
-    if (price == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'price');
-    }
-    if (variantName == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'variantName');
-    }
     if (productName == null) {
       throw new BuiltValueNullFieldError('OrderDetail', 'productName');
     }
-    if (canTrackStock == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'canTrackStock');
-    }
     if (stockId == null) {
       throw new BuiltValueNullFieldError('OrderDetail', 'stockId');
-    }
-    if (unit == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'unit');
-    }
-    if (sku == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'sku');
     }
     if (quantity == null) {
       throw new BuiltValueNullFieldError('OrderDetail', 'quantity');
@@ -257,11 +301,8 @@ class _$OrderDetail extends OrderDetail {
     if (variantId == null) {
       throw new BuiltValueNullFieldError('OrderDetail', 'variantId');
     }
-    if (taxRate == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'taxRate');
-    }
-    if (taxAmount == null) {
-      throw new BuiltValueNullFieldError('OrderDetail', 'taxAmount');
+    if (discountAmount == null) {
+      throw new BuiltValueNullFieldError('OrderDetail', 'discountAmount');
     }
     if (orderId == null) {
       throw new BuiltValueNullFieldError('OrderDetail', 'orderId');
@@ -306,6 +347,9 @@ class _$OrderDetail extends OrderDetail {
         variantId == other.variantId &&
         taxRate == other.taxRate &&
         taxAmount == other.taxAmount &&
+        discountRate == other.discountRate &&
+        note == other.note &&
+        discountAmount == other.discountAmount &&
         orderId == other.orderId &&
         subTotal == other.subTotal &&
         table == other.table &&
@@ -334,24 +378,20 @@ class _$OrderDetail extends OrderDetail {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            0,
-                                                                            id
-                                                                                .hashCode),
-                                                                        price
-                                                                            .hashCode),
-                                                                    variantName
-                                                                        .hashCode),
-                                                                productName
-                                                                    .hashCode),
-                                                            canTrackStock
-                                                                .hashCode),
-                                                        stockId.hashCode),
-                                                    unit.hashCode),
-                                                sku.hashCode),
-                                            quantity.hashCode),
-                                        variantId.hashCode),
-                                    taxRate.hashCode),
-                                taxAmount.hashCode),
+                                                                            $jc($jc($jc(0, id.hashCode), price.hashCode),
+                                                                                variantName.hashCode),
+                                                                            productName.hashCode),
+                                                                        canTrackStock.hashCode),
+                                                                    stockId.hashCode),
+                                                                unit.hashCode),
+                                                            sku.hashCode),
+                                                        quantity.hashCode),
+                                                    variantId.hashCode),
+                                                taxRate.hashCode),
+                                            taxAmount.hashCode),
+                                        discountRate.hashCode),
+                                    note.hashCode),
+                                discountAmount.hashCode),
                             orderId.hashCode),
                         subTotal.hashCode),
                     table.hashCode),
@@ -375,6 +415,9 @@ class _$OrderDetail extends OrderDetail {
           ..add('variantId', variantId)
           ..add('taxRate', taxRate)
           ..add('taxAmount', taxAmount)
+          ..add('discountRate', discountRate)
+          ..add('note', note)
+          ..add('discountAmount', discountAmount)
           ..add('orderId', orderId)
           ..add('subTotal', subTotal)
           ..add('table', table)
@@ -437,6 +480,19 @@ class OrderDetailBuilder implements Builder<OrderDetail, OrderDetailBuilder> {
   double get taxAmount => _$this._taxAmount;
   set taxAmount(double taxAmount) => _$this._taxAmount = taxAmount;
 
+  double _discountRate;
+  double get discountRate => _$this._discountRate;
+  set discountRate(double discountRate) => _$this._discountRate = discountRate;
+
+  String _note;
+  String get note => _$this._note;
+  set note(String note) => _$this._note = note;
+
+  double _discountAmount;
+  double get discountAmount => _$this._discountAmount;
+  set discountAmount(double discountAmount) =>
+      _$this._discountAmount = discountAmount;
+
   String _orderId;
   String get orderId => _$this._orderId;
   set orderId(String orderId) => _$this._orderId = orderId;
@@ -478,6 +534,9 @@ class OrderDetailBuilder implements Builder<OrderDetail, OrderDetailBuilder> {
       _variantId = _$v.variantId;
       _taxRate = _$v.taxRate;
       _taxAmount = _$v.taxAmount;
+      _discountRate = _$v.discountRate;
+      _note = _$v.note;
+      _discountAmount = _$v.discountAmount;
       _orderId = _$v.orderId;
       _subTotal = _$v.subTotal;
       _table = _$v.table;
@@ -520,6 +579,9 @@ class OrderDetailBuilder implements Builder<OrderDetail, OrderDetailBuilder> {
               variantId: variantId,
               taxRate: taxRate,
               taxAmount: taxAmount,
+              discountRate: discountRate,
+              note: note,
+              discountAmount: discountAmount,
               orderId: orderId,
               subTotal: subTotal,
               table: table,

@@ -10,7 +10,6 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:redux/redux.dart';
 
-  
 StreamController<String> controller = StreamController<String>();
 
 class AuthProvider {
@@ -30,7 +29,7 @@ class AuthProvider {
   AuthProvider();
 
   // ignore: deprecated_member_use
-  FirebaseUser get user => _user;
+  User get user => _user;
 
   TextEditingController address = TextEditingController();
 
@@ -39,18 +38,20 @@ class AuthProvider {
 
   // ! PHONE AUTH
   Future<void> verifyPhone(BuildContext context, String number) async {
+    print(number);
+    print('here');
     proxyService.loading.add(true);
-    
+
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
       proxyService.loading.add(false);
       store.dispatch(OtpCode(otpcode: verId));
-      _showModalBottomSheet(context, number);
+      _showModalBottomSheet(context, '+12025550149');
     };
     try {
       await _auth.verifyPhoneNumber(
-          phoneNumber: number.trim(), // PHONE NUMBER TO SEND OTP
+          phoneNumber: '+12025550149', // PHONE NUMBER TO SEND OTP
           codeSent:
               smsOTPSent, // WHEN CODE SENT THEN WE OPEN DIALOG TO ENTER OTP.
           timeout: const Duration(seconds: 60),

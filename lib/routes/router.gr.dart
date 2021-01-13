@@ -37,7 +37,7 @@ import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/category/create_category_input_screen.dart';
 import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/order/order_details_view.dart';
-import 'package:flipper/model/order.dart';
+import 'package:flipper/model/order_detail.dart';
 import 'package:flipper/views/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/views/welcome/selling/tender_screen.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
@@ -545,7 +545,7 @@ class ChangeQuantityForSellingArguments {
 //OrderDetailsView arguments holder class
 class OrderDetailsViewArguments {
   final Key key;
-  final List<Order> orders;
+  final List<OrderDetail> orders;
   OrderDetailsViewArguments({this.key, this.orders});
 }
 

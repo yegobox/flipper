@@ -5,7 +5,7 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper/locator.dart';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:logger/logger.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  // await Firebase.initializeApp();
+
+  print('Handling a background message: ${message.data}');
+}
 
 bool get isInDebugMode {
   bool inDebugMode = false;
@@ -43,6 +51,7 @@ Future<void> main() async {
   await DotEnv().load('.env');
 
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupLocator();
 
   if (isInDebugMode) {
@@ -54,12 +63,14 @@ Future<void> main() async {
   // This is only to be used for confirming that reports are being
   // submitted as expected. It is not intended to be used for everyday
   // development.
-  Crashlytics.instance.enableInDevMode = false;
+  // FIXME: fix bellow crashlytics line
+  // Crashlytics.instance.enableInDevMode = false;
   FlutterError.onError = (e) async {
     // Crashlytics.instance.setBool('runZonedGuarded', false);
     // Crashlytics.instance.setString("stringKey", "{\"test\":\"this is a json error from stringKey\"}");
     // Crashlytics.instance.log("{\"test\":\"this is a json error\"}");
-    await Crashlytics.instance.recordFlutterError(e);
+    // FIXME: fix bellow crashlytics line
+    // await Crashlytics.instance.recordFlutterError(e);
   };
 //
   runZonedGuarded<Future<void>>(() async {
@@ -70,12 +81,24 @@ Future<void> main() async {
         statusBarIconBrightness: Brightness.light,
       ),
     );
+    AwesomeNotifications().initialize('resource://drawable/res_app_icon', [
+      NotificationChannel(
+          channelKey: 'big_picture',
+          channelName: 'Big pictures',
+          channelDescription: 'Notifications with big and beautiful images',
+          defaultColor: const Color(0xFF9D50DD),
+          ledColor: const Color(0xFF9D50DD),
+          vibrationPattern: lowVibrationPattern),
+    ]);
+
     runApp(const FlipperApp());
   }, (Object e, StackTrace s) async {
     // Crashlytics.instance.setBool('runZonedGuarded', true);
     // Crashlytics.instance.setString("stringKey", "{\"test\":\"this is a json error from stringKey\"}");
-    Crashlytics.instance.log(s.toString());
+    // FIXME: fix bellow crashlytics line
+    // Crashlytics.instance.log(s.toString());
     print(s);
-    await Crashlytics.instance.recordFlutterError(e);
+    // FIXME: fix bellow crashlytics line
+    // await Crashlytics.instance.recordFlutterError(e);
   });
 }

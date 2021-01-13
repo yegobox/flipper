@@ -1,6 +1,5 @@
 library flipper_login;
 
-import 'package:country_code_picker/country_codes.dart';
 import 'package:flipper_login/services/proxy_service.dart';
 import 'package:flutter/material.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';

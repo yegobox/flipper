@@ -1,5 +1,6 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/model/order.dart';
+import 'package:flipper/model/order_detail.dart';
 
 import 'package:flipper/services/proxy.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -7,10 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class OrderDetailsView extends StatefulWidget {
-  
   const OrderDetailsView({Key key, this.orders}) : super(key: key);
 
-  final List<Order> orders;
+  final List<OrderDetail> orders;
 
   @override
   _OrderDetailsViewState createState() => _OrderDetailsViewState();
@@ -26,7 +26,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
     return StoreConnector(
       distinct: true,
       converter: CommonViewModel.fromStore,
-      builder: (BuildContext context,CommonViewModel vm) {
+      builder: (BuildContext context, CommonViewModel vm) {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
@@ -46,7 +46,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
     );
   }
 
-  List<Widget> renderOrder(List<Order> orders, CommonViewModel vm) {
+  List<Widget> renderOrder(List<OrderDetail> orders, CommonViewModel vm) {
     final List<Widget> list = <Widget>[];
     for (int i = 0; i < orders.length; i++) {
       list.add(ListTile(
@@ -59,21 +59,20 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
           child: Text(orders[i].productName),
         ),
         trailing: const Padding(
-          padding:  EdgeInsets.fromLTRB(10, 0, 0, 0),
-          child: Text('FIXME')
-          // FIXME:
-          // child: StreamBuilder(
-          //     stream: vm.database.stockDao.getStockByProductIdStream(
-          //         branchId: vm.branch.id, productId: orders[i].variationId),
-          //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
-          //       if (snapshot.data == null) {
-          //         return Text('');
-          //       }
-          //       return Text((snapshot.data[0].retailPrice * orders[i].quantity)
-          //               .toString() +
-          //           ' RWF');
-          //     }),
-        ),
+            padding: EdgeInsets.fromLTRB(10, 0, 0, 0), child: Text('FIXME')
+            // FIXME:
+            // child: StreamBuilder(
+            //     stream: vm.database.stockDao.getStockByProductIdStream(
+            //         branchId: vm.branch.id, productId: orders[i].variationId),
+            //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+            //       if (snapshot.data == null) {
+            //         return Text('');
+            //       }
+            //       return Text((snapshot.data[0].retailPrice * orders[i].quantity)
+            //               .toString() +
+            //           ' RWF');
+            //     }),
+            ),
       ));
     }
     list.add(ListTile(
@@ -89,7 +88,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
     return list;
   }
 
-  void _getTotal(List<Order> orders, BuildContext context) async {
+  void _getTotal(List<OrderDetail> orders, BuildContext context) async {
     // FIXME:
     // final store = StoreProvider.of<AppState>(context);
     // var total = 0;
