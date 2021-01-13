@@ -116,8 +116,9 @@ class AddProductViewmodel extends ReactiveViewModel {
       for (Map map in variations) {
         map.forEach((key, value) {
           //expect variation to be 1 as variant = one stock
-          updateRegularVariationStock(
+          updateVariationsStock(
             variation: Variation.fromMap(value),
+            productName: _name,
             supplyPrice: _supplierPriceController,
             retailPrice: _retailPriceController,
           );
@@ -126,13 +127,21 @@ class AddProductViewmodel extends ReactiveViewModel {
     }
   }
 
-  Future<void> updateRegularVariationStock({
+  Future<void> updatedVariation(
+      {String productName, String variationId}) async {
+    final variant = _databaseService.getById(id: variationId);
+    variant.properties['productName'] = productName;
+    _databaseService.update(document: variant);
+  }
+
+  Future<void> updateVariationsStock({
     Variation variation,
+    String productName,
     double retailPrice,
     double supplyPrice,
   }) async {
     if (variation != null) {
-      log.i(variation.id);
+      updatedVariation(productName: productName, variationId: variation.id);
 
       final q = Query(_databaseService.db,
           'SELECT * WHERE table=\$VALUE AND variantId=\$VARIANT_ID');

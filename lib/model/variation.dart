@@ -11,21 +11,18 @@ part 'variation.g.dart';
 abstract class Variation implements Built<Variation, VariationBuilder> {
   String get id;
 
-  @nullable
   String get sku;
 
-  @nullable
   String get productId;
 
-  @nullable
   String get name;
 
-  @nullable
   String get unit;
 
   String get table;
 
-  @nullable
+  String get productName;
+
   BuiltList<String> get channels;
 
   Variation._();

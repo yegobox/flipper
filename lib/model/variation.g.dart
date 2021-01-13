@@ -20,41 +20,27 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
+      'sku',
+      serializers.serialize(object.sku, specifiedType: const FullType(String)),
+      'productId',
+      serializers.serialize(object.productId,
+          specifiedType: const FullType(String)),
+      'name',
+      serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'unit',
+      serializers.serialize(object.unit, specifiedType: const FullType(String)),
       'table',
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
+      'productName',
+      serializers.serialize(object.productName,
+          specifiedType: const FullType(String)),
+      'channels',
+      serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
     ];
-    if (object.sku != null) {
-      result
-        ..add('sku')
-        ..add(serializers.serialize(object.sku,
-            specifiedType: const FullType(String)));
-    }
-    if (object.productId != null) {
-      result
-        ..add('productId')
-        ..add(serializers.serialize(object.productId,
-            specifiedType: const FullType(String)));
-    }
-    if (object.name != null) {
-      result
-        ..add('name')
-        ..add(serializers.serialize(object.name,
-            specifiedType: const FullType(String)));
-    }
-    if (object.unit != null) {
-      result
-        ..add('unit')
-        ..add(serializers.serialize(object.unit,
-            specifiedType: const FullType(String)));
-    }
-    if (object.channels != null) {
-      result
-        ..add('channels')
-        ..add(serializers.serialize(object.channels,
-            specifiedType:
-                const FullType(BuiltList, const [const FullType(String)])));
-    }
+
     return result;
   }
 
@@ -93,6 +79,10 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
           result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'productName':
+          result.productName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
         case 'channels':
           result.channels.replace(serializers.deserialize(value,
                   specifiedType:
@@ -120,6 +110,8 @@ class _$Variation extends Variation {
   @override
   final String table;
   @override
+  final String productName;
+  @override
   final BuiltList<String> channels;
 
   factory _$Variation([void Function(VariationBuilder) updates]) =>
@@ -132,13 +124,32 @@ class _$Variation extends Variation {
       this.name,
       this.unit,
       this.table,
+      this.productName,
       this.channels})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
     }
+    if (sku == null) {
+      throw new BuiltValueNullFieldError('Variation', 'sku');
+    }
+    if (productId == null) {
+      throw new BuiltValueNullFieldError('Variation', 'productId');
+    }
+    if (name == null) {
+      throw new BuiltValueNullFieldError('Variation', 'name');
+    }
+    if (unit == null) {
+      throw new BuiltValueNullFieldError('Variation', 'unit');
+    }
     if (table == null) {
       throw new BuiltValueNullFieldError('Variation', 'table');
+    }
+    if (productName == null) {
+      throw new BuiltValueNullFieldError('Variation', 'productName');
+    }
+    if (channels == null) {
+      throw new BuiltValueNullFieldError('Variation', 'channels');
     }
   }
 
@@ -159,6 +170,7 @@ class _$Variation extends Variation {
         name == other.name &&
         unit == other.unit &&
         table == other.table &&
+        productName == other.productName &&
         channels == other.channels;
   }
 
@@ -168,11 +180,13 @@ class _$Variation extends Variation {
         $jc(
             $jc(
                 $jc(
-                    $jc($jc($jc(0, id.hashCode), sku.hashCode),
-                        productId.hashCode),
-                    name.hashCode),
-                unit.hashCode),
-            table.hashCode),
+                    $jc(
+                        $jc($jc($jc(0, id.hashCode), sku.hashCode),
+                            productId.hashCode),
+                        name.hashCode),
+                    unit.hashCode),
+                table.hashCode),
+            productName.hashCode),
         channels.hashCode));
   }
 
@@ -185,6 +199,7 @@ class _$Variation extends Variation {
           ..add('name', name)
           ..add('unit', unit)
           ..add('table', table)
+          ..add('productName', productName)
           ..add('channels', channels))
         .toString();
   }
@@ -217,6 +232,10 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
   String get table => _$this._table;
   set table(String table) => _$this._table = table;
 
+  String _productName;
+  String get productName => _$this._productName;
+  set productName(String productName) => _$this._productName = productName;
+
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
       _$this._channels ??= new ListBuilder<String>();
@@ -232,6 +251,7 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
       _name = _$v.name;
       _unit = _$v.unit;
       _table = _$v.table;
+      _productName = _$v.productName;
       _channels = _$v.channels?.toBuilder();
       _$v = null;
     }
@@ -263,12 +283,13 @@ class VariationBuilder implements Builder<Variation, VariationBuilder> {
               name: name,
               unit: unit,
               table: table,
-              channels: _channels?.build());
+              productName: productName,
+              channels: channels.build());
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'channels';
-        _channels?.build();
+        channels.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'Variation', _$failedField, e.toString());
