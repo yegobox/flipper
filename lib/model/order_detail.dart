@@ -10,18 +10,29 @@ part 'order_detail.g.dart';
 
 abstract class OrderDetail implements Built<OrderDetail, OrderDetailBuilder> {
   String get id;
+  @nullable
   String get price;
-
+  @nullable
   String get variantName;
   String get productName;
+  @nullable
   String get canTrackStock;
   String get stockId;
+  @nullable
   String get unit;
+  @nullable
   String get sku;
   String get quantity;
   String get variantId;
+  @nullable
   int get taxRate;
+  @nullable
   double get taxAmount;
+  @nullable
+  double get discountRate;
+  @nullable
+  String get note;
+  double get discountAmount;
   String get orderId;
   double get subTotal;
   String get table;
