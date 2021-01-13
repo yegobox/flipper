@@ -16,8 +16,8 @@ class OnProductSellingViewModal extends BaseModel {
   // NOTE: leason learned, never put anything that invoke ui for ex TextEditingController in viewmodel as it will make it hard to test the logic of viewmodel
   final DatabaseService _databaseService = ProxyService.database;
   final List<VariantStock> _variations = [];
-  final List<VariantStock> _orders = [];
-  List<VariantStock> get orders => _orders;
+  final List<VariantStock> _variantStock = [];
+  List<VariantStock> get orders => _variantStock;
   List<VariantStock> get variations => _variations;
   final sharedStateService = locator<SharedStateService>();
   final Logger log = Logging.getLogger('OnSelling Product:)');
@@ -64,9 +64,9 @@ class OnProductSellingViewModal extends BaseModel {
 
   void updateAmountTotalDefault(
       {@required double value, @required VariantStock variant}) {
-    _orders
+    _variantStock
         .clear(); //as we only want the focused variant to remain in what we perist on click of add button
-    _orders.add(variant);
+    _variantStock.add(variant);
     _checked = value;
     _amountTotal = paramsDefault + _checked;
     notifyListeners();
@@ -109,7 +109,7 @@ class OnProductSellingViewModal extends BaseModel {
     final q = Query(_databaseService.db,
         'SELECT id,value,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$T AND variantId=\$VID');
 
-    q.parameters = {'T': AppTables.stock, 'VID': _orders[0].id};
+    q.parameters = {'T': AppTables.stock, 'VID': _variantStock[0].id};
     q.addChangeListener((List results) {
       for (Map map in results) {
         //get the sock and update it
@@ -126,19 +126,23 @@ class OnProductSellingViewModal extends BaseModel {
         final id = Uuid().v1();
         _databaseService.insert(id: id, data: {
           'curreny': 'RWF',
+          'orderNumber': Uuid().v1().substring(0, 4),
+          'reference': Uuid().v1().substring(0, 4),
+          'branchId': sharedStateService.branch.id,
+          'orderItems': [],
+          'isDraft': true,
+          'active': true,
+          'orderType': 'sales',
+          'cashReceived': 0.0,
+          'customerChangeDue': 0.0,
           'table': AppTables.order,
-          'variantId': _orders[0].id,
-          'price': _orders[0].retailPrice,
-          'variantName': _orders[0].name,
-          'unit': _orders[0].unit,
-          'sku': _orders[0].sku,
+          'variantId': _variantStock[0].id,
+          'price': _variantStock[0].retailPrice,
           'taxAmount':
-              0, //FIXME: fix to the right amount of tax given to setting
+              0.0, //FIXME: fix to the right amount of tax given to setting
           'stockId': Stock.fromMap(map).id,
           'channels': [sharedStateService.user.id.toString()],
-          'subTotal': _amountTotal,
-          'quantity': _quantity,
-          'orderType': 'Mobile POS',
+          'subTotal': _amountTotal
         });
       }
     });
