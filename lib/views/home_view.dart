@@ -27,7 +27,7 @@ class HomeView extends StatelessWidget {
     this.vm,
   }) : super(key: key);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  // ignore!
   // ignore: missing_return
   Widget _getPage({@required int index, @required CommonViewModel vm}) {
     switch (index) {
