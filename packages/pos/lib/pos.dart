@@ -3,44 +3,65 @@ library pos;
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:stacked/stacked.dart';
+
+import 'pos_viewmodel.dart';
 
 class KeyPad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Display(),
-          Keyboard(),
-        ],
-      ),
+    return ViewModelBuilder<PosViewModel>.reactive(
+      builder: (BuildContext context, PosViewModel model, Widget child) {
+        return Scaffold(
+          body: Column(
+            children: <Widget>[
+              Display(
+                model: model,
+              ),
+              Keyboard(model: model),
+            ],
+          ),
+        );
+      },
+      viewModelBuilder: () => PosViewModel(),
     );
   }
 }
 
-// var _displayState = DisplayState();
-
 class Display extends StatelessWidget {
-//   @override
-//   State<StatefulWidget> createState() {
-//     return _displayState;
-//   }
-// }
-
-// class DisplayState extends State<Display> {
-  final _expression = '';
-  final _result = '';
+  const Display({Key key, this.model}) : super(key: key);
+  final PosViewModel model;
 
   @override
   Widget build(BuildContext context) {
     final views = <Widget>[
       Expanded(
+        flex: 1,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+                child: Text(
+              model.expression,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 40.0,
+                color: Colors.white,
+              ),
+            ))
+          ],
+        ),
+      ),
+    ];
+
+    if (model.result.isNotEmpty) {
+      views.add(
+        Expanded(
           flex: 1,
           child: Row(
             children: <Widget>[
               Expanded(
                   child: Text(
-                _expression,
+                model.result,
                 textAlign: TextAlign.right,
                 style: const TextStyle(
                   fontSize: 40.0,
@@ -48,72 +69,29 @@ class Display extends StatelessWidget {
                 ),
               ))
             ],
-          )),
-    ];
-
-    if (_result.isNotEmpty) {
-      views.add(
-        Expanded(
-            flex: 1,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                    child: Text(
-                  _result,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 40.0,
-                    color: Colors.white,
-                  ),
-                ))
-              ],
-            )),
+          ),
+        ),
       );
     }
 
     return Expanded(
-        flex: 2,
-        child: Container(
-          color: Theme.of(context)
-              .copyWith(canvasColor: Colors.white)
-              .canvasColor, //this can be set to a visible color, when designing
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: views,
-          ),
-        ));
+      flex: 2,
+      child: Container(
+        color: Theme.of(context)
+            .copyWith(canvasColor: Colors.white)
+            .canvasColor, //this can be set to a visible color, when designing
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: views,
+        ),
+      ),
+    );
   }
 }
 
-void _addKey(String key) {
-  // var _expr = _displayState._expression;
-  // var _result = '';
-  // if (_displayState._result.isNotEmpty) {
-  //   _expr = '';
-  //   _result = '';
-  // }
-
-  // if (operators.contains(key)) {
-  //   // Handle as an operator
-  //   if (_expr.length > 0 && operators.contains(_expr[_expr.length - 1])) {
-  //     _expr = _expr.substring(0, _expr.length - 1);
-  //   }
-  //   _expr += key;
-  // } else if (digits.contains(key)) {
-  //   _expr += key;
-  // } else if (key == 'C') {
-  //   if (_expr.length > 0) {
-  //     _expr = _expr.substring(0, _expr.length - 1);
-  //   }
-  // }
-  // // ignore: invalid_use_of_protected_member
-  // _displayState.setState(() {
-  //   _displayState._expression = _expr;
-  //   _displayState._result = _result;
-  // });
-}
-
 class Keyboard extends StatelessWidget {
+  const Keyboard({Key key, this.model}) : super(key: key);
+  final PosViewModel model;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -138,7 +116,7 @@ class Keyboard extends StatelessWidget {
                 // @formatter:on
               ].map((key) {
                 return GridTile(
-                  child: KeyboardKey(key),
+                  child: KeyboardKey(key, model),
                 );
               }).toList(),
             ),
@@ -148,8 +126,8 @@ class Keyboard extends StatelessWidget {
 }
 
 class KeyboardKey extends StatelessWidget {
-  const KeyboardKey(this._keyValue);
-
+  const KeyboardKey(this._keyValue, this.model);
+  final PosViewModel model;
   final _keyValue;
 
   @override
@@ -165,14 +143,11 @@ class KeyboardKey extends StatelessWidget {
       ),
       color: Theme.of(context).scaffoldBackgroundColor,
       onPressed: () {
-        _addKey(_keyValue);
+        model.addKey(_keyValue);
       },
     );
   }
 }
-
-var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-var operators = <String>['+'];
 
 class Parser {
   const Parser();
@@ -205,15 +180,7 @@ class Parser {
     }
   }
 
-  bool _isOperator(String op) {
-    return operators.contains(op);
-  }
-
-  bool _isDigit(String op) {
-    return digits.contains(op);
-  }
-
-  num parseExpression(String expr) {
+  num parseExpression(String expr, PosViewModel model) {
     final Queue<String> operators = ListQueue<String>();
     final Queue<num> operands = ListQueue<num>();
 
@@ -223,13 +190,13 @@ class Parser {
     operands.addLast(0);
 
     expr.split('').forEach((String c) {
-      if (_isDigit(c)) {
+      if (model.isDigit(c)) {
         if (lastDig) {
           final num last = operands.removeLast();
           operands.addLast(last * 10 + int.parse(c));
         } else
           operands.addLast(int.parse(c));
-      } else if (_isOperator(c)) {
+      } else if (model.isOperator(c)) {
         if (!lastDig) throw ArgumentError('Illegal expression');
 
         if (operators.isEmpty)
@@ -249,7 +216,7 @@ class Parser {
           operators.addLast(c);
         }
       }
-      lastDig = _isDigit(c);
+      lastDig = model.isDigit(c);
     });
 
     while (operators.isNotEmpty) {

@@ -1,6 +1,6 @@
 name: pos
 description: A Keypad like square mobile app.
-version: 0.1.4
+version: 0.2.4
 
 homepage: 'https://github.com/yegobox/flipper-plugins/tree/pos-mobile'
 
@@ -11,7 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  stacked: ^1.7.1
+  stacked_hooks: 0.1.1+3
+  stacked_services: ^0.5.4+2
 dev_dependencies:
   flutter_test:
     sdk: flutter
