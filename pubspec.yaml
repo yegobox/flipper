@@ -107,6 +107,11 @@ dependencies:
   awesome_notifications: ^0.0.5+4
   pusher: ^1.0.0
 
+  # yegobox pubs
+  pos: 
+    path:
+      './packages/pos'
+
 
 dev_dependencies:
   # test: ^1.5.3

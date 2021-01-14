@@ -1,7 +1,7 @@
 import 'package:flipper/views/flipper_drawer.dart';
 import 'package:flipper/views/home_app_bar.dart';
 import 'package:flipper/views/keypad/keypad_view.dart';
-
+import 'package:pos/pos.dart';
 import 'package:flipper/views/product/product_view.dart';
 
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -32,7 +32,8 @@ class HomeView extends StatelessWidget {
   Widget _getPage({@required int index, @required CommonViewModel vm}) {
     switch (index) {
       case 0:
-        return KeyPadView();
+        // return KeyPadView();
+        return KeyPad();
         break;
       case 1:
         return ProductView(userId: vm.user.id, items: true);

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 // ignore: avoid_classes_with_only_static_members
 const double appBarSize = 44.0;
 
-
 final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
       // Define the default brightness and colors.
       brightness: Brightness.light,
@@ -11,14 +10,14 @@ final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
       visualDensity: VisualDensity.adaptivePlatformDensity,
       // fontFamily: 'Montserrat',
       primaryColor: Colors.lightBlue[800],
-      secondaryHeaderColor:const Color(0xff14171A),
+      secondaryHeaderColor: const Color(0xff14171A),
       scaffoldBackgroundColor: const Color(
           0xffF2F2F2), // https://stackoverflow.com/questions/50081213/how-do-i-use-hexadecimal-color-strings-in-flutter
       canvasColor: const Color(0xffF2F2F2),
       buttonColor: const Color(0xff005AE4),
       accentColor: Colors.cyan[600],
       appBarTheme: const AppBarTheme(
-          color:  Color(0xff252525),
+          color: Color(0xff252525),
           textTheme: TextTheme(
             bodyText1: TextStyle(color: Colors.white),
           )),
