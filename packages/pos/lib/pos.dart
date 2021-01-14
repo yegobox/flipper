@@ -7,6 +7,7 @@ import 'package:stacked/stacked.dart';
 
 import 'pos_viewmodel.dart';
 
+// --follow-tags
 class KeyPad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
