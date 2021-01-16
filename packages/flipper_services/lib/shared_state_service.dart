@@ -45,6 +45,7 @@ class SharedStateService with ReactiveServiceMixin {
 
   final RxValue<ImageP> _image = RxValue<ImageP>(initial: null);
   final RxValue<Product> _product = RxValue<Product>(initial: null);
+  final RxValue<bool> didLogout = RxValue<bool>(initial: false);
 
   final RxValue<FUser> _user = RxValue<FUser>(initial: null);
 
@@ -75,6 +76,10 @@ class SharedStateService with ReactiveServiceMixin {
   // setters
   void setCurrentColor({PColor color}) {
     _currentColor.value = color;
+  }
+
+  void setDidLogout({bool logout}) {
+    didLogout.value = logout;
   }
 
   void setProduct({Product product}) {

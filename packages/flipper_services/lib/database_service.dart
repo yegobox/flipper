@@ -14,10 +14,12 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class DatabaseService {
   final Logger log = Logging.getLogger('Database:');
-
+  final _state = locator<SharedStateService>();
   // ignore: always_specify_types
   List<Future> pendingListeners = [];
 
@@ -115,9 +117,7 @@ class DatabaseService {
     if (db.isOpen) {
       replicator.stop();
       db.close();
-      // StoreProvider.of<AppState>(context).dispatch(
-      //   VerifyAuthenticationState(),
-      // );
+      _state.setDidLogout(logout: true);
     }
   }
 }

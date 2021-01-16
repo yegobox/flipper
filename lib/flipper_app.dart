@@ -9,6 +9,7 @@ import 'package:flipper_services/analytics_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
@@ -25,7 +26,6 @@ import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
 import 'lifecycle_manager.dart';
-import 'package:flipper_services/flipperServices.dart';
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key key}) : super(key: key);
@@ -36,7 +36,7 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp> {
   final Logger log = Logging.getLogger('Firestore service ....');
-  final _sharedState = locator<KeyPadService>();
+  final _state = locator<SharedStateService>();
 
   Store<AppState> store;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
@@ -73,9 +73,14 @@ class _FlipperAppState extends State<FlipperApp> {
   // ignore: missing_return
   Future<void> initState() {
     super.initState();
-    // FIXME(richard): fix bluethooth_service to work with no crash.
-    // WidgetsBinding.instance
-    //     .addPostFrameCallback((_) => _bluetoothService.initBluetooth(context: context));
+    _state.didLogout.listen((loggedOut) {
+      if (loggedOut) {
+        StoreProvider.of<AppState>(context).dispatch(
+          VerifyAuthenticationState(),
+        );
+      }
+    });
+
     store = Store<AppState>(
       appReducer,
       initialState: AppState.init(),

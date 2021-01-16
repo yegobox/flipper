@@ -43,15 +43,14 @@ class AuthProvider {
     proxyService.loading.add(true);
 // new apk
     final Store<AppState> store = StoreProvider.of<AppState>(context);
-
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
       proxyService.loading.add(false);
       store.dispatch(OtpCode(otpcode: verId));
-      _showModalBottomSheet(context, '+12025550149');
+      _showModalBottomSheet(context, number);
     };
     try {
       await _auth.verifyPhoneNumber(
-          phoneNumber: '+12025550149', // PHONE NUMBER TO SEND OTP
+          phoneNumber: number,
           codeSent:
               smsOTPSent, // WHEN CODE SENT THEN WE OPEN DIALOG TO ENTER OTP.
           timeout: const Duration(seconds: 60),
