@@ -111,7 +111,12 @@ dependencies:
   pos: 
     path:
       './packages/pos'
-
+  flipper_services:
+    path:
+      './packages/flipper_services'
+  flipper_models:
+    path:
+      './packages/flipper_models'
 
 dev_dependencies:
   # test: ^1.5.3
@@ -187,3 +192,5 @@ flutter_intl:
 # flutter run --debug
 # flutter run --profile
 # flutter run --release
+# debug key
+# keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore

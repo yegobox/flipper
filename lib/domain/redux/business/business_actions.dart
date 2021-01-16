@@ -1,4 +1,4 @@
-import 'package:flipper/model/business.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flutter/material.dart';
 
 class ShouldLoadBusiness {}

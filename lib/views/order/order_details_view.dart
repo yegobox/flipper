@@ -1,11 +1,13 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/model/order.dart';
-import 'package:flipper/model/order_detail.dart';
-
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_models/order_detail.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class OrderDetailsView extends StatefulWidget {
   const OrderDetailsView({Key key, this.orders}) : super(key: key);

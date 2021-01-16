@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/order.dart';
+import 'package:flipper_models/order.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -23,42 +23,42 @@ class _TransactionScreenState extends State<TransactionScreen> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         return Scaffold(
-          appBar: CommonAppBar(
-            onPop: () {
-              Routing.navigator.pop();
-            },
-            title: 'Transactions',
-            showActionButton: false,
-            onPressedCallback: () async {},
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 52,
-          ),
-          body: SizedBox.fromSize()
-          // FIXME:
-          // body: StreamBuilder(
-          //     stream: vm.database.orderDao.getOrdersStream(),
-          //     builder: (context, AsyncSnapshot<List<OrderTableData>> snapshot) {
-          //       if (snapshot.data == null) {
-          //         return Text('');
-          //       }
+            appBar: CommonAppBar(
+              onPop: () {
+                Routing.navigator.pop();
+              },
+              title: 'Transactions',
+              showActionButton: false,
+              onPressedCallback: () async {},
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 52,
+            ),
+            body: SizedBox.fromSize()
+            // FIXME:
+            // body: StreamBuilder(
+            //     stream: vm.database.orderDao.getOrdersStream(),
+            //     builder: (context, AsyncSnapshot<List<OrderTableData>> snapshot) {
+            //       if (snapshot.data == null) {
+            //         return Text('');
+            //       }
 
-          //       return StreamBuilder(
-          //           stream: null, //TODO: now load transactions here.
-          //           builder: (context, transactions) {
-          //             if (transactions.data == null) {
-          //               return Center(child: Text('No Transaction'));
-          //             }
-          //             return ListView(
-          //               children: ListTile.divideTiles(
-          //                 context: context,
-          //                 tiles: renderTransactions(
-          //                     transactions.data, context, vm),
-          //               ).toList(),
-          //             );
-          //           });
-          //     }),
-        );
+            //       return StreamBuilder(
+            //           stream: null, //TODO: now load transactions here.
+            //           builder: (context, transactions) {
+            //             if (transactions.data == null) {
+            //               return Center(child: Text('No Transaction'));
+            //             }
+            //             return ListView(
+            //               children: ListTile.divideTiles(
+            //                 context: context,
+            //                 tiles: renderTransactions(
+            //                     transactions.data, context, vm),
+            //               ).toList(),
+            //             );
+            //           });
+            //     }),
+            );
       },
     );
   }
@@ -78,8 +78,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
         width: 50,
         child: Text(data.cashReceived.toString()),
       ),
-      title:const Text('B'),
-      trailing:const Text('C'),
+      title: const Text('B'),
+      trailing: const Text('C'),
       dense: true,
     );
   }

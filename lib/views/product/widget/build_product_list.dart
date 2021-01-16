@@ -1,4 +1,4 @@
-import 'package:flipper/model/product.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flipper/views/product/products_viewmodel.dart';
 import 'package:flipper/views/product/widget/build_product_row.dart';
 

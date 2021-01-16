@@ -505,6 +505,20 @@ packages:
       relative: true
     source: path
     version: "0.0.2"
+  flipper_models:
+    dependency: "direct main"
+    description:
+      path: "packages/flipper_models"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_services:
+    dependency: "direct main"
+    description:
+      path: "packages/flipper_services"
+      relative: true
+    source: path
+    version: "0.0.1"
   flipper_ui:
     dependency: "direct main"
     description:

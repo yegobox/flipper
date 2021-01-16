@@ -1,9 +1,14 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/unit/add_unit_viewmodal.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/bluethooth_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class AddUnitTypeScreen extends StatelessWidget {
   const AddUnitTypeScreen({

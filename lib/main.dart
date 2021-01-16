@@ -4,13 +4,12 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
-import 'package:flipper/locator.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';

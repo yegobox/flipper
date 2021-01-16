@@ -3,11 +3,12 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 import 'package:flipper/domain/redux/app_state.dart';
 
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/order.dart';
-import 'package:flipper/model/variation.dart';
-import 'package:flipper/services/database_service.dart';
+// import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_models/variation.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:redux/redux.dart';
+import 'package:flipper_services/proxy.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class DataManager {
@@ -66,10 +67,9 @@ class DataManager {
   }
 
   // ignore: always_declare_return_types
-  static createTemporalOrder(
-      Store<AppState> store) async {
+  static createTemporalOrder(Store<AppState> store) async {
     // final Order order =
-        // await generalRepository.createDraftOrderOrReturnExistingOne(store);
+    // await generalRepository.createDraftOrderOrReturnExistingOne(store);
 
     //broadcast order to be used later when creating a sale
     // if (order != null) {

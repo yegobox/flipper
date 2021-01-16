@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:flipper/model/pcolor.dart';
+import 'package:flipper_models/pcolor.dart';
 import 'package:meta/meta.dart';
-import 'package:flipper/model/variation.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:built_collection/built_collection.dart';
 
 /// Actions are payloads of information that send data from your application to
@@ -39,12 +39,13 @@ class OnProductLoaded {
 }
 
 @immutable
-class CurrentColor{
+class CurrentColor {
   const CurrentColor({this.color});
   final PColor color;
 }
+
 @immutable
-class Variations{
+class Variations {
   const Variations({this.variations});
   final BuiltList<Variation> variations;
 }

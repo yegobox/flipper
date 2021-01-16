@@ -477,6 +477,20 @@ packages:
       relative: true
     source: path
     version: "99.99.99+99"
+  flipper_models:
+    dependency: "direct main"
+    description:
+      path: "../flipper_models"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_services:
+    dependency: "direct main"
+    description:
+      path: "../flipper_services"
+      relative: true
+    source: path
+    version: "0.0.1"
   flipper_ui:
     dependency: transitive
     description:
@@ -961,6 +975,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.0"
+  pos:
+    dependency: transitive
+    description:
+      path: "../pos"
+      relative: true
+    source: path
+    version: "0.2.4"
   process:
     dependency: transitive
     description:

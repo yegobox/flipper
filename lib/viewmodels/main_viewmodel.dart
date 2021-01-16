@@ -1,10 +1,10 @@
-
 import 'package:flipper/utils/constant.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/category.dart';
-import 'package:flipper/services/database_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/category.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'base_model.dart';
 
@@ -25,12 +25,12 @@ class MainViewModel extends BaseModel {
     //   final List<Map<String, dynamic>> model = event.map((Result result) {
     //     return result.toMap();
     //   }).toList();
-     
+
     //   for (Map map in model) {
-        
+
     //     map.forEach((key, value) {
     //       log.i(value);
-          
+
     //     });
     //   }
 

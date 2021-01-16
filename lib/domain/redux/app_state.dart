@@ -1,27 +1,26 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 
-import 'package:flipper/model/branch.dart';
-import 'package:flipper/model/business.dart';
+import 'package:flipper_models/branch.dart';
+import 'package:flipper_models/business.dart';
 
-import 'package:flipper/model/category.dart';
+import 'package:flipper_models/category.dart';
 
-import 'package:flipper/model/fuser.dart';
-import 'package:flipper/model/hint.dart';
-import 'package:flipper/model/image.dart';
-import 'package:flipper/model/in_app_notification.dart';
-import 'package:flipper/model/order.dart';
-import 'package:flipper/model/permission.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/model/report.dart';
-import 'package:flipper/model/unit.dart';
-import 'package:flipper/model/variation.dart';
-import 'package:flipper/model/pcolor.dart';
+import 'package:flipper_models/fuser.dart';
+import 'package:flipper_models/hint.dart';
+import 'package:flipper_models/image.dart';
+import 'package:flipper_models/in_app_notification.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_models/permission.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/report.dart';
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/pcolor.dart';
 
 part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
-  
   @nullable
   FUser get user;
 
@@ -64,7 +63,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   Hint get hint;
 
-
   @nullable
   String get tempCategoryId;
 
@@ -74,9 +72,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   BuiltList<Variation> get variants;
 
-
   BuiltList<Product> get items;
-
 
   @nullable
   Order get order;
@@ -84,7 +80,6 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   Product get tmpItem;
 
-  
   @nullable
   String get fcmToken;
 
@@ -97,11 +92,9 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   @nullable
   InAppNotification get inAppNotification;
 
-  
   @nullable
   Report get report;
 
-  
   @nullable
   PColor get currentColor;
   // ignore: sort_constructors_first
@@ -112,7 +105,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   // ignore: sort_constructors_first
   factory AppState.init() => AppState((AppStateBuilder a) => a
-   
+
     // ignore: always_specify_types
     ..units = ListBuilder()
     // ignore: always_specify_types
@@ -123,6 +116,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   AppState clear() {
     // Add here anything else that also needs to be carried over.
-    return AppState.init().rebuild((AppStateBuilder s) => s..fcmToken = fcmToken);
+    return AppState.init()
+        .rebuild((AppStateBuilder s) => s..fcmToken = fcmToken);
   }
 }

@@ -1,9 +1,13 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/model/unit.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/bluethooth_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:stacked/stacked.dart';
 
 class AddUnitViewModel extends ReactiveViewModel {

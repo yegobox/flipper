@@ -1,10 +1,10 @@
-import 'package:flipper/model/variation.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_models/variation.dart';
 
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_services/proxy.dart';
 
 class VariationWidget extends StatefulWidget {
   const VariationWidget(
@@ -28,30 +28,30 @@ class _VariationWidgetState extends State<VariationWidget> {
   Widget build(BuildContext context) {
     return ListView(children: <Widget>[
       GestureDetector(
-        onTap: () {
-          _navigationService.navigateTo(
-            Routing.editVariationScreen,
-            //TODO(richard): work on this.
-            // arguments: EditVariationScreenArguments(
-            //   variationId: widget.variation.id,
-            //     itemId: widget.variation.productId
-            // ),
-          );
-        },
-        child: SizedBox.shrink()
-        // child: StreamBuilder(
-        //     stream: widget.vm.database.stockDao.getStockByProductIdStream(
-        //         branchId: widget.vm.branch.id, productId: '001'),
-        //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
-        //       if (snapshot.data == null) {
-        //         return Text('');
-        //       }
-        //       return Column(
-        //         children:
-        //             buildVariantRow(snapshot, context, widget.variation.name),
-        //       );
-        //     }),
-      )
+          onTap: () {
+            _navigationService.navigateTo(
+              Routing.editVariationScreen,
+              //TODO(richard): work on this.
+              // arguments: EditVariationScreenArguments(
+              //   variationId: widget.variation.id,
+              //     itemId: widget.variation.productId
+              // ),
+            );
+          },
+          child: SizedBox.shrink()
+          // child: StreamBuilder(
+          //     stream: widget.vm.database.stockDao.getStockByProductIdStream(
+          //         branchId: widget.vm.branch.id, productId: '001'),
+          //     builder: (context, AsyncSnapshot<List<StockTableData>> snapshot) {
+          //       if (snapshot.data == null) {
+          //         return Text('');
+          //       }
+          //       return Column(
+          //         children:
+          //             buildVariantRow(snapshot, context, widget.variation.name),
+          //       );
+          //     }),
+          )
     ]);
   }
 

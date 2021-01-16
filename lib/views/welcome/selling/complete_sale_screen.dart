@@ -1,9 +1,10 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/proxy.dart';
 
 class CompleteSaleScreen extends StatefulWidget {
   const CompleteSaleScreen({Key key, this.cashReceived}) : super(key: key);

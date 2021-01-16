@@ -1,4 +1,4 @@
-import 'package:flipper/model/order.dart';
+import 'package:flipper_models/order.dart';
 import 'package:meta/meta.dart';
 
 // Authentication

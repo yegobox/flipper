@@ -1,5 +1,5 @@
 //
-//import 'package:flipper/model/branch.dart';
+//import 'package:flipper_models/branch.dart';
 //import 'package:flutter/material.dart';
 //
 //showDialogRsvp(context, RSVP rsvp) {

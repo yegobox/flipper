@@ -1,7 +1,5 @@
-import 'package:flipper/services/proxy.dart';
-
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flipper/utils/constant.dart';
@@ -10,7 +8,7 @@ import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper_services/proxy.dart';
 import 'business/business_list.dart';
 
 class FlipperDrawer extends StatelessWidget {

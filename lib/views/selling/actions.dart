@@ -1,4 +1,4 @@
-import 'package:flipper/model/total.dart';
+import 'package:flipper_models/total.dart';
 import 'package:flutter/material.dart';
 
 @immutable

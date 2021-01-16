@@ -1,6 +1,7 @@
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/business.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';

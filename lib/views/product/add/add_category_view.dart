@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flipper/views/category/category_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/widget/category_list.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class AddCategoryView extends StatelessWidget {
   const AddCategoryView({Key key}) : super(key: key);

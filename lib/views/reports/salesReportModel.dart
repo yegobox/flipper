@@ -1,9 +1,9 @@
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:flipper_services/proxy.dart';
 
 class ReportViewModel extends BaseViewModel {
   final controller = PageController();

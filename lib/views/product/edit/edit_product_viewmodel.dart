@@ -3,13 +3,12 @@ import 'dart:io';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/model/image.dart';
-import 'package:flipper/model/pcolor.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/image.dart';
+import 'package:flipper_models/pcolor.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/upload_response.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +21,8 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class EditProductViewModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('Edit Color:');
@@ -195,7 +195,6 @@ class EditProductViewModel extends ReactiveViewModel {
   }
 
   void observeColors() {
-    
     final List<PColor> colors = [];
     final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
 
@@ -204,7 +203,7 @@ class EditProductViewModel extends ReactiveViewModel {
     q.addChangeListener((List results) {
       for (Map map in results) {
         map.forEach((key, value) {
-          if(!colors.contains(PColor.fromMap(value))){
+          if (!colors.contains(PColor.fromMap(value))) {
             colors.add(PColor.fromMap(value));
           }
         });
@@ -233,9 +232,10 @@ class EditProductViewModel extends ReactiveViewModel {
 
   void switchColor({PColor color, @required BuildContext context}) async {
     //reset all other color to not selected
-    
+
     setBusy(true);
-    for (var y = 0; y < 8; y++) { //we know color lenght is 8, using colors.lenght was giving dups!
+    for (var y = 0; y < 8; y++) {
+      //we know color lenght is 8, using colors.lenght was giving dups!
       //set all other color to active false then set one to active.
       final Document _color = _databaseService.getById(id: colors[y].id);
 
@@ -245,7 +245,7 @@ class EditProductViewModel extends ReactiveViewModel {
     final Document _colordoc = _databaseService.getById(id: color.id);
 
     _colordoc.properties['isActive'] = true;
-    
+
     _databaseService.update(document: _colordoc);
 
     _sharedStateService.setCurrentColor(color: color);

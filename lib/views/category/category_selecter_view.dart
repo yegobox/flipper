@@ -1,6 +1,6 @@
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/category.dart';
+import 'package:flipper_models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -15,7 +15,13 @@ class CategorySelector extends StatelessWidget {
     }
     for (Category category in categories) {
       if (category.focused) {
-        text = Text(category.name,style: Theme.of(context).textTheme.bodyText1.copyWith(color:Colors.black),);
+        text = Text(
+          category.name,
+          style: Theme.of(context)
+              .textTheme
+              .bodyText1
+              .copyWith(color: Colors.black),
+        );
         return text;
       } else {
         text = const Text('Select Category');

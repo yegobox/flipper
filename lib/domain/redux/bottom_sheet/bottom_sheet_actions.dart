@@ -1,4 +1,4 @@
-import 'package:flipper/model/sheet.dart';
+import 'package:flipper_models/sheet.dart';
 import 'package:flutter/material.dart';
 
 class OnBottomSheetClosed {}

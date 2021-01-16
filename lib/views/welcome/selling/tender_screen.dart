@@ -1,10 +1,14 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/bluethooth_service.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/bluethooth_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/shared_state_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -32,12 +36,10 @@ class _TenderScreenState extends State<TenderScreen> {
   void initState() {
     super.initState();
     _isButtonDisabled = true;
-    
   }
 
   @override
   Widget build(BuildContext context) {
-  
     return Scaffold(
       appBar: CommonAppBar(
         onPop: () {
@@ -64,7 +66,6 @@ class _TenderScreenState extends State<TenderScreen> {
                 child: TextFormField(
                   autofocus: true,
                   onChanged: (String value) {
-                    
                     if (int.parse(value) > widget.cashReceived) {
                       setState(() {
                         _customerChangeDue = value;

@@ -1,9 +1,8 @@
-import 'package:flipper/locator.dart';
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class HomeViewModel extends ReactiveViewModel {
-
   final _sharedStateService = locator<SharedStateService>();
 
   int _tab;

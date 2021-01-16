@@ -1,17 +1,16 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper/model/app_action.dart';
-import 'package:flipper/model/branch.dart';
-import 'package:flipper/model/business.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_models/app_action.dart';
+import 'package:flipper_models/branch.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-
+import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 

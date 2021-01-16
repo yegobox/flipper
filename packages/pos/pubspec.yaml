@@ -14,6 +14,9 @@ dependencies:
   stacked: ^1.7.1
   stacked_hooks: 0.1.1+3
   stacked_services: ^0.5.4+2
+  flipper_services:
+    path:
+      '../flipper_services'
 dev_dependencies:
   flutter_test:
     sdk: flutter

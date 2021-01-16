@@ -1,15 +1,16 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'package:uuid/uuid.dart';
 import 'base_model.dart';

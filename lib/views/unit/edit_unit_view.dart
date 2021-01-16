@@ -1,12 +1,17 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/unit.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/app_action.dart';
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/app_action.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/bluethooth_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -69,26 +74,26 @@ class _EditUnitViewState extends State<EditUnitView> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         return Scaffold(
-          appBar: CommonAppBar(
-            onPop: () {
-              Routing.navigator.pop();
-            },
-            title: 'Edit Unit',
-            showActionButton: true,
-            disableButton: false,
-            actionButtonName: 'Save',
-            onPressedCallback: () {
-              StoreProvider.of<AppState>(context)
-                  .dispatch(PersistFocusedUnitAction());
+            appBar: CommonAppBar(
+              onPop: () {
+                Routing.navigator.pop();
+              },
+              title: 'Edit Unit',
+              showActionButton: true,
+              disableButton: false,
+              actionButtonName: 'Save',
+              onPressedCallback: () {
+                StoreProvider.of<AppState>(context)
+                    .dispatch(PersistFocusedUnitAction());
 
-              StoreProvider.of<AppState>(context).dispatch(AppAction(
-                  actions: AppActions((a) => a..name = 'showLoader')));
-            },
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 52,
-          ),
-          body:const Text('unit not done')
+                StoreProvider.of<AppState>(context).dispatch(AppAction(
+                    actions: AppActions((a) => a..name = 'showLoader')));
+              },
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 52,
+            ),
+            body: const Text('unit not done')
 //           body: StreamBuilder(
 //               stream: vm.database.unitDao.getUnitsStream(),
 //               builder: (context, AsyncSnapshot<List<UnitTableData>> snapshot) {
@@ -102,7 +107,7 @@ class _EditUnitViewState extends State<EditUnitView> {
 //                 ).toList());
 // //                    return _getUnitsWidgets(snapshot, vm);
 //               }),
-        );
+            );
       },
     );
   }

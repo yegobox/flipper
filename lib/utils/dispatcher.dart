@@ -1,12 +1,12 @@
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/model/variation.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-void dispatchCurrentProductVariants(BuildContext context,
-    List<Variation> variants, Product product) {
+void dispatchCurrentProductVariants(
+    BuildContext context, List<Variation> variants, Product product) {
   StoreProvider.of<AppState>(context)
       .dispatch(ItemsVariation(variations: variants));
 

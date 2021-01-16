@@ -1,19 +1,21 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/model/category.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/model/tax.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/category.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/tax.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class AddProductModalViewModal extends BaseModel {
   final Logger log = Logging.getLogger('Add Product:');

@@ -3,17 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart' as Auth;
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/services/analytics_service.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/model/fuser.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/analytics_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper_login/services/proxy_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +20,7 @@ import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
 import 'package:redux/redux.dart';
 
+import 'package:flipper_models/fuser.dart';
 import './loginResponse.dart';
 import 'helpers/style.dart';
 

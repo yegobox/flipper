@@ -4,10 +4,12 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/views/category/category_viewmodel.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class CreateCategoryInputScreen extends StatelessWidget {
-   CreateCategoryInputScreen({Key key}) : super(key: key);
+  CreateCategoryInputScreen({Key key}) : super(key: key);
   final TextEditingController _name = TextEditingController();
   @override
   Widget build(BuildContext context) {
@@ -16,7 +18,7 @@ class CreateCategoryInputScreen extends StatelessWidget {
         return Scaffold(
           appBar: CommonAppBar(
             onPop: () {
-              model.createCategory(name:_name.text);
+              model.createCategory(name: _name.text);
               ProxyService.nav.pop();
             },
             title: 'Create Category',
@@ -36,9 +38,8 @@ class CreateCategoryInputScreen extends StatelessWidget {
             ),
           ),
         );
-      }, 
-      
-      viewModelBuilder: () =>CategoryViewModel(),
+      },
+      viewModelBuilder: () => CategoryViewModel(),
     );
   }
 }

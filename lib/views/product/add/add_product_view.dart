@@ -1,6 +1,6 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/category/category_view.dart';
 import 'package:flipper/views/product/add/add_product_viewmodel.dart';
 import 'package:flipper/views/shared/divider.dart';
@@ -18,6 +18,9 @@ import 'package:flipper/utils/validators.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 // NOTE: this is to add a product and there related variants.
 class AddProductView extends StatelessWidget {

@@ -1,14 +1,12 @@
-
-
 import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/services/proxy.dart';
 
-import 'package:flipper/services/database_service.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_services/proxy.dart';
 
 // ignore: non_constant_identifier_names
 List<Middleware<AppState>> AppActionMiddleware(
@@ -18,38 +16,37 @@ List<Middleware<AppState>> AppActionMiddleware(
   return [
     TypedMiddleware<AppState, CreateEmptyTempCategoryAction>(
         _createTempCategory(navigatorKey)),
-   
-    TypedMiddleware<AppState, SavePayment>(
-        _savePayment(navigatorKey)),
+    TypedMiddleware<AppState, SavePayment>(_savePayment(navigatorKey)),
   ];
 }
 
-
 void Function(Store<AppState> store, CreateEmptyTempCategoryAction action,
-        NextDispatcher next)
-    _createTempCategory(GlobalKey<NavigatorState> navigatorKey,) {
+    NextDispatcher next) _createTempCategory(
+  GlobalKey<NavigatorState> navigatorKey,
+) {
   // ignore: always_specify_types
-  return (Store<AppState> store, CreateEmptyTempCategoryAction action, next) async {
+  return (Store<AppState> store, CreateEmptyTempCategoryAction action,
+      next) async {
     if (store.state.branch != null) {
       final DatabaseService _databaseService = ProxyService.database;
       final id = Uuid().v1();
-      _databaseService.insert(id:id, data: {'branchId': store.state.branch.id,'name':action.name});
-     
+      _databaseService.insert(
+          id: id,
+          data: {'branchId': store.state.branch.id, 'name': action.name});
+
       store.dispatch(TempCategoryIdAction(categoryId: id));
     }
   };
 }
 
-
-
-
 void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
-    _savePayment(GlobalKey<NavigatorState> navigatorKey,
-        ) {
+    _savePayment(
+  GlobalKey<NavigatorState> navigatorKey,
+) {
   return (store, action, next) async {
     next(action);
 
-  // FIXME:
+    // FIXME:
     // final order =
     //     await store.state.database.orderDao.getOrderById(store.state.order.id);
 
@@ -69,7 +66,5 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
 
     //update orderdetails
     DataManager.createTemporalOrder(store);
-
-    
   };
 }

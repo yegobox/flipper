@@ -1,11 +1,9 @@
 import 'package:flipper/views/flipper_drawer.dart';
 import 'package:flipper/views/home_app_bar.dart';
-import 'package:flipper/views/keypad/keypad_view.dart';
 import 'package:pos/pos.dart';
 import 'package:flipper/views/product/product_view.dart';
 
 import 'package:flipper/views/welcome/home/common_view_model.dart';
-import 'package:flipper/views/welcome/payable/payable_view.dart';
 import 'package:flipper/widget/bottom_menu_bar.dart';
 
 import 'package:flutter/material.dart';
@@ -63,14 +61,6 @@ class HomeView extends StatelessWidget {
             ),
             body: Column(
               children: <Widget>[
-                model.items == 2
-                    ? const Padding(
-                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                        child: SizedBox.shrink())
-                    : Padding(
-                        padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                        child: PayableView(),
-                      ),
                 Expanded(
                   child: Container(
                     child: SafeArea(

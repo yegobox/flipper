@@ -1,11 +1,10 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/model/branch.dart';
-import 'package:flipper/model/business.dart';
-import 'package:flipper/model/fuser.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/branch.dart';
+import 'package:flipper_models/business.dart';
+import 'package:flipper_models/fuser.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/proxy.dart';
 
 class DrawerViewModel extends ReactiveViewModel {
   final _sharedStateService = locator<SharedStateService>();
@@ -81,10 +81,9 @@ class DrawerViewModel extends ReactiveViewModel {
         map.forEach((key, value) {
           if (!businesses.contains(Business.fromMap(value))) {
             businesses.add(Business.fromMap(value));
-            
-              _sharedStateService.setBusiness(
-                  business: Business.fromMap(value));
-            
+
+            _sharedStateService.setBusiness(business: Business.fromMap(value));
+
             notifyListeners();
           }
         });
@@ -134,7 +133,6 @@ class DrawerViewModel extends ReactiveViewModel {
       {@required Business from, @required Business to}) async {
     final Logger log = Logging.getLogger('Switch Business:');
 
-  
     final Document fromBusiness = ProxyService.database.getById(id: from.id);
 
     if (from != to) {

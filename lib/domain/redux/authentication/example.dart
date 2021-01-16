@@ -6,17 +6,17 @@
 // import 'package:flipper/domain/redux/branch/branch_actions.dart';
 // import 'package:flipper/domain/redux/business/business_actions.dart';
 // import 'package:flipper/domain/redux/user/user_actions.dart';
-// import 'package:flipper/locator.dart';
+// import 'package:flipper_services/locator.dart';
 // import 'package:flipper/services/shared_state_service.dart';
 // import 'package:flipper/utils/constant.dart';
-// import 'package:flipper/services/proxy.dart';
-// import 'package:flipper/model/branch.dart';
-// import 'package:flipper/model/business.dart';
-// import 'package:flipper/model/fuser.dart';
-// import 'package:flipper/model/hint.dart';
+// import 'package:flipper_services/locator.dart';
+// import 'package:flipper_models/branch.dart';
+// import 'package:flipper_models/business.dart';
+// import 'package:flipper_models/fuser.dart';
+// import 'package:flipper_models/hint.dart';
 // import 'package:flipper/routes/router.gr.dart';
-// import 'package:flipper/services/database_service.dart';
-// import 'package:flipper/services/flipperNavigation_service.dart';
+// import 'package:flipper_services/database_service.dart';
+// import 'package:flipper_services/flipperNavigation_service.dart';
 // import 'package:flipper/utils/data_manager.dart';
 // import 'package:flipper/utils/logger.dart';
 // import 'package:flutter/material.dart';
@@ -115,7 +115,7 @@
 //   final UserTableData user = await store.state.database.userDao.getUser();
 //   if (user != null) {
 //     final Logger log = Logging.getLogger('Current User: ....');
-   
+
 //     //login to couchbase
 //     // ignore: always_specify_types
 //     final List<String> channels = [];

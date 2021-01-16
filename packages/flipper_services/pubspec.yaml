@@ -1,0 +1,139 @@
+name: flipper_services
+description: A new Flutter package project.
+version: 0.0.1
+author:
+homepage:
+
+environment:
+  sdk: ">=2.10.0 <3.0.0"
+  flutter: ">=1.17.0"
+ 
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.3
+  #local package
+  google_fonts:  ^1.1.0
+  geolocator: ^5.3.0
+  permission_handler: ^4.3.0
+  
+  redux: ^4.0.0
+  flutter_redux: ^0.6.0
+  flutter_masked_text: ^0.8.0
+  built_value: ^7.1.0
+  image_picker: ^0.6.4
+  built_collection: ^4.3.2
+  # flutter_date_pickers: ^0.0.6
+  # flutter_material_color_picker: ^0.0.5
+  flutter_image_compress: ^0.6.5+1
+  tabbar: ^0.1.1
+  intl: ^0.16.1
+  jiffy: ^3.0.1
+  expandable: ^4.1.4
+  syncfusion_flutter_charts: ^18.3.44
+  
+  uuid: 2.2.2
+  
+  timezone: ^0.5.6
+  # this will deprecate soon do not use them
+  flutter_barcode_scanner: 
+  flipper_ui: ^1.0.0
+  
+  rubber: ^0.4.0
+  shared_preferences: 0.5.2
+  country_picker: ^1.1.3
+  # background_fetch: 0.6.0
+  # social sign in
+  firebase_auth: "^0.20.0"
+  # end social signin
+  firebase_core: "^0.7.0"
+  cloud_firestore: "^0.16.0"
+  firebase_messaging: "^8.0.0-dev.13"
+  firebase_analytics: "^7.0.1"
+  camera: 0.5.8+11
+  flutter_uploader:
+  rxdart: ^0.24.1
+  loading: ^1.0.2
+  firebase_crashlytics: "^0.4.0"
+  logger: ^0.6.0
+  async: ^2.4.1
+  # filledstacks | state management
+  stacked: ^1.7.1
+  stacked_hooks: 0.1.1+3
+  flutter_calendar_carousel: ^1.5.1
+  syncfusion_flutter_datepicker: ^18.3.48-beta
+  slider_button: ^0.6.0
+  sliding_switch: ^0.0.3
+
+  stacked_services: ^0.5.4+2
+  # get it
+  get_it: 
+  injectable:
+  # provider
+  provider: ^4.1.3
+  cached_network_image: ^2.2.0+1
+  flutter_dotenv: ^2.1.0
+  mailer: ^3.2.1
+  contacts_service: ^0.4.6
+  # flutter_reactive_ble: ^2.5.3
+  flutter_text_drawable: ^0.3.1
+  connectivity: ^2.0.2
+  # background_fetch: '^0.5.1'
+  flutter_icons: ^1.1.0
+  
+  bluetooth_thermal_printer: ^0.0.4
+  esc_pos_utils: ^0.4.9
+  awesome_notifications: ^0.0.5+4
+  pusher: ^1.0.0
+  couchbase_lite_dart: ^0.3.1
+  path_provider: ^1.6.27
+  flipper_models:
+    path:
+      '../flipper_models'
+dev_dependencies:
+  test_coverage: ^0.4.2
+  build_runner: 
+  moor_generator: ^3.0.0
+  analyzer:
+  built_value_generator:
+  auto_route_generator: 0.3.2
+  injectable_generator:
+  mockito:
+  flutter_test:
+    sdk: flutter
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+
+  # To add assets to your package, add an assets section, like this:
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+  #
+  # For details regarding assets in packages, see
+  # https://flutter.dev/assets-and-images/#from-packages
+  #
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+
+  # To add custom fonts to your package, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts in packages, see
+  # https://flutter.dev/custom-fonts/#from-packages

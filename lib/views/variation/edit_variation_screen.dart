@@ -1,12 +1,11 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/views/variation/variation_viewmodel.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper_services/proxy.dart';
 import 'build_cost_widget.dart';
 import 'build_retail_widget.dart';
 

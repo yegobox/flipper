@@ -1,12 +1,12 @@
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/model/unit.dart';
-import 'package:flipper/services/database_service.dart';
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flipper/utils/logger.dart';
 
 import 'package:logger/logger.dart';

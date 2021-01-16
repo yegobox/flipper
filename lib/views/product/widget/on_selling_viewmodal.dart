@@ -1,16 +1,16 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/model/variant_stock.dart';
-import 'package:flipper/model/stock.dart';
-import 'package:flipper/services/database_service.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_models/variant_stock.dart';
+import 'package:flipper_models/stock.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flipper/locator.dart';
-import 'package:flipper/services/shared_state_service.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 class OnProductSellingViewModal extends BaseModel {
   // NOTE: leason learned, never put anything that invoke ui for ex TextEditingController in viewmodel as it will make it hard to test the logic of viewmodel

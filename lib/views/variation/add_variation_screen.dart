@@ -3,11 +3,15 @@ import 'package:flipper/views/shared/divider.dart';
 import 'package:flipper/views/product/section_select_unit.dart';
 import 'package:flipper/views/variation/variation_viewmodel.dart';
 
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/bluethooth_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 

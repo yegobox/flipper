@@ -2,7 +2,8 @@ import 'package:flipper/views/settings/bluethooth/bluethooth_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({Key key}) : super(key: key);
@@ -56,8 +57,12 @@ class SettingsView extends StatelessWidget {
                             final String mac = list[1];
                             model.setConnect(mac);
                           },
-                          title:
-                              Text('${model.state.bluethioothDevices[index]}',style:Theme.of(context).textTheme.headline5.copyWith(color:Colors.black)),
+                          title: Text(
+                              '${model.state.bluethioothDevices[index]}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline5
+                                  .copyWith(color: Colors.black)),
                           subtitle: const Text('Click to connect'),
                         );
                       },

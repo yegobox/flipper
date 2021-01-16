@@ -6,14 +6,13 @@ import 'package:flipper/views/variation/variation_list.dart';
 import 'package:flipper/views/variation/variation_viewmodel.dart';
 
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper_services/proxy.dart';
 import 'build_variation_body.dart';
 
 class VariantWidget extends StatefulWidget {

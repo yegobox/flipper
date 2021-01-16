@@ -6,21 +6,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/push/push_actions.dart';
-import 'package:flipper/model/in_app_notification.dart';
+import 'package:flipper_models/in_app_notification.dart';
 import 'package:redux/redux.dart';
 
 List<Middleware<AppState>> createPushMiddleware(
-  
   FirebaseMessaging firebaseMessaging,
 ) {
   return [
-   
     TypedMiddleware<AppState, OnPushNotificationReceivedAction>(
         _onPushNotificationReceived()),
   ];
 }
-
-
 
 void Function(
   Store<AppState> store,

@@ -1,8 +1,8 @@
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/utils/constant.dart';
-import 'package:flipper/services/proxy.dart';
-import 'package:flipper/services/database_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,6 +23,7 @@ AppState _onHintLoaded(AppState state, OnHintLoaded action) {
 
 AppState _onActiveBranch(AppState state, OnCurrentBranchAction action) {
   //create default category if does not exist on active branch
-  
-  return state.rebuild((AppStateBuilder a) => a..branch = action.branch.toBuilder());
+
+  return state
+      .rebuild((AppStateBuilder a) => a..branch = action.branch.toBuilder());
 }

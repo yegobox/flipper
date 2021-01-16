@@ -26,6 +26,13 @@ dependencies:
   # provider
   provider: ^4.1.3
   country_code_picker: ^1.7.0
+  
+  flipper_services:
+    path:
+      '../flipper_services'
+  flipper_models:
+    path:
+      '../flipper_models'    
 
 dev_dependencies:
   flutter_test:

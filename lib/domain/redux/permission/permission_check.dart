@@ -1,4 +1,4 @@
-import 'package:flipper/model/permission.dart';
+import 'package:flipper_models/permission.dart';
 import 'package:flutter/material.dart';
 
 @immutable

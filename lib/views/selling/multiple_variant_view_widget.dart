@@ -3,9 +3,9 @@ import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/views/selling/actions.dart';
 import 'package:flipper/views/selling/control_widget.dart';
-import 'package:flipper/model/product.dart';
-import 'package:flipper/model/stock.dart';
-import 'package:flipper/model/variation.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/variation.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -32,7 +32,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
         disableButton: false,
         showActionButton: true,
         actionButtonName: 'Add',
-        title:'hello',
+        title: 'hello',
         // FIXME:
         // title: vm.currentActiveSaleProduct == null
         //     ? ''
@@ -62,9 +62,8 @@ class MultipleVariantViewWidget extends StatelessWidget {
     );
   }
 
-  List<Widget> getVariantsRow(
-      List<Stock> stocks, BuildContext context) {
-    final List<Widget> list =  <Widget>[];
+  List<Widget> getVariantsRow(List<Stock> stocks, BuildContext context) {
+    final List<Widget> list = <Widget>[];
     list.add(
       chooserRow(),
     );
@@ -89,8 +88,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
     // );
   }
 
-  void isVariantActive(
-      List<Stock> stocks, int i, BuildContext context) {
+  void isVariantActive(List<Stock> stocks, int i, BuildContext context) {
     if (stocks[i].isActive) {
       // FIXME:
       // StoreProvider.of<AppState>(context).dispatch(
@@ -119,8 +117,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
     }
   }
 
-  GestureDetector itemRow(
-      BuildContext context, List<Stock> stocks, int i) {
+  GestureDetector itemRow(BuildContext context, List<Stock> stocks, int i) {
     return GestureDetector(
       onTap: () {
         // FIXME:
@@ -142,7 +139,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
             ),
           ),
         ),
-        leading:const SizedBox.shrink(),
+        leading: const SizedBox.shrink(),
         // leading: StreamBuilder(
         //     stream: vm.database.variationDao
         //         .getVariationByIdStream(stocks[i].variantId),
@@ -160,7 +157,8 @@ class MultipleVariantViewWidget extends StatelessWidget {
         //     }),
         // ignore: always_specify_types
         trailing: Radio(
-          value: stocks[i].id, //FIXME: i know value of raido should int and id here is string
+          value: stocks[i]
+              .id, //FIXME: i know value of raido should int and id here is string
           groupValue: stocks[i].isActive ? stocks[i].id : 0,
           onChanged: (Object value) {},
         ),
@@ -170,7 +168,6 @@ class MultipleVariantViewWidget extends StatelessWidget {
 
   // ignore: always_specify_types
   void _saveCart(CommonViewModel vm, context) {
-   
     // FIXME:
     // Routing.navigator.maybePop();
   }

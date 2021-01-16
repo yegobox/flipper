@@ -1,5 +1,5 @@
-import 'package:flipper/model/category.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_models/category.dart';
+import 'package:flipper_services/locator.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -8,6 +8,10 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/generated/l10n.dart';
 
 import 'package:flipper/views/category/category_viewmodel.dart';
+
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 
 enum CategoriesEnum { beverage, drinks, ikawa }
 

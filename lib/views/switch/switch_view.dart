@@ -1,8 +1,7 @@
-
-import 'package:flipper/model/converters/switcher.dart';
+import 'package:flipper_models/switcher.dart';
 
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flipper/viewmodels/switch_model.dart';
 import 'package:flipper/views/home_view.dart';
@@ -10,12 +9,16 @@ import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper/services/proxy.dart';
-
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/bluethooth_service.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flipper/utils/HexColor.dart';
 
 class SwitchView extends StatelessWidget {
-   SwitchView({
+  SwitchView({
     Key key,
     this.vm,
     this.sideOpenController,
@@ -29,8 +32,6 @@ class SwitchView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SwitchModel>.reactive(
       // initialiseSpecialViewModelsOnce: true,
-     
-
 
       builder: (BuildContext context, SwitchModel model, Widget child) {
         // ignore: always_specify_types
@@ -41,23 +42,26 @@ class SwitchView extends StatelessWidget {
             backgroundColor: Colors.white,
             body: Center(
               child: Wrap(
-                children:<Widget> [
+                children: <Widget>[
                   const Center(
-                    child:  Text(
+                    child: Text(
                       'Open your business to start selling',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
-                  const Divider(height:20),
+                  const Divider(height: 20),
                   Center(
                     child: Container(
-                    color: HexColor('#2996CC'),
+                      color: HexColor('#2996CC'),
                       child: SizedBox(
                         width: 380,
                         height: 60,
                         child: FlatButton(
                           onPressed: () {
-                            _navigationService.navigateTo(Routing.openCloseDrawerview,arguments: OpenCloseDrawerViewArguments(vm: vm,businessState:BusinessState.OPEN));
+                            _navigationService.navigateTo(
+                                Routing.openCloseDrawerview,
+                                arguments: OpenCloseDrawerViewArguments(
+                                    vm: vm, businessState: BusinessState.OPEN));
                           },
                           color: Colors.blue,
                           child: const Text(
@@ -78,7 +82,8 @@ class SwitchView extends StatelessWidget {
             sideOpenController: sideOpenController,
           );
         }
-      }, viewModelBuilder: () =>SwitchModel(),
+      },
+      viewModelBuilder: () => SwitchModel(),
     );
   }
 }

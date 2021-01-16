@@ -1,18 +1,14 @@
-import 'dart:io';
-
 import 'package:awesome_notifications/awesome_notifications.dart'
     hide DateUtils;
-import 'package:awesome_notifications/awesome_notifications.dart' as Utils
-    show DateUtils;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/generated/i18n.dart';
-import 'package:flipper/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/analytics_service.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/theme.dart';
 import 'package:flipper/utils/logger.dart';
+import 'package:flipper_services/analytics_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';

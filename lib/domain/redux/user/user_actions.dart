@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flipper/model/fuser.dart';
+import 'package:flipper_models/fuser.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -26,13 +26,11 @@ class WithUsers {
 
 @immutable
 class WithUser {
-
   const WithUser({this.user});
   final FUser user;
 }
 
 @deprecated
-
 @immutable
 class CreateUser {
   final FUser user;

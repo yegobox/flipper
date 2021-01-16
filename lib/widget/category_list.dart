@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/utils/HexColor.dart';
-import 'package:flipper/model/category.dart';
+import 'package:flipper_models/category.dart';
 import 'package:flipper/views/category/category_viewmodel.dart';
 
 class CategoryList extends StatelessWidget {
@@ -24,12 +23,10 @@ class CategoryList extends StatelessWidget {
         list.add(
           GestureDetector(
             onTap: () {
-              model.updateCategory(
-                  category: categories[i]);
+              model.updateCategory(category: categories[i]);
             },
             child: SingleChildScrollView(
               child: ListTile(
-
                 title: Text(
                   categories[i].name,
                   style: const TextStyle(color: Colors.black),
@@ -40,9 +37,9 @@ class CategoryList extends StatelessWidget {
                       .copyWith(canvasColor: HexColor('#2996CC'))
                       .canvasColor,
                   //This radio button is considered selected if its value matches the groupValue.
-                  groupValue: categories[i].focused==true? categories[i].id:0,
-                  onChanged: (Object value) {
-                  },
+                  groupValue:
+                      categories[i].focused == true ? categories[i].id : 0,
+                  onChanged: (Object value) {},
                 ),
               ),
             ),

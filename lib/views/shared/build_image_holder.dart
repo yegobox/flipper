@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/services/flipperNavigation_service.dart';
-import 'package:flipper/services/proxy.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/views/shared/close_button.dart';
-
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 

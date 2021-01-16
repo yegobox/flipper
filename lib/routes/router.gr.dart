@@ -21,7 +21,7 @@ import 'package:flipper/views/variation/edit_variation_screen.dart';
 import 'package:flipper/views/category/category_list_view.dart';
 import 'package:flipper/views/discounts/discount_list_view.dart';
 import 'package:flipper/views/product/widget/on_selling_view.dart';
-import 'package:flipper/model/product.dart';
+import 'package:flipper_models/order.dart';
 import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
@@ -29,7 +29,6 @@ import 'package:flipper/views/welcome/splash/splash_screen.dart';
 import 'package:flipper/views/transactions/transaction_screen.dart';
 import 'package:flipper/views/welcome/home/dash_board.dart';
 import 'package:flipper/views/welcome/splash/aftersplash.dart';
-import 'package:flipper/views/note/add_note_screen.dart';
 import 'package:flipper/views/product/edit/edit_product_title.dart';
 import 'package:flipper/views/variation/add_variation_screen.dart';
 import 'package:flipper/views/unit/add_unit_view.dart';
@@ -37,12 +36,13 @@ import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/category/create_category_input_screen.dart';
 import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/order/order_details_view.dart';
-import 'package:flipper/model/order_detail.dart';
 import 'package:flipper/views/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/views/welcome/selling/tender_screen.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
+import 'package:flipper_models/order_detail.dart';
+import 'package:flipper_models/product.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -65,7 +65,6 @@ class Routing {
   static const transactionScreen = '/transaction-screen';
   static const dashboard = '/dashboard';
   static const afterSplash = '/after-splash';
-  static const addNoteScreen = '/add-note-screen';
   static const editItemTitle = '/edit-item-title';
   static const addVariationScreen = '/add-variation-screen';
   static const addUnitType = '/add-unit-type';
@@ -289,16 +288,6 @@ class Routing {
       case Routing.afterSplash:
         return MaterialPageRoute<dynamic>(
           builder: (_) => AfterSplash(),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.addNoteScreen:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => AddNoteScreen(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );

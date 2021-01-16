@@ -1,17 +1,15 @@
-import 'package:flipper/services/proxy.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
-import 'services/abstractions/stoppable_service.dart';
-
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/stoppable_service.dart';
 
 /// Stop and start long running services
 class LifeCycleManager extends StatefulWidget {
-  
   const LifeCycleManager({Key key, this.child}) : super(key: key);
   final Widget child;
-  
+
   @override
   _LifeCycleManagerState createState() => _LifeCycleManagerState();
 }
@@ -52,11 +50,10 @@ class _LifeCycleManagerState extends State<LifeCycleManager>
       if (state == AppLifecycleState.resumed) {
         service.start();
       } else {
-        try{
+        try {
           service.stop();
-        // ignore: empty_catches
-        }catch(e){}
-        
+          // ignore: empty_catches
+        } catch (e) {}
       }
     });
   }
