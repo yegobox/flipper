@@ -6,14 +6,12 @@ import 'package:flipper_models/tax.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 
@@ -55,6 +53,7 @@ class AddProductModalViewModal extends BaseModel {
     if (categories.isNotEmpty) {
       for (Map map in categories) {
         map.forEach((key, value) {
+          log.d(value);
           _category = Category.fromMap(value);
         });
         notifyListeners();

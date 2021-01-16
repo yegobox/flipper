@@ -9,6 +9,7 @@ part of serializers;
 Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Branch.serializer)
       ..add(Business.serializer)
+      ..add(Category.serializer)
       ..add(FUser.serializer)
       ..add(Order.serializer)
       ..add(PColor.serializer)
@@ -19,6 +20,9 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Unit.serializer)
       ..add(VariantStock.serializer)
       ..add(Variation.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => new ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => new ListBuilder<String>())

@@ -18,8 +18,7 @@ import 'dart:convert';
 
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-
-import 'serializers.dart';
+import 'package:flipper_models/converters/serializers.dart';
 
 part 'token_response.g.dart';
 

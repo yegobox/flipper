@@ -5,10 +5,10 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
 import 'package:flipper_models/switcher.dart';
-import 'package:flutter/foundation.dart';
 
 import '../branch.dart';
 import '../business.dart';
+import '../category.dart';
 import '../fuser.dart';
 import '../order.dart';
 import '../pcolor.dart';

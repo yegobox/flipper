@@ -31,9 +31,10 @@ abstract class Category implements Built<Category, CategoryBuilder> {
   @nullable
   bool get touched;
 
+  bool get active;
+
   @BuiltValueField(wireName: 'branchId')
   String get branchId;
-  // ignore: sort_constructors_first
 
   BuiltList<String> get channels;
 
