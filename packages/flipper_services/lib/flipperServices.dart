@@ -8,9 +8,9 @@ class KeyPadService with ReactiveServiceMixin {
   KeyPadService() {
     listenToReactiveValues([]);
   }
-  final RxValue<double> _sum = RxValue<double>(initial: 0.0);
-  double get product => _sum.value;
-  void setSum({double product}) {
-    _sum.value = product;
+  final RxValue<double> sum = RxValue<double>(initial: 0.0);
+  double get getSum => sum.value;
+  void setSum({double sumation}) {
+    sum.value = sumation;
   }
 }

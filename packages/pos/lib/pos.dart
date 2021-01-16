@@ -2,28 +2,24 @@ library pos;
 
 import 'package:flutter/material.dart';
 import 'package:pos/payable/payable_view.dart';
-import 'package:stacked/stacked.dart';
 import 'pos_viewmodel.dart';
 
 class KeyPad extends StatelessWidget {
+  const KeyPad({Key key, this.model}) : super(key: key);
+  final PosViewModel model;
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<PosViewModel>.reactive(
-      builder: (BuildContext context, PosViewModel model, Widget child) {
-        return Scaffold(
-          body: SafeArea(
-            child: Column(
-              children: [
-                Display(
-                  model: model,
-                ),
-                Expanded(child: Keyboard(model: model))
-              ],
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Display(
+              model: model,
             ),
-          ),
-        );
-      },
-      viewModelBuilder: () => PosViewModel(),
+            Expanded(child: Keyboard(model: model))
+          ],
+        ),
+      ),
     );
   }
 }

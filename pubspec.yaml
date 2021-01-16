@@ -117,6 +117,7 @@ dependencies:
   flipper_models:
     path:
       './packages/flipper_models'
+  font_awesome_flutter: ^8.11.0
 
 dev_dependencies:
   # test: ^1.5.3

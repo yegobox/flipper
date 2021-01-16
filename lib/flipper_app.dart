@@ -25,13 +25,7 @@ import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
 import 'lifecycle_manager.dart';
-
-String lorenIpsumText =
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut '
-    'labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip '
-    'ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat '
-    'nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit'
-    'anim id est laborum';
+import 'package:flipper_services/flipperServices.dart';
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key key}) : super(key: key);
@@ -42,6 +36,7 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp> {
   final Logger log = Logging.getLogger('Firestore service ....');
+  final _sharedState = locator<KeyPadService>();
 
   Store<AppState> store;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
@@ -63,7 +58,7 @@ class _FlipperAppState extends State<FlipperApp> {
   }
 
   Future<void> initFCM() async {
-    NotificationSettings settings = await messaging.requestPermission(
+    await messaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -75,6 +70,7 @@ class _FlipperAppState extends State<FlipperApp> {
   }
 
   @override
+  // ignore: missing_return
   Future<void> initState() {
     super.initState();
     // FIXME(richard): fix bluethooth_service to work with no crash.

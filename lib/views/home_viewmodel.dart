@@ -17,12 +17,10 @@ class HomeViewModel extends ReactiveViewModel {
 
   // ignore: always_declare_return_types
   switchTab(int tab) {
-    setBusy(true);
+    print(tab);
     _tab = tab;
     notifyListeners();
-    setBusy(false);
-    _items = tab;
-    // print(_tab);
+    print(_tab);
   }
 
   // ignore: always_declare_return_types

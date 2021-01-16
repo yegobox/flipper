@@ -1,15 +1,12 @@
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_redux/flutter_redux.dart';
-// import 'package:redux/redux.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
 
-// import 'package:stacked/stacked.dart';
 class BusinessList extends StatelessWidget {
   const BusinessList({Key key}) : super(key: key);
 
@@ -21,18 +18,14 @@ class BusinessList extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           Container(
-            child: Row(children: <Widget>[
+            child: Column(children: <Widget>[
               ..._buildSelectionHighlight(false, Colors.white),
               _selectableListItem(
-                  userIcon: Text(model.user.name.length > 2
-                      ? model.user.name.substring(0, 3).toUpperCase()
-                      : model.user.name.toUpperCase()),
+                  userIcon: Text(model.state.branch.name.length > 2
+                      ? model.state.branch.name.substring(0, 3).toUpperCase()
+                      : model.state.branch.name.toUpperCase()),
                   isSquareShape: false,
-                  action: () {
-                    // setState(() {
-                    //   _businessSelected = false;
-                    // });
-                  }),
+                  action: () {}),
             ]),
           ),
           const Padding(
@@ -59,16 +52,17 @@ class BusinessList extends StatelessWidget {
           children: <Widget>[
             _Style.defaultPadding,
             _GroupSettingsButton(
-                Image.asset('assets/graphics/drawer/create_topic.png'), () {
-              // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
-              if (model.businesses.length >= 3) {
-                // TODO(richard): show a toast here that we can not create additional business...
-                return;
-              }
-              // TODO: implement adding a business and more than 5 business should show ... dots for expand also load business in viewmodel instead.
-              // TODO(richard): will suport creation of business within app in 2 years
-              // _navigationService.navigateTo(Routing.createBusiness);
-            }),
+                image: Image.asset('assets/graphics/drawer/create_topic.png'),
+                onPressed: () {
+                  // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
+                  if (model.businesses.length >= 3) {
+                    // TODO(richard): show a toast here that we can not create additional business...
+                    return;
+                  }
+                  // TODO: implement adding a business and more than 5 business should show ... dots for expand also load business in viewmodel instead.
+                  // TODO(richard): will suport creation of business within app in 2 years
+                  // _navigationService.navigateTo(Routing.createBusiness);
+                }),
           ],
         ));
   }
@@ -81,8 +75,7 @@ class BusinessList extends StatelessWidget {
         children: <Widget>[
           _Style.defaultPadding,
           _GroupSettingsButton(
-            Image.asset('assets/graphics/drawer/account.png'),
-            () async {
+            onPressed: () async {
               // _openUserAccount(context);
               // TODO(richard): change the icon should be icon of logout.
 
@@ -137,20 +130,23 @@ class BusinessList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, DrawerViewModel model, Widget child) {
-          return Container(
-            color: HexColor('#130f1f'),
-            child: Column(
-              children: <Widget>[
-                _buildFirstSectionFlipperLogo(context: context, model: model),
+          return Padding(
+            padding: const EdgeInsets.only(top: 28.0),
+            child: Container(
+              color: HexColor('#130f1f'),
+              child: Column(
+                children: <Widget>[
+                  _buildFirstSectionFlipperLogo(context: context, model: model),
 
-                getRenderableBusinessList(
-                    businesses: model.businesses,
-                    context: context,
-                    model: model),
-                //setting on click set highlight on side.
-                _buildThirdSection(model: model),
-                _buildFourthSection(context)
-              ],
+                  getRenderableBusinessList(
+                      businesses: model.businesses,
+                      context: context,
+                      model: model),
+                  //setting on click set highlight on side.
+                  _buildThirdSection(model: model),
+                  _buildFourthSection(context)
+                ],
+              ),
             ),
           );
         },
@@ -163,12 +159,8 @@ class BusinessList extends StatelessWidget {
 }
 
 class _GroupSettingsButton extends StatelessWidget {
-  const _GroupSettingsButton(
-    this.image,
-    this.onPressed, {
-    Key key,
-  }) : super(key: key);
-
+  const _GroupSettingsButton({Key key, this.image, this.onPressed})
+      : super(key: key);
   final Image image;
   final Function onPressed;
 
@@ -179,11 +171,16 @@ class _GroupSettingsButton extends StatelessWidget {
       height: _Style.flipperButtonWidth,
       child: FittedBox(
         fit: BoxFit.cover,
-        child: FlatButton(
-          shape: const CircleBorder(),
-          child: image,
-          onPressed: onPressed,
-        ),
+        child: image == null
+            ? IconButton(
+                icon: const FaIcon(FontAwesomeIcons.signOutAlt),
+                onPressed: onPressed,
+              )
+            : FlatButton(
+                shape: const CircleBorder(),
+                child: image,
+                onPressed: onPressed,
+              ),
       ),
     );
   }

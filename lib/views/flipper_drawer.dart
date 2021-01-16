@@ -1,4 +1,3 @@
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flipper/utils/app_colors.dart';
@@ -98,11 +97,9 @@ class FlipperDrawer extends StatelessWidget {
     );
   }
 
-  void _logOut() {}
-
-  void _navigateTo(String path) {
-    _navigationService.navigateTo(path);
-  }
+  // void _navigateTo(String path) {
+  //   _navigationService.navigateTo(path);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -130,57 +127,59 @@ class FlipperDrawer extends StatelessWidget {
                         child: ListView(
                           physics: const BouncingScrollPhysics(),
                           children: <Widget>[
-                            _menuListRowButton('Profile',
-                                icon: AppIcon.profile,
-                                context: context,
-                                isEnable: true, onPressed: () {
-                              _navigateTo('ProfilePage');
-                            }),
-                            _menuListRowButton('Lists',
-                                context: context,
-                                icon: AppIcon.lists, onPressed: () {
-                              //_navigateTo(Routing.allItemScreen);
-                            }),
-                            _menuListRowButton('Reports',
-                                context: context,
-                                icon: AppIcon.bookmark, onPressed: () {
-                              _navigateTo(Routing.salesView);
-                            }),
-                            _menuListRowButton('Items',
-                                context: context,
-                                icon: AppIcon.lists, onPressed: () {
-                              _navigationService.navigateTo(Routing.productView,
-                                  arguments: ProductViewArguments(
-                                      items: true,
-                                      sellingModeView: true,
-                                      userId: '1'));
-                            }),
-                            _menuListRowButton(
-                              'Payroll',
-                              context: context,
-                              icon: AppIcon.moments,
-                              onPressed: () {
-                                _navigateTo(Routing.contactView);
-                              },
-                            ),
-                            _menuListRowButton('Flipper deals',
-                                context: context, icon: AppIcon.twitterAds),
+                            // Future feature.
+                            // _menuListRowButton('Profile',
+                            //     icon: AppIcon.profile,
+                            //     context: context,
+                            //     isEnable: true, onPressed: () {
+                            //   _navigateTo('ProfilePage');
+                            // }),
+                            // _menuListRowButton('Lists',
+                            //     context: context,
+                            //     icon: AppIcon.lists, onPressed: () {
+                            //   //_navigateTo(Routing.allItemScreen);
+                            // }),
+                            // _menuListRowButton('Reports',
+                            //     context: context,
+                            //     icon: AppIcon.bookmark, onPressed: () {
+                            //   _navigateTo(Routing.salesView);
+                            // }),
+                            // _menuListRowButton('Items',
+                            //     context: context,
+                            //     icon: AppIcon.lists, onPressed: () {
+                            //   _navigationService.navigateTo(Routing.productView,
+                            //       arguments: ProductViewArguments(
+                            //           items: true,
+                            //           sellingModeView: true,
+                            //           userId: '1'));
+                            // }),
+                            // _menuListRowButton(
+                            //   'Payroll',
+                            //   context: context,
+                            //   icon: AppIcon.moments,
+                            //   onPressed: () {
+                            //     _navigateTo(Routing.contactView);
+                            //   },
+                            // ),
+                            // _menuListRowButton('Flipper deals',
+                            //     context: context, icon: AppIcon.twitterAds),
+                            // const Divider(),
+                            // _menuListRowButton('Settings and privacy',
+                            //     context: context,
+                            //     isEnable: true, onPressed: () {
+                            //   _navigateTo(Routing.settingsView);
+                            // }),
                             const Divider(),
-                            _menuListRowButton('Settings and privacy',
-                                context: context,
-                                isEnable: true, onPressed: () {
-                              _navigateTo(Routing.settingsView);
-                            }),
                             _menuListRowButton(
                               'Help Center',
                               context: context,
                             ),
                             const Divider(),
-                            _menuListRowButton('Logout',
-                                context: context,
-                                icon: null,
-                                onPressed: _logOut,
-                                isEnable: true),
+                            // _menuListRowButton('Logout',
+                            //     context: context,
+                            //     icon: null,
+                            //     onPressed: _logOut,
+                            //     isEnable: true),
                           ],
                         ),
                       ),

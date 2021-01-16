@@ -8,7 +8,7 @@ import 'package:flipper/widget/bottom_menu_bar.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:pos/pos_viewmodel.dart';
 import 'home_viewmodel.dart';
 
 // ignore: must_be_immutable
@@ -27,11 +27,14 @@ class HomeView extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   // ignore!
   // ignore: missing_return
-  Widget _getPage({@required int index, @required CommonViewModel vm}) {
+  Widget _getPage(
+      {@required int index,
+      @required CommonViewModel vm,
+      @required PosViewModel model}) {
     switch (index) {
       case 0:
         // return KeyPadView();
-        return KeyPad();
+        return KeyPad(model: model);
         break;
       case 1:
         return ProductView(userId: vm.user.id, items: true);
@@ -39,16 +42,10 @@ class HomeView extends StatelessWidget {
     }
   }
 
-  bool itemstab = false;
-
   @override
   Widget build(BuildContext context) {
-    // ignore: always_specify_types
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, HomeViewModel model, Widget child) {
-          if (model.items == 2) {
-            itemstab = true;
-          }
           return Scaffold(
             extendBody: true,
             key: _scaffoldKey,
@@ -59,18 +56,27 @@ class HomeView extends StatelessWidget {
             bottomNavigationBar: BottomMenubar(
               model: model,
             ),
-            body: Column(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    child: SafeArea(
+            body: ViewModelBuilder<PosViewModel>.reactive(
+              builder: (BuildContext context, PosViewModel pos, Widget child) {
+                return Column(
+                  children: <Widget>[
+                    model.tab == 1
+                        ? Display(model: pos)
+                        : const SizedBox.shrink(),
+                    Expanded(
                       child: Container(
-                        child: _getPage(index: model.tab, vm: vm),
+                        child: SafeArea(
+                          child: Container(
+                            child:
+                                _getPage(index: model.tab, vm: vm, model: pos),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
+              viewModelBuilder: () => PosViewModel(),
             ),
             drawer: FlipperDrawer(),
           );

@@ -6,7 +6,7 @@ import 'package:stacked/stacked.dart';
 
 class PosViewModel extends ReactiveViewModel {
   final _sharedState = locator<KeyPadService>();
-  String expression = '';
+  String expression = '0.0';
   String result = '';
 
   var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -27,6 +27,9 @@ class PosViewModel extends ReactiveViewModel {
       _expr = '';
       _result = '';
     }
+    if (_expr == '0.0') {
+      _expr = '';
+    }
 
     if (operators.contains(key) && key != '+') {
       // Handle as an operator
@@ -41,7 +44,10 @@ class PosViewModel extends ReactiveViewModel {
         _expr = _expr.substring(0, _expr.length - 1);
       }
     } else if (key == '+') {
-      if (_expr.isNotEmpty) {}
+      if (_expr.isNotEmpty) {
+        _sharedState.setSum(sumation: double.parse(expression));
+        expression = '';
+      }
     }
 
     expression = _expr;
@@ -130,5 +136,5 @@ class PosViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [];
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
 }

@@ -1,4 +1,3 @@
-
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/views/home_viewmodel.dart';
 import 'package:flipper/widget/custom_widgets.dart';
@@ -33,23 +32,15 @@ class _BottomMenubarState extends State<BottomMenubar> {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          //state.pageIndex ==?
-          _icon(null, 0,
+          _icon(null, widget.model.tab == 0 ? true : false, 0,
               icon: 0 == 0 ? AppIcon.homeFill : AppIcon.home,
               isCustomIcon: true),
-          _icon(null, 1,
-              // icon: 1 == 1 ? AppIcon.searchFill : AppIcon.search,
-              icon: 1 == 1 ? AppIcon.lists : AppIcon.lists,
-              isCustomIcon: true),
-
-          // NOTE: this was supposed to be in menu drawer
-          // _icon(null, 2,
-          //     icon: 2 == 2 ? AppIcon.lists : AppIcon.lists,
-          //     isCustomIcon: true),
-          _icon(null, 3,
+          _icon(null, widget.model.tab == 1 ? true : false, 1,
+              icon: 1 == 1 ? AppIcon.lists : AppIcon.lists, isCustomIcon: true),
+          _icon(null, widget.model.tab == 2 ? true : false, 2,
               icon: 3 == 3 ? AppIcon.notificationFill : AppIcon.notification,
               isCustomIcon: true),
-          _icon(null, 4,
+          _icon(null, widget.model.tab == 3 ? true : false, 3,
               icon: 4 == 4 ? AppIcon.messageFill : AppIcon.messageEmpty,
               isCustomIcon: true),
         ],
@@ -57,9 +48,8 @@ class _BottomMenubarState extends State<BottomMenubar> {
     );
   }
 
-  Widget _icon(IconData iconData, int index,
+  Widget _icon(IconData iconData, bool focus, int index,
       {bool isCustomIcon = false, int icon}) {
-    // ignore: always_specify_types
     return Expanded(
       child: Container(
         height: double.infinity,
@@ -81,10 +71,10 @@ class _BottomMenubarState extends State<BottomMenubar> {
                       icon: icon,
                       size: 22,
                       istwitterIcon: true,
-                      isEnable: index == 1)
+                      isEnable: focus)
                   : Icon(
                       iconData,
-                      color: index == 1
+                      color: focus
                           ? Theme.of(context).primaryColor
                           : Theme.of(context).textTheme.caption.color,
                     ),

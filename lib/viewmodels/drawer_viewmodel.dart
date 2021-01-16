@@ -18,10 +18,10 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 
 class DrawerViewModel extends ReactiveViewModel {
-  final _sharedStateService = locator<SharedStateService>();
+  final state = locator<SharedStateService>();
 
-  FUser get user => _sharedStateService.user;
-  Business get business => _sharedStateService.business;
+  FUser get user => state.user;
+  Business get business => state.business;
 
   final List<Branch> _branches = <Branch>[];
 
@@ -64,8 +64,7 @@ class DrawerViewModel extends ReactiveViewModel {
         map.forEach((key, value) {
           if (!_businesses.contains(Business.fromMap(value))) {
             if (Business.fromMap(value).active) {
-              _sharedStateService.setBusiness(
-                  business: Business.fromMap(value));
+              state.setBusiness(business: Business.fromMap(value));
             }
             _businesses.add(Business.fromMap(value));
             notifyListeners();
@@ -82,7 +81,7 @@ class DrawerViewModel extends ReactiveViewModel {
           if (!businesses.contains(Business.fromMap(value))) {
             businesses.add(Business.fromMap(value));
 
-            _sharedStateService.setBusiness(business: Business.fromMap(value));
+            state.setBusiness(business: Business.fromMap(value));
 
             notifyListeners();
           }
@@ -127,7 +126,7 @@ class DrawerViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+  List<ReactiveServiceMixin> get reactiveServices => [state];
 
   Future<void> switchBusiness(
       {@required Business from, @required Business to}) async {
@@ -147,8 +146,7 @@ class DrawerViewModel extends ReactiveViewModel {
 
     final k = ProxyService.database.update(document: toBusiness);
 
-    _sharedStateService.setBusiness(
-        business: Business.fromMap(k.jsonProperties));
+    state.setBusiness(business: Business.fromMap(k.jsonProperties));
 
     notifyListeners();
   }
