@@ -12,6 +12,7 @@ part 'variant_stock.g.dart';
 abstract class VariantStock
     implements Built<VariantStock, VariantStockBuilder> {
   String get name;
+  String get productName;
   String get id;
   @nullable
   double get lowStock;

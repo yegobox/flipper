@@ -14,8 +14,8 @@ class DescriptionWidget extends StatelessWidget {
         width: double.infinity,
         child: TextFormField(
           // controller: model.description,
-          onChanged: (value){
-            model.setDescription(description:value);
+          onChanged: (value) {
+            model.setDescription(description: value);
           },
           style: Theme.of(context)
               .textTheme

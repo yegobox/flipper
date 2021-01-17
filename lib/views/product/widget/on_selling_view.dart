@@ -7,10 +7,7 @@ import 'package:flipper_models/variant_stock.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/shared_state_service.dart';
 
 class OnSellingView extends StatelessWidget {
   const OnSellingView({Key key, this.product}) : super(key: key);
@@ -54,7 +51,7 @@ class OnSellingView extends StatelessWidget {
                       child: Row(children: [
                         Expanded(
                           child: Text(
-                            'Frw ${variation.retailPrice.toInt()}',
+                            'Frw ${variation.retailPrice?.toInt()}',
                             style: GoogleFonts.lato(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -143,8 +140,8 @@ class OnSellingView extends StatelessWidget {
                                 .copyWith(canvasColor: Colors.grey[700])
                                 .canvasColor,
                           ),
-                          key: Key(model.quantity.toInt().toString()),
-                          initialValue: model.quantity.toInt().toString(),
+                          key: Key(model.quantity?.toInt().toString()),
+                          initialValue: model.quantity?.toInt().toString(),
                           textAlign: TextAlign.center,
                           cursorColor: Theme.of(context)
                               .copyWith(canvasColor: Colors.grey[700])
@@ -286,7 +283,7 @@ class OnSellingView extends StatelessWidget {
                 showActionButton: true,
                 onPressedCallback: () async {
                   model.saveOrder();
-                  // ProxyService.nav.pop();
+                  ProxyService.nav.pop();
                 },
                 actionButtonName: 'Save',
                 icon: Icons.close,
@@ -348,6 +345,6 @@ class OnSellingView extends StatelessWidget {
     if (model.amountTotal.toString() == 'null') {
       return product.name;
     }
-    return product.name + ' FRW ' + model.amountTotal.toInt().toString();
+    return product.name + ' FRW ' + model.amountTotal?.toInt().toString();
   }
 }

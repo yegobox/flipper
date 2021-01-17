@@ -144,3 +144,13 @@ class $Routing {
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
 // flutter packages pub run build_runner build --delete-conflicting-outputs --enable-experiment=non-nullable
+
+// code example
+// orderDetail.data
+//                   // ignore: always_specify_types
+//                   .fold(0, (a, OrderDetailTableData b) => a + b.quantity);
+
+// run multiple flutter release
+// curl -sL https://raw.githubusercontent.com/passsy/flutter_wrapper/master/install.sh | bash -
+// https://medium.com/@passsy/flutter-wrapper-bind-your-project-to-an-explicit-flutter-release-4062cfe6dcaf
+// https://github.com/passsy/flutter_wrapper

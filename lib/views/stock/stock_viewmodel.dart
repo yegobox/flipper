@@ -85,12 +85,11 @@ class StockViewModel extends BaseModel {
         for (Map map in results) {
           map.forEach((key, value) {
             if (!_stocks.contains(Stock.fromMap(value))) {
-              log.d(value);
               _stocks.add(Stock.fromMap(value));
-              notifyListeners();
             }
           });
         }
+        notifyListeners();
       });
     }
   }

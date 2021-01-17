@@ -21,6 +21,9 @@ class _$VariantStockSerializer implements StructuredSerializer<VariantStock> {
     final result = <Object>[
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
+      'productName',
+      serializers.serialize(object.productName,
+          specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
@@ -84,6 +87,10 @@ class _$VariantStockSerializer implements StructuredSerializer<VariantStock> {
           result.name = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'productName':
+          result.productName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
         case 'id':
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -127,6 +134,8 @@ class _$VariantStock extends VariantStock {
   @override
   final String name;
   @override
+  final String productName;
+  @override
   final String id;
   @override
   final double lowStock;
@@ -148,6 +157,7 @@ class _$VariantStock extends VariantStock {
 
   _$VariantStock._(
       {this.name,
+      this.productName,
       this.id,
       this.lowStock,
       this.currentStock,
@@ -159,6 +169,9 @@ class _$VariantStock extends VariantStock {
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('VariantStock', 'name');
+    }
+    if (productName == null) {
+      throw new BuiltValueNullFieldError('VariantStock', 'productName');
     }
     if (id == null) {
       throw new BuiltValueNullFieldError('VariantStock', 'id');
@@ -177,6 +190,7 @@ class _$VariantStock extends VariantStock {
     if (identical(other, this)) return true;
     return other is VariantStock &&
         name == other.name &&
+        productName == other.productName &&
         id == other.id &&
         lowStock == other.lowStock &&
         currentStock == other.currentStock &&
@@ -195,7 +209,11 @@ class _$VariantStock extends VariantStock {
                 $jc(
                     $jc(
                         $jc(
-                            $jc($jc($jc(0, name.hashCode), id.hashCode),
+                            $jc(
+                                $jc(
+                                    $jc($jc(0, name.hashCode),
+                                        productName.hashCode),
+                                    id.hashCode),
                                 lowStock.hashCode),
                             currentStock.hashCode),
                         supplyPrice.hashCode),
@@ -209,6 +227,7 @@ class _$VariantStock extends VariantStock {
   String toString() {
     return (newBuiltValueToStringHelper('VariantStock')
           ..add('name', name)
+          ..add('productName', productName)
           ..add('id', id)
           ..add('lowStock', lowStock)
           ..add('currentStock', currentStock)
@@ -228,6 +247,10 @@ class VariantStockBuilder
   String _name;
   String get name => _$this._name;
   set name(String name) => _$this._name = name;
+
+  String _productName;
+  String get productName => _$this._productName;
+  set productName(String productName) => _$this._productName = productName;
 
   String _id;
   String get id => _$this._id;
@@ -266,6 +289,7 @@ class VariantStockBuilder
   VariantStockBuilder get _$this {
     if (_$v != null) {
       _name = _$v.name;
+      _productName = _$v.productName;
       _id = _$v.id;
       _lowStock = _$v.lowStock;
       _currentStock = _$v.currentStock;
@@ -297,6 +321,7 @@ class VariantStockBuilder
     final _$result = _$v ??
         new _$VariantStock._(
             name: name,
+            productName: productName,
             id: id,
             lowStock: lowStock,
             currentStock: currentStock,
