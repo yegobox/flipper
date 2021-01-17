@@ -23,7 +23,7 @@ abstract class OrderDetail implements Built<OrderDetail, OrderDetailBuilder> {
   String get sku;
   double get quantity;
   String get variantId;
-  String get taxRate;
+  double get taxRate;
   @nullable
   double get taxAmount;
   String get orderId;

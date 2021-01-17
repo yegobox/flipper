@@ -19,7 +19,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         builder: (BuildContext context, HomeViewModel model, Widget child) {
           return SafeArea(
             top: true,
-            // child: Container(child: Text('hello')),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
               leading: _hamburger(),

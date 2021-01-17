@@ -1,18 +1,13 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/order_detail.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/shared_state_service.dart';
 
 class OrderDetailsView extends StatefulWidget {
-  const OrderDetailsView({Key key, this.orders}) : super(key: key);
-
-  final List<OrderDetail> orders;
+  const OrderDetailsView({Key key}) : super(key: key);
 
   @override
   _OrderDetailsViewState createState() => _OrderDetailsViewState();
@@ -23,7 +18,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    _getTotal(widget.orders, context);
+    _getTotal(null, context);
     // ignore: always_specify_types
     return StoreConnector(
       distinct: true,
@@ -41,7 +36,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
             onPressedCallback: () {},
           ),
           body: ListView(
-            children: renderOrder(widget.orders, vm),
+            children: renderOrder(null, vm),
           ),
         );
       },

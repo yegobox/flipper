@@ -41,7 +41,7 @@ class _$OrderDetailSerializer implements StructuredSerializer<OrderDetail> {
           specifiedType: const FullType(String)),
       'taxRate',
       serializers.serialize(object.taxRate,
-          specifiedType: const FullType(String)),
+          specifiedType: const FullType(double)),
       'orderId',
       serializers.serialize(object.orderId,
           specifiedType: const FullType(String)),
@@ -136,7 +136,7 @@ class _$OrderDetailSerializer implements StructuredSerializer<OrderDetail> {
           break;
         case 'taxRate':
           result.taxRate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'taxAmount':
           result.taxAmount = serializers.deserialize(value,
@@ -197,7 +197,7 @@ class _$OrderDetail extends OrderDetail {
   @override
   final String variantId;
   @override
-  final String taxRate;
+  final double taxRate;
   @override
   final double taxAmount;
   @override
@@ -429,9 +429,9 @@ class OrderDetailBuilder implements Builder<OrderDetail, OrderDetailBuilder> {
   String get variantId => _$this._variantId;
   set variantId(String variantId) => _$this._variantId = variantId;
 
-  String _taxRate;
-  String get taxRate => _$this._taxRate;
-  set taxRate(String taxRate) => _$this._taxRate = taxRate;
+  double _taxRate;
+  double get taxRate => _$this._taxRate;
+  set taxRate(double taxRate) => _$this._taxRate = taxRate;
 
   double _taxAmount;
   double get taxAmount => _$this._taxAmount;

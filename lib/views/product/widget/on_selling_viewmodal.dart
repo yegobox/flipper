@@ -125,7 +125,7 @@ class OnProductSellingViewModal extends BaseModel {
       //create a new order and perist it to the database....
       //first check if we have active order
       final q = Query(_databaseService.db,
-          'SELECT id,table WHERE table=\$T AND active=\$A');
+          'SELECT id,table,branchId,reference,isDraft,orderType,subTotal,taxAmount,cashReceived,salesTotal,orderNote,status,variantId,productName,channels WHERE table=\$T AND active=\$A');
 
       q.parameters = {'T': AppTables.order, 'A': true};
       final order = q.execute();
@@ -168,6 +168,7 @@ class OnProductSellingViewModal extends BaseModel {
   void saveOrderDetail({String orderId, double quantity, String stockId}) {
     final id = Uuid().v1();
     _databaseService.insert(id: id, data: {
+      'id': id,
       'productName': _variantStock[0].productName,
       'variantName': _variantStock[0].name,
       'canTrackStock': false,
@@ -176,7 +177,7 @@ class OnProductSellingViewModal extends BaseModel {
       'sku': _variantStock[0].sku,
       'quantity': _quantity,
       'orderId': orderId,
-      'taxRate': 18, //TODO: make this dynamic should comes from settings
+      'taxRate': 18.0, //TODO: make this dynamic should comes from settings
       'table': AppTables.orderDetail,
       'variantId': _variantStock[0].id,
       'price': _variantStock[0].retailPrice,

@@ -41,8 +41,8 @@ import 'package:flipper/views/welcome/selling/tender_screen.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
-import 'package:flipper_models/order_detail.dart';
 import 'package:flipper_models/product.dart';
+
 class Routing {
   static const signUpView = '/sign-up-view';
   static const addProduct = '/add-product';
@@ -355,14 +355,12 @@ class Routing {
           fullscreenDialog: true,
         );
       case Routing.orderDetailsView:
-        if (hasInvalidArgs<OrderDetailsViewArguments>(args)) {
-          return misTypedArgsRoute<OrderDetailsViewArguments>(args);
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
         }
-        final typedArgs =
-            args as OrderDetailsViewArguments ?? OrderDetailsViewArguments();
+        final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
-          builder: (_) =>
-              OrderDetailsView(key: typedArgs.key, orders: typedArgs.orders),
+          builder: (_) => OrderDetailsView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -528,13 +526,6 @@ class ChangeQuantityForSellingArguments {
   final Key key;
   final String productId;
   ChangeQuantityForSellingArguments({this.key, @required this.productId});
-}
-
-//OrderDetailsView arguments holder class
-class OrderDetailsViewArguments {
-  final Key key;
-  final List<OrderDetail> orders;
-  OrderDetailsViewArguments({this.key, this.orders});
 }
 
 //CompleteSaleScreen arguments holder class
