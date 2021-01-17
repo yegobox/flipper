@@ -11,6 +11,7 @@ import '../business.dart';
 import '../category.dart';
 import '../fuser.dart';
 import '../order.dart';
+import '../order_detail.dart';
 import '../pcolor.dart';
 import '../product.dart';
 import '../stock.dart';
@@ -47,7 +48,8 @@ part 'serializers.g.dart';
   Variation,
   FUser,
   PColor,
-  VariantStock
+  VariantStock,
+  OrderDetail
 ])
 Serializers serializers = _$serializers;
 

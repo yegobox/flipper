@@ -4,7 +4,6 @@ import 'package:flipper/views/category/category_list_view.dart';
 import 'package:flipper/views/category/edit_category_view.dart';
 import 'package:flipper/views/discounts/discount_list_view.dart';
 import 'package:flipper/views/discounts/discount_view.dart';
-// import 'package:flipper/views/note/add_note_screen.dart';
 import 'package:flipper/views/order/order_details_view.dart';
 import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/product/add/add_product_view.dart';
@@ -86,8 +85,7 @@ class $Routing {
   ProductListView productsListView;
   ProductView productView;
   ReceiveStockScreen receiveStock;
-  // StockView stockView;
-  // AddStockView addStockView;
+
   @initial
   SplashScreen splashScreen;
 

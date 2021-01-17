@@ -1,7 +1,6 @@
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper/views/home_viewmodel.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:stacked/stacked.dart';
 
 import '../theme.dart';
 
@@ -16,39 +15,49 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, CommonViewModel>(
-      distinct: true,
-      converter: CommonViewModel.fromStore,
-      builder: (BuildContext context, CommonViewModel vm) {
-        return SafeArea(
-          top: true,
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
-            leading: _hamburger(),
-            title: Container(
-              color: Theme.of(context)
-                  .copyWith(canvasColor: Colors.transparent)
-                  .canvasColor,
-              child: SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: FlatButton(
-                  onPressed: null,
-                  child: Text(
-                    'No Sale s',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headline4
-                        .copyWith(color: Colors.black),
+    return ViewModelBuilder.reactive(
+        builder: (BuildContext context, HomeViewModel model, Widget child) {
+          return SafeArea(
+            top: true,
+            // child: Container(child: Text('hello')),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
+              leading: _hamburger(),
+              title: Container(
+                color: Theme.of(context)
+                    .copyWith(canvasColor: Colors.transparent)
+                    .canvasColor,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: FlatButton(
+                    onPressed: null,
+                    child: Text(
+                      buildSaleWording(model: model),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headline4
+                          .copyWith(color: Colors.black),
+                    ),
                   ),
                 ),
               ),
+              trailing: const SizedBox.shrink(),
             ),
-            trailing: const SizedBox.shrink(),
-          ),
-        );
-      },
-    );
+          );
+        },
+        onModelReady: (HomeViewModel model) {
+          model.currentSale();
+        },
+        viewModelBuilder: () => HomeViewModel());
+  }
+
+  String buildSaleWording({HomeViewModel model}) {
+    if (model.sales.isEmpty) {
+      return 'No Sale';
+    } else {
+      return 'Current Sale' + model.sales.length.toString();
+    }
   }
 
   Widget _hamburger() {
@@ -66,7 +75,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               overflow: Overflow.visible,
               children: <Widget>[
                 Image.asset(
-                  'assets/graphics/menu_icon.png', // TODO(richard): change it to our icon later.
+                  'assets/graphics/menu_icon.png',
                   width: 25,
                   height: 25,
                 ),

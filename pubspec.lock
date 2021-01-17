@@ -22,13 +22,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.39.17"
-  analyzer_plugin:
-    dependency: transitive
-    description:
-      name: analyzer_plugin
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.0"
   apptheme:
     dependency: transitive
     description:
@@ -884,20 +877,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0+1"
-  moor:
-    dependency: transitive
-    description:
-      name: moor
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.4.0"
-  moor_generator:
-    dependency: "direct dev"
-    description:
-      name: moor_generator
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.3.1"
   nested:
     dependency: transitive
     description:
@@ -1094,13 +1073,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
-  recase:
-    dependency: transitive
-    description:
-      name: recase
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.1"
   redux:
     dependency: "direct main"
     description:
@@ -1204,20 +1176,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.3"
-  sqlite3:
-    dependency: transitive
-    description:
-      name: sqlite3
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.8"
-  sqlparser:
-    dependency: transitive
-    description:
-      name: sqlparser
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.10.1"
   stack_trace:
     dependency: transitive
     description:

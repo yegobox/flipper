@@ -40,13 +40,6 @@ dependencies:
   timezone: ^0.5.6
   # this will deprecate soon do not use them
   flutter_barcode_scanner: 
-  # moor: ^3.0.0
-  # sqlite3_flutter_libs:
-  # sqflite: ^1.1.7 
-  # end of deprecation
-  #  built_collection: ^4.2.2
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
   #local package
   google_fonts:  ^1.1.0
@@ -123,7 +116,6 @@ dev_dependencies:
   # test: ^1.5.3
   test_coverage: ^0.4.2
   build_runner: 
-  moor_generator: ^3.0.0
   analyzer:
   built_value_generator:
   auto_route_generator: 0.3.2

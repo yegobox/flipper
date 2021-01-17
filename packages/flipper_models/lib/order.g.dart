@@ -23,12 +23,9 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'branchId',
       serializers.serialize(object.branchId,
           specifiedType: const FullType(String)),
-      'taxAmount',
-      serializers.serialize(object.taxAmount,
-          specifiedType: const FullType(String)),
       'cashReceived',
       serializers.serialize(object.cashReceived,
-          specifiedType: const FullType(String)),
+          specifiedType: const FullType(double)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
@@ -62,13 +59,19 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       result
         ..add('subTotal')
         ..add(serializers.serialize(object.subTotal,
-            specifiedType: const FullType(String)));
+            specifiedType: const FullType(double)));
+    }
+    if (object.taxAmount != null) {
+      result
+        ..add('taxAmount')
+        ..add(serializers.serialize(object.taxAmount,
+            specifiedType: const FullType(double)));
     }
     if (object.saleTotal != null) {
       result
         ..add('saleTotal')
         ..add(serializers.serialize(object.saleTotal,
-            specifiedType: const FullType(String)));
+            specifiedType: const FullType(double)));
     }
     if (object.orderNote != null) {
       result
@@ -140,19 +143,19 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'subTotal':
           result.subTotal = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'taxAmount':
           result.taxAmount = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'cashReceived':
           result.cashReceived = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'saleTotal':
           result.saleTotal = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
         case 'orderNote':
           result.orderNote = serializers.deserialize(value,
@@ -201,13 +204,13 @@ class _$Order extends Order {
   @override
   final String orderNUmber;
   @override
-  final String subTotal;
+  final double subTotal;
   @override
-  final String taxAmount;
+  final double taxAmount;
   @override
-  final String cashReceived;
+  final double cashReceived;
   @override
-  final String saleTotal;
+  final double saleTotal;
   @override
   final String orderNote;
   @override
@@ -247,9 +250,6 @@ class _$Order extends Order {
     }
     if (branchId == null) {
       throw new BuiltValueNullFieldError('Order', 'branchId');
-    }
-    if (taxAmount == null) {
-      throw new BuiltValueNullFieldError('Order', 'taxAmount');
     }
     if (cashReceived == null) {
       throw new BuiltValueNullFieldError('Order', 'cashReceived');
@@ -377,21 +377,21 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get orderNUmber => _$this._orderNUmber;
   set orderNUmber(String orderNUmber) => _$this._orderNUmber = orderNUmber;
 
-  String _subTotal;
-  String get subTotal => _$this._subTotal;
-  set subTotal(String subTotal) => _$this._subTotal = subTotal;
+  double _subTotal;
+  double get subTotal => _$this._subTotal;
+  set subTotal(double subTotal) => _$this._subTotal = subTotal;
 
-  String _taxAmount;
-  String get taxAmount => _$this._taxAmount;
-  set taxAmount(String taxAmount) => _$this._taxAmount = taxAmount;
+  double _taxAmount;
+  double get taxAmount => _$this._taxAmount;
+  set taxAmount(double taxAmount) => _$this._taxAmount = taxAmount;
 
-  String _cashReceived;
-  String get cashReceived => _$this._cashReceived;
-  set cashReceived(String cashReceived) => _$this._cashReceived = cashReceived;
+  double _cashReceived;
+  double get cashReceived => _$this._cashReceived;
+  set cashReceived(double cashReceived) => _$this._cashReceived = cashReceived;
 
-  String _saleTotal;
-  String get saleTotal => _$this._saleTotal;
-  set saleTotal(String saleTotal) => _$this._saleTotal = saleTotal;
+  double _saleTotal;
+  double get saleTotal => _$this._saleTotal;
+  set saleTotal(double saleTotal) => _$this._saleTotal = saleTotal;
 
   String _orderNote;
   String get orderNote => _$this._orderNote;

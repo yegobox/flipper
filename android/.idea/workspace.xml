@@ -20,26 +20,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2811e08-ee8f-4bb4-97f2-03d1af7e56a7" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../.flutter" beforeDir="false" afterPath="$PROJECT_DIR$/../.flutter" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/../.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.gitmodules" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitmodules" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../flutterw" beforeDir="false" afterPath="$PROJECT_DIR$/../flutterw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/routes/router.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/utils/constant.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/utils/constant.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/data/actions_table.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/data/color_table.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/data/image_product.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/data/order_detail_table.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/data/user.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/domain/redux/authentication/auth_reducer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/domain/redux/authentication/auth_reducer.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/views/home_app_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/views/home_app_bar.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/views/product/widget/on_selling_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/views/product/widget/on_selling_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/views/product/widget/on_selling_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/views/product/widget/on_selling_viewmodal.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/views/shared/description.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/views/shared/description.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/views/stock/stock_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/views/stock/stock_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../packages/flipper_models/lib/variant_stock.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../packages/flipper_models/lib/variant_stock.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../packages/flipper_models/lib/variant_stock.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../packages/flipper_models/lib/variant_stock.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/views/home_app_bar_viewmodel.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/views/home_app_bar_viewmodel.g.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/views/home_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/views/home_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../packages/flipper_models/lib/order.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../packages/flipper_models/lib/order.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../packages/flipper_models/lib/order.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../packages/flipper_models/lib/order.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../packages/flipper_models/lib/order_detail.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../packages/flipper_models/lib/order_detail.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../packages/flipper_models/lib/order_detail.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../packages/flipper_models/lib/order_detail.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[Mobile_2.0]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />

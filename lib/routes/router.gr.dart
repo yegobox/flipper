@@ -43,7 +43,6 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_models/order_detail.dart';
 import 'package:flipper_models/product.dart';
-
 class Routing {
   static const signUpView = '/sign-up-view';
   static const addProduct = '/add-product';

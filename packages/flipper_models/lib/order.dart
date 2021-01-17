@@ -26,14 +26,15 @@ abstract class Order implements Built<Order, OrderBuilder> {
   String get orderNUmber;
 
   @nullable
-  String get subTotal;
-
-  String get taxAmount;
-
-  String get cashReceived;
+  double get subTotal;
 
   @nullable
-  String get saleTotal;
+  double get taxAmount;
+
+  double get cashReceived;
+
+  @nullable
+  double get saleTotal;
 
   @nullable
   String get orderNote;
