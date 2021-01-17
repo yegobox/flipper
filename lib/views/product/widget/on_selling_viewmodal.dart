@@ -116,8 +116,8 @@ class OnProductSellingViewModal extends BaseModel {
         final Document stockDocument =
             _databaseService.getById(id: Stock.fromMap(map).id);
         final double value = stockDocument.properties['value'].asDouble;
-        final double currentStock =
-            stockDocument.properties['currentStock'].asDouble;
+
+        stockDocument.properties['currentStock'].asDouble;
         // FIXME: use currentStock to check quantity of item remain in stock instead of value
         // update other code when adding stock on variant to reflect the changes
         stockDocument.properties['value'] = value - _quantity;

@@ -9,7 +9,6 @@ import 'package:flipper_models/variation.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
@@ -248,7 +247,7 @@ class AddProductViewmodel extends ReactiveViewModel {
   }
 
   void setDescription({String description}) {
-    _description = _description;
+    _description = description;
     notifyListeners();
   }
 }
