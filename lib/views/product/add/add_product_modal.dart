@@ -1,13 +1,10 @@
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/product/add/add_product_modal_viewmodal.dart';
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/flitter_color.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/shared_state_service.dart';
 
 // TODO: this is where we show the modal  to add a product
 class AddProductModal extends StatelessWidget {

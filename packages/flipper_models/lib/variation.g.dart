@@ -32,15 +32,17 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
       'table',
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
-      'productName',
-      serializers.serialize(object.productName,
-          specifiedType: const FullType(String)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
     ];
-
+    if (object.productName != null) {
+      result
+        ..add('productName')
+        ..add(serializers.serialize(object.productName,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -144,9 +146,6 @@ class _$Variation extends Variation {
     }
     if (table == null) {
       throw new BuiltValueNullFieldError('Variation', 'table');
-    }
-    if (productName == null) {
-      throw new BuiltValueNullFieldError('Variation', 'productName');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Variation', 'channels');
