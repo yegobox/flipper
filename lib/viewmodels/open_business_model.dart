@@ -1,7 +1,6 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
@@ -29,15 +28,15 @@ class OpenBusinessModel extends BaseModel {
     CommonViewModel vm,
   }) async {
     setBusy(true);
-
-    _databaseService.insert(data: {
+    final id = Uuid().v1();
+    _databaseService.insert(id: id, data: {
       'float': float,
+      'id': id,
       'table': AppTables.drawerHistory,
       'businessState': businessState == BusinessState.OPEN ? 'Open' : 'Close',
       'note': note,
       'businessId': vm.currentBusiness.id,
       'userId': vm.user.id.toString(),
-      // ignore: always_specify_types
       'channels': [vm.user.id.toString()],
       'uid': Uuid().v1()
     });

@@ -2,7 +2,6 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper_models/switcher.dart';
 import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
@@ -30,6 +29,7 @@ class SwitchModel extends FutureViewModel {
     if (switchers.isNotEmpty) {
       for (Map map in switchers) {
         map.forEach((key, value) {
+          log.i(Switcher.fromMap(value));
           _switchi = Switcher.fromMap(value);
         });
         notifyListeners();

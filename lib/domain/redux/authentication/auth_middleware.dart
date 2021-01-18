@@ -88,9 +88,10 @@ Future<void> openCloseBusiness({
   bool isClosed = true,
 }) async {
   final DatabaseService _databaseService = ProxyService.database;
-  final openDrawer = _databaseService.getById(id: null);
+  final openDrawer = _databaseService.getById(id: loggedInuserId + '2');
 
   final Map<String, dynamic> buildMap = {
+    'id': loggedInuserId + '2', //to know the id of this user
     'table': AppTables.switchi,
     'name': name,
     'isClosed': isClosed,
@@ -100,21 +101,16 @@ Future<void> openCloseBusiness({
   };
   if (openDrawer == null) {
     try {
-      // final MutableDocument newDoc =
-      //     MutableDocument(id: loggedInuserId, data: buildMap);
-      // await CoreDB.instance.database.saveDocument(newDoc);
-      // ignore: empty_catches
+      _databaseService.insert(id: loggedInuserId + '2', data: buildMap);
     } on PlatformException {}
   } else {
-    // final MutableDocument mutableDoc =
-    //     document.toMutable().setBoolean('isClosed', isClosed);
-    // CoreDB.instance.database.saveDocument(mutableDoc);
+    openDrawer.properties['isClosed'] = isClosed;
+    _databaseService.update(document: openDrawer);
   }
 }
 
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
-  final Logger log = Logging.getLogger('Get User: ');
 
   final String loggedInuserId = await ProxyService.sharedPref.getUserId();
   if (loggedInuserId == null) {
@@ -140,13 +136,6 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     if (results.isNotEmpty) {
       for (Map map in results) {
         map.forEach((key, value) async {
-          // FIXME(richard): fix bellow code.
-          // openCloseBusiness(
-          //   isSocial: false,
-          //   name: FUser.fromMap(value).name,
-          //   loggedInuserId: FUser.fromMap(value).id.toString(),
-          //   isClosed: true,
-          // );
           if (value.containsKey('userId') &&
               loggedInuserId == FUser.fromMap(value).userId) {
             ProxyService.sharedState.setUser(user: FUser.fromMap(value));
@@ -301,6 +290,13 @@ Future<void> getBusinesses(
     for (Map map in results) {
       map.forEach((key, value) {
         if (!businesses.contains(Business.fromMap(value))) {
+          openCloseBusiness(
+            isSocial: false,
+            name: ProxyService.sharedState.user.name,
+            loggedInuserId: ProxyService.sharedState.user.id,
+            isClosed: true,
+            businessId: Business.fromMap(value).id,
+          );
           businesses.add(Business.fromMap(value));
         }
       });
