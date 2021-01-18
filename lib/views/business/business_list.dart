@@ -51,18 +51,19 @@ class BusinessList extends StatelessWidget {
         child: Column(
           children: <Widget>[
             _Style.defaultPadding,
-            _GroupSettingsButton(
-                image: Image.asset('assets/graphics/drawer/create_topic.png'),
-                onPressed: () {
-                  // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
-                  if (model.businesses.length >= 3) {
-                    // TODO(richard): show a toast here that we can not create additional business...
-                    return;
-                  }
-                  // TODO: implement adding a business and more than 5 business should show ... dots for expand also load business in viewmodel instead.
-                  // TODO(richard): will suport creation of business within app in 2 years
-                  // _navigationService.navigateTo(Routing.createBusiness);
-                }),
+            // TODO: future feature
+            // _GroupSettingsButton(
+            //     image: Image.asset('assets/graphics/drawer/create_topic.png'),
+            //     onPressed: () {
+            //       // TODO(richard): fix overflow when loading more than 7 businesses for now we are not alloing user to create more than2 business
+            //       if (model.businesses.length >= 3) {
+            //         // TODO(richard): show a toast here that we can not create additional business...
+            //         return;
+            //       }
+            //       // TODO: implement adding a business and more than 5 business should show ... dots for expand also load business in viewmodel instead.
+            //       // TODO(richard): will suport creation of business within app in 2 years
+            //       // _navigationService.navigateTo(Routing.createBusiness);
+            //     }),
           ],
         ));
   }

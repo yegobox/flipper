@@ -55,7 +55,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (model.sales.isEmpty) {
       return 'No Sale';
     } else {
-      return 'Current Sale' + model.sales.length.toString();
+      return 'Current Sale [ ' + model.sales.length.toString() + ' ]';
     }
   }
 

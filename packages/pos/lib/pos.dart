@@ -1,5 +1,7 @@
 library pos;
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:pos/payable/payable_view.dart';
 import 'pos_viewmodel.dart';
@@ -41,9 +43,12 @@ class Display extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child: Text(
-                'FRW ' + model.expression,
+                'Frw ' + model.expression,
                 textAlign: TextAlign.right,
                 style: const TextStyle(
+                  fontFeatures: [
+                    FontFeature.enable('sups'),
+                  ],
                   fontSize: 40.0,
                   color: Colors.black,
                 ),
