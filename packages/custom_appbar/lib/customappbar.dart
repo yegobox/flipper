@@ -74,7 +74,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ),
                 trailing: _showActionButton == null || !_showActionButton
-                    ?const SizedBox.shrink()
+                    ? const SizedBox.shrink()
                     : Button(
                         disableButton: _disableButton,
                         onPressedCallback: _onPressedCallback,
@@ -87,9 +87,9 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               const Expanded(
                 child: Divider(
-                  // ignore: flutter_style_todos
-                  // color: Colors.black, // TODO(richard): tweak this.
-                ),
+                    // ignore: flutter_style_todos
+                    // color: Colors.black, // TODO(richard): tweak this.
+                    ),
               )
             ],
           ),

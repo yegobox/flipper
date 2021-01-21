@@ -29,7 +29,6 @@ class SwitchModel extends FutureViewModel {
     if (switchers.isNotEmpty) {
       for (Map map in switchers) {
         map.forEach((key, value) {
-          log.i(Switcher.fromMap(value));
           _switchi = Switcher.fromMap(value);
         });
         notifyListeners();
