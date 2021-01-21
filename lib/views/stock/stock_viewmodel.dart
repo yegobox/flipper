@@ -7,7 +7,6 @@ import 'package:flipper/utils/logger.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/database_service.dart';
 import 'package:logger/logger.dart';
 
 class StockViewModel extends BaseModel {
