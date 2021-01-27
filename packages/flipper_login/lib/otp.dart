@@ -240,7 +240,7 @@ class _OtpPageState extends State<OtpPage> {
   Future<http.Response> loginToFlipper() async {
     print(widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), ''));
     final http.Response response =
-        await http.post('https://flipper.rw/open-login', body: {
+        await http.post('https://flipper.yegobox.com/open-login', body: {
       'phone': widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '')
     }, headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -249,7 +249,7 @@ class _OtpPageState extends State<OtpPage> {
     // save a device token for this client
     final String token = await ProxyService.sharedPref.getToken();
     final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
-    await http.post('https://flipper.rw/save-token', body: {
+    await http.post('https://flipper.yegobox.com/save-token', body: {
       'phone': phone,
       'token': token
     }, headers: {
@@ -275,7 +275,7 @@ class _OtpPageState extends State<OtpPage> {
       // call the API to update the user synced status
 
       final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
-      await http.post('https://flipper.rw/synced', body: {
+      await http.post('https://flipper.yegobox.com/synced', body: {
         'synced': 'true',
         'phone': phone,
       }, headers: {

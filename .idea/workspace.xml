@@ -19,12 +19,29 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="" />
+    <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/packages/flipper_services/lib/dynamic_links_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[Pixel_4_API_29]" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -43,8 +60,11 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/android" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../FlutterChatAppTutorial" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="emulator" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="RunManager" selected="Flutter.main.dart">
@@ -116,14 +136,14 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="484" y="148" key="#give_the_name_is_not_null_should_update_product/0.0.1536.824@0.0.1536.824" timestamp="1607083355262" />
-    <state x="-2" y="139" width="1200" height="584" key="AVDManager" timestamp="1610528366729">
+    <state x="-2" y="139" width="1200" height="584" key="AVDManager" timestamp="1611683123259">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="-2" y="139" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1610528366729" />
-    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1610532271514">
+    <state x="-2" y="139" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1611683123259" />
+    <state x="353" y="170" width="438" height="502" key="FileChooserDialogImpl" timestamp="1611316497153">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1610532271514" />
+    <state x="353" y="170" width="438" height="502" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1611316497153" />
     <state width="1476" height="302" key="GridCell.Tab.0.bottom" timestamp="1610904542559">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -156,18 +176,18 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state width="1476" height="302" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1610904542560" />
-    <state x="277" y="57" key="SettingsEditor" timestamp="1607003707902">
+    <state x="277" y="0" key="SettingsEditor" timestamp="1611679503874">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="277" y="57" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1607003707902" />
+    <state x="277" y="0" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1611679503874" />
     <state x="475" y="11" width="586" height="801" key="find.popup" timestamp="1607919445401">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="475" y="11" width="586" height="801" key="find.popup/0.0.1536.824@0.0.1536.824" timestamp="1607919445401" />
-    <state x="426" y="189" key="run.anything.popup" timestamp="1607083915007">
+    <state x="426" y="189" key="run.anything.popup" timestamp="1611679354548">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="426" y="189" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1607083915007" />
+    <state x="426" y="189" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1611679354548" />
     <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1610903971918">
       <screen x="0" y="0" width="1536" height="824" />
     </state>

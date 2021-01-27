@@ -5,6 +5,7 @@ import 'package:flipper_services/api/http_api.dart';
 import 'package:flipper_services/bluethooth_service.dart';
 import 'package:flipper_services/connectivity_service.dart';
 import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/dynamic_links_service.dart';
 import 'package:flipper_services/firestore_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/flipperServices.dart';
@@ -90,6 +91,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   KeyPadService get keypad;
+
+  @lazySingleton
+  DynamicLinkService get link;
 
   // @lazySingleton
   // FetchContactsService fetchContactsService;

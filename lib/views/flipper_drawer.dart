@@ -1,18 +1,21 @@
-import 'package:flipper_services/flipperNavigation_service.dart';
-
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
-
 import 'package:flipper/widget/custom_widgets.dart';
-import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
+import 'package:flipper_services/dynamic_links_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:share/share.dart';
+import 'package:stacked/stacked.dart';
+
 import 'business/business_list.dart';
 
 class FlipperDrawer extends StatelessWidget {
   FlipperDrawer({Key key}) : super(key: key);
-
+  final DynamicLinkService _link = locator<DynamicLinkService>();
   final FlipperNavigationService _navigationService = ProxyService.nav;
 
   ListTile _menuListRowButton(String title,
@@ -71,11 +74,31 @@ class FlipperDrawer extends StatelessWidget {
                 width: 10,
                 height: 45,
               ),
-              customIcon(context,
-                  icon: AppIcon.bulbOn,
-                  istwitterIcon: true,
-                  size: 25,
-                  iconColor: Theme.of(context).accentColor),
+              FutureBuilder(
+                future: _link.createDynamicLink(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final ShortDynamicLink uri = snapshot.data;
+                    return GestureDetector(
+                      onTap: () {
+                        print(uri.shortUrl.toString());
+                        Share.share(uri.shortUrl.toString());
+                      },
+                      child: customIcon(context,
+                          icon: AppIcon.bulbOn,
+                          istwitterIcon: true,
+                          size: 25,
+                          iconColor: Theme.of(context).accentColor),
+                    );
+                  } else {
+                    return customIcon(context,
+                        icon: AppIcon.bulbOn,
+                        istwitterIcon: true,
+                        size: 25,
+                        iconColor: Theme.of(context).accentColor);
+                  }
+                },
+              ),
               const Spacer(),
               GestureDetector(
                 onTap: () {

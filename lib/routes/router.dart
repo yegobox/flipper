@@ -141,7 +141,7 @@ class $Routing {
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
-// flutter packages pub run build_runner build --delete-conflicting-outputs --enable-experiment=non-nullable
+// flutter packages pub run build_runner build --delete-conflicting-outputs
 
 // code example
 // orderDetail.data
