@@ -38,7 +38,7 @@ jobs:
     - name: Decode google-services.json
       env:
         FIREBASE_SECRET: ${{ secrets.FIREBASE_SECRET }}
-      run: echo $FIREBASE_SECRET > flipper/android/app/google-services.json
+      run: echo $FIREBASE_SECRET > android/app/google-services.json
     - name: Get version.txt
       uses: actions/download-artifact@v2
       with:
