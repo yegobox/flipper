@@ -5,8 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_services/flipper_config.dart';
 import 'package:flipper_services/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Auth;
+import 'package:flipper_services/proxy.dart';
 import 'package:logger/logger.dart';
 
+// https://medium.com/@khreniak/cloud-firestore-security-rules-basics-fac6b6bea18e
 class FirestoreService {
   final Logger log = Logging.getLogger('Firestore service ....');
 
@@ -34,13 +36,25 @@ class FirestoreService {
     }
   }
 
-  Future<QuerySnapshot> getContacts() {
+  Future<QuerySnapshot> myContacts() {
     final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
     final Auth.User currentUser = auth.currentUser;
 
     return FirebaseFirestore.instance
         .collection('contacts')
-        .doc(currentUser.uid)
+        .doc('global')
+        .collection('lists')
+        .where('channels', arrayContains: ProxyService.sharedState.user.id)
+        .get();
+  }
+
+  Future<QuerySnapshot> getContacts() {
+    final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
+    final currentUser = auth.currentUser;
+
+    return FirebaseFirestore.instance
+        .collection('contacts')
+        .doc('global')
         .collection('lists')
         .get();
   }
