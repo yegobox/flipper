@@ -262,7 +262,7 @@ class _OtpPageState extends State<OtpPage> {
 
   Future<void> userExistInCouchbase(LoginResponse loginResponse) async {
     if (loginResponse.synced == 0) {
-      ProxyService.database.insert(data: {
+      ProxyService.database.insert(id: loginResponse.id.toString(), data: {
         'name': loginResponse.name,
         'email': loginResponse.email,
         'token': loginResponse.token,

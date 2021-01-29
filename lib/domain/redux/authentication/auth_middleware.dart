@@ -152,7 +152,7 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
 
 Future saveDeviceToken(value) async {
   final String token = await ProxyService.sharedPref.getToken();
-  await http.post('https://flipper.rw/save-token', body: {
+  await http.post('https://flipper.yegobox.com/save-token', body: {
     'phone': FUser.fromMap(value).name, // a name is a phone number in flipper!
     'token': token
   }, headers: {

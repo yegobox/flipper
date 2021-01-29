@@ -2,7 +2,6 @@ library flipper_services;
 
 import 'package:observable_ish/observable_ish.dart';
 import 'package:stacked/stacked.dart';
-
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/pcolor.dart';
@@ -134,5 +133,13 @@ class SharedStateService with ReactiveServiceMixin {
 
   void setBluethoothDevices({List<dynamic> devices}) {
     _bluethoothDevices.value = devices;
+  }
+
+  final RxValue<String> navigation = RxValue<String>(initial: null);
+
+  void navigateTo({String path}) {
+    navigation.value =
+        null; //can publish the save value twice, that's why we null it first
+    navigation.value = path;
   }
 }

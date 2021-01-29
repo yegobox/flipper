@@ -18,7 +18,7 @@ dependencies:
   flutter_svg: ^0.18.0
   # firebase_performance: 0.4.0+2
   geolocator: ^5.3.0
-  permission_handler: ^4.3.0
+  permission_handler: ^5.0.1+1
   
   redux: ^4.0.0
   flutter_redux: ^0.6.0
@@ -74,15 +74,17 @@ dependencies:
   # filledstacks | state management
   stacked: ^1.7.1
   stacked_hooks: 0.1.1+3
+  stacked_services: ^0.5.4+2
+   # get it
+  get_it: 
+  injectable:
   flutter_calendar_carousel: ^1.5.1
   syncfusion_flutter_datepicker: ^18.3.48-beta
   slider_button: ^0.6.0
   sliding_switch: ^0.0.3
 
-  stacked_services: ^0.5.4+2
-  # get it
-  get_it: 
-  injectable:
+  
+ 
   # provider
   provider: ^4.1.3
   cached_network_image: ^2.2.0+1
@@ -113,7 +115,12 @@ dependencies:
   font_awesome_flutter: ^8.11.0
   firebase_dynamic_links: ^0.5.0+11
   share: ^0.6.4+3
-
+  in_app_review: ^1.0.4 #implement this. https://github.com/britannio/in_app_review
+  flipper_chat:
+    path: './packages/flipper_chat'
+  flipper_contacts:
+    path: './packages/flipper_contacts'
+  cron: ^0.2.4
 dev_dependencies:
   # test: ^1.5.3
   test_coverage: ^0.4.2

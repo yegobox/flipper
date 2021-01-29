@@ -4,6 +4,7 @@
 // AutoRouteGenerator
 // **************************************************************************
 
+import 'package:flipper_models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
@@ -13,7 +14,6 @@ import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/views/reports/build_sales_View.dart';
 import 'package:flipper/widget/calendar/calenderView.dart';
-import 'package:flipper/views/contacts/contact_view.dart';
 import 'package:flipper/views/discounts/discount_view.dart';
 import 'package:flipper/views/category/edit_category_view.dart';
 import 'package:flipper/views/unit/edit_unit_view.dart';
@@ -41,7 +41,7 @@ import 'package:flipper/views/welcome/selling/tender_screen.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
-import 'package:flipper_models/product.dart';
+import 'package:flipper_contacts/contact_view.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -49,7 +49,6 @@ class Routing {
   static const openCloseDrawerview = '/open-close-drawerview';
   static const salesView = '/sales-view';
   static const calendarView = '/calendar-view';
-  static const contactView = '/contact-view';
   static const discountView = '/discount-view';
   static const editCategoryScreen = '/edit-category-screen';
   static const editUnitType = '/edit-unit-type';
@@ -76,6 +75,7 @@ class Routing {
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
   static const settingsView = '/settings-view';
+  static const contactView = '/contact-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -140,11 +140,6 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) =>
               CalendarView(key: typedArgs.key, title: typedArgs.title),
-          settings: settings,
-        );
-      case Routing.contactView:
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ContactView(),
           settings: settings,
         );
       case Routing.discountView:
@@ -419,6 +414,11 @@ class Routing {
           builder: (_) => SettingsView(key: typedArgs),
           settings: settings,
           fullscreenDialog: true,
+        );
+      case Routing.contactView:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ContactView(),
+          settings: settings,
         );
       default:
         return unknownRoutePage(settings.name);

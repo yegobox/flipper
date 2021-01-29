@@ -39,8 +39,6 @@ class AddProductModalViewModal extends BaseModel {
   Future createTemporalProduct({String productName, String userId}) async {
     final DatabaseService _databaseService = ProxyService.database;
 
-    // log.d(userId);
-
     assert(_sharedStateService.branch.id != null);
 
     final q = Query(

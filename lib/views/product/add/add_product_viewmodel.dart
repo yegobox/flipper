@@ -172,6 +172,7 @@ class AddProductViewmodel extends ReactiveViewModel {
   Future<bool> updateProduct(
       {CommonViewModel vm, String productId, String categoryId}) async {
     final Document product = _databaseService.getById(id: productId);
+
     assert(product != null);
     product.properties['name'] = _name;
     product.properties['isDraft'] = false;

@@ -2,6 +2,7 @@ import 'package:flipper/views/flipper_drawer.dart';
 import 'package:flipper/views/home_app_bar.dart';
 import 'package:pos/pos.dart';
 import 'package:flipper/views/product/product_view.dart';
+import 'package:flipper_chat/chatrooms.dart';
 
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/widget/bottom_menu_bar.dart';
@@ -36,6 +37,9 @@ class HomeView extends StatelessWidget {
         // return KeyPadView();
         return KeyPad(model: model);
         break;
+      case 2:
+        return ChatRoom();
+        break;
       case 1:
         return ProductView(userId: vm.user.id, items: true);
         break;
@@ -50,9 +54,9 @@ class HomeView extends StatelessWidget {
             extendBody: true,
             key: _scaffoldKey,
             appBar: HomeAppBar(
-              scaffoldKey: _scaffoldKey,
-              sideOpenController: sideOpenController,
-            ),
+                scaffoldKey: _scaffoldKey,
+                sideOpenController: sideOpenController,
+                model: model),
             bottomNavigationBar: BottomMenubar(
               model: model,
             ),

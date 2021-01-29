@@ -29,6 +29,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
                 color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
           ]),
       child: Row(
+        // Icons.ac_unit
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -38,8 +39,9 @@ class _BottomMenubarState extends State<BottomMenubar> {
           _icon(null, widget.model.tab == 1 ? true : false, 1,
               icon: 1 == 1 ? AppIcon.lists : AppIcon.lists, isCustomIcon: true),
           _icon(null, widget.model.tab == 2 ? true : false, 2,
-              icon: 3 == 3 ? AppIcon.notificationFill : AppIcon.notification,
-              isCustomIcon: true),
+              icon: 3 == 3 ? AppIcon.chat : AppIcon.chat,
+              isCustomIcon: false,
+              message: true),
           _icon(null, widget.model.tab == 3 ? true : false, 3,
               icon: 4 == 4 ? AppIcon.messageFill : AppIcon.messageEmpty,
               isCustomIcon: true),
@@ -49,7 +51,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
   }
 
   Widget _icon(IconData iconData, bool focus, int index,
-      {bool isCustomIcon = false, int icon}) {
+      {bool isCustomIcon = false, bool message = false, int icon}) {
     return Expanded(
       child: Container(
         height: double.infinity,
@@ -72,12 +74,19 @@ class _BottomMenubarState extends State<BottomMenubar> {
                       size: 22,
                       istwitterIcon: true,
                       isEnable: focus)
-                  : Icon(
-                      iconData,
-                      color: focus
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).textTheme.caption.color,
-                    ),
+                  : message
+                      ? Icon(
+                          Icons.message,
+                          color: focus
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).textTheme.caption.color,
+                        )
+                      : Icon(
+                          iconData,
+                          color: focus
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).textTheme.caption.color,
+                        ),
               onPressed: () {
                 widget.model.switchTab(index);
               },

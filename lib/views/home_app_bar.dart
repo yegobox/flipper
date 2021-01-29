@@ -8,54 +8,53 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({
     @required this.scaffoldKey,
     @required this.sideOpenController,
+    this.model,
   });
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueNotifier<bool> sideOpenController;
+  final HomeViewModel model;
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(
-        builder: (BuildContext context, HomeViewModel model, Widget child) {
-          return SafeArea(
-            top: true,
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
-              leading: _hamburger(),
-              title: Container(
-                color: Theme.of(context)
-                    .copyWith(canvasColor: Colors.transparent)
-                    .canvasColor,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: FlatButton(
-                    onPressed: null,
-                    child: Text(
-                      buildSaleWording(model: model),
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline4
-                          .copyWith(color: Colors.black),
-                    ),
-                  ),
-                ),
+    return SafeArea(
+      top: true,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
+        leading: _hamburger(),
+        title: Container(
+          color: Theme.of(context)
+              .copyWith(canvasColor: Colors.transparent)
+              .canvasColor,
+          child: SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: FlatButton(
+              onPressed: null,
+              child: Text(
+                buildSaleWording(model: model),
+                style: Theme.of(context)
+                    .textTheme
+                    .headline4
+                    .copyWith(color: Colors.black),
               ),
-              trailing: const SizedBox.shrink(),
             ),
-          );
-        },
-        onModelReady: (HomeViewModel model) {
-          model.currentSale();
-        },
-        viewModelBuilder: () => HomeViewModel());
+          ),
+        ),
+        trailing: const SizedBox.shrink(),
+      ),
+    );
   }
 
   String buildSaleWording({HomeViewModel model}) {
-    if (model.sales.isEmpty) {
-      return 'No Sale';
+    if (model.tab == 0 || model.tab == 1) {
+      if (model.sales.isEmpty) {
+        return 'No Sale';
+      } else {
+        return 'Current Sale [ ' + model.sales.length.toString() + ' ]';
+      }
     } else {
-      return 'Current Sale [ ' + model.sales.length.toString() + ' ]';
+      return '';
     }
   }
 

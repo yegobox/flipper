@@ -46,10 +46,7 @@ class ProductsViewModel extends ReactiveViewModel {
     setBusy(true);
     //load the branch
     final DatabaseService _databaseService = ProxyService.database;
-    // final List<Map<String, dynamic>> branche = await _databaseService.filter(
-    //   equator: AppTables.branch,
-    //   property: 'table',
-    // );
+
     final branche = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE ');
 
     branche.parameters = {'VALUE': AppTables.branch};
@@ -108,8 +105,6 @@ class ProductsViewModel extends ReactiveViewModel {
     q.parameters = {'VALUE': AppTables.product, 'BID': _sharedState.branch.id};
 
     q.addChangeListener((List results) {
-      // TODO: work on refreshing data when they are deleted!
-      // _products.clear();
       for (Map map in results) {
         map.forEach((key, value) {
           if (!_products.contains(Product.fromMap(value))) {

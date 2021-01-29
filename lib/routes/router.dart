@@ -40,9 +40,7 @@ import 'package:flipper/views/transactions/transaction_screen.dart';
 import 'package:flipper/widget/calendar/calenderView.dart';
 
 import 'package:flipper_login/otp.dart';
-import 'package:flipper/views/contacts/contact_view.dart';
-// import 'package:flipper/views/product/stock/stock_view.dart';
-// import 'package:flipper/views/product/stock/stock_input.dart';
+import 'package:flipper_contacts/contact_view.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -74,7 +72,6 @@ class $Routing {
   SalesView salesView;
 
   CalendarView calendarView;
-  ContactView contactView;
   DiscountView discountView;
   EditCategoryScreen editCategoryScreen;
   EditUnitView editUnitType;
@@ -138,10 +135,12 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   SettingsView settingsView;
+
+  ContactView contactView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
-// flutter packages pub run build_runner build --delete-conflicting-outputs
+// flutter packages pub run build_runner build --delete-conflicting-outputs --enable-experiment=non-nullable
 
 // code example
 // orderDetail.data

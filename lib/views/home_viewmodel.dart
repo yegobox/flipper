@@ -24,10 +24,8 @@ class HomeViewModel extends ReactiveViewModel {
 
   // ignore: always_declare_return_types
   switchTab(int tab) {
-    print(tab);
     _tab = tab;
     notifyListeners();
-    print(_tab);
   }
 
   // ignore: always_declare_return_types
@@ -39,14 +37,12 @@ class HomeViewModel extends ReactiveViewModel {
   final List<OrderDetail> _details = [];
   List<OrderDetail> get sales => _details;
   void currentSale() {
-
     final q = Query(_databaseService.db,
         'SELECT id,taxAmount,table,branchId,reference,isDraft,orderType,orderNumber,subTotal,orderNote,cashReceived,channels WHERE table=\$T AND active=\$A');
 
     q.parameters = {'T': AppTables.order, 'A': true};
     final order = q.execute();
     if (order.isNotEmpty) {
-
       final Order ord = Order.fromMap(order[0]);
       final od = Query(_databaseService.db,
           'SELECT id,productName,variantName,stockId,unit,sku,quantity,orderId,taxRate,table,variantId,subTotal,channels,createdAt,updatedAt WHERE table=\$T AND orderId=\$O');
@@ -60,7 +56,7 @@ class HomeViewModel extends ReactiveViewModel {
           }
         }
       }
-    //   notifyListeners();
+      //   notifyListeners();
     }
   }
 

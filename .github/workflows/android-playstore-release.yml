@@ -4,38 +4,7 @@ on:
   push:
     branches: [ mobile, develop ]
 
-jobs:
-  # replace-values:
-  # TODO: should keep google-services.json data private too!
-  #   name: 'replace values'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: yegobox/secret-parser@v1.0.1
-  #     with:
-  #         filename: ../android/app/google-services.json
-  #         secret-name: FIREBASE_URL
-  #         secret-value: ${{ secrets.FIREBASE_URL }}
-  #   - uses: jwsi/secret-parser@v1
-  #     with: 
-  #         filename: google-services.json
-  #         secret-name: OAHTH_CLIENT_ID
-  #         secret-value: ${{ secrets.OAHTH_CLIENT_ID }}
-  #   - uses: jwsi/secret-parser@v1
-  #     with: 
-  #         filename: google-services.json
-  #         secret-name: CLIENT_ID_FLIPPER
-  #         secret-value: ${{ secrets.CLIENT_ID_FLIPPER }}     
-  #   - uses: jwsi/secret-parser@v1
-  #     with: 
-  #         filename: google-services.json
-  #         secret-name: CERTIFICATE_HASH_FLIPPER
-  #         secret-value: ${{ secrets.CERTIFICATE_HASH_FLIPPER }}      
-
-  #   - uses: jwsi/secret-parser@v1
-  #     with: 
-  #         filename: google-services.json
-  #         secret-name: STORAGE_BUCKET
-  #         secret-value: ${{ secrets.STORAGE_BUCKET }}           
+jobs:      
   version:
     name: Create version number
     runs-on: ubuntu-latest
@@ -66,6 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    - name: Decode google-services.json
+      env:
+        FIREBASE_SECRET: ${{ secrets.FIREBASE_SECRET }}
+      run: echo $FIREBASE_SECRET > flipper/android/app/google-services.json
     - name: Get version.txt
       uses: actions/download-artifact@v2
       with:

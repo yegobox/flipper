@@ -5,6 +5,7 @@ import 'package:flipper_services/bluethooth_service.dart';
 import 'package:flipper_services/connectivity_service.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
+import 'package:flipper_services/fetch_contacts_service.dart';
 import 'package:flipper_services/firestore_service.dart';
 import 'package:flipper_services/flipperServices.dart';
 import 'package:flipper_services/locator.dart';
@@ -37,6 +38,7 @@ final FirestoreService _firestore = locator<FirestoreService>();
 final PusherService _pusher = locator<PusherService>();
 final KeyPadService _keypad = locator<KeyPadService>();
 final DynamicLinkService _link = locator<DynamicLinkService>();
+final FetchContactsService _contacts = locator<FetchContactsService>();
 
 // this is where we load all third party plugin
 // ignore: avoid_classes_with_only_static_members
@@ -57,4 +59,5 @@ abstract class ProxyService {
   static PusherService get pusher => _pusher;
   static KeyPadService get keypad => _keypad;
   static DynamicLinkService get link => _link;
+  static FetchContactsService get contacts => _contacts;
 }

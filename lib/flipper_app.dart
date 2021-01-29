@@ -21,7 +21,7 @@ import 'domain/redux/app_state.dart';
 import 'domain/redux/authentication/auth_actions.dart';
 import 'domain/redux/authentication/auth_middleware.dart';
 import 'domain/redux/business/business_actions.dart';
-import 'domain/redux/permission/permission_middleware.dart';
+// import 'domain/redux/permission/permission_middleware.dart';
 import 'domain/redux/push/push_actions.dart';
 import 'domain/redux/push/push_middleware.dart';
 import 'domain/redux/user/user_middleware.dart';
@@ -73,6 +73,11 @@ class _FlipperAppState extends State<FlipperApp> {
   // ignore: missing_return
   Future<void> initState() {
     super.initState();
+    _state.navigation.listen((path) {
+      if (path == 'contacts') {
+        ProxyService.nav.navigateTo(Routing.contactView);
+      }
+    });
     _state.didLogout.listen((loggedOut) {
       if (loggedOut) {
         StoreProvider.of<AppState>(context).dispatch(
@@ -85,7 +90,7 @@ class _FlipperAppState extends State<FlipperApp> {
       appReducer,
       initialState: AppState.init(),
       middleware: createAuthenticationMiddleware(_navigatorKey)
-        ..addAll(permissionMiddleware(_navigatorKey))
+        // ..addAll(permissionMiddleware(_navigatorKey))
         ..addAll(AppActionMiddleware(_navigatorKey))
         ..addAll(userMiddleware(_navigatorKey))
         ..addAll(

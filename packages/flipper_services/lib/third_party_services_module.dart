@@ -6,6 +6,7 @@ import 'package:flipper_services/bluethooth_service.dart';
 import 'package:flipper_services/connectivity_service.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
+import 'package:flipper_services/fetch_contacts_service.dart';
 import 'package:flipper_services/firestore_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/flipperServices.dart';
@@ -94,6 +95,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   DynamicLinkService get link;
+
+  @lazySingleton
+  FetchContactsService get contacts;
 
   // @lazySingleton
   // FetchContactsService fetchContactsService;

@@ -71,4 +71,5 @@ class AppIcon {
   static const int calender = 0xf203;
   static const int locationPin = 0xf031;
   static const int edit = 0xf112;
+  static const int chat = 0xe86b;
 }

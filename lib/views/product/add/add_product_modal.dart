@@ -39,7 +39,6 @@ class AddProductModal extends StatelessWidget {
                                     canvasColor: HexColor(FlipperColors.blue))
                                 .canvasColor,
                             onPressed: () async {
-                              // NOTE: navigate to add product screen
                               model.navigateAddProduct();
                             },
                             child: Text('Add Product',
@@ -81,7 +80,6 @@ class AddProductModal extends StatelessWidget {
           );
         },
         onModelReady: (AddProductModalViewModal model) {
-          // NOTE: this is where we start adding a product, create a temporal prroduct
           model.createTemporalProduct(productName: 'tmp', userId: userId);
         },
         viewModelBuilder: () => AddProductModalViewModal());
