@@ -20,6 +20,8 @@ dependencies:
   injectable:
   cron: ^0.2.4
   contacts_service: ^0.4.6
+  flipper_services:
+    path: '../flipper_services'
 dev_dependencies:
   flutter_test:
     sdk: flutter

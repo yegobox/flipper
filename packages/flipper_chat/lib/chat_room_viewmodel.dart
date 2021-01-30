@@ -55,7 +55,7 @@ class ChatRoomViewModel extends ReactiveViewModel {
       user.properties['permissions'] = 'contacts';
       _db.update(document: user);
       _contactPermissionGrated = true;
-      ProxyService.contacts.lazyLoadContacts(); //start loading periodically
+      ProxyService.fetch.lazyLoadContacts(); //start loading periodically
       notifyListeners();
     } else {
       _contactPermissionGrated = false;

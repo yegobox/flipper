@@ -44,6 +44,7 @@ class DatabaseService {
     assert(gatewayUrl != null);
     assert(username != null);
     assert(password != null);
+
     if (channels != null) {
       replicator = Replicator(
         db,

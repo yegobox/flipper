@@ -4,7 +4,6 @@
 // AutoRouteGenerator
 // **************************************************************************
 
-import 'package:flipper_models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
@@ -42,6 +41,8 @@ import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_contacts/contact_view.dart';
+import 'package:flipper_chat/chat_view.dart';
+import 'package:flipper_models/product.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -76,6 +77,7 @@ class Routing {
   static const otpPage = '/otp-page';
   static const settingsView = '/settings-view';
   static const contactView = '/contact-view';
+  static const chatView = '/chat-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -418,6 +420,15 @@ class Routing {
       case Routing.contactView:
         return MaterialPageRoute<dynamic>(
           builder: (_) => ContactView(),
+          settings: settings,
+        );
+      case Routing.chatView:
+        if (hasInvalidArgs<String>(args)) {
+          return misTypedArgsRoute<String>(args);
+        }
+        final typedArgs = args as String;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ChatView(chatRoomId: typedArgs),
           settings: settings,
         );
       default:

@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart' as Auth;
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
@@ -149,75 +149,79 @@ class _OtpPageState extends State<OtpPage> {
 
                                 try {
                                   proxyService.loading.add(true);
-                                  final Auth.AuthCredential credential =
-                                      Auth.PhoneAuthProvider.credential(
+                                  final AuthCredential credential =
+                                      PhoneAuthProvider.credential(
                                     verificationId: vm.otpcode,
                                     smsCode: number.text,
                                   );
-                                  final Auth.FirebaseAuth auth =
-                                      Auth.FirebaseAuth.instance;
+                                  final FirebaseAuth auth =
+                                      FirebaseAuth.instance;
                                   await auth.signInWithCredential(credential);
-                                  final Auth.User currentUser =
-                                      auth.currentUser;
+
                                   final _analytics =
                                       locator<AnalyticsService>();
 
-                                  if (currentUser != null) {
-                                    final http.Response response =
-                                        await loginToFlipper();
+                                  FirebaseAuth.instance
+                                      .authStateChanges()
+                                      .listen((User user) async {
+                                    if (user == null) {
+                                      print('User is currently signed out!');
+                                    } else {
+                                      final http.Response response =
+                                          await loginToFlipper();
+                                      final LoginResponse loginResponse =
+                                      loginResponseFromJson(response.body);
+                                      final Store<AppState> store =
+                                      StoreProvider.of<AppState>(context);
+                                      //the user does not exist into the couch adding him will trigger the listner and proceed
+                                      // if he is synced i.e exist in couch then the sync which was started will add the user to local
+                                      // database then trigger a change and continue as expected
+                                      await userExistInCouchbase(loginResponse);
+                                      await buildUser(loginResponse, store);
+                                      _analytics.setUserProperties(
+                                          userId: loginResponse.id.toString(),
+                                          userRole: 'Admin');
+                                      _analytics.logLogin();
+                                      ProxyService.database.login(channels: [
+                                        loginResponse.id.toString()
+                                      ]);
+                                      // final log = Logging.getLogger('OTP:');
+                                      final loggedInUserId = await ProxyService
+                                          .sharedPref
+                                          .getUserId();
+                                      if (loggedInUserId == null) {
+                                        final q = Query(ProxyService.database.db,
+                                            'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
-                                    final LoginResponse loginResponse =
-                                        loginResponseFromJson(response.body);
-                                    final Store<AppState> store =
-                                        StoreProvider.of<AppState>(context);
-                                    //the user does not exist into the couch adding him will trigger the listner and proceed
-                                    // if he is synced i.e exist in couch then the sync which was started will add the user to local
-                                    // database then trigger a change and continue as expected
-                                    await userExistInCouchbase(loginResponse);
-                                    await buildUser(loginResponse, store);
-                                    _analytics.setUserProperties(
-                                        userId: loginResponse.id.toString(),
-                                        userRole: 'Admin');
-                                    _analytics.logLogin();
-                                    ProxyService.database.login(channels: [
-                                      loginResponse.id.toString()
-                                    ]);
-                                    // final log = Logging.getLogger('OTP:');
-                                    final loggedInUserId = await ProxyService
-                                        .sharedPref
-                                        .getUserId();
-                                    if (loggedInUserId == null) {
-                                      final q = Query(ProxyService.database.db,
-                                          'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+                                        q.parameters = {
+                                          'VALUE': AppTables.user,
+                                          'NAME': widget.phone.replaceAll(
+                                              RegExp(r'\s+\b|\b\s'), '')
+                                        };
+                                        q.addChangeListener((results) {
+                                          for (Map map in results) {
+                                            map.forEach((key, value) {
+                                              final FUser user =
+                                              FUser.fromMap(value);
+                                              //  a user exist in couchbase then go to auth verification this,
+                                              if (user != null) {
+                                                ProxyService.sharedPref
+                                                    .setUserLoggedIn(
+                                                    userId: loginResponse.id
+                                                        .toString());
+                                                StoreProvider.of<AppState>(
+                                                    context)
+                                                    .dispatch(
+                                                    VerifyAuthenticationState());
 
-                                      q.parameters = {
-                                        'VALUE': AppTables.user,
-                                        'NAME': widget.phone.replaceAll(
-                                            RegExp(r'\s+\b|\b\s'), '')
-                                      };
-                                      q.addChangeListener((results) {
-                                        for (Map map in results) {
-                                          map.forEach((key, value) {
-                                            final FUser user =
-                                                FUser.fromMap(value);
-                                            //  a user exist in couchbase then go to auth verification this,
-                                            if (user != null) {
-                                              ProxyService.sharedPref
-                                                  .setUserLoggedIn(
-                                                      userId: loginResponse.id
-                                                          .toString());
-                                              StoreProvider.of<AppState>(
-                                                      context)
-                                                  .dispatch(
-                                                      VerifyAuthenticationState());
-
-                                              proxyService.loading.add(false);
-                                            }
-                                          });
-                                        }
-                                      });
+                                                proxyService.loading.add(false);
+                                              }
+                                            });
+                                          }
+                                        });
+                                      }
                                     }
-                                  }
+                                  });
                                 } catch (e) {
                                   proxyService.loading.add(false);
                                 }
@@ -238,7 +242,7 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   Future<http.Response> loginToFlipper() async {
-    print(widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), ''));
+    ProxyService.sharedState.setUser(user: FUser.fromMap({'name':widget.phone.toString(),'userId':'1'}));
     final http.Response response =
         await http.post('https://flipper.yegobox.com/open-login', body: {
       'phone': widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '')
@@ -262,6 +266,7 @@ class _OtpPageState extends State<OtpPage> {
 
   Future<void> userExistInCouchbase(LoginResponse loginResponse) async {
     if (loginResponse.synced == 0) {
+
       ProxyService.database.insert(id: loginResponse.id.toString(), data: {
         'name': loginResponse.name,
         'email': loginResponse.email,
@@ -272,6 +277,7 @@ class _OtpPageState extends State<OtpPage> {
         'expiresAt': loginResponse.expiresAt,
         'id': loginResponse.id.toString(),
       });
+
       // call the API to update the user synced status
 
       final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
@@ -282,6 +288,12 @@ class _OtpPageState extends State<OtpPage> {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       });
+
+      // await ProxyService.firestore.addContacts({
+      //   'phoneNumber': loginResponse.name.toString(),
+      //   'name': loginResponse.name.toString(),
+      //   'channels': [ProxyService.sharedState.user.id]
+      // });
       // end of updating the status
       ProxyService.sharedPref
           .setUserLoggedIn(userId: loginResponse.id.toString());

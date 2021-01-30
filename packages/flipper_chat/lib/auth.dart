@@ -1,5 +1,5 @@
 // import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_chat/chat.dart';
+// import 'package:flipper_chat/chat.dart';
 import 'package:flipper_chat/user.dart';
 import 'package:flutter/material.dart';
 // import 'package:google_sign_in/google_sign_in.dart';

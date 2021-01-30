@@ -60,11 +60,9 @@ class FirestoreService {
   }
 
   Future<void> addContacts(contact) async {
-    final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
-    final Auth.User currentUser = auth.currentUser;
     FirebaseFirestore.instance
         .collection('contacts')
-        .doc(currentUser.uid)
+        .doc('global')
         .collection('lists')
         .add(contact)
         .catchError((e) {

@@ -64,6 +64,7 @@ class AddProductView extends StatelessWidget {
           //NOTE: fix this problem
           return const SizedBox.shrink();
         }
+
         return WillPopScope(
           onWillPop: _onWillPop,
           child: Scaffold(

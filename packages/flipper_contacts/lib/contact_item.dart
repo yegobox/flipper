@@ -1,13 +1,14 @@
-import 'package:contacts_service/contacts_service.dart';
+import 'package:flipper_models/fcontact.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
+
 import './text_helpers.dart';
 
 class ContactItem extends StatelessWidget {
   const ContactItem(
       {this.contact, this.searchKeyword, this.onProfileTap, this.onTap});
 
-  final Contact contact;
+  final FContact contact;
   final String searchKeyword;
   final Function onProfileTap;
   final Function onTap;
@@ -23,7 +24,7 @@ class ContactItem extends StatelessWidget {
           width: 45.0,
           height: 45.0,
           child: TextDrawable(
-            text: contact.displayName == null ? '' : contact.displayName,
+            text: contact.name,
             isTappable: true,
             onTap: null,
             boxShape: BoxShape.rectangle,
@@ -32,12 +33,12 @@ class ContactItem extends StatelessWidget {
         ),
         title: searchKeyword == null || searchKeyword.isEmpty
             ? Text(
-                contact.displayName == null ? '' : contact.displayName,
+                contact.name,
                 maxLines: 1,
                 style: Theme.of(context).textTheme.headline5,
               )
             : TextHelpers.getHighlightedText(
-                contact.displayName == null ? '' : contact.displayName,
+                contact.name,
                 searchKeyword,
                 Theme.of(context).textTheme.headline5,
                 Theme.of(context)

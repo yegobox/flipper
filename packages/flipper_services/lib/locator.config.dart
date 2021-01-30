@@ -12,6 +12,7 @@ import 'analytics_service.dart';
 import 'abstractions/api.dart';
 import 'bluethooth_service.dart';
 import 'connectivity_service.dart';
+import 'ContactService.dart';
 import 'database_service.dart';
 import 'dynamic_links_service.dart';
 import 'fetch_contacts_service.dart';
@@ -44,12 +45,12 @@ GetIt $initGetIt(
       () => thirdPartyServicesModule.blueToothService);
   gh.lazySingleton<ConnectivityService>(
       () => thirdPartyServicesModule.connectivityService);
+  gh.lazySingleton<ContactService>(() => thirdPartyServicesModule.contact);
   gh.lazySingleton<DatabaseService>(
       () => thirdPartyServicesModule.databaseService);
   gh.lazySingleton<DialogService>(() => thirdPartyServicesModule.dialogService);
   gh.lazySingleton<DynamicLinkService>(() => thirdPartyServicesModule.link);
-  gh.lazySingleton<FetchContactsService>(
-      () => thirdPartyServicesModule.contacts);
+  gh.lazySingleton<FetchContactsService>(() => thirdPartyServicesModule.fetch);
   gh.lazySingleton<FirestoreService>(
       () => thirdPartyServicesModule.firestoreService);
   gh.lazySingleton<FlipperNavigationService>(
@@ -80,13 +81,15 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   @override
   ConnectivityService get connectivityService => ConnectivityService();
   @override
+  ContactService get contact => ContactService();
+  @override
   DatabaseService get databaseService => DatabaseService();
   @override
   DialogService get dialogService => DialogService();
   @override
   DynamicLinkService get link => DynamicLinkService();
   @override
-  FetchContactsService get contacts => FetchContactsService();
+  FetchContactsService get fetch => FetchContactsService();
   @override
   FirestoreService get firestoreService => FirestoreService();
   @override

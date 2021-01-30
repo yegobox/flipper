@@ -41,6 +41,7 @@ import 'package:flipper/widget/calendar/calenderView.dart';
 
 import 'package:flipper_login/otp.dart';
 import 'package:flipper_contacts/contact_view.dart';
+import 'package:flipper_chat/chat_view.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -137,6 +138,8 @@ class $Routing {
   SettingsView settingsView;
 
   ContactView contactView;
+
+  ChatView chatView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

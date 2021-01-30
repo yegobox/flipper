@@ -3,8 +3,11 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:cron/cron.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/fcontact.dart';
 
 class FetchContactsService with ReactiveServiceMixin {
+  final List<FContact> _contactsOnFlipper = <FContact>[];
+
   void lazyLoadContacts() {
     final cron = Cron();
     final _contacts = [];
@@ -13,26 +16,32 @@ class FetchContactsService with ReactiveServiceMixin {
       querySnapshot.docs.forEach((QueryDocumentSnapshot doc) {
         _contacts.add(doc);
       });
-      print(_contacts);
-      notifyListeners();
+      //at every 5 minutes update my contat match it with flipper contacts.
+      cron.schedule(Schedule.parse('*/1 * * * *'), () {
+        final Future<Iterable<Contact>> contacts = ContactsService.getContacts(
+          withThumbnails: false,
+          photoHighResolution: false,
+        );
+        contacts.then((Iterable<Contact> values) {
+          for (Contact contact in values) {
+            for (Item item in contact.phones) {
+              // ignore: avoid_function_literals_in_foreach_calls
+              _contacts.forEach((doc) {
+                final FContact c = FContact.fromMap(
+                    {'phoneNumber': doc['phoneNumber'], 'name': doc['name']});
+
+                if (item.value.replaceAll(RegExp(r'\s+\b|\b\s'), '') ==
+                    c.phoneNumber.replaceAll(RegExp(r'\s+\b|\b\s'), '')) {
+                  if (!_contactsOnFlipper.contains(c)) {
+                    _contactsOnFlipper.add(c);
+                  }
+                }
+              });
+            }
+          }
+          ProxyService.contacts.setContacts(contacts: _contactsOnFlipper);
+        });
+      });
     });
-    // cron.schedule(Schedule.parse('*/1 * * * *'), () {
-    //   final Future<Iterable<Contact>> contacts = ContactsService.getContacts(
-    //     withThumbnails: false,
-    //     photoHighResolution: false,
-    //   );
-    //   contacts.then((Iterable<Contact> values) {
-    //     for (Contact contact in values) {
-    //       for (Item item in contact.phones) {
-    //         // ignore: avoid_function_literals_in_foreach_calls
-    //         _contacts.forEach((doc) {
-    //           if (item.value != doc['phoneNumber']) {
-    //             ProxyService.firestore.addContacts({'phoneNumber': item.value});
-    //           }
-    //         });
-    //       }
-    //     }
-    //   });
-    // });
   }
 }

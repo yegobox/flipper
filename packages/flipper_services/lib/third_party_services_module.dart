@@ -1,6 +1,7 @@
 library flipper_services;
 
 // import 'package:flipper/shared_state_service.dart';
+import 'package:flipper_services/ContactService.dart';
 import 'package:flipper_services/api/http_api.dart';
 import 'package:flipper_services/bluethooth_service.dart';
 import 'package:flipper_services/connectivity_service.dart';
@@ -97,8 +98,10 @@ abstract class ThirdPartyServicesModule {
   DynamicLinkService get link;
 
   @lazySingleton
-  FetchContactsService get contacts;
+  FetchContactsService get fetch;
 
+  @lazySingleton
+  ContactService get contact;
   // @lazySingleton
   // FetchContactsService fetchContactsService;
 }

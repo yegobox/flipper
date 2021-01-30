@@ -1,7 +1,7 @@
 library flipper_chat;
 
 // import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper_chat/chat.dart';
+import 'package:flipper_chat/chat_view.dart';
 import 'package:flipper_chat/constants.dart';
 import 'package:flipper_chat/database.dart';
 import 'package:flipper_chat/widget.dart';
@@ -68,7 +68,7 @@ class _SearchState extends State<Search> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => Chat(
+            builder: (context) => ChatView(
                   chatRoomId: chatRoomId,
                 )));
   }

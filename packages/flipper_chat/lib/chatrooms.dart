@@ -1,6 +1,6 @@
 library flipper_chat;
 
-import 'package:flipper_chat/chat.dart';
+import 'package:flipper_chat/chat_view.dart';
 import 'package:flipper_chat/chat_room_viewmodel.dart';
 import 'package:flipper_chat/theme.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +54,7 @@ class ChatRoomsTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Chat(
+            builder: (context) => ChatView(
               chatRoomId: chatRoomId,
             ),
           ),

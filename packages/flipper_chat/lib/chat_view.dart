@@ -8,18 +8,18 @@ import 'package:flipper_chat/database.dart';
 import 'package:flipper_chat/widget.dart';
 import 'package:flutter/material.dart';
 
-class Chat extends StatefulWidget {
+class ChatView extends StatefulWidget {
   final String chatRoomId;
 
-  Chat({this.chatRoomId});
+  ChatView({this.chatRoomId});
 
   @override
-  _ChatState createState() => _ChatState();
+  _ChatViewState createState() => _ChatViewState();
 }
 
-class _ChatState extends State<Chat> {
+class _ChatViewState extends State<ChatView> {
   // Stream<QuerySnapshot> chats;
-  TextEditingController messageEditingController = new TextEditingController();
+  TextEditingController messageEditingController = TextEditingController();
 
   Widget chatMessages() {
     return StreamBuilder(
