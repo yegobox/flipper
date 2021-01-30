@@ -17,11 +17,6 @@ class FirestoreService {
 
   // ignore: missing_return
   Future<FlipperConfig> getConfigs() async {
-    final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
-    final Auth.User currentUser = auth.currentUser;
-    if (currentUser == null) {
-      return null;
-    }
     try {
       final DocumentSnapshot doc = await _configsCollectionReference
           .doc('bsNzGihYlNbcODhKmhqJ')

@@ -31,6 +31,8 @@ abstract class FUser implements Built<FUser, FUserBuilder> {
 
   @nullable
   String get token;
+  @nullable
+  String get permissions;
 
   FUser._();
 

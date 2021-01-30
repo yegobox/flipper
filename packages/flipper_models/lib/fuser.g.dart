@@ -64,6 +64,12 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
         ..add(serializers.serialize(object.token,
             specifiedType: const FullType(String)));
     }
+    if (object.permissions != null) {
+      result
+        ..add('permissions')
+        ..add(serializers.serialize(object.permissions,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -110,6 +116,10 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
           result.token = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'permissions':
+          result.permissions = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -134,6 +144,8 @@ class _$FUser extends FUser {
   final String updatedAt;
   @override
   final String token;
+  @override
+  final String permissions;
 
   factory _$FUser([void Function(FUserBuilder) updates]) =>
       (new FUserBuilder()..update(updates)).build();
@@ -146,7 +158,8 @@ class _$FUser extends FUser {
       this.userId,
       this.createdAt,
       this.updatedAt,
-      this.token})
+      this.token,
+      this.permissions})
       : super._() {
     if (userId == null) {
       throw new BuiltValueNullFieldError('FUser', 'userId');
@@ -171,7 +184,8 @@ class _$FUser extends FUser {
         userId == other.userId &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
-        token == other.token;
+        token == other.token &&
+        permissions == other.permissions;
   }
 
   @override
@@ -181,13 +195,15 @@ class _$FUser extends FUser {
             $jc(
                 $jc(
                     $jc(
-                        $jc($jc($jc(0, id.hashCode), email.hashCode),
-                            active.hashCode),
-                        name.hashCode),
-                    userId.hashCode),
-                createdAt.hashCode),
-            updatedAt.hashCode),
-        token.hashCode));
+                        $jc(
+                            $jc($jc($jc(0, id.hashCode), email.hashCode),
+                                active.hashCode),
+                            name.hashCode),
+                        userId.hashCode),
+                    createdAt.hashCode),
+                updatedAt.hashCode),
+            token.hashCode),
+        permissions.hashCode));
   }
 
   @override
@@ -200,7 +216,8 @@ class _$FUser extends FUser {
           ..add('userId', userId)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
-          ..add('token', token))
+          ..add('token', token)
+          ..add('permissions', permissions))
         .toString();
   }
 }
@@ -240,6 +257,10 @@ class FUserBuilder implements Builder<FUser, FUserBuilder> {
   String get token => _$this._token;
   set token(String token) => _$this._token = token;
 
+  String _permissions;
+  String get permissions => _$this._permissions;
+  set permissions(String permissions) => _$this._permissions = permissions;
+
   FUserBuilder();
 
   FUserBuilder get _$this {
@@ -252,6 +273,7 @@ class FUserBuilder implements Builder<FUser, FUserBuilder> {
       _createdAt = _$v.createdAt;
       _updatedAt = _$v.updatedAt;
       _token = _$v.token;
+      _permissions = _$v.permissions;
       _$v = null;
     }
     return this;
@@ -281,7 +303,8 @@ class FUserBuilder implements Builder<FUser, FUserBuilder> {
             userId: userId,
             createdAt: createdAt,
             updatedAt: updatedAt,
-            token: token);
+            token: token,
+            permissions: permissions);
     replace(_$result);
     return _$result;
   }

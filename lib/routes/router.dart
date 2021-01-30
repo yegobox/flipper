@@ -151,3 +151,7 @@ class $Routing {
 // curl -sL https://raw.githubusercontent.com/passsy/flutter_wrapper/master/install.sh | bash -
 // https://medium.com/@passsy/flutter-wrapper-bind-your-project-to-an-explicit-flutter-release-4062cfe6dcaf
 // https://github.com/passsy/flutter_wrapper
+
+// keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
+// keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
+// https://developers.google.com/android/guides/client-auth

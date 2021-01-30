@@ -60,25 +60,8 @@ class OpenBusinessModel extends BaseModel {
     String businessId,
     bool isClosed = true,
   }) async {
-    // FIXME: fix this query to look for where there is open drawer for this user
-    final Document document = _databaseService.getById(id: userId);
-
-    final Map<String, dynamic> buildMap = {
-      'table': AppTables.switchi,
-      'name': name,
-      'isClosed': isClosed,
-      'isSocial': isSocial,
-      'businessId': businessId,
-      'channels': [userId]
-    };
-    if (document == null) {
-      try {
-        _databaseService.insert(data: buildMap);
-        // ignore: empty_catches
-      } on PlatformException {}
-    } else {
-      document.properties['isClosed'] = isClosed;
-      _databaseService.update(document: document);
-    }
+    final Document document = _databaseService.getById(id: userId + '2');
+    document.properties['isClosed'] = isClosed;
+    _databaseService.update(document: document);
   }
 }
