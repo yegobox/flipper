@@ -20,21 +20,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/packages/flipper_services/lib/dynamic_links_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/android-playstore-release.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/android-playstore-release.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/fetch_contacts_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/fetch_contacts_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/firestore_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/firestore_service.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,10 +128,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="484" y="148" key="#give_the_name_is_not_null_should_update_product/0.0.1536.824@0.0.1536.824" timestamp="1607083355262" />
-    <state x="-2" y="139" width="1200" height="584" key="AVDManager" timestamp="1611683123259">
+    <state x="154" y="133" width="1200" height="584" key="AVDManager" timestamp="1611993897381">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="-2" y="139" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1611683123259" />
+    <state x="154" y="133" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1611993897381" />
     <state x="353" y="170" width="438" height="502" key="FileChooserDialogImpl" timestamp="1611316497153">
       <screen x="0" y="0" width="1536" height="824" />
     </state>

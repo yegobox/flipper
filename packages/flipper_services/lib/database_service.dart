@@ -35,7 +35,9 @@ class DatabaseService {
 
     final FlipperConfig flipperConfig =
         await ProxyService.firestore.getConfigs();
-    assert(flipperConfig != null);
+    if (flipperConfig == null) {
+      return null;
+    }
     final String gatewayUrl = flipperConfig.gateway;
     final String username = flipperConfig.username;
     final String password = flipperConfig.password;

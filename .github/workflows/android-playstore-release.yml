@@ -62,19 +62,6 @@ jobs:
       run: sed -i 's/#{PASS}#/${{ secrets.PASS }}/g' .env
     - name: Update env GMPASS
       run: sed -i 's/#{GMPASS}#/${{ secrets.GMPASS }}/g' .env
-    # - name: Update google-services.json
-    #   run: sed -i 's/#{GMPASS}#/${{ secrets.GMPASS }}/g' .env  
-    # - name: JSON
-    #   run: sed -i 's/#{FIREBASE_URL}#/${{ secrets.FIREBASE_URL }}/g' google-services.json
-    # - name: JSON
-    #   run: sed -i 's/#{STORAGE_BUCKET}#/${{ secrets.STORAGE_BUCKET }}/g' google-services.json
-    # - name: JSON
-    #   run: sed -i 's/#{OAHTH_CLIENT_ID}#/${{ secrets.OAHTH_CLIENT_ID }}/g' google-services.json
-    # - name: JSON
-    #   run: sed -i 's/#{CLIENT_ID_FLIPPER}#/${{ secrets.CLIENT_ID_FLIPPER }}/g' google-services.json
-    # - name: JSON
-    #   run: sed -i 's/#{CERTIFICATE_HASH_FLIPPER}#/${{ secrets.CERTIFICATE_HASH_FLIPPER }}/g' google-services.json
-
     - uses: actions/setup-java@v1
       with:
         java-version: '8.x'
