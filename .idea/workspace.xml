@@ -20,41 +20,34 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_view.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/flipper_contacts/lib/app_bart_reference.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/flipper_models/lib/fcontact.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/flipper_models/lib/fcontact.g.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/flipper_services/lib/ContactService.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/images/send.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_viewmodel.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/packages/flipper_services/lib/navigation_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/data/models/api/token_response.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/data/models/api/token_response.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/domain/redux/app_state.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/domain/redux/app_state.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/launch.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/launch.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/flipper_app.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/flipper_app.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/routes/router.gr.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.gr.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/in_app_notification/in_app_notification_viewmodel.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/in_app_notification/in_app_notification_viewmodel.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/welcome/home/common_view_model.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/welcome/home/common_view_model.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/welcome/login/login_viewmodel.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/welcome/login/login_viewmodel.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/auth.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/auth.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/theme.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_room_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_room_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chatrooms.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chatrooms.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/search.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/search.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_item.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_item.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_contacts/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_contacts/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_contacts/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_contacts/pubspec.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/otp.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/otp.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/chat.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/chat.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/chat.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/chat.g.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/database_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/database_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/fcontact.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/fcontact.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/fcontact.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/fcontact.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/constant.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/constant.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/fetch_contacts_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/fetch_contacts_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/firestore_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/firestore_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/shared_state_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/shared_state_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -62,7 +55,7 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[FA77S0306827]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[Pixel_4_API_29]" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -81,7 +74,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../FlutterChatAppTutorial" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
@@ -157,46 +150,46 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="484" y="148" key="#give_the_name_is_not_null_should_update_product/0.0.1536.824@0.0.1536.824" timestamp="1607083355262" />
-    <state x="154" y="133" width="1200" height="584" key="AVDManager" timestamp="1611993897381">
+    <state x="-101" y="104" width="1200" height="584" key="AVDManager" timestamp="1612110099572">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="154" y="133" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1611993897381" />
+    <state x="-101" y="104" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1612110099572" />
     <state x="353" y="170" width="438" height="502" key="FileChooserDialogImpl" timestamp="1611316497153">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="353" y="170" width="438" height="502" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1611316497153" />
-    <state width="1476" height="319" key="GridCell.Tab.0.bottom" timestamp="1612030180266">
+    <state width="1491" height="318" key="GridCell.Tab.0.bottom" timestamp="1612199557611">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1612030180266" />
-    <state width="1476" height="319" key="GridCell.Tab.0.center" timestamp="1612030180266">
+    <state width="1491" height="318" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1612199557611" />
+    <state width="1491" height="318" key="GridCell.Tab.0.center" timestamp="1612199557607">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1612030180266" />
-    <state width="1476" height="319" key="GridCell.Tab.0.left" timestamp="1612030180266">
+    <state width="1491" height="318" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1612199557607" />
+    <state width="1491" height="318" key="GridCell.Tab.0.left" timestamp="1612199557604">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1612030180266" />
-    <state width="1476" height="319" key="GridCell.Tab.0.right" timestamp="1612030180266">
+    <state width="1491" height="318" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1612199557603" />
+    <state width="1491" height="318" key="GridCell.Tab.0.right" timestamp="1612199557610">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1612030180266" />
-    <state width="1476" height="319" key="GridCell.Tab.1.bottom" timestamp="1612030172346">
+    <state width="1491" height="318" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1612199557610" />
+    <state width="1491" height="318" key="GridCell.Tab.1.bottom" timestamp="1612199557612">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1612030172346" />
-    <state width="1476" height="319" key="GridCell.Tab.1.center" timestamp="1612030172346">
+    <state width="1491" height="318" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1612199557612" />
+    <state width="1491" height="318" key="GridCell.Tab.1.center" timestamp="1612199557611">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1612030172346" />
-    <state width="1476" height="319" key="GridCell.Tab.1.left" timestamp="1612030172345">
+    <state width="1491" height="318" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1612199557611" />
+    <state width="1491" height="318" key="GridCell.Tab.1.left" timestamp="1612199557611">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1612030172345" />
-    <state width="1476" height="319" key="GridCell.Tab.1.right" timestamp="1612030172346">
+    <state width="1491" height="318" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1612199557611" />
+    <state width="1491" height="318" key="GridCell.Tab.1.right" timestamp="1612199557612">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1476" height="319" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1612030172346" />
+    <state width="1491" height="318" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1612199557612" />
     <state x="277" y="0" key="SettingsEditor" timestamp="1611679503874">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
@@ -205,34 +198,13 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="475" y="11" width="586" height="801" key="find.popup/0.0.1536.824@0.0.1536.824" timestamp="1612025815002" />
-    <state x="426" y="189" key="run.anything.popup" timestamp="1612025885218">
+    <state x="426" y="189" key="run.anything.popup" timestamp="1612198644235">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="426" y="189" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1612025885218" />
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1612029699305">
+    <state x="426" y="189" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1612198644235" />
+    <state x="432" y="146" width="672" height="678" key="search.everywhere.popup" timestamp="1612189810431">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1612029699305" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart</url>
-          <line>140</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart</url>
-          <line>136</line>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart</url>
-          <line>135</line>
-          <option name="timeStamp" value="20" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <state x="432" y="146" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1612189810431" />
   </component>
 </project>

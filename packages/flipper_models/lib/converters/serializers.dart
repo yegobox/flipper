@@ -9,6 +9,7 @@ import 'package:flipper_models/switcher.dart';
 import '../branch.dart';
 import '../business.dart';
 import '../category.dart';
+import '../chat.dart';
 import '../fcontact.dart';
 import '../fuser.dart';
 import '../order.dart';
@@ -51,7 +52,8 @@ part 'serializers.g.dart';
   PColor,
   VariantStock,
   OrderDetail,
-  FContact
+  FContact,
+  Chat
 ])
 Serializers serializers = _$serializers;
 

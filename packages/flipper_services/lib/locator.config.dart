@@ -19,6 +19,7 @@ import 'fetch_contacts_service.dart';
 import 'firestore_service.dart';
 import 'flipperNavigation_service.dart';
 import 'api/http_api.dart';
+import 'navigation_service.dart';
 import 'flipperServices.dart';
 import 'mail_service.dart';
 import 'media_service.dart';
@@ -56,6 +57,8 @@ GetIt $initGetIt(
   gh.lazySingleton<FlipperNavigationService>(
       () => thirdPartyServicesModule.flipperNavigationService);
   gh.lazySingleton<HttpApi>(() => HttpApi());
+  gh.lazySingleton<InAppNavigationService>(
+      () => thirdPartyServicesModule.inAppNav);
   gh.lazySingleton<KeyPadService>(() => thirdPartyServicesModule.keypad);
   gh.lazySingleton<MailService>(() => thirdPartyServicesModule.mailService);
   gh.lazySingleton<MediaService>(() => MediaService());
@@ -95,6 +98,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   @override
   FlipperNavigationService get flipperNavigationService =>
       FlipperNavigationService();
+  @override
+  InAppNavigationService get inAppNav => InAppNavigationService();
   @override
   KeyPadService get keypad => KeyPadService();
   @override

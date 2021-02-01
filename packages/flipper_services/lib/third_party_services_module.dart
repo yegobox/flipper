@@ -18,6 +18,7 @@ import 'package:flipper_services/shared_preference_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import 'package:flipper_services/navigation_service.dart';
 // import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper/bluethooth_service.dart';
 import 'abstractions/api.dart';
@@ -102,6 +103,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   ContactService get contact;
+
+  @lazySingleton
+  InAppNavigationService get inAppNav;
   // @lazySingleton
   // FetchContactsService fetchContactsService;
 }

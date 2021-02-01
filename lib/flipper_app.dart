@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
+import 'package:flipper_services/navigation_service.dart';
 
 import 'domain/redux/app_actions/app_action_middleware.dart';
 import 'domain/redux/app_reducer.dart';
@@ -37,6 +38,7 @@ class FlipperApp extends StatefulWidget {
 class _FlipperAppState extends State<FlipperApp> {
   final Logger log = Logging.getLogger('Firestore service ....');
   final _state = locator<SharedStateService>();
+  final _inAppNav = locator<InAppNavigationService>();
 
   Store<AppState> store;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
@@ -73,9 +75,22 @@ class _FlipperAppState extends State<FlipperApp> {
   // ignore: missing_return
   Future<void> initState() {
     super.initState();
-    _state.navigation.listen((path) {
+    _inAppNav.navigation.listen((path) {
       if (path == 'contacts') {
         ProxyService.nav.navigateTo(Routing.contactView);
+      }
+    });
+    _inAppNav.navToChat.listen((Map data) {
+      if (data == null) {
+        return null;
+      }
+      if (data['path'] == 'chat') {
+        ProxyService.nav.navigateTo(
+          Routing.chatView,
+          arguments: ChatViewArguments(
+            channels: data['channels'],
+          ),
+        );
       }
     });
     _state.didLogout.listen((loggedOut) {

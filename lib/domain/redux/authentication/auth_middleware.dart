@@ -118,6 +118,7 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     return null;
   } else {
     final List<String> channels = [];
+    //save user in firebase contacts if he does not exist
 
     channels.add(loggedInuserId);
 
@@ -139,13 +140,19 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           if (value.containsKey('userId') &&
               loggedInuserId == FUser.fromMap(value).userId) {
             ProxyService.sharedState.setUser(user: FUser.fromMap(value));
+            if (ProxyService.sharedState.user != null) {
+              await ProxyService.firestore.addContacts({
+                'phoneNumber': ProxyService.sharedState.user.name,
+                'name': ProxyService.sharedState.user.name,
+                'channels': [ProxyService.sharedState.user.id]
+              });
+            }
             store.dispatch(WithUser(user: FUser.fromMap(value)));
             saveDeviceToken(value);
           }
         });
       }
     }
-
     return loggedInuserId;
   }
 }

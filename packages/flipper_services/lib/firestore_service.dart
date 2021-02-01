@@ -60,13 +60,24 @@ class FirestoreService {
   }
 
   Future<void> addContacts(contact) async {
-    FirebaseFirestore.instance
+    final Future<QuerySnapshot> iExistInDb = FirebaseFirestore.instance
         .collection('contacts')
         .doc('global')
         .collection('lists')
-        .add(contact)
-        .catchError((e) {
-      log.e(e.toString());
+        .where('channels', arrayContains: ProxyService.sharedState.user.id)
+        .get();
+    iExistInDb.then((QuerySnapshot value) {
+      if (value.docs.isEmpty) {
+        //then add this contact to db.
+        FirebaseFirestore.instance
+            .collection('contacts')
+            .doc('global')
+            .collection('lists')
+            .add(contact)
+            .catchError((e) {
+          log.e(e.toString());
+        });
+      }
     });
   }
 }

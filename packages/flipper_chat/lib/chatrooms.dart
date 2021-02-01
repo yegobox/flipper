@@ -25,7 +25,7 @@ class ChatRoom extends StatelessWidget {
                   floatingActionButton: FloatingActionButton(
                     child: const Icon(Icons.message),
                     onPressed: () {
-                      ProxyService.sharedState.navigateTo(path: 'contacts');
+                      ProxyService.inAppNav.navigateTo(path: 'contacts');
                     },
                   ),
                 )
@@ -37,7 +37,7 @@ class ChatRoom extends StatelessWidget {
         },
         onModelReady: (ChatRoomViewModel model) {
           model.contactPermissions();
-          model.loadMessages();
+          // model.loadMessages(); //this will load chat heads
         },
         viewModelBuilder: () => ChatRoomViewModel());
   }

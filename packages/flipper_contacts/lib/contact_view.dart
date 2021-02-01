@@ -1,9 +1,11 @@
 library flipper_contacts;
 
 import 'package:contacts_service/contacts_service.dart';
+import 'package:flipper_models/fcontact.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/fcontact.dart';
+
 import 'contact_item.dart';
 import 'contact_viewmodel.dart';
 
@@ -139,7 +141,10 @@ class _SelectContact extends State<SelectContact> {
               contact: data.elementAt(i),
               onProfileTap: () =>
                   onTapProfileContactItem(context, data.elementAt(i)),
-              onTap: () {});
+              onTap: () {
+                ProxyService.inAppNav.navigateToChat(
+                    {'path': 'chat', 'channels': data.elementAt(i).channels});
+              });
         });
   }
 

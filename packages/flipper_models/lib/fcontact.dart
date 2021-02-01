@@ -16,6 +16,8 @@ abstract class FContact implements Built<FContact, FContactBuilder> {
   @nullable
   String get phoneNumber;
 
+  BuiltList<String> get channels;
+
   FContact._();
 
   factory FContact([void Function(FContactBuilder) updates]) = _$FContact;

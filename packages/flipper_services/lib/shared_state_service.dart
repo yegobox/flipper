@@ -134,12 +134,4 @@ class SharedStateService with ReactiveServiceMixin {
   void setBluethoothDevices({List<dynamic> devices}) {
     _bluethoothDevices.value = devices;
   }
-
-  final RxValue<String> navigation = RxValue<String>(initial: null);
-
-  void navigateTo({String path}) {
-    navigation.value =
-        null; //can publish the save value twice, that's why we null it first
-    navigation.value = path;
-  }
 }

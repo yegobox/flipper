@@ -19,31 +19,6 @@ class ChatRoomViewModel extends ReactiveViewModel {
   bool get contactPermissionGrated => _contactPermissionGrated;
 
   final DatabaseService _db = ProxyService.database;
-  void loadMessages() {
-    final q = Query(_db.db, 'SELECT * WHERE table=\$VALUE');
-
-    q.parameters = {'VALUE': AppTables.chats};
-
-    q.addChangeListener((List results) {
-      for (Map map in results) {
-        map.forEach((key, value) {
-          if (!_chats.contains(Chat.fromMap(value))) {
-            _chats.add(Chat.fromMap(value));
-            notifyListeners();
-          }
-        });
-      }
-    });
-  }
-
-  void sendMessage({String message, String otherPersonUserId}) {
-    final id = Uuid().v1();
-    _db.insert(id: id, data: {
-      'message': message,
-      'time': DateTime.now().millisecondsSinceEpoch.toString(),
-      'channels': [_state.user.id, otherPersonUserId]
-    });
-  }
 
   void contactPermissions() async {
     final Map<Permission, PermissionStatus> statuses =

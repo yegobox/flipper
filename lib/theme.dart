@@ -6,10 +6,8 @@ const double appBarSize = 44.0;
 final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
       // Define the default brightness and colors.
       brightness: Brightness.light,
-      // primarySwatch: AppColors.warmNeutral,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      // fontFamily: 'Montserrat',
-      primaryColor: Colors.lightBlue[800],
+      primaryColor: const Color(0xff145C9E),
       secondaryHeaderColor: const Color(0xff14171A),
       scaffoldBackgroundColor: const Color(
           0xffF2F2F2), // https://stackoverflow.com/questions/50081213/how-do-i-use-hexadecimal-color-strings-in-flutter

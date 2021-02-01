@@ -17,31 +17,34 @@ class FetchContactsService with ReactiveServiceMixin {
         _contacts.add(doc);
       });
       //at every 5 minutes update my contat match it with flipper contacts.
-      cron.schedule(Schedule.parse('*/1 * * * *'), () {
-        final Future<Iterable<Contact>> contacts = ContactsService.getContacts(
-          withThumbnails: false,
-          photoHighResolution: false,
-        );
-        contacts.then((Iterable<Contact> values) {
-          for (Contact contact in values) {
-            for (Item item in contact.phones) {
-              // ignore: avoid_function_literals_in_foreach_calls
-              _contacts.forEach((doc) {
-                final FContact c = FContact.fromMap(
-                    {'phoneNumber': doc['phoneNumber'], 'name': doc['name']});
-
-                if (item.value.replaceAll(RegExp(r'\s+\b|\b\s'), '') ==
-                    c.phoneNumber.replaceAll(RegExp(r'\s+\b|\b\s'), '')) {
-                  if (!_contactsOnFlipper.contains(c)) {
-                    _contactsOnFlipper.add(c);
-                  }
-                }
+      // cron.schedule(Schedule.parse('*/1 * * * *'), () {
+      final Future<Iterable<Contact>> contacts = ContactsService.getContacts(
+        withThumbnails: false,
+        photoHighResolution: false,
+      );
+      contacts.then((Iterable<Contact> values) {
+        for (Contact contact in values) {
+          for (Item item in contact.phones) {
+            // ignore: avoid_function_literals_in_foreach_calls
+            _contacts.forEach((doc) {
+              final FContact c = FContact.fromMap({
+                'phoneNumber': doc['phoneNumber'],
+                'name': doc['name'],
+                'channels': doc['channels']
               });
-            }
+
+              if (item.value.replaceAll(RegExp(r'\s+\b|\b\s'), '') ==
+                  c.phoneNumber.replaceAll(RegExp(r'\s+\b|\b\s'), '')) {
+                if (!_contactsOnFlipper.contains(c)) {
+                  _contactsOnFlipper.add(c);
+                }
+              }
+            });
           }
-          ProxyService.contacts.setContacts(contacts: _contactsOnFlipper);
-        });
+        }
+        ProxyService.contacts.setContacts(contacts: _contactsOnFlipper);
       });
     });
+    // });
   }
 }

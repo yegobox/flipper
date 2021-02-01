@@ -170,9 +170,9 @@ class _OtpPageState extends State<OtpPage> {
                                       final http.Response response =
                                           await loginToFlipper();
                                       final LoginResponse loginResponse =
-                                      loginResponseFromJson(response.body);
+                                          loginResponseFromJson(response.body);
                                       final Store<AppState> store =
-                                      StoreProvider.of<AppState>(context);
+                                          StoreProvider.of<AppState>(context);
                                       //the user does not exist into the couch adding him will trigger the listner and proceed
                                       // if he is synced i.e exist in couch then the sync which was started will add the user to local
                                       // database then trigger a change and continue as expected
@@ -190,7 +190,8 @@ class _OtpPageState extends State<OtpPage> {
                                           .sharedPref
                                           .getUserId();
                                       if (loggedInUserId == null) {
-                                        final q = Query(ProxyService.database.db,
+                                        final q = Query(
+                                            ProxyService.database.db,
                                             'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
                                         q.parameters = {
@@ -202,17 +203,17 @@ class _OtpPageState extends State<OtpPage> {
                                           for (Map map in results) {
                                             map.forEach((key, value) {
                                               final FUser user =
-                                              FUser.fromMap(value);
+                                                  FUser.fromMap(value);
                                               //  a user exist in couchbase then go to auth verification this,
                                               if (user != null) {
                                                 ProxyService.sharedPref
                                                     .setUserLoggedIn(
-                                                    userId: loginResponse.id
-                                                        .toString());
+                                                        userId: loginResponse.id
+                                                            .toString());
                                                 StoreProvider.of<AppState>(
-                                                    context)
+                                                        context)
                                                     .dispatch(
-                                                    VerifyAuthenticationState());
+                                                        VerifyAuthenticationState());
 
                                                 proxyService.loading.add(false);
                                               }
@@ -242,7 +243,8 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   Future<http.Response> loginToFlipper() async {
-    ProxyService.sharedState.setUser(user: FUser.fromMap({'name':widget.phone.toString(),'userId':'1'}));
+    ProxyService.sharedState.setUser(
+        user: FUser.fromMap({'name': widget.phone.toString(), 'userId': '1'}));
     final http.Response response =
         await http.post('https://flipper.yegobox.com/open-login', body: {
       'phone': widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '')
@@ -266,7 +268,6 @@ class _OtpPageState extends State<OtpPage> {
 
   Future<void> userExistInCouchbase(LoginResponse loginResponse) async {
     if (loginResponse.synced == 0) {
-
       ProxyService.database.insert(id: loginResponse.id.toString(), data: {
         'name': loginResponse.name,
         'email': loginResponse.email,
@@ -289,11 +290,6 @@ class _OtpPageState extends State<OtpPage> {
         'Accept': 'application/json'
       });
 
-      // await ProxyService.firestore.addContacts({
-      //   'phoneNumber': loginResponse.name.toString(),
-      //   'name': loginResponse.name.toString(),
-      //   'channels': [ProxyService.sharedState.user.id]
-      // });
       // end of updating the status
       ProxyService.sharedPref
           .setUserLoggedIn(userId: loginResponse.id.toString());

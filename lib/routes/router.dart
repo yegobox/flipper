@@ -158,3 +158,7 @@ class $Routing {
 // keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
 // keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
 // https://developers.google.com/android/guides/client-auth
+
+// if you build route and there is error of import add this at the import
+// import 'package:built_collection/built_collection.dart';
+// import 'package:flipper_models/product.dart';

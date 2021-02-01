@@ -42,6 +42,7 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_contacts/contact_view.dart';
 import 'package:flipper_chat/chat_view.dart';
+import 'package:built_collection/built_collection.dart';
 import 'package:flipper_models/product.dart';
 
 class Routing {
@@ -423,12 +424,13 @@ class Routing {
           settings: settings,
         );
       case Routing.chatView:
-        if (hasInvalidArgs<String>(args)) {
-          return misTypedArgsRoute<String>(args);
+        if (hasInvalidArgs<ChatViewArguments>(args)) {
+          return misTypedArgsRoute<ChatViewArguments>(args);
         }
-        final typedArgs = args as String;
+        final typedArgs = args as ChatViewArguments ?? ChatViewArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => ChatView(chatRoomId: typedArgs),
+          builder: (_) => ChatView(
+              chatRoomId: typedArgs.chatRoomId, channels: typedArgs.channels),
           settings: settings,
         );
       default:
@@ -558,4 +560,11 @@ class CameraPreviewArguments {
   final Key key;
   final dynamic image;
   CameraPreviewArguments({this.key, this.image});
+}
+
+//ChatView arguments holder class
+class ChatViewArguments {
+  final String chatRoomId;
+  final BuiltList<dynamic> channels;
+  ChatViewArguments({this.chatRoomId, this.channels});
 }

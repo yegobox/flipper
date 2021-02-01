@@ -23,8 +23,8 @@ class _$ChatSerializer implements StructuredSerializer<Chat> {
       'message',
       serializers.serialize(object.message,
           specifiedType: const FullType(String)),
-      'sentBy',
-      serializers.serialize(object.sentBy,
+      'sendBy',
+      serializers.serialize(object.sendBy,
           specifiedType: const FullType(String)),
       'time',
       serializers.serialize(object.time, specifiedType: const FullType(String)),
@@ -56,8 +56,8 @@ class _$ChatSerializer implements StructuredSerializer<Chat> {
           result.message = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'sentBy':
-          result.sentBy = serializers.deserialize(value,
+        case 'sendBy':
+          result.sendBy = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'time':
@@ -83,7 +83,7 @@ class _$Chat extends Chat {
   @override
   final String message;
   @override
-  final String sentBy;
+  final String sendBy;
   @override
   final String time;
   @override
@@ -92,7 +92,7 @@ class _$Chat extends Chat {
   factory _$Chat([void Function(ChatBuilder) updates]) =>
       (new ChatBuilder()..update(updates)).build();
 
-  _$Chat._({this.id, this.message, this.sentBy, this.time, this.channels})
+  _$Chat._({this.id, this.message, this.sendBy, this.time, this.channels})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Chat', 'id');
@@ -100,8 +100,8 @@ class _$Chat extends Chat {
     if (message == null) {
       throw new BuiltValueNullFieldError('Chat', 'message');
     }
-    if (sentBy == null) {
-      throw new BuiltValueNullFieldError('Chat', 'sentBy');
+    if (sendBy == null) {
+      throw new BuiltValueNullFieldError('Chat', 'sendBy');
     }
     if (time == null) {
       throw new BuiltValueNullFieldError('Chat', 'time');
@@ -124,7 +124,7 @@ class _$Chat extends Chat {
     return other is Chat &&
         id == other.id &&
         message == other.message &&
-        sentBy == other.sentBy &&
+        sendBy == other.sendBy &&
         time == other.time &&
         channels == other.channels;
   }
@@ -132,7 +132,7 @@ class _$Chat extends Chat {
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc($jc(0, id.hashCode), message.hashCode), sentBy.hashCode),
+        $jc($jc($jc($jc(0, id.hashCode), message.hashCode), sendBy.hashCode),
             time.hashCode),
         channels.hashCode));
   }
@@ -142,7 +142,7 @@ class _$Chat extends Chat {
     return (newBuiltValueToStringHelper('Chat')
           ..add('id', id)
           ..add('message', message)
-          ..add('sentBy', sentBy)
+          ..add('sendBy', sendBy)
           ..add('time', time)
           ..add('channels', channels))
         .toString();
@@ -160,9 +160,9 @@ class ChatBuilder implements Builder<Chat, ChatBuilder> {
   String get message => _$this._message;
   set message(String message) => _$this._message = message;
 
-  String _sentBy;
-  String get sentBy => _$this._sentBy;
-  set sentBy(String sentBy) => _$this._sentBy = sentBy;
+  String _sendBy;
+  String get sendBy => _$this._sendBy;
+  set sendBy(String sendBy) => _$this._sendBy = sendBy;
 
   String _time;
   String get time => _$this._time;
@@ -179,7 +179,7 @@ class ChatBuilder implements Builder<Chat, ChatBuilder> {
     if (_$v != null) {
       _id = _$v.id;
       _message = _$v.message;
-      _sentBy = _$v.sentBy;
+      _sendBy = _$v.sendBy;
       _time = _$v.time;
       _channels = _$v.channels?.toBuilder();
       _$v = null;
@@ -208,7 +208,7 @@ class ChatBuilder implements Builder<Chat, ChatBuilder> {
           new _$Chat._(
               id: id,
               message: message,
-              sentBy: sentBy,
+              sendBy: sendBy,
               time: time,
               channels: channels.build());
     } catch (_) {

@@ -13,7 +13,7 @@ part 'chat.g.dart';
 abstract class Chat implements Built<Chat, ChatBuilder> {
   String get id;
   String get message;
-  String get sentBy; //put a name of the one who sent the message
+  String get sendBy; //put a name of the one who sent the message
   String get time;
   BuiltList<String>
       get channels; //if I add the user into channel then I do not have to filter against
