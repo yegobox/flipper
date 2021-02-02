@@ -58,7 +58,7 @@ class StockViewModel extends BaseModel {
     return _variantId;
   }
 
-  void loadStockById({BuildContext context, String productId}) async {
+  void loadStockByProductId({BuildContext context, String productId}) async {
     setBusy(true);
 
     // final List<dynamic> variants = await _databaseService(productId: productId);

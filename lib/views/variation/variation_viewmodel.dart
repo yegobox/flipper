@@ -55,11 +55,9 @@ class VariationViewModel extends BaseModel {
         'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID');
 
     q.parameters = {'PRODUCTID': productId ?? sharedStateService.product.id};
-
     q.addChangeListener((List results) {
       // issue found in the joun query is that it show result of two joined doc eventhoug I expect one!
       for (Map map in results) {
-        log.i(map);
         if (map.length > 2) {
           if (!_variations.contains(VariantStock.fromMap(map))) {
             _variations.add(VariantStock.fromMap(map));
@@ -113,6 +111,7 @@ class VariationViewModel extends BaseModel {
 
   bool _isLocked = true;
   void lock() {
+    // ONE
     _nameController.text.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
   }

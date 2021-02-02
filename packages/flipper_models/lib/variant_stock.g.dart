@@ -21,12 +21,15 @@ class _$VariantStockSerializer implements StructuredSerializer<VariantStock> {
     final result = <Object>[
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
-      'productName',
-      serializers.serialize(object.productName,
-          specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
+    if (object.productName != null) {
+      result
+        ..add('productName')
+        ..add(serializers.serialize(object.productName,
+            specifiedType: const FullType(String)));
+    }
     if (object.lowStock != null) {
       result
         ..add('lowStock')
@@ -169,9 +172,6 @@ class _$VariantStock extends VariantStock {
       : super._() {
     if (name == null) {
       throw new BuiltValueNullFieldError('VariantStock', 'name');
-    }
-    if (productName == null) {
-      throw new BuiltValueNullFieldError('VariantStock', 'productName');
     }
     if (id == null) {
       throw new BuiltValueNullFieldError('VariantStock', 'id');

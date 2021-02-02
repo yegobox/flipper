@@ -188,14 +188,12 @@ class AddProductViewmodel extends ReactiveViewModel {
   void createVariant({String productId}) {
     _isLocked = true;
     notifyListeners();
-
     ProxyService.nav.navigateTo(Routing.addVariationScreen,
         arguments: AddVariationScreenArguments(productId: productId));
   }
 
   void lock() {
-    // ignore: prefer_is_empty
-    log.i(_name.length);
+    // Two
     _name.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
   }
