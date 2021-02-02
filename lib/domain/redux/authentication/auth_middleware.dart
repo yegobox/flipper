@@ -148,7 +148,10 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
               });
             }
             store.dispatch(WithUser(user: FUser.fromMap(value)));
-            saveDeviceToken(value);
+            try {
+              saveDeviceToken(value);
+              // ignore: empty_catches
+            } catch (e) {}
           }
         });
       }

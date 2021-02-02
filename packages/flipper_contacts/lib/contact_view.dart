@@ -1,9 +1,13 @@
 library flipper_contacts;
 
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flipper_models/fcontact.dart';
+import 'package:flipper_services/dynamic_links_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 import 'package:stacked/stacked.dart';
 
 import 'contact_item.dart';
@@ -29,18 +33,13 @@ class SelectContact extends StatefulWidget {
 }
 
 class _SelectContact extends State<SelectContact> {
-  Future<Iterable<Contact>> _contacts;
   int numContacts;
 
-  Future<int> _getNumContacts() async {
-    final Iterable<Contact> contacts = await ContactsService.getContacts();
-    return contacts.length;
-  }
+  final DynamicLinkService _link = locator<DynamicLinkService>();
 
   @override
   void initState() {
     super.initState();
-    _contacts = _getContacts();
 
     _getNumContacts().then((int num) {
       setState(() {
@@ -49,12 +48,9 @@ class _SelectContact extends State<SelectContact> {
     });
   }
 
-  Future<Iterable<Contact>> _getContacts() async {
-    // FIXME(richard): fix the long wait on loading time,should load and save them locally on app start.
-    return await ContactsService.getContacts(
-      withThumbnails: false,
-      photoHighResolution: false,
-    );
+  Future<int> _getNumContacts() async {
+    final Iterable<Contact> contacts = await ContactsService.getContacts();
+    return contacts.length;
   }
 
   Widget buildContactList({ContactViewModel model}) {
@@ -108,17 +104,26 @@ class _SelectContact extends State<SelectContact> {
     );
     data.addAll(model.contacts.contacts);
     data.add(
-      ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
-          child: const Icon(Icons.share),
-        ),
-        title: Text('Invite friends',
-            style: Theme.of(context).textTheme.headline5),
-        onTap: () {
-          // AndroidIntentHelpers.inviteFriend(context);
-        },
-      ),
+      FutureBuilder(
+          future: _link.createDynamicLink(),
+          builder: (context, snap) {
+            if (snap.hasData) {
+              final ShortDynamicLink uri = snap.data;
+              return ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Icon(Icons.share),
+                ),
+                title: Text('Invite friends',
+                    style: Theme.of(context).textTheme.headline5),
+                onTap: () {
+                  Share.share(uri.shortUrl.toString());
+                },
+              );
+            } else {
+              return const SizedBox.shrink();
+            }
+          }),
     );
     data.add(
       ListTile(
@@ -148,31 +153,17 @@ class _SelectContact extends State<SelectContact> {
         });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ViewModelBuilder<ContactViewModel>.reactive(
-        builder: (BuildContext context, ContactViewModel model, Widget child) {
-          return Scaffold(body: buildContactList(model: model));
-        },
-        viewModelBuilder: () => ContactViewModel());
-  }
-
   void onTapProfileContactItem(BuildContext context, FContact contact) {
     print(contact);
   }
 
-  void _onSelectOption(NewChatOptions option) {
-    switch (option) {
-      case NewChatOptions.inviteAFriend:
-        // AndroidIntentHelpers.inviteFriend(context);
-        break;
-      case NewChatOptions.contacts:
-        // AndroidIntentHelpers.openContactApp(context);
-        break;
-      case NewChatOptions.refresh:
-        break;
-      case NewChatOptions.help:
-        break;
-    }
+  @override
+  Widget build(BuildContext context) {
+    return ViewModelBuilder<ContactViewModel>.reactive(
+      builder: (BuildContext context, ContactViewModel model, Widget child) {
+        return Scaffold(body: buildContactList(model: model));
+      },
+      viewModelBuilder: () => ContactViewModel(),
+    );
   }
 }

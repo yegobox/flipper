@@ -1,6 +1,5 @@
 library flipper_chat;
 
-import 'package:flipper_chat/constants.dart';
 import 'package:flipper_chat/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -59,78 +58,76 @@ class _ChatViewState extends State<ChatView> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-        builder: (BuildContext context, ChatViewModel model, Widget child) {
-          return Scaffold(
-            body: Container(
-              child: Stack(
-                children: [
-                  chatMessages(model: model),
-                  Container(
-                    alignment: Alignment.bottomCenter,
-                    width: MediaQuery.of(context).size.width,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 24),
-                      color: const Color(0xff005AE4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: messageEditingController,
-                              style: simpleTextStyle(),
-                              decoration: const InputDecoration(
-                                hintText: 'Type your message ...',
-                                hintStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                                border: InputBorder.none,
+      builder: (BuildContext context, ChatViewModel model, Widget child) {
+        return Scaffold(
+          body: Container(
+            child: Stack(
+              children: [
+                chatMessages(model: model),
+                Container(
+                  alignment: Alignment.bottomCenter,
+                  width: MediaQuery.of(context).size.width,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 24),
+                    color: const Color(0xff005AE4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: messageEditingController,
+                            style: simpleTextStyle(),
+                            decoration: const InputDecoration(
+                              hintText: 'Type your message ...',
+                              hintStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
                               ),
+                              border: InputBorder.none,
                             ),
                           ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              addMessage(model: model);
-                            },
-                            child: Container(
-                              height: 40,
-                              width: 40,
-                              decoration: BoxDecoration(
-                                color: const Color(0xff005AE4),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xff145C9E),
-                                    Color(0xff005AE4)
-                                  ],
-                                  begin: FractionalOffset.topLeft,
-                                  end: FractionalOffset.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(40),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            addMessage(model: model);
+                          },
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xff005AE4),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xff145C9E), Color(0xff005AE4)],
+                                begin: FractionalOffset.topLeft,
+                                end: FractionalOffset.bottomRight,
                               ),
-                              padding: const EdgeInsets.all(12),
-                              child: Image.asset(
-                                'assets/images/send.png',
-                                height: 25,
-                                width: 25,
-                              ),
+                              borderRadius: BorderRadius.circular(40),
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: Image.asset(
+                              'assets/images/send.png',
+                              height: 25,
+                              width: 25,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
-        viewModelBuilder: () => ChatViewModel(),
-        onModelReady: (ChatViewModel model) {
-          model.loadMessages();
-        });
+          ),
+        );
+      },
+      viewModelBuilder: () => ChatViewModel(),
+      onModelReady: (ChatViewModel model) {
+        model.loadMessages();
+      },
+    );
   }
 }
 
@@ -163,7 +160,7 @@ class MessageTile extends StatelessWidget {
           gradient: LinearGradient(
             colors: sendByMe
                 ? [const Color(0xff007EF4), const Color(0xff2A75BC)]
-                : [const Color(0xFF00B0FF),  const Color(0xFF80D8FF)],
+                : [const Color(0xFF00B0FF), const Color(0xFF00B0FF)],
           ),
         ),
         child: Text(

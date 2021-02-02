@@ -3,14 +3,70 @@ library flipper_chat;
 import 'package:flipper_chat/chat_view.dart';
 import 'package:flipper_chat/chat_room_viewmodel.dart';
 import 'package:flipper_chat/theme.dart';
+import 'package:flipper_models/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:stacked/stacked.dart';
 
-// import 'package:flipper/routes/router.gr.dart';
+class ChatRoomItem extends StatelessWidget {
+  const ChatRoomItem(
+      {this.searchKeyword, this.onProfileTap, this.onTap, this.chat});
+
+  final Chat chat;
+  final Function onProfileTap;
+  final Function onTap;
+  final String searchKeyword;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).copyWith(canvasColor: Colors.white).canvasColor,
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 2.0, horizontal: 16.0),
+        leading: SizedBox(
+          width: 45.0,
+          height: 45.0,
+          child: TextDrawable(
+            text: chat
+                .message, //FIXME: add a name in message object to be shown on chat heads
+            isTappable: true,
+            onTap: null,
+            boxShape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        title: Text(
+          chat.message,
+          maxLines: 1,
+          style: Theme.of(context).textTheme.headline5,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
 class ChatRoom extends StatelessWidget {
-  Widget chatRoomsList() {
-    return const Center(child: Text('No Chats'));
+  Widget chatRoomsList({ChatRoomViewModel model}) {
+    return model.chats.isNotEmpty
+        ? ListView.builder(
+            itemCount: model.chats.length,
+            itemBuilder: (context, index) {
+              return ChatRoomItem(
+                chat: model.chats[index],
+              );
+            },
+          )
+        : const Center(
+            child: Text(
+              'Start business conversation',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          );
   }
 
   @override
@@ -19,8 +75,11 @@ class ChatRoom extends StatelessWidget {
         builder: (BuildContext context, ChatRoomViewModel model, Widget child) {
           return model.contactPermissionGrated
               ? Scaffold(
+                  backgroundColor: Theme.of(context)
+                      .copyWith(canvasColor: Colors.white)
+                      .canvasColor,
                   body: Container(
-                    child: chatRoomsList(),
+                    child: chatRoomsList(model: model),
                   ),
                   floatingActionButton: FloatingActionButton(
                     child: const Icon(Icons.message),
@@ -37,6 +96,7 @@ class ChatRoom extends StatelessWidget {
         },
         onModelReady: (ChatRoomViewModel model) {
           model.contactPermissions();
+          model.loadChatRooms();
           // model.loadMessages(); //this will load chat heads
         },
         viewModelBuilder: () => ChatRoomViewModel());
@@ -45,8 +105,10 @@ class ChatRoom extends StatelessWidget {
 
 class ChatRoomsTile extends StatelessWidget {
   const ChatRoomsTile({this.userName, @required this.chatRoomId});
-  final String userName;
+
   final String chatRoomId;
+  final String userName;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

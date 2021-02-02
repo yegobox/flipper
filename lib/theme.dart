@@ -9,8 +9,8 @@ final ThemeData Function() appTheme = () => ThemeData.light().copyWith(
       visualDensity: VisualDensity.adaptivePlatformDensity,
       primaryColor: const Color(0xff145C9E),
       secondaryHeaderColor: const Color(0xff14171A),
-      scaffoldBackgroundColor: const Color(
-          0xffF2F2F2), // https://stackoverflow.com/questions/50081213/how-do-i-use-hexadecimal-color-strings-in-flutter
+      scaffoldBackgroundColor: Colors
+          .white, // https://stackoverflow.com/questions/50081213/how-do-i-use-hexadecimal-color-strings-in-flutter
       canvasColor: const Color(0xffF2F2F2),
       buttonColor: const Color(0xff005AE4),
       accentColor: Colors.cyan[600],

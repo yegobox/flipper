@@ -36,7 +36,11 @@ class DynamicLinkService {
         minimumVersion: 1,
       ),
     );
-    final shortLink = await parameters.buildShortLink();
-    return shortLink;
+    try {
+      final shortLink = await parameters.buildShortLink();
+      return shortLink;
+    } catch (PlatformException) {
+      return null;
+    }
   }
 }

@@ -13,12 +13,14 @@ class ProductView extends StatelessWidget {
   const ProductView(
       {Key key, this.userId, this.items, this.sellingModeView = false})
       : super(key: key);
-  final String userId;
+
   final bool items;
   final bool sellingModeView;
+  final String userId;
 
   Widget editModeView({ProductsViewModel model}) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         title: const Text(
@@ -57,9 +59,12 @@ class ProductView extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 1,
+                      // ignore: prefer_const_literals_to_create_immutables
                       child: Row(children: [
-                        const Expanded(
-                            child: Icon(FontAwesome.chevron_right, size: 20)),
+                        // ignore: prefer_const_constructors
+                        Expanded(
+                            child: const Icon(FontAwesome.chevron_right,
+                                size: 20)),
                       ]),
                     ),
                   ],
@@ -90,6 +95,7 @@ class ProductView extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 1,
+                      // ignore: prefer_const_literals_to_create_immutables
                       child: Row(children: [
                         const Expanded(
                             child: Icon(FontAwesome.chevron_right, size: 20)),
@@ -119,6 +125,7 @@ class ProductView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
+                    // ignore: prefer_const_literals_to_create_immutables
                     child: Row(children: [
                       const Expanded(
                           child: Icon(FontAwesome.chevron_right, size: 20)),
@@ -151,6 +158,7 @@ class ProductView extends StatelessWidget {
                     ),
                     Expanded(
                       flex: 1,
+                      // ignore: prefer_const_literals_to_create_immutables
                       child: Row(children: [
                         const Expanded(
                             child: Icon(
@@ -183,6 +191,7 @@ class ProductView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
+                    // ignore: prefer_const_literals_to_create_immutables
                     child: Row(children: [
                       const Expanded(
                           child: Icon(
@@ -214,6 +223,7 @@ class ProductView extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 1,
+                    // ignore: prefer_const_literals_to_create_immutables
                     child: Row(children: [
                       const Expanded(
                           child: Icon(
@@ -271,16 +281,14 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
   final BuildContext context;
   final String createButtonName;
   final List<Product> data;
+  final Logger log = Logging.getLogger('product view');
   final bool shouldSeeItem;
   final bool showCreateItemOnTop;
   final String userId;
 
-  final Logger log = Logging.getLogger('product view');
-
   @override
   Widget build(BuildContext context, ProductsViewModel viewModel) {
     // final isMobile = MediaQuery.of(context).size.width < 700;
-
     return buildProductList(
       products: data,
       context: context,
@@ -290,8 +298,11 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
       shouldSeeItem: shouldSeeItem,
     ).isEmpty
         ? const SizedBox.shrink()
-        : Material(
-            child: Padding(
+        : Scaffold(
+            backgroundColor: Theme.of(context)
+                .copyWith(canvasColor: Colors.white)
+                .canvasColor,
+            body: Padding(
               padding: const EdgeInsets.only(left: 10.0, right: 10.0),
               child: ListView(
                 shrinkWrap: true,

@@ -52,6 +52,9 @@ class HomeView extends StatelessWidget {
         builder: (BuildContext context, HomeViewModel model, Widget child) {
           return Scaffold(
             extendBody: true,
+            backgroundColor: Theme.of(context)
+                .copyWith(canvasColor: Colors.white)
+                .canvasColor,
             key: _scaffoldKey,
             appBar: HomeAppBar(
                 scaffoldKey: _scaffoldKey,

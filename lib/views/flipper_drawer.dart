@@ -4,9 +4,7 @@ import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
-import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 import 'package:stacked/stacked.dart';
@@ -15,8 +13,8 @@ import 'business/business_list.dart';
 
 class FlipperDrawer extends StatelessWidget {
   FlipperDrawer({Key key}) : super(key: key);
+
   final DynamicLinkService _link = locator<DynamicLinkService>();
-  final FlipperNavigationService _navigationService = ProxyService.nav;
 
   ListTile _menuListRowButton(String title,
       {Function onPressed,

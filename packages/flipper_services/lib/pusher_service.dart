@@ -18,6 +18,9 @@ class PusherService {
         PusherOptions(cluster: 'ap2'));
     final Map data = {'message': 'sync-clients'};
     //first sync is channel and the second is event
-    await pusher.trigger(['sync'], 'sync', data);
+    try {
+      await pusher.trigger(['sync'], 'sync', data);
+      // ignore: empty_catches
+    } catch (e) {} //in case of internet not available
   }
 }
