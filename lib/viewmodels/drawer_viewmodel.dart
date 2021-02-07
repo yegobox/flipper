@@ -93,7 +93,7 @@ class DrawerViewModel extends ReactiveViewModel {
   Future<void> desktopLogin({BuildContext context, String code}) async {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
 
-    await http.post('https://flipper.rw/api/ws', body: {
+    await http.post('https://flipper.yegobox.com/api/ws', body: {
       'code': code,
       'token': store.state.user.token
     }, headers: {
@@ -113,7 +113,6 @@ class DrawerViewModel extends ReactiveViewModel {
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
-
     await desktopLogin(context: context, code: barcodeScanRes);
   }
 

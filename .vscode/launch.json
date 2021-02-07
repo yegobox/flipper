@@ -8,6 +8,12 @@
             "name": "Android",
             "program": "lib/main.dart",
             "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "Android 1",
+            "program": "lib/main.dart",
+            "request": "launch",
             "type": "dart",
             "deviceId": "emulator-5554"
         },
