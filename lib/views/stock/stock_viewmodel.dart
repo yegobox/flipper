@@ -66,7 +66,6 @@ class StockViewModel extends BaseModel {
         'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
 
     q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': productId};
-
     final variants = q.execute();
     if (variants.isNotEmpty) {
       for (Map map in variants) {
