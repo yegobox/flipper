@@ -5,22 +5,17 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:logger/logger.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  // await Firebase.initializeApp();
-
-  print('Handling a background message: ${message.data}');
-}
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   print('Handling a background message: ${message.data}');
+// }
 
 bool get isInDebugMode {
   bool inDebugMode = false;
@@ -31,25 +26,20 @@ bool get isInDebugMode {
 Future<void> main() async {
   Cbl.init();
   WidgetsFlutterBinding.ensureInitialized();
-  AwesomeNotifications().initialize(
-      // set the icon to null if you want to use the default app icon
-      // 'resource://drawable/res_app_icon'
-      null,
-      [
-        NotificationChannel(
-            channelKey: 'basic_channel',
-            channelName: 'Basic',
-            channelDescription: 'flipper notifications',
-            // ignore: prefer_const_constructors
-            defaultColor: Color(0xFF9D50DD),
-            ledColor: Colors.white)
-      ]);
+  // AwesomeNotifications().initialize(
+  //     null,
+  //     [
+  //       NotificationChannel(
+  //           channelKey: 'basic_channel',
+  //           channelName: 'Basic',
+  //           channelDescription: 'flipper notifications',
+  //           defaultColor:const Color(0xFF9D50DD),
+  //           ledColor: Colors.white)
+  //     ]);
   initializeDateFormatting();
 
-  // await DotEnv().load('.env');
-
   await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupLocator();
 
   if (isInDebugMode) {
@@ -70,7 +60,6 @@ Future<void> main() async {
     // FIXME: fix bellow crashlytics line
     // await Crashlytics.instance.recordFlutterError(e);
   };
-//
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -79,16 +68,15 @@ Future<void> main() async {
         statusBarIconBrightness: Brightness.light,
       ),
     );
-    AwesomeNotifications().initialize('resource://drawable/res_app_icon', [
-      NotificationChannel(
-          channelKey: 'big_picture',
-          channelName: 'Big pictures',
-          channelDescription: 'Notifications with big and beautiful images',
-          defaultColor: const Color(0xFF9D50DD),
-          ledColor: const Color(0xFF9D50DD),
-          vibrationPattern: lowVibrationPattern),
-    ]);
-
+    // AwesomeNotifications().initialize('resource://drawable/res_app_icon', [
+    //   NotificationChannel(
+    //       channelKey: 'big_picture',
+    //       channelName: 'Big pictures',
+    //       channelDescription: 'Notifications with big and beautiful images',
+    //       defaultColor: const Color(0xFF9D50DD),
+    //       ledColor: const Color(0xFF9D50DD),
+    //       vibrationPattern: lowVibrationPattern),
+    // ]);
     runApp(const FlipperApp());
   }, (Object e, StackTrace s) async {
     // Crashlytics.instance.setBool('runZonedGuarded', true);
