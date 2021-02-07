@@ -56,12 +56,12 @@ jobs:
       run: sed -i 's/#{KEYSTORE_PASS}#/${{ secrets.KEYSTORE_PASS }}/g' android/key.properties
     - name: Update KeyStore key password in gradle properties
       run: sed -i 's/#{KEYSTORE_KEY_PASS}#/${{ secrets.KEYSTORE_KEY_PASS }}/g' android/key.properties
-    - name: Update env URL
-      run: sed -i 's/#{URL}#/${{ secrets.URL }}/g'  .env
-    - name: Update env PASS
-      run: sed -i 's/#{PASS}#/${{ secrets.PASS }}/g' .env
-    - name: Update env GMPASS
-      run: sed -i 's/#{GMPASS}#/${{ secrets.GMPASS }}/g' .env
+    # - name: Update env URL
+    #   run: sed -i 's/#{URL}#/${{ secrets.URL }}/g'  .env
+    # - name: Update env PASS
+    #   run: sed -i 's/#{PASS}#/${{ secrets.PASS }}/g' .env
+    # - name: Update env GMPASS
+    #   run: sed -i 's/#{GMPASS}#/${{ secrets.GMPASS }}/g' .env
     - uses: actions/setup-java@v1
       with:
         java-version: '8.x'
