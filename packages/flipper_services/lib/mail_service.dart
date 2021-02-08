@@ -2,7 +2,7 @@ library flipper_services;
 
 import 'package:flipper_models/fuser.dart';
 import 'package:flipper_services/logger.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
@@ -14,8 +14,8 @@ class MailService {
   Future<void> sendEmail({FUser user}) async {
     final Logger log = Logging.getLogger('Mail service:');
 
-    final String username = DotEnv().env['GMAIL_EMAIL'];
-    final String password = DotEnv().env['GMAIL_PASSWORD'];
+    final String username = "";
+    final String password = "";
     // log.i(username);
     // log.i(password);
     final SmtpServer smtpServer = gmail(username, password);
