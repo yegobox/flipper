@@ -19,7 +19,7 @@ class SalesView extends StatelessWidget {
     return ViewModelBuilder<ReportViewModel>.reactive(
         builder: (BuildContext context, ReportViewModel model, Widget child) {
           return Scaffold(
-            resizeToAvoidBottomPadding: false,
+            // resizeToAvoidBottomPadding: false, //FIXME:this does not exist in beta channel but on stable channel
             appBar: AppBar(
               backgroundColor: Colors.white,
               title: Text(
@@ -325,7 +325,7 @@ class SalesView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding:const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
               Row(
@@ -463,7 +463,7 @@ class SalesView extends StatelessWidget {
                             textStyle: TextStyle(
                                 fontSize: 12.0, color: Colors.grey[800]))),
                   ),
-                 const Expanded(
+                  const Expanded(
                       flex: 1,
                       child: Icon(
                         Entypo.dots_three_horizontal,
@@ -471,7 +471,7 @@ class SalesView extends StatelessWidget {
                       )),
                 ],
               ),
-             const SizedBox(
+              const SizedBox(
                 height: 20.0,
               ),
               Row(
@@ -506,8 +506,7 @@ class SalesView extends StatelessWidget {
                         style: GoogleFonts.lato(
                             fontWeight: FontWeight.bold,
                             textStyle: const TextStyle(
-                                fontSize: 15.0,
-                                color:  Color(0xFF1E96F0)))),
+                                fontSize: 15.0, color: Color(0xFF1E96F0)))),
                   ),
                   Expanded(
                       flex: 1,
@@ -1005,7 +1004,6 @@ class SalesView extends StatelessWidget {
                       ),
                     ],
                   )),
-             
             ),
             // Adding Gross button here
           ]),
