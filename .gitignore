@@ -81,4 +81,4 @@ lib/generated_plugin_registrant.dart
 !.idea/
 .flutter-plugins-dependencies
 google-services.json
-.env
+# .env

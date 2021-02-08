@@ -117,6 +117,7 @@ class AddProductModalViewModal extends BaseModel {
       });
 
       final id3 = Uuid().v1();
+
       _databaseService.insert(id: id3, data: {
         'variantId': variantId,
         'supplyPrice': 0.0,

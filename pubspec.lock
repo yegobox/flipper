@@ -586,7 +586,7 @@ packages:
       name: flutter_dotenv
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "3.1.0"
   flutter_hooks:
     dependency: transitive
     description:
@@ -1108,6 +1108,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  pusher_beams:
+    dependency: "direct main"
+    description:
+      name: pusher_beams
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.3+3"
   quiver:
     dependency: transitive
     description:
