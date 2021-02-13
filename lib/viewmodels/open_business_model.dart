@@ -35,13 +35,13 @@ class OpenBusinessModel extends BaseModel {
       'table': AppTables.drawerHistory,
       'businessState': businessState == BusinessState.OPEN ? 'Open' : 'Close',
       'note': note,
-      'businessId': vm.currentBusiness.id,
+      'businessId': ProxyService.sharedState.business.id,
       'userId': vm.user.id.toString(),
       'channels': [vm.user.id.toString()],
       'uid': Uuid().v1()
     });
     await openCloseBusiness(
-      businessId: vm.currentBusiness.id,
+      businessId: ProxyService.sharedState.business.id,
       userId: vm.user.id.toString(),
       isSocial: false,
       name: vm.user.name,

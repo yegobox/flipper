@@ -161,14 +161,14 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
 }
 
 Future saveDeviceToken(value) async {
-  final String token = await ProxyService.sharedPref.getToken();
-  await http.post('https://flipper.yegobox.com/save-token', body: {
-    'phone': FUser.fromMap(value).name, // a name is a phone number in flipper!
-    'token': token
-  }, headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Accept': 'application/json'
-  });
+  // final String token = await ProxyService.sharedPref.getToken();
+  // await http.post('https://flipper.yegobox.com/save-token', body: {
+  //   'phone': FUser.fromMap(value).name, // a name is a phone number in flipper!
+  //   'token': token
+  // }, headers: {
+  //   'Content-Type': 'application/x-www-form-urlencoded',
+  //   'Accept': 'application/json'
+  // });
 }
 
 Future<List<Branch>> getBranches(
@@ -300,6 +300,8 @@ Future<void> getBusinesses(
     for (Map map in results) {
       map.forEach((key, value) {
         if (!businesses.contains(Business.fromMap(value))) {
+          ProxyService.sharedState
+              .setBusiness(business: Business.fromMap(value));
           openCloseBusiness(
             isSocial: false,
             name: ProxyService.sharedState.user.name,

@@ -20,26 +20,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/flipper_drawer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/flipper_drawer.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_room_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_room_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chatrooms.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chatrooms.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/database.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/search.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_contacts/lib/contact_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/fetch_contacts_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/fetch_contacts_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[FA77S0306827]" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>

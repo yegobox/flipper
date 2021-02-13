@@ -243,25 +243,25 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   Future<http.Response> loginToFlipper() async {
-    ProxyService.sharedState.setUser(
-        user: FUser.fromMap({'name': widget.phone.toString(), 'userId': '1'}));
+    final String phoneNumber =
+        widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
     final http.Response response =
         await http.post('https://flipper.yegobox.com/open-login', body: {
-      'phone': widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '')
+      'phone': phoneNumber
     }, headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json'
     });
     // save a device token for this client
-    final String token = await ProxyService.sharedPref.getToken();
-    final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
-    await http.post('https://flipper.yegobox.com/save-token', body: {
-      'phone': phone,
-      'token': token
-    }, headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json'
-    });
+    // final String token = await ProxyService.sharedPref.getToken();
+    // final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
+    // await http.post('https://flipper.yegobox.com/save-token', body: {
+    //   'phone': phone,
+    //   'token': token
+    // }, headers: {
+    //   'Content-Type': 'application/x-www-form-urlencoded',
+    //   'Accept': 'application/json'
+    // });
     //end saving the token
     return response;
   }
