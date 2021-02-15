@@ -49,7 +49,8 @@ class BusinessList extends StatelessWidget {
     return Container(
         height: _Style.thirdSectionHeight,
         child: Column(
-          children: <Widget>[
+          // ignore: prefer_const_literals_to_create_immutables
+          children: [
             _Style.defaultPadding,
             // TODO: future feature
             // _GroupSettingsButton(

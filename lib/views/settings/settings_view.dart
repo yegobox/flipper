@@ -1,4 +1,5 @@
 import 'package:flipper/views/settings/bluethooth/bluethooth_viewmodel.dart';
+import 'package:flipper_models/printable.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:customappbar/customappbar.dart';
@@ -10,6 +11,21 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<Printable> print = [];
+    // test data to print:
+    print.add(Printable((PrintableBuilder p) => p
+      ..price = 400
+      ..unit = 'kg'
+      ..quantity = 10
+      ..amount = 10
+      ..name = 'B'));
+    print.add(Printable((PrintableBuilder p) => p
+      ..price = 400
+      ..unit = 'kg'
+      ..quantity = 10
+      ..amount = 10
+      ..name = 'B'));
+    //end test data to print:
     return ViewModelBuilder.reactive(
         builder:
             (BuildContext context, BlueToothViewModel model, Widget child) {
@@ -78,9 +94,10 @@ class SettingsView extends StatelessWidget {
                     child: const Text('Print'),
                   ),
                   OutlineButton(
-                    onPressed: model.state.blueConnected
-                        ? model.blue.printTicket
-                        : null,
+                    onPressed: () => {
+                      if (model.state.blueConnected)
+                        {model.blue.printTicket(printables: print)}
+                    },
                     child: const Text('Print Ticket'),
                   ),
                 ],

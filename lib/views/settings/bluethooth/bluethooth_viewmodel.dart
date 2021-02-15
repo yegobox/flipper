@@ -19,9 +19,10 @@ class BlueToothViewModel extends ReactiveViewModel {
   }
 
   Future<void> setConnect(String mac) async {
-    print(mac);
+    // print(mac);
     final String result = await BluetoothThermalPrinter.connect(mac);
-    print('state connected $result');
+    // print(result);
+    // print('state connected $result');
     if (result == 'true') {
       state.setBluethoothConnected(connected: true);
     } else {

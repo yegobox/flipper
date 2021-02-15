@@ -1,10 +1,12 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 import 'package:stacked/stacked.dart';
@@ -118,9 +120,9 @@ class FlipperDrawer extends StatelessWidget {
     );
   }
 
-  // void _navigateTo(String path) {
-  //   _navigationService.navigateTo(path);
-  // }
+  void _navigateTo(String path) {
+    ProxyService.nav.navigateTo(path);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -185,11 +187,12 @@ class FlipperDrawer extends StatelessWidget {
                             // _menuListRowButton('Flipper deals',
                             //     context: context, icon: AppIcon.twitterAds),
                             // const Divider(),
-                            // _menuListRowButton('Settings and privacy',
-                            //     context: context,
-                            //     isEnable: true, onPressed: () {
-                            //   _navigateTo(Routing.settingsView);
-                            // }),
+                            _menuListRowButton('Settings and privacy',
+                                context: context,
+                                isEnable: true, onPressed: () {
+                              _navigateTo(Routing.settingsView);
+                            }),
+
                             const Divider(),
                             _menuListRowButton(
                               'Help Center',

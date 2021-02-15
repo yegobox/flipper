@@ -6,10 +6,13 @@ import 'dart:async';
 // import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:bluetooth_thermal_printer/bluetooth_thermal_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:flipper_models/printable.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 // import 'package:flipper_services/services/shared_state_service.dart';
 // import 'package:flipper_services/locator.dart';
 
-import 'locator.dart';
+// import 'locator.dart';
 
 class BlueToothService {
   // ignore: always_specify_types
@@ -18,10 +21,10 @@ class BlueToothService {
   // final Logger log = Logging.getLogger('Bluetooth service ....');
   // final state = locator<SharedStateService>();
 
-  Future<void> printTicket() async {
+  Future<void> printTicket({@required List<Printable> printables}) async {
     final String isConnected = await BluetoothThermalPrinter.connectionStatus;
     if (isConnected == 'true') {
-      final Ticket ticket = await getTicket();
+      final Ticket ticket = await getTicket(printables: printables);
       final result = await BluetoothThermalPrinter.writeBytes(ticket.bytes);
       print('Print $result');
     } else {
@@ -58,39 +61,70 @@ class BlueToothService {
     return ticket;
   }
 
-  Future<Ticket> getTicket() async {
+  Future<Ticket> getTicket({@required List<Printable> printables}) async {
     final CapabilityProfile profile = await CapabilityProfile.load();
     final Ticket ticket = Ticket(PaperSize.mm80, profile);
-    // ticket.text(state.business.name,
-    //     styles: const PosStyles(
-    //       align: PosAlign.center,
-    //       height: PosTextSize.size2,
-    //       width: PosTextSize.size2,
-    //     ),
-    //     linesAfter: 1);
+    ticket.text(ProxyService.sharedState.business.name,
+        styles: const PosStyles(
+          align: PosAlign.center,
+          height: PosTextSize.size2,
+          width: PosTextSize.size2,
+        ),
+        linesAfter: 1);
 
-    // ticket.text(state.user.name, //(this is a phone number)
-    //     styles: const PosStyles(align: PosAlign.center));
-
-    ticket.hr();
-
-    ticket.row([
-      PosColumn(
-          text: 'TOTAL',
+    // ticket.text(
+    //   '+250783054874', //(this is a phone number)
+    //   styles: const PosStyles(align: PosAlign.center),
+    // );
+    // ticket.hr();
+    var total = 0.0;
+    for (Printable printable in printables) {
+      total += printable.quantity * printable.price;
+      ticket.row([
+        PosColumn(
+          text: printable.name +
+              ' * ' +
+              printable.quantity.toInt().toString() +
+              '   ' +
+              printable.unit,
           width: 6,
           styles: const PosStyles(
             align: PosAlign.left,
-            height: PosTextSize.size4,
-            width: PosTextSize.size4,
-          )),
-      PosColumn(
-          text: '160',
+            height: PosTextSize.size1,
+            width: PosTextSize.size1,
+          ),
+        ),
+        PosColumn(
+          text: printable.price.toString(),
           width: 6,
           styles: const PosStyles(
-            align: PosAlign.right,
-            height: PosTextSize.size4,
-            width: PosTextSize.size4,
-          )),
+            align: PosAlign.left,
+            height: PosTextSize.size1,
+            width: PosTextSize.size1,
+          ),
+        )
+      ]);
+    }
+
+    ticket.row([
+      PosColumn(
+        text: 'TOTAL',
+        width: 6,
+        styles: const PosStyles(
+          align: PosAlign.left,
+          height: PosTextSize.size1,
+          width: PosTextSize.size1,
+        ),
+      ),
+      PosColumn(
+        text: total.toInt().toString(),
+        width: 6,
+        styles: const PosStyles(
+          align: PosAlign.left,
+          height: PosTextSize.size1,
+          width: PosTextSize.size1,
+        ),
+      )
     ]);
 
     // ticket.hr(ch: '=', linesAfter: 1);
