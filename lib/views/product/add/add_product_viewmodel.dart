@@ -46,9 +46,6 @@ class AddProductViewmodel extends ReactiveViewModel {
 
   Stock _stock;
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [sharedStateService];
-
   // ignore: missing_return
   String setName({String name}) {
     _name = name;
@@ -98,9 +95,12 @@ class AddProductViewmodel extends ReactiveViewModel {
     assert(product != null);
     // assert(category != null);
     assert(_name != null);
+
+    //first check the color given
+
     await updateProduct(
-      productId: product
-          .id, //to make life easy we make a regular variant have the same id as product
+      productId: product.id,
+      color: sharedStateService.currentColor.name,
       categoryId: category == null ? '10' : category.id,
     );
     // we look for a regular variant which is always have id=to productID and updated it with pricing.
@@ -170,11 +170,15 @@ class AddProductViewmodel extends ReactiveViewModel {
   }
 
   Future<bool> updateProduct(
-      {CommonViewModel vm, String productId, String categoryId}) async {
+      {CommonViewModel vm,
+      String productId,
+      String categoryId,
+      String color}) async {
     final Document product = _databaseService.getById(id: productId);
 
     assert(product != null);
     product.properties['name'] = _name;
+    product.properties['color'] = color;
     product.properties['isDraft'] = false;
     product.properties['description'] = _description ?? 'No Description';
 
@@ -249,4 +253,7 @@ class AddProductViewmodel extends ReactiveViewModel {
     _description = description;
     notifyListeners();
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [sharedStateService];
 }
