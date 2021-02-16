@@ -21,7 +21,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
 
   Widget _iconRow() {
     return Container(
-      height: 50,
+      height: 65,
       decoration: BoxDecoration(
           color: Theme.of(context).bottomAppBarColor,
           boxShadow: [
@@ -35,23 +35,23 @@ class _BottomMenubarState extends State<BottomMenubar> {
         children: <Widget>[
           _icon(null, widget.model.tab == 0 ? true : false, 0,
               icon: 0 == 0 ? AppIcon.homeFill : AppIcon.home,
-              isCustomIcon: true),
+              isCustomIcon: true,text: "Keypad"),
           _icon(null, widget.model.tab == 1 ? true : false, 1,
-              icon: 1 == 1 ? AppIcon.lists : AppIcon.lists, isCustomIcon: true),
-          _icon(null, widget.model.tab == 2 ? true : false, 2,
-              icon: 3 == 3 ? AppIcon.chat : AppIcon.chat,
-              isCustomIcon: false,
-              message: true),
-          _icon(null, widget.model.tab == 3 ? true : false, 3,
-              icon: 4 == 4 ? AppIcon.messageFill : AppIcon.messageEmpty,
-              isCustomIcon: true),
+              icon: 1 == 1 ? AppIcon.lists : AppIcon.lists, isCustomIcon: true,text: "Library"),
+          // _icon(null, widget.model.tab == 2 ? true : false, 2,
+          //     icon: 3 == 3 ? AppIcon.chat : AppIcon.chat,
+          //     isCustomIcon: false,
+          //     message: true),
+          // _icon(null, widget.model.tab == 3 ? true : false, 3,
+          //     icon: 4 == 4 ? AppIcon.messageFill : AppIcon.messageEmpty,
+          //     isCustomIcon: true),
         ],
       ),
     );
   }
 
   Widget _icon(IconData iconData, bool focus, int index,
-      {bool isCustomIcon = false, bool message = false, int icon}) {
+      {bool isCustomIcon = false, bool message = false, int icon, String text}) {
     return Expanded(
       child: Container(
         height: double.infinity,
@@ -73,10 +73,10 @@ class _BottomMenubarState extends State<BottomMenubar> {
                       icon: icon,
                       size: 22,
                       istwitterIcon: true,
-                      isEnable: focus)
+                      isEnable: focus,text:text)
                   : message
                       ? Icon(
-                          Icons.message,
+                          Icons.home_filled,
                           color: focus
                               ? Theme.of(context).primaryColor
                               : Theme.of(context).textTheme.caption.color,
