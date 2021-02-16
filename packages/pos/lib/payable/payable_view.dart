@@ -12,8 +12,9 @@ class PayableView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Container(
-          width: MediaQuery.of(context).size.width - 42,
+          width: MediaQuery.of(context).size.width - 28,
           height: 60,
+          margin: EdgeInsetsDirectional.only(top: 15),
           child: FlatButton(
             color: Theme.of(context)
                 .copyWith(canvasColor: HexColor('#2996CC'))
@@ -25,19 +26,19 @@ class PayableView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  'Charge  ',
+                  'Charge FRW '+model.expression,
                   style: const TextStyle(
                     fontSize: 20.0,
                     color: Colors.white,
                   ),
                 ),
-                Text(
-                  'FRW ' + model.expression,
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                )
+                // Text(
+                //   'FRW ' + model.expression,
+                //   style: const TextStyle(
+                //     fontSize: 20.0,
+                //     color: Colors.white,
+                //   ),
+                // )
               ],
             ),
           ),
