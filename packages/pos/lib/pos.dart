@@ -20,7 +20,8 @@ class KeyPad extends StatelessWidget {
             Display(
               model: model,
             ),
-            Expanded(child: Keyboard(model: model))
+            Expanded(
+                child: Keyboard(model: model))
           ],
         ),
       ),
@@ -40,22 +41,37 @@ class Display extends StatelessWidget {
         child: PayableView(model: model),
       ),
       Padding(
-        padding: const EdgeInsets.only(right: 20.0),
+        padding: const EdgeInsets.only(right: 20.0,top: 25.0,left: 20.0,bottom: 25.0),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Expanded(
               child: Text(
-                'Frw ' + model.expression,
+                'Add a note',
+                textAlign: TextAlign.left,
+                style: const TextStyle(
+                  fontFeatures: [
+                    FontFeature.enable('sups'),
+                  ],
+                  fontSize: 15.0,
+                  color: Colors.black26,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                'FRW ' + model.expression,
                 textAlign: TextAlign.right,
                 style: const TextStyle(
                   fontFeatures: [
                     FontFeature.enable('sups'),
                   ],
-                  fontSize: 40.0,
-                  color: Colors.black,
+                  fontSize: 20.0,
+                  color: Colors.black26,
                 ),
               ),
-            )
+            ),
+
           ],
         ),
       ),
@@ -81,8 +97,14 @@ class Keyboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.count(
       crossAxisCount: 3,
-      padding: const EdgeInsets.all(2.0),
-      crossAxisSpacing: 1.0,
+      //childAspectRatio: 1.0,
+
+      childAspectRatio: 1.1,
+      //padding: const EdgeInsets.all(2.0),
+
+      //crossAxisSpacing: 4.0,
+     // padding: const EdgeInsets.all(2.0),
+     // crossAxisSpacing: 1.0,
       children: <String>[
         // @formatter:off
         '1', '2', '3',
@@ -97,6 +119,7 @@ class Keyboard extends StatelessWidget {
       }).toList(),
     );
   }
+
 }
 
 class KeyboardKey extends StatelessWidget {
@@ -107,17 +130,17 @@ class KeyboardKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: SingleChildScrollView(
+      // child: SingleChildScrollView(
         child: SizedBox(
-          width: 130.99,
-          height: 127.2,
+          width: 100,
+          height: 80,
           child: InkWell(
             enableFeedback: false,
             onTap: () => {model.addKey(_keyValue)},
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: const Color.fromRGBO(0, 0, 0, 0.1),
+                  color: const Color.fromRGBO(0, 0, 0, 0.2),
                   width: 0.0,
                 ),
               ),
@@ -127,13 +150,13 @@ class KeyboardKey extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodyText1
-                      .copyWith(fontSize: 40, fontWeight: FontWeight.normal),
+                      .copyWith(fontSize: 30, fontWeight: FontWeight.normal),
                 ),
               ),
             ),
           ),
         ),
-      ),
+    //  ),
     );
   }
 }
