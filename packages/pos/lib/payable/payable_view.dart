@@ -23,19 +23,8 @@ class PayableView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Expanded(
-                child: FlatButton(
-                  onPressed: () {
-                    // model.nvaigate();
-                  },
-                  child: Container(
-                    child: Text(
-                      'Save',
-                      style: const TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                child: Container(
+                  child: callText(model),
                 ),
               ),
               Expanded(
@@ -67,5 +56,29 @@ class PayableView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  callText(PosViewModel model) {
+    if (model.expression == "0.0" || model.expression == "") {
+      return const Text(
+        'Tickets',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+      );
+    } else {
+      return const Text(
+        'Save',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+      );
+    }
   }
 }

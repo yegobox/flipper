@@ -30,11 +30,15 @@ class KeyPad extends StatelessWidget {
 }
 
 class Display extends StatelessWidget {
-  const Display({Key key, this.model}) : super(key: key);
+  Display({Key key, this.model}) : super(key: key);
   final PosViewModel model;
+  TextEditingController etAmount;
+  String userAmt = "";
 
   @override
   Widget build(BuildContext context) {
+    etAmount = TextEditingController(text: userAmt);
+    print("dddddddddddddd" + model.expression);
     final views = <Widget>[
       Padding(
         padding: const EdgeInsets.only(left: 5.0, right: 5.0),
@@ -61,19 +65,24 @@ class Display extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Text(
-                'FRw' + model.expression,
-                textAlign: TextAlign.right,
-               //  maxLines: 2,
-                softWrap: true,
-                style: const TextStyle(
-                  fontFeatures: [
-                    FontFeature.enable('sups'),
-                  ],
-                  fontSize: 28.0,
-                  color: const Color(0xffc2c7cc),
-                ),
-              ),
+              child: callText(model),
+              // child:TextField(
+              //   controller: etAmount,
+              //   onChanged: (value) => userAmt = value,
+              //   decoration: new InputDecoration(
+              //       border: InputBorder.none,
+              //       focusedBorder: InputBorder.none,
+              //       contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+              //       hintText:'FRw0.00'
+              //   ),
+              //   style: const TextStyle(
+              //     fontFeatures: [
+              //       FontFeature.enable('sups'),
+              //     ],
+              //     fontSize: 28.0,
+              //     color: const Color(0xffc2c7cc),
+              //   ),
+              // ),
             ),
           ],
         ),
@@ -90,6 +99,38 @@ class Display extends StatelessWidget {
         children: views,
       ),
     );
+  }
+
+  callText(PosViewModel model) {
+    if (model.expression == "0.0" || model.expression == "") {
+     return Text(
+        'FRw0.0',
+        textAlign: TextAlign.right,
+        //  maxLines: 2,
+        softWrap: true,
+        style: const TextStyle(
+          fontFeatures: [
+            FontFeature.enable('sups'),
+          ],
+          fontSize: 28.0,
+          color: const Color(0xffc2c7cc),
+        ),
+      );
+    } else {
+     return Text(
+        'FRw' + model.expression,
+        textAlign: TextAlign.right,
+        //  maxLines: 2,
+        softWrap: true,
+        style: const TextStyle(
+          fontFeatures: [
+            FontFeature.enable('sups'),
+          ],
+          fontSize: 28.0,
+          color: const Color(0xff3d454c),
+        ),
+      );
+    }
   }
 }
 
@@ -136,9 +177,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -157,7 +198,8 @@ class Keyboard extends StatelessWidget {
                               top: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
-                              bottom: BorderSide(color: const Color(0xffc1c6cb)),
+                              bottom:
+                                  BorderSide(color: const Color(0xffc1c6cb)),
                               //bottom: BorderSide(width: 1.0, color: Color(0xFFFF7F7F7F)),
                             ),
                           ),
@@ -171,9 +213,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -191,7 +233,8 @@ class Keyboard extends StatelessWidget {
                             border: Border(
                               top: BorderSide(color: const Color(0xffc1c6cb)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
-                              bottom: BorderSide(color: const Color(0xffc1c6cb)),
+                              bottom:
+                                  BorderSide(color: const Color(0xffc1c6cb)),
                               // left: BorderSide(color: const Color(0xffc1c6cb)),
                               //bottom: BorderSide(width: 1.0, color: Color(0xFFFF7F7F7F)),
                             ),
@@ -206,9 +249,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -246,9 +289,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -264,9 +307,9 @@ class Keyboard extends StatelessWidget {
                           width: MediaQuery.of(context).size.width,
                           decoration: BoxDecoration(
                             border: Border(
-                             // top: BorderSide(color: const Color(0xffc1c6cb)),
+                              // top: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
-                               right: BorderSide(color: const Color(0xffc1c6cb)),
+                              right: BorderSide(color: const Color(0xffc1c6cb)),
                               //  bottom: BorderSide(color: const Color(0xffc1c6cb)),
                             ),
                           ),
@@ -280,9 +323,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -298,8 +341,8 @@ class Keyboard extends StatelessWidget {
                           width: MediaQuery.of(context).size.width,
                           decoration: BoxDecoration(
                             border: Border(
-                            //  top: BorderSide(color: const Color(0xffc1c6cb)),
-                             // left: BorderSide(color: const Color(0xffc1c6cb)),
+                              //  top: BorderSide(color: const Color(0xffc1c6cb)),
+                              // left: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
                               //  bottom: BorderSide(color: const Color(0xffc1c6cb)),
@@ -315,9 +358,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -342,7 +385,7 @@ class Keyboard extends StatelessWidget {
                               top: BorderSide(color: const Color(0xffc1c6cb)),
                               left: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
-                               right: BorderSide(color: const Color(0xffc1c6cb)),
+                              right: BorderSide(color: const Color(0xffc1c6cb)),
                               //  bottom: BorderSide(color: const Color(0xffc1c6cb)),
                             ),
                           ),
@@ -356,9 +399,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -375,7 +418,7 @@ class Keyboard extends StatelessWidget {
                           decoration: BoxDecoration(
                             border: Border(
                               top: BorderSide(color: const Color(0xffc1c6cb)),
-                             // left: BorderSide(color: const Color(0xffc1c6cb)),
+                              // left: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
                               //  bottom: BorderSide(color: const Color(0xffc1c6cb)),
@@ -391,9 +434,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -410,7 +453,7 @@ class Keyboard extends StatelessWidget {
                           decoration: BoxDecoration(
                             border: Border(
                               top: BorderSide(color: const Color(0xffc1c6cb)),
-                             // left: BorderSide(color: const Color(0xffc1c6cb)),
+                              // left: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
                               //  bottom: BorderSide(color: const Color(0xffc1c6cb)),
@@ -426,9 +469,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -454,7 +497,8 @@ class Keyboard extends StatelessWidget {
                               left: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
-                              bottom: BorderSide(color: const Color(0xffc1c6cb)),
+                              bottom:
+                                  BorderSide(color: const Color(0xffc1c6cb)),
                             ),
                           ),
                           alignment: Alignment.center,
@@ -467,9 +511,9 @@ class Keyboard extends StatelessWidget {
                                 .textTheme
                                 .bodyText1
                                 .copyWith(
-                                fontSize: 30,
-                                color:  const Color(0xff3d454c),
-                                fontWeight: FontWeight.normal),
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
                           )),
                     ),
                   ),
@@ -489,7 +533,8 @@ class Keyboard extends StatelessWidget {
                               //left: BorderSide(color: const Color(0xffc1c6cb)),
                               //left: BorderSide(width: 1.0, color: Color(0xFFFFDFDFDF)),
                               right: BorderSide(color: const Color(0xffc1c6cb)),
-                              bottom: BorderSide(color: const Color(0xffc1c6cb)),
+                              bottom:
+                                  BorderSide(color: const Color(0xffc1c6cb)),
                             ),
                           ),
                           alignment: Alignment.center,
@@ -503,7 +548,7 @@ class Keyboard extends StatelessWidget {
                                 .bodyText1
                                 .copyWith(
                                     fontSize: 30,
-                                color:  const Color(0xff3d454c),
+                                    color: const Color(0xff3d454c),
                                     fontWeight: FontWeight.normal),
                           )),
                     ),
@@ -535,7 +580,8 @@ class Keyboard extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyText1.copyWith(
                               fontSize: 40,
-                              color:  const Color(0xff2996cc),fontWeight: FontWeight.normal),
+                              color: const Color(0xff2996cc),
+                              fontWeight: FontWeight.normal),
                         ),
                       ),
                     ),
