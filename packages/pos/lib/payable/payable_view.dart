@@ -58,6 +58,7 @@ class PayableView extends StatelessWidget {
     );
   }
 
+  
   callText(PosViewModel model) {
     if (model.expression == "0.0" || model.expression == "") {
       return const Text(
