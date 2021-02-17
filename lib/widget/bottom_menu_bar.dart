@@ -22,6 +22,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
   Widget _iconRow() {
     return Container(
       height: 65,
+      margin: EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
           color: Theme.of(context).bottomAppBarColor,
           boxShadow: [

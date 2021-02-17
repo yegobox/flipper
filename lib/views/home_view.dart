@@ -26,6 +26,7 @@ class HomeView extends StatelessWidget {
     this.vm,
   }) : super(key: key);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   // ignore!
   // ignore: missing_return
   Widget _getPage(
@@ -63,6 +64,26 @@ class HomeView extends StatelessWidget {
             bottomNavigationBar: BottomMenubar(
               model: model,
             ),
+            // return ViewModelBuilder.reactive(
+            //     builder: (BuildContext context, HomeViewModel model, Widget child) {
+            //       return Scaffold(
+            //         extendBody: true,
+            //         backgroundColor: Theme.of(context)
+            //             .copyWith(canvasColor: Colors.white)
+            //             .canvasColor,
+            //         key: _scaffoldKey,
+            //         appBar: ViewModelBuilder<PosViewModel>.reactive(
+            //             builder: (BuildContext context, PosViewModel pos, Widget child) {
+            //            return  HomeAppBar(
+            //                 scaffoldKey: _scaffoldKey,
+            //                 sideOpenController: sideOpenController,
+            //                 model: pos);
+            //             },  viewModelBuilder: () => PosViewModel(),
+            //         ),
+            //         bottomNavigationBar: BottomMenubar(
+            //             model: model,
+            //           ),
+
             body: ViewModelBuilder<PosViewModel>.reactive(
               builder: (BuildContext context, PosViewModel pos, Widget child) {
                 return Column(
