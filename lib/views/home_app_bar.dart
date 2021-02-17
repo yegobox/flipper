@@ -27,21 +27,43 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               .copyWith(canvasColor: Colors.transparent)
               .canvasColor,
           child: SizedBox(
-            width: double.infinity,
+            width: MediaQuery.of(context).size.width,
             height: 60,
-            child: FlatButton(
-              onPressed: null,
-              child: Text(
-                buildSaleWording(model: model),
-                style: Theme.of(context)
-                    .textTheme
-                    .headline4
-                    .copyWith(color: Colors.black),
-              ),
-            ),
+            child: Row(
+              // crossAxisAlignment: CrossAxisAlignment.center,
+              //  mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Expanded(
+                    child: FlatButton(
+                      onPressed: null,
+                      child: Text(
+                        buildSaleWording(model: model),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headline4
+                            .copyWith(fontSize: 16,
+                            color:  const Color(0xff363f47),
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(right: 10),
+                    child: Text(
+                      'Log Out',
+                      textAlign: TextAlign.end,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headline4
+                          .copyWith( fontSize: 15,
+                          color:  const Color(0xff363f47),
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ]),
           ),
         ),
-        trailing: const SizedBox.shrink(),
+       // trailing: const SizedBox.shrink(),
       ),
     );
   }
@@ -86,7 +108,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: 12,
                     child: ClipOval(
                       child:
-                          Container(color: Colors.green, width: 12, height: 12),
+                          Container(color: const Color(0xff2996cc), width: 12, height: 12),
                     ),
                   ),
                 ),
