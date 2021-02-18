@@ -16,7 +16,7 @@ class PayableView extends StatelessWidget {
           width: MediaQuery.of(context).size.width - 22,
           margin: EdgeInsetsDirectional.only(top: 15),
           height: 60,
-          
+
           color: Theme.of(context)
               .copyWith(canvasColor: HexColor('#2996CC'))
               .canvasColor,
@@ -73,6 +73,7 @@ class PayableView extends StatelessWidget {
     } else {
       return const Text(
         'Save',
+        textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 20.0,
           fontWeight: FontWeight.w500,

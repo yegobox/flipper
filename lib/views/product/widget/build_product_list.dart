@@ -18,14 +18,6 @@ List<Widget> buildProductList(
     @required bool shouldSeeItem}) {
   final List<Widget> list = <Widget>[];
 
-  buildProductRowHeader(
-    list: list,
-    context: context,
-    createButtonName: createButtonName,
-    userId: userId,
-    type: 'add', //on top of product there should be Add buttom
-  );
-
   if (products.isEmpty) {
     return list;
   }
@@ -49,49 +41,66 @@ List<Widget> buildProductList(
               model.onSellingItem(context, product);
             }
           },
-          child: ListTile(
-            contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-            leading: SizedBox(
-              width: 45.0,
-              height: 45.0,
-              child: TextDrawable(
-                backgroundColor: HexColor(product.color),
-                text: product.name,
-                isTappable: true,
-                onTap: null,
-                boxShape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
+          child: Column(children: <Widget>[
+            ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+              // leading: callImageBox(context, product),
+              leading: SizedBox(
+                height: MediaQuery.of(context).size.height,
+                width: 58,
+                child: TextDrawable(
+                  backgroundColor: HexColor(product.color),
+                  text: product.name,
+                  isTappable: true,
+                  onTap: null,
+                  boxShape: BoxShape.rectangle,
+                ),
+              ),
+              title: Text(
+                product.name,
+                style: const TextStyle(color: Colors.black),
+              ),
+              trailing: ViewModelBuilder<StockViewModel>.reactive(
+                viewModelBuilder: () => StockViewModel(),
+                onModelReady: (StockViewModel stockModel) =>
+                    stockModel.loadStockByProductId(
+                        productId: product.id, context: context),
+                builder: (BuildContext context, StockViewModel stockModel,
+                    Widget child) {
+                  // FIXME: fix showing prices when a product has more than one variant
+                  return stockModel.stock.isEmpty || stockModel.stock.length > 1
+                      ? const Text(
+                          ' Prices',
+                          style: TextStyle(color: Colors.black),
+                        )
+                      : Text(
+                          'RWF ' +
+                              stockModel.stock[0].retailPrice
+                                  .toInt()
+                                  .toString(),
+                          style: const TextStyle(color: Colors.black),
+                        );
+                },
               ),
             ),
-            title: Text(
-              product.name,
-              style: const TextStyle(color: Colors.black),
+            Container(
+              height: 0.5,
+              color: Colors.black26,
             ),
-            trailing: ViewModelBuilder<StockViewModel>.reactive(
-              viewModelBuilder: () => StockViewModel(),
-              onModelReady: (StockViewModel stockModel) =>
-                  stockModel.loadStockByProductId(
-                      productId: product.id, context: context),
-              builder: (BuildContext context, StockViewModel stockModel,
-                  Widget child) {
-                // FIXME: fix showing prices when a product has more than one variant
-                return stockModel.stock.isEmpty || stockModel.stock.length > 1
-                    ? const Text(
-                        ' Prices',
-                        style: TextStyle(color: Colors.black),
-                      )
-                    : Text(
-                        'RWF ' +
-                            stockModel.stock[0].retailPrice.toInt().toString(),
-                        style: const TextStyle(color: Colors.black),
-                      );
-              },
-            ),
-          ),
+          ]),
         ),
       );
     }
   }
+
+  buildProductRowHeader(
+    list: list,
+    context: context,
+    createButtonName: createButtonName,
+    userId: userId,
+    type: 'add', //on top of product there should be Add buttom
+  );
+
   if (!showCreateItemOnTop) {
     buildProductRowHeader(
       list: list,
@@ -103,4 +112,32 @@ List<Widget> buildProductList(
   }
 
   return list;
+}
+
+callImageBox(BuildContext context, Product product) {
+  if (product.hasPicture) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      width: 58,
+      child: ImageIcon(
+        AssetImage(
+          product.picture,
+        ),
+        color: Colors.white,
+      ),
+    );
+  } else {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      width: 58,
+      child: TextDrawable(
+        backgroundColor: Colors.black38,
+        text: product.name,
+        isTappable: true,
+        onTap: null,
+        boxShape: BoxShape.rectangle,
+        //  borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
 }
