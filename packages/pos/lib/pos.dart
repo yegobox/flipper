@@ -7,7 +7,7 @@ import 'package:pos/payable/payable_view.dart';
 import 'pos_viewmodel.dart';
 
 class KeyPad extends StatelessWidget {
-  const KeyPad({Key key, this.model}) : super(key: key);
+  KeyPad({Key key, this.model}) : super(key: key);
   final PosViewModel model;
 
   @override
@@ -29,41 +29,52 @@ class KeyPad extends StatelessWidget {
   }
 }
 
-class Display extends StatelessWidget {
+class Display extends StatefulWidget {
   Display({Key key, this.model}) : super(key: key);
   final PosViewModel model;
-  TextEditingController etAmount;
-  String userAmt = "";
+
+  @override
+  _onCreate createState() => _onCreate(model);
+}
+
+class _onCreate extends State<Display> {
+  PosViewModel model;
+  TextEditingController etAddNote;
+  String addNote;
+  _onCreate(this.model);
 
   @override
   Widget build(BuildContext context) {
-    etAmount = TextEditingController(text: userAmt);
+    etAddNote = TextEditingController(text: addNote);
     print("dddddddddddddd" + model.expression);
-    final views = <Widget>[
+    return Column(children: <Widget>[
       Padding(
         padding: const EdgeInsets.only(left: 5.0, right: 5.0),
         child: PayableView(model: model),
       ),
       Container(
-        height: 100,
+        // height: 80,
         padding: const EdgeInsets.only(
-            right: 20.0, top: 20.0, left: 20.0, bottom: 20.0),
+            right: 20.0, top: 15.0, left: 20.0, bottom: 15.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Expanded(
-              child: Text(
-                'Add a note',
-                textAlign: TextAlign.left,
-                style: const TextStyle(
-                  fontFeatures: [
-                    FontFeature.enable('sups'),
-                  ],
-                  fontSize: 15.0,
-                  color: const Color(0xffc2c7cc),
-                ),
-              ),
-            ),
+                child: Container(
+              alignment: Alignment.center,
+              child: InkWell(onTap: () {}, child: _addNoteTextField()),
+              // child: const Text(
+              //   'Add a note',
+              //   textAlign: TextAlign.left,
+              //   style: const TextStyle(
+              //     fontFeatures: [
+              //       FontFeature.enable('sups'),
+              //     ],
+              //     fontSize: 15.0,
+              //     color: Colors.black26,
+              //   ),
+              // ),
+            )),
             Expanded(
               child: callText(model),
               // child:TextField(
@@ -87,23 +98,83 @@ class Display extends StatelessWidget {
           ],
         ),
       ),
-    ];
+    ]);
 
+    // return Container(
+    //   // width: double.infinity,
+    //   color: Theme.of(context)
+    //       .copyWith(canvasColor: Colors.white)
+    //       .canvasColor, //this can be set to a visible color, when designing
+    //   padding: const EdgeInsets.all(0.0),
+    //   child: Column(
+    //     children: views,
+    //   ),
+    //);
+  }
+
+  // Widget _addNoteTextField() {
+  //   return TextField(
+  //     keyboardType: TextInputType.text,
+  //     cursorColor: const Color(0xffc2c7cc),
+  //     controller: etAddNote,
+  //
+  //     autofocus: true,
+  //     // onChanged: (value) => phoneNumber = value,
+  //     style: TextStyle(
+  //       color: const Color(0xffc2c7cc),
+  //       fontSize: 16.0,
+  //       fontFeatures: [
+  //         FontFeature.enable('sups'),
+  //       ],
+  //     ),
+  //     // decoration: const InputDecoration(
+  //     //   labelStyle: TextStyle(
+  //     //     color: const Color(0xffc2c7cc),
+  //     //     fontFeatures: [
+  //     //       FontFeature.enable('sups'),
+  //     //     ],
+  //     //   ),
+  //     //   focusColor: const Color(0xffc2c7cc),
+  //     //   filled: true,
+  //     //   labelText: "Add a note",
+  //     //),
+  //   );
+  // }
+
+  Widget _addNoteTextField() {
     return Container(
-      // width: double.infinity,
-      color: Theme.of(context)
-          .copyWith(canvasColor: Colors.white)
-          .canvasColor, //this can be set to a visible color, when designing
-      padding: const EdgeInsets.all(0.0),
-      child: Column(
-        children: views,
+      padding: EdgeInsets.only(right: 10),
+      child: TextField(
+        keyboardType: TextInputType.text,
+        cursorColor: Colors.black26,
+        controller: etAddNote,
+        onChanged: (value) => addNote = value,
+        style: const TextStyle(
+          color: const Color(0xff3d454c),
+          fontSize: 15,
+          // fontFeatures: [
+          //   FontFeature.enable('sups'),
+          // ],
+        ),
+        decoration: const InputDecoration(
+          hintText: "Add a note",
+          border: InputBorder.none,
+          hintStyle: const TextStyle(
+            color: Colors.black26,
+            fontSize: 15,
+            fontFeatures: [
+              FontFeature.enable('sups'),
+            ],
+          ),
+        ),
       ),
+      // maxLines: 2,
     );
   }
 
   callText(PosViewModel model) {
     if (model.expression == "0.0" || model.expression == "") {
-     return Text(
+      return Text(
         'FRw0.0',
         textAlign: TextAlign.right,
         //  maxLines: 2,
@@ -112,12 +183,12 @@ class Display extends StatelessWidget {
           fontFeatures: [
             FontFeature.enable('sups'),
           ],
-          fontSize: 28.0,
+          fontSize: 25.0,
           color: const Color(0xffc2c7cc),
         ),
       );
     } else {
-     return Text(
+      return Text(
         'FRw' + model.expression,
         textAlign: TextAlign.right,
         //  maxLines: 2,
@@ -126,7 +197,7 @@ class Display extends StatelessWidget {
           fontFeatures: [
             FontFeature.enable('sups'),
           ],
-          fontSize: 28.0,
+          fontSize: 25.0,
           color: const Color(0xff3d454c),
         ),
       );
