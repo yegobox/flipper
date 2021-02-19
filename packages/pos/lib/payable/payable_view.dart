@@ -34,7 +34,7 @@ class PayableView extends StatelessWidget {
           ),
           Container(
             // padding: EdgeInsets.only(right: 3),
-            width: 1,
+            width: 0.5,
             height: 60,
             color: Colors.black54,
           ),
