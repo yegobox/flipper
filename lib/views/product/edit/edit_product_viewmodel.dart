@@ -107,14 +107,6 @@ class EditProductViewModel extends ReactiveViewModel {
           ),
         ),
       );
-      // FIXME(richard): fix bellow code
-      // store.state.database.productImageDao.insertImageProduct(
-      //   //ignore: missing_required_param
-      //   ProductImageTableData(
-      //     localPath: compresedFile.path,
-      //     productId: widget.productId,
-      //   ),
-      // );
 
       final bool internetAvailable = await isInternetAvailable();
       if (internetAvailable) {
@@ -148,47 +140,34 @@ class EditProductViewModel extends ReactiveViewModel {
     final FlutterUploader uploader = FlutterUploader();
 
     await uploader.enqueue(
-        url: 'https://test.flipper.rw/api/upload',
-        // ignore: always_specify_types
-        files: [
-          FileItem(
-              filename: fileName, savedDir: storagePath, fieldname: 'image')
-        ], // required: list of files that you want to upload
-        method: UploadMethod.POST,
-        // ignore: always_specify_types
-        headers: {'Authorization': 'Bearer  ' + store.state.user.token},
-        // ignore: always_specify_types
-        data: {'product_id': productId},
-        showNotification:
-            true, // send local notification (android only) for upload status
-        tag: 'Backup products images...'); // unique tag for upload task
+      url: 'https://flipper.yegobox.com/upload',
+      files: [
+        FileItem(
+            filename: fileName, savedDir: storagePath, fieldname: 'picture')
+      ], // required: list of files that you want to upload
+      method: UploadMethod.POST,
+      // ignore: always_specify_types
+      // headers: {'Authorization': 'Bearer  ' + store.state.user.token},
+      // ignore: always_specify_types
+      // data: {'product_id': productId},
+      showNotification:
+          true, // send local notification (android only) for upload status
+      tag: 'uploading picture',
+    ); // unique tag for upload task
 
     uploader.progress.listen((UploadTaskProgress progress) {
-      //... code to handle progress
-      print('uploadProgress:' + progress.toString());
+      // print('uploadProgress:' + progress.toString());
     });
     uploader.result.listen((UploadTaskResponse result) async {
       final UploadResponse uploadResponse =
           uploadResponseFromJson(result.response);
-      // final ProductTableData product = await store.state.database.productDao
-      //     .getItemById(productId: uploadResponse.productId);
+
       final DatabaseService _databaseService = ProxyService.database;
-      final Document productDoc =
-          _databaseService.getById(id: uploadResponse.productId);
+      final Document productDoc = _databaseService.getById(id: productId);
 
-      final Product product = Product.fromMap(productDoc.jsonProperties);
-
-      // TODO(richard): update url here
-      // await store.state.database.productDao.updateProduct(
-      //     pro.copyWith(picture: uploadResponse.url, isImageLocal: false));
-
-      // List<ProductImageTableData> p = await store.state.database.productImageDao
-      //     .getByid(productId: productId);
-      // for (var i = 0; i < p.length; i++) {
-      //   store.state.database.productImageDao.deleteImageProduct(p[i]);
-      // }
-
-      // ignore: always_specify_types
+      productDoc.properties['picture'] = uploadResponse.url;
+      _databaseService.update(document: productDoc);
+      // final Product product = Product.fromMap(productDoc.jsonProperties);
     }, onError: (ex, stacktrace) {
       print('error' + stacktrace.toString());
     });
