@@ -252,13 +252,74 @@ class ProductView extends StatelessWidget {
     );
   }
 
+  Widget searchItems({ProductsViewModel model, BuildContext context}) {
+    return Container(
+      height: 500,
+      child: Column(children: [
+        Container(
+          decoration: BoxDecoration(
+              border: Border(
+            // right: BorderSide(color: const Color(0xffc1c6cb)),
+            bottom: BorderSide(color: const Color(0xffc1c6cb)),
+            // right: BorderSide(color: const Color(0xffc1c6cb)),
+          )),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.only(top: 12, bottom: 12, left: 12),
+                  child: Text(
+                    "All Items",
+                    style: const TextStyle(
+                      fontSize: 14.0,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 45,
+                color: Colors.black26,
+              ),
+              Container(
+                // padding: EdgeInsets.only(top: 12, bottom: 12, left: 12),
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/ic_search.png',
+                    width: 65,
+                    height: 45,
+                  ),
+                  color: Colors.black87,
+                  alignment: Alignment.center,
+                  onPressed: () {},
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: BuildProductsView(
+            context: context,
+            data: model.products,
+            shouldSeeItem: false,
+            showCreateItemOnTop: true,
+            createButtonName: 'Add Products',
+            userId: userId,
+          ),
+        ),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, ProductsViewModel model, Widget child) {
           return sellingModeView
               ? editModeView(model: model)
-              : sellingMode(model: model);
+              : searchItems(model: model);
         },
         onModelReady: (ProductsViewModel model) {
           model.getProducts();
@@ -303,21 +364,26 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
                 .copyWith(canvasColor: Colors.white)
                 .canvasColor,
             body: Padding(
-              padding: const EdgeInsets.only(left: 10.0, right: 10.0),
-              child: ListView(
-                shrinkWrap: true,
-                children: ListTile.divideTiles(
-                  context: context,
-                  tiles: buildProductList(
-                      model: viewModel,
-                      products: data,
-                      context: context,
-                      userId: userId,
-                      createButtonName: createButtonName,
-                      showCreateItemOnTop: showCreateItemOnTop,
-                      shouldSeeItem: shouldSeeItem),
-                ).toList(),
-              ),
+              padding: const EdgeInsets.all(0),
+              child:
+              //Column(children: <Widget>[
+                ListView(
+                  shrinkWrap: true,
+                  children: buildProductList(
+                          model: viewModel,
+                          products: data,
+                          context: context,
+                          userId: userId,
+                          createButtonName: createButtonName,
+                          showCreateItemOnTop: showCreateItemOnTop,
+                          shouldSeeItem: shouldSeeItem)
+                      .toList(),
+                ),
+                // Container(
+                //   height: 1,
+                //   color: Colors.black26,
+                // ),
+              //]),
             ),
           );
   }
