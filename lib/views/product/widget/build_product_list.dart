@@ -22,6 +22,14 @@ List<Widget> buildProductList(
     return list;
   }
 
+  buildProductRowHeader(
+    list: list,
+    context: context,
+    createButtonName: createButtonName,
+    userId: userId,
+    type: 'reward', //on top of product there should be Add buttom
+  );
+
   // build a list of products.
   for (Product product in products) {
     if (product != null && product.name != 'tmp') {
@@ -42,6 +50,7 @@ List<Widget> buildProductList(
             }
           },
           child: Column(children: <Widget>[
+
             ListTile(
               contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
               // leading: callImageBox(context, product),

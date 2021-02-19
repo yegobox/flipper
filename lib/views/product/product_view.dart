@@ -286,7 +286,11 @@ class ProductView extends StatelessWidget {
               Container(
                 // padding: EdgeInsets.only(top: 12, bottom: 12, left: 12),
                 child: IconButton(
-                  icon: const Icon(Icons.search),
+                  icon: Image.asset(
+                    'assets/ic_search.png',
+                    width: 65,
+                    height: 45,
+                  ),
                   color: Colors.black87,
                   alignment: Alignment.center,
                   onPressed: () {},

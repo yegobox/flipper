@@ -8,54 +8,51 @@ class PayableView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
+    return
+        //Row(
+        // mainAxisAlignment: MainAxisAlignment.center,
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        //  children: <Widget>[
         Container(
-          width: MediaQuery.of(context).size.width - 22,
-          margin: EdgeInsetsDirectional.only(top: 15),
-          height: 60,
+      width: MediaQuery.of(context).size.width - 22,
+      margin: EdgeInsetsDirectional.only(top: 15),
+      //height: 60,
 
-          color: Theme.of(context)
-              .copyWith(canvasColor: HexColor('#2996CC'))
-              .canvasColor,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  child: callText(model),
-                ),
-              ),
-              Expanded(
-                child: FlatButton(
-                  onPressed: () {
-                    // model.nvaigate();
-                  },
-                  child: Container(
-                    child: Text(
-                      'Charge FRw' + model.expression,
-                      maxLines: 2,
-                      style: const TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Text(
-              //   'FRW ' + model.expression,
-              //   style: const TextStyle(
-              //     fontSize: 20.0,
-              //     color: Colors.white,
-              //   ),
-              // )
-            ],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              alignment: Alignment.center,
+              height: 60,
+              width: MediaQuery.of(context).size.width,
+              color: Theme.of(context)
+                  .copyWith(canvasColor: HexColor('#2996CC'))
+                  .canvasColor,
+              child: callText(model),
+            ),
           ),
-        ),
-      ],
+          Container(
+            // padding: EdgeInsets.only(right: 3),
+            width: 1,
+            height: 60,
+            color: Colors.black54,
+          ),
+          Expanded(
+            child: Container(
+              alignment: Alignment.center,
+              height: 60,
+              width: MediaQuery.of(context).size.width,
+              color: Theme.of(context)
+                  .copyWith(canvasColor: HexColor('#2996CC'))
+                  .canvasColor,
+              child: callCharge(model),
+            ),
+          ),
+        ],
+      ),
+      // ),
+      // ],
     );
   }
 
@@ -71,15 +68,74 @@ class PayableView extends StatelessWidget {
         ),
       );
     } else {
-      return const Text(
-        'Save',
-        textAlign: TextAlign.center,
-        style: TextStyle(
+      return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+                child: Container(
+                    child: Text(
+              'Save',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ))),
+            Container(
+                child: Container(
+                    child: Text(
+              '1 New Item',
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15.0,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
+            )))
+          ]);
+    }
+  }
+
+  callCharge(PosViewModel model) {
+    if (model.expression == "0.0" || model.expression == "") {
+      return Text(
+        'Charge FRw' + model.expression,
+        style: const TextStyle(
           fontSize: 20.0,
-          fontWeight: FontWeight.w500,
           color: Colors.white,
         ),
       );
+    } else {
+      return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+                child: Container(
+                    child: Text(
+              'Charge',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ))),
+            Container(
+                child: Container(
+                  padding: EdgeInsets.only(left: 10),
+                    child: Text(
+              'FRw' + model.expression,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15.0,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
+            )))
+          ]);
     }
   }
 }

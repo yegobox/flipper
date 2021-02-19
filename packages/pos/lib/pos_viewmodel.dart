@@ -33,6 +33,7 @@ class PosViewModel extends ReactiveViewModel {
 
     if (operators.contains(key) && key != '+') {
       // Handle as an operator
+
       if (_expr.isNotEmpty && operators.contains(_expr[_expr.length - 1])) {
         _expr = _expr.substring(0, _expr.length - 1);
       }
@@ -49,11 +50,12 @@ class PosViewModel extends ReactiveViewModel {
         expression = '';
       }
     }
-
+    // if (expression.length < 8) {
     expression = _expr;
     result = _result;
     notifyListeners();
-    print(result);
+
+    print("fffffffffff      " + result + "  " + _expr + "  " + expression);
   }
 
   int _getPriority(String op) {
