@@ -45,6 +45,8 @@ class _FlipperAppState extends State<FlipperApp> {
   static final GlobalKey<NavigatorState> _navigatorKey =
       GlobalKey<NavigatorState>();
   Future<void> initBeams() async {
+    // FIXME:should fix the remote config
+    // await ProxyService.remoteConfig.initialise();
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       // As in Pusher Beams Get Started

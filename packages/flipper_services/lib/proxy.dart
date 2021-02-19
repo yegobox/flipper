@@ -12,6 +12,7 @@ import 'package:flipper_services/flipperServices.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/mail_service.dart';
 import 'package:flipper_services/navigation_service.dart';
+import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/shared_preference_service.dart';
 // import 'package:flipper_services/shared_state_service.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -43,6 +44,7 @@ final DynamicLinkService _link = locator<DynamicLinkService>();
 final FetchContactsService _fetch = locator<FetchContactsService>();
 final ContactService _contact = locator<ContactService>();
 final InAppNavigationService _inAppNav = locator<InAppNavigationService>();
+final RemoteConfigService _remoteConfig = locator<RemoteConfigService>();
 
 // this is where we load all third party plugin
 // ignore: avoid_classes_with_only_static_members
@@ -64,6 +66,7 @@ abstract class ProxyService {
   static KeyPadService get keypad => _keypad;
   static DynamicLinkService get link => _link;
   static FetchContactsService get fetch => _fetch;
+  static RemoteConfigService get remoteConfig => _remoteConfig;
   static ContactService get contacts => _contact;
   static InAppNavigationService get inAppNav => _inAppNav;
 }

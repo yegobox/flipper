@@ -7,6 +7,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 import 'analytics_service.dart';
 import 'abstractions/api.dart';
@@ -25,6 +26,7 @@ import 'mail_service.dart';
 import 'media_service.dart';
 import 'performance_service.dart';
 import 'pusher_service.dart';
+import 'remote_config_service.dart';
 import 'shared_preference_service.dart';
 import 'shared_state_service.dart';
 import 'third_party_services_module.dart';
@@ -38,7 +40,7 @@ GetIt $initGetIt(
   EnvironmentFilter environmentFilter,
 }) {
   final gh = GetItHelper(get, environment, environmentFilter);
-  final thirdPartyServicesModule = _$ThirdPartyServicesModule();
+  final thirdPartyServicesModule = _$ThirdPartyServicesModule(get);
   gh.lazySingleton<AnalyticsService>(
       () => thirdPartyServicesModule.analyticsService);
   gh.lazySingleton<Api>(() => thirdPartyServicesModule.apiService);
@@ -67,6 +69,8 @@ GetIt $initGetIt(
   gh.lazySingleton<PerformanceService>(
       () => thirdPartyServicesModule.performanceService);
   gh.lazySingleton<PusherService>(() => thirdPartyServicesModule.pusherService);
+  gh.lazySingleton<RemoteConfigService>(
+      () => thirdPartyServicesModule.remoteConfig);
   gh.lazySingleton<SharedPreferenceService>(
       () => thirdPartyServicesModule.sharedPreferences);
   gh.lazySingleton<SharedStateService>(
@@ -77,6 +81,8 @@ GetIt $initGetIt(
 }
 
 class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
+  final GetIt _get;
+  _$ThirdPartyServicesModule(this._get);
   @override
   AnalyticsService get analyticsService => AnalyticsService();
   @override
@@ -110,6 +116,9 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   PerformanceService get performanceService => PerformanceService();
   @override
   PusherService get pusherService => PusherService();
+  @override
+  RemoteConfigService get remoteConfig =>
+      RemoteConfigService(remoteConfig: _get<RemoteConfig>());
   @override
   SharedPreferenceService get sharedPreferences => SharedPreferenceService();
   @override
