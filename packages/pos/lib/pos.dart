@@ -7,7 +7,7 @@ import 'package:pos/payable/payable_view.dart';
 import 'pos_viewmodel.dart';
 
 class KeyPad extends StatelessWidget {
-  KeyPad({Key key, this.model}) : super(key: key);
+  const KeyPad({Key key, this.model}) : super(key: key);
   final PosViewModel model;
 
   @override
@@ -37,16 +37,17 @@ class Display extends StatefulWidget {
   _onCreate createState() => _onCreate(model);
 }
 
+// ignore: camel_case_types
 class _onCreate extends State<Display> {
+  _onCreate(this.model);
+
   PosViewModel model;
   TextEditingController etAddNote;
   String addNote;
-  _onCreate(this.model);
 
   @override
   Widget build(BuildContext context) {
     etAddNote = TextEditingController(text: addNote);
-    print("dddddddddddddd" + model.expression);
     return Column(children: <Widget>[
       Padding(
         padding: const EdgeInsets.only(left: 5.0, right: 5.0),
@@ -143,23 +144,23 @@ class _onCreate extends State<Display> {
 
   Widget _addNoteTextField() {
     return Container(
-      padding: EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.only(right: 10),
       child: TextField(
         keyboardType: TextInputType.text,
         cursorColor: Colors.black26,
         controller: etAddNote,
         onChanged: (value) => addNote = value,
         style: const TextStyle(
-          color: const Color(0xff3d454c),
+          color: Color(0xff3d454c),
           fontSize: 15,
           // fontFeatures: [
           //   FontFeature.enable('sups'),
           // ],
         ),
         decoration: const InputDecoration(
-          hintText: "Add a note",
+          hintText: 'Add a note',
           border: InputBorder.none,
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             color: Colors.black26,
             fontSize: 15,
             fontFeatures: [
@@ -172,19 +173,19 @@ class _onCreate extends State<Display> {
     );
   }
 
-  callText(PosViewModel model) {
-    if (model.expression == "0.0" || model.expression == "") {
-      return Text(
+  Text callText(PosViewModel model) {
+    if (model.expression == '0.0' || model.expression == '') {
+      return const Text(
         'FRw0.0',
         textAlign: TextAlign.right,
         //  maxLines: 2,
         softWrap: true,
-        style: const TextStyle(
+        style: TextStyle(
           fontFeatures: [
             FontFeature.enable('sups'),
           ],
           fontSize: 25.0,
-          color: const Color(0xffc2c7cc),
+          color: Color(0xffc2c7cc),
         ),
       );
     } else {
@@ -198,7 +199,7 @@ class _onCreate extends State<Display> {
             FontFeature.enable('sups'),
           ],
           fontSize: 25.0,
-          color: const Color(0xff3d454c),
+          color: Color(0xff3d454c),
         ),
       );
     }
@@ -210,7 +211,7 @@ class Keyboard extends StatelessWidget {
   final PosViewModel model;
   var myDynamicAspectRatio = 1000 / 1;
   OverlayEntry sticky;
-  List<PosViewModel> myGridList = new List();
+  List<PosViewModel> myGridList = [];
   double maxHeight = 0;
   double maxWidth = 0;
 
