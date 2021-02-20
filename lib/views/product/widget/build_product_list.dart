@@ -50,20 +50,36 @@ List<Widget> buildProductList(
             }
           },
           child: Column(children: <Widget>[
-
             ListTile(
               contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
               // leading: callImageBox(context, product),
               leading: SizedBox(
                 height: MediaQuery.of(context).size.height,
                 width: 58,
-                child: TextDrawable(
-                  backgroundColor: HexColor(product.color),
-                  text: product.name,
-                  isTappable: true,
-                  onTap: null,
-                  boxShape: BoxShape.rectangle,
-                ),
+                child: product.picture == null
+                    ? TextDrawable(
+                        backgroundColor: HexColor(product.color),
+                        text: product.name,
+                        isTappable: true,
+                        onTap: null,
+                        boxShape: BoxShape.rectangle,
+                      )
+                    : Image.network(
+                        product.picture,
+                        fit: BoxFit.cover,
+                        frameBuilder: (BuildContext context, Widget child,
+                            int frame, bool wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded) {
+                            return child;
+                          }
+                          return AnimatedOpacity(
+                            child: child,
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.easeOut,
+                          );
+                        },
+                      ),
               ),
               title: Text(
                 product.name,

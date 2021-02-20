@@ -50,12 +50,16 @@ class ProductView extends StatelessWidget {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: Text('All Items',
-                          style: GoogleFonts.lato(
-                              textStyle: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.0,
-                                  color: Colors.grey[800]))),
+                      child: Text(
+                        'All Items',
+                        style: GoogleFonts.lato(
+                          textStyle: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.0,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ),
                     ),
                     Expanded(
                       flex: 1,
@@ -63,8 +67,11 @@ class ProductView extends StatelessWidget {
                       child: Row(children: [
                         // ignore: prefer_const_constructors
                         Expanded(
-                            child: const Icon(FontAwesome.chevron_right,
-                                size: 20)),
+                          child: const Icon(
+                            FontAwesome.chevron_right,
+                            size: 20,
+                          ),
+                        ),
                       ]),
                     ),
                   ],
@@ -128,7 +135,11 @@ class ProductView extends StatelessWidget {
                     // ignore: prefer_const_literals_to_create_immutables
                     child: Row(children: [
                       const Expanded(
-                          child: Icon(FontAwesome.chevron_right, size: 20)),
+                        child: Icon(
+                          FontAwesome.chevron_right,
+                          size: 20,
+                        ),
+                      ),
                     ]),
                   ),
                 ],
@@ -194,10 +205,11 @@ class ProductView extends StatelessWidget {
                     // ignore: prefer_const_literals_to_create_immutables
                     child: Row(children: [
                       const Expanded(
-                          child: Icon(
-                        FontAwesome.chevron_right,
-                        size: 20,
-                      )),
+                        child: Icon(
+                          FontAwesome.chevron_right,
+                          size: 20,
+                        ),
+                      ),
                     ]),
                   ),
                 ],
@@ -257,21 +269,19 @@ class ProductView extends StatelessWidget {
       height: 500,
       child: Column(children: [
         Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
               border: Border(
-            // right: BorderSide(color: const Color(0xffc1c6cb)),
-            bottom: BorderSide(color: const Color(0xffc1c6cb)),
-            // right: BorderSide(color: const Color(0xffc1c6cb)),
+            bottom: BorderSide(color: Color(0xffc1c6cb)),
           )),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.only(top: 12, bottom: 12, left: 12),
-                  child: Text(
-                    "All Items",
-                    style: const TextStyle(
+                  padding: const EdgeInsets.only(top: 12, bottom: 12, left: 12),
+                  child: const Text(
+                    'All Items',
+                    style: TextStyle(
                       fontSize: 14.0,
                       color: Colors.black87,
                     ),
@@ -365,25 +375,18 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
                 .canvasColor,
             body: Padding(
               padding: const EdgeInsets.all(0),
-              child:
-              //Column(children: <Widget>[
-                ListView(
-                  shrinkWrap: true,
-                  children: buildProductList(
-                          model: viewModel,
-                          products: data,
-                          context: context,
-                          userId: userId,
-                          createButtonName: createButtonName,
-                          showCreateItemOnTop: showCreateItemOnTop,
-                          shouldSeeItem: shouldSeeItem)
-                      .toList(),
-                ),
-                // Container(
-                //   height: 1,
-                //   color: Colors.black26,
-                // ),
-              //]),
+              child: ListView(
+                shrinkWrap: true,
+                children: buildProductList(
+                  model: viewModel,
+                  products: data,
+                  context: context,
+                  userId: userId,
+                  createButtonName: createButtonName,
+                  showCreateItemOnTop: showCreateItemOnTop,
+                  shouldSeeItem: shouldSeeItem,
+                ).toList(),
+              ),
             ),
           );
   }
