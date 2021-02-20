@@ -1,14 +1,12 @@
 import 'dart:io';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_models/image.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/upload_response.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +33,6 @@ class EditProductViewModel extends ReactiveViewModel {
   List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
 
   List<PColor> get colors => _sharedStateService.colors;
-
-  ImageP get image => _sharedStateService.image;
 
   PColor get currentColor {
     return _currentColor;
@@ -84,29 +80,20 @@ class EditProductViewModel extends ReactiveViewModel {
       final String storagePath =
           compresedFile.path.replaceAll('/' + fileName, '');
 
-      // FIXME(richard): fix bellow code
-      // ProductTableData product = await store.state.database.productDao
-      //     .getItemById(productId: widget.productId);
-
-      // store.state.database.productDao.updateProduct(product.copyWith(
-      //     picture: compresedFile.path, isImageLocal: true, hasPicture: true));
-
-      // ProductTableData productUpdated = await store.state.database.productDao
-      //     .getItemById(productId: widget.productId);
       final Document productUpdated = _databaseService.getById(id: product.id);
 
       _sharedStateService.setProduct(
           product: Product.fromMap(productUpdated.jsonProperties));
 
-      store.dispatch(
-        ImagePreview(
-          image: ImageP(
-            (ImagePBuilder img) => img
-              ..path = compresedFile.path
-              ..isLocal = true,
-          ),
-        ),
-      );
+      // store.dispatch(
+      //   ImagePreview(
+      //     image: ImageP(
+      //       (ImagePBuilder img) => img
+      //         ..path = compresedFile.path
+      //         ..isLocal = true,
+      //     ),
+      //   ),
+      // );
 
       final bool internetAvailable = await isInternetAvailable();
       if (internetAvailable) {
@@ -167,6 +154,9 @@ class EditProductViewModel extends ReactiveViewModel {
 
       productDoc.properties['picture'] = uploadResponse.url;
       _databaseService.update(document: productDoc);
+      final Document product = _databaseService.getById(id: productId);
+      _sharedStateService.setProduct(
+          product: Product.fromMap(product.jsonProperties));
       // final Product product = Product.fromMap(productDoc.jsonProperties);
     }, onError: (ex, stacktrace) {
       print('error' + stacktrace.toString());
@@ -211,13 +201,10 @@ class EditProductViewModel extends ReactiveViewModel {
 
   void switchColor({PColor color, @required BuildContext context}) async {
     //reset all other color to not selected
-
-    setBusy(true);
     for (var y = 0; y < 8; y++) {
       //we know color lenght is 8, using colors.lenght was giving dups!
       //set all other color to active false then set one to active.
       final Document _color = _databaseService.getById(id: colors[y].id);
-
       _color.properties['isActive'] = false;
       _databaseService.update(document: _color);
     }
@@ -230,8 +217,6 @@ class EditProductViewModel extends ReactiveViewModel {
     _sharedStateService.setCurrentColor(color: color);
 
     _currentColor = color;
-
-    setBusy(false);
 
     notifyListeners();
   }

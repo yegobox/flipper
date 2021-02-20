@@ -52,7 +52,7 @@ class EditItemTitle extends StatelessWidget {
                               child: Theme(
                                 data: Theme.of(context)
                                     .copyWith(splashColor: Colors.transparent),
-                                child: model.image == null
+                                child: model.product.picture == null
                                     ? TextField(
                                         maxLines: 4,
                                         autofocus: false,
@@ -77,31 +77,24 @@ class EditItemTitle extends StatelessWidget {
                                           ),
                                         ),
                                       )
-                                    : model.image.isLocal
-                                        ? Image.file(
-                                            File(model.image.path),
-                                            width: 80,
-                                            height: 80,
-                                            fit: BoxFit.fitWidth,
-                                          )
-                                        : Image.network(
-                                            model.image.path,
-                                            frameBuilder: (BuildContext context,
-                                                Widget child,
-                                                int frame,
-                                                bool wasSynchronouslyLoaded) {
-                                              if (wasSynchronouslyLoaded) {
-                                                return child;
-                                              }
-                                              return AnimatedOpacity(
-                                                child: child,
-                                                opacity: frame == null ? 0 : 1,
-                                                duration:
-                                                    const Duration(seconds: 1),
-                                                curve: Curves.easeOut,
-                                              );
-                                            },
-                                          ),
+                                    : Image.network(
+                                        model.product.picture,
+                                        frameBuilder: (BuildContext context,
+                                            Widget child,
+                                            int frame,
+                                            bool wasSynchronouslyLoaded) {
+                                          if (wasSynchronouslyLoaded) {
+                                            return child;
+                                          }
+                                          return AnimatedOpacity(
+                                            child: child,
+                                            opacity: frame == null ? 0 : 1,
+                                            duration:
+                                                const Duration(seconds: 1),
+                                            curve: Curves.easeOut,
+                                          );
+                                        },
+                                      ),
                               ),
                             ),
                             const Text('New Item')
