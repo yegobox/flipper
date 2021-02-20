@@ -1,4 +1,5 @@
 import 'package:flipper/views/home_viewmodel.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -30,40 +31,45 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             width: MediaQuery.of(context).size.width,
             height: 60,
             child: Row(
-              // crossAxisAlignment: CrossAxisAlignment.center,
-              //  mainAxisAlignment: MainAxisAlignment.end,
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                //  mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
                   Expanded(
                     child: FlatButton(
                       onPressed: null,
                       child: Text(
                         buildSaleWording(model: model),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline4
-                            .copyWith(fontSize: 16,
-                            color:  const Color(0xff363f47),
+                        style: Theme.of(context).textTheme.headline4.copyWith(
+                            fontSize: 16,
+                            color: const Color(0xff363f47),
                             fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
-                  Container(
-                    margin: EdgeInsets.only(right: 10),
-                    child: Text(
-                      'Log Out',
-                      textAlign: TextAlign.end,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline4
-                          .copyWith( fontSize: 15,
-                          color:  const Color(0xff363f47),
-                          fontWeight: FontWeight.w600),
+                  GestureDetector(
+                    onTap: () async {
+                      final bool loggedOut =
+                          await ProxyService.sharedPref.logout();
+                      if (loggedOut) {
+                        ProxyService.database.logout(context: context);
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      child: Text(
+                        'Log Out',
+                        textAlign: TextAlign.end,
+                        style: Theme.of(context).textTheme.headline4.copyWith(
+                            fontSize: 15,
+                            color: const Color(0xff363f47),
+                            fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
                 ]),
           ),
         ),
-       // trailing: const SizedBox.shrink(),
+        // trailing: const SizedBox.shrink(),
       ),
     );
   }
@@ -107,8 +113,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 12,
                     width: 12,
                     child: ClipOval(
-                      child:
-                          Container(color: const Color(0xff2996cc), width: 12, height: 12),
+                      child: Container(
+                          color: const Color(0xff2996cc),
+                          width: 12,
+                          height: 12),
                     ),
                   ),
                 ),

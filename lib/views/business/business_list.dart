@@ -10,37 +10,38 @@ import 'package:stacked/stacked.dart';
 class BusinessList extends StatelessWidget {
   const BusinessList({Key key}) : super(key: key);
 
-  Container _buildFirstSectionFlipperLogo(
+  Padding _buildFirstSectionFlipperLogo(
       {@required DrawerViewModel model, BuildContext context}) {
-    return Container(
-      height: _Style.firstSectionHeight,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          Container(
-            child: Column(children: <Widget>[
-              ..._buildSelectionHighlight(false, Colors.white),
-              _selectableListItem(
-                  userIcon: Text(model.state.branch.name.length > 2
-                      ? model.state.branch.name.substring(0, 3).toUpperCase()
-                      : model.state.branch.name.toUpperCase()),
+    return Padding(
+      padding: const EdgeInsets.only(top: 30.0),
+      child: Container(
+        child: Column(
+          // mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Container(
+              child: Column(children: <Widget>[
+                ..._buildSelectionHighlight(false, Colors.white),
+                _selectableListItem(
+                  userIcon: Text(
+                    model.state.branch.name.length > 2
+                        ? model.state.branch.name.substring(0, 3).toUpperCase()
+                        : model.state.branch.name.toUpperCase(),
+                  ),
                   isSquareShape: false,
-                  action: () {}),
-            ]),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(
-              top: _Style.padding,
+                  action: () {},
+                ),
+              ]),
             ),
-          ),
-          Container(
-            color: Theme.of(context)
-                .copyWith(canvasColor: const Color.fromRGBO(33, 127, 125, 1.0))
-                .canvasColor,
-            height: _Style.separatorHeight,
-            width: _Style.separatorWidth,
-          ),
-        ],
+            Container(
+              color: Theme.of(context)
+                  .copyWith(
+                      canvasColor: const Color.fromRGBO(33, 127, 125, 1.0))
+                  .canvasColor,
+              height: _Style.separatorHeight,
+              width: _Style.separatorWidth,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -100,8 +101,7 @@ class BusinessList extends StatelessWidget {
     return Container(
       height: _Style.itemHeight,
       child: Padding(
-        padding:
-            const EdgeInsets.only(top: _Style.padding, right: _Style.padding),
+        padding: const EdgeInsets.only(right: _Style.padding),
         child: _GroupButton(
           business: model.business,
           onPressedCircle: (Business business) {
@@ -132,23 +132,29 @@ class BusinessList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, DrawerViewModel model, Widget child) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 28.0),
-            child: Container(
-              color: HexColor('#130f1f'),
-              child: Column(
-                children: <Widget>[
-                  _buildFirstSectionFlipperLogo(context: context, model: model),
-
-                  getRenderableBusinessList(
-                      businesses: model.businesses,
+          return Container(
+            color: HexColor('#130f1f'),
+            child: Stack(
+              children: <Widget>[
+                Column(
+                  children: [
+                    _buildFirstSectionFlipperLogo(
                       context: context,
-                      model: model),
-                  //setting on click set highlight on side.
-                  _buildThirdSection(model: model),
-                  _buildFourthSection(context)
-                ],
-              ),
+                      model: model,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: getRenderableBusinessList(
+                        businesses: model.businesses,
+                        context: context,
+                        model: model,
+                      ),
+                    ),
+                    _buildThirdSection(model: model),
+                  ],
+                ),
+                Positioned(bottom: 0.0, child: _buildFourthSection(context))
+              ],
             ),
           );
         },
@@ -285,14 +291,15 @@ List<Widget> _buildSelectionHighlight(isSelected, circleColor) {
   final List<Widget> widgets = [];
   if (isSelected) {
     final ClipRRect highlight = ClipRRect(
-        borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(_Style.circleHighlightBorderRadius),
-            bottomRight: Radius.circular(_Style.circleHighlightBorderRadius)),
-        child: Container(
-          width: _Style.circleHighlightWidth,
-          height: _Style.flipperButtonWidth,
-          color: circleColor,
-        ));
+      borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(_Style.circleHighlightBorderRadius),
+          bottomRight: Radius.circular(_Style.circleHighlightBorderRadius)),
+      child: Container(
+        width: _Style.circleHighlightWidth,
+        height: _Style.flipperButtonWidth,
+        color: circleColor,
+      ),
+    );
     widgets.add(highlight);
   }
 
@@ -312,6 +319,7 @@ class _Style {
   static const Padding defaultPadding =
       Padding(padding: EdgeInsets.only(top: padding));
 
+  // ignore: unused_field
   static const double firstSectionHeight = 100.0;
   static const double flipperButtonWidth = 44.0;
   static const double fourthSectionHeight = 180.0;
