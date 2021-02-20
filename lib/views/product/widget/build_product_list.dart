@@ -161,7 +161,6 @@ callImageBox(BuildContext context, Product product) {
         isTappable: true,
         onTap: null,
         boxShape: BoxShape.rectangle,
-        //  borderRadius: BorderRadius.circular(8),
       ),
     );
   }

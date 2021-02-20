@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper/utils/logger.dart';
@@ -12,7 +10,6 @@ import 'package:stacked/stacked.dart';
 
 class EditItemTitle extends StatelessWidget {
   EditItemTitle({Key key}) : super(key: key);
-
   final Logger log = Logging.getLogger('Add Product:');
 
   @override
