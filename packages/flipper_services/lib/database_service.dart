@@ -121,6 +121,8 @@ class DatabaseService {
       replicator.stop();
       db.close();
       _state.setDidLogout(logout: true);
+      // AfterSplash
+
     }
   }
 }

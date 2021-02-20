@@ -109,9 +109,7 @@ class _FlipperAppState extends State<FlipperApp> {
     });
     _state.didLogout.listen((loggedOut) {
       if (loggedOut) {
-        StoreProvider.of<AppState>(context).dispatch(
-          VerifyAuthenticationState(),
-        );
+        ProxyService.nav.navigateTo(Routing.afterSplash);
       }
     });
 
