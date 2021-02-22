@@ -20,10 +20,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/ic_cancel.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/views/CustomDropdownButton.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/build_product_row.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/build_product_row.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +55,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/assets" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/android/app/src" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
@@ -56,12 +63,15 @@
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\Madhu Projects Folder\Flutter Projects\5-flipperMobileNew\flipper-1\android\app" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="F:\Madhu Projects Folder\Flutter Projects\4- flipperMobile\flipper\assets" />
-      <recent name="F:\Madhu Projects Folder\Flutter Projects\4- flipperMobile\flipper\lib\widget" />
-      <recent name="F:\Madhu Projects Folder\Flutter Projects\4- flipperMobile\flipper\android\app" />
-      <recent name="F:\Madhu Projects Folder\Flutter Projects\4- flipperMobile\flipper\lib\views" />
-      <recent name="F:\Madhu Projects Folder\Flutter Projects\4- flipperMobile\flipper\packages\pos\lib\payable" />
+      <recent name="F:\Madhu Projects Folder\Flutter Projects\5-flipperMobileNew\flipper-1\android\app\src" />
+      <recent name="F:\Madhu Projects Folder\Flutter Projects\5-flipperMobileNew\flipper-1\lib\views" />
+      <recent name="F:\Madhu Projects Folder\Flutter Projects\5-flipperMobileNew\flipper-1\assets" />
+      <recent name="F:\Madhu Projects Folder\Flutter Projects\5-flipperMobileNew\flipper-1\lib\views\product" />
+      <recent name="F:\Madhu Projects Folder\Flutter Projects\5-flipperMobileNew\flipper-1\lib\views\product\widget" />
     </key>
   </component>
   <component name="RunManager" selected="Flutter.main.dart">
@@ -137,30 +147,30 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="51" y="78" width="1200" height="584" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1613807394212" />
-    <state x="314" y="150" width="406" height="444" key="FileChooserDialogImpl" timestamp="1613569597754">
+    <state x="314" y="150" width="406" height="444" key="FileChooserDialogImpl" timestamp="1614002436145">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="314" y="150" width="406" height="444" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1613569597754" />
+    <state x="314" y="150" width="406" height="444" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1614002436145" />
     <state x="353" y="170" width="438" height="502" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1611316497153" />
-    <state width="1323" height="59" key="GridCell.Tab.0.bottom" timestamp="1613722428624">
+    <state width="1323" height="188" key="GridCell.Tab.0.bottom" timestamp="1614003275553">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="59" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1613722428624" />
+    <state width="1323" height="188" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1614003275553" />
     <state width="844" height="315" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1612200537981" />
-    <state width="1323" height="59" key="GridCell.Tab.0.center" timestamp="1613722428624">
+    <state width="1323" height="188" key="GridCell.Tab.0.center" timestamp="1614003275552">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="59" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1613722428624" />
+    <state width="1323" height="188" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1614003275552" />
     <state width="844" height="315" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1612200537981" />
-    <state width="1323" height="59" key="GridCell.Tab.0.left" timestamp="1613722428624">
+    <state width="1323" height="188" key="GridCell.Tab.0.left" timestamp="1614003275552">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="59" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1613722428624" />
+    <state width="1323" height="188" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1614003275552" />
     <state width="844" height="315" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1612200537981" />
-    <state width="1323" height="59" key="GridCell.Tab.0.right" timestamp="1613722428624">
+    <state width="1323" height="188" key="GridCell.Tab.0.right" timestamp="1614003275552">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="59" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1613722428624" />
+    <state width="1323" height="188" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1614003275552" />
     <state width="844" height="315" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1612200537981" />
     <state width="844" height="315" key="GridCell.Tab.1.bottom" timestamp="1612200537981">
       <screen x="0" y="0" width="1536" height="824" />
@@ -178,15 +188,15 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state width="844" height="315" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1612200537981" />
-    <state x="246" y="0" key="SettingsEditor" timestamp="1613569591627">
+    <state x="246" y="0" key="SettingsEditor" timestamp="1614002439616">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="246" y="0" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1613569591627" />
+    <state x="246" y="0" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1614002439616" />
     <state x="277" y="0" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1611679503874" />
-    <state x="422" y="10" width="555" height="708" key="find.popup" timestamp="1613719800970">
+    <state x="422" y="10" width="555" height="708" key="find.popup" timestamp="1614002751303">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="422" y="10" width="555" height="708" key="find.popup/0.0.1366.728@0.0.1366.728" timestamp="1613719800970" />
+    <state x="422" y="10" width="555" height="708" key="find.popup/0.0.1366.728@0.0.1366.728" timestamp="1614002751303" />
     <state x="475" y="11" width="586" height="801" key="find.popup/0.0.1536.824@0.0.1536.824" timestamp="1612025815002" />
     <state x="426" y="189" key="run.anything.popup" timestamp="1612198644235">
       <screen x="0" y="0" width="1536" height="824" />
