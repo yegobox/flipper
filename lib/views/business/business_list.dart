@@ -123,9 +123,7 @@ class BusinessList extends StatelessWidget {
       list.add(_buildSecondSectionBusinessList(
           context: context, model: model, business: businesses[i]));
     }
-    return Expanded(
-      child: Column(children: list),
-    );
+    return Column(children: list);
   }
 
   @override
