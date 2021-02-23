@@ -1,4 +1,5 @@
 import 'package:flipper/views/CustomDropdownButton.dart';
+import 'package:flipper/views/product/add/add_product_modal.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper/views/product/products_viewmodel.dart';
 import 'package:flipper/views/product/widget/build_product_list.dart';
@@ -68,7 +69,6 @@ class _onCreate extends State<ProductView> {
     setState(() {
       _currentItems = selectedZone;
       spinner = false;
-
     });
   }
 
@@ -216,9 +216,9 @@ class _onCreate extends State<ProductView> {
                       child: Row(children: [
                         const Expanded(
                             child: Icon(
-                              FontAwesome.chevron_right,
-                              size: 20,
-                            )),
+                          FontAwesome.chevron_right,
+                          size: 20,
+                        )),
                       ]),
                     ),
                   ],
@@ -249,9 +249,9 @@ class _onCreate extends State<ProductView> {
                     child: Row(children: [
                       const Expanded(
                           child: Icon(
-                            FontAwesome.chevron_right,
-                            size: 20,
-                          )),
+                        FontAwesome.chevron_right,
+                        size: 20,
+                      )),
                     ]),
                   ),
                 ],
@@ -281,9 +281,9 @@ class _onCreate extends State<ProductView> {
                     child: Row(children: [
                       const Expanded(
                           child: Icon(
-                            FontAwesome.chevron_right,
-                            size: 20,
-                          )),
+                        FontAwesome.chevron_right,
+                        size: 20,
+                      )),
                     ]),
                   ),
                 ],
@@ -310,16 +310,16 @@ class _onCreate extends State<ProductView> {
     if (search == false) {
       _dropDownMenuItems = getDropDownMenuItems();
       //_currentItems = _dropDownMenuItems[0].value;
-     // if (spinner == false) {
+      // if (spinner == false) {
       return Container(
         child: Column(children: [
           Container(
             decoration: BoxDecoration(
                 border: Border(
-                  // right: BorderSide(color: const Color(0xffc1c6cb)),
-                  bottom: BorderSide(color: const Color(0xffc1c6cb)),
-                  // right: BorderSide(color: const Color(0xffc1c6cb)),
-                )),
+              // right: BorderSide(color: const Color(0xffc1c6cb)),
+              bottom: BorderSide(color: const Color(0xffc1c6cb)),
+              // right: BorderSide(color: const Color(0xffc1c6cb)),
+            )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -340,62 +340,60 @@ class _onCreate extends State<ProductView> {
                   child: InkWell(
                     onTap: () {
                       spinner = true;
-                      setState(() {
-                      });
+                      setState(() {});
                     },
                     child: Container(
-                        padding: EdgeInsets.only(left: 12),
-                        // child: Text(
-                        //   "All Items",
-                        //   style: const TextStyle(
-                        //     fontSize: 13.0,
-                        //     fontWeight: FontWeight.w500,
-                        //     color: Colors.black87,
-                        //   ),
-                        // ),
+                      padding: EdgeInsets.only(left: 12),
+                      // child: Text(
+                      //   "All Items",
+                      //   style: const TextStyle(
+                      //     fontSize: 13.0,
+                      //     fontWeight: FontWeight.w500,
+                      //     color: Colors.black87,
+                      //   ),
+                      // ),
 
-                        // child: DropdownButton<String>(
-                        //   value: dropdownValue,
-                        //   icon: Icon(Icons.arrow_drop_down),
-                        //   iconSize: 30,
-                        //   elevation: 8,
-                        //   style: TextStyle(color: Colors.black, fontSize: 18),
-                        //
-                        //   onChanged: (String data) {
-                        //     setState(() {
-                        //       dropdownValue = data;
-                        //     });
-                        //   },
-                        //   items: spinnerItems.map<DropdownMenuItem<String>>((String value) {
-                        //     return DropdownMenuItem<String>(
-                        //       value: value,
-                        //       child: Text(value),
-                        //     );
-                        //   }).toList(),
-                        // ),
+                      // child: DropdownButton<String>(
+                      //   value: dropdownValue,
+                      //   icon: Icon(Icons.arrow_drop_down),
+                      //   iconSize: 30,
+                      //   elevation: 8,
+                      //   style: TextStyle(color: Colors.black, fontSize: 18),
+                      //
+                      //   onChanged: (String data) {
+                      //     setState(() {
+                      //       dropdownValue = data;
+                      //     });
+                      //   },
+                      //   items: spinnerItems.map<DropdownMenuItem<String>>((String value) {
+                      //     return DropdownMenuItem<String>(
+                      //       value: value,
+                      //       child: Text(value),
+                      //     );
+                      //   }).toList(),
+                      // ),
 
-                        // child: IconButton(
-                        //   alignment: Alignment.center,
-                        //   icon: const Icon(Icons.arrow_drop_down),
-                        //   color: Colors.black,
-                        //   onPressed: () {
-                        //     //spinner = true;
-                        //    // child:
-                        //     CustomDropdownButton(
-                        //       value: _currentItems,
-                        //       items: _dropDownMenuItems,
-                        //       onChanged: changedDropDownItem,
-                        //     );
-                        //    setState(() {});
-                        //   },
-                        // ),
+                      // child: IconButton(
+                      //   alignment: Alignment.center,
+                      //   icon: const Icon(Icons.arrow_drop_down),
+                      //   color: Colors.black,
+                      //   onPressed: () {
+                      //     //spinner = true;
+                      //    // child:
+                      //     CustomDropdownButton(
+                      //       value: _currentItems,
+                      //       items: _dropDownMenuItems,
+                      //       onChanged: changedDropDownItem,
+                      //     );
+                      //    setState(() {});
+                      //   },
+                      // ),
 
-
-                        child: CustomDropdownButton(
-                          value: _currentItems,
-                          items: _dropDownMenuItems,
-                          onChanged: changedDropDownItem,
-                        ),
+                      child: CustomDropdownButton(
+                        value: _currentItems,
+                        items: _dropDownMenuItems,
+                        onChanged: changedDropDownItem,
+                      ),
                     ),
                   ),
                 ),
@@ -434,61 +432,61 @@ class _onCreate extends State<ProductView> {
           ),
         ]),
       );
-        // } else {
-        //   return Container(
-        //     child: Column(children: [
-        //       Container(
-        //         decoration: BoxDecoration(
-        //             border: Border(
-        //           // right: BorderSide(color: const Color(0xffc1c6cb)),
-        //           bottom: BorderSide(color: const Color(0xffc1c6cb)),
-        //           // right: BorderSide(color: const Color(0xffc1c6cb)),
-        //         )),
-        //         child: Row(
-        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //           children: [
-        //             Expanded(
-        //               child: Container(
-        //                 padding: EdgeInsets.only(left: 12),
-        //                 child: InkWell(
-        //                   onTap: () {
-        //                     spinner = false;
-        //                     setState(() {});
-        //                   },
-        //                   child: CustomDropdownButton(
-        //                     value: _currentItems,
-        //                     items: _dropDownMenuItems,
-        //                     onChanged: changedDropDownItem,
-        //                   ),
-        //                 ),
-        //               ),
-        //             ),
-        //           ],
-        //         ),
-        //       ),
-        //       Expanded(
-        //         child: BuildProductsView(
-        //           context: context,
-        //           data: model.products,
-        //           shouldSeeItem: false,
-        //           showCreateItemOnTop: true,
-        //           createButtonName: 'Add Products',
-        //           userId: userId,
-        //         ),
-        //       ),
-        //     ]),
-        //   );
-        // }
+      // } else {
+      //   return Container(
+      //     child: Column(children: [
+      //       Container(
+      //         decoration: BoxDecoration(
+      //             border: Border(
+      //           // right: BorderSide(color: const Color(0xffc1c6cb)),
+      //           bottom: BorderSide(color: const Color(0xffc1c6cb)),
+      //           // right: BorderSide(color: const Color(0xffc1c6cb)),
+      //         )),
+      //         child: Row(
+      //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //           children: [
+      //             Expanded(
+      //               child: Container(
+      //                 padding: EdgeInsets.only(left: 12),
+      //                 child: InkWell(
+      //                   onTap: () {
+      //                     spinner = false;
+      //                     setState(() {});
+      //                   },
+      //                   child: CustomDropdownButton(
+      //                     value: _currentItems,
+      //                     items: _dropDownMenuItems,
+      //                     onChanged: changedDropDownItem,
+      //                   ),
+      //                 ),
+      //               ),
+      //             ),
+      //           ],
+      //         ),
+      //       ),
+      //       Expanded(
+      //         child: BuildProductsView(
+      //           context: context,
+      //           data: model.products,
+      //           shouldSeeItem: false,
+      //           showCreateItemOnTop: true,
+      //           createButtonName: 'Add Products',
+      //           userId: userId,
+      //         ),
+      //       ),
+      //     ]),
+      //   );
+      // }
     } else {
       return Container(
         child: Column(children: [
           Container(
             decoration: BoxDecoration(
                 border: Border(
-                  // right: BorderSide(color: const Color(0xffc1c6cb)),
-                  bottom: BorderSide(color: const Color(0xffc1c6cb)),
-                  // right: BorderSide(color: const Color(0xffc1c6cb)),
-                )),
+              // right: BorderSide(color: const Color(0xffc1c6cb)),
+              bottom: BorderSide(color: const Color(0xffc1c6cb)),
+              // right: BorderSide(color: const Color(0xffc1c6cb)),
+            )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -557,6 +555,8 @@ class _onCreate extends State<ProductView> {
     dropdownValue = 'All Items';
     _dropDownMenuItems = getDropDownMenuItems();
 
+
+
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, ProductsViewModel model, Widget child) {
           return sellingModeView
@@ -602,32 +602,31 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
     ).isEmpty
         ? const SizedBox.shrink()
         : Scaffold(
-      backgroundColor: Theme
-          .of(context)
-          .copyWith(canvasColor: Colors.white)
-          .canvasColor,
-      body: Padding(
-        padding: const EdgeInsets.all(0),
-        child:
-        //Column(children: <Widget>[
-        ListView(
-          shrinkWrap: true,
-          children: buildProductList(
-              model: viewModel,
-              products: data,
-              context: context,
-              userId: userId,
-              createButtonName: createButtonName,
-              showCreateItemOnTop: showCreateItemOnTop,
-              shouldSeeItem: shouldSeeItem)
-              .toList(),
-        ),
-        // Container(
-        //   height: 1,
-        //   color: Colors.black26,
-        // ),
-        //]),
-      ),
-    );
+            backgroundColor: Theme.of(context)
+                .copyWith(canvasColor: Colors.white)
+                .canvasColor,
+            body: Padding(
+              padding: const EdgeInsets.all(0),
+              child:
+                  //Column(children: <Widget>[
+                  ListView(
+                shrinkWrap: true,
+                children: buildProductList(
+                        model: viewModel,
+                        products: data,
+                        context: context,
+                        userId: userId,
+                        createButtonName: createButtonName,
+                        showCreateItemOnTop: showCreateItemOnTop,
+                        shouldSeeItem: shouldSeeItem)
+                    .toList(),
+              ),
+              // Container(
+              //   height: 1,
+              //   color: Colors.black26,
+              // ),
+              //]),
+            ),
+          );
   }
 }
