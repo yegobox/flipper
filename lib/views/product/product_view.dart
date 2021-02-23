@@ -104,12 +104,16 @@ class _onCreate extends State<ProductView> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: Text('All Items',
-                          style: GoogleFonts.lato(
-                              textStyle: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.0,
-                                  color: Colors.grey[800]))),
+                      child: Text(
+                        'All Items',
+                        style: GoogleFonts.lato(
+                          textStyle: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.0,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ),
                     ),
                     Expanded(
                       flex: 1,
@@ -117,8 +121,9 @@ class _onCreate extends State<ProductView> {
                       child: Row(children: [
                         // ignore: prefer_const_constructors
                         Expanded(
-                            child: const Icon(FontAwesome.chevron_right,
-                                size: 20)),
+                          child:
+                              const Icon(FontAwesome.chevron_right, size: 20),
+                        ),
                       ]),
                     ),
                   ],
