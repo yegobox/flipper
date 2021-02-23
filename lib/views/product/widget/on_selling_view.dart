@@ -1,3 +1,4 @@
+import 'package:customappbar/Itemappbar.dart';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/product.dart';
 // import 'package:flipper_services/locator.dart';
@@ -22,45 +23,44 @@ class OnSellingView extends StatelessWidget {
       list.add(SingleChildScrollView(
         child: Container(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+            padding: const EdgeInsets.only(left:2.0,right: 2.0,top: 4.0),
             child: Column(
               children: [
                 Divider(
-                  color: Colors.grey[300],
+                  color: Colors.grey[400],
                 ),
-                const SizedBox(
-                  height: 4.0,
-                ),
+                // const SizedBox(
+                //   height: 4.0,
+                // ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      flex: 1,
                       child: Text(
                         variation.name,
                         style: GoogleFonts.lato(
                           textStyle: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12.0,
-                              color: Colors.grey[800]),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.0,
+                              color: Colors.grey[900]),
                         ),
                       ),
                     ),
-                    Expanded(
-                      flex: 1,
+                    Container(
+
                       child: Row(children: [
-                        Expanded(
+                        Container(
                           child: Text(
-                            'Frw ${variation.retailPrice?.toInt()}',
+                            'Frw${variation.retailPrice?.toInt()}',
                             style: GoogleFonts.lato(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12.0,
-                                  color: Colors.grey[800]),
+                                  color: Colors.grey[500]),
                             ),
                           ),
                         ),
-                        Expanded(
+                        Container(
                           child: Radio(
                             value: variation.retailPrice,
                             groupValue: model.checked,
@@ -89,11 +89,11 @@ class OnSellingView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.only(left:2.0,right: 2.0,top: 1.0),
           child: Column(
             children: [
               Divider(
-                color: Colors.grey[300],
+                color: Colors.grey[400],
               ),
               const SizedBox(
                 height: 20.0,
@@ -108,9 +108,9 @@ class OnSellingView extends StatelessWidget {
                       'QUANTITY',
                       style: GoogleFonts.lato(
                         textStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11.0,
-                            color: Colors.grey[800]),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 10.0,
+                            color: Colors.grey[900]),
                       ),
                     ),
                   ),
@@ -118,54 +118,77 @@ class OnSellingView extends StatelessWidget {
                 ],
               ),
               const SizedBox(
-                height: 10.0,
+                height: 20.0,
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: IconButton(
-                      icon: const Icon(FontAwesome.minus),
+                  Container(
+                  //  flex: 1,
+                    child:
+                    model.quantity <= 1 ?
+                    IconButton(
+                      icon: const Icon(AntDesign.minus,color:Colors.grey,size: 25,),
+                      onPressed: model.decreaseQty,
+                    ):IconButton(
+                      icon: const Icon(AntDesign.minus,color: const Color(
+                          0xC9000000),size: 25,),
                       onPressed: model.decreaseQty,
                     ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.grey[300],
                   ),
                   Expanded(
                       flex: 2,
                       child: Container(
+                        margin: EdgeInsets.only(left: 50,right: 50),
                         child: TextFormField(
                           style: TextStyle(
                             color: Theme.of(context)
-                                .copyWith(canvasColor: Colors.grey[700])
+                                .copyWith(canvasColor: Colors.grey[600])
                                 .canvasColor,
                           ),
                           key: Key(model.quantity?.toInt().toString()),
                           initialValue: model.quantity?.toInt().toString(),
                           textAlign: TextAlign.center,
                           cursorColor: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[700])
+                              .copyWith(canvasColor:  const Color(
+                              0x3B000000))
                               .canvasColor,
-                          decoration: const InputDecoration(
-                              hintStyle: TextStyle(color: Colors.grey)),
+                          // decoration: const InputDecoration(
+                          //     hintStyle: TextStyle(color: const Color(
+                          //         0x3B000000))),
                         ),
                       )),
-                  Expanded(
-                    flex: 1,
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.grey[300],
+                  ),
+                  Container(
+                   // flex: 1,
                     child: Container(
                       child: IconButton(
-                        icon: const Icon(FontAwesome.plus),
+                        icon: const Icon(Icons.add,color: const Color(
+                            0xC9000000),size: 25,),
                         onPressed: model.increaseQty,
                       ),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(
+                height: 3.0,
+              ),
               Divider(
-                color: Colors.grey[300],
+                color: Colors.grey[400],
               ),
               const SizedBox(
-                height: 20.0,
+                height: 10.0,
               ),
               //TODO: feature to implements in near future
               // Row(
@@ -274,7 +297,7 @@ class OnSellingView extends StatelessWidget {
           return Container(
             child: Scaffold(
               backgroundColor: Colors.white,
-              appBar: CommonAppBar(
+              appBar: Itemappbar(
                 onPop: () {
                   ProxyService.nav.pop();
                 },
@@ -285,11 +308,12 @@ class OnSellingView extends StatelessWidget {
                   model.saveOrder();
                   ProxyService.nav.pop();
                 },
-                actionButtonName: 'Save',
+                actionButtonName: 'Add',
                 icon: Icons.close,
-                multi: 3,
-                bottomSpacer: 52,
+                multi: 1,
+                bottomSpacer: 49,
               ),
+
               body: Container(
                 child: SingleChildScrollView(
                   child: Padding(
@@ -302,19 +326,19 @@ class OnSellingView extends StatelessWidget {
                               product.name,
                               style: GoogleFonts.rubik(
                                 textStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                     fontSize: 14.0,
-                                    color: Colors.grey[700]),
+                                    color: Colors.grey[800]),
                               ),
                             ),
                             const SizedBox(
                               height: 4.0,
                             ),
                             Text(
-                              ' CHOOSE ONE',
+                              '  CHOOSE ONE',
                               style: GoogleFonts.rubik(
                                 textStyle: TextStyle(
-                                    fontSize: 12.0, color: Colors.grey[700]),
+                                    fontSize: 11.0, color: Colors.grey[700]),
                               ),
                             )
                           ],
@@ -345,6 +369,6 @@ class OnSellingView extends StatelessWidget {
     if (model.amountTotal.toString() == 'null') {
       return product.name;
     }
-    return product.name + ' FRW ' + model.amountTotal?.toInt().toString();
+    return product.name + ' Frw' + model.amountTotal?.toInt().toString();
   }
 }
