@@ -26,6 +26,9 @@ class ProductView extends StatefulWidget {
 // ignore: camel_case_types
 class _onCreate extends State<ProductView> {
   _onCreate(this.userId, this.items, this.sellingModeView);
+
+  bool search = false;
+  bool spinner = false;
   final bool items;
   final bool sellingModeView;
   final String userId;
@@ -38,11 +41,8 @@ class _onCreate extends State<ProductView> {
     'Discounts',
   ];
 
-  String _currentItems = '';
   List<DropdownMenuItem<String>> _dropDownMenuItems;
-
-  bool search = false;
-  bool spinner = false;
+  String _currentItems = '';
 
   @override
   void initState() {
@@ -65,7 +65,6 @@ class _onCreate extends State<ProductView> {
   }
 
   void changedDropDownItem(String selectedZone) {
-    // print("Selected city $selectedZone, we are going to refresh the UI");
     setState(() {
       _currentItems = selectedZone;
       spinner = false;
@@ -104,16 +103,12 @@ class _onCreate extends State<ProductView> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: Text(
-                        'All Items',
-                        style: GoogleFonts.lato(
-                          textStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14.0,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                      ),
+                      child: Text('All Items',
+                          style: GoogleFonts.lato(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                  color: Colors.grey[800]))),
                     ),
                     Expanded(
                       flex: 1,
@@ -121,9 +116,8 @@ class _onCreate extends State<ProductView> {
                       child: Row(children: [
                         // ignore: prefer_const_constructors
                         Expanded(
-                          child:
-                              const Icon(FontAwesome.chevron_right, size: 20),
-                        ),
+                            child: const Icon(FontAwesome.chevron_right,
+                                size: 20)),
                       ]),
                     ),
                   ],
@@ -218,17 +212,13 @@ class _onCreate extends State<ProductView> {
                     Expanded(
                       flex: 1,
                       // ignore: prefer_const_literals_to_create_immutables
-                      child: Row(
-                        // ignore: prefer_const_literals_to_create_immutables
-                        children: [
-                          const Expanded(
+                      child: Row(children: [
+                        const Expanded(
                             child: Icon(
-                              FontAwesome.chevron_right,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
+                          FontAwesome.chevron_right,
+                          size: 20,
+                        )),
+                      ]),
                     ),
                   ],
                 ),
@@ -310,7 +300,7 @@ class _onCreate extends State<ProductView> {
       data: model.products,
       shouldSeeItem: false,
       showCreateItemOnTop: true,
-      createButtonName: 'Add Products',
+      createButtonName: 'Add Product',
       userId: userId,
     );
   }
@@ -322,12 +312,9 @@ class _onCreate extends State<ProductView> {
         child: Column(children: [
           Container(
             decoration: const BoxDecoration(
-              border: Border(
-                // right: BorderSide(color: const Color(0xffc1c6cb)),
-                bottom: BorderSide(color: Color(0xffc1c6cb)),
-                // right: BorderSide(color: const Color(0xffc1c6cb)),
-              ),
-            ),
+                border: Border(
+              bottom: BorderSide(color: Color(0xffc1c6cb)),
+            )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -376,7 +363,7 @@ class _onCreate extends State<ProductView> {
               data: model.products,
               shouldSeeItem: false,
               showCreateItemOnTop: true,
-              createButtonName: 'Add Products',
+              createButtonName: 'Add Product',
               userId: userId,
             ),
           ),
@@ -384,72 +371,67 @@ class _onCreate extends State<ProductView> {
       );
     } else {
       return Container(
-        child: Column(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
+        child: Column(children: [
+          Container(
+            decoration: const BoxDecoration(
                 border: Border(
-                  // right: BorderSide(color: const Color(0xffc1c6cb)),
-                  bottom: BorderSide(color: Color(0xffc1c6cb)),
-                  // right: BorderSide(color: const Color(0xffc1c6cb)),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: TextField(
-                        keyboardType: TextInputType.text,
-                        cursorColor: Colors.black26,
-                        controller: etSearch,
-                        onChanged: (value) => strSearch = value,
-                        style: const TextStyle(
-                          color: Color(0xff3d454c),
+              bottom: BorderSide(color: Color(0xffc1c6cb)),
+            )),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: TextField(
+                      keyboardType: TextInputType.text,
+                      cursorColor: Colors.black26,
+                      controller: etSearch,
+                      onChanged: (value) => strSearch = value,
+                      style: const TextStyle(
+                        color: Color(0xff3d454c),
+                        fontSize: 15,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Search All Items',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          color: Colors.black26,
                           fontSize: 15,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'Search All Items',
-                          border: InputBorder.none,
-                          hintStyle: TextStyle(
-                            color: Colors.black26,
-                            fontSize: 15,
-                          ),
-                        ),
                       ),
                     ),
                   ),
-                  Container(
-                    child: InkWell(
-                      onTap: () {
-                        search = false;
+                ),
+                Container(
+                  child: InkWell(
+                    onTap: () {
+                      search = false;
 
-                        setState(() {});
-                      },
-                      child: Image.asset(
-                        'assets/ic_cancel.png',
-                        alignment: Alignment.center,
-                        width: 50,
-                        height: 30,
-                      ),
+                      setState(() {});
+                    },
+                    child: Image.asset(
+                      'assets/ic_cancel.png',
+                      alignment: Alignment.center,
+                      width: 50,
+                      height: 30,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Expanded(
-              child: BuildProductsView(
-                context: context,
-                data: model.products,
-                shouldSeeItem: false,
-                showCreateItemOnTop: true,
-                createButtonName: 'Add Products',
-                userId: userId,
-              ),
+          ),
+          Expanded(
+            child: BuildProductsView(
+              context: context,
+              data: model.products,
+              shouldSeeItem: false,
+              showCreateItemOnTop: true,
+              createButtonName: 'Add Product',
+              userId: userId,
             ),
-          ],
-        ),
+          ),
+        ]),
       );
     }
   }

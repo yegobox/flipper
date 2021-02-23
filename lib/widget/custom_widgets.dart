@@ -94,6 +94,44 @@ Widget customIcon(BuildContext context,
   );
 }
 
+
+
+
+
+Widget customBottomIcon(BuildContext context,
+    {Image icon,
+      bool isEnable = false,
+      double size = 18,
+      bool istwitterIcon = true,
+      bool isFontAwesomeRegular = false,
+      bool isFontAwesomeSolid = false,
+      Color iconColor,
+      double paddingIcon = 0,
+      String text = ''}) {
+  iconColor = iconColor ?? Theme.of(context).textTheme.caption.color;
+  return Padding(
+    padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
+    child: Column(
+      children: [
+        Container(
+          child:icon,
+            // size: size,
+            // color: isEnable ? Theme.of(context).primaryColor : iconColor,
+        ),
+        Container(
+          padding: EdgeInsetsDirectional.only(top: 5),
+          child: Text(
+            text,
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
 Widget customTappbleIcon(BuildContext context, int icon,
     {double size = 16,
     bool isEnable = false,

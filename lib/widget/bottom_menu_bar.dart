@@ -1,5 +1,6 @@
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/views/home_viewmodel.dart';
+import 'package:flipper/views/product/add/add_product_modal.dart';
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper/widget/tabItem.dart';
 
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 
 class BottomMenubar extends StatefulWidget {
   const BottomMenubar({this.model});
+
   final HomeViewModel model;
 
   @override
@@ -22,23 +24,88 @@ class _BottomMenubarState extends State<BottomMenubar> {
   Widget _iconRow() {
     return Container(
       height: 65,
-      margin: EdgeInsets.only(bottom: 10),
+      //margin: EdgeInsets.only(: 10,right: 10),
       decoration: BoxDecoration(
           color: Theme.of(context).bottomAppBarColor,
           boxShadow: [
             const BoxShadow(
                 color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
           ]),
-      child: Row(
+      child:
+          //Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          //  crossAxisAlignment: CrossAxisAlignment.center,
+          // children: [
+          // Container(
+          //   padding: EdgeInsets.all(10),
+          //   margin: const EdgeInsets.symmetric(horizontal: 10.0),
+          //   decoration: BoxDecoration(
+          //     color: Colors.green,
+          //     borderRadius: BorderRadius.all(Radius.circular(50)),
+          //   ),
+          //   child: GestureDetector(
+          //     onTap: () {
+          //       showDialog(
+          //         context: context,
+          //         builder: (BuildContext context) {
+          //           return AddProductModal(
+          //             userId: "userId",
+          //           );
+          //         },
+          //       );
+          //     },
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          //         new Icon(Icons.add,
+          //             size: 20,
+          //             // These colors are not defined in the Material Design spec.
+          //             color: Colors.white),
+          //         Text(" Add Product",
+          //             textAlign: TextAlign.center,
+          //             style: TextStyle(color: Colors.white))
+          //       ],
+          //     ),
+          //   ),
+          // ),
+          Row(
         // Icons.ac_unit
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        //mainAxisSize: MainAxisSize.max,
+        //crossAxisAlignment: CrossAxisAlignment.center,
+        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          _icon(null, widget.model.tab == 0 ? true : false, 0,
-              icon: 0 == 0 ? AppIcon.homeFill : AppIcon.home,
-              isCustomIcon: true,text: "Keypad"),
-          _icon(null, widget.model.tab == 1 ? true : false, 1,
-              icon: 1 == 1 ? AppIcon.lists : AppIcon.lists, isCustomIcon: true,text: "Library"),
+          Container(
+            //alignment: Alignment.centerLeft,
+            //padding: EdgeInsets.only(right:10),
+            child: _icon(null, widget.model.tab == 0 ? true : false, 0,
+                icon: widget.model.tab == 0
+                    ? Image(
+                        width: 28,
+                        height: 25,
+                        image: AssetImage('assets/keypad_enable.png'))
+                    : Image(
+                        width: 28,
+                        height: 25,
+                        image: AssetImage('assets/keypad_disable.png')),
+                isCustomIcon: true,
+                text: "Keypad"),
+          ),
+          Container(
+            // alignment: Alignment.centerRight,
+            child: _icon(null, widget.model.tab == 1 ? true : false, 1,
+                icon: widget.model.tab == 1
+                    ? Image(
+                        width: 28,
+                        height: 25,
+                        image: AssetImage('assets/library_enable.png'))
+                    : Image(
+                        width: 28,
+                        height: 25,
+                        image: AssetImage('assets/library_disable.png')),
+                isCustomIcon: true,
+                text: "Library"),
+          ),
           // _icon(null, widget.model.tab == 2 ? true : false, 2,
           //     icon: 3 == 3 ? AppIcon.chat : AppIcon.chat,
           //     isCustomIcon: false,
@@ -48,11 +115,16 @@ class _BottomMenubarState extends State<BottomMenubar> {
           //     isCustomIcon: true),
         ],
       ),
+      // ],
+      // )
     );
   }
 
   Widget _icon(IconData iconData, bool focus, int index,
-      {bool isCustomIcon = false, bool message = false, int icon, String text}) {
+      {bool isCustomIcon = false,
+      bool message = false,
+      Image icon,
+      String text}) {
     return Expanded(
       child: Container(
         height: double.infinity,
@@ -70,11 +142,12 @@ class _BottomMenubarState extends State<BottomMenubar> {
               padding: const EdgeInsets.all(0),
               alignment: const Alignment(0, 0),
               icon: isCustomIcon
-                  ? customIcon(context,
+                  ? customBottomIcon(context,
                       icon: icon,
-                      size: 22,
+                      size: 20,
                       istwitterIcon: true,
-                      isEnable: focus,text:text)
+                      isEnable: focus,
+                      text: text)
                   : message
                       ? Icon(
                           Icons.home_filled,
