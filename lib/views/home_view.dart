@@ -122,7 +122,7 @@ class HomeView extends StatelessWidget {
             //   backgroundColor: Colors.blue,
             // ),
 
-            floatingActionButton:                 Container(
+            floatingActionButton: Container(
               padding: EdgeInsets.all(10),
               margin: const EdgeInsets.symmetric(horizontal: 10.0),
               decoration: BoxDecoration(
@@ -161,7 +161,6 @@ class HomeView extends StatelessWidget {
               model: model,
             ),
 
-
             body: ViewModelBuilder<PosViewModel>.reactive(
               builder: (BuildContext context, PosViewModel pos, Widget child) {
                 return Column(
@@ -173,7 +172,6 @@ class HomeView extends StatelessWidget {
                       child: Container(
                         child: SafeArea(
                           child: Container(
-
                             child:
                                 _getPage(index: model.tab, vm: vm, model: pos),
                           ),
