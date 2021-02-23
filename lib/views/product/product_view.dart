@@ -1,5 +1,4 @@
 import 'package:flipper/views/CustomDropdownButton.dart';
-import 'package:flipper/views/product/add/add_product_modal.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper/views/product/products_viewmodel.dart';
 import 'package:flipper/views/product/widget/build_product_list.dart';
@@ -12,7 +11,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper/routes/router.gr.dart';
 
 class ProductView extends StatefulWidget {
-  ProductView({Key key, this.userId, this.items, this.sellingModeView = false})
+  const ProductView(
+      {Key key, this.userId, this.items, this.sellingModeView = false})
       : super(key: key);
 
   final bool items;
@@ -23,7 +23,12 @@ class ProductView extends StatefulWidget {
   _onCreate createState() => _onCreate(userId, items, sellingModeView);
 }
 
+// ignore: camel_case_types
 class _onCreate extends State<ProductView> {
+  _onCreate(this.userId, this.items, this.sellingModeView);
+
+  bool search = false;
+  bool spinner = false;
   final bool items;
   final bool sellingModeView;
   final String userId;
@@ -31,18 +36,13 @@ class _onCreate extends State<ProductView> {
   String strSearch;
   String dropdownValue = 'All Items';
 
-  List _items = [
-    "All Items",
-    "Discounts",
+  final List _items = [
+    'All Items',
+    'Discounts',
   ];
 
   List<DropdownMenuItem<String>> _dropDownMenuItems;
-  String _currentItems = "";
-
-  _onCreate(this.userId, this.items, this.sellingModeView);
-
-  bool search = false;
-  bool spinner = false;
+  String _currentItems = '';
 
   @override
   void initState() {
@@ -53,19 +53,18 @@ class _onCreate extends State<ProductView> {
 
   // here we are creating the list needed for the DropDownButton
   List<DropdownMenuItem<String>> getDropDownMenuItems() {
-    List<DropdownMenuItem<String>> items = new List();
+    final List<DropdownMenuItem<String>> items = [];
     for (String val in _items) {
       // here we are creating the drop down menu items, you can customize the item right here
       // but I'll just use a simple text for this
-      items.add(new DropdownMenuItem(
+      items.add(DropdownMenuItem(
           value: val,
-          child: new Text(val, style: TextStyle(color: Colors.black))));
+          child: Text(val, style: const TextStyle(color: Colors.black))));
     }
     return items;
   }
 
   void changedDropDownItem(String selectedZone) {
-    print("Selected city $selectedZone, we are going to refresh the UI");
     setState(() {
       _currentItems = selectedZone;
       spinner = false;
@@ -301,7 +300,7 @@ class _onCreate extends State<ProductView> {
       data: model.products,
       shouldSeeItem: false,
       showCreateItemOnTop: true,
-      createButtonName: 'Add Products',
+      createButtonName: 'Add Product',
       userId: userId,
     );
   }
@@ -309,33 +308,16 @@ class _onCreate extends State<ProductView> {
   Widget searchItems({ProductsViewModel model, BuildContext context}) {
     if (search == false) {
       _dropDownMenuItems = getDropDownMenuItems();
-      //_currentItems = _dropDownMenuItems[0].value;
-      // if (spinner == false) {
       return Container(
         child: Column(children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
                 border: Border(
-              // right: BorderSide(color: const Color(0xffc1c6cb)),
-              bottom: BorderSide(color: const Color(0xffc1c6cb)),
-              // right: BorderSide(color: const Color(0xffc1c6cb)),
+              bottom: BorderSide(color: Color(0xffc1c6cb)),
             )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Expanded(
-                //   child: Container(
-                //     padding: EdgeInsets.only(left: 12),
-                //     child: Text(
-                //       _currentItems,
-                //       style: const TextStyle(
-                //         fontSize: 13.0,
-                //         fontWeight: FontWeight.w500,
-                //         color: Colors.black87,
-                //       ),
-                //     ),
-                //   ),
-                // ),
                 Expanded(
                   child: InkWell(
                     onTap: () {
@@ -343,52 +325,7 @@ class _onCreate extends State<ProductView> {
                       setState(() {});
                     },
                     child: Container(
-                      padding: EdgeInsets.only(left: 12),
-                      // child: Text(
-                      //   "All Items",
-                      //   style: const TextStyle(
-                      //     fontSize: 13.0,
-                      //     fontWeight: FontWeight.w500,
-                      //     color: Colors.black87,
-                      //   ),
-                      // ),
-
-                      // child: DropdownButton<String>(
-                      //   value: dropdownValue,
-                      //   icon: Icon(Icons.arrow_drop_down),
-                      //   iconSize: 30,
-                      //   elevation: 8,
-                      //   style: TextStyle(color: Colors.black, fontSize: 18),
-                      //
-                      //   onChanged: (String data) {
-                      //     setState(() {
-                      //       dropdownValue = data;
-                      //     });
-                      //   },
-                      //   items: spinnerItems.map<DropdownMenuItem<String>>((String value) {
-                      //     return DropdownMenuItem<String>(
-                      //       value: value,
-                      //       child: Text(value),
-                      //     );
-                      //   }).toList(),
-                      // ),
-
-                      // child: IconButton(
-                      //   alignment: Alignment.center,
-                      //   icon: const Icon(Icons.arrow_drop_down),
-                      //   color: Colors.black,
-                      //   onPressed: () {
-                      //     //spinner = true;
-                      //    // child:
-                      //     CustomDropdownButton(
-                      //       value: _currentItems,
-                      //       items: _dropDownMenuItems,
-                      //       onChanged: changedDropDownItem,
-                      //     );
-                      //    setState(() {});
-                      //   },
-                      // ),
-
+                      padding: const EdgeInsets.only(left: 12),
                       child: CustomDropdownButton(
                         value: _currentItems,
                         items: _dropDownMenuItems,
@@ -426,89 +363,39 @@ class _onCreate extends State<ProductView> {
               data: model.products,
               shouldSeeItem: false,
               showCreateItemOnTop: true,
-              createButtonName: 'Add Products',
+              createButtonName: 'Add Product',
               userId: userId,
             ),
           ),
         ]),
       );
-      // } else {
-      //   return Container(
-      //     child: Column(children: [
-      //       Container(
-      //         decoration: BoxDecoration(
-      //             border: Border(
-      //           // right: BorderSide(color: const Color(0xffc1c6cb)),
-      //           bottom: BorderSide(color: const Color(0xffc1c6cb)),
-      //           // right: BorderSide(color: const Color(0xffc1c6cb)),
-      //         )),
-      //         child: Row(
-      //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //           children: [
-      //             Expanded(
-      //               child: Container(
-      //                 padding: EdgeInsets.only(left: 12),
-      //                 child: InkWell(
-      //                   onTap: () {
-      //                     spinner = false;
-      //                     setState(() {});
-      //                   },
-      //                   child: CustomDropdownButton(
-      //                     value: _currentItems,
-      //                     items: _dropDownMenuItems,
-      //                     onChanged: changedDropDownItem,
-      //                   ),
-      //                 ),
-      //               ),
-      //             ),
-      //           ],
-      //         ),
-      //       ),
-      //       Expanded(
-      //         child: BuildProductsView(
-      //           context: context,
-      //           data: model.products,
-      //           shouldSeeItem: false,
-      //           showCreateItemOnTop: true,
-      //           createButtonName: 'Add Products',
-      //           userId: userId,
-      //         ),
-      //       ),
-      //     ]),
-      //   );
-      // }
     } else {
       return Container(
         child: Column(children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
                 border: Border(
-              // right: BorderSide(color: const Color(0xffc1c6cb)),
-              bottom: BorderSide(color: const Color(0xffc1c6cb)),
-              // right: BorderSide(color: const Color(0xffc1c6cb)),
+              bottom: BorderSide(color: Color(0xffc1c6cb)),
             )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.only(left: 12),
+                    padding: const EdgeInsets.only(left: 12),
                     child: TextField(
                       keyboardType: TextInputType.text,
                       cursorColor: Colors.black26,
                       controller: etSearch,
                       onChanged: (value) => strSearch = value,
                       style: const TextStyle(
-                        color: const Color(0xff3d454c),
+                        color: Color(0xff3d454c),
                         fontSize: 15,
-                        // fontFeatures: [
-                        //   FontFeature.enable('sups'),
-                        // ],
                       ),
                       decoration: const InputDecoration(
-                        hintText: "Search All Items",
+                        hintText: 'Search All Items',
                         border: InputBorder.none,
-                        hintStyle: const TextStyle(
+                        hintStyle: TextStyle(
                           color: Colors.black26,
                           fontSize: 15,
                         ),
@@ -540,7 +427,7 @@ class _onCreate extends State<ProductView> {
               data: model.products,
               shouldSeeItem: false,
               showCreateItemOnTop: true,
-              createButtonName: 'Add Products',
+              createButtonName: 'Add Product',
               userId: userId,
             ),
           ),
@@ -554,8 +441,6 @@ class _onCreate extends State<ProductView> {
     etSearch = TextEditingController(text: strSearch);
     dropdownValue = 'All Items';
     _dropDownMenuItems = getDropDownMenuItems();
-
-
 
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, ProductsViewModel model, Widget child) {
@@ -607,9 +492,7 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
                 .canvasColor,
             body: Padding(
               padding: const EdgeInsets.all(0),
-              child:
-                  //Column(children: <Widget>[
-                  ListView(
+              child: ListView(
                 shrinkWrap: true,
                 children: buildProductList(
                         model: viewModel,
@@ -621,11 +504,6 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
                         shouldSeeItem: shouldSeeItem)
                     .toList(),
               ),
-              // Container(
-              //   height: 1,
-              //   color: Colors.black26,
-              // ),
-              //]),
             ),
           );
   }
