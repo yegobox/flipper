@@ -10,38 +10,37 @@ import 'package:stacked/stacked.dart';
 class BusinessList extends StatelessWidget {
   const BusinessList({Key key}) : super(key: key);
 
-  Padding _buildFirstSectionFlipperLogo(
+  Widget _buildFirstSectionFlipperLogo(
       {@required DrawerViewModel model, BuildContext context}) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 30.0),
-      child: Container(
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Container(
-              child: Column(children: <Widget>[
-                ..._buildSelectionHighlight(false, Colors.white),
-                _selectableListItem(
-                  userIcon: Text(
-                    model.state.branch.name.length > 2
-                        ? model.state.branch.name.substring(0, 3).toUpperCase()
-                        : model.state.branch.name.toUpperCase(),
-                  ),
-                  isSquareShape: false,
-                  action: () {},
+    return Container(
+      child: Column(
+        children: <Widget>[
+          Container(
+            child: Column(children: <Widget>[
+              ..._buildSelectionHighlight(false, Colors.white),
+              // const SizedBox(height: 1),
+              _selectableListItem(
+                userIcon: Text(
+                  model.state.branch.name.length > 2
+                      ? model.state.branch.name.substring(0, 3).toUpperCase()
+                      : model.state.branch.name.toUpperCase(),
                 ),
-              ]),
-            ),
-            Container(
-              color: Theme.of(context)
-                  .copyWith(
-                      canvasColor: const Color.fromRGBO(33, 127, 125, 1.0))
-                  .canvasColor,
-              height: _Style.separatorHeight,
-              width: _Style.separatorWidth,
-            ),
-          ],
-        ),
+                isSquareShape: false,
+                action: () {},
+              ),
+            ]),
+          ),
+          const SizedBox(height: 3),
+          Container(
+            color: Theme.of(context)
+                .copyWith(
+                  canvasColor: const Color.fromRGBO(33, 127, 125, 1.0),
+                )
+                .canvasColor,
+            height: _Style.separatorHeight,
+            width: _Style.separatorWidth,
+          ),
+        ],
       ),
     );
   }
@@ -123,38 +122,38 @@ class BusinessList extends StatelessWidget {
       list.add(_buildSecondSectionBusinessList(
           context: context, model: model, business: businesses[i]));
     }
-    return Expanded(
-      child: Column(children: list),
-    );
+    return Column(children: list);
   }
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, DrawerViewModel model, Widget child) {
-          return Container(
-            color: HexColor('#130f1f'),
-            child: Stack(
-              children: <Widget>[
-                Column(
-                  children: [
-                    _buildFirstSectionFlipperLogo(
-                      context: context,
-                      model: model,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: getRenderableBusinessList(
-                        businesses: model.businesses,
+          return SafeArea(
+            child: Container(
+              color: HexColor('#130f1f'),
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    children: [
+                      _buildFirstSectionFlipperLogo(
                         context: context,
                         model: model,
                       ),
-                    ),
-                    _buildThirdSection(model: model),
-                  ],
-                ),
-                Positioned(bottom: 0.0, child: _buildFourthSection(context))
-              ],
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: getRenderableBusinessList(
+                          businesses: model.businesses,
+                          context: context,
+                          model: model,
+                        ),
+                      ),
+                      _buildThirdSection(model: model),
+                    ],
+                  ),
+                  Positioned(bottom: 0.0, child: _buildFourthSection(context))
+                ],
+              ),
             ),
           );
         },

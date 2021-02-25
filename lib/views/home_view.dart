@@ -95,7 +95,7 @@ class HomeView extends StatelessWidget {
             //             size: 20,
             //             // These colors are not defined in the Material Design spec.
             //             color: Colors.white),
-            //         Text("  Add Products",
+            //         Text("  Add Product",
             //             textAlign: TextAlign.center,
             //             style: TextStyle(color: Colors.white))
             //       ],
@@ -117,7 +117,7 @@ class HomeView extends StatelessWidget {
             //       },
             //     );
             //   },
-            //   label: Text('Add Products'),
+            //   label: Text('Add Product'),
             //   icon: Icon(Icons.add),
             //   backgroundColor: Colors.blue,
             // ),
@@ -148,7 +148,7 @@ class HomeView extends StatelessWidget {
                         size: 20,
                         // These colors are not defined in the Material Design spec.
                         color: Colors.white),
-                    Text(" Add Products",
+                    Text(" Add Product",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white))
                   ],

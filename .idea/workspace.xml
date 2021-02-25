@@ -20,8 +20,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2fd0b90-4d5e-4b9c-9814-ea04e5e8690d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/flutter_01.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/CustomDropdownButton.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/CustomDropdownButton.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/business/business_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/business/business_list.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/home_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/widget/bottom_menu_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widget/bottom_menu_bar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

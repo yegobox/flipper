@@ -8,7 +8,7 @@ publish_to: 'none'
 # commit
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 99.99.99+99
-
+# new
 environment:
   sdk: ">=2.10.0 <3.0.0"
 
@@ -201,3 +201,6 @@ flutter_intl:
 # keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
 # dynamic link to work on ios
 # https://medium.com/dev-genius/firebase-flutter-dynamic-links-step-by-step-guide-630402ee729b
+
+# 
+# https://medium.com/flutter-community/building-flutter-qr-code-generator-scanner-and-sharing-app-703e73b228d3
