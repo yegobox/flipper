@@ -1,7 +1,6 @@
 import 'package:flipper/views/home_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
 
 import '../theme.dart';
 
@@ -76,10 +75,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   String buildSaleWording({HomeViewModel model}) {
     if (model.tab == 0 || model.tab == 1) {
-      if (model.sales.isEmpty) {
+      if (model.orders.isEmpty) {
         return 'No Sale';
       } else {
-        return 'Current Sale [ ' + model.sales.length.toString() + ' ]';
+        return 'Current Sale [ ' + model.orders.length.toString() + ' ]';
       }
     } else {
       return '';

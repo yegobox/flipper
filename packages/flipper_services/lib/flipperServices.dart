@@ -3,14 +3,15 @@ library flipper_services;
 import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
 
-/// A Calculator.
 class KeyPadService with ReactiveServiceMixin {
   KeyPadService() {
     listenToReactiveValues([]);
   }
-  final RxValue<double> sum = RxValue<double>(initial: 0.0);
-  double get getSum => sum.value;
+
+  final RxValue<double> customAmount = RxValue<double>(initial: 0.0);
+  double get getSum => customAmount.value;
   void setSum({double sumation}) {
-    sum.value = sumation;
+    customAmount.value = 0.0;
+    customAmount.value = sumation;
   }
 }

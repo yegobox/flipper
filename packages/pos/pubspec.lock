@@ -372,6 +372,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.0-dev.5"
+  firebase_remote_config:
+    dependency: transitive
+    description:
+      name: firebase_remote_config
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.0"
   fixnum:
     dependency: transitive
     description:
@@ -737,6 +744,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.4+3"
+  pattern_formatter:
+    dependency: "direct main"
+    description:
+      name: pattern_formatter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   pedantic:
     dependency: transitive
     description:

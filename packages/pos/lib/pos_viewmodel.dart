@@ -5,20 +5,15 @@ import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 
 class PosViewModel extends ReactiveViewModel {
-  final _sharedState = locator<KeyPadService>();
+  var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
   String expression = '0.0';
+  var operators = <String>['+', '-', '*', '/'];
   String result = '';
 
-  var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  var operators = <String>['+', '-', '*', '/'];
+  final _sharedState = locator<KeyPadService>();
 
-  bool isOperator(String op) {
-    return operators.contains(op);
-  }
-
-  bool isDigit(String op) {
-    return digits.contains(op);
-  }
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
 
   void addKey(String key) {
     var _expr = expression;
@@ -33,7 +28,6 @@ class PosViewModel extends ReactiveViewModel {
 
     if (operators.contains(key) && key != '+') {
       // Handle as an operator
-
       if (_expr.isNotEmpty && operators.contains(_expr[_expr.length - 1])) {
         _expr = _expr.substring(0, _expr.length - 1);
       }
@@ -50,12 +44,9 @@ class PosViewModel extends ReactiveViewModel {
         expression = '';
       }
     }
-    // if (expression.length < 8) {
     expression = _expr;
     result = _result;
     notifyListeners();
-
-    print("fffffffffff      " + result + "  " + _expr + "  " + expression);
   }
 
   int _getPriority(String op) {
@@ -111,12 +102,12 @@ class PosViewModel extends ReactiveViewModel {
           while (operators.isNotEmpty &&
               operands.isNotEmpty &&
               _getPriority(c) <= _getPriority(operators.last)) {
-            num op1 = operands.removeLast();
-            num op2 = operands.removeLast();
-            String op = operators.removeLast();
+            final num op1 = operands.removeLast();
+            final num op2 = operands.removeLast();
+            final String op = operators.removeLast();
 
             // op1 and op2 in reverse order!
-            num res = _eval(op2, op1, op);
+            final num res = _eval(op2, op1, op);
             operands.addLast(res);
           }
           operators.addLast(c);
@@ -137,6 +128,11 @@ class PosViewModel extends ReactiveViewModel {
     return operands.removeLast();
   }
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
+  bool isOperator(String op) {
+    return operators.contains(op);
+  }
+
+  bool isDigit(String op) {
+    return digits.contains(op);
+  }
 }
