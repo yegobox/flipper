@@ -131,8 +131,8 @@ class HomeView extends StatelessWidget {
           //TODO: init a listner to keypad + button for us to creat new order
           // do other logic in the backend.
           model.initTab();
-          model.listenKeyPad();
-          model.countItemOnCurrentOrder();
+          // model.listenKeyPad();
+          // model.countItemOnCurrentOrder();
         },
         viewModelBuilder: () => HomeViewModel());
   }
