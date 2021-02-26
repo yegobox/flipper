@@ -16,6 +16,7 @@ abstract class StockHistory
   String get orderId;
   String get variantId;
   String get variantName;
+  @nullable
   String get note;
   String get updatedAt;
   String get createdAt;
@@ -49,7 +50,6 @@ abstract class StockHistory
     return fromMap(json.decode(jsonString));
   }
 
-  // ignore: always_specify_types
   static StockHistory fromMap(Map jsonMap) {
     return standardSerializers.deserializeWith(
         StockHistory.serializer, jsonMap);

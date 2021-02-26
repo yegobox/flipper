@@ -14,18 +14,16 @@ abstract class Order implements Built<Order, OrderBuilder> {
   String get id;
   String get branchId;
 
-  @nullable
   String get reference;
 
-  @nullable
-  bool get isDraft;
-  @nullable
+  bool get draft;
+
+  bool get active;
+
   String get orderType;
 
-  @nullable
   String get orderNUmber;
 
-  @nullable
   double get subTotal;
 
   @nullable
@@ -48,8 +46,7 @@ abstract class Order implements Built<Order, OrderBuilder> {
 
   BuiltList<String> get channels;
 
-  @nullable
-  String get customerChangeDue;
+  double get customerChangeDue;
   // ignore: sort_constructors_first
   Order._();
   factory Order([void Function(OrderBuilder) updates]) = _$Order;

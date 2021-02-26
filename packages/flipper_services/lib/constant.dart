@@ -12,6 +12,7 @@ class AppTables {
   static const String category = 'categories';
   static const String variation = 'variants';
   static const String product = 'products';
+  static const String stockHistories = 'stocks_histories';
   static const String order = 'orders';
   static const String chats = 'messages';
   static const String branchProduct = 'branchProducts';

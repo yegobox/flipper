@@ -32,7 +32,9 @@ List<Widget> buildProductList(
 
   // build a list of products.
   for (Product product in products) {
-    if (product != null && product.name != 'tmp') {
+    if (product != null &&
+        product.name != 'tmp' &&
+        product.name != 'Custom Amount') {
       list.add(
         GestureDetector(
           onTap: () {

@@ -40,7 +40,7 @@ class PosViewModel extends ReactiveViewModel {
       }
     } else if (key == '+') {
       if (_expr.isNotEmpty) {
-        _sharedState.setSum(sumation: double.parse(expression));
+        _sharedState.setCustomAmount(customAmount: double.parse(expression));
         expression = '';
       }
     }

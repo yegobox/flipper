@@ -23,6 +23,22 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'branchId',
       serializers.serialize(object.branchId,
           specifiedType: const FullType(String)),
+      'reference',
+      serializers.serialize(object.reference,
+          specifiedType: const FullType(String)),
+      'draft',
+      serializers.serialize(object.draft, specifiedType: const FullType(bool)),
+      'active',
+      serializers.serialize(object.active, specifiedType: const FullType(bool)),
+      'orderType',
+      serializers.serialize(object.orderType,
+          specifiedType: const FullType(String)),
+      'orderNUmber',
+      serializers.serialize(object.orderNUmber,
+          specifiedType: const FullType(String)),
+      'subTotal',
+      serializers.serialize(object.subTotal,
+          specifiedType: const FullType(double)),
       'cashReceived',
       serializers.serialize(object.cashReceived,
           specifiedType: const FullType(double)),
@@ -30,37 +46,10 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       serializers.serialize(object.channels,
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
+      'customerChangeDue',
+      serializers.serialize(object.customerChangeDue,
+          specifiedType: const FullType(double)),
     ];
-    if (object.reference != null) {
-      result
-        ..add('reference')
-        ..add(serializers.serialize(object.reference,
-            specifiedType: const FullType(String)));
-    }
-    if (object.isDraft != null) {
-      result
-        ..add('isDraft')
-        ..add(serializers.serialize(object.isDraft,
-            specifiedType: const FullType(bool)));
-    }
-    if (object.orderType != null) {
-      result
-        ..add('orderType')
-        ..add(serializers.serialize(object.orderType,
-            specifiedType: const FullType(String)));
-    }
-    if (object.orderNUmber != null) {
-      result
-        ..add('orderNUmber')
-        ..add(serializers.serialize(object.orderNUmber,
-            specifiedType: const FullType(String)));
-    }
-    if (object.subTotal != null) {
-      result
-        ..add('subTotal')
-        ..add(serializers.serialize(object.subTotal,
-            specifiedType: const FullType(double)));
-    }
     if (object.taxAmount != null) {
       result
         ..add('taxAmount')
@@ -97,12 +86,6 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
         ..add(serializers.serialize(object.productName,
             specifiedType: const FullType(String)));
     }
-    if (object.customerChangeDue != null) {
-      result
-        ..add('customerChangeDue')
-        ..add(serializers.serialize(object.customerChangeDue,
-            specifiedType: const FullType(String)));
-    }
     return result;
   }
 
@@ -129,8 +112,12 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           result.reference = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'isDraft':
-          result.isDraft = serializers.deserialize(value,
+        case 'draft':
+          result.draft = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'active':
+          result.active = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
         case 'orderType':
@@ -181,7 +168,7 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           break;
         case 'customerChangeDue':
           result.customerChangeDue = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(double)) as double;
           break;
       }
     }
@@ -198,7 +185,9 @@ class _$Order extends Order {
   @override
   final String reference;
   @override
-  final bool isDraft;
+  final bool draft;
+  @override
+  final bool active;
   @override
   final String orderType;
   @override
@@ -222,7 +211,7 @@ class _$Order extends Order {
   @override
   final BuiltList<String> channels;
   @override
-  final String customerChangeDue;
+  final double customerChangeDue;
 
   factory _$Order([void Function(OrderBuilder) updates]) =>
       (new OrderBuilder()..update(updates)).build();
@@ -231,7 +220,8 @@ class _$Order extends Order {
       {this.id,
       this.branchId,
       this.reference,
-      this.isDraft,
+      this.draft,
+      this.active,
       this.orderType,
       this.orderNUmber,
       this.subTotal,
@@ -251,11 +241,32 @@ class _$Order extends Order {
     if (branchId == null) {
       throw new BuiltValueNullFieldError('Order', 'branchId');
     }
+    if (reference == null) {
+      throw new BuiltValueNullFieldError('Order', 'reference');
+    }
+    if (draft == null) {
+      throw new BuiltValueNullFieldError('Order', 'draft');
+    }
+    if (active == null) {
+      throw new BuiltValueNullFieldError('Order', 'active');
+    }
+    if (orderType == null) {
+      throw new BuiltValueNullFieldError('Order', 'orderType');
+    }
+    if (orderNUmber == null) {
+      throw new BuiltValueNullFieldError('Order', 'orderNUmber');
+    }
+    if (subTotal == null) {
+      throw new BuiltValueNullFieldError('Order', 'subTotal');
+    }
     if (cashReceived == null) {
       throw new BuiltValueNullFieldError('Order', 'cashReceived');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Order', 'channels');
+    }
+    if (customerChangeDue == null) {
+      throw new BuiltValueNullFieldError('Order', 'customerChangeDue');
     }
   }
 
@@ -273,7 +284,8 @@ class _$Order extends Order {
         id == other.id &&
         branchId == other.branchId &&
         reference == other.reference &&
-        isDraft == other.isDraft &&
+        draft == other.draft &&
+        active == other.active &&
         orderType == other.orderType &&
         orderNUmber == other.orderNUmber &&
         subTotal == other.subTotal &&
@@ -306,13 +318,16 @@ class _$Order extends Order {
                                                         $jc(
                                                             $jc(
                                                                 $jc(
-                                                                    0,
-                                                                    id
+                                                                    $jc(
+                                                                        0,
+                                                                        id
+                                                                            .hashCode),
+                                                                    branchId
                                                                         .hashCode),
-                                                                branchId
+                                                                reference
                                                                     .hashCode),
-                                                            reference.hashCode),
-                                                        isDraft.hashCode),
+                                                            draft.hashCode),
+                                                        active.hashCode),
                                                     orderType.hashCode),
                                                 orderNUmber.hashCode),
                                             subTotal.hashCode),
@@ -333,7 +348,8 @@ class _$Order extends Order {
           ..add('id', id)
           ..add('branchId', branchId)
           ..add('reference', reference)
-          ..add('isDraft', isDraft)
+          ..add('draft', draft)
+          ..add('active', active)
           ..add('orderType', orderType)
           ..add('orderNUmber', orderNUmber)
           ..add('subTotal', subTotal)
@@ -365,9 +381,13 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get reference => _$this._reference;
   set reference(String reference) => _$this._reference = reference;
 
-  bool _isDraft;
-  bool get isDraft => _$this._isDraft;
-  set isDraft(bool isDraft) => _$this._isDraft = isDraft;
+  bool _draft;
+  bool get draft => _$this._draft;
+  set draft(bool draft) => _$this._draft = draft;
+
+  bool _active;
+  bool get active => _$this._active;
+  set active(bool active) => _$this._active = active;
 
   String _orderType;
   String get orderType => _$this._orderType;
@@ -414,9 +434,9 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _$this._channels ??= new ListBuilder<String>();
   set channels(ListBuilder<String> channels) => _$this._channels = channels;
 
-  String _customerChangeDue;
-  String get customerChangeDue => _$this._customerChangeDue;
-  set customerChangeDue(String customerChangeDue) =>
+  double _customerChangeDue;
+  double get customerChangeDue => _$this._customerChangeDue;
+  set customerChangeDue(double customerChangeDue) =>
       _$this._customerChangeDue = customerChangeDue;
 
   OrderBuilder();
@@ -426,7 +446,8 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _id = _$v.id;
       _branchId = _$v.branchId;
       _reference = _$v.reference;
-      _isDraft = _$v.isDraft;
+      _draft = _$v.draft;
+      _active = _$v.active;
       _orderType = _$v.orderType;
       _orderNUmber = _$v.orderNUmber;
       _subTotal = _$v.subTotal;
@@ -466,7 +487,8 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
               id: id,
               branchId: branchId,
               reference: reference,
-              isDraft: isDraft,
+              draft: draft,
+              active: active,
               orderType: orderType,
               orderNUmber: orderNUmber,
               subTotal: subTotal,

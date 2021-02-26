@@ -17,6 +17,7 @@ import '../order_detail.dart';
 import '../pcolor.dart';
 import '../product.dart';
 import '../stock.dart';
+import '../stock_history.dart';
 import '../tax.dart';
 import '../unit.dart';
 import '../variant_stock.dart';
@@ -53,7 +54,8 @@ part 'serializers.g.dart';
   VariantStock,
   OrderDetail,
   FContact,
-  Chat
+  Chat,
+  StockHistory,
 ])
 Serializers serializers = _$serializers;
 

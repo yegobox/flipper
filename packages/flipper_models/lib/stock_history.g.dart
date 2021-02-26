@@ -30,8 +30,6 @@ class _$StockHistorySerializer implements StructuredSerializer<StockHistory> {
       'variantName',
       serializers.serialize(object.variantName,
           specifiedType: const FullType(String)),
-      'note',
-      serializers.serialize(object.note, specifiedType: const FullType(String)),
       'updatedAt',
       serializers.serialize(object.updatedAt,
           specifiedType: const FullType(String)),
@@ -56,9 +54,6 @@ class _$StockHistorySerializer implements StructuredSerializer<StockHistory> {
       'customerChangeDue',
       serializers.serialize(object.customerChangeDue,
           specifiedType: const FullType(double)),
-      'isDraft',
-      serializers.serialize(object.isDraft,
-          specifiedType: const FullType(bool)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
@@ -67,7 +62,12 @@ class _$StockHistorySerializer implements StructuredSerializer<StockHistory> {
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
-
+    if (object.note != null) {
+      result
+        ..add('note')
+        ..add(serializers.serialize(object.note,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -134,10 +134,6 @@ class _$StockHistorySerializer implements StructuredSerializer<StockHistory> {
           result.customerChangeDue = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
-        case 'isDraft':
-          result.isDraft = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
-          break;
         case 'channels':
           result.channels.replace(serializers.deserialize(value,
                   specifiedType:
@@ -183,8 +179,6 @@ class _$StockHistory extends StockHistory {
   @override
   final double customerChangeDue;
   @override
-  final bool isDraft;
-  @override
   final BuiltList<String> channels;
   @override
   final String table;
@@ -206,7 +200,6 @@ class _$StockHistory extends StockHistory {
       this.cashReceived,
       this.cashCollected,
       this.customerChangeDue,
-      this.isDraft,
       this.channels,
       this.table})
       : super._() {
@@ -221,9 +214,6 @@ class _$StockHistory extends StockHistory {
     }
     if (variantName == null) {
       throw new BuiltValueNullFieldError('StockHistory', 'variantName');
-    }
-    if (note == null) {
-      throw new BuiltValueNullFieldError('StockHistory', 'note');
     }
     if (updatedAt == null) {
       throw new BuiltValueNullFieldError('StockHistory', 'updatedAt');
@@ -248,9 +238,6 @@ class _$StockHistory extends StockHistory {
     }
     if (customerChangeDue == null) {
       throw new BuiltValueNullFieldError('StockHistory', 'customerChangeDue');
-    }
-    if (isDraft == null) {
-      throw new BuiltValueNullFieldError('StockHistory', 'isDraft');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('StockHistory', 'channels');
@@ -284,7 +271,6 @@ class _$StockHistory extends StockHistory {
         cashReceived == other.cashReceived &&
         cashCollected == other.cashCollected &&
         customerChangeDue == other.customerChangeDue &&
-        isDraft == other.isDraft &&
         channels == other.channels &&
         table == other.table;
   }
@@ -304,23 +290,19 @@ class _$StockHistory extends StockHistory {
                                             $jc(
                                                 $jc(
                                                     $jc(
-                                                        $jc(
-                                                            $jc(
-                                                                $jc(0,
-                                                                    id.hashCode),
-                                                                orderId.hashCode),
-                                                            variantId.hashCode),
-                                                        variantName.hashCode),
-                                                    note.hashCode),
-                                                updatedAt.hashCode),
-                                            createdAt.hashCode),
-                                        stockId.hashCode),
-                                    reason.hashCode),
-                                quantity.hashCode),
-                            cashReceived.hashCode),
-                        cashCollected.hashCode),
-                    customerChangeDue.hashCode),
-                isDraft.hashCode),
+                                                        $jc($jc(0, id.hashCode),
+                                                            orderId.hashCode),
+                                                        variantId.hashCode),
+                                                    variantName.hashCode),
+                                                note.hashCode),
+                                            updatedAt.hashCode),
+                                        createdAt.hashCode),
+                                    stockId.hashCode),
+                                reason.hashCode),
+                            quantity.hashCode),
+                        cashReceived.hashCode),
+                    cashCollected.hashCode),
+                customerChangeDue.hashCode),
             channels.hashCode),
         table.hashCode));
   }
@@ -341,7 +323,6 @@ class _$StockHistory extends StockHistory {
           ..add('cashReceived', cashReceived)
           ..add('cashCollected', cashCollected)
           ..add('customerChangeDue', customerChangeDue)
-          ..add('isDraft', isDraft)
           ..add('channels', channels)
           ..add('table', table))
         .toString();
@@ -406,10 +387,6 @@ class StockHistoryBuilder
   set customerChangeDue(double customerChangeDue) =>
       _$this._customerChangeDue = customerChangeDue;
 
-  bool _isDraft;
-  bool get isDraft => _$this._isDraft;
-  set isDraft(bool isDraft) => _$this._isDraft = isDraft;
-
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
       _$this._channels ??= new ListBuilder<String>();
@@ -436,7 +413,6 @@ class StockHistoryBuilder
       _cashReceived = _$v.cashReceived;
       _cashCollected = _$v.cashCollected;
       _customerChangeDue = _$v.customerChangeDue;
-      _isDraft = _$v.isDraft;
       _channels = _$v.channels?.toBuilder();
       _table = _$v.table;
       _$v = null;
@@ -476,7 +452,6 @@ class StockHistoryBuilder
               cashReceived: cashReceived,
               cashCollected: cashCollected,
               customerChangeDue: customerChangeDue,
-              isDraft: isDraft,
               channels: channels.build(),
               table: table);
     } catch (_) {

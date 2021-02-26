@@ -16,6 +16,7 @@ import 'package:stacked/stacked.dart';
 
 class ProductsViewModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('product observer:)');
+
   final _sharedState = locator<SharedStateService>();
 
   String _branchId;

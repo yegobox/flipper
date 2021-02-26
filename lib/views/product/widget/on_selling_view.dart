@@ -1,6 +1,7 @@
 import 'package:customappbar/Itemappbar.dart';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/product.dart';
+
 // import 'package:flipper_services/locator.dart';
 import 'package:flipper/views/product/widget/on_selling_viewmodal.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +11,23 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 
-class OnSellingView extends StatelessWidget {
-  const OnSellingView({Key key, this.product}) : super(key: key);
+class OnSellingView extends StatefulWidget {
+  OnSellingView({Key key, this.product}) : super(key: key);
   final Product product;
+
+  @override
+  _onCreate createState() => _onCreate(product);
+}
+
+class _onCreate extends State<OnSellingView> {
+  ForHere forHere = ForHere.lafayette;
+  ToGo toGo = ToGo.lafayette;
+  Delivery delivery = Delivery.lafayette;
+  Pickup pick = Pickup.lafayette;
+  Product product;
+
+  _onCreate(this.product);
+
   List<Widget> _productCategory({@required OnProductSellingViewModal model}) {
     final List<Widget> list = <Widget>[];
     if (model.busy) {
@@ -23,7 +38,7 @@ class OnSellingView extends StatelessWidget {
       list.add(SingleChildScrollView(
         child: Container(
           child: Padding(
-            padding: const EdgeInsets.only(left:2.0,right: 2.0,top: 4.0),
+            padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 4.0),
             child: Column(
               children: [
                 Divider(
@@ -47,7 +62,6 @@ class OnSellingView extends StatelessWidget {
                       ),
                     ),
                     Container(
-
                       child: Row(children: [
                         Container(
                           child: Text(
@@ -89,7 +103,7 @@ class OnSellingView extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: const EdgeInsets.only(left:2.0,right: 2.0,top: 1.0),
+          padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
           child: Column(
             children: [
               Divider(
@@ -125,27 +139,34 @@ class OnSellingView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                  //  flex: 1,
-                    child:
-                    model.quantity <= 1 ?
-                    IconButton(
-                      icon: const Icon(AntDesign.minus,color:Colors.grey,size: 25,),
-                      onPressed: model.decreaseQty,
-                    ):IconButton(
-                      icon: const Icon(AntDesign.minus,color: const Color(
-                          0xC9000000),size: 25,),
-                      onPressed: model.decreaseQty,
-                    ),
+                    //  flex: 1,
+                    child: model.quantity <= 1
+                        ? IconButton(
+                            icon: const Icon(
+                              AntDesign.minus,
+                              color: Colors.grey,
+                              size: 25,
+                            ),
+                            onPressed: model.decreaseQty,
+                          )
+                        : IconButton(
+                            icon: const Icon(
+                              AntDesign.minus,
+                              color: const Color(0xC9000000),
+                              size: 25,
+                            ),
+                            onPressed: model.decreaseQty,
+                          ),
                   ),
                   Container(
                     width: 1,
                     height: 50,
-                    color: Colors.grey[300],
+                    color: Colors.grey[400],
                   ),
                   Expanded(
                       flex: 2,
                       child: Container(
-                        margin: EdgeInsets.only(left: 50,right: 50),
+                        margin: EdgeInsets.only(left: 50, right: 50),
                         child: TextFormField(
                           style: TextStyle(
                             color: Theme.of(context)
@@ -156,8 +177,7 @@ class OnSellingView extends StatelessWidget {
                           initialValue: model.quantity?.toInt().toString(),
                           textAlign: TextAlign.center,
                           cursorColor: Theme.of(context)
-                              .copyWith(canvasColor:  const Color(
-                              0x3B000000))
+                              .copyWith(canvasColor: const Color(0x3B000000))
                               .canvasColor,
                           // decoration: const InputDecoration(
                           //     hintStyle: TextStyle(color: const Color(
@@ -167,14 +187,17 @@ class OnSellingView extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 50,
-                    color: Colors.grey[300],
+                    color: Colors.grey[400],
                   ),
                   Container(
-                   // flex: 1,
+                    // flex: 1,
                     child: Container(
                       child: IconButton(
-                        icon: const Icon(Icons.add,color: const Color(
-                            0xC9000000),size: 25,),
+                        icon: const Icon(
+                          Icons.add,
+                          color: const Color(0xC9000000),
+                          size: 25,
+                        ),
                         onPressed: model.increaseQty,
                       ),
                     ),
@@ -188,99 +211,331 @@ class OnSellingView extends StatelessWidget {
                 color: Colors.grey[400],
               ),
               const SizedBox(
-                height: 10.0,
+                height: 15.0,
               ),
               //TODO: feature to implements in near future
-              // Row(
-              //   mainAxisSize: MainAxisSize.max,
-              //   mainAxisAlignment: MainAxisAlignment.start,
-              //   children: [
-              //     Expanded(
-              //       flex: 1,
-              //       child: Text('NOTES',
-              //           style: GoogleFonts.lato(
-              //               textStyle: TextStyle(
-              //                   fontWeight: FontWeight.bold,
-              //                   fontSize: 11.0,
-              //                   color: Colors.grey[800]))),
-              //     ),
-              //     const Expanded(flex: 2, child: Text('')),
-              //   ],
-              // ),
-              // TextField(
-              //   style: TextStyle(color: Colors.grey[900]),
-              //   textAlign: TextAlign.left,
-              //   cursorColor: Colors.black,
-              //   decoration: InputDecoration(
-              //       hintText: 'Add a note',
-              //       hintStyle: TextStyle(
-              //         color: Theme.of(context)
-              //             .copyWith(canvasColor: Colors.grey[600])
-              //             .canvasColor,
-              //       )),
-              // ),
-              // const SizedBox(
-              //   height: 20.0,
-              // ),
-              // Row(
-              //   mainAxisSize: MainAxisSize.max,
-              //   mainAxisAlignment: MainAxisAlignment.start,
-              //   children: [
-              //     Expanded(
-              //       flex: 1,
-              //       child: Text('DISCOUNTS',
-              //           style: GoogleFonts.lato(
-              //               textStyle: TextStyle(
-              //             fontWeight: FontWeight.bold,
-              //             fontSize: 11.0,
-              //             color: Theme.of(context)
-              //                 .copyWith(canvasColor: Colors.grey[700])
-              //                 .canvasColor,
-              //           ))),
-              //     ),
-              //     const Expanded(flex: 2, child: Text('')),
-              //   ],
-              // ),
-              // const SizedBox(
-              //   height: 10.0,
-              // ),
-              // Divider(
-              //   color: Colors.grey[300],
-              // ),
-              // Row(
-              //   mainAxisSize: MainAxisSize.max,
-              //   mainAxisAlignment: MainAxisAlignment.start,
-              //   children: [
-              //     Expanded(
-              //       flex: 2,
-              //       child: Text('Abajama 0.005%',
-              //           softWrap: true,
-              //           style: GoogleFonts.lato(
-              //               textStyle: TextStyle(
-              //             fontWeight: FontWeight.bold,
-              //             fontSize: 14.0,
-              //             color: Theme.of(context)
-              //                 .copyWith(canvasColor: Colors.grey[600])
-              //                 .canvasColor,
-              //           ))),
-              //     ),
-              //     Expanded(
-              //       flex: 1,
-              //       child: Slider(
-              //         value: model.slider,
-              //         min: 0,
-              //         max: 100,
-              //         divisions: 1,
-              //         onChanged: (double value) {
-              //           model.slide(value: value);
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // Divider(
-              //   color: Colors.grey[300],
-              // ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('NOTES',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 11.0,
+                                color: Colors.grey[900]))),
+                  ),
+                  const Expanded(flex: 2, child: Text('')),
+                ],
+              ),
+              const SizedBox(
+                height: 5.0,
+              ),
+              TextField(
+                style: TextStyle(color: Colors.grey[900]),
+                textAlign: TextAlign.left,
+                cursorColor: Colors.black,
+                decoration: InputDecoration(
+                    hintText: 'Add a note',
+                    hintStyle: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context)
+                          .copyWith(canvasColor: Colors.grey[600])
+                          .canvasColor,
+                    )),
+              ),
+              const SizedBox(
+                height: 25.0,
+              ),
+
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('DINING OPTION',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  const Expanded(flex: 2, child: Text('')),
+                ],
+              ),
+
+              const SizedBox(
+                height: 8.0,
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('For Here',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  Container(
+                    height: 10,
+                    child: Radio(
+                      toggleable: true,
+                      value: ForHere.lafayette,
+                      groupValue: forHere,
+                      onChanged: (ForHere value) {
+                        setState(() {
+                          forHere = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(
+                height: 8.0,
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('To GO',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  Container(
+                    height: 10,
+                    child: Radio(
+                      toggleable: true,
+                      value: ToGo.lafayette,
+                      groupValue: toGo,
+                      onChanged: (ToGo value) {
+                        setState(() {
+                          toGo = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('Delivery',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  Container(
+                    height: 10,
+                    child: Radio(
+                      toggleable: true,
+                      value: Delivery.lafayette,
+                      groupValue: delivery,
+                      onChanged: (Delivery value) {
+                        setState(() {
+                          delivery = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('Pickup',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  Container(
+                    height: 10,
+                    child: Radio(
+                      toggleable: true,
+                      value: Pickup.lafayette,
+                      groupValue: pick,
+                      onChanged: (Pickup value) {
+                        setState(() {
+                          pick = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('DISCOUNTS',
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  const Expanded(flex: 2, child: Text('')),
+                ],
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text('Abajama 0.04%',
+                        softWrap: true,
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Slider(
+                      value: model.slider,
+                      min: 0,
+                      max: 100,
+                      divisions: 1,
+                      onChanged: (double value) {
+                        model.slide(value: value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text('Real 0.1%',
+                        softWrap: true,
+                        style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14.0,
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[800])
+                              .canvasColor,
+                        ))),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Slider(
+                      value: model.slider,
+                      min: 0,
+                      max: 100,
+                      divisions: 1,
+                      onChanged: (double value) {
+                        model.slide(value: value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Divider(
+                color: Colors.grey[400],
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
               // end of future to implement in near future
             ],
           ),
@@ -313,7 +568,6 @@ class OnSellingView extends StatelessWidget {
                 multi: 1,
                 bottomSpacer: 49,
               ),
-
               body: Container(
                 child: SingleChildScrollView(
                   child: Padding(
@@ -372,3 +626,9 @@ class OnSellingView extends StatelessWidget {
     return product.name + ' Frw' + model.amountTotal?.toInt().toString();
   }
 }
+
+
+enum ForHere { lafayette, jefferson }
+enum ToGo { lafayette, jefferson }
+enum Delivery { lafayette, jefferson }
+enum Pickup { lafayette, jefferson }
