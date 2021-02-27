@@ -15,7 +15,7 @@ class HomeViewModel extends ReactiveViewModel {
   final DatabaseService _databaseService = ProxyService.database;
   final List<StockHistory> _orders = [];
   List<StockHistory> get orders => _orders;
-  final Logger log = Logging.getLogger('p:)');
+  final Logger log = Logging.getLogger('O1:)');
   int _tab;
   int get tab {
     return _tab;
@@ -44,15 +44,17 @@ class HomeViewModel extends ReactiveViewModel {
     final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
 
     q.parameters = {'T': AppTables.stockHistories, 'OID': pOrder.id};
-    final orders = q.execute();
-    if (orders.isNotEmpty) {
-      for (Map map in orders) {
-        if (!_orders.contains(StockHistory.fromMap(map))) {
-          _orders.add(StockHistory.fromMap(map));
+
+    q.addChangeListener((List orders) {
+      if (orders.isNotEmpty) {
+        for (Map map in orders) {
+          if (!_orders.contains(StockHistory.fromMap(map))) {
+            _orders.add(StockHistory.fromMap(map));
+          }
         }
+        notifyListeners();
       }
-      notifyListeners();
-    }
+    });
   }
 
   @override

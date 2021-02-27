@@ -3,6 +3,7 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/utils/app_colors.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/drawer_viewmodel.dart';
+import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -67,6 +68,20 @@ class FlipperDrawer extends StatelessWidget {
       left: 0,
       child: Column(
         children: <Widget>[
+          _menuListRowButton('Close a day',
+              isEnable: true,
+              context: context,
+              icon: AppIcon.bookmark, onPressed: () {
+            print(drawerViewmodel.state.businessHistory.id);
+            ProxyService.nav.navigateTo(
+              Routing.openCloseDrawerview,
+              arguments: OpenCloseDrawerViewArguments(
+                wording: 'Closing Float',
+                historyId: drawerViewmodel.state.businessHistory.id,
+                businessState: BusinessState.CLOSE,
+              ),
+            );
+          }),
           const Divider(height: 0),
           Row(
             children: <Widget>[

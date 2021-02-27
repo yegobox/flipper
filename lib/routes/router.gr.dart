@@ -4,13 +4,14 @@
 // AutoRouteGenerator
 // **************************************************************************
 
+import 'package:built_collection/built_collection.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flipper/views/welcome/signup/signup_view.dart';
 import 'package:flipper/views/product/add/add_product_view.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/views/reports/build_sales_View.dart';
 import 'package:flipper/widget/calendar/calenderView.dart';
 import 'package:flipper/views/discounts/discount_view.dart';
@@ -42,8 +43,10 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_contacts/contact_view.dart';
 import 'package:flipper_chat/chat_view.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:flipper_models/product.dart';
+// import 'package:built_collection/src/list/built_list.dart';
+import 'package:flipper/views/sale/complete_view.dart';
+import 'package:flipper/views/switch/switch_view.dart';
+import 'package:flipper/views/welcome/home/common_view_model.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -79,6 +82,8 @@ class Routing {
   static const settingsView = '/settings-view';
   static const contactView = '/contact-view';
   static const chatView = '/chat-view';
+  static const completeSaleView = '/complete-sale-view';
+  static const switchView = '/switch-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -119,8 +124,9 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) => OpenCloseDrawerView(
               key: typedArgs.key,
-              vm: typedArgs.vm,
-              businessState: typedArgs.businessState),
+              historyId: typedArgs.historyId,
+              businessState: typedArgs.businessState,
+              wording: typedArgs.wording),
           settings: settings,
           fullscreenDialog: true,
         );
@@ -433,6 +439,23 @@ class Routing {
               chatRoomId: typedArgs.chatRoomId, channels: typedArgs.channels),
           settings: settings,
         );
+      case Routing.completeSaleView:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => CompleteSaleView(),
+          settings: settings,
+        );
+      case Routing.switchView:
+        if (hasInvalidArgs<SwitchViewArguments>(args)) {
+          return misTypedArgsRoute<SwitchViewArguments>(args);
+        }
+        final typedArgs = args as SwitchViewArguments ?? SwitchViewArguments();
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => SwitchView(
+              key: typedArgs.key,
+              vm: typedArgs.vm,
+              sideOpenController: typedArgs.sideOpenController),
+          settings: settings,
+        );
       default:
         return unknownRoutePage(settings.name);
     }
@@ -463,10 +486,14 @@ class SignUpViewArguments {
 //OpenCloseDrawerView arguments holder class
 class OpenCloseDrawerViewArguments {
   final Key key;
-  final CommonViewModel vm;
+  final String historyId;
   final BusinessState businessState;
+  final String wording;
   OpenCloseDrawerViewArguments(
-      {this.key, this.vm, this.businessState = BusinessState.OPEN});
+      {this.key,
+      this.historyId,
+      this.businessState = BusinessState.OPEN,
+      this.wording = 'Opening Float'});
 }
 
 //CalendarView arguments holder class
@@ -567,4 +594,12 @@ class ChatViewArguments {
   final String chatRoomId;
   final BuiltList<dynamic> channels;
   ChatViewArguments({this.chatRoomId, this.channels});
+}
+
+//SwitchView arguments holder class
+class SwitchViewArguments {
+  final Key key;
+  final CommonViewModel vm;
+  final ValueNotifier<bool> sideOpenController;
+  SwitchViewArguments({this.key, this.vm, this.sideOpenController});
 }

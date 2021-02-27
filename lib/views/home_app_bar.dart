@@ -1,3 +1,4 @@
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/home_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -29,43 +30,41 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: 60,
-            child: Row(
-                // crossAxisAlignment: CrossAxisAlignment.center,
-                //  mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Expanded(
-                    child: FlatButton(
-                      onPressed: null,
-                      child: Text(
-                        buildSaleWording(model: model),
-                        style: Theme.of(context).textTheme.headline4.copyWith(
-                            fontSize: 16,
-                            color: const Color(0xff363f47),
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: FlatButton(
+                  onPressed: () {
+                    ProxyService.nav.navigateTo(Routing.completeSaleView);
+                  },
+                  child: Text(
+                    buildSaleWording(model: model),
+                    style: Theme.of(context).textTheme.headline4.copyWith(
+                        fontSize: 16,
+                        color: const Color(0xff363f47),
+                        fontWeight: FontWeight.w600),
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      final bool loggedOut =
-                          await ProxyService.sharedPref.logout();
-                      if (loggedOut) {
-                        ProxyService.database.logout(context: context);
-                      }
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      child: Text(
-                        'Log Out',
-                        textAlign: TextAlign.end,
-                        style: Theme.of(context).textTheme.headline4.copyWith(
-                            fontSize: 15,
-                            color: const Color(0xff363f47),
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () async {
+                  final bool loggedOut = await ProxyService.sharedPref.logout();
+                  if (loggedOut) {
+                    ProxyService.database.logout(context: context);
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  child: Text(
+                    'Log Out',
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.headline4.copyWith(
+                        fontSize: 15,
+                        color: const Color(0xff363f47),
+                        fontWeight: FontWeight.w600),
                   ),
-                ]),
+                ),
+              ),
+            ]),
           ),
         ),
         // trailing: const SizedBox.shrink(),

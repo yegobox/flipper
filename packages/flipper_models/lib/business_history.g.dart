@@ -6,33 +6,34 @@ part of flipper_models;
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<Switcher> _$switcherSerializer = new _$SwitcherSerializer();
+Serializer<BusinessHistory> _$businessHistorySerializer =
+    new _$BusinessHistorySerializer();
 
-class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
+class _$BusinessHistorySerializer
+    implements StructuredSerializer<BusinessHistory> {
   @override
-  final Iterable<Type> types = const [Switcher, _$Switcher];
+  final Iterable<Type> types = const [BusinessHistory, _$BusinessHistory];
   @override
-  final String wireName = 'Switcher';
+  final String wireName = 'BusinessHistory';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, Switcher object,
+  Iterable<Object> serialize(Serializers serializers, BusinessHistory object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
-      'isClosed',
-      serializers.serialize(object.isClosed,
-          specifiedType: const FullType(bool)),
+      'id',
+      serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
-    if (object.documentId != null) {
-      result
-        ..add('id')
-        ..add(serializers.serialize(object.documentId,
-            specifiedType: const FullType(String)));
-    }
     if (object.cashierName != null) {
       result
         ..add('cashierName')
         ..add(serializers.serialize(object.cashierName,
             specifiedType: const FullType(String)));
+    }
+    if (object.openingHour != null) {
+      result
+        ..add('openingHour')
+        ..add(serializers.serialize(object.openingHour,
+            specifiedType: const FullType(bool)));
     }
     if (object.isSocial != null) {
       result
@@ -46,10 +47,10 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
         ..add(serializers.serialize(object.table,
             specifiedType: const FullType(String)));
     }
-    if (object.openingFLoat != null) {
+    if (object.openingFloat != null) {
       result
-        ..add('openingFLoat')
-        ..add(serializers.serialize(object.openingFLoat,
+        ..add('openingFloat')
+        ..add(serializers.serialize(object.openingFloat,
             specifiedType: const FullType(double)));
     }
     if (object.closingFloat != null) {
@@ -76,13 +77,20 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
         ..add(serializers.serialize(object.userId,
             specifiedType: const FullType(String)));
     }
+    if (object.createdAt != null) {
+      result
+        ..add('createdAt')
+        ..add(serializers.serialize(object.createdAt,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
   @override
-  Switcher deserialize(Serializers serializers, Iterable<Object> serialized,
+  BusinessHistory deserialize(
+      Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new SwitcherBuilder();
+    final result = new BusinessHistoryBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -91,15 +99,15 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
       final dynamic value = iterator.current;
       switch (key) {
         case 'id':
-          result.documentId = serializers.deserialize(value,
+          result.id = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'cashierName':
           result.cashierName = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'isClosed':
-          result.isClosed = serializers.deserialize(value,
+        case 'openingHour':
+          result.openingHour = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
         case 'isSocial':
@@ -110,8 +118,8 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
           result.table = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'openingFLoat':
-          result.openingFLoat = serializers.deserialize(value,
+        case 'openingFloat':
+          result.openingFloat = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
         case 'closingFloat':
@@ -130,6 +138,10 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
           result.userId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
+        case 'createdAt':
+          result.createdAt = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
       }
     }
 
@@ -137,19 +149,19 @@ class _$SwitcherSerializer implements StructuredSerializer<Switcher> {
   }
 }
 
-class _$Switcher extends Switcher {
+class _$BusinessHistory extends BusinessHistory {
   @override
-  final String documentId;
+  final String id;
   @override
   final String cashierName;
   @override
-  final bool isClosed;
+  final bool openingHour;
   @override
   final bool isSocial;
   @override
   final String table;
   @override
-  final double openingFLoat;
+  final double openingFloat;
   @override
   final double closingFloat;
   @override
@@ -158,48 +170,53 @@ class _$Switcher extends Switcher {
   final String businessId;
   @override
   final String userId;
+  @override
+  final String createdAt;
 
-  factory _$Switcher([void Function(SwitcherBuilder) updates]) =>
-      (new SwitcherBuilder()..update(updates)).build();
+  factory _$BusinessHistory([void Function(BusinessHistoryBuilder) updates]) =>
+      (new BusinessHistoryBuilder()..update(updates)).build();
 
-  _$Switcher._(
-      {this.documentId,
+  _$BusinessHistory._(
+      {this.id,
       this.cashierName,
-      this.isClosed,
+      this.openingHour,
       this.isSocial,
       this.table,
-      this.openingFLoat,
+      this.openingFloat,
       this.closingFloat,
       this.displayText,
       this.businessId,
-      this.userId})
+      this.userId,
+      this.createdAt})
       : super._() {
-    if (isClosed == null) {
-      throw new BuiltValueNullFieldError('Switcher', 'isClosed');
+    if (id == null) {
+      throw new BuiltValueNullFieldError('BusinessHistory', 'id');
     }
   }
 
   @override
-  Switcher rebuild(void Function(SwitcherBuilder) updates) =>
+  BusinessHistory rebuild(void Function(BusinessHistoryBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SwitcherBuilder toBuilder() => new SwitcherBuilder()..replace(this);
+  BusinessHistoryBuilder toBuilder() =>
+      new BusinessHistoryBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is Switcher &&
-        documentId == other.documentId &&
+    return other is BusinessHistory &&
+        id == other.id &&
         cashierName == other.cashierName &&
-        isClosed == other.isClosed &&
+        openingHour == other.openingHour &&
         isSocial == other.isSocial &&
         table == other.table &&
-        openingFLoat == other.openingFLoat &&
+        openingFloat == other.openingFloat &&
         closingFloat == other.closingFloat &&
         displayText == other.displayText &&
         businessId == other.businessId &&
-        userId == other.userId;
+        userId == other.userId &&
+        createdAt == other.createdAt;
   }
 
   @override
@@ -212,49 +229,53 @@ class _$Switcher extends Switcher {
                         $jc(
                             $jc(
                                 $jc(
-                                    $jc($jc(0, documentId.hashCode),
-                                        cashierName.hashCode),
-                                    isClosed.hashCode),
-                                isSocial.hashCode),
-                            table.hashCode),
-                        openingFLoat.hashCode),
-                    closingFloat.hashCode),
-                displayText.hashCode),
-            businessId.hashCode),
-        userId.hashCode));
+                                    $jc(
+                                        $jc($jc(0, id.hashCode),
+                                            cashierName.hashCode),
+                                        openingHour.hashCode),
+                                    isSocial.hashCode),
+                                table.hashCode),
+                            openingFloat.hashCode),
+                        closingFloat.hashCode),
+                    displayText.hashCode),
+                businessId.hashCode),
+            userId.hashCode),
+        createdAt.hashCode));
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('Switcher')
-          ..add('documentId', documentId)
+    return (newBuiltValueToStringHelper('BusinessHistory')
+          ..add('id', id)
           ..add('cashierName', cashierName)
-          ..add('isClosed', isClosed)
+          ..add('openingHour', openingHour)
           ..add('isSocial', isSocial)
           ..add('table', table)
-          ..add('openingFLoat', openingFLoat)
+          ..add('openingFloat', openingFloat)
           ..add('closingFloat', closingFloat)
           ..add('displayText', displayText)
           ..add('businessId', businessId)
-          ..add('userId', userId))
+          ..add('userId', userId)
+          ..add('createdAt', createdAt))
         .toString();
   }
 }
 
-class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
-  _$Switcher _$v;
+class BusinessHistoryBuilder
+    implements Builder<BusinessHistory, BusinessHistoryBuilder> {
+  _$BusinessHistory _$v;
 
-  String _documentId;
-  String get documentId => _$this._documentId;
-  set documentId(String documentId) => _$this._documentId = documentId;
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   String _cashierName;
   String get cashierName => _$this._cashierName;
   set cashierName(String cashierName) => _$this._cashierName = cashierName;
 
-  bool _isClosed;
-  bool get isClosed => _$this._isClosed;
-  set isClosed(bool isClosed) => _$this._isClosed = isClosed;
+  bool _openingHour;
+  bool get openingHour => _$this._openingHour;
+  set openingHour(bool openingHour) => _$this._openingHour = openingHour;
 
   bool _isSocial;
   bool get isSocial => _$this._isSocial;
@@ -264,9 +285,9 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
   String get table => _$this._table;
   set table(String table) => _$this._table = table;
 
-  double _openingFLoat;
-  double get openingFLoat => _$this._openingFLoat;
-  set openingFLoat(double openingFLoat) => _$this._openingFLoat = openingFLoat;
+  double _openingFloat;
+  double get openingFloat => _$this._openingFloat;
+  set openingFloat(double openingFloat) => _$this._openingFloat = openingFloat;
 
   double _closingFloat;
   double get closingFloat => _$this._closingFloat;
@@ -284,52 +305,58 @@ class SwitcherBuilder implements Builder<Switcher, SwitcherBuilder> {
   String get userId => _$this._userId;
   set userId(String userId) => _$this._userId = userId;
 
-  SwitcherBuilder();
+  String _createdAt;
+  String get createdAt => _$this._createdAt;
+  set createdAt(String createdAt) => _$this._createdAt = createdAt;
 
-  SwitcherBuilder get _$this {
+  BusinessHistoryBuilder();
+
+  BusinessHistoryBuilder get _$this {
     if (_$v != null) {
-      _documentId = _$v.documentId;
+      _id = _$v.id;
       _cashierName = _$v.cashierName;
-      _isClosed = _$v.isClosed;
+      _openingHour = _$v.openingHour;
       _isSocial = _$v.isSocial;
       _table = _$v.table;
-      _openingFLoat = _$v.openingFLoat;
+      _openingFloat = _$v.openingFloat;
       _closingFloat = _$v.closingFloat;
       _displayText = _$v.displayText;
       _businessId = _$v.businessId;
       _userId = _$v.userId;
+      _createdAt = _$v.createdAt;
       _$v = null;
     }
     return this;
   }
 
   @override
-  void replace(Switcher other) {
+  void replace(BusinessHistory other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other as _$Switcher;
+    _$v = other as _$BusinessHistory;
   }
 
   @override
-  void update(void Function(SwitcherBuilder) updates) {
+  void update(void Function(BusinessHistoryBuilder) updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$Switcher build() {
+  _$BusinessHistory build() {
     final _$result = _$v ??
-        new _$Switcher._(
-            documentId: documentId,
+        new _$BusinessHistory._(
+            id: id,
             cashierName: cashierName,
-            isClosed: isClosed,
+            openingHour: openingHour,
             isSocial: isSocial,
             table: table,
-            openingFLoat: openingFLoat,
+            openingFloat: openingFloat,
             closingFloat: closingFloat,
             displayText: displayText,
             businessId: businessId,
-            userId: userId);
+            userId: userId,
+            createdAt: createdAt);
     replace(_$result);
     return _$result;
   }

@@ -1,67 +1,63 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/utils/constant.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/logger.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:flipper_services/proxy.dart';
 
-import 'package:uuid/uuid.dart';
 import 'base_model.dart';
 
 class OpenBusinessModel extends BaseModel {
   final DatabaseService _databaseService = ProxyService.database;
   final FlipperNavigationService _flipperNavigationService = ProxyService.nav;
+  final state = locator<SharedStateService>();
 
-  final Logger log = Logging.getLogger('Open Business model....');
+  final Logger log = Logging.getLogger('Open:');
 
   Future<void> openBusiness({
     double float,
     String note,
     BusinessState businessState,
     BuildContext context,
-    CommonViewModel vm,
+    @required historyId,
   }) async {
-    setBusy(true);
-    final id = Uuid().v1();
-    _databaseService.insert(id: id, data: {
-      'float': float,
-      'id': id,
-      'table': AppTables.drawerHistory,
-      'businessState': businessState == BusinessState.OPEN ? 'Open' : 'Close',
-      'note': note,
-      'businessId': ProxyService.sharedState.business.id,
-      'userId': vm.user.id.toString(),
-      'channels': [vm.user.id.toString()],
-      'uid': Uuid().v1()
-    });
-    await openCloseBusiness(
-      businessId: ProxyService.sharedState.business.id,
-      userId: vm.user.id.toString(),
-      isSocial: false,
-      name: vm.user.name,
-      isClosed: false,
-    );
-
-    _flipperNavigationService.navigateTo(Routing.dashboard);
-
-    setBusy(false);
+    await closingDrawerState(
+        businessId: ProxyService.sharedState.business.id,
+        userId: state.user.id.toString(),
+        isSocial: false,
+        name: state.user.name,
+        businessState: businessState,
+        historyId: historyId);
+    _flipperNavigationService.navigateTo(Routing.switchView);
   }
 
-  Future<void> openCloseBusiness({
+  Future<void> closingDrawerState({
+    //aka switcher.
     String userId,
     String name,
+    double float,
     bool isSocial = false,
     String businessId,
-    bool isClosed = true,
+    BusinessState businessState,
+    @required historyId,
   }) async {
-    final Document document = _databaseService.getById(id: userId + '2');
-    document.properties['isClosed'] = isClosed;
-    _databaseService.update(document: document);
+    if (businessState == BusinessState.OPEN) {
+      print(historyId);
+      final Document document = _databaseService.getById(id: historyId);
+      document.properties['openingHour'] = true;
+      document.properties['openingFloat'] = float;
+      print(document.jsonProperties);
+      _databaseService.update(document: document);
+    } else {
+      final Document document = _databaseService.getById(id: historyId);
+      document.properties['openingHour'] = false;
+      document.properties['closingFloat'] = float;
+      _databaseService.update(document: document);
+    }
   }
 }

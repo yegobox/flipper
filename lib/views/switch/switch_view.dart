@@ -1,6 +1,5 @@
-import 'package:flipper_models/switcher.dart';
-
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/business_history.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flipper/viewmodels/switch_model.dart';
@@ -26,13 +25,11 @@ class SwitchView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SwitchModel>.reactive(
-      // initialiseSpecialViewModelsOnce: true,
-
-      builder: (BuildContext context, SwitchModel model, Widget child) {
-        // ignore: always_specify_types
-        final Switcher drawer = model.data;
+      builder: (BuildContext context, SwitchModel drawer, Widget child) {
+        // final BusinessHistory drawer = model.data;
         // drawer can not be null as we start with business closed. i.e we check drawer!=null
-        if (drawer != null && !drawer.isSocial && drawer.isClosed) {
+        if (drawer.businessHistory != null &&
+            !drawer.businessHistory.openingHour) {
           return Scaffold(
             backgroundColor: Colors.white,
             body: Center(
@@ -54,9 +51,13 @@ class SwitchView extends StatelessWidget {
                         child: FlatButton(
                           onPressed: () {
                             _navigationService.navigateTo(
-                                Routing.openCloseDrawerview,
-                                arguments: OpenCloseDrawerViewArguments(
-                                    vm: vm, businessState: BusinessState.OPEN));
+                              Routing.openCloseDrawerview,
+                              arguments: OpenCloseDrawerViewArguments(
+                                wording: 'Opening Float',
+                                historyId: drawer.businessHistory.id,
+                                businessState: BusinessState.OPEN,
+                              ),
+                            );
                           },
                           color: Colors.blue,
                           child: const Text(
@@ -79,6 +80,9 @@ class SwitchView extends StatelessWidget {
         }
       },
       viewModelBuilder: () => SwitchModel(),
+      onModelReady: (SwitchModel model) {
+        model.getDraweState();
+      },
     );
   }
 }

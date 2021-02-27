@@ -16,8 +16,7 @@ class AppTables {
   static const String branchProduct = 'branchProducts';
   static const String unit = 'units';
   static const String stock = 'stocks';
-  static const String switchi = 'switchers';
-  static const String drawerHistory = 'drawerHistories';
+  static const String drawerHistories = 'drawerHistories';
   static const String cart = 'cart';
   static const String color = 'colors';
 

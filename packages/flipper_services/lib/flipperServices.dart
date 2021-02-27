@@ -6,8 +6,10 @@ import 'package:flipper_models/variation.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
+import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:uuid/uuid.dart';
@@ -15,6 +17,7 @@ import 'package:uuid/uuid.dart';
 class KeyPadService with ReactiveServiceMixin {
   final RxValue<double> customAmount = RxValue<double>();
   final _sharedStateService = locator<SharedStateService>();
+  final Logger log = Logging.getLogger('O2:)');
   double get getSum => customAmount.value;
   final DatabaseService _databaseService = ProxyService.database;
   void setCustomAmount({double customAmount}) {
@@ -76,6 +79,7 @@ class KeyPadService with ReactiveServiceMixin {
       // create order for this custom amount.
       //get pending order
       final Order order = pendingOrder(customAmount: customAmount);
+      log.d(order.id);
       // we now have order to use. create stock history for this custom Amount
       final id5 = Uuid().v1();
       _databaseService.insert(id: id5, data: {

@@ -1,42 +1,33 @@
 library flipper_services;
 
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 
 class SharedPreferenceService {
+  final box = GetStorage();
   Future<void> setUserLoggedIn({String userId}) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userId', userId);
+    await box.write('userId', userId);
   }
 
   Future<void> setToken({String token}) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
+    await box.write('token', token);
   }
 
-  Future<String> getToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('token') ? prefs.getString('token') : null;
+  String getUserId() {
+    return box.read('userId');
   }
 
-  Future<String> getUserId() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('userId') ? prefs.getString('userId') : null;
-  }
-
-  Future<bool> logout() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return await prefs.remove('userId');
+  bool logout() {
+    box.remove('userId');
+    return true;
   }
 
   Future<void> setIsAppConstantsInitialized({String userId}) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isAppConstantsInitialized', true);
+    await box.write('isAppConstantsInitialized', true);
   }
 
   Future<bool> isAppConstantsInitialized() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('isAppConstantsInitialized')
-        ? prefs.getBool('isAppConstantsInitialized')
+    return box.read('isAppConstantsInitialized') == null
+        ? box.read('isAppConstantsInitialized')
         : false;
   }
 }

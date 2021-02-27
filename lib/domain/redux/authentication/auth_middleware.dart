@@ -43,7 +43,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   // ignore: always_specify_types
   return (Store<AppState> store, action, next) async {
     next(action);
-
+    //start by opening DB if not open
+    // ProxyService.database.openDB();
     final FlipperNavigationService _navigationService = ProxyService.nav;
 
     final String loggedInuserId = await isUserCurrentlyLoggedIn(store);
@@ -84,34 +85,44 @@ Future<void> openCloseBusiness({
   String name,
   bool isSocial = false,
   String businessId,
-  bool isClosed = true,
+  bool isClosed = false,
 }) async {
   final DatabaseService _databaseService = ProxyService.database;
-  final openDrawer = _databaseService.getById(id: loggedInuserId + '2');
 
-  final Map<String, dynamic> buildMap = {
-    'id': loggedInuserId + '2', //to know the id of this user
-    'table': AppTables.switchi,
-    'name': name,
-    'isClosed': isClosed,
-    'isSocial': isSocial,
-    'businessId': businessId,
-    'channels': [loggedInuserId]
-  };
-  if (openDrawer == null) {
-    try {
-      _databaseService.insert(id: loggedInuserId + '2', data: buildMap);
-    } on PlatformException {}
-  } else {
-    openDrawer.properties['isClosed'] = isClosed;
-    _databaseService.update(document: openDrawer);
+  final q = Query(_databaseService.db,
+      'SELECT  id,cashierName,openingHour,isSocial,table,openingFloat,closingFloat,displayText,businessId,userId,createdAt WHERE table=\$T AND openingHour=\$OPEN');
+
+  q.parameters = {'T': AppTables.drawerHistories, 'OPEN': true};
+  final isBusinessOpen = q.execute();
+
+  if (isBusinessOpen.isEmpty) {
+    //it is not open open it now for later to be closed
+    final String id = Uuid().v1();
+    // print(loggedInuserId.runtimeType);
+    // print(isBusinessOpen);
+    final Map<String, dynamic> buildMap = {
+      'id': id, //to know the id of this user
+      'table': AppTables.drawerHistories,
+      'name': name,
+      'openingHour': false, //we start in closing mode.
+      'cashierName': ProxyService.sharedState.user.name,
+      'openingFloat': 0.0,
+      'closingFloat': 0.0,
+      'displayText': 'null',
+      'isSocial': false,
+      'businessId': businessId,
+      'channels': [loggedInuserId],
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+    _databaseService.insert(id: id, data: buildMap);
   }
 }
 
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
 
-  final String loggedInuserId = await ProxyService.sharedPref.getUserId();
+  final String loggedInuserId = ProxyService.sharedPref.getUserId();
+
   if (loggedInuserId == null) {
     await _databaseService.login();
     return null;
@@ -304,7 +315,7 @@ Future<void> getBusinesses(
             isSocial: false,
             name: ProxyService.sharedState.user.name,
             loggedInuserId: ProxyService.sharedState.user.id,
-            isClosed: true,
+            isClosed: false,
             businessId: Business.fromMap(value).id,
           );
           businesses.add(Business.fromMap(value));

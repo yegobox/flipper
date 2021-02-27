@@ -1,5 +1,6 @@
 library flipper_services;
 
+import 'package:flipper_models/business_history.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/branch.dart';
@@ -47,6 +48,14 @@ class SharedStateService with ReactiveServiceMixin {
   final RxValue<bool> didLogout = RxValue<bool>(initial: false);
 
   final RxValue<FUser> _user = RxValue<FUser>(initial: null);
+  FUser get user => _user.value;
+
+  final RxValue<BusinessHistory> _businessHistory =
+      RxValue<BusinessHistory>(initial: null);
+  BusinessHistory get businessHistory => _businessHistory.value;
+  void setBusinessHistory({BusinessHistory history}) {
+    _businessHistory.value = history;
+  }
 
   final RxValue<List<Variation>> _variations =
       RxValue<List<Variation>>(initial: []);
@@ -64,8 +73,6 @@ class SharedStateService with ReactiveServiceMixin {
   PColor get currentColor => _currentColor.value;
 
   Product get product => _product.value;
-
-  FUser get user => _user.value;
 
   Business get business => _businesses.value;
   Variation get variation => _variation.value;

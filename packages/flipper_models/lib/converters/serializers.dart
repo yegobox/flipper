@@ -4,7 +4,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
-import 'package:flipper_models/switcher.dart';
+import 'package:flipper_models/business_history.dart';
 
 import '../branch.dart';
 import '../business.dart';
@@ -39,7 +39,7 @@ part 'serializers.g.dart';
 ///
 /// You usually only need to do this once per project.
 @SerializersFor([
-  Switcher,
+  BusinessHistory,
   Unit,
   Category,
   Stock,

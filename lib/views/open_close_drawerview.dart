@@ -1,7 +1,9 @@
+import 'package:customappbar/customappbar.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/viewmodels/open_business_model.dart';
 import 'package:flipper_login/helpers/style.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
@@ -11,10 +13,14 @@ enum BusinessState { OPEN, CLOSE }
 // ignore: must_be_immutable
 class OpenCloseDrawerView extends StatelessWidget {
   OpenCloseDrawerView(
-      {Key key, this.vm, this.businessState = BusinessState.OPEN})
+      {Key key,
+      this.historyId,
+      this.businessState = BusinessState.OPEN,
+      this.wording = 'Opening Float'})
       : super(key: key);
-  final CommonViewModel vm;
-  BusinessState businessState;
+  final BusinessState businessState;
+  final String wording;
+  final String historyId;
 
   final TextEditingController _note = TextEditingController();
   final TextEditingController _float = TextEditingController();
@@ -26,6 +32,15 @@ class OpenCloseDrawerView extends StatelessWidget {
       viewModelBuilder: () => OpenBusinessModel(),
       builder: (BuildContext context, OpenBusinessModel model, Widget child) {
         return Scaffold(
+          appBar: CommonAppBar(
+            onPop: () {
+              ProxyService.nav.pop();
+            },
+            title: '',
+            icon: Icons.close,
+            multi: 3,
+            bottomSpacer: 52,
+          ),
           body: Center(
             child: Stack(
               alignment: Alignment.center,
@@ -46,7 +61,7 @@ class OpenCloseDrawerView extends StatelessWidget {
                               .headline5
                               .copyWith(color: Colors.black),
                           decoration: InputDecoration(
-                            hintText: 'Opening Float',
+                            hintText: wording,
                             fillColor: Theme.of(context)
                                 .copyWith(canvasColor: Colors.white)
                                 .canvasColor,
@@ -110,8 +125,8 @@ class OpenCloseDrawerView extends StatelessWidget {
                             padding: const EdgeInsets.all(0.0),
                             onPressed: () {
                               model.openBusiness(
-                                vm: vm,
                                 context: context,
+                                historyId: historyId,
                                 float: double.parse(_float.text),
                                 businessState: businessState,
                                 note: _note.text,
@@ -122,7 +137,9 @@ class OpenCloseDrawerView extends StatelessWidget {
                                   ? 'Open'
                                   : 'Close',
                               style: const TextStyle(
-                                  color: Colors.white, fontSize: 20),
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
                             ),
                           ),
                         ),

@@ -32,7 +32,9 @@ class DatabaseService {
     final String appDocPath = appDocDir.path;
     // ignore: prefer_single_quotes
     db = Database("main", directory: appDocPath);
-
+    if (!db.isOpen) {
+      db.open();
+    }
     final FlipperConfig flipperConfig =
         await ProxyService.firestore.getConfigs();
     if (flipperConfig == null) {
@@ -74,6 +76,12 @@ class DatabaseService {
     final data = db.saveDocument(document);
     ProxyService.pusher.syncToClients();
     return data;
+  }
+
+  // purgeDocument
+  bool delete({String id}) {
+    return db.purgeDocument(id);
+    // ProxyService.pusher.syncToClients();
   }
 
   Document insert({String id, Map data}) {
@@ -120,9 +128,9 @@ class DatabaseService {
     if (db.isOpen) {
       replicator.stop();
       db.close();
+
       _state.setDidLogout(logout: true);
       // AfterSplash
-
     }
   }
 }
