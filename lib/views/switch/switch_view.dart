@@ -47,20 +47,23 @@ class SwitchView extends StatelessWidget {
                       child: SizedBox(
                         width: 380,
                         height: 60,
-                        child: FlatButton(
-                          onPressed: () {
-                            _navigationService.navigateTo(
-                              Routing.openCloseDrawerview,
-                              arguments: OpenCloseDrawerViewArguments(
-                                wording: 'Opening Float',
-                                businessState: BusinessState.OPEN,
-                              ),
-                            );
-                          },
-                          color: Colors.blue,
-                          child: const Text(
-                            'Open',
-                            style: TextStyle(color: Colors.white),
+                        child: Hero(
+                          tag: 'open-btn',
+                          child: FlatButton(
+                            onPressed: () {
+                              _navigationService.navigateTo(
+                                Routing.openCloseDrawerview,
+                                arguments: OpenCloseDrawerViewArguments(
+                                  wording: 'Opening Float',
+                                  businessState: BusinessState.OPEN,
+                                ),
+                              );
+                            },
+                            color: Colors.blue,
+                            child: const Text(
+                              'Open',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
                       ),

@@ -6,7 +6,6 @@ import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
-// import 'package:uuid/uuid.dart';
 
 class SwitchModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('BusinessHistory....');
@@ -33,9 +32,6 @@ class SwitchModel extends ReactiveViewModel {
 
     if (histories.isNotEmpty) {
       for (Map map in histories) {
-        print(map);
-        print(map['id']);
-        // _databaseService.delete(id: map['id']);
         _businessHistory = BusinessHistory.fromMap(map);
         ProxyService.sharedState.setBusinessHistory(history: _businessHistory);
         notifyListeners();
@@ -44,6 +40,5 @@ class SwitchModel extends ReactiveViewModel {
   }
 
   @override
-  // TODO: implement reactiveServices
   List<ReactiveServiceMixin> get reactiveServices => [ProxyService.sharedState];
 }
