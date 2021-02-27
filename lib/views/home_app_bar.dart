@@ -34,7 +34,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               Expanded(
                 child: FlatButton(
                   onPressed: () {
-                    ProxyService.nav.navigateTo(Routing.completeSaleView);
+                    // ProxyService.nav.navigateTo(Routing.completeSaleView);
+                    // TODO: implements detail page
                   },
                   child: Text(
                     buildSaleWording(model: model),
@@ -47,7 +48,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               GestureDetector(
                 onTap: () async {
-                  final bool loggedOut = await ProxyService.sharedPref.logout();
+                  final bool loggedOut = ProxyService.sharedPref.logout();
                   if (loggedOut) {
                     ProxyService.database.logout(context: context);
                   }

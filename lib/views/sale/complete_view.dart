@@ -30,8 +30,18 @@ class CompleteSaleView extends StatelessWidget {
                       child: Column(
                         // ignore: prefer_const_literals_to_create_immutables
                         children: [
-                          const Text('FRw0.89'),
-                          const Text('Select Payment type bellow'),
+                          const SizedBox(height: 40),
+                          const Text(
+                            'FRw0.89',
+                            style: TextStyle(
+                                fontSize: 20.0, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 40),
+                          const Text(
+                            'Select Payment type bellow',
+                            style: TextStyle(
+                                fontSize: 18.0, fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                     ),
@@ -44,7 +54,10 @@ class CompleteSaleView extends StatelessWidget {
                         children: [
                           // ignore: prefer_const_constructors
                           ListTile(
-                            leading: const Text('Cash'),
+                            leading: const Text('Cash',
+                                style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold)),
                             trailing: const Icon(
                               Icons.arrow_forward_ios,
                               color: Colors.pink,
@@ -55,7 +68,10 @@ class CompleteSaleView extends StatelessWidget {
                           ),
                           // ignore: prefer_const_constructors
                           ListTile(
-                            leading: const Text('SPENN'),
+                            leading: const Text('SPENN',
+                                style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold)),
                             trailing: const Icon(
                               Icons.arrow_forward_ios,
                               color: Colors.pink,
@@ -66,7 +82,10 @@ class CompleteSaleView extends StatelessWidget {
                           ),
                           // ignore: prefer_const_constructors
                           ListTile(
-                            leading: const Text('MOMO'),
+                            leading: const Text('MOMO',
+                                style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold)),
                             trailing: const Icon(
                               Icons.arrow_forward_ios,
                               color: Colors.pink,
