@@ -124,7 +124,6 @@ class Routing {
         return MaterialPageRoute<dynamic>(
           builder: (_) => OpenCloseDrawerView(
               key: typedArgs.key,
-              historyId: typedArgs.historyId,
               businessState: typedArgs.businessState,
               wording: typedArgs.wording),
           settings: settings,
@@ -486,12 +485,10 @@ class SignUpViewArguments {
 //OpenCloseDrawerView arguments holder class
 class OpenCloseDrawerViewArguments {
   final Key key;
-  final String historyId;
   final BusinessState businessState;
   final String wording;
   OpenCloseDrawerViewArguments(
       {this.key,
-      this.historyId,
       this.businessState = BusinessState.OPEN,
       this.wording = 'Opening Float'});
 }

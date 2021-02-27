@@ -77,7 +77,6 @@ class FlipperDrawer extends StatelessWidget {
               Routing.openCloseDrawerview,
               arguments: OpenCloseDrawerViewArguments(
                 wording: 'Closing Float',
-                historyId: drawerViewmodel.state.businessHistory.id,
                 businessState: BusinessState.CLOSE,
               ),
             );

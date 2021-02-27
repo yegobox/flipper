@@ -80,44 +80,6 @@ Future getAppColors() async {
   }
 }
 
-Future<void> openCloseBusiness({
-  String loggedInuserId,
-  String name,
-  bool isSocial = false,
-  String businessId,
-  bool isClosed = false,
-}) async {
-  final DatabaseService _databaseService = ProxyService.database;
-
-  final q = Query(_databaseService.db,
-      'SELECT  id,cashierName,openingHour,isSocial,table,openingFloat,closingFloat,displayText,businessId,userId,createdAt WHERE table=\$T AND openingHour=\$OPEN');
-
-  q.parameters = {'T': AppTables.drawerHistories, 'OPEN': true};
-  final isBusinessOpen = q.execute();
-
-  if (isBusinessOpen.isEmpty) {
-    //it is not open open it now for later to be closed
-    final String id = Uuid().v1();
-    // print(loggedInuserId.runtimeType);
-    // print(isBusinessOpen);
-    final Map<String, dynamic> buildMap = {
-      'id': id, //to know the id of this user
-      'table': AppTables.drawerHistories,
-      'name': name,
-      'openingHour': false, //we start in closing mode.
-      'cashierName': ProxyService.sharedState.user.name,
-      'openingFloat': 0.0,
-      'closingFloat': 0.0,
-      'displayText': 'null',
-      'isSocial': false,
-      'businessId': businessId,
-      'channels': [loggedInuserId],
-      'createdAt': DateTime.now().toIso8601String(),
-    };
-    _databaseService.insert(id: id, data: buildMap);
-  }
-}
-
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
 
@@ -311,13 +273,6 @@ Future<void> getBusinesses(
         if (!businesses.contains(Business.fromMap(value))) {
           ProxyService.sharedState
               .setBusiness(business: Business.fromMap(value));
-          openCloseBusiness(
-            isSocial: false,
-            name: ProxyService.sharedState.user.name,
-            loggedInuserId: ProxyService.sharedState.user.id,
-            isClosed: false,
-            businessId: Business.fromMap(value).id,
-          );
           businesses.add(Business.fromMap(value));
         }
       });

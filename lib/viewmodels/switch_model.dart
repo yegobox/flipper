@@ -6,6 +6,7 @@ import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
+// import 'package:uuid/uuid.dart';
 
 class SwitchModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('BusinessHistory....');
@@ -25,7 +26,7 @@ class SwitchModel extends ReactiveViewModel {
 
     q.parameters = {
       'T': AppTables.drawerHistories,
-      'OPEN': false
+      'OPEN': true
     }; //if we business is not OPEN do not ask to put opening float again.
 
     final histories = q.execute();
@@ -37,9 +38,6 @@ class SwitchModel extends ReactiveViewModel {
         // _databaseService.delete(id: map['id']);
         _businessHistory = BusinessHistory.fromMap(map);
         ProxyService.sharedState.setBusinessHistory(history: _businessHistory);
-
-        // print(_businessHistory.isSocial);
-        // _isOPEN = _businessHistory.open;
         notifyListeners();
       }
     }

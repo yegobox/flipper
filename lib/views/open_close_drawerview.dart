@@ -14,13 +14,12 @@ enum BusinessState { OPEN, CLOSE }
 class OpenCloseDrawerView extends StatelessWidget {
   OpenCloseDrawerView(
       {Key key,
-      this.historyId,
       this.businessState = BusinessState.OPEN,
       this.wording = 'Opening Float'})
       : super(key: key);
   final BusinessState businessState;
   final String wording;
-  final String historyId;
+  // final String historyId;
 
   final TextEditingController _note = TextEditingController();
   final TextEditingController _float = TextEditingController();
@@ -30,6 +29,9 @@ class OpenCloseDrawerView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<OpenBusinessModel>.reactive(
       viewModelBuilder: () => OpenBusinessModel(),
+      onModelReady: (OpenBusinessModel model) {
+        model.getBusinessHistoryId();
+      },
       builder: (BuildContext context, OpenBusinessModel model, Widget child) {
         return Scaffold(
           appBar: CommonAppBar(
@@ -126,7 +128,7 @@ class OpenCloseDrawerView extends StatelessWidget {
                             onPressed: () {
                               model.openBusiness(
                                 context: context,
-                                historyId: historyId,
+                                historyId: model.historyId,
                                 float: double.parse(_float.text),
                                 businessState: businessState,
                                 note: _note.text,

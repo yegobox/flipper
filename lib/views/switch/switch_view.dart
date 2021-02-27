@@ -28,8 +28,7 @@ class SwitchView extends StatelessWidget {
       builder: (BuildContext context, SwitchModel drawer, Widget child) {
         // final BusinessHistory drawer = model.data;
         // drawer can not be null as we start with business closed. i.e we check drawer!=null
-        if (drawer.businessHistory != null &&
-            !drawer.businessHistory.openingHour) {
+        if (drawer.businessHistory == null) {
           return Scaffold(
             backgroundColor: Colors.white,
             body: Center(
@@ -54,7 +53,6 @@ class SwitchView extends StatelessWidget {
                               Routing.openCloseDrawerview,
                               arguments: OpenCloseDrawerViewArguments(
                                 wording: 'Opening Float',
-                                historyId: drawer.businessHistory.id,
                                 businessState: BusinessState.OPEN,
                               ),
                             );

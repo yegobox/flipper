@@ -167,3 +167,4 @@ class $Routing {
 // if you build route and there is error of import add this at the import
 // import 'package:built_collection/built_collection.dart';
 // import 'package:flipper_models/product.dart';
+// c5b750b0
