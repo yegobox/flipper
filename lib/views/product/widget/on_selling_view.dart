@@ -1,5 +1,4 @@
 import 'package:customappbar/Itemappbar.dart';
-import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/product.dart';
 
 // import 'package:flipper_services/locator.dart';
@@ -626,7 +625,6 @@ class _onCreate extends State<OnSellingView> {
     return product.name + ' Frw' + model.amountTotal?.toInt().toString();
   }
 }
-
 
 enum ForHere { lafayette, jefferson }
 enum ToGo { lafayette, jefferson }
