@@ -48,6 +48,8 @@ class _FlipperAppState extends State<FlipperApp> {
     // FIXME:should fix the remote config
     // await ProxyService.remoteConfig.initialise();
     // Platform messages may fail, so we use a try/catch PlatformException.
+    //sub on pusher events
+
     try {
       // As in Pusher Beams Get Started
       await PusherBeams.addDeviceInterest('app');

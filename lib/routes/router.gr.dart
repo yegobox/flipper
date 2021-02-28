@@ -4,8 +4,6 @@
 // AutoRouteGenerator
 // **************************************************************************
 
-import 'package:built_collection/built_collection.dart';
-import 'package:flipper_models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
@@ -43,10 +41,11 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_contacts/contact_view.dart';
 import 'package:flipper_chat/chat_view.dart';
-// import 'package:built_collection/src/list/built_list.dart';
-import 'package:flipper/views/sale/complete_view.dart';
+import 'package:built_collection/src/list/built_list.dart';
+import 'package:flipper/views/sale/payment_option_view.dart';
 import 'package:flipper/views/switch/switch_view.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper/views/sale/collect_cash_view.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -84,6 +83,7 @@ class Routing {
   static const chatView = '/chat-view';
   static const completeSaleView = '/complete-sale-view';
   static const switchView = '/switch-view';
+  static const collectCashView = '/collect-cash-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -440,7 +440,7 @@ class Routing {
         );
       case Routing.completeSaleView:
         return MaterialPageRoute<dynamic>(
-          builder: (_) => CompleteSaleView(),
+          builder: (_) => PaymentOptionView(),
           settings: settings,
         );
       case Routing.switchView:
@@ -453,6 +453,11 @@ class Routing {
               key: typedArgs.key,
               vm: typedArgs.vm,
               sideOpenController: typedArgs.sideOpenController),
+          settings: settings,
+        );
+      case Routing.collectCashView:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => CollectCashView(),
           settings: settings,
         );
       default:

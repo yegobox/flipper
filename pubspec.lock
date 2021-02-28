@@ -1157,6 +1157,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.3+3"
+  pusher_websocket_flutter:
+    dependency: transitive
+    description:
+      name: pusher_websocket_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   quiver:
     dependency: transitive
     description:

@@ -86,6 +86,7 @@ dependencies:
   esc_pos_utils: ^0.4.9
   awesome_notifications: ^0.0.5+4
   pusher: ^1.0.0
+ 
   couchbase_lite_dart: ^0.3.1
   path_provider: ^1.6.27
   flipper_models:
@@ -95,6 +96,7 @@ dependencies:
   share: ^0.6.4+3
   cron: ^0.2.4
   firebase_remote_config: ^0.6.0
+  pusher_websocket_flutter: ^0.2.0
 dev_dependencies:
   test_coverage: ^0.4.2
   build_runner: 

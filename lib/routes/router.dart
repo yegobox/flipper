@@ -12,7 +12,8 @@ import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
 import 'package:flipper/views/product/widget/on_selling_view.dart';
 import 'package:flipper/views/reports/build_sales_View.dart';
-import 'package:flipper/views/sale/complete_view.dart';
+import 'package:flipper/views/sale/collect_cash_view.dart';
+import 'package:flipper/views/sale/payment_option_view.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
@@ -143,8 +144,9 @@ class $Routing {
 
   ChatView chatView;
 
-  CompleteSaleView completeSaleView;
+  PaymentOptionView completeSaleView;
   SwitchView switchView;
+  CollectCashView collectCashView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
