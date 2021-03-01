@@ -81,7 +81,7 @@ class _EditUnitViewState extends State<EditUnitView> {
               title: 'Edit Unit',
               showActionButton: true,
               disableButton: false,
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               onPressedCallback: () {
                 StoreProvider.of<AppState>(context)
                     .dispatch(PersistFocusedUnitAction());

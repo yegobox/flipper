@@ -32,7 +32,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
             title: 'Total RWF ' + _total.toString(),
             disableButton: false,
             showActionButton: true,
-            actionButtonName: 'Add',
+            rightActionButtonName: 'Add',
             onPressedCallback: () {},
           ),
           body: ListView(

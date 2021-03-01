@@ -19,7 +19,7 @@ class PaymentOptionView extends StatelessWidget {
                   ProxyService.nav.pop();
                 },
                 title: '',
-                actionButtonName: 'Split payment',
+                rightActionButtonName: 'Split payment',
                 icon: Icons.close,
                 multi: 3,
                 bottomSpacer: 52,

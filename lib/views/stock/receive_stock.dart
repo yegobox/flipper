@@ -12,6 +12,7 @@ class ReceiveStockScreen extends StatelessWidget {
   }) : super(key: key);
   final String id;
 
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -28,7 +29,7 @@ class ReceiveStockScreen extends StatelessWidget {
                 ProxyService.nav.pop();
               },
               showActionButton: true,
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

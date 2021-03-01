@@ -60,7 +60,7 @@ class _VariantWidgetState extends State<VariantWidget> {
               onPressedCallback: () async {
                 model.handleEditItem(selections: _selections);
               },
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

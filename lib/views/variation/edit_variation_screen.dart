@@ -46,7 +46,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
               title: 'Edit Variation',
               showActionButton: true,
               disableButton: model.isLocked,
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               onPressedCallback: () async {
                 model.updateVariation(variation: model.variation);
                 ProxyService.nav.pop();

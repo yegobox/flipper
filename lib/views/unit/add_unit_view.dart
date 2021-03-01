@@ -54,7 +54,7 @@ class AddUnitTypeScreen extends StatelessWidget {
               title: 'Unit Type',
               showActionButton: true,
               disableButton: false,
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               onPressedCallback: () {
                 ProxyService.nav.pop();
               },

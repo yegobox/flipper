@@ -44,7 +44,8 @@ class PayableView extends StatelessWidget {
                   .canvasColor,
               child: GestureDetector(
                   onTap: () {
-                    ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
+                    // ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
+                    ProxyService.inAppNav.navigateTo(path: 'afterSaleView');
                   },
                   child: callCharge(model)),
             ),

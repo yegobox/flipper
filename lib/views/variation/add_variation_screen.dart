@@ -29,7 +29,7 @@ class AddVariationScreen extends StatelessWidget {
               title: 'Add Variation',
               showActionButton: true,
               disableButton: model.isLocked,
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               onPressedCallback: () async {
                 await model.createVariant(
                     context: context, productId: productId);

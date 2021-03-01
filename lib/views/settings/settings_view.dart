@@ -39,7 +39,7 @@ class SettingsView extends StatelessWidget {
               onPressedCallback: () async {
                 ProxyService.nav.pop();
               },
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

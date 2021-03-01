@@ -31,7 +31,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
         },
         disableButton: false,
         showActionButton: true,
-        actionButtonName: 'Add',
+        rightActionButtonName: 'Add',
         title: 'hello',
         // FIXME:
         // title: vm.currentActiveSaleProduct == null

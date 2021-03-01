@@ -8,7 +8,6 @@ import 'package:stacked/stacked.dart';
 
 import 'signup_viewmodel.dart';
 
-
 class SignUpView extends StatelessWidget {
   const SignUpView(
       {Key key,
@@ -23,8 +22,7 @@ class SignUpView extends StatelessWidget {
   final String name;
   final String userId;
   final String avatar;
-  
-  
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -34,9 +32,9 @@ class SignUpView extends StatelessWidget {
               title: '',
               showActionButton: true,
               disableButton: false,
-              actionButtonName: 'Sign Up',
+              rightActionButtonName: 'Sign Up',
               onPressedCallback: () {
-                model.singUp(context: context,token:token,userId:userId);
+                model.singUp(context: context, token: token, userId: userId);
               },
               icon: Icons.arrow_back,
               multi: 3,
@@ -81,7 +79,6 @@ class SignUpView extends StatelessWidget {
                           width: 300,
                           child: TextFormField(
                             keyboardType: TextInputType.emailAddress,
-                            
                             enabled: false,
                             style: const TextStyle(color: Colors.black),
                             controller: model.email,
@@ -94,7 +91,7 @@ class SignUpView extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(55, 20, 0, 0),
                         child: Row(
                           children: [
-                             const Flexible(
+                            const Flexible(
                               child: Text(
                                   "Accept Flipper's Seller Agreement and Privacy Policy"),
                             ),
@@ -114,7 +111,10 @@ class SignUpView extends StatelessWidget {
           );
         },
         onModelReady: (SignUpViewModel model) {
-          model.initFields(name:TextEditingController(),email:TextEditingController(text:email),formKey: GlobalKey<FormState>());
+          model.initFields(
+              name: TextEditingController(),
+              email: TextEditingController(text: email),
+              formKey: GlobalKey<FormState>());
           // model.getCurrentLocation(); //first get business location.
         },
         viewModelBuilder: () => SignUpViewModel());

@@ -78,7 +78,7 @@ class AddProductView extends StatelessWidget {
                 await model.handleCreateItem();
                 ProxyService.nav.pop();
               },
-              actionButtonName: 'Save',
+              rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

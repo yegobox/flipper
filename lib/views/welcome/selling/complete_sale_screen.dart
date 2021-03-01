@@ -27,7 +27,7 @@ class _CompleteSaleScreenState extends State<CompleteSaleScreen> {
         disableButton: false,
         showActionButton: true,
         onPressedCallback: () async {},
-        actionButtonName: 'Split Amount',
+        rightActionButtonName: 'Split Amount',
         icon: Icons.close,
         multi: 3,
         bottomSpacer: 48,
