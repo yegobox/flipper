@@ -49,6 +49,8 @@ import 'package:flipper/views/switch/switch_view.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/after_sale_view.dart';
+import 'package:flipper/views/customers/add_customer.dart';
+import 'package:flipper/views/customers/customer_list_view.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -88,6 +90,8 @@ class Routing {
   static const switchView = '/switch-view';
   static const collectCashView = '/collect-cash-view';
   static const afterSaleView = '/after-sale-view';
+  static const addCustomerView = '/add-customer-view';
+  static const customerListView = '/customer-list-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -471,6 +475,24 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => AfterSaleView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.addCustomerView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AddCustomerView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.customerListView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => CustomerListView(key: typedArgs),
           settings: settings,
         );
       default:

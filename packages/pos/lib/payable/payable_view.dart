@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:pos/payable/button.dart';
 import 'package:pos/pos_viewmodel.dart';
 
-// import 'package:flipper/routes/router.gr.dart';
 class PayableView extends StatelessWidget {
   const PayableView({Key key, this.model}) : super(key: key);
   final PosViewModel model;
@@ -44,8 +43,10 @@ class PayableView extends StatelessWidget {
                   .canvasColor,
               child: GestureDetector(
                   onTap: () {
-                    // ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
-                    ProxyService.inAppNav.navigateTo(path: 'afterSaleView');
+                    ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
+                    // ProxyService.inAppNav.navigateTo(path: 'afterSaleView');
+                    // ProxyService.inAppNav.navigateTo(path: 'addCustomerView');
+                    // ProxyService.inAppNav.navigateTo(path: 'customerListView');
                   },
                   child: callCharge(model)),
             ),

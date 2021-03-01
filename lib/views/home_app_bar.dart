@@ -1,7 +1,7 @@
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/home_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../theme.dart';
 
@@ -33,18 +33,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Row(children: <Widget>[
               Expanded(
                 child: FlatButton(
-                  onPressed: () {
-                    // ProxyService.nav.navigateTo(Routing.completeSaleView);
-                    // TODO: implements detail page
-                  },
-                  child: Text(
-                    buildSaleWording(model: model),
-                    style: Theme.of(context).textTheme.headline4.copyWith(
-                        fontSize: 16,
-                        color: const Color(0xff363f47),
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
+                    onPressed: () {
+                      // ProxyService.nav.navigateTo(Routing.completeSaleView);
+                      // TODO: implements detail page
+                    },
+                    child: buildSaleWording(model: model, context: context)),
               ),
               GestureDetector(
                 onTap: () async {
@@ -73,15 +66,35 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  String buildSaleWording({HomeViewModel model}) {
+  Widget buildSaleWording({HomeViewModel model, BuildContext context}) {
     if (model.tab == 0 || model.tab == 1) {
       if (model.orders.isEmpty) {
-        return 'No Sale';
+        return Text('No Sale',
+            style: Theme.of(context).textTheme.headline4.copyWith(
+                fontSize: 16,
+                color: const Color(0xff363f47),
+                fontWeight: FontWeight.w600));
       } else {
-        return 'Current Sale [ ' + model.orders.length.toString() + ' ]';
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Current Sale'),
+            Stack(
+              alignment: AlignmentDirectional.center,
+              // ignore: prefer_const_literals_to_create_immutables
+              children: [
+                Text(model.orders.length.toString()),
+                const IconButton(
+                  icon: FaIcon(FontAwesomeIcons.clone),
+                  onPressed: null,
+                ),
+              ],
+            ),
+          ],
+        );
       }
     } else {
-      return '';
+      return const SizedBox.shrink();
     }
   }
 

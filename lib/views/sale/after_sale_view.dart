@@ -1,4 +1,5 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper/routes/router.gr.dart';
 // import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/sale/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
@@ -19,12 +20,15 @@ class AfterSaleView extends StatelessWidget {
             child: Scaffold(
               appBar: CommonAppBar(
                 onPop: () {
-                  ProxyService.nav.pop();
+                  ProxyService.nav.popUntil(Routing.dashboard);
                 },
                 title: '',
                 closeButton: CLOSEBUTTON.BUTTON,
                 disableButton: false,
                 showActionButton: true,
+                onPressedCallback: () {
+                  ProxyService.nav.navigateTo(Routing.customerListView);
+                },
                 leftActionButtonName: 'New Sale',
                 rightActionButtonName: 'Add Customer',
                 // icon: Icons.close,

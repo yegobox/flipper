@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
@@ -19,9 +20,8 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   void listenPaymentComplete() {
     ProxyService.pusher.pay.listen((path) {
-      // ProxyService.nav.navigateTo(Routing.collectCashView);
       if (path != null) {
-        print('goto finishing page');
+        ProxyService.nav.navigateTo(Routing.afterSaleView);
       }
     });
   }

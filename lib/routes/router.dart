@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
 import 'package:flipper/views/category/category_list_view.dart';
 import 'package:flipper/views/category/edit_category_view.dart';
+import 'package:flipper/views/customers/add_customer.dart';
+import 'package:flipper/views/customers/customer_list_view.dart';
 import 'package:flipper/views/discounts/discount_list_view.dart';
 import 'package:flipper/views/discounts/discount_view.dart';
 import 'package:flipper/views/order/order_details_view.dart';
@@ -149,6 +151,8 @@ class $Routing {
   SwitchView switchView;
   CollectCashView collectCashView;
   AfterSaleView afterSaleView;
+  AddCustomerView addCustomerView;
+  CustomerListView customerListView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

@@ -65,7 +65,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
           children: <Widget>[
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0.5),
-              leading:    
+              leading: _closeButton == CLOSEBUTTON.ICON
                   ? IconButton(
                       icon: Icon(
                         _icon ?? Icons.close,
