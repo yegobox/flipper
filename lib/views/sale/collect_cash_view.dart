@@ -1,5 +1,4 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flipper/views/sale/complete_sale_viewmodel.dart';
@@ -63,10 +62,7 @@ class CollectCashView extends StatelessWidget {
                           ),
                           FlatButton(
                             onPressed: () {
-                              // TODO: enable collect cash after for now to go another screen
-                              ProxyService.nav
-                                  .navigateTo(Routing.afterSaleView);
-                              // model.collectCash();
+                              model.collectCash();
                             },
                             child: const Text('Tender'),
                           )

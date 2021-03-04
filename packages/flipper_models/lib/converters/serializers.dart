@@ -19,6 +19,7 @@ import '../product.dart';
 import '../stock.dart';
 import '../stock_history.dart';
 import '../tax.dart';
+import '../ticket.dart';
 import '../unit.dart';
 import '../variant_stock.dart';
 import '../variation.dart';
@@ -56,6 +57,7 @@ part 'serializers.g.dart';
   FContact,
   Chat,
   StockHistory,
+  Ticket
 ])
 Serializers serializers = _$serializers;
 

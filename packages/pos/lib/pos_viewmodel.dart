@@ -1,7 +1,8 @@
 import 'dart:collection';
 
-import 'package:flipper_services/flipperServices.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
 class PosViewModel extends ReactiveViewModel {
@@ -40,7 +41,8 @@ class PosViewModel extends ReactiveViewModel {
       }
     } else if (key == '+') {
       if (_expr.isNotEmpty) {
-        _sharedState.setCustomAmount(customAmount: double.parse(expression));
+        _sharedState.createCustomAmountItemAndSell(
+            customAmount: double.parse(expression));
         expression = '';
       }
     }
@@ -134,5 +136,14 @@ class PosViewModel extends ReactiveViewModel {
 
   bool isDigit(String op) {
     return digits.contains(op);
+  }
+
+  void saveTicket() {
+    //start the save ticket flow
+    ProxyService.inAppNav.navigateTo(path: 'ticketsView');
+  }
+
+  void viewTickets() {
+    ProxyService.inAppNav.navigateTo(path: 'ticketsView');
   }
 }

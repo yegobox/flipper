@@ -2,13 +2,14 @@ library flipper_services;
 
 import 'package:flipper_services/ContactService.dart';
 import 'package:flipper_services/analytics_service.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/bluethooth_service.dart';
 import 'package:flipper_services/connectivity_service.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
 import 'package:flipper_services/fetch_contacts_service.dart';
 import 'package:flipper_services/firestore_service.dart';
-import 'package:flipper_services/flipperServices.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/mail_service.dart';
 import 'package:flipper_services/navigation_service.dart';
@@ -45,6 +46,7 @@ final FetchContactsService _fetch = locator<FetchContactsService>();
 final ContactService _contact = locator<ContactService>();
 final InAppNavigationService _inAppNav = locator<InAppNavigationService>();
 final RemoteConfigService _remoteConfig = locator<RemoteConfigService>();
+final AppService _app = locator<AppService>();
 
 // this is where we load all third party plugin
 // ignore: avoid_classes_with_only_static_members
@@ -69,4 +71,5 @@ abstract class ProxyService {
   static RemoteConfigService get remoteConfig => _remoteConfig;
   static ContactService get contacts => _contact;
   static InAppNavigationService get inAppNav => _inAppNav;
+  static AppService get app => _app;
 }

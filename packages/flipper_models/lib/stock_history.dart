@@ -23,9 +23,6 @@ abstract class StockHistory
   String get stockId;
   String get reason;
   double get quantity;
-  double get cashReceived;
-  double get cashCollected;
-  double get customerChangeDue;
 
   BuiltList<String> get channels;
 

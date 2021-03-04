@@ -177,7 +177,7 @@ packages:
     source: hosted
     version: "2.1.1"
   couchbase_lite_dart:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: couchbase_lite_dart
       url: "https://pub.dartlang.org"
@@ -387,7 +387,7 @@ packages:
     source: hosted
     version: "0.10.11"
   flipper_models:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../flipper_models"
       relative: true
@@ -534,6 +534,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.6"
+  get_storage:
+    dependency: transitive
+    description:
+      name: get_storage
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.0"
   google_api_availability:
     dependency: transitive
     description:
@@ -625,6 +632,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.2"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.1"
   loading:
     dependency: transitive
     description:
@@ -814,6 +828,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  pusher_beams:
+    dependency: transitive
+    description:
+      name: pusher_beams
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.3+3"
+  pusher_websocket_flutter:
+    dependency: transitive
+    description:
+      name: pusher_websocket_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   quiver:
     dependency: transitive
     description:
@@ -856,13 +884,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.5+4"
-  shared_preferences:
-    dependency: transitive
-    description:
-      name: shared_preferences
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.2"
   sky_engine:
     dependency: transitive
     description: flutter

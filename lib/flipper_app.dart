@@ -107,6 +107,9 @@ class _FlipperAppState extends State<FlipperApp> {
       if (path == 'customerListView') {
         ProxyService.nav.navigateTo(Routing.customerListView);
       }
+      if (path == 'ticketsView') {
+        ProxyService.nav.navigateTo(Routing.ticketsView);
+      }
     });
     _inAppNav.navToChat.listen((Map data) {
       if (data == null) {

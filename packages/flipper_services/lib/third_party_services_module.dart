@@ -3,6 +3,7 @@ library flipper_services;
 // import 'package:flipper/shared_state_service.dart';
 import 'package:flipper_services/ContactService.dart';
 import 'package:flipper_services/api/http_api.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/bluethooth_service.dart';
 import 'package:flipper_services/connectivity_service.dart';
 import 'package:flipper_services/database_service.dart';
@@ -10,7 +11,7 @@ import 'package:flipper_services/dynamic_links_service.dart';
 import 'package:flipper_services/fetch_contacts_service.dart';
 import 'package:flipper_services/firestore_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
-import 'package:flipper_services/flipperServices.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/mail_service.dart';
 import 'package:flipper_services/performance_service.dart';
 import 'package:flipper_services/remote_config_service.dart';
@@ -110,6 +111,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   RemoteConfigService get remoteConfig;
+
+  @lazySingleton
+  AppService get app;
   // @lazySingleton
   // FetchContactsService fetchContactsService;
 }

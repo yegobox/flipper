@@ -19,8 +19,8 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   }
 
   void listenPaymentComplete() {
-    ProxyService.pusher.pay.listen((path) {
-      if (path != null) {
+    ProxyService.pusher.pay.listen((completeCashCollection) {
+      if (completeCashCollection != null) {
         ProxyService.nav.navigateTo(Routing.afterSaleView);
       }
     });

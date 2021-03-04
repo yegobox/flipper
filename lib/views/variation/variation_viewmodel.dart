@@ -53,6 +53,7 @@ class VariationViewModel extends BaseModel {
   void getVariationsByProductId({String productId}) async {
     final q = Query(_databaseService.db,
         'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID');
+        
 
     q.parameters = {'PRODUCTID': productId ?? sharedStateService.product.id};
     q.addChangeListener((List results) {

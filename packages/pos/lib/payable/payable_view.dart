@@ -16,14 +16,25 @@ class PayableView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              height: 60,
-              width: MediaQuery.of(context).size.width,
-              color: Theme.of(context)
-                  .copyWith(canvasColor: HexColor('#2996CC'))
-                  .canvasColor,
-              child: callText(model),
+            child: InkWell(
+              onTap: () {
+                if (model.expression == '0.0' || model.expression == '') {
+                  model.viewTickets();
+                } else {
+                  model.saveTicket();
+                }
+              },
+              child: Container(
+                alignment: Alignment.center,
+                height: 60,
+                width: MediaQuery.of(context).size.width,
+                color: Theme.of(context)
+                    .copyWith(
+                      canvasColor: HexColor('#2996CC'),
+                    )
+                    .canvasColor,
+                child: ticketText(model),
+              ),
             ),
           ),
           Container(
@@ -56,7 +67,8 @@ class PayableView extends StatelessWidget {
     );
   }
 
-  Widget callText(PosViewModel model) {
+
+  Widget ticketText(PosViewModel model) {
     if (model.expression == '0.0' || model.expression == '') {
       return const Text(
         'Tickets',

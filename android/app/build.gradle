@@ -45,7 +45,7 @@ android {
 
     defaultConfig {
         applicationId "rw.flipper"
-        minSdkVersion 24
+        minSdkVersion 23 //android 6 and up
         targetSdkVersion 29
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

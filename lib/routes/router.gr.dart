@@ -43,7 +43,7 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_contacts/contact_view.dart';
 import 'package:flipper_chat/chat_view.dart';
-// import 'package:built_collection/src/list/built_list.dart';
+// import 'package:built_collection/built_list.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
 import 'package:flipper/views/switch/switch_view.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -51,6 +51,8 @@ import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/after_sale_view.dart';
 import 'package:flipper/views/customers/add_customer.dart';
 import 'package:flipper/views/customers/customer_list_view.dart';
+import 'package:flipper/views/tickets/tickets_view.dart';
+import 'package:flipper/views/tickets/new_ticket.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -92,6 +94,8 @@ class Routing {
   static const afterSaleView = '/after-sale-view';
   static const addCustomerView = '/add-customer-view';
   static const customerListView = '/customer-list-view';
+  static const ticketsView = '/tickets-view';
+  static const newTicket = '/new-ticket';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -493,6 +497,24 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => CustomerListView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.ticketsView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => TicketsView(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.newTicket:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => NewTicket(key: typedArgs),
           settings: settings,
         );
       default:

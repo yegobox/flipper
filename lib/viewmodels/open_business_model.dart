@@ -33,6 +33,8 @@ class OpenBusinessModel extends BaseModel {
         businessId: ProxyService.sharedState.business.id,
         userId: state.user.id.toString(),
         isSocial: false,
+        float: float,
+        note: note,
         name: state.user.name,
         businessState: businessState,
         historyId: historyId);
@@ -43,6 +45,7 @@ class OpenBusinessModel extends BaseModel {
     //aka switcher.
     String userId,
     String name,
+    String note,
     double float,
     bool isSocial = false,
     String businessId,
@@ -50,16 +53,18 @@ class OpenBusinessModel extends BaseModel {
     @required historyId,
   }) async {
     if (businessState == BusinessState.OPEN) {
-      print(historyId);
       final Document document = _databaseService.getById(id: historyId);
       document.properties['openingHour'] = true;
       document.properties['openingFloat'] = float;
-      print(document.jsonProperties);
+      document.properties['displayText'] = note;
+      document.properties['createdAt'] = DateTime.now().toIso8601String();
       _databaseService.update(document: document);
     } else {
       final Document document = _databaseService.getById(id: historyId);
       document.properties['openingHour'] = false;
       document.properties['closingFloat'] = float;
+      document.properties['displayText'] = note;
+      document.properties['createdAt'] = DateTime.now().toIso8601String();
       _databaseService.update(document: document);
     }
   }

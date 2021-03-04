@@ -37,17 +37,20 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   void countItemOnCurrentOrder() {
-    //we use stock_histores and with current 'pending orderId' to get the current sale
     final q = Query(_databaseService.db,
-        'SELECT id,orderId,table,variantId,variantName,note,updatedAt,createdAt,stockId,reason,quantity,channels,cashReceived,cashCollected,customerChangeDue WHERE table=\$T AND orderId=\$OID');
+        'SELECT stocks_histories.id,stocks_histories.orderId,stocks_histories.table,stocks_histories.variantId,stocks_histories.variantName,stocks_histories.note,stocks_histories.updatedAt,stocks_histories.createdAt,stocks_histories.stockId,stocks_histories.reason,stocks_histories.quantity,stocks_histories.channels FROM stocks_histories JOIN orders ON stocks_histories.orderId=orders.id WHERE orders.active=\$ACTIVE AND stocks_histories.orderId=\$OID');
 
     final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
 
-    q.parameters = {'T': AppTables.stockHistories, 'OID': pOrder.id};
+    q.parameters = {
+      'ACTIVE': true,
+      'OID': pOrder.id
+    }; //looking for active order joined with stock_histories
 
     q.addChangeListener((List orders) {
       if (orders.isNotEmpty) {
         for (Map map in orders) {
+          print(map);
           if (!_orders.contains(StockHistory.fromMap(map))) {
             _orders.add(StockHistory.fromMap(map));
           }

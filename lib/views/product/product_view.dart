@@ -322,7 +322,6 @@ class _onCreate extends State<ProductView> {
                   child: InkWell(
                     onTap: () {
                       spinner = true;
-                      setState(() {});
                     },
                     child: Container(
                       padding: const EdgeInsets.only(left: 12),

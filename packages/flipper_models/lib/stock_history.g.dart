@@ -45,15 +45,6 @@ class _$StockHistorySerializer implements StructuredSerializer<StockHistory> {
       'quantity',
       serializers.serialize(object.quantity,
           specifiedType: const FullType(double)),
-      'cashReceived',
-      serializers.serialize(object.cashReceived,
-          specifiedType: const FullType(double)),
-      'cashCollected',
-      serializers.serialize(object.cashCollected,
-          specifiedType: const FullType(double)),
-      'customerChangeDue',
-      serializers.serialize(object.customerChangeDue,
-          specifiedType: const FullType(double)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
@@ -122,18 +113,6 @@ class _$StockHistorySerializer implements StructuredSerializer<StockHistory> {
           result.quantity = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
-        case 'cashReceived':
-          result.cashReceived = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
-          break;
-        case 'cashCollected':
-          result.cashCollected = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
-          break;
-        case 'customerChangeDue':
-          result.customerChangeDue = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
-          break;
         case 'channels':
           result.channels.replace(serializers.deserialize(value,
                   specifiedType:
@@ -173,12 +152,6 @@ class _$StockHistory extends StockHistory {
   @override
   final double quantity;
   @override
-  final double cashReceived;
-  @override
-  final double cashCollected;
-  @override
-  final double customerChangeDue;
-  @override
   final BuiltList<String> channels;
   @override
   final String table;
@@ -197,9 +170,6 @@ class _$StockHistory extends StockHistory {
       this.stockId,
       this.reason,
       this.quantity,
-      this.cashReceived,
-      this.cashCollected,
-      this.customerChangeDue,
       this.channels,
       this.table})
       : super._() {
@@ -230,15 +200,6 @@ class _$StockHistory extends StockHistory {
     if (quantity == null) {
       throw new BuiltValueNullFieldError('StockHistory', 'quantity');
     }
-    if (cashReceived == null) {
-      throw new BuiltValueNullFieldError('StockHistory', 'cashReceived');
-    }
-    if (cashCollected == null) {
-      throw new BuiltValueNullFieldError('StockHistory', 'cashCollected');
-    }
-    if (customerChangeDue == null) {
-      throw new BuiltValueNullFieldError('StockHistory', 'customerChangeDue');
-    }
     if (channels == null) {
       throw new BuiltValueNullFieldError('StockHistory', 'channels');
     }
@@ -268,9 +229,6 @@ class _$StockHistory extends StockHistory {
         stockId == other.stockId &&
         reason == other.reason &&
         quantity == other.quantity &&
-        cashReceived == other.cashReceived &&
-        cashCollected == other.cashCollected &&
-        customerChangeDue == other.customerChangeDue &&
         channels == other.channels &&
         table == other.table;
   }
@@ -287,22 +245,16 @@ class _$StockHistory extends StockHistory {
                                 $jc(
                                     $jc(
                                         $jc(
-                                            $jc(
-                                                $jc(
-                                                    $jc(
-                                                        $jc($jc(0, id.hashCode),
-                                                            orderId.hashCode),
-                                                        variantId.hashCode),
-                                                    variantName.hashCode),
-                                                note.hashCode),
-                                            updatedAt.hashCode),
-                                        createdAt.hashCode),
-                                    stockId.hashCode),
-                                reason.hashCode),
-                            quantity.hashCode),
-                        cashReceived.hashCode),
-                    cashCollected.hashCode),
-                customerChangeDue.hashCode),
+                                            $jc($jc(0, id.hashCode),
+                                                orderId.hashCode),
+                                            variantId.hashCode),
+                                        variantName.hashCode),
+                                    note.hashCode),
+                                updatedAt.hashCode),
+                            createdAt.hashCode),
+                        stockId.hashCode),
+                    reason.hashCode),
+                quantity.hashCode),
             channels.hashCode),
         table.hashCode));
   }
@@ -320,9 +272,6 @@ class _$StockHistory extends StockHistory {
           ..add('stockId', stockId)
           ..add('reason', reason)
           ..add('quantity', quantity)
-          ..add('cashReceived', cashReceived)
-          ..add('cashCollected', cashCollected)
-          ..add('customerChangeDue', customerChangeDue)
           ..add('channels', channels)
           ..add('table', table))
         .toString();
@@ -373,20 +322,6 @@ class StockHistoryBuilder
   double get quantity => _$this._quantity;
   set quantity(double quantity) => _$this._quantity = quantity;
 
-  double _cashReceived;
-  double get cashReceived => _$this._cashReceived;
-  set cashReceived(double cashReceived) => _$this._cashReceived = cashReceived;
-
-  double _cashCollected;
-  double get cashCollected => _$this._cashCollected;
-  set cashCollected(double cashCollected) =>
-      _$this._cashCollected = cashCollected;
-
-  double _customerChangeDue;
-  double get customerChangeDue => _$this._customerChangeDue;
-  set customerChangeDue(double customerChangeDue) =>
-      _$this._customerChangeDue = customerChangeDue;
-
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
       _$this._channels ??= new ListBuilder<String>();
@@ -410,9 +345,6 @@ class StockHistoryBuilder
       _stockId = _$v.stockId;
       _reason = _$v.reason;
       _quantity = _$v.quantity;
-      _cashReceived = _$v.cashReceived;
-      _cashCollected = _$v.cashCollected;
-      _customerChangeDue = _$v.customerChangeDue;
       _channels = _$v.channels?.toBuilder();
       _table = _$v.table;
       _$v = null;
@@ -449,9 +381,6 @@ class StockHistoryBuilder
               stockId: stockId,
               reason: reason,
               quantity: quantity,
-              cashReceived: cashReceived,
-              cashCollected: cashCollected,
-              customerChangeDue: customerChangeDue,
               channels: channels.build(),
               table: table);
     } catch (_) {

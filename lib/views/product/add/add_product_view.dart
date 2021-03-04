@@ -73,6 +73,7 @@ class AddProductView extends StatelessWidget {
               },
               title: 'Create Product',
               disableButton: model.isLocked,
+              
               showActionButton: true,
               onPressedCallback: () async {
                 await model.handleCreateItem();

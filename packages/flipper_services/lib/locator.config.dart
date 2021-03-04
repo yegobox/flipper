@@ -11,6 +11,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 import 'analytics_service.dart';
 import 'abstractions/api.dart';
+import 'app_service.dart';
 import 'bluethooth_service.dart';
 import 'connectivity_service.dart';
 import 'ContactService.dart';
@@ -21,7 +22,7 @@ import 'firestore_service.dart';
 import 'flipperNavigation_service.dart';
 import 'api/http_api.dart';
 import 'navigation_service.dart';
-import 'flipperServices.dart';
+import 'keypad_service.dart';
 import 'mail_service.dart';
 import 'media_service.dart';
 import 'performance_service.dart';
@@ -44,6 +45,7 @@ GetIt $initGetIt(
   gh.lazySingleton<AnalyticsService>(
       () => thirdPartyServicesModule.analyticsService);
   gh.lazySingleton<Api>(() => thirdPartyServicesModule.apiService);
+  gh.lazySingleton<AppService>(() => thirdPartyServicesModule.app);
   gh.lazySingleton<BlueToothService>(
       () => thirdPartyServicesModule.blueToothService);
   gh.lazySingleton<ConnectivityService>(
@@ -85,6 +87,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   _$ThirdPartyServicesModule(this._get);
   @override
   AnalyticsService get analyticsService => AnalyticsService();
+  @override
+  AppService get app => AppService();
   @override
   BlueToothService get blueToothService => BlueToothService();
   @override

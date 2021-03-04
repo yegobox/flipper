@@ -97,6 +97,7 @@ dependencies:
   cron: ^0.2.4
   firebase_remote_config: ^0.6.0
   pusher_websocket_flutter: ^0.2.0
+  pusher_beams: "^0.5.3+3"
 dev_dependencies:
   test_coverage: ^0.4.2
   build_runner: 

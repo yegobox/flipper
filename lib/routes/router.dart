@@ -20,6 +20,8 @@ import 'package:flipper/views/sale/payment_option_view.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
+import 'package:flipper/views/tickets/new_ticket.dart';
+import 'package:flipper/views/tickets/tickets_view.dart';
 import 'package:flipper/views/unit/add_unit_view.dart';
 import 'package:flipper/views/unit/edit_unit_view.dart';
 import 'package:flipper/views/variation/add_variation_screen.dart';
@@ -153,6 +155,8 @@ class $Routing {
   AfterSaleView afterSaleView;
   AddCustomerView addCustomerView;
   CustomerListView customerListView;
+  TicketsView ticketsView;
+  NewTicket newTicket;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
