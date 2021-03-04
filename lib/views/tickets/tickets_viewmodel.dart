@@ -79,14 +79,23 @@ class TicketsViewModel extends ReactiveViewModel {
     final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
     //create a new ticket for this order
     final id5 = Uuid().v1();
-    _databaseService.insert(id: id5, data: {
-      'orderId': pOrder.id,
+    final Document ticket = _databaseService.insert(id: id5, data: {
       'id': id5,
       'ticketName': _ticketName,
       'table': AppTables.tickets,
       'created': DateTime.now().toIso8601String()
     });
+    final pendingTicket = _databaseService.getById(id: ticket.ID);
+    List<String> ods = [];
+    if (pendingTicket.properties['orders'] != null) {
+      // ignore: avoid_as
+      ods = pendingTicket.properties['orders'] as List<String>;
+      ods.add(pOrder.id);
+      pendingTicket.properties['orders'] = ods;
+      ProxyService.database.update(document: pendingTicket);
+    }
 
+    //create a ticke with a name then edit a ticket with orderId(s) added as array.
     final Document pending = ProxyService.database.getById(id: pOrder.id);
     pending.properties['active'] = false;
     pending.properties['orderNote'] = 'parked';

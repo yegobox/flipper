@@ -524,7 +524,7 @@ class _DropdownButtonState<T> extends State<CustomDropdownButton<T>>
       padding: _kMenuItemPadding.resolve(textDirection),
       selectedIndex: -1,
       elevation: widget.elevation,
-      theme: Theme.of(context, shadowThemeOnly: true),
+      // theme: Theme.of(context, shadowThemeOnly: true),
       style: _textStyle,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     );
