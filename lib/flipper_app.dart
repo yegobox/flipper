@@ -168,6 +168,7 @@ class _FlipperAppState extends State<FlipperApp> {
       // ignore: always_specify_types
       child: StoreProvider(
         store: store,
+        
         child: MaterialApp(
           navigatorObservers: <NavigatorObserver>[
             locator<AnalyticsService>().getAnalyticsObserver()
