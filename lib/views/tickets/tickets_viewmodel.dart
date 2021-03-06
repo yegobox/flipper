@@ -36,16 +36,12 @@ class TicketsViewModel extends ReactiveViewModel {
     }; //looking for active order joined with stock_histories
 
     ticketsQuery.addChangeListener((List orders) {
-      String orderId;
+      // String orderId;
       if (orders.isNotEmpty) {
         for (Map map in orders) {
+          // _databaseService.delete(id: map['id']);
           if (!_tickets.contains(Ticket.fromMap(map))) {
-            print(Ticket.fromMap(map));
-            // remove duplicate as we couldn't use query alone!
-            if (orderId != Ticket.fromMap(map).orderId) {
-              orderId = Ticket.fromMap(map).orderId;
-              _tickets.add(Ticket.fromMap(map));
-            }
+            _tickets.add(Ticket.fromMap(map));
           }
         }
         notifyListeners();
@@ -76,30 +72,33 @@ class TicketsViewModel extends ReactiveViewModel {
   }
 
   Future<void> saveNewTicket() async {
-    final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
-    //create a new ticket for this order
-    final id5 = Uuid().v1();
-    final Document ticket = _databaseService.insert(id: id5, data: {
-      'id': id5,
-      'ticketName': _ticketName,
-      'table': AppTables.tickets,
-      'created': DateTime.now().toIso8601String()
-    });
-    final pendingTicket = _databaseService.getById(id: ticket.ID);
-    List<String> ods = [];
-    if (pendingTicket.properties['orders'] != null) {
-      // ignore: avoid_as
-      ods = pendingTicket.properties['orders'] as List<String>;
-      ods.add(pOrder.id);
-      pendingTicket.properties['orders'] = ods;
-      ProxyService.database.update(document: pendingTicket);
+    // print(ProxyService.sharedState.user.id.toString());
+    if (_ticketName != null) {
+      final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
+      //create a new ticket for this order
+      final id5 = Uuid().v1();
+      final Document ticket = _databaseService.insert(id: id5, data: {
+        'id': id5,
+        'ticketName': _ticketName,
+        'table': AppTables.tickets,
+        'createdAt': DateTime.now().toIso8601String(),
+        'channels': [ProxyService.sharedState.user.id.toString()],
+        'orders': []
+      });
+      final pendingTicket = _databaseService.getById(id: ticket.ID);
+      List<String> ods = [];
+      if (pendingTicket.properties['orders'] != null) {
+        ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
+        ods.add(pOrder.id);
+        pendingTicket.properties['orders'] = ods;
+        ProxyService.database.update(document: pendingTicket);
+      }
+      //create a ticke with a name then edit a ticket with orderId(s) added as array.
+      final Document pending = ProxyService.database.getById(id: pOrder.id);
+      pending.properties['active'] = false;
+      pending.properties['orderNote'] = 'parked';
+      pending.properties['status'] = 'parked';
+      ProxyService.database.update(document: pending);
     }
-
-    //create a ticke with a name then edit a ticket with orderId(s) added as array.
-    final Document pending = ProxyService.database.getById(id: pOrder.id);
-    pending.properties['active'] = false;
-    pending.properties['orderNote'] = 'parked';
-    pending.properties['status'] = 'parked';
-    ProxyService.database.update(document: pending);
   }
 }

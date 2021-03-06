@@ -12,11 +12,12 @@ part 'ticket.g.dart';
 
 abstract class Ticket implements Built<Ticket, TicketBuilder> {
   String get id;
-  String get orderId;
   String get ticketName;
   String get createdAt;
 
   BuiltList<String> get channels;
+
+  BuiltList<String> get orders;
 
   Ticket._();
 

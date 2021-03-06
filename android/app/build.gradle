@@ -33,7 +33,7 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -45,8 +45,8 @@ android {
 
     defaultConfig {
         applicationId "rw.flipper"
-        minSdkVersion 23 //android 6 and up
-        targetSdkVersion 29
+        minSdkVersion 24 //android 7 and up
+        targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

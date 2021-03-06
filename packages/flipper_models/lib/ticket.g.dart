@@ -20,9 +20,6 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'orderId',
-      serializers.serialize(object.orderId,
-          specifiedType: const FullType(String)),
       'ticketName',
       serializers.serialize(object.ticketName,
           specifiedType: const FullType(String)),
@@ -31,6 +28,10 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
           specifiedType: const FullType(String)),
       'channels',
       serializers.serialize(object.channels,
+          specifiedType:
+              const FullType(BuiltList, const [const FullType(String)])),
+      'orders',
+      serializers.serialize(object.orders,
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
     ];
@@ -53,10 +54,6 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'orderId':
-          result.orderId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
         case 'ticketName':
           result.ticketName = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -67,6 +64,12 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
           break;
         case 'channels':
           result.channels.replace(serializers.deserialize(value,
+                  specifiedType:
+                      const FullType(BuiltList, const [const FullType(String)]))
+              as BuiltList<Object>);
+          break;
+        case 'orders':
+          result.orders.replace(serializers.deserialize(value,
                   specifiedType:
                       const FullType(BuiltList, const [const FullType(String)]))
               as BuiltList<Object>);
@@ -82,25 +85,22 @@ class _$Ticket extends Ticket {
   @override
   final String id;
   @override
-  final String orderId;
-  @override
   final String ticketName;
   @override
   final String createdAt;
   @override
   final BuiltList<String> channels;
+  @override
+  final BuiltList<String> orders;
 
   factory _$Ticket([void Function(TicketBuilder) updates]) =>
       (new TicketBuilder()..update(updates)).build();
 
   _$Ticket._(
-      {this.id, this.orderId, this.ticketName, this.createdAt, this.channels})
+      {this.id, this.ticketName, this.createdAt, this.channels, this.orders})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Ticket', 'id');
-    }
-    if (orderId == null) {
-      throw new BuiltValueNullFieldError('Ticket', 'orderId');
     }
     if (ticketName == null) {
       throw new BuiltValueNullFieldError('Ticket', 'ticketName');
@@ -110,6 +110,9 @@ class _$Ticket extends Ticket {
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Ticket', 'channels');
+    }
+    if (orders == null) {
+      throw new BuiltValueNullFieldError('Ticket', 'orders');
     }
   }
 
@@ -125,30 +128,30 @@ class _$Ticket extends Ticket {
     if (identical(other, this)) return true;
     return other is Ticket &&
         id == other.id &&
-        orderId == other.orderId &&
         ticketName == other.ticketName &&
         createdAt == other.createdAt &&
-        channels == other.channels;
+        channels == other.channels &&
+        orders == other.orders;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc($jc($jc(0, id.hashCode), orderId.hashCode),
-                ticketName.hashCode),
-            createdAt.hashCode),
-        channels.hashCode));
+            $jc($jc($jc(0, id.hashCode), ticketName.hashCode),
+                createdAt.hashCode),
+            channels.hashCode),
+        orders.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('Ticket')
           ..add('id', id)
-          ..add('orderId', orderId)
           ..add('ticketName', ticketName)
           ..add('createdAt', createdAt)
-          ..add('channels', channels))
+          ..add('channels', channels)
+          ..add('orders', orders))
         .toString();
   }
 }
@@ -159,10 +162,6 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
   String _id;
   String get id => _$this._id;
   set id(String id) => _$this._id = id;
-
-  String _orderId;
-  String get orderId => _$this._orderId;
-  set orderId(String orderId) => _$this._orderId = orderId;
 
   String _ticketName;
   String get ticketName => _$this._ticketName;
@@ -177,15 +176,20 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
       _$this._channels ??= new ListBuilder<String>();
   set channels(ListBuilder<String> channels) => _$this._channels = channels;
 
+  ListBuilder<String> _orders;
+  ListBuilder<String> get orders =>
+      _$this._orders ??= new ListBuilder<String>();
+  set orders(ListBuilder<String> orders) => _$this._orders = orders;
+
   TicketBuilder();
 
   TicketBuilder get _$this {
     if (_$v != null) {
       _id = _$v.id;
-      _orderId = _$v.orderId;
       _ticketName = _$v.ticketName;
       _createdAt = _$v.createdAt;
       _channels = _$v.channels?.toBuilder();
+      _orders = _$v.orders?.toBuilder();
       _$v = null;
     }
     return this;
@@ -211,15 +215,17 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
       _$result = _$v ??
           new _$Ticket._(
               id: id,
-              orderId: orderId,
               ticketName: ticketName,
               createdAt: createdAt,
-              channels: channels.build());
+              channels: channels.build(),
+              orders: orders.build());
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'channels';
         channels.build();
+        _$failedField = 'orders';
+        orders.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'Ticket', _$failedField, e.toString());

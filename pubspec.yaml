@@ -56,9 +56,9 @@ dependencies:
   # social sign in
   firebase_auth: "^0.20.0"
   # end social signin
-  firebase_core: "^0.7.0"
-  cloud_firestore: "^0.16.0" #null redy
-  firebase_messaging: "^8.0.0-dev.13" #null ready
+  firebase_core: "^0.7.0" #null ready,web,mac,android,ios
+  cloud_firestore: "^0.16.0" #null ready,web,mac,android,ios
+  firebase_messaging: "^8.0.0-dev.13" #null ready,web,mac,android,ios
   pusher_beams: "^0.5.3+3"
   firebase_analytics: "^7.0.1"
   camera: 0.5.8+11
@@ -129,7 +129,8 @@ dev_dependencies:
   # test: ^1.5.3
   test_coverage: ^0.4.2
   build_runner: 
-  analyzer:
+  analyzer: '0.39.17'
+  build_resolvers: '1.3.10'
   built_value_generator:
   auto_route_generator: 0.3.2
   injectable_generator:
@@ -197,6 +198,7 @@ flutter_intl:
 # flutter pub run flutter_launcher_icons:main
 # flutter run --debug
 # flutter run --profile
+# TODO: simulate production
 # flutter run --release
 # debug key
 # keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
@@ -205,3 +207,4 @@ flutter_intl:
 
 # 
 # https://medium.com/flutter-community/building-flutter-qr-code-generator-scanner-and-sharing-app-703e73b228d3
+# 

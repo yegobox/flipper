@@ -43,7 +43,7 @@ import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper_contacts/contact_view.dart';
 import 'package:flipper_chat/chat_view.dart';
-// import 'package:built_collection/built_list.dart';
+// import 'package:built_collection/src/list/built_list.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
 import 'package:flipper/views/switch/switch_view.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';

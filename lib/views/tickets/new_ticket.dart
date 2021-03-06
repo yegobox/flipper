@@ -15,7 +15,7 @@ class NewTicket extends StatelessWidget {
           return SafeArea(
             child: Scaffold(
               appBar: CommonAppBar(
-                onPop: ()async {
+                onPop: () async {
                   await model.saveNewTicket();
                   ProxyService.nav.pop();
                 },
@@ -24,6 +24,7 @@ class NewTicket extends StatelessWidget {
                 disableButton: model.isLocked,
                 showActionButton: true,
                 onPressedCallback: () async {
+                  model.saveNewTicket();
                   ProxyService.nav.pop();
                 },
                 icon: Icons.close,
