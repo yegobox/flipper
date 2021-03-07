@@ -27,7 +27,7 @@ class TicketsViewModel extends ReactiveViewModel {
     // }; //looking for active order joined with stock_histories
 
     final ticketsQuery = Query(_databaseService.db,
-        'SELECT id,orderId,ticketName,createdAt WHERE table=\$T');
+        'SELECT id,orderId,ticketName,table,createdAt WHERE table=\$T');
 
     // final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
 
