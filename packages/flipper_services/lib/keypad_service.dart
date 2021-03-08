@@ -110,6 +110,7 @@ class KeyPadService with ReactiveServiceMixin {
     final od = q.execute();
     Order order;
     if (od.isEmpty) {
+      
       final id4 = Uuid().v1();
       final id5 = Uuid().v1();
       final Document ordr = _databaseService.insert(id: id4, data: {

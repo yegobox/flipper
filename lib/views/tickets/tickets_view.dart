@@ -12,6 +12,7 @@ import 'package:timeago/timeago.dart' as timeago;
 class TicketsView extends StatelessWidget {
   const TicketsView({Key key}) : super(key: key);
 
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(

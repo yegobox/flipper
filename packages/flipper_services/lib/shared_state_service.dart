@@ -46,6 +46,10 @@ class SharedStateService with ReactiveServiceMixin {
   final RxValue<ImageP> _image = RxValue<ImageP>(initial: null);
   final RxValue<Product> _product = RxValue<Product>(initial: null);
   final RxValue<bool> didLogout = RxValue<bool>(initial: false);
+  final RxValue<bool> clear = RxValue<bool>(initial: false);
+  void setClear({bool c}) {
+    clear.value = c;
+  }
 
   final RxValue<FUser> _user = RxValue<FUser>(initial: null);
   FUser get user => _user.value;

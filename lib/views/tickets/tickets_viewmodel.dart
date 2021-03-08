@@ -81,6 +81,7 @@ class TicketsViewModel extends ReactiveViewModel {
         'id': id5,
         'ticketName': _ticketName,
         'table': AppTables.tickets,
+        'note': _note,
         'createdAt': DateTime.now().toIso8601String(),
         'channels': [ProxyService.sharedState.user.id.toString()],
         'orders': []
@@ -96,9 +97,12 @@ class TicketsViewModel extends ReactiveViewModel {
       //create a ticke with a name then edit a ticket with orderId(s) added as array.
       final Document pending = ProxyService.database.getById(id: pOrder.id);
       pending.properties['active'] = false;
+      pending.properties['draft'] = false;
       pending.properties['orderNote'] = 'parked';
       pending.properties['status'] = 'parked';
       ProxyService.database.update(document: pending);
+      // clear the current sale count.
+      ProxyService.sharedState.setClear(c: true);
     }
   }
 }

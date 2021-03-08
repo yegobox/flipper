@@ -1,4 +1,5 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:flipper/domain/redux/branch/branch_actions.dart';
 import 'package:flipper/domain/redux/business/business_actions.dart';
@@ -82,7 +83,7 @@ Future getAppColors() async {
 
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
-
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final String loggedInuserId = ProxyService.sharedPref.getUserId();
 
   if (loggedInuserId == null) {
@@ -91,7 +92,8 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   } else {
     final List<String> channels = [];
     //save user in firebase contacts if he does not exist
-
+    _firebaseMessaging.subscribeToTopic(
+        loggedInuserId); //register this specific user to notification custom to him.
     channels.add(loggedInuserId);
 
     await _databaseService.login(channels: channels);

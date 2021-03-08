@@ -35,7 +35,12 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
     ];
-
+    if (object.note != null) {
+      result
+        ..add('note')
+        ..add(serializers.serialize(object.note,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -56,6 +61,10 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
           break;
         case 'ticketName':
           result.ticketName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'note':
+          result.note = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'createdAt':
@@ -87,6 +96,8 @@ class _$Ticket extends Ticket {
   @override
   final String ticketName;
   @override
+  final String note;
+  @override
   final String createdAt;
   @override
   final BuiltList<String> channels;
@@ -97,7 +108,12 @@ class _$Ticket extends Ticket {
       (new TicketBuilder()..update(updates)).build();
 
   _$Ticket._(
-      {this.id, this.ticketName, this.createdAt, this.channels, this.orders})
+      {this.id,
+      this.ticketName,
+      this.note,
+      this.createdAt,
+      this.channels,
+      this.orders})
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Ticket', 'id');
@@ -129,6 +145,7 @@ class _$Ticket extends Ticket {
     return other is Ticket &&
         id == other.id &&
         ticketName == other.ticketName &&
+        note == other.note &&
         createdAt == other.createdAt &&
         channels == other.channels &&
         orders == other.orders;
@@ -138,7 +155,9 @@ class _$Ticket extends Ticket {
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc($jc($jc(0, id.hashCode), ticketName.hashCode),
+            $jc(
+                $jc($jc($jc(0, id.hashCode), ticketName.hashCode),
+                    note.hashCode),
                 createdAt.hashCode),
             channels.hashCode),
         orders.hashCode));
@@ -149,6 +168,7 @@ class _$Ticket extends Ticket {
     return (newBuiltValueToStringHelper('Ticket')
           ..add('id', id)
           ..add('ticketName', ticketName)
+          ..add('note', note)
           ..add('createdAt', createdAt)
           ..add('channels', channels)
           ..add('orders', orders))
@@ -166,6 +186,10 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
   String _ticketName;
   String get ticketName => _$this._ticketName;
   set ticketName(String ticketName) => _$this._ticketName = ticketName;
+
+  String _note;
+  String get note => _$this._note;
+  set note(String note) => _$this._note = note;
 
   String _createdAt;
   String get createdAt => _$this._createdAt;
@@ -187,6 +211,7 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
     if (_$v != null) {
       _id = _$v.id;
       _ticketName = _$v.ticketName;
+      _note = _$v.note;
       _createdAt = _$v.createdAt;
       _channels = _$v.channels?.toBuilder();
       _orders = _$v.orders?.toBuilder();
@@ -216,6 +241,7 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
           new _$Ticket._(
               id: id,
               ticketName: ticketName,
+              note: note,
               createdAt: createdAt,
               channels: channels.build(),
               orders: orders.build());
