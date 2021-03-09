@@ -104,7 +104,7 @@ class OnProductSellingViewModal extends BaseModel {
     });
   }
 
-  void saveOrder({double customAmount}) {
+  void saveOrder() {
     final q = Query(_databaseService.db,
         'SELECT id,value,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$T AND variantId=\$VID');
 
@@ -112,10 +112,10 @@ class OnProductSellingViewModal extends BaseModel {
     final stocks = q.execute();
 
     if (stocks.isNotEmpty) {
-      if (customAmount.abs() != 0) {
+      if (amountTotal.abs() != 0) {
         final Order order =
-            ProxyService.keypad.pendingOrder(customAmount: customAmount);
-
+            ProxyService.keypad.pendingOrder(customAmount: amountTotal);
+        print(amountTotal);
         final id5 = Uuid().v1();
         _databaseService.insert(id: id5, data: {
           'orderId': order.id,
@@ -129,8 +129,8 @@ class OnProductSellingViewModal extends BaseModel {
           'reason': 'SOLD',
           'table': AppTables.stockHistories,
           'quantity': _quantity,
-          'cashReceived': customAmount,
-          'cashCollected': customAmount,
+          'cashReceived': amountTotal,
+          'cashCollected': amountTotal,
           'id': id5,
           'customerChangeDue': 0.0
         });

@@ -33,7 +33,7 @@ class StockViewModel extends BaseModel {
           final Document variantDocument =
               _databaseService.getById(id: Stock.fromMap(value).id);
 
-          variantDocument.properties['value'] = stockValue;
+          variantDocument.properties['currentStock'] = stockValue;
           if (stockValue > 0) {
             variantDocument.properties['canTrackingStock'] = true;
             variantDocument.properties['showLowStockAlert'] = true;
@@ -88,7 +88,7 @@ class StockViewModel extends BaseModel {
             }
           });
         }
-        notifyListeners();
+        // notifyListeners();
       });
     }
   }

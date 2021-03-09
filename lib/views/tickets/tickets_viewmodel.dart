@@ -96,6 +96,7 @@ class TicketsViewModel extends ReactiveViewModel {
       }
       //create a ticke with a name then edit a ticket with orderId(s) added as array.
       final Document pending = ProxyService.database.getById(id: pOrder.id);
+
       pending.properties['active'] = false;
       pending.properties['draft'] = false;
       pending.properties['orderNote'] = 'parked';

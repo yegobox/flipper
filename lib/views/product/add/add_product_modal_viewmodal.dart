@@ -121,7 +121,6 @@ class AddProductModalViewModal extends BaseModel {
       _databaseService.insert(id: id3, data: {
         'variantId': variantId,
         'supplyPrice': 0.0,
-        'value': 0.0,
         'canTrackingStock': false,
         'showLowStockAlert': false,
         'retailPrice': 0.0,
