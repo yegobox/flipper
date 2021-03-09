@@ -12,7 +12,8 @@ part 'stock.g.dart';
 
 abstract class Stock implements Built<Stock, StockBuilder> {
   @nullable //TODO: remove after devs the issue will be gone!
-  double get value;
+  double
+      get value; //used to know like how much is the value if we have 5 items then it's value could be 14000 RWF
   String get id;
   String get branchId;
 

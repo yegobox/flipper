@@ -18,6 +18,7 @@ class FetchContactsService with ReactiveServiceMixin {
       });
       //at every 5 minutes update my contat match it with flipper contacts.
       cron.schedule(Schedule.parse('*/15 * * * *'), () {
+        //
         final Future<Iterable<Contact>> contacts = ContactsService.getContacts(
           withThumbnails: false,
           photoHighResolution: false,
@@ -32,7 +33,6 @@ class FetchContactsService with ReactiveServiceMixin {
                   'name': doc['name'],
                   'channels': doc['channels']
                 });
-
                 if (item.value.replaceAll(RegExp(r'\s+\b|\b\s'), '') ==
                     c.phoneNumber.replaceAll(RegExp(r'\s+\b|\b\s'), '')) {
                   if (!_contactsOnFlipper.contains(c)) {

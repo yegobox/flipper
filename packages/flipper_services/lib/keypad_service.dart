@@ -21,6 +21,7 @@ class KeyPadService with ReactiveServiceMixin {
   double get getSum => customAmount.value;
   final DatabaseService _databaseService = ProxyService.database;
   void createCustomAmountItemAndSell({double customAmount}) {
+    // TODO: follow the same rules in adding specific item to a sale's item
     //on + button on keypad should create custom item and sell it with the given amount
     if (customAmount.abs() != 0) {
       final id1 = Uuid().v1();
@@ -79,7 +80,7 @@ class KeyPadService with ReactiveServiceMixin {
       // create order for this custom amount.
       //get pending order
       final Order order = pendingOrder(customAmount: customAmount);
-      log.d(order.id);
+     
       // we now have order to use. create stock history for this custom Amount
       final id5 = Uuid().v1();
       _databaseService.insert(id: id5, data: {
@@ -99,8 +100,8 @@ class KeyPadService with ReactiveServiceMixin {
         'id': id5,
         'customerChangeDue': 0.0
       });
+      updateStock(quantity: 1,stockId: stockDoc.ID);
     }
-    // TODO: update stock Qty
   }
 
   Order pendingOrder({double customAmount}) {
@@ -110,7 +111,6 @@ class KeyPadService with ReactiveServiceMixin {
     final od = q.execute();
     Order order;
     if (od.isEmpty) {
-      
       final id4 = Uuid().v1();
       final id5 = Uuid().v1();
       final Document ordr = _databaseService.insert(id: id4, data: {
@@ -136,5 +136,12 @@ class KeyPadService with ReactiveServiceMixin {
       order = Order.fromMap(od[0]);
       return order;
     }
+  }
+
+  void updateStock({String stockId, double quantity}) {
+    final Document stock = ProxyService.database.getById(id: stockId);
+    stock.properties['currentStock'] =
+        stock.properties['currentStock'].asDouble - quantity;
+    ProxyService.database.update(document: stock);
   }
 }

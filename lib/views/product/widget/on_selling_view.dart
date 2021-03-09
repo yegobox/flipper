@@ -11,13 +11,14 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 
 class OnSellingView extends StatefulWidget {
-  OnSellingView({Key key, this.product}) : super(key: key);
+  const OnSellingView({Key key, this.product}) : super(key: key);
   final Product product;
 
   @override
   _onCreate createState() => _onCreate(product);
 }
 
+// ignore: camel_case_types
 class _onCreate extends State<OnSellingView> {
   ForHere forHere = ForHere.lafayette;
   ToGo toGo = ToGo.lafayette;
@@ -25,6 +26,7 @@ class _onCreate extends State<OnSellingView> {
   Pickup pick = Pickup.lafayette;
   Product product;
 
+  // ignore: sort_constructors_first
   _onCreate(this.product);
 
   List<Widget> _productCategory({@required OnProductSellingViewModal model}) {
@@ -43,9 +45,6 @@ class _onCreate extends State<OnSellingView> {
                 Divider(
                   color: Colors.grey[400],
                 ),
-                // const SizedBox(
-                //   height: 4.0,
-                // ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -138,7 +137,6 @@ class _onCreate extends State<OnSellingView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    //  flex: 1,
                     child: model.quantity <= 1
                         ? IconButton(
                             icon: const Icon(
@@ -151,7 +149,7 @@ class _onCreate extends State<OnSellingView> {
                         : IconButton(
                             icon: const Icon(
                               AntDesign.minus,
-                              color: const Color(0xC9000000),
+                              color: Color(0xC9000000),
                               size: 25,
                             ),
                             onPressed: model.decreaseQty,
@@ -165,7 +163,7 @@ class _onCreate extends State<OnSellingView> {
                   Expanded(
                       flex: 2,
                       child: Container(
-                        margin: EdgeInsets.only(left: 50, right: 50),
+                        margin: const EdgeInsets.only(left: 50, right: 50),
                         child: TextFormField(
                           style: TextStyle(
                             color: Theme.of(context)
@@ -178,9 +176,6 @@ class _onCreate extends State<OnSellingView> {
                           cursorColor: Theme.of(context)
                               .copyWith(canvasColor: const Color(0x3B000000))
                               .canvasColor,
-                          // decoration: const InputDecoration(
-                          //     hintStyle: TextStyle(color: const Color(
-                          //         0x3B000000))),
                         ),
                       )),
                   Container(
@@ -189,12 +184,11 @@ class _onCreate extends State<OnSellingView> {
                     color: Colors.grey[400],
                   ),
                   Container(
-                    // flex: 1,
                     child: Container(
                       child: IconButton(
                         icon: const Icon(
                           Icons.add,
-                          color: const Color(0xC9000000),
+                          color: Color(0xC9000000),
                           size: 25,
                         ),
                         onPressed: model.increaseQty,
