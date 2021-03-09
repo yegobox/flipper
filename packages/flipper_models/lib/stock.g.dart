@@ -55,12 +55,6 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       serializers.serialize(object.table,
           specifiedType: const FullType(String)),
     ];
-    if (object.value != null) {
-      result
-        ..add('value')
-        ..add(serializers.serialize(object.value,
-            specifiedType: const FullType(double)));
-    }
     if (object.showLowStockAlert != null) {
       result
         ..add('showLowStockAlert')
@@ -81,10 +75,6 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
       iterator.moveNext();
       final dynamic value = iterator.current;
       switch (key) {
-        case 'value':
-          result.value = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
-          break;
         case 'id':
           result.id = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
@@ -148,8 +138,6 @@ class _$StockSerializer implements StructuredSerializer<Stock> {
 
 class _$Stock extends Stock {
   @override
-  final double value;
-  @override
   final String id;
   @override
   final String branchId;
@@ -180,8 +168,7 @@ class _$Stock extends Stock {
       (new StockBuilder()..update(updates)).build();
 
   _$Stock._(
-      {this.value,
-      this.id,
+      {this.id,
       this.branchId,
       this.variantId,
       this.isActive,
@@ -244,7 +231,6 @@ class _$Stock extends Stock {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is Stock &&
-        value == other.value &&
         id == other.id &&
         branchId == other.branchId &&
         variantId == other.variantId &&
@@ -273,9 +259,7 @@ class _$Stock extends Stock {
                                     $jc(
                                         $jc(
                                             $jc(
-                                                $jc(
-                                                    $jc($jc(0, value.hashCode),
-                                                        id.hashCode),
+                                                $jc($jc(0, id.hashCode),
                                                     branchId.hashCode),
                                                 variantId.hashCode),
                                             isActive.hashCode),
@@ -293,7 +277,6 @@ class _$Stock extends Stock {
   @override
   String toString() {
     return (newBuiltValueToStringHelper('Stock')
-          ..add('value', value)
           ..add('id', id)
           ..add('branchId', branchId)
           ..add('variantId', variantId)
@@ -313,10 +296,6 @@ class _$Stock extends Stock {
 
 class StockBuilder implements Builder<Stock, StockBuilder> {
   _$Stock _$v;
-
-  double _value;
-  double get value => _$this._value;
-  set value(double value) => _$this._value = value;
 
   String _id;
   String get id => _$this._id;
@@ -377,7 +356,6 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
 
   StockBuilder get _$this {
     if (_$v != null) {
-      _value = _$v.value;
       _id = _$v.id;
       _branchId = _$v.branchId;
       _variantId = _$v.variantId;
@@ -415,7 +393,6 @@ class StockBuilder implements Builder<Stock, StockBuilder> {
     try {
       _$result = _$v ??
           new _$Stock._(
-              value: value,
               id: id,
               branchId: branchId,
               variantId: variantId,
