@@ -12,7 +12,6 @@ import 'package:timeago/timeago.dart' as timeago;
 class TicketsView extends StatelessWidget {
   const TicketsView({Key key}) : super(key: key);
 
-
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -90,9 +89,15 @@ class TicketsView extends StatelessWidget {
                       child: Column(
                         children: model.tickets.map((Ticket ticket) {
                           final date = DateTime.parse(ticket.createdAt);
-                          return ListTile(
-                            leading: Text(ticket.ticketName),
-                            trailing: Text(timeago.format(date)),
+                          return GestureDetector(
+                            onTap: () {
+                              model.saveToExistingTicket(ticketId: ticket.id);
+                              ProxyService.nav.pop();
+                            },
+                            child: ListTile(
+                              leading: Text(ticket.ticketName),
+                              trailing: Text(timeago.format(date)),
+                            ),
                           );
                         }).toList(),
                       ),

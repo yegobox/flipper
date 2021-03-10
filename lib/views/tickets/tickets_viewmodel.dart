@@ -4,6 +4,7 @@ import 'package:flipper_models/order.dart';
 import 'package:flipper_models/ticket.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 
@@ -69,6 +70,28 @@ class TicketsViewModel extends ReactiveViewModel {
   void lock() {
     _ticketName.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
+  }
+
+  void saveToExistingTicket({@required String ticketId}) {
+    final pendingTicket = _databaseService.getById(id: ticketId);
+    final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
+    List<String> ods = [];
+    if (pendingTicket.properties['orders'] != null) {
+      ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
+      ods.add(pOrder.id);
+      pendingTicket.properties['orders'] = ods;
+      ProxyService.database.update(document: pendingTicket);
+    }
+    //create a ticke with a name then edit a ticket with orderId(s) added as array.
+    final Document pending = ProxyService.database.getById(id: pOrder.id);
+
+    pending.properties['active'] = false;
+    pending.properties['draft'] = false;
+    pending.properties['orderNote'] = 'parked';
+    pending.properties['status'] = 'parked';
+    ProxyService.database.update(document: pending);
+    // clear the current sale count.
+    ProxyService.sharedState.setClear(c: true);
   }
 
   Future<void> saveNewTicket() async {
