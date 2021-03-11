@@ -91,8 +91,13 @@ class TicketsView extends StatelessWidget {
                           final date = DateTime.parse(ticket.createdAt);
                           return GestureDetector(
                             onTap: () {
-                              model.saveToExistingTicket(ticketId: ticket.id);
-                              ProxyService.nav.pop();
+                              if (ProxyService.keypad.currentSales.draft) {
+                                model.resumeOrder(ticketId: ticket.id);
+                                ProxyService.nav.pop();
+                              } else {
+                                model.saveToExistingTicket(ticketId: ticket.id);
+                                ProxyService.nav.pop();
+                              }
                             },
                             child: ListTile(
                               leading: Text(ticket.ticketName),

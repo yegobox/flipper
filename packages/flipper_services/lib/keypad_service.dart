@@ -17,12 +17,15 @@ import 'package:uuid/uuid.dart';
 class KeyPadService with ReactiveServiceMixin {
   final RxValue<double> customAmount = RxValue<double>();
   final _sharedStateService = locator<SharedStateService>();
+  final RxValue<Order> _currentSale = RxValue<Order>(initial: null);
+  Order get currentSales => _currentSale.value;
+
   final Logger log = Logging.getLogger('O2:)');
   double get getSum => customAmount.value;
   final DatabaseService _databaseService = ProxyService.database;
   void createCustomAmountItemAndSell({double customAmount}) {
-    // TODO: follow the same rules in adding specific item to a sale's item
-    //on + button on keypad should create custom item and sell it with the given amount
+    // TODO: if we are in resume mode of a ticket lock the action of saving
+
     if (customAmount.abs() != 0) {
       final id1 = Uuid().v1();
       final Document productDoc = _databaseService.insert(id: id1, data: {
@@ -80,7 +83,7 @@ class KeyPadService with ReactiveServiceMixin {
       // create order for this custom amount.
       //get pending order
       final Order order = pendingOrder(customAmount: customAmount);
-     
+
       // we now have order to use. create stock history for this custom Amount
       final id5 = Uuid().v1();
       _databaseService.insert(id: id5, data: {
@@ -95,16 +98,14 @@ class KeyPadService with ReactiveServiceMixin {
         'reason': 'SOLD',
         'table': AppTables.stockHistories,
         'quantity': 0.0,
-        'cashReceived': customAmount,
-        'cashCollected': customAmount,
         'id': id5,
-        'customerChangeDue': 0.0
       });
-      updateStock(quantity: 1,stockId: stockDoc.ID);
+      updateStock(quantity: 1, stockId: stockDoc.ID);
     }
   }
 
   Order pendingOrder({double customAmount}) {
+    // TODO: are we in resume mode then we don't return pending order but tickets orders
     final q = Query(_databaseService.db,
         'SELECT  id , branchId , reference, draft ,active , orderType , orderNUmber , subTotal , double , taxAmount , cashReceived , saleTotal  , orderNote  , status  , variationId  , productName , channels , customerChangeDue WHERE table=\$T AND draft=\$DRAFT');
     q.parameters = {'T': AppTables.order, 'DRAFT': true};
@@ -113,6 +114,7 @@ class KeyPadService with ReactiveServiceMixin {
     if (od.isEmpty) {
       final id4 = Uuid().v1();
       final id5 = Uuid().v1();
+      // TODO: treat order as an item added to a ticket i.e here we should add variation name and id
       final Document ordr = _databaseService.insert(id: id4, data: {
         'reference': id4.substring(0, 4),
         'orderNUmber': id5.substring(0, 5),
@@ -131,9 +133,11 @@ class KeyPadService with ReactiveServiceMixin {
         'createdAt': DateTime.now().toIso8601String(),
       });
       order = Order.fromMap(ordr.jsonProperties);
+      _currentSale.value = order;
       return order;
     } else {
       order = Order.fromMap(od[0]);
+      _currentSale.value = order;
       return order;
     }
   }

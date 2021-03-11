@@ -83,7 +83,6 @@ class OnProductSellingViewModal extends BaseModel {
   // the order should keep  the qty of ordered item, the stock id of ordered item
   // on finalizing the order should decrement the sock value to given ordered qty.
   void loadVariants({String productId}) {
-    print(productId);
     setBusy(true);
 
     final docs = Query(_databaseService.db,
@@ -115,7 +114,10 @@ class OnProductSellingViewModal extends BaseModel {
       if (amountTotal.abs() != 0) {
         final Order order =
             ProxyService.keypad.pendingOrder(customAmount: amountTotal);
-        print(amountTotal);
+
+        // TODO: udate order with bellow
+        // 'cashReceived': amountTotal,
+        // 'cashCollected': amountTotal
         final id5 = Uuid().v1();
         _databaseService.insert(id: id5, data: {
           'orderId': order.id,
@@ -129,10 +131,7 @@ class OnProductSellingViewModal extends BaseModel {
           'reason': 'SOLD',
           'table': AppTables.stockHistories,
           'quantity': _quantity,
-          'cashReceived': amountTotal,
-          'cashCollected': amountTotal,
           'id': id5,
-          'customerChangeDue': 0.0
         });
       }
       ProxyService.keypad.updateStock(

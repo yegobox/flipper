@@ -68,7 +68,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget buildSaleWording({HomeViewModel model, BuildContext context}) {
     if (model.tab == 0 || model.tab == 1) {
-      if (model.orders.isEmpty) {
+      if (model.currentSale.isEmpty) {
         return Text('No Sale',
             style: Theme.of(context).textTheme.headline4.copyWith(
                 fontSize: 16,
@@ -83,7 +83,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               alignment: AlignmentDirectional.center,
               // ignore: prefer_const_literals_to_create_immutables
               children: [
-                Text(model.orders.length.toString()),
+                Text(model.currentSale.length.toString()),
                 const IconButton(
                   icon: FaIcon(FontAwesomeIcons.clone),
                   onPressed: null,

@@ -39,6 +39,7 @@ class PosViewModel extends ReactiveViewModel {
       if (_expr.isNotEmpty) {
         _expr = _expr.substring(0, _expr.length - 1);
       }
+      
     } else if (key == '+') {
       if (_expr.isNotEmpty) {
         _sharedState.createCustomAmountItemAndSell(
@@ -142,6 +143,7 @@ class PosViewModel extends ReactiveViewModel {
     //start the save ticket flow
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');
   }
+
 
   void viewTickets() {
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');

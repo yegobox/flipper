@@ -55,9 +55,6 @@ class PayableView extends StatelessWidget {
               child: GestureDetector(
                   onTap: () {
                     ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
-                    // ProxyService.inAppNav.navigateTo(path: 'afterSaleView');
-                    // ProxyService.inAppNav.navigateTo(path: 'addCustomerView');
-                    // ProxyService.inAppNav.navigateTo(path: 'customerListView');
                   },
                   child: callCharge(model)),
             ),
@@ -66,7 +63,6 @@ class PayableView extends StatelessWidget {
       ),
     );
   }
-
 
   Widget ticketText(PosViewModel model) {
     if (model.expression == '0.0' || model.expression == '') {
@@ -99,6 +95,7 @@ class PayableView extends StatelessWidget {
             Container(
               child: Container(
                 child: const Text(
+                  // TODO: get active sale being created in
                   '1 New Item',
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,

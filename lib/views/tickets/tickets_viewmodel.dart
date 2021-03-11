@@ -14,7 +14,8 @@ class TicketsViewModel extends ReactiveViewModel {
   final DatabaseService _databaseService = ProxyService.database;
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [ProxyService.sharedState];
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [ProxyService.sharedState, ProxyService.keypad];
 
   void loadTickets() {
     final ticketsQuery = Query(_databaseService.db,
@@ -110,5 +111,21 @@ class TicketsViewModel extends ReactiveViewModel {
       // clear the current sale count.
       ProxyService.sharedState.setClear(c: true);
     }
+  }
+
+  void resumeOrder({String ticketId}) {
+    final Document pendingTicket = _databaseService.getById(id: ticketId);
+    pendingTicket.jsonProperties['orders'].toList().forEach((String orderId) {
+      final Document pendingOrder = ProxyService.database.getById(id: orderId);
+      pendingOrder.properties['active'] = true;
+      pendingOrder.properties['draft'] = true;
+      ProxyService.database.update(document: pendingOrder);
+
+      final Document ticket = ProxyService.database.getById(id: ticketId);
+      ticket.properties['createdAt'] = DateTime.now().toIso8601String();
+      ProxyService.database.update(document: ticket);
+      // ProxyService.sharedState
+      //     .setResumeOrders(orderId: orderId, ticketId: ticketId);
+    });
   }
 }

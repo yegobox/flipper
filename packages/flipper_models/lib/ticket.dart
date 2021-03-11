@@ -17,6 +17,7 @@ abstract class Ticket implements Built<Ticket, TicketBuilder> {
   String get note;
   String get createdAt;
 
+
   BuiltList<String> get channels;
 
   BuiltList<String> get orders;
