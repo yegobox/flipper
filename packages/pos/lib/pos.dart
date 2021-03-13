@@ -101,7 +101,7 @@ class _onCreate extends State<Display> {
   }
 
   Text callText(PosViewModel model) {
-    if (model.expression == '0.0' || model.expression == '') {
+    if (model.expression == 0.0) {
       return const Text(
         'FRw0.0',
         textAlign: TextAlign.right,
@@ -116,7 +116,7 @@ class _onCreate extends State<Display> {
       );
     } else {
       return Text(
-        'FRw' + model.expression,
+        'FRw' + model.expression.toString(),
         textAlign: TextAlign.right,
         softWrap: true,
         style: const TextStyle(

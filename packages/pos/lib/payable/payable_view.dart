@@ -65,7 +65,7 @@ class PayableView extends StatelessWidget {
   }
 
   Widget ticketText(PosViewModel model) {
-    if (model.expression == '0.0' || model.expression == '') {
+    if (model.expression == '0.0') {
       return const Text(
         'Tickets',
         textAlign: TextAlign.center,
@@ -112,7 +112,7 @@ class PayableView extends StatelessWidget {
   }
 
   Widget callCharge(PosViewModel model) {
-    if (model.expression == '0.0' || model.expression == '') {
+    if (model.expression == '0.0') {
       return Text(
         'Charge FRw' + model.expression,
         style: const TextStyle(

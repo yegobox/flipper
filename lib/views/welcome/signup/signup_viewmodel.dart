@@ -39,6 +39,11 @@ class SignUpViewModel extends BaseViewModel {
     return _name;
   }
 
+   TextEditingController _referralCOde;
+  TextEditingController get referralCode {
+    return _referralCOde;
+  }
+
   TextEditingController _email;
   TextEditingController get email {
     return _email;
@@ -63,7 +68,10 @@ class SignUpViewModel extends BaseViewModel {
 
   // ignore: always_declare_return_types
   singUp({BuildContext context, String token, String userId}) async {
-    if (nameisEmpty) return;
+    if (nameisEmpty) {
+      return;
+    }
+    
     StoreProvider.of<AppState>(context).dispatch(AppAction(
         actions:
             AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
@@ -74,6 +82,8 @@ class SignUpViewModel extends BaseViewModel {
     if (_formKey.currentState == null) {
       return;
     }
+    // _formKey.currentState.validate();
+   
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 

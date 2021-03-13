@@ -26,8 +26,6 @@ class SharedPreferenceService {
   }
 
   Future<bool> isAppConstantsInitialized() async {
-    return box.read('isAppConstantsInitialized') == null
-        ? box.read('isAppConstantsInitialized')
-        : false;
+    return box.read('isAppConstantsInitialized') ?? false;
   }
 }

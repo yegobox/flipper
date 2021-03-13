@@ -35,100 +35,26 @@ class PosViewModel extends ReactiveViewModel {
       _expr += key;
     } else if (digits.contains(key) && key != '+') {
       _expr += key;
+      print('here digit');
     } else if (key == 'C') {
+      print(_expr);
       if (_expr.isNotEmpty) {
         _expr = _expr.substring(0, _expr.length - 1);
+        if (_expr.isEmpty) {
+          _expr = '0.0';
+          // TODO: delete a created product custom
+        }
       }
-      
     } else if (key == '+') {
       if (_expr.isNotEmpty) {
-        _sharedState.createCustomAmountItemAndSell(
-            customAmount: double.parse(expression));
+        // _sharedState.createCustomAmountItemAndSell(
+        //     customAmount: double.parse(expression));
         expression = '';
       }
     }
     expression = _expr;
     result = _result;
     notifyListeners();
-  }
-
-  int _getPriority(String op) {
-    switch (op) {
-      case '+':
-      case '-':
-        return 0;
-      case '*':
-      case '/':
-        return 1;
-      default:
-        return -1;
-    }
-  }
-
-  num _eval(num op1, num op2, String op) {
-    switch (op) {
-      case '+':
-        return op1 + op2;
-      case '-':
-        return op1 - op2;
-      case '*':
-        return op1 * op2;
-      case '/':
-        return op1 / op2;
-      default:
-        return 0;
-    }
-  }
-
-  num parseExpression(String expr, PosViewModel model) {
-    final Queue<String> operators = ListQueue<String>();
-    final Queue<num> operands = ListQueue<num>();
-
-    bool lastDig = true;
-
-    // INIT
-    operands.addLast(0);
-
-    expr.split('').forEach((String c) {
-      if (model.isDigit(c)) {
-        if (lastDig) {
-          final num last = operands.removeLast();
-          operands.addLast(last * 10 + int.parse(c));
-        } else
-          operands.addLast(int.parse(c));
-      } else if (model.isOperator(c)) {
-        if (!lastDig) throw ArgumentError('Illegal expression');
-
-        if (operators.isEmpty)
-          operators.addLast(c);
-        else {
-          while (operators.isNotEmpty &&
-              operands.isNotEmpty &&
-              _getPriority(c) <= _getPriority(operators.last)) {
-            final num op1 = operands.removeLast();
-            final num op2 = operands.removeLast();
-            final String op = operators.removeLast();
-
-            // op1 and op2 in reverse order!
-            final num res = _eval(op2, op1, op);
-            operands.addLast(res);
-          }
-          operators.addLast(c);
-        }
-      }
-      lastDig = model.isDigit(c);
-    });
-
-    while (operators.isNotEmpty) {
-      final num op1 = operands.removeLast();
-      final num op2 = operands.removeLast();
-      final String op = operators.removeLast();
-
-      final num res = _eval(op2, op1, op);
-      operands.addLast(res);
-    }
-
-    return operands.removeLast();
   }
 
   bool isOperator(String op) {
@@ -143,7 +69,6 @@ class PosViewModel extends ReactiveViewModel {
     //start the save ticket flow
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');
   }
-
 
   void viewTickets() {
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');

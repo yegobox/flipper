@@ -27,6 +27,7 @@ class DynamicLinkService {
   }
 
   Future<ShortDynamicLink> createDynamicLink() async {
+    // get minimum version from firestore to keep up with update
     final state = locator<SharedStateService>();
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://flipper.rw',

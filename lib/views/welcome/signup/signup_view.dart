@@ -60,6 +60,7 @@ class SignUpView extends StatelessWidget {
                   child: Column(
                     children: <Widget>[
                       const Text('ACCOUNT INFORMATION'),
+                      SizedBox(height:10),
                       Center(
                         child: Container(
                           width: 300,
@@ -67,9 +68,42 @@ class SignUpView extends StatelessWidget {
                             style: const TextStyle(color: Colors.black),
                             validator: Validators.isValid,
                             controller: model.name,
-                            decoration: const InputDecoration(
-                                hintText: 'Business name',
-                                focusColor: Colors.blue),
+                             decoration: InputDecoration(
+                            hintText: 'Business name',
+                            fillColor: Theme.of(context)
+                                .copyWith(canvasColor: Colors.white)
+                                .canvasColor,
+                            filled: true,
+                            focusColor: Colors.blue,
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: HexColor('#D0D7E3')),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height:10),
+                      Center(
+                        child: Container(
+                          width: 300,
+                          child: TextFormField(
+                            style: const TextStyle(color: Colors.black),
+                            controller: model.referralCode,
+                             decoration: InputDecoration(
+                            hintText: 'Referral code',
+                            fillColor: Theme.of(context)
+                                .copyWith(canvasColor: Colors.white)
+                                .canvasColor,
+                            filled: true,
+                            focusColor: Colors.blue,
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: HexColor('#D0D7E3')),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
                           ),
                         ),
                       ),
