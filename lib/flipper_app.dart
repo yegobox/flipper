@@ -76,6 +76,7 @@ class _FlipperAppState extends State<FlipperApp> {
   }
 
   Future<void> initFCM() async {
+    await ProxyService.link.handleDynamicLink();
     await messaging.requestPermission(
       alert: true,
       announcement: false,
@@ -91,6 +92,7 @@ class _FlipperAppState extends State<FlipperApp> {
   void initState() {
     super.initState();
     initBeams();
+    
     _inAppNav.navigation.listen((path) {
       if (path == 'contacts') {
         ProxyService.nav.navigateTo(Routing.contactView);

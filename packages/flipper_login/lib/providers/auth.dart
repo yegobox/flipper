@@ -48,6 +48,7 @@ class AuthProvider {
       store.dispatch(OtpCode(otpcode: verId));
       _showModalBottomSheet(context, number);
     };
+
     try {
       await _auth.verifyPhoneNumber(
           phoneNumber: number,

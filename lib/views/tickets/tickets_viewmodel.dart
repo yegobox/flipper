@@ -115,7 +115,7 @@ class TicketsViewModel extends ReactiveViewModel {
 
   void resumeOrder({String ticketId}) {
     final Document pendingTicket = _databaseService.getById(id: ticketId);
-    pendingTicket.jsonProperties['orders'].toList().forEach((String orderId) {
+    pendingTicket.jsonProperties['orders'].toList().forEach((orderId) {
       final Document pendingOrder = ProxyService.database.getById(id: orderId);
       pendingOrder.properties['active'] = true;
       pendingOrder.properties['draft'] = true;
@@ -124,8 +124,6 @@ class TicketsViewModel extends ReactiveViewModel {
       final Document ticket = ProxyService.database.getById(id: ticketId);
       ticket.properties['createdAt'] = DateTime.now().toIso8601String();
       ProxyService.database.update(document: ticket);
-      // ProxyService.sharedState
-      //     .setResumeOrders(orderId: orderId, ticketId: ticketId);
     });
   }
 }

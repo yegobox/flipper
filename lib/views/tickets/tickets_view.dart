@@ -91,7 +91,8 @@ class TicketsView extends StatelessWidget {
                           final date = DateTime.parse(ticket.createdAt);
                           return GestureDetector(
                             onTap: () {
-                              if (ProxyService.keypad.currentSales.draft) {
+                              if (ProxyService.keypad.currentSales == null ||
+                                  ProxyService.keypad.currentSales.draft) {
                                 model.resumeOrder(ticketId: ticket.id);
                                 ProxyService.nav.pop();
                               } else {

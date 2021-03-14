@@ -12,7 +12,7 @@ import 'package:flipper/utils/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart' as DotEnv;
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -39,7 +39,7 @@ Future<void> main() async {
         ledColor: Colors.white)
   ]);
   initializeDateFormatting();
-  await DotEnv.load(fileName: '.env');
+  await dotenv.load(fileName: '.env');
   await Firebase.initializeApp();
   // ignore: unnecessary_statements
   FirebaseFirestore.instance.settings.persistenceEnabled;

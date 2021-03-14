@@ -14,9 +14,10 @@ class DynamicLinkService {
     //app is opened from foreground
     FirebaseDynamicLinks.instance.onLink(
         onSuccess: (PendingDynamicLinkData dynamicLinkData) async {
-          _handleDnamicLink(dynamicLinkData);
-        },
-        onError: (OnLinkErrorException exception) async {});
+      _handleDnamicLink(dynamicLinkData);
+    }, onError: (OnLinkErrorException exception) async {
+      print('error opening deepLinkhttps://flipper.rw/jFcwPBWoU1r5yivT7');
+    });
   }
 
   void _handleDnamicLink(PendingDynamicLinkData data) {
@@ -35,6 +36,15 @@ class DynamicLinkService {
       androidParameters: AndroidParameters(
         packageName: 'rw.flipper',
         minimumVersion: 1,
+      ),
+      googleAnalyticsParameters: GoogleAnalyticsParameters(
+        campaign: 'referral',
+        medium: 'social',
+        source: 'app',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: 'flipper',
+        description: 'flipper open',
       ),
     );
     try {
