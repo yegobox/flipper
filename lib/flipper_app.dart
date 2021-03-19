@@ -8,6 +8,7 @@ import 'package:flipper_services/analytics_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +40,7 @@ class _FlipperAppState extends State<FlipperApp> {
   final Logger log = Logging.getLogger('Flipper Application');
   final _state = locator<SharedStateService>();
   final _inAppNav = locator<InAppNavigationService>();
+  // final _config = locator<RemoteConfigService>();
 
   Store<AppState> store;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -92,7 +94,8 @@ class _FlipperAppState extends State<FlipperApp> {
   void initState() {
     super.initState();
     initBeams();
-    
+    ProxyService.sharedState.setClear(c: true);
+    // _config.initialise();
     _inAppNav.navigation.listen((path) {
       if (path == 'contacts') {
         ProxyService.nav.navigateTo(Routing.contactView);
@@ -170,7 +173,6 @@ class _FlipperAppState extends State<FlipperApp> {
       // ignore: always_specify_types
       child: StoreProvider(
         store: store,
-        
         child: MaterialApp(
           navigatorObservers: <NavigatorObserver>[
             locator<AnalyticsService>().getAnalyticsObserver()

@@ -16,7 +16,8 @@ class DynamicLinkService {
         onSuccess: (PendingDynamicLinkData dynamicLinkData) async {
       _handleDnamicLink(dynamicLinkData);
     }, onError: (OnLinkErrorException exception) async {
-      print('error opening deepLinkhttps://flipper.rw/jFcwPBWoU1r5yivT7');
+      print(
+          'error opening deepLinkhttps://flipper.page.link/jFcwPBWoU1r5yivT7');
     });
   }
 
@@ -31,8 +32,9 @@ class DynamicLinkService {
     // get minimum version from firestore to keep up with update
     final state = locator<SharedStateService>();
     final DynamicLinkParameters parameters = DynamicLinkParameters(
-      uriPrefix: 'https://flipper.rw',
-      link: Uri.parse('https://flipper.rw/open?' + state.user.id),
+      uriPrefix: 'https://flipper.page.link',
+      link:
+          Uri.parse('https://flipper.page.link/open/?userId=' + state.user.id),
       androidParameters: AndroidParameters(
         packageName: 'rw.flipper',
         minimumVersion: 1,

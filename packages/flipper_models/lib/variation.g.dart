@@ -20,8 +20,6 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
     final result = <Object>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
-      'sku',
-      serializers.serialize(object.sku, specifiedType: const FullType(String)),
       'productId',
       serializers.serialize(object.productId,
           specifiedType: const FullType(String)),
@@ -37,6 +35,12 @@ class _$VariationSerializer implements StructuredSerializer<Variation> {
           specifiedType:
               const FullType(BuiltList, const [const FullType(String)])),
     ];
+    if (object.sku != null) {
+      result
+        ..add('sku')
+        ..add(serializers.serialize(object.sku,
+            specifiedType: const FullType(String)));
+    }
     if (object.productName != null) {
       result
         ..add('productName')
@@ -131,9 +135,6 @@ class _$Variation extends Variation {
       : super._() {
     if (id == null) {
       throw new BuiltValueNullFieldError('Variation', 'id');
-    }
-    if (sku == null) {
-      throw new BuiltValueNullFieldError('Variation', 'sku');
     }
     if (productId == null) {
       throw new BuiltValueNullFieldError('Variation', 'productId');

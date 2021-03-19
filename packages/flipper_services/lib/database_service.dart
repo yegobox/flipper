@@ -92,13 +92,75 @@ class DatabaseService {
     return datas;
   }
 
+  void createCustomItem(
+      {@required String branchId, @required String userId, String businessId}) {
+    final id1 = Uuid().v1();
+    final Document productDoc = insert(id: id1, data: {
+      'name': 'Custom Amount',
+      'categoryId': '',
+      'color': '#955be9',
+      'id': id1,
+      'active': true,
+      'hasPicture': false,
+      'channels': [userId],
+      'table': AppTables.product,
+      'isCurrentUpdate': false,
+      'isDraft': true,
+      'taxId': '',
+      'businessId': businessId,
+      'branchId': branchId,
+      'description': 'Custom Amount',
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+    // create it's regular
+    final variantId = Uuid().v1();
+    insert(id: variantId, data: {
+      'isActive': false,
+      'name': 'Regular',
+      'unit': 'kg',
+      'channels': [userId],
+      'table': AppTables.variation,
+      'productId': productDoc.ID,
+      'sku': Uuid().v1().substring(0, 4),
+      'id': variantId,
+      'userId': userId,
+      'productName': 'Custom Amount',
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+    // create it's stock
+    final id3 = Uuid().v1();
+
+    insert(id: id3, data: {
+      'variantId': variantId,
+      'supplyPrice': 0.0,
+      'value': 0.0,
+      'canTrackingStock': false,
+      'showLowStockAlert': false,
+      'retailPrice': 0.0,
+      'channels': [userId],
+      'isActive': true,
+      'table': AppTables.stock,
+      'lowStock': 0.0,
+      'currentStock': 0.0,
+      'id': id3,
+      'productId': productDoc.ID,
+      'branchId': branchId,
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+  }
+
   // initializer
   Future<void> initialAppData(
-      {@required String branchId, @required String userId}) async {
+      {@required String branchId,
+      @required String userId,
+      String businessId}) async {
     // ignore: always_specify_types
     final bool isAppConstantsInitialized =
         await ProxyService.sharedPref.isAppConstantsInitialized();
     if (!isAppConstantsInitialized) {
+      // create a custom item
+      createCustomItem(
+          branchId: branchId, userId: userId, businessId: businessId);
       for (int i = 0; i < mockUnits.length; i++) {
         final String id = Uuid().v1();
         if (mockUnits[i]['value'] == 'kg') {
@@ -132,5 +194,29 @@ class DatabaseService {
       _state.setDidLogout(logout: true);
       // AfterSplash
     }
+  }
+  String getStockIdGivenProductId({String variantId}) {
+    print(variantId);
+    final q = Query(db, 'SELECT  id WHERE table=\$T AND variantId=\$variantId');
+    q.parameters = {'T': AppTables.stock, 'variantId': variantId};
+    final results = q.execute();
+    if (results.isEmpty) return null;
+    return results[0]['id'];
+  }
+
+  /// given that we only have one Custom Amount product in system
+  /// we query the product where name=Custom Amount and use the id to get its variant
+  Document getCustomProductVariant() {
+    final q = Query(db, 'SELECT  id,name WHERE table=\$T AND name=\$NAME');
+    q.parameters = {'T': AppTables.product, 'NAME': 'Custom Amount'};
+
+    // get this product then use it's id to get related variant
+    final results = q.execute();
+    if (results.isEmpty) return null;
+
+    final qq = Query(db, 'SELECT  id WHERE table=\$T AND productId=\$P');
+    qq.parameters = {'T': AppTables.variation, 'P': results[0]['id']};
+    final result = qq.execute();
+    return getById(id: result[0]['id']);
   }
 }

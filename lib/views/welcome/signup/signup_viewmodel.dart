@@ -39,7 +39,7 @@ class SignUpViewModel extends BaseViewModel {
     return _name;
   }
 
-   TextEditingController _referralCOde;
+  TextEditingController _referralCOde;
   TextEditingController get referralCode {
     return _referralCOde;
   }
@@ -71,7 +71,7 @@ class SignUpViewModel extends BaseViewModel {
     if (nameisEmpty) {
       return;
     }
-    
+
     StoreProvider.of<AppState>(context).dispatch(AppAction(
         actions:
             AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
@@ -83,7 +83,7 @@ class SignUpViewModel extends BaseViewModel {
       return;
     }
     // _formKey.currentState.validate();
-   
+
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 
@@ -98,8 +98,8 @@ class SignUpViewModel extends BaseViewModel {
       await generateAppColors(userId: userId);
       await generateAppDefaultCategory(branchId: branchId, userId: userId);
 
-      await ProxyService.database
-          .initialAppData(branchId: branchId, userId: userId);
+      await ProxyService.database.initialAppData(
+          branchId: branchId, userId: userId, businessId: businessId);
       await ProxyService.sharedPref.setIsAppConstantsInitialized();
       // then navigate to a right page ditch auth middleware
       StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
@@ -162,6 +162,8 @@ class SignUpViewModel extends BaseViewModel {
 
     final Document branch =
         ProxyService.database.insert(id: branchId, data: _mapBranch);
+    ProxyService.sharedState
+        .setBranch(branch: Branch.fromMap(branch.jsonProperties));
     return branch.ID;
   }
 

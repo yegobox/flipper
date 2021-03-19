@@ -19,14 +19,21 @@ class TicketsViewModel extends ReactiveViewModel {
 
   void loadTickets() {
     final ticketsQuery = Query(_databaseService.db,
-        'SELECT id,orderId,ticketName,table,createdAt WHERE table=\$T');
+        'SELECT id,orderId,ticketName,resumed,table,createdAt WHERE table=\$T');
     ticketsQuery.parameters = {
       'T': AppTables.tickets,
     }; //looking for active order joined with stock_histories
     ticketsQuery.addChangeListener((List orders) {
       // String orderId;
+      // delete all and orders
       if (orders.isNotEmpty) {
         for (Map map in orders) {
+          //NOTE: debuging
+          // Ticket.fromMap(map).orders.toList().forEach((orderId) {
+          //   _databaseService.delete(id: orderId);
+          // });
+          // _databaseService.delete(id: Ticket.fromMap(map).id);
+          //NOTE: end of debuging.
           if (!_tickets.contains(Ticket.fromMap(map))) {
             _tickets.add(Ticket.fromMap(map));
           }
@@ -90,6 +97,7 @@ class TicketsViewModel extends ReactiveViewModel {
         'ticketName': _ticketName,
         'table': AppTables.tickets,
         'note': _note,
+        'resumed': false,
         'createdAt': DateTime.now().toIso8601String(),
         'channels': [ProxyService.sharedState.user.id.toString()],
         'orders': []
@@ -102,28 +110,30 @@ class TicketsViewModel extends ReactiveViewModel {
         pendingTicket.properties['orders'] = ods;
         ProxyService.database.update(document: pendingTicket);
       }
-      final Document pending = ProxyService.database.getById(id: pOrder.id);
-      pending.properties['active'] = false;
-      pending.properties['draft'] = false;
-      pending.properties['orderNote'] = 'parked';
-      pending.properties['status'] = 'parked';
-      ProxyService.database.update(document: pending);
+      final Document parkedOrder = ProxyService.database.getById(id: pOrder.id);
+      parkedOrder.properties['active'] = false;
+      parkedOrder.properties['draft'] = false;
+      parkedOrder.properties['orderNote'] = 'parked';
+      parkedOrder.properties['status'] = 'parked';
+      ProxyService.database.update(document: parkedOrder);
       // clear the current sale count.
       ProxyService.sharedState.setClear(c: true);
     }
   }
 
   void resumeOrder({String ticketId}) {
-    final Document pendingTicket = _databaseService.getById(id: ticketId);
-    pendingTicket.jsonProperties['orders'].toList().forEach((orderId) {
+    final Document ticket = _databaseService.getById(id: ticketId);
+    // set resumable ticket this set the payable to save and with charge amount to be
+    ticket.jsonProperties['orders'].toList().forEach((orderId) {
       final Document pendingOrder = ProxyService.database.getById(id: orderId);
       pendingOrder.properties['active'] = true;
       pendingOrder.properties['draft'] = true;
       ProxyService.database.update(document: pendingOrder);
 
-      final Document ticket = ProxyService.database.getById(id: ticketId);
       ticket.properties['createdAt'] = DateTime.now().toIso8601String();
       ProxyService.database.update(document: ticket);
     });
+    ticket.properties['resumed'] = true;
+    ProxyService.database.update(document: ticket);
   }
 }

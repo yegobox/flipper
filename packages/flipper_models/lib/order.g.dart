@@ -42,6 +42,15 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'cashReceived',
       serializers.serialize(object.cashReceived,
           specifiedType: const FullType(double)),
+      'variantId',
+      serializers.serialize(object.variantId,
+          specifiedType: const FullType(String)),
+      'stockId',
+      serializers.serialize(object.stockId,
+          specifiedType: const FullType(String)),
+      'variantName',
+      serializers.serialize(object.variantName,
+          specifiedType: const FullType(String)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
@@ -72,12 +81,6 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       result
         ..add('status')
         ..add(serializers.serialize(object.status,
-            specifiedType: const FullType(String)));
-    }
-    if (object.variationId != null) {
-      result
-        ..add('variationId')
-        ..add(serializers.serialize(object.variationId,
             specifiedType: const FullType(String)));
     }
     if (object.productName != null) {
@@ -152,12 +155,20 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           result.status = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
-        case 'variationId':
-          result.variationId = serializers.deserialize(value,
+        case 'variantId':
+          result.variantId = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'stockId':
+          result.stockId = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'productName':
           result.productName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'variantName':
+          result.variantName = serializers.deserialize(value,
               specifiedType: const FullType(String)) as String;
           break;
         case 'channels':
@@ -205,9 +216,13 @@ class _$Order extends Order {
   @override
   final String status;
   @override
-  final String variationId;
+  final String variantId;
+  @override
+  final String stockId;
   @override
   final String productName;
+  @override
+  final String variantName;
   @override
   final BuiltList<String> channels;
   @override
@@ -230,8 +245,10 @@ class _$Order extends Order {
       this.saleTotal,
       this.orderNote,
       this.status,
-      this.variationId,
+      this.variantId,
+      this.stockId,
       this.productName,
+      this.variantName,
       this.channels,
       this.customerChangeDue})
       : super._() {
@@ -261,6 +278,15 @@ class _$Order extends Order {
     }
     if (cashReceived == null) {
       throw new BuiltValueNullFieldError('Order', 'cashReceived');
+    }
+    if (variantId == null) {
+      throw new BuiltValueNullFieldError('Order', 'variantId');
+    }
+    if (stockId == null) {
+      throw new BuiltValueNullFieldError('Order', 'stockId');
+    }
+    if (variantName == null) {
+      throw new BuiltValueNullFieldError('Order', 'variantName');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Order', 'channels');
@@ -294,8 +320,10 @@ class _$Order extends Order {
         saleTotal == other.saleTotal &&
         orderNote == other.orderNote &&
         status == other.status &&
-        variationId == other.variationId &&
+        variantId == other.variantId &&
+        stockId == other.stockId &&
         productName == other.productName &&
+        variantName == other.variantName &&
         channels == other.channels &&
         customerChangeDue == other.customerChangeDue;
   }
@@ -319,25 +347,31 @@ class _$Order extends Order {
                                                             $jc(
                                                                 $jc(
                                                                     $jc(
-                                                                        0,
-                                                                        id
+                                                                        $jc(
+                                                                            $jc(
+                                                                                0,
+                                                                                id
+                                                                                    .hashCode),
+                                                                            branchId
+                                                                                .hashCode),
+                                                                        reference
                                                                             .hashCode),
-                                                                    branchId
+                                                                    draft
                                                                         .hashCode),
-                                                                reference
+                                                                active
                                                                     .hashCode),
-                                                            draft.hashCode),
-                                                        active.hashCode),
-                                                    orderType.hashCode),
-                                                orderNUmber.hashCode),
-                                            subTotal.hashCode),
-                                        taxAmount.hashCode),
-                                    cashReceived.hashCode),
-                                saleTotal.hashCode),
-                            orderNote.hashCode),
-                        status.hashCode),
-                    variationId.hashCode),
-                productName.hashCode),
+                                                            orderType.hashCode),
+                                                        orderNUmber.hashCode),
+                                                    subTotal.hashCode),
+                                                taxAmount.hashCode),
+                                            cashReceived.hashCode),
+                                        saleTotal.hashCode),
+                                    orderNote.hashCode),
+                                status.hashCode),
+                            variantId.hashCode),
+                        stockId.hashCode),
+                    productName.hashCode),
+                variantName.hashCode),
             channels.hashCode),
         customerChangeDue.hashCode));
   }
@@ -358,8 +392,10 @@ class _$Order extends Order {
           ..add('saleTotal', saleTotal)
           ..add('orderNote', orderNote)
           ..add('status', status)
-          ..add('variationId', variationId)
+          ..add('variantId', variantId)
+          ..add('stockId', stockId)
           ..add('productName', productName)
+          ..add('variantName', variantName)
           ..add('channels', channels)
           ..add('customerChangeDue', customerChangeDue))
         .toString();
@@ -421,13 +457,21 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   String get status => _$this._status;
   set status(String status) => _$this._status = status;
 
-  String _variationId;
-  String get variationId => _$this._variationId;
-  set variationId(String variationId) => _$this._variationId = variationId;
+  String _variantId;
+  String get variantId => _$this._variantId;
+  set variantId(String variantId) => _$this._variantId = variantId;
+
+  String _stockId;
+  String get stockId => _$this._stockId;
+  set stockId(String stockId) => _$this._stockId = stockId;
 
   String _productName;
   String get productName => _$this._productName;
   set productName(String productName) => _$this._productName = productName;
+
+  String _variantName;
+  String get variantName => _$this._variantName;
+  set variantName(String variantName) => _$this._variantName = variantName;
 
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
@@ -456,8 +500,10 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _saleTotal = _$v.saleTotal;
       _orderNote = _$v.orderNote;
       _status = _$v.status;
-      _variationId = _$v.variationId;
+      _variantId = _$v.variantId;
+      _stockId = _$v.stockId;
       _productName = _$v.productName;
+      _variantName = _$v.variantName;
       _channels = _$v.channels?.toBuilder();
       _customerChangeDue = _$v.customerChangeDue;
       _$v = null;
@@ -497,8 +543,10 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
               saleTotal: saleTotal,
               orderNote: orderNote,
               status: status,
-              variationId: variationId,
+              variantId: variantId,
+              stockId: stockId,
               productName: productName,
+              variantName: variantName,
               channels: channels.build(),
               customerChangeDue: customerChangeDue);
     } catch (_) {

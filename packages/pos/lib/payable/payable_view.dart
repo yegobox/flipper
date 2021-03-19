@@ -18,7 +18,7 @@ class PayableView extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: () {
-                if (model.expression == '0.0' || model.expression == '') {
+                if (model.payable == '0.0' || model.payable == '') {
                   model.viewTickets();
                 } else {
                   model.saveTicket();
@@ -65,7 +65,7 @@ class PayableView extends StatelessWidget {
   }
 
   Widget ticketText(PosViewModel model) {
-    if (model.expression == '0.0') {
+    if (model.currentSale.isEmpty) {
       return const Text(
         'Tickets',
         textAlign: TextAlign.center,
@@ -94,12 +94,13 @@ class PayableView extends StatelessWidget {
             ),
             Container(
               child: Container(
-                child: const Text(
-                  // TODO: get active sale being created in
-                  '1 New Item',
+                child: Text(
+                  model.currentSale.length.toString() +
+                      ' New Item' +
+                      (model.currentSale.length > 1 ? 's' : ''),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15.0,
                     fontWeight: FontWeight.w400,
                     color: Colors.white,
@@ -112,9 +113,9 @@ class PayableView extends StatelessWidget {
   }
 
   Widget callCharge(PosViewModel model) {
-    if (model.expression == '0.0') {
+    if (model.payable == '0.0') {
       return Text(
-        'Charge FRw' + model.expression,
+        'Charge FRw' + model.payable,
         style: const TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -141,7 +142,7 @@ class PayableView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(
-                  'FRw' + model.expression,
+                  'FRw' + model.payable,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

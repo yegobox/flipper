@@ -60,7 +60,7 @@ class SignUpView extends StatelessWidget {
                   child: Column(
                     children: <Widget>[
                       const Text('ACCOUNT INFORMATION'),
-                      SizedBox(height:10),
+                      const SizedBox(height:10),
                       Center(
                         child: Container(
                           width: 300,
@@ -84,7 +84,7 @@ class SignUpView extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height:10),
+                      const SizedBox(height:10),
                       Center(
                         child: Container(
                           width: 300,

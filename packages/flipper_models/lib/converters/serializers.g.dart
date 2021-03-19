@@ -12,7 +12,6 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(BusinessHistory.serializer)
       ..add(Category.serializer)
       ..add(Chat.serializer)
-      ..add(CurrentSale.serializer)
       ..add(FContact.serializer)
       ..add(FUser.serializer)
       ..add(Order.serializer)
@@ -20,15 +19,11 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(PColor.serializer)
       ..add(Product.serializer)
       ..add(Stock.serializer)
-      ..add(StockHistory.serializer)
       ..add(Tax.serializer)
       ..add(Ticket.serializer)
       ..add(Unit.serializer)
       ..add(VariantStock.serializer)
       ..add(Variation.serializer)
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(String)]),
-          () => new ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => new ListBuilder<String>())

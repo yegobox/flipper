@@ -6,6 +6,7 @@ class RemoteConfigService {
   final RemoteConfig _remoteConfig;
   final defaults = <String, dynamic>{_ShowMainBanner: false};
 
+
   static RemoteConfigService _instance;
   static Future<RemoteConfigService> getInstance() async {
     _instance ??= RemoteConfigService(

@@ -74,10 +74,8 @@ Future getAppColors() async {
     for (Map map in results) {
       map.forEach((key, value) {
         colors.add(PColor.fromMap(value));
-        log.d(colors);
       });
     }
-    // five feet apart.
   }
 }
 

@@ -145,6 +145,7 @@ class SharedStateService with ReactiveServiceMixin {
 
   final RxValue<bool> clear = RxValue<bool>(initial: false);
   void setClear({bool c}) {
+    clear.value =null;
     clear.value = c;
   }
 

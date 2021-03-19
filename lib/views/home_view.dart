@@ -103,27 +103,30 @@ class HomeView extends StatelessWidget {
               model: model,
             ),
             body: ViewModelBuilder<PosViewModel>.reactive(
-              builder: (BuildContext context, PosViewModel pos, Widget child) {
-                return Column(
-                  children: <Widget>[
-                    model.tab == 1
-                        ? PayableView(model: pos)
-                        : const SizedBox.shrink(),
-                    Expanded(
-                      child: Container(
-                        child: SafeArea(
-                          child: Container(
-                            child:
-                                _getPage(index: model.tab, vm: vm, model: pos),
+                builder:
+                    (BuildContext context, PosViewModel pos, Widget child) {
+                  return Column(
+                    children: <Widget>[
+                      model.tab == 1
+                          ? PayableView(model: pos)
+                          : const SizedBox.shrink(),
+                      Expanded(
+                        child: Container(
+                          child: SafeArea(
+                            child: Container(
+                              child: _getPage(
+                                  index: model.tab, vm: vm, model: pos),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
-              viewModelBuilder: () => PosViewModel(),
-            ),
+                    ],
+                  );
+                },
+                viewModelBuilder: () => PosViewModel(),
+                onModelReady: (PosViewModel model) {
+                  model.countItemOnCurrentOrder();
+                }),
             drawer: FlipperDrawer(),
           );
         },

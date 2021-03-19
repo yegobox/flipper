@@ -23,102 +23,47 @@ class KeyPadService with ReactiveServiceMixin {
   final Logger log = Logging.getLogger('O2:)');
   double get getSum => customAmount.value;
   final DatabaseService _databaseService = ProxyService.database;
-  void createCustomAmountItemAndSell({double customAmount}) {
-    // TODO: if we are in resume mode of a ticket lock the action of saving
 
-    if (customAmount.abs() != 0) {
-      final id1 = Uuid().v1();
-      final Document productDoc = _databaseService.insert(id: id1, data: {
-        'name': 'Custom Amount',
-        'categoryId': '',
-        'color': '#955be9',
-        'id': id1,
-        'active': true,
-        'hasPicture': false,
-        'channels': [_sharedStateService.user.id.toString()],
-        'table': AppTables.product,
-        'isCurrentUpdate': false,
-        'isDraft': true,
-        'taxId': '',
-        'businessId': _sharedStateService.business.id,
-        'branchId': _sharedStateService.branch.id,
-        'description': 'Custom Amount',
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-      // create it's regular
-      final variantId = Uuid().v1();
-      final Document variation = _databaseService.insert(id: variantId, data: {
-        'isActive': false,
-        'name': 'Regular',
-        'unit': 'kg',
-        'channels': [_sharedStateService.user.id.toString()],
-        'table': AppTables.variation,
-        'productId': productDoc.ID,
-        'sku': Uuid().v1().substring(0, 4),
-        'id': variantId,
-        'userId': _sharedStateService.user.id.toString(),
-        'productName': 'Custom Amount',
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-      // create it's stock
-      final id3 = Uuid().v1();
+  /// create new order,this method assume a cashier is still in progress of taking order
+  /// then the amount passed assume that we are dealing with custom item
+  /// if the takeNewOrder is not passed it will keep updating the current active and draft order
+  void createCustomAmountItemAndSell(
+      {double customAmount = 0.0, bool takeNewOrder = false}) {
+    final Document variation = _databaseService.getCustomProductVariant();
+    final String stockId = _databaseService.getStockIdGivenProductId(
+        variantId: Variation.fromMap(variation.jsonProperties).id);
 
-      final Document stockDoc = _databaseService.insert(id: id3, data: {
-        'variantId': variantId,
-        'supplyPrice': customAmount,
-        'value': 0.0,
-        'canTrackingStock': false,
-        'showLowStockAlert': false,
-        'retailPrice': customAmount,
-        'channels': [_sharedStateService.user.id.toString()],
-        'isActive': true,
-        'table': AppTables.stock,
-        'lowStock': 0.0,
-        'currentStock': 0.0,
-        'id': id3,
-        'productId': productDoc.ID,
-        'branchId': _sharedStateService.branch.id,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-      // create order for this custom amount.
-      //get pending order
-      final Order order = pendingOrder(customAmount: customAmount);
-
-      // we now have order to use. create stock history for this custom Amount
-      final id5 = Uuid().v1();
-      _databaseService.insert(id: id5, data: {
-        'orderId': order.id,
-        'variantId': variation.ID,
-        'variantName': Variation.fromMap(variation.jsonProperties).name,
-        'Note': 'Custom Amount',
-        'updatedAt': DateTime.now().toIso8601String(),
-        'createdAt': DateTime.now().toIso8601String(),
-        'stockId': stockDoc.ID,
-        'channels': [_sharedStateService.user.id.toString()],
-        'reason': 'SOLD',
-        'table': AppTables.stockHistories,
-        'quantity': 0.0,
-        'id': id5,
-      });
-      updateStock(quantity: 1, stockId: stockDoc.ID);
+    final Order order = pendingOrder(
+        customAmount: customAmount,
+        stockId: stockId,
+        variation: Variation.fromMap(variation.jsonProperties));
+    if (order.active && order.draft && !takeNewOrder) {
+      final Document orderDocument = _databaseService.getById(id: order.id);
+      orderDocument.properties['cashReceived'] = customAmount;
+      _databaseService.update(document: orderDocument);
+      return;
     }
   }
 
-  Order pendingOrder({double customAmount}) {
-    // TODO: are we in resume mode then we don't return pending order but tickets orders
+  /// the pending order will return the existing order if draft and active are still true otherwise
+  /// wise it will create a new active & draft order.
+  /// Also it is very important to treat order as an item added to the
+  Order pendingOrder(
+      {double customAmount, String stockId, Variation variation}) {
     final q = Query(_databaseService.db,
-        'SELECT  id , branchId , reference, draft ,active , orderType , orderNUmber , subTotal , double , taxAmount , cashReceived , saleTotal  , orderNote  , status  , variationId  , productName , channels , customerChangeDue WHERE table=\$T AND draft=\$DRAFT');
+        'SELECT  id , branchId ,variantId,stockId,variantName, reference, draft ,active , orderType , orderNUmber , subTotal , double , taxAmount , cashReceived , saleTotal  , orderNote  , status  , variationId  , productName , channels , customerChangeDue WHERE table=\$T AND draft=\$DRAFT');
     q.parameters = {'T': AppTables.order, 'DRAFT': true};
     final od = q.execute();
     Order order;
+
     if (od.isEmpty) {
       final id4 = Uuid().v1();
-      final id5 = Uuid().v1();
-      // TODO: treat order as an item added to a ticket i.e here we should add variation name and id
       final Document ordr = _databaseService.insert(id: id4, data: {
         'reference': id4.substring(0, 4),
-        'orderNUmber': id5.substring(0, 5),
+        'orderNUmber': id4.substring(0, 5),
         'status': 'pending',
+        'variantId': variation.id,
+        'variantName': variation.name,
         'orderType': 'mobile',
         'active':
             true, //used to check if order is parked becomes parked when false.
@@ -129,6 +74,7 @@ class KeyPadService with ReactiveServiceMixin {
         'cashReceived': customAmount,
         'customerChangeDue': 0.0,
         'id': id4,
+        'stockId': stockId,
         'branchId': _sharedStateService.branch.id,
         'createdAt': DateTime.now().toIso8601String(),
       });

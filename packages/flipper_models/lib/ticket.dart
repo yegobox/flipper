@@ -16,8 +16,7 @@ abstract class Ticket implements Built<Ticket, TicketBuilder> {
   @nullable
   String get note;
   String get createdAt;
-
-
+  bool get resumed;
   BuiltList<String> get channels;
 
   BuiltList<String> get orders;

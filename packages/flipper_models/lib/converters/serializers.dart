@@ -5,7 +5,6 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/standard_json_plugin.dart';
 import 'package:flipper_models/business_history.dart';
-import 'package:flipper_models/current_sale.dart';
 
 import '../branch.dart';
 import '../business.dart';
@@ -18,7 +17,6 @@ import '../order_detail.dart';
 import '../pcolor.dart';
 import '../product.dart';
 import '../stock.dart';
-import '../stock_history.dart';
 import '../tax.dart';
 import '../ticket.dart';
 import '../unit.dart';
@@ -57,9 +55,7 @@ part 'serializers.g.dart';
   OrderDetail,
   FContact,
   Chat,
-  StockHistory,
-  Ticket,
-  CurrentSale
+  Ticket
 ])
 Serializers serializers = _$serializers;
 

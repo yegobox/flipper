@@ -13,6 +13,7 @@ part 'variation.g.dart';
 abstract class Variation implements Built<Variation, VariationBuilder> {
   String get id;
 
+  @nullable
   String get sku;
 
   String get productId;

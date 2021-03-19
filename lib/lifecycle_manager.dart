@@ -50,6 +50,8 @@ class _LifeCycleManagerState extends State<LifeCycleManager>
       if (state == AppLifecycleState.resumed) {
         service.start();
       } else {
+        // TODO: if the app stoped then clean unfinished order
+        log.d('stopped.');
         try {
           service.stop();
           // ignore: empty_catches

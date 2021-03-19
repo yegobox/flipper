@@ -39,10 +39,15 @@ abstract class Order implements Built<Order, OrderBuilder> {
 
   @nullable
   String get status;
-  @nullable
-  String get variationId;
+
+  String get variantId;
+ 
+  String get stockId;
+
   @nullable
   String get productName;
+
+  String get variantName;
 
   BuiltList<String> get channels;
 
