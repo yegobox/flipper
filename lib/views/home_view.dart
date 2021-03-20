@@ -10,7 +10,6 @@ import 'package:flipper/widget/bottom_menu_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:pos/pos_viewmodel.dart';
-import 'home_viewmodel.dart';
 
 // ignore: must_be_immutable
 class HomeView extends StatelessWidget {
@@ -37,9 +36,6 @@ class HomeView extends StatelessWidget {
       case 0:
         return KeyPad(model: model);
         break;
-      // case 2:
-      //   return ChatRoom();
-      //   break;
       case 1:
         return ProductView(userId: vm.user.id, items: true);
         break;
@@ -49,91 +45,81 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-        builder: (BuildContext context, HomeViewModel model, Widget child) {
-          return Scaffold(
-            extendBody: true,
-            backgroundColor: Theme.of(context)
-                .copyWith(canvasColor: Colors.white)
-                .canvasColor,
-            key: _scaffoldKey,
-            appBar: HomeAppBar(
-              scaffoldKey: _scaffoldKey,
-              sideOpenController: sideOpenController,
-              model: model,
-            ),
-            floatingActionButton: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AddProductModal(
-                      userId: vm.user.id,
-                    );
-                  },
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.symmetric(horizontal: 10.0),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.all(Radius.circular(50)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  // ignore: prefer_const_literals_to_create_immutables
-                  children: [
-                    const Icon(Icons.add,
-                        size: 20,
-                        // These colors are not defined in the Material Design spec.
-                        color: Colors.white),
-                    const Text(
-                      ' Add Product',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.miniCenterDocked,
-            bottomNavigationBar: BottomMenubar(
-              model: model,
-            ),
-            body: ViewModelBuilder<PosViewModel>.reactive(
-                builder:
-                    (BuildContext context, PosViewModel pos, Widget child) {
-                  return Column(
-                    children: <Widget>[
-                      model.tab == 1
-                          ? PayableView(model: pos)
-                          : const SizedBox.shrink(),
-                      Expanded(
-                        child: Container(
-                          child: SafeArea(
-                            child: Container(
-                              child: _getPage(
-                                  index: model.tab, vm: vm, model: pos),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+      viewModelBuilder: () => PosViewModel(),
+      onModelReady: (PosViewModel model) {
+        model.countItemOnCurrentOrder();
+      },
+      builder: (BuildContext context, PosViewModel model, Widget child) {
+        return Scaffold(
+          extendBody: true,
+          backgroundColor:
+              Theme.of(context).copyWith(canvasColor: Colors.white).canvasColor,
+          key: _scaffoldKey,
+          appBar: HomeAppBar(
+            scaffoldKey: _scaffoldKey,
+            sideOpenController: sideOpenController,
+            model: model,
+          ),
+          floatingActionButton: GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AddProductModal(
+                    userId: vm.user.id,
                   );
                 },
-                viewModelBuilder: () => PosViewModel(),
-                onModelReady: (PosViewModel model) {
-                  model.countItemOnCurrentOrder();
-                }),
-            drawer: FlipperDrawer(),
-          );
-        },
-        onModelReady: (HomeViewModel model) {
-          model.initTab();
-          model.countItemOnCurrentOrder();
-        },
-        viewModelBuilder: () => HomeViewModel());
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.symmetric(horizontal: 10.0),
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.all(Radius.circular(50)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                // ignore: prefer_const_literals_to_create_immutables
+                children: [
+                  const Icon(Icons.add,
+                      size: 20,
+                      // These colors are not defined in the Material Design spec.
+                      color: Colors.white),
+                  const Text(
+                    ' Add Product',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  )
+                ],
+              ),
+            ),
+          ),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.miniCenterDocked,
+          bottomNavigationBar: BottomMenubar(
+            model: model,
+          ),
+          body: Column(
+            children: <Widget>[
+              model.tab == 1
+                  ? PayableView(model: model)
+                  : const SizedBox.shrink(),
+              Expanded(
+                child: Container(
+                  child: SafeArea(
+                    child: Container(
+                      child: _getPage(index: model.tab, vm: vm, model: model),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          drawer: FlipperDrawer(),
+        );
+      },
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flipper_models/order.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
+// import 'package:flipper_services/logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
@@ -13,11 +14,27 @@ class PosViewModel extends ReactiveViewModel {
   String result = '';
   final List<Order> _currentSale = [];
   List<Order> get currentSale => _currentSale;
+  int _tab = 0;
+  int get tab {
+    return _tab;
+  }
+
+  int _items;
+  int get items {
+    return _items;
+  }
+
+  void switchTab(int tab) {
+    _tab = tab;
+    notifyListeners();
+  }
+
+  void initTab() {
+    _tab = 0;
+    notifyListeners();
+  }
 
   final _sharedState = locator<KeyPadService>();
-
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
 
   /// keep track of the order and count them should update local currentSale on
   /// payable widget so we know if we show save or tickets button
@@ -42,8 +59,18 @@ class PosViewModel extends ReactiveViewModel {
             .clear(); //clear any past current sale as it might have parked
       }
     });
+
     // clear the CurrentSale
     ProxyService.sharedState.clear.listen((e) {
+      final q = Query(ProxyService.database.db,
+          'SELECT  id  WHERE table=\$T AND status=\$S');
+      q.parameters = {'T': AppTables.order, 'S': 'pending'};
+      final results = q.execute();
+      if (results.isNotEmpty) {
+        for (Map id in results) {
+          ProxyService.database.delete(id: id['id']);
+        }
+      }
       _currentSale.clear();
       notifyListeners();
     });
@@ -72,8 +99,8 @@ class PosViewModel extends ReactiveViewModel {
       _sharedState.createCustomAmountItemAndSell(
           customAmount: double.parse(_expr), takeNewOrder: false);
     } else if (key == 'C') {
-      while(_expr.isNotEmpty){
-         _expr = _expr.substring(0, _expr.length - 1);
+      while (_expr.isNotEmpty) {
+        _expr = _expr.substring(0, _expr.length - 1);
       }
       ProxyService.sharedState.setClear(c: true);
     } else if (key == '+') {
@@ -109,4 +136,7 @@ class PosViewModel extends ReactiveViewModel {
   void viewTickets() {
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
 }

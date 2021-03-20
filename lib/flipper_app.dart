@@ -94,8 +94,8 @@ class _FlipperAppState extends State<FlipperApp> {
   void initState() {
     super.initState();
     initBeams();
+
     ProxyService.sharedState.setClear(c: true);
-    // _config.initialise();
     _inAppNav.navigation.listen((path) {
       if (path == 'contacts') {
         ProxyService.nav.navigateTo(Routing.contactView);

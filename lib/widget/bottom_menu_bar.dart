@@ -1,15 +1,13 @@
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/views/home_viewmodel.dart';
-import 'package:flipper/views/product/add/add_product_modal.dart';
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper/widget/tabItem.dart';
 
 import 'package:flutter/material.dart';
+import 'package:pos/pos_viewmodel.dart';
 
 class BottomMenubar extends StatefulWidget {
   const BottomMenubar({this.model});
 
-  final HomeViewModel model;
+  final PosViewModel model;
 
   @override
   _BottomMenubarState createState() => _BottomMenubarState();
@@ -25,8 +23,8 @@ class _BottomMenubarState extends State<BottomMenubar> {
     return Container(
       height: 65,
       //margin: EdgeInsets.only(: 10,right: 10),
-      decoration: BoxDecoration(
-          color: Theme.of(context).bottomAppBarColor,
+      decoration: BoxDecoration(color: Theme.of(context).bottomAppBarColor,
+          // ignore: prefer_const_literals_to_create_immutables
           boxShadow: [
             const BoxShadow(
                 color: Colors.black12, offset: Offset(0, -.1), blurRadius: 0)
@@ -80,31 +78,31 @@ class _BottomMenubarState extends State<BottomMenubar> {
             //padding: EdgeInsets.only(right:10),
             child: _icon(null, widget.model.tab == 0 ? true : false, 0,
                 icon: widget.model.tab == 0
-                    ? Image(
+                    ? const Image(
                         width: 28,
                         height: 25,
                         image: AssetImage('assets/keypad_enable.png'))
-                    : Image(
+                    : const Image(
                         width: 28,
                         height: 25,
                         image: AssetImage('assets/keypad_disable.png')),
                 isCustomIcon: true,
-                text: "Keypad"),
+                text: 'Keypad'),
           ),
           Container(
             // alignment: Alignment.centerRight,
             child: _icon(null, widget.model.tab == 1 ? true : false, 1,
                 icon: widget.model.tab == 1
-                    ? Image(
+                    ? const Image(
                         width: 28,
                         height: 25,
                         image: AssetImage('assets/library_enable.png'))
-                    : Image(
+                    : const Image(
                         width: 28,
                         height: 25,
                         image: AssetImage('assets/library_disable.png')),
                 isCustomIcon: true,
-                text: "Library"),
+                text: 'Library'),
           ),
           // _icon(null, widget.model.tab == 2 ? true : false, 2,
           //     icon: 3 == 3 ? AppIcon.chat : AppIcon.chat,

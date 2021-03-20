@@ -1,7 +1,7 @@
-import 'package:flipper/views/home_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:pos/pos_viewmodel.dart';
 
 import '../theme.dart';
 
@@ -14,7 +14,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueNotifier<bool> sideOpenController;
-  final HomeViewModel model;
+  final PosViewModel model;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget buildSaleWording({HomeViewModel model, BuildContext context}) {
+  Widget buildSaleWording({PosViewModel model, BuildContext context}) {
     if (model.tab == 0 || model.tab == 1) {
       if (model.currentSale.isEmpty) {
         return Text('No Sale',
