@@ -33,14 +33,14 @@ class PaymentOptionView extends StatelessWidget {
                         // ignore: prefer_const_literals_to_create_immutables
                         children: [
                           const SizedBox(height: 40),
-                          const Text(
-                            'FRw0.89',
-                            style: TextStyle(
+                          Text(
+                            'FRw ' + model.keypad.totalAmount.toString(),
+                            style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 40),
                           const Text(
-                            'Select Payment type bellow',
+                            'Select Payment type Bellow',
                             style: TextStyle(
                                 fontSize: 18.0, fontWeight: FontWeight.bold),
                           ),

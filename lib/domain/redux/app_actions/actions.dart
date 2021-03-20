@@ -195,8 +195,8 @@ class CartQuantity {
 @immutable
 class SavePayment {
   final String note;
-  final int cashReceived;
-  final int customerChangeDue;
+  final double cashReceived;
+  final double customerChangeDue;
 
   SavePayment({this.customerChangeDue, this.note, this.cashReceived});
 }

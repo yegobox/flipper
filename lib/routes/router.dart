@@ -30,7 +30,6 @@ import 'package:flipper/views/variation/edit_variation_screen.dart';
 
 import 'package:flipper/views/welcome/signup/signup_view.dart';
 import 'package:flipper/views/welcome/home/dash_board.dart';
-import 'package:flipper/views/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/views/welcome/selling/tender_screen.dart';
 
 import 'package:flipper/views/welcome/splash/aftersplash.dart';
@@ -131,9 +130,6 @@ class $Routing {
   OrderDetailsView orderDetailsView;
 
   @MaterialRoute(fullscreenDialog: true)
-  CompleteSaleScreen completeSaleScreen;
-
-  @MaterialRoute(fullscreenDialog: true)
   TenderScreen tenderScreen;
 
   @MaterialRoute(fullscreenDialog: true)
@@ -162,7 +158,7 @@ class $Routing {
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
 // flutter packages pub run build_runner build --delete-conflicting-outputs --enable-experiment=non-nullable
 // NON null
-// flutter packages pub run build_runner build --delete-conflicting-outputs 
+// flutter packages pub run build_runner build --delete-conflicting-outputs
 
 // code example
 // orderDetail.data

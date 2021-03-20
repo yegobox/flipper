@@ -15,13 +15,13 @@ import 'package:observable_ish/observable_ish.dart';
 import 'package:uuid/uuid.dart';
 
 class KeyPadService with ReactiveServiceMixin {
-  final RxValue<double> customAmount = RxValue<double>();
+  final RxValue<double> _totalAmount = RxValue<double>();
   final _sharedStateService = locator<SharedStateService>();
   final RxValue<Order> _currentSale = RxValue<Order>(initial: null);
   Order get currentSales => _currentSale.value;
 
   final Logger log = Logging.getLogger('O2:)');
-  double get getSum => customAmount.value;
+  double get totalAmount => _totalAmount.value;
   final DatabaseService _databaseService = ProxyService.database;
 
   /// create new order,this method assume a cashier is still in progress of taking order
@@ -41,6 +41,8 @@ class KeyPadService with ReactiveServiceMixin {
       final Document orderDocument = _databaseService.getById(id: order.id);
       orderDocument.properties['cashReceived'] = customAmount;
       _databaseService.update(document: orderDocument);
+      _totalAmount.value = customAmount;
+      notifyListeners();
       return;
     }
   }

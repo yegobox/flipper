@@ -36,7 +36,6 @@ import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/category/create_category_input_screen.dart';
 import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/order/order_details_view.dart';
-import 'package:flipper/views/welcome/selling/complete_sale_screen.dart';
 import 'package:flipper/views/welcome/selling/tender_screen.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
@@ -81,7 +80,6 @@ class Routing {
   static const createCategoryInputScreen = '/create-category-input-screen';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
   static const orderDetailsView = '/order-details-view';
-  static const completeSaleScreen = '/complete-sale-screen';
   static const tenderScreen = '/tender-screen';
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
@@ -379,18 +377,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.completeSaleScreen:
-        if (hasInvalidArgs<CompleteSaleScreenArguments>(args)) {
-          return misTypedArgsRoute<CompleteSaleScreenArguments>(args);
-        }
-        final typedArgs = args as CompleteSaleScreenArguments ??
-            CompleteSaleScreenArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => CompleteSaleScreen(
-              key: typedArgs.key, cashReceived: typedArgs.cashReceived),
-          settings: settings,
-          fullscreenDialog: true,
-        );
       case Routing.tenderScreen:
         if (hasInvalidArgs<TenderScreenArguments>(args)) {
           return misTypedArgsRoute<TenderScreenArguments>(args);
@@ -627,17 +613,10 @@ class ChangeQuantityForSellingArguments {
   ChangeQuantityForSellingArguments({this.key, @required this.productId});
 }
 
-//CompleteSaleScreen arguments holder class
-class CompleteSaleScreenArguments {
-  final Key key;
-  final int cashReceived;
-  CompleteSaleScreenArguments({this.key, this.cashReceived});
-}
-
 //TenderScreen arguments holder class
 class TenderScreenArguments {
   final Key key;
-  final int cashReceived;
+  final double cashReceived;
   TenderScreenArguments({this.key, this.cashReceived});
 }
 

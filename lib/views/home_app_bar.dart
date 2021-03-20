@@ -2,7 +2,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pos/pos_viewmodel.dart';
-
+import 'package:flipper/routes/router.gr.dart';
 import '../theme.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -34,8 +34,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               Expanded(
                 child: FlatButton(
                     onPressed: () {
-                      // ProxyService.nav.navigateTo(Routing.completeSaleView);
-                      // TODO: implements detail page
+                      ProxyService.nav.navigateTo(Routing.completeSaleView);
                     },
                     child: buildSaleWording(model: model, context: context)),
               ),
@@ -61,7 +60,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             ]),
           ),
         ),
-        // trailing: const SizedBox.shrink(),
       ),
     );
   }

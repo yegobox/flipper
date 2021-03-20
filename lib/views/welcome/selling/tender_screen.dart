@@ -1,36 +1,24 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/bluethooth_service.dart';
-import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/shared_state_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TenderScreen extends StatefulWidget {
   const TenderScreen({Key key, this.cashReceived}) : super(key: key);
 
-  final int cashReceived;
+  final double cashReceived;
 
   @override
   _TenderScreenState createState() => _TenderScreenState();
 }
 
 class _TenderScreenState extends State<TenderScreen> {
-  final bool _isEmpty = true;
-  final bool _hasErrors = false;
   final FlipperNavigationService _navigationService = ProxyService.nav;
   // final BlueToothService _bluetoothService = ProxyService.blue;
   bool _isButtonDisabled;
-
-  String _customerChangeDue;
 
   @override
   void initState() {
@@ -66,14 +54,12 @@ class _TenderScreenState extends State<TenderScreen> {
                 child: TextFormField(
                   autofocus: true,
                   onChanged: (String value) {
-                    if (int.parse(value) > widget.cashReceived) {
+                    if (double.parse(value) > widget.cashReceived) {
                       setState(() {
-                        _customerChangeDue = value;
                         _isButtonDisabled = false;
                       });
                     } else {
                       setState(() {
-                        _customerChangeDue = value;
                         _isButtonDisabled = true;
                       });
                     }
@@ -119,13 +105,13 @@ class _TenderScreenState extends State<TenderScreen> {
       return null;
     } else {
       return () async {
-        StoreProvider.of<AppState>(context).dispatch(
-          SavePayment(
-            note: 'note',
-            customerChangeDue: int.parse(_customerChangeDue),
-            cashReceived: widget.cashReceived,
-          ),
-        );
+        // StoreProvider.of<AppState>(context).dispatch(
+        //   SavePayment(
+        //     note: 'note',
+        //     customerChangeDue: int.parse(_customerChangeDue),
+        //     cashReceived: widget.cashReceived,
+        //   ),
+        // );
         // TODO(richard): finish printing to work proper
         // await _bluetoothService.printReceipt();
         _navigationService.popUntil(Routing.dashboard);

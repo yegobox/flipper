@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
@@ -11,6 +12,7 @@ import 'package:uuid/uuid.dart';
 
 class CompleteSaleViewModel extends ReactiveViewModel {
   final _sharedState = locator<SharedStateService>();
+  final keypad = locator<KeyPadService>();
 
   String _phone;
 
@@ -25,10 +27,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
       }
     });
   }
-
-  @override
-  // TODO: implement reactiveServices
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
 
   void collectCash() async {
     final String transactionNumber = Uuid().v1();
@@ -49,4 +47,8 @@ class CompleteSaleViewModel extends ReactiveViewModel {
       print(response.body);
     });
   }
+
+  @override
+  // TODO: implement reactiveServices
+  List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
 }
