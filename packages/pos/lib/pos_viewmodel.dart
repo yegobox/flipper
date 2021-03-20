@@ -34,7 +34,7 @@ class PosViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  final _sharedState = locator<KeyPadService>();
+  final keyPad = locator<KeyPadService>();
 
   /// keep track of the order and count them should update local currentSale on
   /// payable widget so we know if we show save or tickets button
@@ -47,6 +47,7 @@ class PosViewModel extends ReactiveViewModel {
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
     q.addChangeListener((List results) {
+      _currentSale.clear();
       if (results.isNotEmpty) {
         for (Map map in results) {
           map.forEach((key, value) {
@@ -55,24 +56,9 @@ class PosViewModel extends ReactiveViewModel {
         }
         notifyListeners();
       } else {
-        _currentSale
-            .clear(); //clear any past current sale as it might have parked
+        _currentSale.clear();
+        notifyListeners();
       }
-    });
-
-    // clear the CurrentSale
-    ProxyService.sharedState.clear.listen((e) {
-      final q = Query(ProxyService.database.db,
-          'SELECT  id  WHERE table=\$T AND status=\$S');
-      q.parameters = {'T': AppTables.order, 'S': 'pending'};
-      final results = q.execute();
-      if (results.isNotEmpty) {
-        for (Map id in results) {
-          ProxyService.database.delete(id: id['id']);
-        }
-      }
-      _currentSale.clear();
-      notifyListeners();
     });
   }
 
@@ -96,7 +82,7 @@ class PosViewModel extends ReactiveViewModel {
       _expr += key;
     } else if (digits.contains(key) && key != '+') {
       _expr += key;
-      _sharedState.createCustomAmountItemAndSell(
+      keyPad.sellCustomAmount(
           customAmount: double.parse(_expr), takeNewOrder: false);
     } else if (key == 'C') {
       while (_expr.isNotEmpty) {
@@ -105,7 +91,7 @@ class PosViewModel extends ReactiveViewModel {
       ProxyService.sharedState.setClear(c: true);
     } else if (key == '+') {
       if (_expr.isNotEmpty) {
-        _sharedState.createCustomAmountItemAndSell(takeNewOrder: true);
+        keyPad.sellCustomAmount(takeNewOrder: true);
         payable = '';
       }
     }
@@ -138,5 +124,5 @@ class PosViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
+  List<ReactiveServiceMixin> get reactiveServices => [keyPad];
 }

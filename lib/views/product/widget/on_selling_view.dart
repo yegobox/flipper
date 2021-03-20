@@ -31,9 +31,6 @@ class _onCreate extends State<OnSellingView> {
 
   List<Widget> _productCategory({@required OnProductSellingViewModal model}) {
     final List<Widget> list = <Widget>[];
-    if (model.busy) {
-      return list;
-    }
 
     for (VariantStock variation in model.variations) {
       list.add(SingleChildScrollView(

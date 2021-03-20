@@ -79,6 +79,8 @@ Future getAppColors() async {
   }
 }
 
+/// the mthod login and connect to a database`
+/// it also clear any pedning order too if any
 Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
   final DatabaseService _databaseService = ProxyService.database;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -93,7 +95,7 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
     _firebaseMessaging.subscribeToTopic(
         loggedInuserId); //register this specific user to notification custom to him.
     channels.add(loggedInuserId);
-
+    ProxyService.keypad.cleanKeypad();
     await _databaseService.login(channels: channels);
 
     //save a device token

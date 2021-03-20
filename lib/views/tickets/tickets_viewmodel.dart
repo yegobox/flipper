@@ -67,57 +67,60 @@ class TicketsViewModel extends ReactiveViewModel {
 
   void saveToExistingTicket({@required String ticketId}) {
     final pendingTicket = _databaseService.getById(id: ticketId);
-    final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
-    List<String> ods = [];
-    if (pendingTicket.properties['orders'] != null) {
-      ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
-      ods.add(pOrder.id);
-      pendingTicket.properties['orders'] = ods;
-      ProxyService.database.update(document: pendingTicket);
-    }
-    //create a ticke with a name then edit a ticket with orderId(s) added as array.
-    final Document pending = ProxyService.database.getById(id: pOrder.id);
+    ProxyService.keypad.order.listen((order) {
+      List<String> ods = [];
+      if (pendingTicket.properties['orders'] != null) {
+        ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
+        ods.add(order.id);
+        pendingTicket.properties['orders'] = ods;
+        ProxyService.database.update(document: pendingTicket);
+      }
+      //create a ticke with a name then edit a ticket with orderId(s) added as array.
+      final Document pending = ProxyService.database.getById(id: order.id);
 
-    pending.properties['active'] = false;
-    pending.properties['draft'] = false;
-    pending.properties['orderNote'] = 'parked';
-    pending.properties['status'] = 'parked';
-    ProxyService.database.update(document: pending);
-    // clear the current sale count.
-    ProxyService.sharedState.setClear(c: true);
+      pending.properties['active'] = false;
+      pending.properties['draft'] = false;
+      pending.properties['orderNote'] = 'parked';
+      pending.properties['status'] = 'parked';
+      ProxyService.database.update(document: pending);
+      // clear the current sale count.
+      ProxyService.sharedState.setClear(c: true);
+    });
   }
 
   Future<void> saveNewTicket() async {
     if (_ticketName != null) {
-      final Order pOrder = ProxyService.keypad.pendingOrder(customAmount: 0.0);
-      //create a new ticket for this order
-      final id5 = Uuid().v1();
-      final Document ticket = _databaseService.insert(id: id5, data: {
-        'id': id5,
-        'ticketName': _ticketName,
-        'table': AppTables.tickets,
-        'note': _note,
-        'resumed': false,
-        'createdAt': DateTime.now().toIso8601String(),
-        'channels': [ProxyService.sharedState.user.id.toString()],
-        'orders': []
+      ProxyService.keypad.order.listen((order) {
+        final id5 = Uuid().v1();
+        final Document ticket = _databaseService.insert(id: id5, data: {
+          'id': id5,
+          'ticketName': _ticketName,
+          'table': AppTables.tickets,
+          'note': _note,
+          'resumed': false,
+          'createdAt': DateTime.now().toIso8601String(),
+          'channels': [ProxyService.sharedState.user.id.toString()],
+          'orders': []
+        });
+        final pendingTicket = _databaseService.getById(id: ticket.ID);
+        List<String> ods = [];
+        if (pendingTicket.properties['orders'] != null) {
+          ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
+          ods.add(order.id);
+          pendingTicket.properties['orders'] = ods;
+          ProxyService.database.update(document: pendingTicket);
+        }
+        final Document parkedOrder =
+            ProxyService.database.getById(id: order.id);
+        parkedOrder.properties['active'] = false;
+        parkedOrder.properties['draft'] = false;
+        parkedOrder.properties['orderNote'] = 'parked';
+        parkedOrder.properties['status'] = 'parked';
+        ProxyService.database.update(document: parkedOrder);
+        // clear the current sale count.
+        ProxyService.sharedState.setClear(c: true);
       });
-      final pendingTicket = _databaseService.getById(id: ticket.ID);
-      List<String> ods = [];
-      if (pendingTicket.properties['orders'] != null) {
-        ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
-        ods.add(pOrder.id);
-        pendingTicket.properties['orders'] = ods;
-        ProxyService.database.update(document: pendingTicket);
-      }
-      final Document parkedOrder = ProxyService.database.getById(id: pOrder.id);
-      parkedOrder.properties['active'] = false;
-      parkedOrder.properties['draft'] = false;
-      parkedOrder.properties['orderNote'] = 'parked';
-      parkedOrder.properties['status'] = 'parked';
-      ProxyService.database.update(document: parkedOrder);
-      // clear the current sale count.
-      ProxyService.sharedState.setClear(c: true);
+      //create a new ticket for this order
     }
   }
 

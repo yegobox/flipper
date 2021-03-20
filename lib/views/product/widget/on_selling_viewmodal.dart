@@ -2,20 +2,23 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:flipper/utils/logger.dart';
+import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flipper_models/order.dart';
 
-class OnProductSellingViewModal extends BaseModel {
+class OnProductSellingViewModal extends ReactiveViewModel {
   // NOTE: leason learned, never put anything that invoke ui for ex TextEditingController in viewmodel as it will make it hard to test the logic of viewmodel
   final DatabaseService _databaseService = ProxyService.database;
+  final _keypad = locator<KeyPadService>();
   final List<VariantStock> _variations = [];
   final List<VariantStock> _variantStock = [];
   List<VariantStock> get orders => _variantStock;
@@ -112,30 +115,12 @@ class OnProductSellingViewModal extends BaseModel {
 
     if (stocks.isNotEmpty) {
       if (amountTotal.abs() != 0) {
-        final Order order =
-            ProxyService.keypad.pendingOrder(customAmount: amountTotal);
-
-        // TODO: udate order with bellow
-        // 'cashReceived': amountTotal,
-        // 'cashCollected': amountTotal
-        final id5 = Uuid().v1();
-        _databaseService.insert(id: id5, data: {
-          'orderId': order.id,
-          'variantId': _variantStock[0].id,
-          'variantName': _variantStock[0].name,
-          'Note': 'Custom Amount',
-          'updatedAt': DateTime.now().toIso8601String(),
-          'createdAt': DateTime.now().toIso8601String(),
-          'stockId': Stock.fromMap(stocks[0]).id,
-          'channels': [ProxyService.sharedState.user.id.toString()],
-          'reason': 'SOLD',
-          'table': AppTables.stockHistories,
-          'quantity': _quantity,
-          'id': id5,
-        });
+        ProxyService.keypad.updateStock(
+            stockId: Stock.fromMap(stocks[0]).id, quantity: _quantity);
       }
-      ProxyService.keypad.updateStock(
-          stockId: Stock.fromMap(stocks[0]).id, quantity: _quantity);
     }
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [_keypad];
 }

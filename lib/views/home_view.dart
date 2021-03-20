@@ -48,6 +48,7 @@ class HomeView extends StatelessWidget {
       viewModelBuilder: () => PosViewModel(),
       onModelReady: (PosViewModel model) {
         model.countItemOnCurrentOrder();
+        model.keyPad.cleanKeypad();
       },
       builder: (BuildContext context, PosViewModel model, Widget child) {
         return Scaffold(

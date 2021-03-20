@@ -64,6 +64,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+
   Widget buildSaleWording({PosViewModel model, BuildContext context}) {
     if (model.tab == 0 || model.tab == 1) {
       if (model.currentSale.isEmpty) {
