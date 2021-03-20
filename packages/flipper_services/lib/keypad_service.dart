@@ -29,10 +29,11 @@ class KeyPadService with ReactiveServiceMixin {
   /// if the takeNewOrder is not passed it will keep updating the current active and draft order
   void sellCustomAmount(
       {double customAmount = 0.0, bool takeNewOrder = false}) {
-    _db.createCustomItem(
-        branchId: _state.branch.id,
-        userId: _state.user.id,
-        businessId: _state.business.id);
+    // TODO: this was useful when a user did not have a custom item
+    // _db.createCustomItem(
+    //     branchId: _state.branch.id,
+    //     userId: _state.user.id,
+    //     businessId: _state.business.id);
     final Document variation = _db.getCustomProductVariant();
 
     final String stockId = _db.getStockIdGivenProductId(
