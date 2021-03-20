@@ -41,10 +41,10 @@ class DrawerViewModel extends ReactiveViewModel {
         map.forEach((key, value) {
           if (!_branches.contains(Branch.fromMap(value))) {
             _branches.add(Branch.fromMap(value));
-            notifyListeners();
           }
         });
       }
+      notifyListeners();
     });
   }
 
@@ -67,9 +67,10 @@ class DrawerViewModel extends ReactiveViewModel {
               state.setBusiness(business: Business.fromMap(value));
             }
             _businesses.add(Business.fromMap(value));
-            notifyListeners();
+           
           }
         });
+         notifyListeners();
       }
     });
 
@@ -79,14 +80,11 @@ class DrawerViewModel extends ReactiveViewModel {
       for (Map map in results) {
         map.forEach((key, value) {
           if (!businesses.contains(Business.fromMap(value))) {
-            businesses.add(Business.fromMap(value));
-
-            state.setBusiness(business: Business.fromMap(value));
-
-            notifyListeners();
+            businesses.add(Business.fromMap(value));        
           }
         });
       }
+      //  notifyListeners();
     }
   }
 
