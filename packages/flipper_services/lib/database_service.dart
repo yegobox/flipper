@@ -195,6 +195,7 @@ class DatabaseService {
       // AfterSplash
     }
   }
+
   String getStockIdGivenProductId({String variantId}) {
     print(variantId);
     final q = Query(db, 'SELECT  id WHERE table=\$T AND variantId=\$variantId');
