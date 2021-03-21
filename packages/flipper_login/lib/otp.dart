@@ -189,38 +189,8 @@ class _OtpPageState extends State<OtpPage> {
                                       _analytics.setUserProperties(
                                           userId: loginResponse.id.toString(),
                                           userRole: 'Admin');
-                                      _analytics.logLogin();
-
-                                      final loggedInUserId =
-                                          ProxyService.sharedPref.getUserId();
-                                      if (loggedInUserId == null) {
-                                        final q = Query(
-                                            ProxyService.database.db,
-                                            'SELECT * WHERE table=\$VALUE AND name=\$NAME');
-
-                                        q.parameters = {
-                                          'VALUE': AppTables.user,
-                                          'NAME': widget.phone.replaceAll(
-                                              RegExp(r'\s+\b|\b\s'), '')
-                                        };
-                                        q.addChangeListener((results) {
-                                          for (Map map in results) {
-                                            map.forEach((key, value) {
-                                              final FUser user =
-                                                  FUser.fromMap(value);
-
-                                              if (user != null) {
-                                                StoreProvider.of<AppState>(
-                                                        context)
-                                                    .dispatch(
-                                                        VerifyAuthenticationState());
-
-                                                proxyService.loading.add(false);
-                                              }
-                                            });
-                                          }
-                                        });
-                                      }
+                                      _analytics.logLogin();   
+                                      StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());                                   
                                     }
                                   });
                                 } catch (e) {
@@ -315,10 +285,18 @@ class _OtpPageState extends State<OtpPage> {
     } else {
       ProxyService.sharedPref
           .setUserLoggedIn(userId: loginResponse.id.toString());
-      final Document doc =
-          ProxyService.database.getById(id: loginResponse.id.toString());
-      doc.properties['createdAt'] = DateTime.now().toIso8601String();
-      ProxyService.database.update(document: doc);
+          // always insert to avoid when a user has uninstalled the app and it need some time to sync up again atleast we need user
+       ProxyService.database.insert(id: loginResponse.id.toString(), data: {
+        'name': loginResponse.name,
+        'email': loginResponse.email,
+        'token': loginResponse.token,
+        'table': AppTables.user,
+        'channels': [loginResponse.id.toString()],
+        'userId': loginResponse.id.toString(),
+        'expiresAt': loginResponse.expiresAt,
+        'id': loginResponse.id.toString(),
+      });
+     
     }
   }
 
