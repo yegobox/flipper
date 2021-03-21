@@ -46,7 +46,9 @@ class AfterSaleView extends StatelessWidget {
                           const SizedBox(height: 40),
                           Text(
                             'FRw' +
-                                model.keypad.totalAmount.toString() +
+                                (model.keypad.cashReceived -
+                                        model.keypad.totalAmount)
+                                    .toStringAsFixed(0) +
                                 ' Change',
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
@@ -54,7 +56,7 @@ class AfterSaleView extends StatelessWidget {
                           const SizedBox(height: 10),
                           Text(
                             'Out of FRw ' +
-                                model.keypad.cashReceived.toString(),
+                                model.keypad.cashReceived.toStringAsFixed(0),
                             style: const TextStyle(
                                 fontSize: 18.0, fontWeight: FontWeight.bold),
                           ),
