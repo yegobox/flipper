@@ -30,7 +30,6 @@ import 'package:flipper/views/variation/edit_variation_screen.dart';
 
 import 'package:flipper/views/welcome/signup/signup_view.dart';
 import 'package:flipper/views/welcome/home/dash_board.dart';
-import 'package:flipper/views/welcome/selling/tender_screen.dart';
 
 import 'package:flipper/views/welcome/splash/aftersplash.dart';
 import 'package:flipper/views/welcome/splash/splash_screen.dart';

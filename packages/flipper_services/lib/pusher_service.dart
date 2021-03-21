@@ -43,7 +43,7 @@ class PusherService {
       print(err);
     });
     channel = await p.Pusher.subscribe('channel.' + transactionUid);
-    channel.bind('event.' + transactionUid, (event) {
+    channel.bind('event.' + transactionUid, (p.Event event) {
       pay.value = null;
       pay.value = event;
     });

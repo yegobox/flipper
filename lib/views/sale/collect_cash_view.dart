@@ -96,7 +96,7 @@ class CollectCashView extends StatelessWidget {
                           const SizedBox(height: 10),
                           RoundedLoadingButton(
                             borderRadius: 20.0,
-                            // color: Colors.white,
+                            controller: _btnController,
                             onPressed: () {
                               model.collectCash();
                             },
@@ -113,10 +113,16 @@ class CollectCashView extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          //listen on completed.
+          model.completedSale.value = null;
           model.completedSale.listen((v) {
-            if(v!=null){
-              _btnController.success();
+            try {
+              if (v != null && v == true) {
+                _btnController.success();
+              } else if (v != null && v == false) {
+                _btnController.error();
+              }
+            } on Exception {
+              rethrow;
             }
           });
           ProxyService.pusher.subs();

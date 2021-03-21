@@ -9,11 +9,36 @@ import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
-import 'dart:convert';
 
 Spenn spennFromJson(String str) => Spenn.fromJson(json.decode(str));
 
 String spennToJson(Spenn data) => json.encode(data.toJson());
+SpennpaymentStatus spennpaymentStatusFromJson(String str) =>
+    SpennpaymentStatus.fromJson(json.decode(str));
+
+String spennpaymentStatusToJson(SpennpaymentStatus data) =>
+    json.encode(data.toJson());
+
+class SpennpaymentStatus {
+  SpennpaymentStatus({
+    this.userId,
+    this.paymentSuccess,
+  });
+
+  String userId;
+  int paymentSuccess;
+
+  factory SpennpaymentStatus.fromJson(Map<String, dynamic> json) =>
+      SpennpaymentStatus(
+        userId: json['user_id'],
+        paymentSuccess: json['PaymentSuccess'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'user_id': userId,
+        'PaymentSuccess': paymentSuccess,
+      };
+}
 
 class Spenn {
   Spenn({
@@ -55,32 +80,48 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   void listenPaymentComplete() {
     ProxyService.pusher.pay.listen((completeCashCollection) {
       if (completeCashCollection != null) {
-        completedSale.value = true;
-        ProxyService.nav.navigateTo(Routing.afterSaleView);
+        final spennpaymentStatus =
+            spennpaymentStatusFromJson(completeCashCollection.data);
+        if (spennpaymentStatus.paymentSuccess == 3) {
+          completedSale.value = false;
+        } else if (spennpaymentStatus.paymentSuccess == 2) {
+          completedSale.value = true;
+          ProxyService.nav.navigateTo(Routing.afterSaleView);
+        } else {
+          print(spennpaymentStatus.paymentSuccess);
+        }
       }
     });
   }
 
   void collectCash() async {
-    print(ProxyService.sharedState.user.id);
     final String transactionNumber = Uuid().v1();
-    await http.post('https://flipper.yegobox.com/pay',
-        body: jsonEncode({
-          'amount': keypad.totalAmount,
-          'message': ProxyService.sharedState.business.name.substring(0, 3) +
-              '-' +
-              transactionNumber.substring(0, 4),
-          'phoneNumber': '+25' + _phone,
-          'uid': ProxyService.sharedState.user.id
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }).then((response) {
-      final spenn = spennFromJson(response.body);
-      ProxyService.pusher
-          .subOnSPENNTransaction(transactionUid: spenn.requestId);
-    });
+
+    try {
+      final http.Response response = await http.post(
+          'https://flipper.yegobox.com/pay',
+          body: jsonEncode({
+            'amount': keypad.totalAmount,
+            'message': ProxyService.sharedState.business.name.substring(0, 3) +
+                '-' +
+                transactionNumber.substring(0, 4),
+            'phoneNumber': '+25' + _phone,
+            'uid': ProxyService.sharedState.user.id
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          });
+      if (response.statusCode == 200) {
+        final spenn = spennFromJson(response.body);
+        ProxyService.pusher
+            .subOnSPENNTransaction(transactionUid: spenn.requestId);
+      } else {
+        throw Exception('Request Error: ${response.statusCode}');
+      }
+    } on Exception {
+      rethrow;
+    }
   }
 
   @override
