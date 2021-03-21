@@ -9,6 +9,35 @@ import 'package:stacked/stacked.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+import 'dart:convert';
+
+Spenn spennFromJson(String str) => Spenn.fromJson(json.decode(str));
+
+String spennToJson(Spenn data) => json.encode(data.toJson());
+
+class Spenn {
+  Spenn({
+    this.id,
+    this.requestId,
+    this.status,
+  });
+
+  String id;
+  String requestId;
+  String status;
+
+  factory Spenn.fromJson(Map<String, dynamic> json) => Spenn(
+        id: json['\u0024id'],
+        requestId: json['requestId'],
+        status: json['status'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        '\u0024id': id,
+        'requestId': requestId,
+        'status': status,
+      };
+}
 
 class CompleteSaleViewModel extends ReactiveViewModel {
   final _sharedState = locator<SharedStateService>();
@@ -22,6 +51,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   void listenPaymentComplete() {
     ProxyService.pusher.pay.listen((completeCashCollection) {
+      print(completeCashCollection);
       if (completeCashCollection != null) {
         ProxyService.nav.navigateTo(Routing.afterSaleView);
       }
@@ -29,10 +59,11 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   }
 
   void collectCash() async {
+    print(ProxyService.sharedState.user.id);
     final String transactionNumber = Uuid().v1();
     await http.post('https://flipper.yegobox.com/pay',
         body: jsonEncode({
-          'amount': 100,
+          'amount': keypad.totalAmount,
           'message': ProxyService.sharedState.business.name.substring(0, 3) +
               '-' +
               transactionNumber.substring(0, 4),
@@ -43,12 +74,12 @@ class CompleteSaleViewModel extends ReactiveViewModel {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }).then((response) {
-      //TODO: get the object update it with transaction guid.
-      print(response.body);
+      final spenn = spennFromJson(response.body);
+      ProxyService.pusher
+          .subOnSPENNTransaction(transactionUid: spenn.requestId);
     });
   }
 
   @override
-  // TODO: implement reactiveServices
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
 }

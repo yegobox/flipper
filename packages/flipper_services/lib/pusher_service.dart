@@ -16,15 +16,34 @@ class PusherService {
     await p.Pusher.init(
         flipperConfig.pusherAppKey, p.PusherOptions(cluster: 'ap2'),
         enableLogging: true);
+    // p.Channel channel;
+    // p.Pusher.connect(onConnectionStateChange: (val) {
+    //   print(val);
+    // }, onError: (err) {
+    //   print(err);
+    // });
+  }
+
+  /// this start by cleaning any RxValue that might be ocupied by some event from previous
+  /// so we simply set them to null when start
+  void clean() {
+    pay.value = null;
+  }
+
+  void subOnSPENNTransaction({String transactionUid}) async {
+    final FlipperConfig flipperConfig =
+        await ProxyService.firestore.getConfigs();
+    await p.Pusher.init(
+        flipperConfig.pusherAppKey, p.PusherOptions(cluster: 'ap2'),
+        enableLogging: true);
     p.Channel channel;
     p.Pusher.connect(onConnectionStateChange: (val) {
       print(val);
     }, onError: (err) {
       print(err);
     });
-    channel =
-        await p.Pusher.subscribe('channel.' + ProxyService.sharedState.user.id);
-    channel.bind('event.' + ProxyService.sharedState.user.id, (event) {
+    channel = await p.Pusher.subscribe('channel.' + transactionUid);
+    channel.bind('event.' + transactionUid, (event) {
       pay.value = null;
       pay.value = event;
     });

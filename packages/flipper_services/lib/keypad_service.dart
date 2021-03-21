@@ -89,7 +89,6 @@ class KeyPadService with ReactiveServiceMixin {
         });
         order.value = Order.fromMap(ordr.jsonProperties);
         notifyListeners();
-        // return order;
       } else {
         order.value = Order.fromMap(results[0]);
         notifyListeners();

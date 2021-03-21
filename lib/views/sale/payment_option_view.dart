@@ -18,6 +18,9 @@ class PaymentOptionView extends StatelessWidget {
                 onPop: () {
                   ProxyService.nav.pop();
                 },
+                onPressedCallback: () {
+                  ProxyService.nav.pop();
+                },
                 title: '',
                 rightActionButtonName: 'Split payment',
                 icon: Icons.close,
@@ -92,26 +95,6 @@ class PaymentOptionView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // ignore: prefer_const_constructors
-                          GestureDetector(
-                            onTap: () {
-                              ProxyService.nav
-                                  .navigateTo(Routing.collectCashView);
-                            },
-                            child: const ListTile(
-                              leading: Text('MOMO',
-                                  style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold)),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.pink,
-                                size: 24.0,
-                                semanticLabel:
-                                    'Text to announce in accessibility modes',
-                              ),
-                            ),
-                          )
                         ],
                       ),
                     )
@@ -122,8 +105,7 @@ class PaymentOptionView extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          //listen on completed.
-          // ProxyService.pusher.subs();
+          ProxyService.pusher.clean();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

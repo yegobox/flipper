@@ -36,7 +36,6 @@ import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/category/create_category_input_screen.dart';
 import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/order/order_details_view.dart';
-import 'package:flipper/views/welcome/selling/tender_screen.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
@@ -80,7 +79,6 @@ class Routing {
   static const createCategoryInputScreen = '/create-category-input-screen';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
   static const orderDetailsView = '/order-details-view';
-  static const tenderScreen = '/tender-screen';
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
   static const settingsView = '/settings-view';
@@ -377,18 +375,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.tenderScreen:
-        if (hasInvalidArgs<TenderScreenArguments>(args)) {
-          return misTypedArgsRoute<TenderScreenArguments>(args);
-        }
-        final typedArgs =
-            args as TenderScreenArguments ?? TenderScreenArguments();
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => TenderScreen(
-              key: typedArgs.key, cashReceived: typedArgs.cashReceived),
-          settings: settings,
-          fullscreenDialog: true,
-        );
       case Routing.cameraPreview:
         if (hasInvalidArgs<CameraPreviewArguments>(args)) {
           return misTypedArgsRoute<CameraPreviewArguments>(args);
@@ -611,13 +597,6 @@ class ChangeQuantityForSellingArguments {
   final Key key;
   final String productId;
   ChangeQuantityForSellingArguments({this.key, @required this.productId});
-}
-
-//TenderScreen arguments holder class
-class TenderScreenArguments {
-  final Key key;
-  final double cashReceived;
-  TenderScreenArguments({this.key, this.cashReceived});
 }
 
 //CameraPreview arguments holder class
