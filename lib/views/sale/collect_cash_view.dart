@@ -5,8 +5,12 @@ import 'package:flipper/views/sale/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 class CollectCashView extends StatelessWidget {
+  final RoundedLoadingButtonController _btnController =
+      RoundedLoadingButtonController();
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -60,11 +64,44 @@ class CollectCashView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          FlatButton(
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 18, right: 18),
+                            child: Container(
+                              width: double.infinity,
+                              child: TextFormField(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1
+                                    .copyWith(color: Colors.black),
+                                validator: Validators.isValid,
+                                onChanged: (String cash) {
+                                  model.keypad.cash.value = double.parse(cash);
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'Cash Received',
+                                  fillColor: Theme.of(context)
+                                      .copyWith(canvasColor: Colors.white)
+                                      .canvasColor,
+                                  filled: true,
+                                  border: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: HexColor('#D0D7E3')),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          RoundedLoadingButton(
+                            borderRadius: 20.0,
+                            // color: Colors.white,
                             onPressed: () {
                               model.collectCash();
                             },
-                            child: const Text('Tender'),
+                            child: const Text('Tender',
+                                style: TextStyle(color: Colors.white)),
                           )
                         ],
                       ),
@@ -77,6 +114,9 @@ class CollectCashView extends StatelessWidget {
         },
         onModelReady: (CompleteSaleViewModel model) {
           //listen on completed.
+          model.completedSale.listen((v) {
+            _btnController.success();
+          });
           ProxyService.pusher.subs();
           model.listenPaymentComplete();
         },

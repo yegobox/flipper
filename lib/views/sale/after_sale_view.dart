@@ -44,15 +44,18 @@ class AfterSaleView extends StatelessWidget {
                         // ignore: prefer_const_literals_to_create_immutables
                         children: [
                           const SizedBox(height: 40),
-                          const Text(
-                            'FRw0.89 Change',
-                            style: TextStyle(
+                          Text(
+                            'FRw' +
+                                model.keypad.totalAmount.toString() +
+                                ' Change',
+                            style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 10),
-                          const Text(
-                            'Out of FRw 580.00',
-                            style: TextStyle(
+                          Text(
+                            'Out of FRw ' +
+                                model.keypad.cashReceived.toString(),
+                            style: const TextStyle(
                                 fontSize: 18.0, fontWeight: FontWeight.bold),
                           ),
                         ],

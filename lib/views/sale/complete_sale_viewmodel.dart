@@ -6,7 +6,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:observable_ish/observable_ish.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
@@ -45,14 +45,17 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   String _phone;
 
+  // var completedSale;
+  final RxValue<bool> completedSale = RxValue<bool>(initial: null);
+
   set phone(String phone) {
     _phone = phone;
   }
 
   void listenPaymentComplete() {
     ProxyService.pusher.pay.listen((completeCashCollection) {
-      print(completeCashCollection);
       if (completeCashCollection != null) {
+        completedSale.value = true;
         ProxyService.nav.navigateTo(Routing.afterSaleView);
       }
     });
