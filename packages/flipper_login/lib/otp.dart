@@ -179,15 +179,18 @@ class _OtpPageState extends State<OtpPage> {
                                       final Store<AppState> store =
                                           StoreProvider.of<AppState>(context);
 
+                                      await ProxyService.database.login(
+                                          channels: [
+                                            loginResponse.id.toString()
+                                          ]);
+
                                       await userExistInCouchbase(loginResponse);
                                       await buildUser(loginResponse, store);
                                       _analytics.setUserProperties(
                                           userId: loginResponse.id.toString(),
                                           userRole: 'Admin');
                                       _analytics.logLogin();
-                                      ProxyService.database.login(channels: [
-                                        loginResponse.id.toString()
-                                      ]);
+
                                       final loggedInUserId =
                                           ProxyService.sharedPref.getUserId();
                                       if (loggedInUserId == null) {
