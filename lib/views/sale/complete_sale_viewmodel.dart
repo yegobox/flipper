@@ -28,6 +28,7 @@ class SpennpaymentStatus {
   String userId;
   int paymentSuccess;
 
+  // ignore: sort_constructors_first
   factory SpennpaymentStatus.fromJson(Map<String, dynamic> json) =>
       SpennpaymentStatus(
         userId: json['user_id'],

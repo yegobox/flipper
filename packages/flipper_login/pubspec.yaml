@@ -32,7 +32,8 @@ dependencies:
       '../flipper_services'
   flipper_models:
     path:
-      '../flipper_models'    
+      '../flipper_models' 
+  get:   
 
 dev_dependencies:
   flutter_test:

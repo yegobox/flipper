@@ -19,7 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
 import 'package:redux/redux.dart';
-
+import 'package:get/get.dart' as gete;
 import 'package:flipper_models/fuser.dart';
 import './loginResponse.dart';
 import 'helpers/style.dart';
@@ -139,14 +139,17 @@ class _OtpPageState extends State<OtpPage> {
                               padding: const EdgeInsets.all(0.0),
                               onPressed: () async {
                                 if (number.text.isEmpty) {
-                                  // TODO(richard): validation error message
+                                  snackBarMessage(
+                                      message: 'Try again',
+                                      title: 'Invalid Number');
                                   return;
                                 }
                                 if (vm.otpcode == null) {
-                                  // TODO(richard): validation error message
+                                  snackBarMessage(
+                                      message: 'Try again',
+                                      title: 'Invalid OTP');
                                   return;
                                 }
-
                                 try {
                                   proxyService.loading.add(true);
                                   final AuthCredential credential =
@@ -165,7 +168,9 @@ class _OtpPageState extends State<OtpPage> {
                                       .authStateChanges()
                                       .listen((User user) async {
                                     if (user == null) {
-                                      print('User is currently signed out!');
+                                      snackBarMessage(
+                                          message: 'Try again',
+                                          title: 'User Sign out');
                                     } else {
                                       final http.Response response =
                                           await loginToFlipper();
@@ -173,9 +178,7 @@ class _OtpPageState extends State<OtpPage> {
                                           loginResponseFromJson(response.body);
                                       final Store<AppState> store =
                                           StoreProvider.of<AppState>(context);
-                                      //the user does not exist into the couch adding him will trigger the listner and proceed
-                                      // if he is synced i.e exist in couch then the sync which was started will add the user to local
-                                      // database then trigger a change and continue as expected
+
                                       await userExistInCouchbase(loginResponse);
                                       await buildUser(loginResponse, store);
                                       _analytics.setUserProperties(
@@ -185,10 +188,8 @@ class _OtpPageState extends State<OtpPage> {
                                       ProxyService.database.login(channels: [
                                         loginResponse.id.toString()
                                       ]);
-                                      // final log = Logging.getLogger('OTP:');
-                                      final loggedInUserId = await ProxyService
-                                          .sharedPref
-                                          .getUserId();
+                                      final loggedInUserId =
+                                          ProxyService.sharedPref.getUserId();
                                       if (loggedInUserId == null) {
                                         final q = Query(
                                             ProxyService.database.db,
@@ -204,12 +205,8 @@ class _OtpPageState extends State<OtpPage> {
                                             map.forEach((key, value) {
                                               final FUser user =
                                                   FUser.fromMap(value);
-                                              //  a user exist in couchbase then go to auth verification this,
+
                                               if (user != null) {
-                                                ProxyService.sharedPref
-                                                    .setUserLoggedIn(
-                                                        userId: loginResponse.id
-                                                            .toString());
                                                 StoreProvider.of<AppState>(
                                                         context)
                                                     .dispatch(
@@ -224,6 +221,9 @@ class _OtpPageState extends State<OtpPage> {
                                     }
                                   });
                                 } catch (e) {
+                                  snackBarMessage(
+                                      message: 'Try again',
+                                      title: 'Server error');
                                   proxyService.loading.add(false);
                                 }
                               },
@@ -242,6 +242,19 @@ class _OtpPageState extends State<OtpPage> {
         });
   }
 
+  void snackBarMessage({String message, String title}) {
+    return gete.Get.snackbar(
+      'Internal server',
+      'Try again',
+      backgroundColor: Colors.grey,
+      snackPosition: gete.SnackPosition.BOTTOM,
+      borderColor: Colors.indigo,
+      borderRadius: 0,
+      borderWidth: 2,
+      barBlur: 0,
+    );
+  }
+
   Future<http.Response> loginToFlipper() async {
     final String phoneNumber =
         widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
@@ -252,20 +265,12 @@ class _OtpPageState extends State<OtpPage> {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json'
     });
-    // save a device token for this client
-    // final String token = await ProxyService.sharedPref.getToken();
-    // final String phone = widget.phone.replaceAll(RegExp(r'\s+\b|\b\s'), '');
-    // await http.post('https://flipper.yegobox.com/save-token', body: {
-    //   'phone': phone,
-    //   'token': token
-    // }, headers: {
-    //   'Content-Type': 'application/x-www-form-urlencoded',
-    //   'Accept': 'application/json'
-    // });
-    //end saving the token
     return response;
   }
 
+  /// the user does not exist into the couch adding him will trigger the listner and proceed
+  /// if he is synced i.e exist in couch then the sync which was started will add the user to local
+  /// database then trigger a change and continue as expected
   Future<void> userExistInCouchbase(LoginResponse loginResponse) async {
     if (loginResponse.synced == 0) {
       ProxyService.database.insert(id: loginResponse.id.toString(), data: {
@@ -304,6 +309,13 @@ class _OtpPageState extends State<OtpPage> {
           userId: loginResponse.id.toString(),
         ),
       );
+    } else {
+      ProxyService.sharedPref
+          .setUserLoggedIn(userId: loginResponse.id.toString());
+      final Document doc =
+          ProxyService.database.getById(id: loginResponse.id.toString());
+      doc.properties['createdAt'] = DateTime.now().toIso8601String();
+      ProxyService.database.update(document: doc);
     }
   }
 

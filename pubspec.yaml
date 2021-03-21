@@ -126,6 +126,7 @@ dependencies:
   pattern_formatter: ^1.0.2
   timeago: ^2.0.30
   rounded_loading_button: ^1.0.18
+  get: 
 dev_dependencies:
   # test: ^1.5.3
   test_coverage: ^0.4.2
