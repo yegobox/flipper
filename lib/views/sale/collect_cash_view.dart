@@ -115,7 +115,9 @@ class CollectCashView extends StatelessWidget {
         onModelReady: (CompleteSaleViewModel model) {
           //listen on completed.
           model.completedSale.listen((v) {
-            _btnController.success();
+            if(v!=null){
+              _btnController.success();
+            }
           });
           ProxyService.pusher.subs();
           model.listenPaymentComplete();
