@@ -18,7 +18,7 @@ class PayableView extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: () {
-                if (model.payable == '0.0' || model.payable == '') {
+                if (model.payable == 0.0) {
                   model.viewTickets();
                 } else {
                   model.saveTicket();
@@ -113,9 +113,9 @@ class PayableView extends StatelessWidget {
   }
 
   Widget callCharge(PosViewModel model) {
-    if (model.payable == '0.0') {
+    if (model.payable == 0.0) {
       return Text(
-        'Charge FRw' + model.payable,
+        'Charge FRw' + model.payable.toString(),
         style: const TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -142,7 +142,7 @@ class PayableView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(
-                  'FRw' + model.payable,
+                  'FRw' + model.payable.toString(),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

@@ -117,10 +117,11 @@ class OnProductSellingViewModal extends ReactiveViewModel {
 
     final Document doc = _db.getById(id: variationId);
     _keypad.createOrder(
-        customAmount: amount,
-        variation: Variation.fromMap(doc.jsonProperties),
-        stockId: stockId,
-        orderType: 'regular');
+      customAmount: amount,
+      variation: Variation.fromMap(doc.jsonProperties),
+      stockId: stockId,
+      orderType: 'regular',
+    );
   }
 
   @override
