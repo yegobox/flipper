@@ -1,6 +1,7 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -25,6 +26,8 @@ class OnProductSellingViewModal extends ReactiveViewModel {
   List<VariantStock> get variations => _variations;
   final sharedStateService = locator<SharedStateService>();
   final Logger log = Logging.getLogger('OnSelling Product:)');
+
+  final DatabaseService _db = ProxyService.database;
 
   double _quantity = 1;
   double get quantity {
@@ -81,10 +84,10 @@ class OnProductSellingViewModal extends ReactiveViewModel {
     notifyListeners();
   }
 
-  // on increment of the Quantity of any stock item then create a new entry for order (order details)
-  // if the increment return to 0 then delete entry as there is no need of having the same entry in order records
-  // the order should keep  the qty of ordered item, the stock id of ordered item
-  // on finalizing the order should decrement the sock value to given ordered qty.
+  /// on increment of the Quantity of any stock item then create a new entry for order (order details)
+  /// if the increment return to 0 then delete entry as there is no need of having the same entry in order records
+  /// the order should keep  the qty of ordered item, the stock id of ordered item
+  /// on finalizing the order should decrement the sock value to given ordered qty.
   void loadVariants({String productId}) {
     setBusy(true);
 
@@ -106,19 +109,18 @@ class OnProductSellingViewModal extends ReactiveViewModel {
     });
   }
 
-  void saveOrder() {
-    final q = Query(_databaseService.db,
-        'SELECT id,value,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$T AND variantId=\$VID');
+  /// save order, this create a new order with orderType ${regular} does not use pending
+  /// this is to avoid confusion with the existing order which can be
+  /// a custom item in progress so it can be caunted as second order and differ from previouses orders
+  void saveOrder({String variationId, double amount}) {
+    final String stockId = _db.getStockIdGivenProductId(variantId: variationId);
 
-    q.parameters = {'T': AppTables.stock, 'VID': _variantStock[0].id};
-    final stocks = q.execute();
-
-    if (stocks.isNotEmpty) {
-      if (amountTotal.abs() != 0) {
-        ProxyService.keypad.updateStock(
-            stockId: Stock.fromMap(stocks[0]).id, quantity: _quantity);
-      }
-    }
+    final Document doc = _db.getById(id: variationId);
+    _keypad.createOrder(
+        customAmount: amount,
+        variation: Variation.fromMap(doc.jsonProperties),
+        stockId: stockId,
+        orderType: 'regular');
   }
 
   @override

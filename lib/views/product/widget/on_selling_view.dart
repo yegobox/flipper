@@ -204,328 +204,328 @@ class _onCreate extends State<OnSellingView> {
                 height: 15.0,
               ),
               //TODO: feature to implements in near future
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('NOTES',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 11.0,
-                                color: Colors.grey[900]))),
-                  ),
-                  const Expanded(flex: 2, child: Text('')),
-                ],
-              ),
-              const SizedBox(
-                height: 5.0,
-              ),
-              TextField(
-                style: TextStyle(color: Colors.grey[900]),
-                textAlign: TextAlign.left,
-                cursorColor: Colors.black,
-                decoration: InputDecoration(
-                    hintText: 'Add a note',
-                    hintStyle: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context)
-                          .copyWith(canvasColor: Colors.grey[600])
-                          .canvasColor,
-                    )),
-              ),
-              const SizedBox(
-                height: 25.0,
-              ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 1,
+              //       child: Text('NOTES',
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //                   fontWeight: FontWeight.w900,
+              //                   fontSize: 11.0,
+              //                   color: Colors.grey[900]))),
+              //     ),
+              //     const Expanded(flex: 2, child: Text('')),
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 5.0,
+              // ),
+              // TextField(
+              //   style: TextStyle(color: Colors.grey[900]),
+              //   textAlign: TextAlign.left,
+              //   cursorColor: Colors.black,
+              //   decoration: InputDecoration(
+              //       hintText: 'Add a note',
+              //       hintStyle: TextStyle(
+              //         fontSize: 14,
+              //         color: Theme.of(context)
+              //             .copyWith(canvasColor: Colors.grey[600])
+              //             .canvasColor,
+              //       )),
+              // ),
+              // const SizedBox(
+              //   height: 25.0,
+              // ),
 
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('DINING OPTION',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  const Expanded(flex: 2, child: Text('')),
-                ],
-              ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 1,
+              //       child: Text('DINING OPTION',
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 11.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     const Expanded(flex: 2, child: Text('')),
+              //   ],
+              // ),
 
-              const SizedBox(
-                height: 8.0,
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              const SizedBox(
-                height: 15.0,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('For Here',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  Container(
-                    height: 10,
-                    child: Radio(
-                      toggleable: true,
-                      value: ForHere.lafayette,
-                      groupValue: forHere,
-                      onChanged: (ForHere value) {
-                        setState(() {
-                          forHere = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              // const SizedBox(
+              //   height: 8.0,
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // const SizedBox(
+              //   height: 15.0,
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              // Expanded(
+              //   flex: 1,
+              //   child: Text('For Here',
+              //       style: GoogleFonts.lato(
+              //           textStyle: TextStyle(
+              //         fontWeight: FontWeight.w900,
+              //         fontSize: 12.0,
+              //         color: Theme.of(context)
+              //             .copyWith(canvasColor: Colors.grey[800])
+              //             .canvasColor,
+              //       ))),
+              // ),
+              // Container(
+              //   height: 10,
+              //   child: Radio(
+              //     toggleable: true,
+              //     value: ForHere.lafayette,
+              //     groupValue: forHere,
+              //     onChanged: (ForHere value) {
+              //       setState(() {
+              //         forHere = value;
+              //       });
+              //     },
+              //   ),
+              // ),
+              //   ],
+              // ),
 
-              const SizedBox(
-                height: 8.0,
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              const SizedBox(
-                height: 15.0,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('To GO',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  Container(
-                    height: 10,
-                    child: Radio(
-                      toggleable: true,
-                      value: ToGo.lafayette,
-                      groupValue: toGo,
-                      onChanged: (ToGo value) {
-                        setState(() {
-                          toGo = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('Delivery',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  Container(
-                    height: 10,
-                    child: Radio(
-                      toggleable: true,
-                      value: Delivery.lafayette,
-                      groupValue: delivery,
-                      onChanged: (Delivery value) {
-                        setState(() {
-                          delivery = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('Pickup',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  Container(
-                    height: 10,
-                    child: Radio(
-                      toggleable: true,
-                      value: Pickup.lafayette,
-                      groupValue: pick,
-                      onChanged: (Pickup value) {
-                        setState(() {
-                          pick = value;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text('DISCOUNTS',
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  const Expanded(flex: 2, child: Text('')),
-                ],
-              ),
-              const SizedBox(
-                height: 8.0,
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text('Abajama 0.04%',
-                        softWrap: true,
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Slider(
-                      value: model.slider,
-                      min: 0,
-                      max: 100,
-                      divisions: 1,
-                      onChanged: (double value) {
-                        model.slide(value: value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text('Real 0.1%',
-                        softWrap: true,
-                        style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14.0,
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[800])
-                              .canvasColor,
-                        ))),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Slider(
-                      value: model.slider,
-                      min: 0,
-                      max: 100,
-                      divisions: 1,
-                      onChanged: (double value) {
-                        model.slide(value: value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-              const SizedBox(
-                height: 10.0,
-              ),
+              // const SizedBox(
+              //   height: 8.0,
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // const SizedBox(
+              //   height: 15.0,
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 1,
+              //       child: Text('To GO',
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 12.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     Container(
+              //       height: 10,
+              //       child: Radio(
+              //         toggleable: true,
+              //         value: ToGo.lafayette,
+              //         groupValue: toGo,
+              //         onChanged: (ToGo value) {
+              //           setState(() {
+              //             toGo = value;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 8.0,
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // const SizedBox(
+              //   height: 20.0,
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 1,
+              //       child: Text('Delivery',
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 12.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     Container(
+              //       height: 10,
+              //       child: Radio(
+              //         toggleable: true,
+              //         value: Delivery.lafayette,
+              //         groupValue: delivery,
+              //         onChanged: (Delivery value) {
+              //           setState(() {
+              //             delivery = value;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 8.0,
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // const SizedBox(
+              //   height: 20.0,
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 1,
+              //       child: Text('Pickup',
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 12.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     Container(
+              //       height: 10,
+              //       child: Radio(
+              //         toggleable: true,
+              //         value: Pickup.lafayette,
+              //         groupValue: pick,
+              //         onChanged: (Pickup value) {
+              //           setState(() {
+              //             pick = value;
+              //           });
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 8.0,
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // const SizedBox(
+              //   height: 20.0,
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 1,
+              //       child: Text('DISCOUNTS',
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 11.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     const Expanded(flex: 2, child: Text('')),
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 8.0,
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 2,
+              //       child: Text('Abajama 0.04%',
+              //           softWrap: true,
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 14.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     Expanded(
+              //       flex: 1,
+              //       child: Slider(
+              //         value: model.slider,
+              //         min: 0,
+              //         max: 100,
+              //         divisions: 1,
+              //         onChanged: (double value) {
+              //           model.slide(value: value);
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.max,
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Expanded(
+              //       flex: 2,
+              //       child: Text('Real 0.1%',
+              //           softWrap: true,
+              //           style: GoogleFonts.lato(
+              //               textStyle: TextStyle(
+              //             fontWeight: FontWeight.w900,
+              //             fontSize: 14.0,
+              //             color: Theme.of(context)
+              //                 .copyWith(canvasColor: Colors.grey[800])
+              //                 .canvasColor,
+              //           ))),
+              //     ),
+              //     Expanded(
+              //       flex: 1,
+              //       child: Slider(
+              //         value: model.slider,
+              //         min: 0,
+              //         max: 100,
+              //         divisions: 1,
+              //         onChanged: (double value) {
+              //           model.slide(value: value);
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // Divider(
+              //   color: Colors.grey[400],
+              // ),
+              // const SizedBox(
+              //   height: 10.0,
+              // ),
               // end of future to implement in near future
             ],
           ),
@@ -550,7 +550,9 @@ class _onCreate extends State<OnSellingView> {
                 disableButton: false,
                 showActionButton: true,
                 onPressedCallback: () async {
-                  model.saveOrder();
+                  model.saveOrder(
+                      variationId: model.variations[0].id,
+                      amount: model.amountTotal);
                   ProxyService.nav.pop();
                 },
                 actionButtonName: 'Add',

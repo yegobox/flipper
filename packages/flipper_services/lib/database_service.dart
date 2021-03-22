@@ -197,7 +197,6 @@ class DatabaseService {
   }
 
   String getStockIdGivenProductId({String variantId}) {
-    print(variantId);
     final q = Query(db, 'SELECT  id WHERE table=\$T AND variantId=\$variantId');
     q.parameters = {'T': AppTables.stock, 'variantId': variantId};
     final results = q.execute();
