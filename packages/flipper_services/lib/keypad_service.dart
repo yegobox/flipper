@@ -95,7 +95,7 @@ class KeyPadService with ReactiveServiceMixin {
   void pendingOrder(
       {double customAmount, String stockId, Variation variation}) {
     final q = Query(_db.db,
-        'SELECT  id , branchId ,variantId,stockId,variantName, reference, draft ,active , orderType , orderNUmber , subTotal , double , taxAmount , cashReceived , saleTotal  , orderNote  , status  , variationId  , productName , channels , customerChangeDue WHERE table=\$T AND draft=\$DRAFT AND orderType=\$OT');
+        'SELECT  id , branchId ,variantId,stockId,variantName, reference, draft ,active , orderType , orderNUmber , subTotal , double , taxAmount , cashReceived , saleTotal  , orderNote  , status  , variationId  , productName , channels , customerChangeDue WHERE table=\$T AND draft=\$DRAFT AND  orderType=\$OT');
     q.parameters = {'T': AppTables.order, 'DRAFT': true, 'OT': 'custom'};
 
     q.addChangeListener((List results) {

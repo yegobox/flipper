@@ -176,3 +176,4 @@ class $Routing {
 // import 'package:built_collection/built_collection.dart';
 // import 'package:flipper_models/product.dart';
 // c5b750b0
+//  'SELECT id,name,sku,productId,unit,table,channels WHERE table=\$VALUE AND name=\$NAME AND productId=\$PRODUCTID');

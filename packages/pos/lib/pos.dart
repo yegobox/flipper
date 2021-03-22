@@ -101,7 +101,7 @@ class _onCreate extends State<Display> {
   }
 
   Text callText(PosViewModel model) {
-    if (model.payable == 0.0) {
+    if (model.keypadValue == '0.0') {
       return const Text(
         'FRw0.0',
         textAlign: TextAlign.right,
@@ -116,7 +116,7 @@ class _onCreate extends State<Display> {
       );
     } else {
       return Text(
-        'FRw' + model.payable.toString(),
+        'FRw' + model.keypadValue,
         textAlign: TextAlign.right,
         softWrap: true,
         style: const TextStyle(
@@ -124,7 +124,7 @@ class _onCreate extends State<Display> {
             FontFeature.enable('sups'),
           ],
           fontSize: 25.0,
-          color: Color(0xff3d454c),
+          color: Color(0xffc2c7cc),
         ),
       );
     }

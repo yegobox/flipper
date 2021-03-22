@@ -49,8 +49,8 @@ class _SelectContact extends State<SelectContact> {
   }
 
   Future<int> _getNumContacts() async {
-    final Iterable<Contact> contacts = await ContactsService.getContacts();
-    return contacts.length;
+    // final Iterable<Contact> contacts = await ContactsService.getContacts();
+    // return contacts.length;
   }
 
   Widget buildContactList({ContactViewModel model}) {

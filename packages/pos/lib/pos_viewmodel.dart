@@ -9,12 +9,14 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 class PosViewModel extends ReactiveViewModel {
   var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  double payable = 0.0;
+  String keypadValue = '0.0';
+  double totalPayable = 0.0;
   var operators = <String>['+', '-', '*', '/'];
   String result = '';
   final List<Order> _currentSale = [];
   List<Order> get currentSale => _currentSale;
   int _tab = 0;
+
   int get tab {
     return _tab;
   }
@@ -40,7 +42,6 @@ class PosViewModel extends ReactiveViewModel {
   /// payable widget so we know if we show save or tickets button
   /// we show tickets currentSale array is empty otherwise if we have dirty order i.e
   /// active and draft them we count them and show them as savable items.
-  /// also update the total amount to display payable amount
   void countItemOnCurrentOrder() {
     final q = Query(
         ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
@@ -52,7 +53,7 @@ class PosViewModel extends ReactiveViewModel {
       if (results.isNotEmpty) {
         for (Map map in results) {
           map.forEach((key, value) {
-            payable += Order.fromMap(value).cashReceived;
+            totalPayable += Order.fromMap(value).cashReceived;
             _currentSale.add(Order.fromMap(value));
           });
         }
@@ -65,7 +66,7 @@ class PosViewModel extends ReactiveViewModel {
   }
 
   void addKey(String key) {
-    var _expr = payable.toStringAsPrecision(0);
+    var _expr = keypadValue;
     var _result = '';
     if (result.isNotEmpty) {
       _expr = '';
@@ -84,8 +85,10 @@ class PosViewModel extends ReactiveViewModel {
       _expr += key;
     } else if (digits.contains(key) && key != '+') {
       _expr += key;
+      keypadValue = _expr;
       keyPad.sellCustomAmount(
           customAmount: double.parse(_expr), takeNewOrder: false);
+      notifyListeners();
     } else if (key == 'C') {
       while (_expr.isNotEmpty) {
         _expr = _expr.substring(0, _expr.length - 1);
@@ -94,8 +97,11 @@ class PosViewModel extends ReactiveViewModel {
     } else if (key == '+') {
       if (_expr.isNotEmpty) {
         keyPad.sellCustomAmount(takeNewOrder: true);
+        keypadValue = '';
       }
     }
+    keypadValue = _expr;
+    print(keypadValue);
     result = _result;
     notifyListeners();
   }
