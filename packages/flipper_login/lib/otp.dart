@@ -5,7 +5,6 @@ import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
 import 'package:flipper/routes/router.gr.dart';
 
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_services/analytics_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
@@ -189,8 +188,10 @@ class _OtpPageState extends State<OtpPage> {
                                       _analytics.setUserProperties(
                                           userId: loginResponse.id.toString(),
                                           userRole: 'Admin');
-                                      _analytics.logLogin();   
-                                      StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());                                   
+                                      _analytics.logLogin();
+                                      StoreProvider.of<AppState>(context)
+                                          .dispatch(
+                                              VerifyAuthenticationState());
                                     }
                                   });
                                 } catch (e) {
@@ -285,8 +286,8 @@ class _OtpPageState extends State<OtpPage> {
     } else {
       ProxyService.sharedPref
           .setUserLoggedIn(userId: loginResponse.id.toString());
-          // always insert to avoid when a user has uninstalled the app and it need some time to sync up again atleast we need user
-       ProxyService.database.insert(id: loginResponse.id.toString(), data: {
+      // always insert to avoid when a user has uninstalled the app and it need some time to sync up again atleast we need user
+      ProxyService.database.insert(id: loginResponse.id.toString(), data: {
         'name': loginResponse.name,
         'email': loginResponse.email,
         'token': loginResponse.token,
@@ -296,7 +297,6 @@ class _OtpPageState extends State<OtpPage> {
         'expiresAt': loginResponse.expiresAt,
         'id': loginResponse.id.toString(),
       });
-     
     }
   }
 
