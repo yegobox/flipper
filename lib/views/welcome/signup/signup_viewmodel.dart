@@ -1,7 +1,5 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/business/business_actions.dart';
-import 'package:flipper_models/app_action.dart';
+import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper/utils/constant.dart';
@@ -9,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flipper/domain/redux/app_state.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
@@ -71,13 +68,6 @@ class SignUpViewModel extends BaseViewModel {
     if (nameisEmpty) {
       return;
     }
-
-    StoreProvider.of<AppState>(context).dispatch(AppAction(
-        actions:
-            AppActions((AppActionsBuilder a) => a..name = 'createBusiness')));
-
-    StoreProvider.of<AppState>(context).dispatch(AppAction(
-        actions: AppActions((AppActionsBuilder a) => a..name = 'showLoader')));
 
     if (_formKey.currentState == null) {
       return;
@@ -192,9 +182,6 @@ class SignUpViewModel extends BaseViewModel {
     final Document business =
         ProxyService.database.insert(id: businessId, data: _mapBusiness);
 
-    _business.add(Business.fromMap(business.jsonProperties));
-    StoreProvider.of<AppState>(context)
-        .dispatch(OnBusinessLoaded(business: _business));
     // ignore: always_specify_types
     final taxId = Uuid().v1();
     final Map<String, dynamic> _notTax = {
