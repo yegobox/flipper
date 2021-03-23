@@ -34,14 +34,16 @@ class ViewCurrentSaleItemView extends StatelessWidget {
                       onTap: () => false,
                     )
                   ],
-                  child: const ListTile(
-                    contentPadding: EdgeInsets.only(left: 40.0, right: 40.0),
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.only(left: 40.0, right: 40.0),
                     trailing: Text(
-                      'Frw300',
-                      style: TextStyle(color: Colors.black),
+                      model.keypad.currentSalesItem[index]['price']
+                          .toStringAsFixed(0),
+                      style: const TextStyle(color: Colors.black),
                     ),
-                    leading: Text('Custom Amount',
-                        style: TextStyle(color: Colors.black)),
+                    leading: Text(model.keypad.currentSalesItem[index]['name'],
+                        style: const TextStyle(color: Colors.black)),
                   ),
                 );
               },
