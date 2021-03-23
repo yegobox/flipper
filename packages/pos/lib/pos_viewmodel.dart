@@ -89,7 +89,6 @@ class PosViewModel extends ReactiveViewModel {
       _expr += key;
     } else if (digits.contains(key) && key != '+') {
       _expr += key;
-      // keypadValue = _expr;
       keyPad.sellCustomAmount(
           customAmount: double.parse(_expr), takeNewOrder: false);
       notifyListeners();
