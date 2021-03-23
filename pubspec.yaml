@@ -131,6 +131,7 @@ dependencies:
   rounded_loading_button: ^1.0.18
   get:
   flutter_slidable: 0.5.7
+  number_display: ^2.3.0
 dev_dependencies:
   # test: ^1.5.3
   test_coverage: ^0.4.2

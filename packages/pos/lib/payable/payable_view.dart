@@ -2,6 +2,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/payable/button.dart';
 import 'package:pos/pos_viewmodel.dart';
+import 'package:number_display/number_display.dart';
 
 class PayableView extends StatelessWidget {
   const PayableView({Key key, this.model}) : super(key: key);
@@ -113,9 +114,13 @@ class PayableView extends StatelessWidget {
   }
 
   Widget callCharge(PosViewModel model) {
+    final display = createDisplay(
+      length: 8,
+      decimal: 0,
+    );
     if (model.keyPad.totalPayable == 0.0) {
       return Text(
-        'Charge FRw' + model.keyPad.totalPayable.toString(),
+        'Charge FRw' + display(model.keyPad.totalPayable).toString(),
         style: const TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -142,7 +147,7 @@ class PayableView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(
-                  'FRw' + model.keyPad.totalPayable.toString(),
+                  'FRw' + display(model.keyPad.totalPayable).toString(),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

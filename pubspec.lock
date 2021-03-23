@@ -982,6 +982,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
+  number_display:
+    dependency: "direct main"
+    description:
+      name: number_display
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.0"
   observable_ish:
     dependency: transitive
     description:

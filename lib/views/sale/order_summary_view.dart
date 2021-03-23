@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:customappbar/customappbar.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:stacked/stacked.dart';
+import 'package:number_display/number_display.dart';
 
 class OrderSummary extends StatelessWidget {
+  final display = createDisplay(
+    length: 8,
+    decimal: 0,
+  );
   List<Widget> buildItems({CompleteSaleViewModel model}) {
     final List<Widget> list = [];
     // ignore: avoid_function_literals_in_foreach_calls
@@ -26,7 +31,7 @@ class OrderSummary extends StatelessWidget {
           child: ListTile(
             contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
             trailing: Text(
-              e['price'].toStringAsFixed(0),
+              display(e['price']).toString(),
               style: const TextStyle(color: Colors.black),
             ),
             leading:
@@ -39,7 +44,7 @@ class OrderSummary extends StatelessWidget {
     list.add(ListTile(
       contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
       trailing: Text(
-        model.total.toStringAsFixed(0),
+        display(model.total).toString(),
         style: const TextStyle(color: Colors.black),
       ),
       leading: const Text('Total', style: TextStyle(color: Colors.black)),
@@ -57,7 +62,7 @@ class OrderSummary extends StatelessWidget {
               onPop: () {
                 ProxyService.nav.pop();
               },
-              title: 'Total: Frw' + model.total.toStringAsFixed(0),
+              title: 'Total: Frw' + display(model.total).toString(),
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

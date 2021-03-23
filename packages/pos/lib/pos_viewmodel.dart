@@ -109,10 +109,10 @@ class PosViewModel extends ReactiveViewModel {
     return digits.contains(op);
   }
 
-  /// mark the order from pending to parked
+  /// mark the order from draft  to false
   /// this will enable a user to add a new order to the keypad.
-  /// This will remove custom_orderId from local storage so it will create a new order
-  /// for another time.
+  /// This will also remove custom_orderId from local storage so it will create a new order
+  /// for another time. NOTE: marking an order draft=false will leave an order still on currentSale
   void changeOrderStatus() {
     if (ProxyService.sharedPref.getCustomOrderId() != 'null') {
       final Document doc = ProxyService.database
