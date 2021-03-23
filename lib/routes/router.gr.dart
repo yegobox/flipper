@@ -51,6 +51,7 @@ import 'package:flipper/views/customers/add_customer.dart';
 import 'package:flipper/views/customers/customer_list_view.dart';
 import 'package:flipper/views/tickets/tickets_view.dart';
 import 'package:flipper/views/tickets/new_ticket.dart';
+import 'package:flipper/views/sale/view_currentsale_items.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -92,6 +93,7 @@ class Routing {
   static const customerListView = '/customer-list-view';
   static const ticketsView = '/tickets-view';
   static const newTicket = '/new-ticket';
+  static const viewCurrentSaleItemView = '/view-current-sale-item-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -487,6 +489,11 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => NewTicket(key: typedArgs),
+          settings: settings,
+        );
+      case Routing.viewCurrentSaleItemView:
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => ViewCurrentSaleItemView(),
           settings: settings,
         );
       default:

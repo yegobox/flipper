@@ -8,6 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart' as Auth;
 import 'package:flipper_services/proxy.dart';
 import 'package:logger/logger.dart';
 
+// FIXME: isshue here
+// https://stackoverflow.com/questions/53395899/why-are-these-firestore-rules-not-working-with-the-flutter-firebase-plugin
 // https://medium.com/@khreniak/cloud-firestore-security-rules-basics-fac6b6bea18e
 class FirestoreService {
   final Logger log = Logging.getLogger('Firestore service ....');
@@ -36,48 +38,48 @@ class FirestoreService {
     }
   }
 
-  Future<QuerySnapshot> myContacts() {
-    final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
-    final Auth.User currentUser = auth.currentUser;
+  // Future<QuerySnapshot> myContacts() {
+  //   final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
+  //   final Auth.User currentUser = auth.currentUser;
 
-    return FirebaseFirestore.instance
-        .collection('contacts')
-        .doc('global')
-        .collection('lists')
-        .where('channels', arrayContains: ProxyService.sharedState.user.id)
-        .get();
-  }
+  //   return FirebaseFirestore.instance
+  //       .collection('contacts')
+  //       .doc('global')
+  //       .collection('lists')
+  //       .where('channels', arrayContains: ProxyService.sharedState.user.id)
+  //       .get();
+  // }
 
-  Future<QuerySnapshot> globalContacts() {
-    final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
-    final currentUser = auth.currentUser;
+  // Future<QuerySnapshot> globalContacts() {
+  //   final Auth.FirebaseAuth auth = Auth.FirebaseAuth.instance;
+  //   final currentUser = auth.currentUser;
 
-    return FirebaseFirestore.instance
-        .collection('contacts')
-        .doc('global')
-        .collection('lists')
-        .get();
-  }
+  //   return FirebaseFirestore.instance
+  //       .collection('contacts')
+  //       .doc('global')
+  //       .collection('lists')
+  //       .get();
+  // }
 
-  Future<void> addContacts(contact) async {
-    final Future<QuerySnapshot> iExistInDb = FirebaseFirestore.instance
-        .collection('contacts')
-        .doc('global')
-        .collection('lists')
-        .where('channels', arrayContains: ProxyService.sharedState.user.id)
-        .get();
-    iExistInDb.then((QuerySnapshot value) {
-      if (value.docs.isEmpty) {
-        //then add this contact to db.
-        FirebaseFirestore.instance
-            .collection('contacts')
-            .doc('global')
-            .collection('lists')
-            .add(contact)
-            .catchError((e) {
-          log.e(e.toString());
-        });
-      }
-    });
-  }
+  // Future<void> addContacts(contact) async {
+  //   final Future<QuerySnapshot> iExistInDb = FirebaseFirestore.instance
+  //       .collection('contacts')
+  //       .doc('global')
+  //       .collection('lists')
+  //       .where('channels', arrayContains: ProxyService.sharedState.user.id)
+  //       .get();
+  //   iExistInDb.then((QuerySnapshot value) {
+  //     if (value.docs.isEmpty) {
+  //       //then add this contact to db.
+  //       FirebaseFirestore.instance
+  //           .collection('contacts')
+  //           .doc('global')
+  //           .collection('lists')
+  //           .add(contact)
+  //           .catchError((e) {
+  //         log.e(e.toString());
+  //       });
+  //     }
+  //   });
+  // }
 }

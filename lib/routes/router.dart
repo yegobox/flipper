@@ -17,6 +17,7 @@ import 'package:flipper/views/reports/build_sales_View.dart';
 import 'package:flipper/views/sale/after_sale_view.dart';
 import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
+import 'package:flipper/views/sale/view_currentsale_items.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
@@ -151,6 +152,8 @@ class $Routing {
   CustomerListView customerListView;
   TicketsView ticketsView;
   NewTicket newTicket;
+
+  ViewCurrentSaleItemView viewCurrentSaleItemView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

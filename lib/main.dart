@@ -42,7 +42,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp();
   // ignore: unnecessary_statements
-  FirebaseFirestore.instance.settings.persistenceEnabled;
+  // FirebaseFirestore.instance.settings.persistenceEnabled;
   // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupLocator();
 

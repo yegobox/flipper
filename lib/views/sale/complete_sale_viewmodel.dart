@@ -95,7 +95,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
     });
   }
 
-  void collectCash() async {
+  void collectSPENNPayment() async {
     final String transactionNumber = Uuid().v1();
 
     try {

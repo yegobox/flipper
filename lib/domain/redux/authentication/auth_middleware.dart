@@ -116,11 +116,11 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
             ProxyService.sharedState.setUser(user: FUser.fromMap(value));
 
             if (ProxyService.sharedState.user != null) {
-              await ProxyService.firestore.addContacts({
-                'phoneNumber': ProxyService.sharedState.user.name,
-                'name': ProxyService.sharedState.user.name,
-                'channels': [ProxyService.sharedState.user.id]
-              });
+              // await ProxyService.firestore.addContacts({
+              //   'phoneNumber': ProxyService.sharedState.user.name,
+              //   'name': ProxyService.sharedState.user.name,
+              //   'channels': [ProxyService.sharedState.user.id]
+              // });
             }
             store.dispatch(WithUser(user: FUser.fromMap(value)));
             try {

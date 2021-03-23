@@ -14,6 +14,8 @@ import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:uuid/uuid.dart';
 
+enum ITEM { ITEMNAME, ITEMPRICE }
+
 class KeyPadService with ReactiveServiceMixin {
   final _state = locator<SharedStateService>();
   final RxValue<Order> order = RxValue<Order>(initial: null);
@@ -22,6 +24,9 @@ class KeyPadService with ReactiveServiceMixin {
   final Logger log = Logging.getLogger('O2:)');
   final RxValue<double> _totalAmount = RxValue<double>();
   double get totalAmount => _totalAmount.value;
+
+  final List<Map> currentSale = [];
+  List<Map> get currentSalesItem => currentSale;
 
   final RxValue<double> cash = RxValue<double>(initial: 0.0);
   double get cashReceived => cash.value;

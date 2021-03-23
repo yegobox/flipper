@@ -98,7 +98,7 @@ class CollectCashView extends StatelessWidget {
                             borderRadius: 20.0,
                             controller: _btnController,
                             onPressed: () {
-                              model.collectCash();
+                              model.collectSPENNPayment();
                             },
                             child: const Text('Tender',
                                 style: TextStyle(color: Colors.white)),

@@ -41,7 +41,7 @@ class PosViewModel extends ReactiveViewModel {
   /// keep track of the order and count them should update local currentSale on
   /// payable widget so we know if we show save or tickets button
   /// we show tickets currentSale array is empty otherwise if we have dirty order i.e
-  /// active and draft them we count them and show them as savable items.
+  /// active and draft them we count them and show them as savable items i.e item to show when user click Current Sale.
   void countItemOnCurrentOrder() {
     final q = Query(
         ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
@@ -54,6 +54,10 @@ class PosViewModel extends ReactiveViewModel {
         for (Map map in results) {
           map.forEach((key, value) {
             totalPayable += Order.fromMap(value).cashReceived;
+            keyPad.currentSale.add({
+              'name': Order.fromMap(value).variantName,
+              'price': Order.fromMap(value).cashReceived
+            });
             _currentSale.add(Order.fromMap(value));
           });
         }
@@ -85,7 +89,7 @@ class PosViewModel extends ReactiveViewModel {
       _expr += key;
     } else if (digits.contains(key) && key != '+') {
       _expr += key;
-      keypadValue = _expr;
+      // keypadValue = _expr;
       keyPad.sellCustomAmount(
           customAmount: double.parse(_expr), takeNewOrder: false);
       notifyListeners();
@@ -101,7 +105,6 @@ class PosViewModel extends ReactiveViewModel {
       }
     }
     keypadValue = _expr;
-    print(keypadValue);
     result = _result;
     notifyListeners();
   }

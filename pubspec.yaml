@@ -19,9 +19,8 @@ dependencies:
   # firebase_performance: 0.4.0+2
   geolocator: ^5.3.0 #null save available
   permission_handler: ^5.0.1+1
-  
-  redux: 
   flutter_redux: 
+  redux: 
   flutter_masked_text: ^0.8.0
   built_value: ^7.1.0 #null safe available
   image_picker: ^0.6.4 #null safe available
@@ -79,10 +78,12 @@ dependencies:
    # get it
   get_it: 
   injectable:
+  #FIXME: not needed
   flutter_calendar_carousel: ^1.5.1
   syncfusion_flutter_datepicker: ^18.3.48-beta
   slider_button: ^0.6.0
   sliding_switch: ^0.0.3
+  #FIXME: end of not needed
 
   
  
@@ -100,7 +101,9 @@ dependencies:
   couchbase_lite_dart: ^0.3.1
   bluetooth_thermal_printer: ^0.0.4
   firebase_remote_config: ^0.6.0
+  # FIXME: not used
   awesome_dialog: ^1.3.1
+  # FIXME: not used
   esc_pos_utils: ^0.4.9
   # awesome_notifications: ^0.0.5+4 //enable this when remoteConfig issu is solved and show some modal based on config.
   pusher: ^1.0.0
