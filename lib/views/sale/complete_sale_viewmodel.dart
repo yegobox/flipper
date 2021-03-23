@@ -162,4 +162,9 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
+
+  /// The method create a ticket and add all
+  /// the order recieced with cash received
+  /// it will be like {id:'',cashReceived:400,orders:[array of orders or what we call  item]}
+  void collectCashPayment() {}
 }

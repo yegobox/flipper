@@ -8,8 +8,10 @@ import 'package:stacked/stacked.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 class CollectCashView extends StatelessWidget {
+  CollectCashView({Key key, this.paymentType}) : super(key: key);
   final RoundedLoadingButtonController _btnController =
       RoundedLoadingButtonController();
+  final String paymentType;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +100,11 @@ class CollectCashView extends StatelessWidget {
                             borderRadius: 20.0,
                             controller: _btnController,
                             onPressed: () {
-                              model.collectSPENNPayment();
+                              if (paymentType == 'spenn') {
+                                model.collectSPENNPayment();
+                              } else {
+                                model.collectCashPayment();
+                              }
                             },
                             child: const Text('Tender',
                                 style: TextStyle(color: Colors.white)),

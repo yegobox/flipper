@@ -141,6 +141,8 @@ class KeyPadService with ReactiveServiceMixin {
   /// It is abandoned atleast for now, in our app for now when it restart it will load the
   /// current pending order so the user if he/she is no longer intrested in order he will
   /// need to click on C button to clean the keypad for now will not invoke the function on app start
+  /// TODO: should use stack algorithm to remove one element by one as a user click on C button
+  /// but for now it wipe everything.
   void cleanKeypad() {
     ProxyService.sharedState.clear.listen((e) {
       if (e != null) {

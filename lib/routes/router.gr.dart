@@ -430,8 +430,14 @@ class Routing {
           settings: settings,
         );
       case Routing.collectCashView:
+        if (hasInvalidArgs<CollectCashViewArguments>(args)) {
+          return misTypedArgsRoute<CollectCashViewArguments>(args);
+        }
+        final typedArgs =
+            args as CollectCashViewArguments ?? CollectCashViewArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (_) => CollectCashView(),
+          builder: (_) => CollectCashView(
+              key: typedArgs.key, paymentType: typedArgs.paymentType),
           settings: settings,
         );
       case Routing.afterSaleView:
@@ -614,4 +620,11 @@ class SwitchViewArguments {
   final CommonViewModel vm;
   final ValueNotifier<bool> sideOpenController;
   SwitchViewArguments({this.key, this.vm, this.sideOpenController});
+}
+
+//CollectCashView arguments holder class
+class CollectCashViewArguments {
+  final Key key;
+  final String paymentType;
+  CollectCashViewArguments({this.key, this.paymentType});
 }

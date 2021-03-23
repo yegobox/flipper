@@ -65,8 +65,10 @@ class PaymentOptionView extends StatelessWidget {
                           // ignore: prefer_const_constructors
                           GestureDetector(
                             onTap: () {
-                              ProxyService.nav
-                                  .navigateTo(Routing.collectCashView);
+                              ProxyService.nav.navigateTo(
+                                  Routing.collectCashView,
+                                  arguments: CollectCashViewArguments(
+                                      paymentType: 'cash'));
                             },
                             child: const ListTile(
                               leading: Text('Cash',
@@ -84,8 +86,10 @@ class PaymentOptionView extends StatelessWidget {
                           // ignore: prefer_const_constructors
                           GestureDetector(
                             onTap: () {
-                              ProxyService.nav
-                                  .navigateTo(Routing.collectCashView);
+                              ProxyService.nav.navigateTo(
+                                  Routing.collectCashView,
+                                  arguments: CollectCashViewArguments(
+                                      paymentType: 'spenn'));
                             },
                             child: const ListTile(
                               leading: Text('SPENN',

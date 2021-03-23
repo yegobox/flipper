@@ -140,8 +140,6 @@ class $Routing {
 
   PaymentOptionView completeSaleView;
   SwitchView switchView;
-  // @MaterialRoute(fullscreenDialog: true)
-  // TenderScreen tenderScreen;
   CollectCashView collectCashView;
   AfterSaleView afterSaleView;
   AddCustomerView addCustomerView;
