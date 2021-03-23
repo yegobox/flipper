@@ -2,11 +2,16 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/views/sale/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 
 class PaymentOptionView extends StatelessWidget {
+  final display = createDisplay(
+    length: 8,
+    decimal: 0,
+  );
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -37,7 +42,7 @@ class PaymentOptionView extends StatelessWidget {
                         children: [
                           const SizedBox(height: 40),
                           Text(
-                            'FRw ' + model.keypad.totalAmount.toString(),
+                            'FRw ' + display(model.total).toString(),
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
@@ -106,6 +111,7 @@ class PaymentOptionView extends StatelessWidget {
         },
         onModelReady: (CompleteSaleViewModel model) {
           ProxyService.pusher.clean();
+          model.setCurrentItemKeyPadSaleValue();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }
