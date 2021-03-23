@@ -35,15 +35,11 @@ class OrderSummary extends StatelessWidget {
         ),
       );
     });
-    model.keypad.setTotal.value = 0.0;
-    // ignore: avoid_function_literals_in_foreach_calls
-    model.keypad.currentSale.forEach((e) {
-      model.keypad.setTotal.value += e['price'];
-    });
+
     list.add(ListTile(
       contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
       trailing: Text(
-        model.keypad.total.toStringAsFixed(0),
+        model.total.toStringAsFixed(0),
         style: const TextStyle(color: Colors.black),
       ),
       leading: const Text('Total', style: TextStyle(color: Colors.black)),
@@ -61,7 +57,7 @@ class OrderSummary extends StatelessWidget {
               onPop: () {
                 ProxyService.nav.pop();
               },
-              title: 'Total: Frw' + model.keypad.total.toStringAsFixed(0),
+              title: 'Total: Frw' + model.total.toStringAsFixed(0),
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

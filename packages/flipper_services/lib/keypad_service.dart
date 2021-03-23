@@ -31,8 +31,7 @@ class KeyPadService with ReactiveServiceMixin {
   final RxValue<double> cash = RxValue<double>(initial: 0.0);
   double get cashReceived => cash.value;
 
-  final RxValue<double> setTotal = RxValue<double>(initial: 0.0);
-  double get total => setTotal.value;
+  // double total = 0.0;
 
   final DatabaseService _db = ProxyService.database;
 
@@ -49,7 +48,7 @@ class KeyPadService with ReactiveServiceMixin {
     //     userId: _state.user.id,
     //     businessId: _state.business.id);
     final Document variation = _db.getCustomProductVariant();
-
+    print(Variation.fromMap(variation.jsonProperties).name);
     final String stockId = _db.getStockIdGivenProductId(
         variantId: Variation.fromMap(variation.jsonProperties).id);
 

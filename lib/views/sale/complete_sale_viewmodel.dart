@@ -78,6 +78,8 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   // var completedSale;
   final RxValue<bool> completedSale = RxValue<bool>(initial: null);
 
+  double total = 0.0;
+
   set phone(String phone) {
     _phone = phone;
   }
@@ -151,6 +153,11 @@ class CompleteSaleViewModel extends ReactiveViewModel {
         });
       }
     }
+    // ignore: avoid_function_literals_in_foreach_calls
+    keypad.currentSale.forEach((e) {
+      total += e['price'];
+    });
+    notifyListeners();
   }
 
   @override
