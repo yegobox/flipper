@@ -74,6 +74,8 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   // var completedSale;
   final RxValue<bool> completedSale = RxValue<bool>(initial: null);
 
+  double total = 0.0;
+
   set phone(String phone) {
     _phone = phone;
   }
@@ -127,4 +129,10 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
+
+  void computeTotal() {
+    keypad.currentSale.forEach((e) {
+      print(e);
+    });
+  }
 }

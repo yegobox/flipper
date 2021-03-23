@@ -56,7 +56,8 @@ class PosViewModel extends ReactiveViewModel {
             totalPayable += Order.fromMap(value).cashReceived;
             keyPad.currentSale.add({
               'name': Order.fromMap(value).variantName,
-              'price': Order.fromMap(value).cashReceived
+              'price': Order.fromMap(value).cashReceived,
+              'id': Order.fromMap(value).id
             });
             _currentSale.add(Order.fromMap(value));
           });

@@ -6,6 +6,51 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:stacked/stacked.dart';
 
 class ViewCurrentSaleItemView extends StatelessWidget {
+  List<Widget> buildItems({CompleteSaleViewModel model}) {
+    final List<Widget> list = [];
+    // ignore: avoid_function_literals_in_foreach_calls
+    model.keypad.currentSalesItem.forEach((e) {
+      list.add(
+        Slidable(
+          actionPane: const SlidableDrawerActionPane(),
+          secondaryActions: <Widget>[
+            IconSlideAction(
+              caption: 'Delete',
+              color: Colors.red,
+              icon: Icons.delete,
+              onTap: () {
+                print('hello');
+              },
+            )
+          ],
+          child: ListTile(
+            contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+            trailing: Text(
+              e['price'].toStringAsFixed(0),
+              style: const TextStyle(color: Colors.black),
+            ),
+            leading:
+                Text(e['name'], style: const TextStyle(color: Colors.black)),
+          ),
+        ),
+      );
+    });
+    model.total = 0;
+    // ignore: avoid_function_literals_in_foreach_calls
+    model.keypad.currentSale.forEach((e) {
+      model.total += e['price'];
+    });
+    list.add(ListTile(
+      contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+      trailing: Text(
+        model.total.toStringAsFixed(0),
+        style: const TextStyle(color: Colors.black),
+      ),
+      leading: const Text('Total', style: TextStyle(color: Colors.black)),
+    ));
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -16,39 +61,22 @@ class ViewCurrentSaleItemView extends StatelessWidget {
               onPop: () {
                 ProxyService.nav.pop();
               },
-              title: 'Edits',
+              title: 'Total: Frw' + model.total.toStringAsFixed(0),
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,
             ),
-            body: ListView.builder(
-              itemCount: model.keypad.currentSalesItem.length,
-              itemBuilder: (context, index) {
-                return Slidable(
-                  actionPane: const SlidableDrawerActionPane(),
-                  secondaryActions: <Widget>[
-                    IconSlideAction(
-                      caption: 'Delete',
-                      color: Colors.red,
-                      icon: Icons.delete,
-                      onTap: () => false,
-                    )
-                  ],
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.only(left: 40.0, right: 40.0),
-                    trailing: Text(
-                      model.keypad.currentSalesItem[index]['price']
-                          .toStringAsFixed(0),
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    leading: Text(model.keypad.currentSalesItem[index]['name'],
-                        style: const TextStyle(color: Colors.black)),
-                  ),
-                );
-              },
+            body: Column(
+              children: [
+                Expanded(
+                  child: ListView(children: buildItems(model: model)),
+                )
+              ],
             ),
           );
+        },
+        onModelReady: (CompleteSaleViewModel model) {
+          model.computeTotal();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }
