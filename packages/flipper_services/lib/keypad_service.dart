@@ -108,7 +108,7 @@ class KeyPadService with ReactiveServiceMixin {
   /// Also it is very important to treat order as an item added to the
   void pendingOrder(
       {double customAmount, String stockId, Variation variation}) {
-    //ProxyService.sharedPref.removeKey(key: 'custom_orderId');
+    // ProxyService.sharedPref.removeKey(key: 'custom_orderId');
     if (ProxyService.sharedPref.getCustomOrderId() == 'null' ||
         ProxyService.sharedPref.getCustomOrderId() == null) {
       createOrder(
@@ -140,22 +140,25 @@ class KeyPadService with ReactiveServiceMixin {
   /// Note that this was to simulate the square app but due to it's complexity
   /// It is abandoned atleast for now, in our app for now when it restart it will load the
   /// current pending order so the user if he/she is no longer intrested in order he will
-  /// need to click on C button to clean the keypad
+  /// need to click on C button to clean the keypad for now will not invoke the function on app start
   void cleanKeypad() {
     ProxyService.sharedState.clear.listen((e) {
-      // if (ProxyService.database.db != null) {
-      //   final q = Query(ProxyService.database.db,
-      //       'SELECT  id  WHERE table=\$T AND status=\$S');
-      //   q.parameters = {'T': AppTables.order, 'S': 'pending'};
-      //   final results = q.execute();
-      //   if (results.isNotEmpty) {
-      //     for (Map id in results) {
-      //       ProxyService.database.delete(id: id['id']);
-      //     }
-      //   }
-      //   totalPayable = 0.0;
-      //   notifyListeners();
-      // }
+      if (e != null) {
+        ProxyService.sharedPref.removeKey(key: 'custom_orderId');
+        if (ProxyService.database.db != null) {
+          final q = Query(ProxyService.database.db,
+              'SELECT  id  WHERE table=\$T AND status=\$S');
+          q.parameters = {'T': AppTables.order, 'S': 'pending'};
+          final results = q.execute();
+          if (results.isNotEmpty) {
+            for (Map id in results) {
+              ProxyService.database.delete(id: id['id']);
+            }
+          }
+          totalPayable = 0.0;
+          notifyListeners();
+        }
+      }
     });
   }
 }

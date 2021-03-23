@@ -143,9 +143,9 @@ class SharedStateService with ReactiveServiceMixin {
     _bluethoothDevices.value = devices;
   }
 
-  final RxValue<bool> clear = RxValue<bool>(initial: false);
+  final RxValue<bool> clear = RxValue<bool>(initial: null);
   void setClear({bool c}) {
-    clear.value = false;
+    clear.value = null;
     clear.value = c;
   }
 

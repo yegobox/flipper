@@ -72,7 +72,6 @@ class PosViewModel extends ReactiveViewModel {
       _result = '';
     }
     if (_expr == '0.0') {
-      ProxyService.sharedState.setClear(c: true);
       _expr = '';
     }
 
@@ -93,10 +92,9 @@ class PosViewModel extends ReactiveViewModel {
       }
       ProxyService.sharedState.setClear(c: true);
     } else if (key == '+') {
-      if (_expr.isNotEmpty) {
-        keyPad.sellCustomAmount(takeNewOrder: true);
-        keypadValue = '';
-      }
+      changeOrderStatus();
+      _expr = '0.0';
+      keypadValue = '0.0';
     }
     keypadValue = _expr;
     result = _result;
@@ -109,6 +107,21 @@ class PosViewModel extends ReactiveViewModel {
 
   bool isDigit(String op) {
     return digits.contains(op);
+  }
+
+  /// mark the order from pending to parked
+  /// this will enable a user to add a new order to the keypad.
+  /// This will remove custom_orderId from local storage so it will create a new order
+  /// for another time.
+  void changeOrderStatus() {
+    if (ProxyService.sharedPref.getCustomOrderId() != 'null') {
+      final Document doc = ProxyService.database
+          .getById(id: ProxyService.sharedPref.getCustomOrderId());
+
+      doc.properties['draft'] = false;
+      ProxyService.database.update(document: doc);
+      ProxyService.sharedPref.removeKey(key: 'custom_orderId');
+    }
   }
 
   /// this will take a user to save items to page aka tickets_view page
