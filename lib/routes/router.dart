@@ -6,7 +6,6 @@ import 'package:flipper/views/customers/add_customer.dart';
 import 'package:flipper/views/customers/customer_list_view.dart';
 import 'package:flipper/views/discounts/discount_list_view.dart';
 import 'package:flipper/views/discounts/discount_view.dart';
-import 'package:flipper/views/order/order_details_view.dart';
 import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/product/add/add_product_view.dart';
 import 'package:flipper/views/product/edit/edit_product_title.dart';
@@ -17,7 +16,7 @@ import 'package:flipper/views/reports/build_sales_View.dart';
 import 'package:flipper/views/sale/after_sale_view.dart';
 import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
-import 'package:flipper/views/sale/view_currentsale_items.dart';
+import 'package:flipper/views/sale/order_summary_view.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
@@ -127,9 +126,6 @@ class $Routing {
   ChangeQuantityForSelling editQuantityItemScreen;
 
   @MaterialRoute(fullscreenDialog: true)
-  OrderDetailsView orderDetailsView;
-
-  @MaterialRoute(fullscreenDialog: true)
   CameraPreview cameraPreview;
 
   @MaterialRoute(fullscreenDialog: true)
@@ -153,7 +149,7 @@ class $Routing {
   TicketsView ticketsView;
   NewTicket newTicket;
 
-  ViewCurrentSaleItemView viewCurrentSaleItemView;
+  OrderSummary orderSummaryView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

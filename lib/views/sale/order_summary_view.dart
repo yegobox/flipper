@@ -5,7 +5,7 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:stacked/stacked.dart';
 
-class ViewCurrentSaleItemView extends StatelessWidget {
+class OrderSummary extends StatelessWidget {
   List<Widget> buildItems({CompleteSaleViewModel model}) {
     final List<Widget> list = [];
     // ignore: avoid_function_literals_in_foreach_calls

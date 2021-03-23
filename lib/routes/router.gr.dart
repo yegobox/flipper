@@ -35,7 +35,6 @@ import 'package:flipper/views/unit/add_unit_view.dart';
 import 'package:flipper/views/product/add/add_category_view.dart';
 import 'package:flipper/views/category/create_category_input_screen.dart';
 import 'package:flipper/views/selling/change_quantity_selling.dart';
-import 'package:flipper/views/order/order_details_view.dart';
 import 'package:flipper/views/camera/camera_preview.dart';
 import 'package:flipper_login/otp.dart';
 import 'package:flipper/views/settings/settings_view.dart';
@@ -51,7 +50,7 @@ import 'package:flipper/views/customers/add_customer.dart';
 import 'package:flipper/views/customers/customer_list_view.dart';
 import 'package:flipper/views/tickets/tickets_view.dart';
 import 'package:flipper/views/tickets/new_ticket.dart';
-import 'package:flipper/views/sale/view_currentsale_items.dart';
+import 'package:flipper/views/sale/order_summary_view.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -79,7 +78,6 @@ class Routing {
   static const addCategoryScreen = '/add-category-screen';
   static const createCategoryInputScreen = '/create-category-input-screen';
   static const editQuantityItemScreen = '/edit-quantity-item-screen';
-  static const orderDetailsView = '/order-details-view';
   static const cameraPreview = '/camera-preview';
   static const otpPage = '/otp-page';
   static const settingsView = '/settings-view';
@@ -93,7 +91,7 @@ class Routing {
   static const customerListView = '/customer-list-view';
   static const ticketsView = '/tickets-view';
   static const newTicket = '/new-ticket';
-  static const viewCurrentSaleItemView = '/view-current-sale-item-view';
+  static const orderSummaryView = '/order-summary-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -367,16 +365,6 @@ class Routing {
           settings: settings,
           fullscreenDialog: true,
         );
-      case Routing.orderDetailsView:
-        if (hasInvalidArgs<Key>(args)) {
-          return misTypedArgsRoute<Key>(args);
-        }
-        final typedArgs = args as Key;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => OrderDetailsView(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
       case Routing.cameraPreview:
         if (hasInvalidArgs<CameraPreviewArguments>(args)) {
           return misTypedArgsRoute<CameraPreviewArguments>(args);
@@ -491,9 +479,9 @@ class Routing {
           builder: (_) => NewTicket(key: typedArgs),
           settings: settings,
         );
-      case Routing.viewCurrentSaleItemView:
+      case Routing.orderSummaryView:
         return MaterialPageRoute<dynamic>(
-          builder: (_) => ViewCurrentSaleItemView(),
+          builder: (_) => OrderSummary(),
           settings: settings,
         );
       default:
