@@ -10,7 +10,6 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 class PosViewModel extends ReactiveViewModel {
   var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
   String keypadValue = '0.0';
-  double totalPayable = 0.0;
   var operators = <String>['+', '-', '*', '/'];
   String result = '';
   final List<Order> _currentSale = [];
@@ -53,12 +52,7 @@ class PosViewModel extends ReactiveViewModel {
       if (results.isNotEmpty) {
         for (Map map in results) {
           map.forEach((key, value) {
-            totalPayable += Order.fromMap(value).cashReceived;
-            keyPad.currentSale.add({
-              'name': Order.fromMap(value).variantName,
-              'price': Order.fromMap(value).cashReceived,
-              'id': Order.fromMap(value).id
-            });
+            keyPad.totalPayable = Order.fromMap(value).cashReceived;
             _currentSale.add(Order.fromMap(value));
           });
         }

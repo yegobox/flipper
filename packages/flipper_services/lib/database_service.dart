@@ -208,12 +208,15 @@ class DatabaseService {
   /// given that we only have one Custom Amount product in system
   /// we query the product where name=Custom Amount and use the id to get its variant
   Document getCustomProductVariant() {
-    final q = Query(db, 'SELECT  id,name WHERE table=\$T AND name=\$NAME');
+    final q =
+        Query(db, 'SELECT  id,name WHERE table=\$T AND name=\$NAME LIMIT 1');
     q.parameters = {'T': AppTables.product, 'NAME': 'Custom Amount'};
 
     // get this product then use it's id to get related variant
     final results = q.execute();
     if (results.isEmpty) return null;
+
+    print(results);
 
     final qq = Query(db, 'SELECT  id WHERE table=\$T AND productId=\$P');
     qq.parameters = {'T': AppTables.variation, 'P': results[0]['id']};

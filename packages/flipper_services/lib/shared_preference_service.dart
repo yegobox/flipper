@@ -12,6 +12,19 @@ class SharedPreferenceService {
     await box.write('token', token);
   }
 
+  Future<void> setCustomOrderId({String orderId}) async {
+    await box.write('custom_orderId', orderId);
+  }
+
+  String getCustomOrderId() {
+    return box.read('custom_orderId') ?? 'null';
+  }
+
+  bool removeKey({dynamic key}) {
+    box.remove(key);
+    return true;
+  }
+
   String getUserId() {
     return box.read('userId');
   }
@@ -24,7 +37,6 @@ class SharedPreferenceService {
   Future<void> setIsAppConstantsInitialized({String userId}) async {
     await box.write('isAppConstantsInitialized', true);
   }
-
 
   Future<bool> isAppConstantsInitialized() async {
     return box.read('isAppConstantsInitialized') ?? false;

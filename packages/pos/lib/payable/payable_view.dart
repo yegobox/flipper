@@ -113,9 +113,9 @@ class PayableView extends StatelessWidget {
   }
 
   Widget callCharge(PosViewModel model) {
-    if (model.totalPayable == 0.0) {
+    if (model.keyPad.totalPayable == 0.0) {
       return Text(
-        'Charge FRw' + model.totalPayable.toString(),
+        'Charge FRw' + model.keyPad.totalPayable.toString(),
         style: const TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -142,7 +142,7 @@ class PayableView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(
-                  'FRw' + model.totalPayable.toString(),
+                  'FRw' + model.keyPad.totalPayable.toString(),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

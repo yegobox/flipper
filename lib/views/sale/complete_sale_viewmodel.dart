@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,6 +11,8 @@ import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 Spenn spennFromJson(String str) => Spenn.fromJson(json.decode(str));
 
@@ -74,8 +78,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   // var completedSale;
   final RxValue<bool> completedSale = RxValue<bool>(initial: null);
 
-  double total = 0.0;
-
   set phone(String phone) {
     _phone = phone;
   }
@@ -127,12 +129,30 @@ class CompleteSaleViewModel extends ReactiveViewModel {
     }
   }
 
+  ///this load all pending order's item to show on order summary
+  ///it is very important to understand that an order is an item too since
+  ///it has a variant ID etc...
+  void setCurrentItemKeyPadSaleValue() {
+    final q = Query(
+        ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
+
+    q.parameters = {'T': AppTables.order, 'S': 'pending'};
+
+    final results = q.execute();
+    if (results.isNotEmpty) {
+      keypad.currentSale.clear();
+      for (Map map in results) {
+        map.forEach((key, value) {
+          keypad.currentSale.add({
+            'name': Order.fromMap(value).variantName,
+            'price': Order.fromMap(value).cashReceived,
+            'id': Order.fromMap(value).id
+          });
+        });
+      }
+    }
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
-
-  void computeTotal() {
-    keypad.currentSale.forEach((e) {
-      print(e);
-    });
-  }
 }
