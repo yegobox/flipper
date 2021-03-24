@@ -242,22 +242,29 @@ class SignUpViewModel extends BaseViewModel {
   /// so we wait for [didSingup to be updated] so we can decide
   /// if we show a sign up form or otherwise we go strait with verifying authMiddleware
   /// again so it can do its things to get user in.
-  void didUserSignUpBefore({BuildContext context}) {
-    final q = Query(_db.db, 'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
-    print(ProxyService.sharedState.user.id);
+  Future<void> didUserSignUpBefore({BuildContext context}) async {
+    final q =
+        Query(_db.db, 'SELECT id WHERE table=\$VALUE AND userId=\$USERID');
+
     q.parameters = {
       'VALUE': AppTables.business,
       'USERID': ProxyService.sharedState.user.id
     };
 
-    final results = q.execute();
-    if (results.isNotEmpty) {
-      didSingup = true;
-      StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
-       notifyListeners();
-    }else{
-       didSingup = false;
-       notifyListeners();
-    }
+    await Future.delayed(const Duration(
+        seconds: 4)); //put here to avoid having to show the wrong widget
+    q.addChangeListener((List results) async {
+      if (results.isNotEmpty) {
+        didSingup = true;
+        StoreProvider.of<AppState>(context)
+            .dispatch(VerifyAuthenticationState());
+        notifyListeners();
+      } else {
+        //delay 3 seconds as updating this might be an error
+        await Future.delayed(const Duration(seconds: 4));
+        didSingup = false;
+        notifyListeners();
+      }
+    });
   }
 }

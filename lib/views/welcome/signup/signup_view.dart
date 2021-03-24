@@ -27,7 +27,7 @@ class SignUpView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, SignUpViewModel model, Widget child) {
-          return model.didSingup
+          return model.didSingup == true
               ? Scaffold(
                   body: Container(
                     child: const Center(
@@ -154,8 +154,8 @@ class SignUpView extends StatelessWidget {
                   ),
                 );
         },
-        onModelReady: (SignUpViewModel model) {
-          model.didUserSignUpBefore(context: context);
+        onModelReady: (SignUpViewModel model) async {
+          await model.didUserSignUpBefore(context: context);
           model.initFields(
               name: TextEditingController(),
               email: TextEditingController(text: email),
