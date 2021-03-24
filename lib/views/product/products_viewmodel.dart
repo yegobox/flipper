@@ -141,6 +141,15 @@ class ProductsViewModel extends ReactiveViewModel {
   }
 
   @override
-  // TODO: implement reactiveServices
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState];
+
+  /// given an ID of a product delete it from database
+  /// this does not erase all transaction made on this product
+  /// FIXME: decide if we mark the product as deleted but not entirely delete it!
+  /// Also this does not delete related variants or stock but as the app
+  /// improve we shall see a better solution.
+  void deleteProduct({String productId}) {
+    _databaseService.delete(id: productId);
+    notifyListeners();
+  }
 }

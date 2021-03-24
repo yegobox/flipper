@@ -119,32 +119,29 @@ List<Widget> buildProductList(
               ),
             ]),
           ),
-          actions: <Widget>[
-            IconSlideAction(
-              caption: 'Archive',
-              color: Colors.blue,
-              icon: Icons.archive,
-              onTap: () => false,
-            ),
-            IconSlideAction(
-              caption: 'Share',
-              color: Colors.indigo,
-              icon: Icons.share,
-              onTap: () => false,
-            ),
-          ],
+          // TODO: implement add a product on Menu option coming soon.
+          // actions: <Widget>[
+          //   IconSlideAction(
+          //     caption: 'Archive',
+          //     color: Colors.blue,
+          //     icon: Icons.archive,
+          //     onTap: () => false,
+          //   ),
+          //   IconSlideAction(
+          //     caption: 'Share',
+          //     color: Colors.indigo,
+          //     icon: Icons.share,
+          //     onTap: () => false,
+          //   ),
+          // ],
           secondaryActions: <Widget>[
-            IconSlideAction(
-              caption: 'More',
-              color: Colors.black45,
-              icon: Icons.more_horiz,
-              onTap: () => false,
-            ),
             IconSlideAction(
               caption: 'Delete',
               color: Colors.red,
               icon: Icons.delete,
-              onTap: () => false,
+              onTap: () {
+                model.deleteProduct(productId: product.id);
+              },
             ),
           ],
           actionPane: const SlidableDrawerActionPane(),
@@ -152,7 +149,6 @@ List<Widget> buildProductList(
       );
     }
   }
-  //
   if (!showCreateItemOnTop) {
     buildProductRowHeader(
       list: list,
