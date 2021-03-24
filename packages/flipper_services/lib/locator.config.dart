@@ -31,6 +31,7 @@ import 'remote_config_service.dart';
 import 'shared_preference_service.dart';
 import 'shared_state_service.dart';
 import 'third_party_services_module.dart';
+import 'ticket_service.dart';
 
 /// adds generated dependencies
 /// to the provided [GetIt] instance
@@ -79,6 +80,7 @@ GetIt $initGetIt(
       () => thirdPartyServicesModule.sharedStateService);
   gh.lazySingleton<SnackbarService>(
       () => thirdPartyServicesModule.snackbarService);
+  gh.lazySingleton<TicketService>(() => thirdPartyServicesModule.ticket);
   return get;
 }
 
@@ -129,4 +131,6 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   SharedStateService get sharedStateService => SharedStateService();
   @override
   SnackbarService get snackbarService => SnackbarService();
+  @override
+  TicketService get ticket => TicketService();
 }

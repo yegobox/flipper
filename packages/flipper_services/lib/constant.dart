@@ -14,16 +14,18 @@ class AppTables {
   static const String product = 'products';
   static const String stockHistories = 'stocks_histories';
   static const String order = 'orders';
-  static const String chats = 'messages';
+  static const String orderDetail = 'orderDetails';
   static const String branchProduct = 'branchProducts';
   static const String unit = 'units';
   static const String stock = 'stocks';
-  static const String switchi = 'switchers';
-  static const String drawerHistory = 'drawerHistories';
+  static const String chats = 'chats';
+  static const String drawerHistories = 'drawerHistories';
   static const String cart = 'cart';
   static const String color = 'colors';
 
   static const String user = 'users';
+
+  static const String tickets = 'tickets';
 }
 
 // ignore: avoid_classes_with_only_static_members

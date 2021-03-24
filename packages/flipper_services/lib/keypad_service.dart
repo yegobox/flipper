@@ -22,7 +22,7 @@ class KeyPadService with ReactiveServiceMixin {
   Order get currentSales => order.value;
 
   final Logger log = Logging.getLogger('O2:)');
-  final RxValue<double> _totalAmount = RxValue<double>();
+  final RxValue<double> _totalAmount = RxValue<double>(initial: 0.0);
   double get totalAmount => _totalAmount.value;
 
   final List<Map> currentSale = [];

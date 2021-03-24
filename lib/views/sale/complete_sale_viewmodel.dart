@@ -160,11 +160,17 @@ class CompleteSaleViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
+  /// The method create a ticket and add all
+  /// the order that are in pending state with cash received
+  /// it will be like {id:'',amount:400,orders:[array of orders or what we call  item]}
+  void collectCashPayment() {
+    ProxyService.ticket.saveNewTicket(
+      ticketName: 'system_ticket',
+      cashReceived: keypad.amount,
+      status: 'completed',
+    );
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
-
-  /// The method create a ticket and add all
-  /// the order recieced with cash received
-  /// it will be like {id:'',amount:400,orders:[array of orders or what we call  item]}
-  void collectCashPayment() {}
 }

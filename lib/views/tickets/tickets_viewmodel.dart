@@ -1,27 +1,25 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/utils/constant.dart';
-import 'package:flipper_models/order.dart';
 import 'package:flipper_models/ticket.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked.dart';
-import 'package:uuid/uuid.dart';
 
 class TicketsViewModel extends ReactiveViewModel {
   final List<Ticket> _tickets = [];
   List<Ticket> get tickets => _tickets;
   final DatabaseService _databaseService = ProxyService.database;
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices =>
-      [ProxyService.sharedState, ProxyService.keypad];
-
+  /// load tickets that have not been completed to be resumed later on
+  /// NOTE: once a ticket is marked as completed it is for archive only
+  /// and for transaction history, can not be resumed anymore!
   void loadTickets() {
     final ticketsQuery = Query(_databaseService.db,
-        'SELECT id,orderId,ticketName,resumed,table,createdAt WHERE table=\$T');
+        'SELECT id,orderId,ticketName,resumed,table,createdAt WHERE table=\$T AND status=\$S');
     ticketsQuery.parameters = {
       'T': AppTables.tickets,
+      'S': 'parked'
     }; //looking for active order joined with stock_histories
     ticketsQuery.addChangeListener((List orders) {
       // String orderId;
@@ -90,38 +88,8 @@ class TicketsViewModel extends ReactiveViewModel {
 
   Future<void> saveNewTicket() async {
     if (_ticketName != null) {
-      ProxyService.keypad.order.listen((order) {
-        final id5 = Uuid().v1();
-        final Document ticket = _databaseService.insert(id: id5, data: {
-          'id': id5,
-          'ticketName': _ticketName,
-          'table': AppTables.tickets,
-          'cashReceived': 0.0, //this will be updated when complete an order.
-          'note': _note,
-          'resumed': false,
-          'createdAt': DateTime.now().toIso8601String(),
-          'channels': [ProxyService.sharedState.user.id.toString()],
-          'orders': []
-        });
-        final pendingTicket = _databaseService.getById(id: ticket.ID);
-        List<String> ods = [];
-        if (pendingTicket.properties['orders'] != null) {
-          ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
-          ods.add(order.id);
-          pendingTicket.properties['orders'] = ods;
-          ProxyService.database.update(document: pendingTicket);
-        }
-        final Document parkedOrder =
-            ProxyService.database.getById(id: order.id);
-        parkedOrder.properties['active'] = false;
-        parkedOrder.properties['draft'] = false;
-        parkedOrder.properties['orderNote'] = 'parked';
-        parkedOrder.properties['status'] = 'parked';
-        ProxyService.database.update(document: parkedOrder);
-        // clear the current sale count.
-        ProxyService.sharedState.setClear(c: true);
-      });
       //create a new ticket for this order
+      ProxyService.ticket.saveNewTicket(note: _note, ticketName: _ticketName);
     }
   }
 
@@ -140,4 +108,8 @@ class TicketsViewModel extends ReactiveViewModel {
     ticket.properties['resumed'] = true;
     ProxyService.database.update(document: ticket);
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [ProxyService.sharedState, ProxyService.keypad, ProxyService.ticket];
 }

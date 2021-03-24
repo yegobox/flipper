@@ -1,4 +1,5 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flipper/views/sale/complete_sale_viewmodel.dart';
@@ -12,6 +13,7 @@ class CollectCashView extends StatelessWidget {
   final RoundedLoadingButtonController _btnController =
       RoundedLoadingButtonController();
   final String paymentType;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -34,82 +36,104 @@ class CollectCashView extends StatelessWidget {
                 child: Stack(
                   children: [
                     Center(
-                      child: Column(
-                        // ignore: prefer_const_literals_to_create_immutables
-                        children: [
-                          const SizedBox(height: 40),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 18, right: 18),
-                            child: Container(
-                              width: double.infinity,
-                              child: TextFormField(
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1
-                                    .copyWith(color: Colors.black),
-                                validator: Validators.isValid,
-                                onChanged: (String phone) {
-                                  model.phone = phone;
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Payer phone number',
-                                  fillColor: Theme.of(context)
-                                      .copyWith(canvasColor: Colors.white)
-                                      .canvasColor,
-                                  filled: true,
-                                  border: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: HexColor('#D0D7E3')),
-                                    borderRadius: BorderRadius.circular(5),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          // ignore: prefer_const_literals_to_create_immutables
+                          children: [
+                            const SizedBox(height: 40),
+                            paymentType == 'spenn'
+                                ? Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 18, right: 18),
+                                    child: Container(
+                                      width: double.infinity,
+                                      child: TextFormField(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText1
+                                            .copyWith(color: Colors.black),
+                                        validator: Validators.isValid,
+                                        onChanged: (String phone) {
+                                          model.phone = phone;
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: 'Payer phone number',
+                                          fillColor: Theme.of(context)
+                                              .copyWith(
+                                                  canvasColor: Colors.white)
+                                              .canvasColor,
+                                          filled: true,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: HexColor('#D0D7E3')),
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            const SizedBox(height: 10),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 18, right: 18),
+                              child: Container(
+                                width: double.infinity,
+                                child: TextFormField(
+                                  keyboardType: TextInputType.number,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1
+                                      .copyWith(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter Cash Received';
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (String cash) {
+                                    model.keypad.cash.value =
+                                        double.parse(cash);
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: 'Cash Received',
+                                    fillColor: Theme.of(context)
+                                        .copyWith(canvasColor: Colors.white)
+                                        .canvasColor,
+                                    filled: true,
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: HexColor('#D0D7E3')),
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 18, right: 18),
-                            child: Container(
-                              width: double.infinity,
-                              child: TextFormField(
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1
-                                    .copyWith(color: Colors.black),
-                                validator: Validators.isValid,
-                                onChanged: (String cash) {
-                                  model.keypad.cash.value = double.parse(cash);
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Cash Received',
-                                  fillColor: Theme.of(context)
-                                      .copyWith(canvasColor: Colors.white)
-                                      .canvasColor,
-                                  filled: true,
-                                  border: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: HexColor('#D0D7E3')),
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          RoundedLoadingButton(
-                            borderRadius: 20.0,
-                            controller: _btnController,
-                            onPressed: () {
-                              if (paymentType == 'spenn') {
-                                model.collectSPENNPayment();
-                              } else {
-                                model.collectCashPayment();
-                              }
-                            },
-                            child: const Text('Tender',
-                                style: TextStyle(color: Colors.white)),
-                          )
-                        ],
+                            const SizedBox(height: 10),
+                            RoundedLoadingButton(
+                              borderRadius: 20.0,
+                              controller: _btnController,
+                              onPressed: () {
+                                if (_formKey.currentState.validate()) {
+                                  if (paymentType == 'spenn') {
+                                    model.collectSPENNPayment();
+                                  } else {
+                                    model.collectCashPayment();
+                                    ProxyService.nav
+                                        .navigateTo(Routing.afterSaleView);
+                                  }
+                                } else {
+                                  _btnController.stop();
+                                }
+                              },
+                              child: const Text('Tender',
+                                  style: TextStyle(color: Colors.white)),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   ],

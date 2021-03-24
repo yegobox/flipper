@@ -2,6 +2,7 @@ String appFont = 'HelveticaNeuea';
 String dbName = 'main';
 
 // ignore: avoid_classes_with_only_static_members
+// @Deprecated use app_services constants
 class AppTables {
   //table name used to query couchbase_lite data
   static const String business = 'businesses';
