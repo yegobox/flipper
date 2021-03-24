@@ -92,6 +92,14 @@ class CompleteSaleViewModel extends ReactiveViewModel {
         if (spennpaymentStatus.paymentSuccess == 3) {
           completedSale.value = false;
         } else if (spennpaymentStatus.paymentSuccess == 2) {
+          ProxyService.sharedPref.removeKey(key: 'custom_orderId');
+          // TODO: right now we are saving a ticket as system, we need to keep in consideration
+          // when a ticket is resusmed, no need of creating a new ticket just use the resumed ticket
+          ProxyService.ticket.saveNewTicket(
+            ticketName: 'system_ticket',
+            cashReceived: keypad.amount,
+            status: 'completed',
+          );
           completedSale.value = true;
           ProxyService.nav.navigateTo(Routing.afterSaleView);
         } else {
@@ -169,6 +177,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
       cashReceived: keypad.amount,
       status: 'completed',
     );
+    ProxyService.sharedPref.removeKey(key: 'custom_orderId');
   }
 
   @override

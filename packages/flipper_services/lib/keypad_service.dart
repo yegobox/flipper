@@ -47,6 +47,8 @@ class KeyPadService with ReactiveServiceMixin {
     //     branchId: _state.branch.id,
     //     userId: _state.user.id,
     //     businessId: _state.business.id);
+    // print(customAmount);
+    // return;
     final Document variation = _db.getCustomProductVariant();
     print(Variation.fromMap(variation.jsonProperties).name);
     final String stockId = _db.getStockIdGivenProductId(
