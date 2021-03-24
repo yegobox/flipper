@@ -29,7 +29,7 @@ abstract class Order implements Built<Order, OrderBuilder> {
   @nullable
   double get taxAmount;
 
-  double get cashReceived;
+  double get amount;
 
   @nullable
   double get saleTotal;

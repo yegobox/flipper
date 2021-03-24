@@ -52,7 +52,8 @@ class PosViewModel extends ReactiveViewModel {
       if (results.isNotEmpty) {
         for (Map map in results) {
           map.forEach((key, value) {
-            keyPad.totalPayable = Order.fromMap(value).cashReceived;
+            // ProxyService.database.delete(id: value['id']);
+            keyPad.totalPayable = Order.fromMap(value).amount;
             _currentSale.add(Order.fromMap(value));
           });
         }

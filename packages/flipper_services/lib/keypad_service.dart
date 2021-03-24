@@ -29,7 +29,7 @@ class KeyPadService with ReactiveServiceMixin {
   List<Map> get currentSalesItem => currentSale;
 
   final RxValue<double> cash = RxValue<double>(initial: 0.0);
-  double get cashReceived => cash.value;
+  double get amount => cash.value;
 
   // double total = 0.0;
 
@@ -59,7 +59,7 @@ class KeyPadService with ReactiveServiceMixin {
     order.listen((order) {
       if (order != null && order.active && order.draft && !takeNewOrder) {
         final Document orderDocument = _db.getById(id: order.id);
-        orderDocument.properties['cashReceived'] = customAmount;
+        orderDocument.properties['amount'] = customAmount;
         _db.update(document: orderDocument);
         _totalAmount.value = customAmount;
         notifyListeners();
@@ -87,7 +87,7 @@ class KeyPadService with ReactiveServiceMixin {
       'channels': [_state.user.id.toString()],
       'subTotal': customAmount,
       'table': AppTables.order,
-      'cashReceived': customAmount,
+      'amount': customAmount,
       'customerChangeDue': 0.0,
       'id': id4,
       'stockId': stockId,

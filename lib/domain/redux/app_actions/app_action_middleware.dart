@@ -56,7 +56,7 @@ void Function(Store<AppState> store, SavePayment action, NextDispatcher next)
     //     status: 'completed',
     //     customerChangeDue: action.customerChangeDue,
     //     orderNote: action.note,
-    //     cashReceived: action.cashReceived,
+    //     amount: action.amount,
     //   ),
     // );
 

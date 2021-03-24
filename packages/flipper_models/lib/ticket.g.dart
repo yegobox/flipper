@@ -29,6 +29,9 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
       'resumed',
       serializers.serialize(object.resumed,
           specifiedType: const FullType(bool)),
+      'cashReceived',
+      serializers.serialize(object.cashReceived,
+          specifiedType: const FullType(double)),
       'channels',
       serializers.serialize(object.channels,
           specifiedType:
@@ -78,6 +81,10 @@ class _$TicketSerializer implements StructuredSerializer<Ticket> {
           result.resumed = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
           break;
+        case 'cashReceived':
+          result.cashReceived = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
         case 'channels':
           result.channels.replace(serializers.deserialize(value,
                   specifiedType:
@@ -109,6 +116,8 @@ class _$Ticket extends Ticket {
   @override
   final bool resumed;
   @override
+  final double cashReceived;
+  @override
   final BuiltList<String> channels;
   @override
   final BuiltList<String> orders;
@@ -122,6 +131,7 @@ class _$Ticket extends Ticket {
       this.note,
       this.createdAt,
       this.resumed,
+      this.cashReceived,
       this.channels,
       this.orders})
       : super._() {
@@ -136,6 +146,9 @@ class _$Ticket extends Ticket {
     }
     if (resumed == null) {
       throw new BuiltValueNullFieldError('Ticket', 'resumed');
+    }
+    if (cashReceived == null) {
+      throw new BuiltValueNullFieldError('Ticket', 'cashReceived');
     }
     if (channels == null) {
       throw new BuiltValueNullFieldError('Ticket', 'channels');
@@ -161,6 +174,7 @@ class _$Ticket extends Ticket {
         note == other.note &&
         createdAt == other.createdAt &&
         resumed == other.resumed &&
+        cashReceived == other.cashReceived &&
         channels == other.channels &&
         orders == other.orders;
   }
@@ -171,10 +185,12 @@ class _$Ticket extends Ticket {
         $jc(
             $jc(
                 $jc(
-                    $jc($jc($jc(0, id.hashCode), ticketName.hashCode),
-                        note.hashCode),
-                    createdAt.hashCode),
-                resumed.hashCode),
+                    $jc(
+                        $jc($jc($jc(0, id.hashCode), ticketName.hashCode),
+                            note.hashCode),
+                        createdAt.hashCode),
+                    resumed.hashCode),
+                cashReceived.hashCode),
             channels.hashCode),
         orders.hashCode));
   }
@@ -187,6 +203,7 @@ class _$Ticket extends Ticket {
           ..add('note', note)
           ..add('createdAt', createdAt)
           ..add('resumed', resumed)
+          ..add('cashReceived', cashReceived)
           ..add('channels', channels)
           ..add('orders', orders))
         .toString();
@@ -216,6 +233,10 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
   bool get resumed => _$this._resumed;
   set resumed(bool resumed) => _$this._resumed = resumed;
 
+  double _cashReceived;
+  double get cashReceived => _$this._cashReceived;
+  set cashReceived(double cashReceived) => _$this._cashReceived = cashReceived;
+
   ListBuilder<String> _channels;
   ListBuilder<String> get channels =>
       _$this._channels ??= new ListBuilder<String>();
@@ -235,6 +256,7 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
       _note = _$v.note;
       _createdAt = _$v.createdAt;
       _resumed = _$v.resumed;
+      _cashReceived = _$v.cashReceived;
       _channels = _$v.channels?.toBuilder();
       _orders = _$v.orders?.toBuilder();
       _$v = null;
@@ -266,6 +288,7 @@ class TicketBuilder implements Builder<Ticket, TicketBuilder> {
               note: note,
               createdAt: createdAt,
               resumed: resumed,
+              cashReceived: cashReceived,
               channels: channels.build(),
               orders: orders.build());
     } catch (_) {

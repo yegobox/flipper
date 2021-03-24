@@ -39,8 +39,8 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'subTotal',
       serializers.serialize(object.subTotal,
           specifiedType: const FullType(double)),
-      'cashReceived',
-      serializers.serialize(object.cashReceived,
+      'amount',
+      serializers.serialize(object.amount,
           specifiedType: const FullType(double)),
       'variantId',
       serializers.serialize(object.variantId,
@@ -139,8 +139,8 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           result.taxAmount = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
-        case 'cashReceived':
-          result.cashReceived = serializers.deserialize(value,
+        case 'amount':
+          result.amount = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
         case 'saleTotal':
@@ -208,7 +208,7 @@ class _$Order extends Order {
   @override
   final double taxAmount;
   @override
-  final double cashReceived;
+  final double amount;
   @override
   final double saleTotal;
   @override
@@ -241,7 +241,7 @@ class _$Order extends Order {
       this.orderNUmber,
       this.subTotal,
       this.taxAmount,
-      this.cashReceived,
+      this.amount,
       this.saleTotal,
       this.orderNote,
       this.status,
@@ -276,8 +276,8 @@ class _$Order extends Order {
     if (subTotal == null) {
       throw new BuiltValueNullFieldError('Order', 'subTotal');
     }
-    if (cashReceived == null) {
-      throw new BuiltValueNullFieldError('Order', 'cashReceived');
+    if (amount == null) {
+      throw new BuiltValueNullFieldError('Order', 'amount');
     }
     if (variantId == null) {
       throw new BuiltValueNullFieldError('Order', 'variantId');
@@ -316,7 +316,7 @@ class _$Order extends Order {
         orderNUmber == other.orderNUmber &&
         subTotal == other.subTotal &&
         taxAmount == other.taxAmount &&
-        cashReceived == other.cashReceived &&
+        amount == other.amount &&
         saleTotal == other.saleTotal &&
         orderNote == other.orderNote &&
         status == other.status &&
@@ -364,7 +364,7 @@ class _$Order extends Order {
                                                         orderNUmber.hashCode),
                                                     subTotal.hashCode),
                                                 taxAmount.hashCode),
-                                            cashReceived.hashCode),
+                                            amount.hashCode),
                                         saleTotal.hashCode),
                                     orderNote.hashCode),
                                 status.hashCode),
@@ -388,7 +388,7 @@ class _$Order extends Order {
           ..add('orderNUmber', orderNUmber)
           ..add('subTotal', subTotal)
           ..add('taxAmount', taxAmount)
-          ..add('cashReceived', cashReceived)
+          ..add('amount', amount)
           ..add('saleTotal', saleTotal)
           ..add('orderNote', orderNote)
           ..add('status', status)
@@ -441,9 +441,9 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   double get taxAmount => _$this._taxAmount;
   set taxAmount(double taxAmount) => _$this._taxAmount = taxAmount;
 
-  double _cashReceived;
-  double get cashReceived => _$this._cashReceived;
-  set cashReceived(double cashReceived) => _$this._cashReceived = cashReceived;
+  double _amount;
+  double get amount => _$this._amount;
+  set amount(double amount) => _$this._amount = amount;
 
   double _saleTotal;
   double get saleTotal => _$this._saleTotal;
@@ -496,7 +496,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _orderNUmber = _$v.orderNUmber;
       _subTotal = _$v.subTotal;
       _taxAmount = _$v.taxAmount;
-      _cashReceived = _$v.cashReceived;
+      _amount = _$v.amount;
       _saleTotal = _$v.saleTotal;
       _orderNote = _$v.orderNote;
       _status = _$v.status;
@@ -539,7 +539,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
               orderNUmber: orderNUmber,
               subTotal: subTotal,
               taxAmount: taxAmount,
-              cashReceived: cashReceived,
+              amount: amount,
               saleTotal: saleTotal,
               orderNote: orderNote,
               status: status,

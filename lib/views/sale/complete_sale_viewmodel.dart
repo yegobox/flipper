@@ -147,7 +147,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
         map.forEach((key, value) {
           keypad.currentSale.add({
             'name': Order.fromMap(value).variantName,
-            'price': Order.fromMap(value).cashReceived,
+            'price': Order.fromMap(value).amount,
             'id': Order.fromMap(value).id
           });
         });
@@ -165,6 +165,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   /// The method create a ticket and add all
   /// the order recieced with cash received
-  /// it will be like {id:'',cashReceived:400,orders:[array of orders or what we call  item]}
+  /// it will be like {id:'',amount:400,orders:[array of orders or what we call  item]}
   void collectCashPayment() {}
 }

@@ -96,6 +96,7 @@ class TicketsViewModel extends ReactiveViewModel {
           'id': id5,
           'ticketName': _ticketName,
           'table': AppTables.tickets,
+          'cashReceived': 0.0, //this will be updated when complete an order.
           'note': _note,
           'resumed': false,
           'createdAt': DateTime.now().toIso8601String(),

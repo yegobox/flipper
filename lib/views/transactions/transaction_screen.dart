@@ -76,7 +76,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     return ListTile(
       leading: Container(
         width: 50,
-        child: Text(data.cashReceived.toString()),
+        child: Text(data.amount.toString()),
       ),
       title: const Text('B'),
       trailing: const Text('C'),
