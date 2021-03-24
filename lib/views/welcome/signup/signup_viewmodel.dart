@@ -3,6 +3,7 @@ import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper/utils/constant.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flipper/domain/redux/app_state.dart';
@@ -231,5 +232,32 @@ class SignUpViewModel extends BaseViewModel {
       'name': 'NONE'
     };
     ProxyService.database.insert(id: id, data: category);
+  }
+
+  bool didSingup = true;
+  final DatabaseService _db = ProxyService.database;
+
+  /// this method is used to check if the user has signup before
+  /// this is to avoid user creating a duplicate business
+  /// so we wait for [didSingup to be updated] so we can decide
+  /// if we show a sign up form or otherwise we go strait with verifying authMiddleware
+  /// again so it can do its things to get user in.
+  void didUserSignUpBefore({BuildContext context}) {
+    final q = Query(_db.db, 'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
+    print(ProxyService.sharedState.user.id);
+    q.parameters = {
+      'VALUE': AppTables.business,
+      'USERID': ProxyService.sharedState.user.id
+    };
+
+    final results = q.execute();
+    if (results.isNotEmpty) {
+      didSingup = true;
+      StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
+       notifyListeners();
+    }else{
+       didSingup = false;
+       notifyListeners();
+    }
   }
 }

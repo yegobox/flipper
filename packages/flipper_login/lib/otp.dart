@@ -66,7 +66,7 @@ class _OtpPageState extends State<OtpPage> {
                       children: [
                         const TextSpan(text: 'Please enter'),
                         TextSpan(
-                            text: ' Otp',
+                            text: ' OTP',
                             style: TextStyle(color: Colors.blue.shade900)),
                         const TextSpan(text: ' sent to your SMS'),
                       ],
@@ -254,8 +254,8 @@ class _OtpPageState extends State<OtpPage> {
         'table': AppTables.user,
         'channels': [loginResponse.id.toString()],
         'userId': loginResponse.id.toString(),
-        'expiresAt': loginResponse.expiresAt,
-        'id': loginResponse.id.toString(),
+        'expiresAt': 'null',
+        'id': 'null',
       });
 
       // call the API to update the user synced status
@@ -289,7 +289,6 @@ class _OtpPageState extends State<OtpPage> {
       // always insert to avoid when a user has uninstalled the app and it need some time to sync up again atleast we need user
       ProxyService.database.insert(id: loginResponse.id.toString(), data: {
         'name': loginResponse.name,
-        'email': loginResponse.email,
         'token': loginResponse.token,
         'table': AppTables.user,
         'channels': [loginResponse.id.toString()],
@@ -313,6 +312,17 @@ class _OtpPageState extends State<OtpPage> {
         ..token = loginResponse.token
         ..name = loginResponse.name,
     );
+    ProxyService.sharedState.setUser(
+        user: FUser.fromMap({
+      'email': loginResponse.email,
+      'active': true,
+      'id': loginResponse.id.toString(),
+      'userId': loginResponse.id.toString(),
+      'createdAt': 'null',
+      'updatedAt': 'null',
+      'token': loginResponse.token,
+      'name': loginResponse.name
+    }));
     store.dispatch(WithUser(user: user));
   }
 }
