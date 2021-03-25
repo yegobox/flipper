@@ -13,6 +13,7 @@ import 'package:flipper/views/product/product_list_view.dart';
 import 'package:flipper/views/product/product_view.dart';
 import 'package:flipper/views/product/widget/on_selling_view.dart';
 import 'package:flipper/views/reports/build_sales_View.dart';
+import 'package:flipper/views/sale/add_noteview.dart';
 import 'package:flipper/views/sale/after_sale_view.dart';
 import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
@@ -104,9 +105,6 @@ class $Routing {
   @MaterialRoute(fullscreenDialog: true)
   AfterSplash afterSplash;
 
-  // @MaterialRoute(fullscreenDialog: true)
-  // AddNoteScreen addNoteScreen;
-
   @MaterialRoute(fullscreenDialog: true)
   EditItemTitle editItemTitle;
 
@@ -148,6 +146,8 @@ class $Routing {
   NewTicket newTicket;
 
   OrderSummary orderSummaryView;
+
+  AddNoteView addNoteView;
 }
 
 //flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable

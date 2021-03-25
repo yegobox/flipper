@@ -19,6 +19,11 @@ enum ITEM { ITEMNAME, ITEMPRICE }
 class KeyPadService with ReactiveServiceMixin {
   final _state = locator<SharedStateService>();
   final RxValue<Order> order = RxValue<Order>(initial: null);
+
+  // String note;
+  final RxValue<String> note = RxValue<String>(initial: null);
+  String get getNote => note.value;
+
   Order get currentSales => order.value;
 
   final Logger log = Logging.getLogger('O2:)');

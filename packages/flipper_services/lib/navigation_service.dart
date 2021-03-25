@@ -11,11 +11,11 @@ class InAppNavigationService with ReactiveServiceMixin {
     navigation.value = path;
   }
 
-  final RxValue<Map> navToChat = RxValue<Map>(initial: null);
+  final RxValue<Map> nav = RxValue<Map>(initial: null);
 
-  void navigateToChat(Map data) {
+  void navigateToPath(Map data) {
     // print(data['channels'].runtimeType);
-    navToChat.value = null;
-    navToChat.value = data;
+    nav.value = null;
+    nav.value = data;
   }
 }

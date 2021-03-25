@@ -51,6 +51,7 @@ import 'package:flipper/views/customers/customer_list_view.dart';
 import 'package:flipper/views/tickets/tickets_view.dart';
 import 'package:flipper/views/tickets/new_ticket.dart';
 import 'package:flipper/views/sale/order_summary_view.dart';
+import 'package:flipper/views/sale/add_noteview.dart';
 
 class Routing {
   static const signUpView = '/sign-up-view';
@@ -92,6 +93,7 @@ class Routing {
   static const ticketsView = '/tickets-view';
   static const newTicket = '/new-ticket';
   static const orderSummaryView = '/order-summary-view';
+  static const addNoteView = '/add-note-view';
   static final navigator = ExtendedNavigator();
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -488,6 +490,15 @@ class Routing {
       case Routing.orderSummaryView:
         return MaterialPageRoute<dynamic>(
           builder: (_) => OrderSummary(),
+          settings: settings,
+        );
+      case Routing.addNoteView:
+        if (hasInvalidArgs<Key>(args)) {
+          return misTypedArgsRoute<Key>(args);
+        }
+        final typedArgs = args as Key;
+        return MaterialPageRoute<dynamic>(
+          builder: (_) => AddNoteView(key: typedArgs),
           settings: settings,
         );
       default:

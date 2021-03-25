@@ -2,9 +2,16 @@ library pos;
 
 import 'dart:ui';
 
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/payable/payable_view.dart';
+
 import 'pos_viewmodel.dart';
+
+class AlwaysDisabledFocusNode extends FocusNode {
+  @override
+  bool get hasFocus => false;
+}
 
 class KeyPad extends StatelessWidget {
   const KeyPad({Key key, this.model}) : super(key: key);
@@ -53,42 +60,51 @@ class _onCreate extends State<Display> {
         padding: const EdgeInsets.only(left: 5.0, right: 5.0),
         child: PayableView(model: model),
       ),
-      Container(
-        padding: const EdgeInsets.only(
-            right: 20.0, top: 15.0, left: 20.0, bottom: 15.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Expanded(
-                child: Container(
-              alignment: Alignment.center,
-              child: InkWell(onTap: () {}, child: _addNoteTextField()),
-            )),
-            Expanded(
-              child: callText(model),
+      InkWell(
+        onTap: () {
+          ProxyService.inAppNav.navigateToPath({'path': 'add_note'});
+        },
+        child: IgnorePointer(
+          child: Container(
+            padding: const EdgeInsets.only(
+                right: 20.0, top: 15.0, left: 20.0, bottom: 15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                    child: Container(
+                  alignment: Alignment.center,
+                  child: _addNoteTextField(model: model),
+                )),
+                Expanded(
+                  child: callText(model),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     ]);
   }
 
-  Widget _addNoteTextField() {
+  Widget _addNoteTextField({PosViewModel model}) {
     return Container(
       padding: const EdgeInsets.only(right: 10),
       child: TextField(
         keyboardType: TextInputType.text,
         cursorColor: Colors.black26,
+        enableInteractiveSelection: false, // will disable paste operation
+        focusNode: AlwaysDisabledFocusNode(),
         controller: etAddNote,
         onChanged: (value) => addNote = value,
         style: const TextStyle(
           color: Color(0xff3d454c),
           fontSize: 15,
         ),
-        decoration: const InputDecoration(
-          hintText: 'Add a note',
+        decoration: InputDecoration(
+          hintText: model.keyPad.getNote ?? 'Add a note',
           border: InputBorder.none,
-          hintStyle: TextStyle(
+          hintStyle: const TextStyle(
             color: Colors.black26,
             fontSize: 15,
             fontFeatures: [

@@ -1,7 +1,6 @@
 library flipper_contacts;
 
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:contacts_service/contacts_service.dart';
 import 'package:flipper_models/fcontact.dart';
 import 'package:flipper_services/dynamic_links_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -147,7 +146,7 @@ class _SelectContact extends State<SelectContact> {
               onProfileTap: () =>
                   onTapProfileContactItem(context, data.elementAt(i)),
               onTap: () {
-                ProxyService.inAppNav.navigateToChat(
+                ProxyService.inAppNav.navigateToPath(
                     {'path': 'chat', 'channels': data.elementAt(i).channels});
               });
         });

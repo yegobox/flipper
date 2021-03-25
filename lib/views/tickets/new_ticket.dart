@@ -19,7 +19,6 @@ class NewTicket extends StatelessWidget {
                   await model.saveNewTicket();
                   ProxyService.nav.pop();
                 },
-                
                 title: 'New Ticket',
                 rightActionButtonName: 'Save',
                 disableButton: model.isLocked,

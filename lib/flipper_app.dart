@@ -8,7 +8,6 @@ import 'package:flipper_services/analytics_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -115,7 +114,7 @@ class _FlipperAppState extends State<FlipperApp> {
         ProxyService.nav.navigateTo(Routing.ticketsView);
       }
     });
-    _inAppNav.navToChat.listen((Map data) {
+    _inAppNav.nav.listen((Map data) {
       if (data == null) {
         return null;
       }
@@ -125,6 +124,11 @@ class _FlipperAppState extends State<FlipperApp> {
           arguments: ChatViewArguments(
             channels: data['channels'],
           ),
+        );
+      }
+      if (data['path'] == 'add_note') {
+        ProxyService.nav.navigateTo(
+          Routing.addNoteView
         );
       }
     });
