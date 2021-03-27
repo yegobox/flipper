@@ -1,7 +1,7 @@
-import 'package:flipper_services/proxy.dart';
+
 import 'package:flutter/material.dart';
 import 'package:pos/payable/button.dart';
-import 'package:pos/pos_viewmodel.dart';
+import 'package:flipper_models/view_models/pos_viewmodel.dart';
 import 'package:number_display/number_display.dart';
 
 class PayableView extends StatelessWidget {

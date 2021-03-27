@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-import 'variation_viewmodel.dart';
+import 'package:flipper_models/view_models/variation_viewmodel.dart';
 
 class BuildVariationBody extends StatelessWidget {
   const BuildVariationBody({Key key, this.productId}) : super(key: key);

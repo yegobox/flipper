@@ -1,3 +1,4 @@
+library flipper_models;
 import 'dart:convert';
 
 import 'package:flipper/routes/router.gr.dart';

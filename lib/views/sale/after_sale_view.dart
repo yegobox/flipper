@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
 // import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/views/sale/complete_sale_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';

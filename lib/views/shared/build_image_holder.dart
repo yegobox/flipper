@@ -6,7 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-import 'image_placeholder_viewmodel.dart';
+import 'package:flipper_models/view_models/image_placeholder_viewmodel.dart';
 
 class ImagePlaceHolderView extends StatelessWidget {
   @override

@@ -9,7 +9,7 @@ import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:tabbar/tabbar.dart';
 
-import 'salesReportModel.dart';
+import 'package:flipper_models/view_models/salesReportModel.dart';
 
 class SalesView extends StatelessWidget {
   const SalesView({Key key}) : super(key: key);

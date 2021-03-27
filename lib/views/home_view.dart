@@ -9,7 +9,7 @@ import 'package:flipper/widget/bottom_menu_bar.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:pos/pos_viewmodel.dart';
+import 'package:flipper_models/view_models/pos_viewmodel.dart';
 
 // ignore: must_be_immutable
 class HomeView extends StatelessWidget {

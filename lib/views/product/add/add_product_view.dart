@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/category/category_view.dart';
-import 'package:flipper/views/product/add/add_product_viewmodel.dart';
+import 'package:flipper_models/view_models/add_product_viewmodel.dart';
 import 'package:flipper/views/shared/divider.dart';
 import 'package:flipper/views/shared/description.dart';
 import 'package:flipper/views/shared/list_divider.dart';

@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/views/shared/divider.dart';
 import 'package:flipper/views/product/section_select_unit.dart';
-import 'package:flipper/views/variation/variation_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/variation_viewmodel.dart';
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';

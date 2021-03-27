@@ -1,4 +1,4 @@
-import 'package:flipper/views/product/add/add_product_viewmodel.dart';
+import 'package:flipper_models/view_models/add_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 

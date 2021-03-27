@@ -1,4 +1,4 @@
-import 'package:flipper/views/variation/variation_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/variation_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
 import 'package:flutter/material.dart';

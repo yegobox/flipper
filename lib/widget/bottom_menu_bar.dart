@@ -2,7 +2,7 @@ import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper/widget/tabItem.dart';
 
 import 'package:flutter/material.dart';
-import 'package:pos/pos_viewmodel.dart';
+import 'package:flipper_models/view_models/pos_viewmodel.dart';
 
 class BottomMenubar extends StatefulWidget {
   const BottomMenubar({this.model});

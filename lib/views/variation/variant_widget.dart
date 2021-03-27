@@ -3,7 +3,7 @@ import 'package:customappbar/customappbar.dart';
 import 'package:flipper/domain/redux/functions.dart';
 
 import 'package:flipper/views/variation/variation_list.dart';
-import 'package:flipper/views/variation/variation_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/variation_viewmodel.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';

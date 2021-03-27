@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-import 'sku_viewmodel.dart';
+import 'package:flipper_models/view_models/sku_viewmodel.dart';
 
 class SkuView extends StatefulWidget {
   const SkuView({Key key, this.productId}) : super(key: key);

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:stacked/stacked.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:slider_button/slider_button.dart';
-import 'calenderViewModel.dart';
-
+import 'package:flipper_models/view_models/calenderViewModel.dart';
 class CalendarView extends StatelessWidget {
   const CalendarView({Key key, this.title}) : super(key: key);
   final String title;

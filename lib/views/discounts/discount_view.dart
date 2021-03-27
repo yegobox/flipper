@@ -3,10 +3,9 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:sliding_switch/sliding_switch.dart';
-import 'discount_view_model.dart';
+import 'package:flipper_models/view_models/discount_view_model.dart';
 import 'package:flipper/routes/router.gr.dart';
 
-//TODO:{Telesphore}  finish discount UI === Link are added  for all screen
 class DiscountView extends StatelessWidget {
   const DiscountView({Key key}) : super(key: key);
 

@@ -6,8 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/payable/payable_view.dart';
 
-import 'pos_viewmodel.dart';
 
+import 'package:flipper_models/view_models/pos_viewmodel.dart';
 class AlwaysDisabledFocusNode extends FocusNode {
   @override
   bool get hasFocus => false;
