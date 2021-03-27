@@ -27,20 +27,20 @@ class KeyPadService with ReactiveServiceMixin {
   Order get currentSales => order.value;
 
   final Logger log = Logging.getLogger('O2:)');
-  final RxValue<double> _totalAmount = RxValue<double>(initial: 0.0);
-  double get totalAmount => _totalAmount.value;
+
+  final RxValue<double> setTotalAmount = RxValue<double>(initial: 0.0);
+
+  double get totalPayable => setTotalAmount.value;
 
   final List<Map> currentSale = [];
   List<Map> get currentSalesItem => currentSale;
 
   final RxValue<double> cash = RxValue<double>(initial: 0.0);
-  double get amount => cash.value;
 
-  // double total = 0.0;
+  double get amount => cash.value;
 
   final DatabaseService _db = ProxyService.database;
 
-  double totalPayable = 0.0;
 
   /// create new order,this method assume a cashier is still in progress of taking order
   /// then the amount passed assume that we are dealing with custom item
@@ -55,7 +55,7 @@ class KeyPadService with ReactiveServiceMixin {
     // print(customAmount);
     // return;
     final Document variation = _db.getCustomProductVariant();
-    print(Variation.fromMap(variation.jsonProperties).name);
+
     final String stockId = _db.getStockIdGivenProductId(
         variantId: Variation.fromMap(variation.jsonProperties).id);
 
@@ -68,9 +68,6 @@ class KeyPadService with ReactiveServiceMixin {
         final Document orderDocument = _db.getById(id: order.id);
         orderDocument.properties['amount'] = customAmount;
         _db.update(document: orderDocument);
-        _totalAmount.value = customAmount;
-        notifyListeners();
-        return;
       }
     });
   }
@@ -164,7 +161,7 @@ class KeyPadService with ReactiveServiceMixin {
               ProxyService.database.delete(id: id['id']);
             }
           }
-          totalPayable = 0.0;
+          setTotalAmount.value = 0.0;
           notifyListeners();
         }
       }

@@ -19,7 +19,7 @@ class PayableView extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: () {
-                if (model.keypadValue == '0.0' || model.keypadValue == '') {
+                if (model.keyPad.totalPayable == 0.0) {
                   model.viewTickets();
                 } else {
                   model.saveTicket();

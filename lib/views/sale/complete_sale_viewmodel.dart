@@ -112,11 +112,12 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   void collectSPENNPayment() async {
     final String transactionNumber = Uuid().v1();
 
+
     try {
       final http.Response response = await http.post(
           'https://flipper.yegobox.com/pay',
           body: jsonEncode({
-            'amount': keypad.totalAmount,
+            'amount': keypad.totalPayable,
             'message': ProxyService.sharedState.business.name.substring(0, 3) +
                 '-' +
                 transactionNumber.substring(0, 4),

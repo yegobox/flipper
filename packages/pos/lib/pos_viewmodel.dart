@@ -9,6 +9,7 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 class PosViewModel extends ReactiveViewModel {
   var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+ 
   String keypadValue = '0.0';
   var operators = <String>['+', '-', '*', '/'];
   String result = '';
@@ -50,10 +51,11 @@ class PosViewModel extends ReactiveViewModel {
     q.addChangeListener((List results) {
       _currentSale.clear();
       if (results.isNotEmpty) {
+        keyPad.setTotalAmount.value = 0.0; //reset on new value to re-count again
         for (Map map in results) {
           map.forEach((key, value) {
             // ProxyService.database.delete(id: value['id']);
-            keyPad.totalPayable = Order.fromMap(value).amount;
+            keyPad.setTotalAmount.value += Order.fromMap(value).amount;
             _currentSale.add(Order.fromMap(value));
           });
         }
@@ -140,8 +142,9 @@ class PosViewModel extends ReactiveViewModel {
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');
   }
 
+  /// Go to sale to complete a sale with a current total we have on [keyPad.totalPayable].
   void goSale() {
-    if (keypadValue != '0.0' && keypadValue.isNotEmpty) {
+    if (keyPad.totalPayable != 0.0) {
       //TODO: show animation like square when amount ==0.0
       ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
     }

@@ -46,7 +46,7 @@ class AfterSaleView extends StatelessWidget {
                           const SizedBox(height: 40),
                           Text(
                             'FRw' +
-                                (model.keypad.amount - model.keypad.totalAmount)
+                                (model.keypad.amount - model.keypad.totalPayable)
                                     .toStringAsFixed(0) +
                                 ' Change',
                             style: const TextStyle(
