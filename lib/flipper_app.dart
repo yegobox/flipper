@@ -177,7 +177,7 @@ class _FlipperAppState extends State<FlipperApp> {
       child: StoreProvider(
         store: store,
         child: MaterialApp(
-          // theme: appTheme(),
+          // theme: appTheme(), //old theme
           themeMode: ThemeMode.system,
           theme: FlipperThemeData.lightThemeData.copyWith(
             platform: TargetPlatform.android
