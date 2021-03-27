@@ -1,8 +1,10 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper/data/flipper_options.dart';
 import 'package:flipper/generated/i18n.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
+import 'package:flipper/themes/flipper_theme_data.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper_services/analytics_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
@@ -127,9 +129,7 @@ class _FlipperAppState extends State<FlipperApp> {
         );
       }
       if (data['path'] == 'add_note') {
-        ProxyService.nav.navigateTo(
-          Routing.addNoteView
-        );
+        ProxyService.nav.navigateTo(Routing.addNoteView);
       }
     });
     _state.didLogout.listen((loggedOut) {
@@ -177,6 +177,14 @@ class _FlipperAppState extends State<FlipperApp> {
       child: StoreProvider(
         store: store,
         child: MaterialApp(
+          // theme: appTheme(),
+          themeMode: ThemeMode.system,
+          theme: FlipperThemeData.lightThemeData.copyWith(
+            platform: TargetPlatform.android
+          ),
+          darkTheme: FlipperThemeData.darkThemeData.copyWith(
+             platform: TargetPlatform.android
+          ),
           navigatorObservers: <NavigatorObserver>[
             locator<AnalyticsService>().getAnalyticsObserver()
           ],
@@ -187,7 +195,7 @@ class _FlipperAppState extends State<FlipperApp> {
           title: 'Flipper',
           navigatorKey: locator<FlipperNavigationService>()
               .navigationKey, //slowly use mvm stacked architecture
-          theme: appTheme(),
+
           initialRoute: Routing.splashScreen,
           onGenerateRoute: Routing.onGenerateRoute,
         ),
