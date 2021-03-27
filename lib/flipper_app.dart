@@ -1,6 +1,5 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper/data/flipper_options.dart';
 import 'package:flipper/generated/i18n.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/theme.dart';
