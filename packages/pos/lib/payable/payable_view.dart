@@ -5,7 +5,6 @@ import 'package:pos/pos_viewmodel.dart';
 import 'package:number_display/number_display.dart';
 
 class PayableView extends StatelessWidget {
-  
   const PayableView({Key key, this.model}) : super(key: key);
   final PosViewModel model;
 
@@ -56,11 +55,7 @@ class PayableView extends StatelessWidget {
                   .canvasColor,
               child: GestureDetector(
                   onTap: () {
-                    if (model.keypadValue != '0.0' || model.keypadValue != '') {
-                      //TODO: show animation like square when amount ==0.0
-                      ProxyService.inAppNav
-                          .navigateTo(path: 'completeSaleView');
-                    }
+                    model.goSale();
                   },
                   child: callCharge(model)),
             ),

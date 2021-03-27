@@ -95,7 +95,7 @@ class PosViewModel extends ReactiveViewModel {
     } else if (key == '+') {
       changeOrderStatus();
       _expr = '0.0';
-      keypadValue = '0.0';
+      keypadValue = '';
     }
     keypadValue = _expr;
     result = _result;
@@ -138,6 +138,13 @@ class PosViewModel extends ReactiveViewModel {
   /// with a status of pending that way it will be visible on current sale count.
   void viewTickets() {
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');
+  }
+
+  void goSale() {
+    if (keypadValue != '0.0' && keypadValue.isNotEmpty) {
+      //TODO: show animation like square when amount ==0.0
+      ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
+    }
   }
 
   @override
