@@ -1,12 +1,12 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
-
+import 'package:flipper_models/view_models/signup_viewmodel.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
 
-import 'signup_viewmodel.dart';
+// import 'signup_viewmodel.dart';
 
 class SignUpView extends StatelessWidget {
   const SignUpView(

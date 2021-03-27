@@ -11,6 +11,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_redux: 
+  redux: 
+  couchbase_lite_dart: ^0.3.1
+  flipper_services:
+    path: '../flipper_services'
+  geolocator: ^5.3.0 #null save available
+  flipper:
+    path: '../..'
 
 dev_dependencies:
   test_coverage: ^0.4.2

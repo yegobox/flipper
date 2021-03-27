@@ -1,8 +1,10 @@
+library flipper_models;
+
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
-import 'package:flipper/utils/constant.dart';
+import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
