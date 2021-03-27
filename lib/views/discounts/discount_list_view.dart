@@ -1,4 +1,4 @@
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/discount_list_view_model.dart';
+import 'package:flipper_models/view_models/discount_list_view_model.dart';
 import 'package:flipper/widget/search/search_view.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';

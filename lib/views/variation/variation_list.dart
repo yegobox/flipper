@@ -1,7 +1,7 @@
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper/routes/router.gr.dart';
 
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/variation_viewmodel.dart';
+import 'package:flipper_models/view_models/variation_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';

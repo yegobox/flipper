@@ -2,7 +2,7 @@
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper_models/view_models/add_product_viewmodel.dart';
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/supplier_viewmodel.dart';
+import 'package:flipper_models/view_models/supplier_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 

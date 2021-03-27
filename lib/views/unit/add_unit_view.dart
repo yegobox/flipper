@@ -1,6 +1,6 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_services/locator.dart';
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/add_unit_viewmodal.dart';
+import 'package:flipper_models/view_models/add_unit_viewmodal.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';

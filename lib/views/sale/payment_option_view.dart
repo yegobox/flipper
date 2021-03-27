@@ -1,5 +1,5 @@
 import 'package:customappbar/customappbar.dart';
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart';
+import 'package:flipper_models/view_models/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';

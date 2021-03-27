@@ -1,6 +1,6 @@
 import 'package:flipper/views/CustomDropdownButton.dart';
 import 'package:flipper_models/product.dart';
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/products_viewmodel.dart';
+import 'package:flipper_models/view_models/products_viewmodel.dart';
 import 'package:flipper/views/product/widget/build_product_list.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
