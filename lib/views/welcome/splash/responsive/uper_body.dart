@@ -12,9 +12,14 @@ class UperBody extends StatelessWidget {
         children: <Widget>[
           Container(
             height: 60,
+             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(21),
+              color: Colors.white.withOpacity(1.0),
+            ),
             margin:const EdgeInsets.only(top:120),
-            child: Image.asset('assets/graphics/logo.png'),
+            child: Image.asset('assets/graphics/icon.png'),
           ),
+          
           Container(
             margin: const EdgeInsets.only(bottom:20),
             child: const Padding(
@@ -28,7 +33,7 @@ class UperBody extends StatelessWidget {
           Container(
              margin: const EdgeInsets.only(bottom:40),
             child: const Text(
-              'Interact and  grow your business',
+              'Interact and  grow your business .',
               style:  TextStyle(color: Colors.white, fontSize: 20),
             ),
           )

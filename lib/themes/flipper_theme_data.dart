@@ -1,4 +1,4 @@
-// Copyright 2019 The Flutter team. All rights reserved.
+// Copyright 2019 The Flipper team. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FlipperThemeData {
-  static const _lightFillColor = Colors.black;
+  static const _lightFillColor = Colors.white;
   static const _darkFillColor = Colors.white;
 
   static final Color _lightFocusColor = Colors.black.withOpacity(0.12);
@@ -21,7 +21,7 @@ class FlipperThemeData {
       colorScheme: colorScheme,
       textTheme: _textTheme,
       // Matches manifest.json colors and background color.
-      primaryColor: const Color(0xFF030303),
+      primaryColor: Colors.white,
       appBarTheme: AppBarTheme(
         textTheme: _textTheme.apply(bodyColor: colorScheme.onPrimary),
         color: colorScheme.background,
@@ -47,7 +47,7 @@ class FlipperThemeData {
   }
 
   static const ColorScheme lightColorScheme = ColorScheme(
-    primary: Color(0xFFB93C5D),
+    primary: const Color(0xff005AE4),
     primaryVariant: Color(0xFF117378),
     secondary: Color(0xFFEFF3F3),
     secondaryVariant: Color(0xFFFAFBFB),
@@ -63,7 +63,7 @@ class FlipperThemeData {
   );
 
   static const ColorScheme darkColorScheme = ColorScheme(
-    primary: Color(0xFFFF8383),
+    primary: const Color(0xff005AE4),
     primaryVariant: Color(0xFF1CDEC9),
     secondary: Color(0xFF4D1F7C),
     secondaryVariant: Color(0xFF451B6F),

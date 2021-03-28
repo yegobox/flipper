@@ -1,10 +1,11 @@
+import 'package:flipper_models/view_models/pos_viewmodel.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:flipper/routes/router.gr.dart';
 import '../theme.dart';
-import 'package:flipper_models/view_models/pos_viewmodel.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({

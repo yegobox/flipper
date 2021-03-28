@@ -143,17 +143,19 @@ class PayableView extends StatelessWidget {
                 ),
               ),
             ),
-            Container(
+            Flexible(
               child: Container(
-                padding: const EdgeInsets.only(left: 10),
-                child: Text(
-                  'FRw' + display(model.keyPad.totalPayable).toString(),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                child: Container(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Text(
+                    'FRw' + display(model.keyPad.totalPayable).toString(),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

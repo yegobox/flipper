@@ -123,9 +123,6 @@ class _onCreate extends State<Display> {
         textAlign: TextAlign.right,
         softWrap: true,
         style: TextStyle(
-          fontFeatures: [
-            FontFeature.enable('sups'),
-          ],
           fontSize: 25.0,
           color: Color(0xffc2c7cc),
         ),
@@ -136,9 +133,6 @@ class _onCreate extends State<Display> {
         textAlign: TextAlign.right,
         softWrap: true,
         style: const TextStyle(
-          fontFeatures: [
-            FontFeature.enable('sups'),
-          ],
           fontSize: 25.0,
           color: Color(0xffc2c7cc),
         ),

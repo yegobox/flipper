@@ -176,14 +176,11 @@ class _FlipperAppState extends State<FlipperApp> {
       child: StoreProvider(
         store: store,
         child: MaterialApp(
-          // theme: appTheme(), //old theme
           themeMode: ThemeMode.system,
-          theme: FlipperThemeData.lightThemeData.copyWith(
-            platform: TargetPlatform.android
-          ),
-          darkTheme: FlipperThemeData.darkThemeData.copyWith(
-             platform: TargetPlatform.android
-          ),
+          theme: FlipperThemeData.lightThemeData
+              .copyWith(platform: TargetPlatform.android),
+          darkTheme: FlipperThemeData.darkThemeData
+              .copyWith(platform: TargetPlatform.android),
           navigatorObservers: <NavigatorObserver>[
             locator<AnalyticsService>().getAnalyticsObserver()
           ],
