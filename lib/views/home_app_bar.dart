@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:flipper/routes/router.gr.dart';
-import '../theme.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({
@@ -98,6 +97,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
   }
 
+
   Widget _hamburger() {
     return Material(
       color: Colors.transparent,
@@ -106,8 +106,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           scaffoldKey.currentState.openDrawer();
         },
         child: Container(
-          width: appBarSize,
-          height: appBarSize,
+          width:  44.0,
+          height:  44.0,
           child: Center(
             child: Stack(
               overflow: Overflow.visible,
@@ -141,5 +141,5 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(appBarSize);
+  Size get preferredSize => const Size.fromHeight( 44.0);
 }
