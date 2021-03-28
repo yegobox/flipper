@@ -176,3 +176,5 @@ class $Routing {
 // https://pub.dev/packages/flutter_sms
 //  'SELECT id,name,sku,productId,unit,table,channels WHERE table=\$VALUE AND name=\$NAME AND productId=\$PRODUCTID');
 //https://pub.dev/packages/flutter_sms
+// https://pub.dev/packages/miniplayer
+// 84f3d28555 (flutter working version SDK keep this.)
