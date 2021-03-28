@@ -2,7 +2,7 @@ library flipper_chat;
 
 import 'package:flipper_chat/chat_view.dart';
 import 'package:flipper_chat/chat_room_viewmodel.dart';
-import 'package:flipper_chat/theme.dart';
+// import 'package:flipper_chat/theme.dart';
 import 'package:flipper_models/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -131,7 +131,7 @@ class ChatRoomsTile extends StatelessWidget {
               height: 30,
               width: 30,
               decoration: BoxDecoration(
-                color: CustomTheme.colorAccent,
+                // color: CustomTheme.colorAccent,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(

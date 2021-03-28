@@ -3,11 +3,17 @@ import 'package:flipper_models/printable.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
-class SettingsView extends StatelessWidget {
+class SettingsView extends StatefulWidget {
   const SettingsView({Key key}) : super(key: key);
+
+  @override
+  _SettingsViewState createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<SettingsView> {
+  bool _toggled =false;
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +55,7 @@ class SettingsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Search Paired Bluetooth'),
-                  OutlineButton(
-                    onPressed: () {
-                      model.getBluetooth();
-                    },
-                    child: const Text('Search'),
-                  ),
+
                   Container(
                     height: 200,
                     child: ListView.builder(
@@ -64,15 +64,7 @@ class SettingsView extends StatelessWidget {
                           ? model.state.bluethioothDevices.length
                           : 0,
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          onTap: () {
-                            final String select =
-                                model.state.bluethioothDevices[index];
-                            final List list = select.split('#');
-                            // String name = list[0];
-                            final String mac = list[1];
-                            model.setConnect(mac);
-                          },
+                        return SwitchListTile(
                           title: Text(
                               '${model.state.bluethioothDevices[index]}',
                               style: Theme.of(context)
@@ -80,6 +72,12 @@ class SettingsView extends StatelessWidget {
                                   .headline5
                                   .copyWith(color: Colors.black)),
                           subtitle: const Text('Click to connect'),
+                          value: _toggled,
+                          controlAffinity: ListTileControlAffinity.trailing, onChanged: (bool value) {
+                            setState(() {
+                              _toggled = value;
+                            });
+                        },
                         );
                       },
                     ),
@@ -104,6 +102,9 @@ class SettingsView extends StatelessWidget {
               ),
             ),
           );
+        },
+        onModelReady: (BlueToothViewModel model){
+          model.getBluetooth(); //start by searching available devices
         },
         viewModelBuilder: () => BlueToothViewModel());
   }
