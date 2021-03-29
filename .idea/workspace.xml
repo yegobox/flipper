@@ -19,12 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/settings/settings_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/settings/settings_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chatrooms.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chatrooms.dart" afterDir="false" />
-    </list>
+    <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -49,7 +44,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../couchbase_lite_dart" />
     <property name="settings.editor.selected.configurable" value="AndroidSdkUpdater" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
@@ -95,6 +90,10 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="100" y="100" width="1336" height="624" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1616919621178" />
+    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1616941313114">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1616941313114" />
     <state width="1476" height="208" key="GridCell.Tab.0.bottom" timestamp="1616928373044">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
