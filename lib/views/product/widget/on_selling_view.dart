@@ -2,7 +2,7 @@ import 'package:customappbar/Itemappbar.dart';
 import 'package:flipper_models/product.dart';
 
 // import 'package:flipper_services/locator.dart';
-import 'package:flipper/views/product/widget/on_selling_viewmodal.dart';
+import 'package:flipper_models/view_models/on_selling_viewmodal.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flutter_icons/flutter_icons.dart';
@@ -551,8 +551,9 @@ class _onCreate extends State<OnSellingView> {
                 showActionButton: true,
                 onPressedCallback: () async {
                   model.saveOrder(
-                      variationId: model.variations[0].id,
-                      amount: model.amountTotal);
+                    variationId: model.variations[0].id,
+                    amount: model.amountTotal,
+                  );
                   ProxyService.nav.pop();
                 },
                 actionButtonName: 'Add',

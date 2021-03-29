@@ -47,7 +47,7 @@ class FlipperThemeData {
   }
 
   static const ColorScheme lightColorScheme = ColorScheme(
-    primary: const Color(0xff005AE4),
+    primary: Color(0xff005AE4),
     primaryVariant: Color(0xFF117378),
     secondary: Color(0xFFEFF3F3),
     secondaryVariant: Color(0xFFFAFBFB),

@@ -41,7 +41,6 @@ class KeyPadService with ReactiveServiceMixin {
 
   final DatabaseService _db = ProxyService.database;
 
-
   /// create new order,this method assume a cashier is still in progress of taking order
   /// then the amount passed assume that we are dealing with custom item
   /// if the takeNewOrder is not passed it will keep updating the current active and draft order
@@ -56,7 +55,7 @@ class KeyPadService with ReactiveServiceMixin {
     // return;
     final Document variation = _db.getCustomProductVariant();
 
-    final String stockId = _db.getStockIdGivenProductId(
+    final String stockId = _db.getStockIdGivenVariantId(
         variantId: Variation.fromMap(variation.jsonProperties).id);
 
     pendingOrder(
@@ -72,10 +71,13 @@ class KeyPadService with ReactiveServiceMixin {
     });
   }
 
+  /// create an order given a varition, a caller should
+  /// specify if he/she wants to use a product's name in orderSummary or not.
   Order createOrder(
       {double customAmount,
       Variation variation,
       String stockId,
+      bool useProductName = false,
       String orderType = 'custom'}) {
     final id4 = Uuid().v1().substring(0, 10);
     _db.insert(id: id4, data: {
@@ -83,7 +85,7 @@ class KeyPadService with ReactiveServiceMixin {
       'orderNUmber': id4.substring(0, 5),
       'status': 'pending',
       'variantId': variation.id,
-      'variantName': variation.name,
+      'variantName': useProductName ? variation.productName : variation.name,
       'orderType': orderType,
       'active':
           true, //used to check if order is parked becomes parked when false.
@@ -118,6 +120,7 @@ class KeyPadService with ReactiveServiceMixin {
       createOrder(
           stockId: stockId,
           variation: variation,
+          useProductName: true,
           customAmount: customAmount,
           orderType: 'custom');
       notifyListeners();

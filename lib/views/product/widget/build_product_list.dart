@@ -96,20 +96,23 @@ List<Widget> buildProductList(
                           productId: product.id, context: context),
                   builder: (BuildContext context, StockViewModel stockModel,
                       Widget child) {
-                    // FIXME: fix showing prices when a product has more than one variant
-                    return stockModel.stock.isEmpty ||
-                            stockModel.stock.length > 1
+                    return stockModel.stock.isEmpty
                         ? const Text(
                             ' Prices',
                             style: TextStyle(color: Colors.black),
                           )
-                        : Text(
-                            'RWF ' +
-                                stockModel.stock[0].retailPrice
-                                    .toInt()
-                                    .toString(),
-                            style: const TextStyle(color: Colors.black),
-                          );
+                        : stockModel.stock.length > 1
+                            ? const Text(
+                                ' Prices',
+                                style: TextStyle(color: Colors.black),
+                              )
+                            : Text(
+                                'RWF ' +
+                                    stockModel.stock[0].retailPrice
+                                        .toInt()
+                                        .toString(),
+                                style: const TextStyle(color: Colors.black),
+                              );
                   },
                 ),
               ),

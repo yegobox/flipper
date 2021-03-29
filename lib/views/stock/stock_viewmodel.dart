@@ -21,6 +21,7 @@ class StockViewModel extends BaseModel {
     notifyListeners();
   }
 
+  /// update stock related to the given variantId
   void updateStock({String variantId}) {
     //the Id we get we are sure it stands for variant no need to run complicated query!
     final q = Query(_databaseService.db,
@@ -58,10 +59,8 @@ class StockViewModel extends BaseModel {
     return _variantId;
   }
 
+  /// load stock of the given productId and update [stocks array]
   void loadStockByProductId({BuildContext context, String productId}) async {
-    setBusy(true);
-
-    // final List<dynamic> variants = await _databaseService(productId: productId);
     final q = Query(_databaseService.db,
         'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
 
@@ -87,8 +86,8 @@ class StockViewModel extends BaseModel {
               _stocks.add(Stock.fromMap(value));
             }
           });
+          notifyListeners();
         }
-        // notifyListeners();
       });
     }
   }

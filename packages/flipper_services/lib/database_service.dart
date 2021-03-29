@@ -187,17 +187,20 @@ class DatabaseService {
     }
   }
 
+  /// logout and close a database
+  /// this need to be fine tuned as sometime it cause the app
+  /// to crash so it need to be restarted again.
   void logout({dynamic context}) {
     if (db.isOpen) {
       replicator.stop();
       db.close();
-
       _state.setDidLogout(logout: true);
-      // AfterSplash
     }
   }
 
-  String getStockIdGivenProductId({String variantId}) {
+  /// given a variantId return a stock related to it
+  /// if no stock which nealy impossible then return null
+  String getStockIdGivenVariantId({String variantId}) {
     final q = Query(db, 'SELECT  id WHERE table=\$T AND variantId=\$variantId');
     q.parameters = {'T': AppTables.stock, 'variantId': variantId};
     final results = q.execute();
