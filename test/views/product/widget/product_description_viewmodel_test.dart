@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flipper/views/product/widget/on_selling_viewmodal.dart';
 
 void main() {
   //NOTE: we learned that we can not put UI invokable class in viewmodel such as TextEditingController as it will make it harder to test our viewmode. see the change I made.
