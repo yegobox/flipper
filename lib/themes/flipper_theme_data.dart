@@ -18,6 +18,8 @@ class FlipperThemeData {
 
   static ThemeData themeData(ColorScheme colorScheme, Color focusColor) {
     return ThemeData(
+      // scaffoldBackgroundColor:Colors.white,
+      scaffoldBackgroundColor: colorScheme.background,
       colorScheme: colorScheme,
       textTheme: _textTheme,
       // Matches manifest.json colors and background color.
@@ -31,7 +33,7 @@ class FlipperThemeData {
       ),
       iconTheme: IconThemeData(color: colorScheme.onPrimary),
       canvasColor: colorScheme.background,
-      scaffoldBackgroundColor: colorScheme.background,
+
       highlightColor: Colors.transparent,
       accentColor: colorScheme.primary,
       focusColor: focusColor,
@@ -51,7 +53,7 @@ class FlipperThemeData {
     primaryVariant: Color(0xFF117378),
     secondary: Color(0xFFEFF3F3),
     secondaryVariant: Color(0xFFFAFBFB),
-    background: Color(0xFFE6EBEB),
+    background: Colors.white, //Color(0xFFE6EBEB)
     surface: Color(0xFFFAFBFB),
     onBackground: Colors.white,
     error: _lightFillColor,
@@ -63,7 +65,7 @@ class FlipperThemeData {
   );
 
   static const ColorScheme darkColorScheme = ColorScheme(
-    primary: const Color(0xff005AE4),
+    primary: Color(0xff005AE4),
     primaryVariant: Color(0xFF1CDEC9),
     secondary: Color(0xFF4D1F7C),
     secondaryVariant: Color(0xFF451B6F),

@@ -1,9 +1,8 @@
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper_models/business_history.dart';
+import 'package:flipper/views/business_home_view.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 
 import 'package:flipper/viewmodels/switch_model.dart';
-import 'package:flipper/views/home_view.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +73,7 @@ class SwitchView extends StatelessWidget {
             ),
           );
         } else {
-          return HomeView(
+          return BusinessHomeView(
             vm: vm,
             sideOpenController: sideOpenController,
           );

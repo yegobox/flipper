@@ -1,6 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/validators.dart';
+import 'package:flipper/views/loaders/loading_percentage_view.dart';
 import 'package:flipper_models/view_models/signup_viewmodel.dart';
 import 'package:flutter/material.dart';
 
@@ -28,13 +29,7 @@ class SignUpView extends StatelessWidget {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, SignUpViewModel model, Widget child) {
           return model.didSingup == true
-              ? Scaffold(
-                  body: Container(
-                    child: const Center(
-                      child: Text('Loading app....'),
-                    ),
-                  ),
-                )
+              ?LoadingPercentageView()
               : Scaffold(
                   appBar: CommonAppBar(
                     title: '',

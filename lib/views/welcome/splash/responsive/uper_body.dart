@@ -29,12 +29,14 @@ class UperBody extends StatelessWidget {
               ),
             ),
           ),
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 40),
-              child: const Text(
-                'Interact and  grow your business .',
-                style: TextStyle(color: Colors.white, fontSize: 20),
+          SafeArea(
+            child: Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 40),
+                child: const Text(
+                  'Interact and  grow your business .',
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
               ),
             ),
           )
