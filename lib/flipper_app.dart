@@ -2,7 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/generated/i18n.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/theme.dart';
+// import 'package:flipper/theme.dart';
 import 'package:flipper/themes/flipper_theme_data.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper_services/analytics_service.dart';

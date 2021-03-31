@@ -486,9 +486,6 @@ class BuildProductsView extends ViewModelWidget<ProductsViewModel> {
     ).isEmpty
         ? const SizedBox.shrink()
         : Scaffold(
-            backgroundColor: Theme.of(context)
-                .copyWith(canvasColor: Colors.white)
-                .canvasColor,
             body: Padding(
               padding: const EdgeInsets.all(0),
               child: ListView(

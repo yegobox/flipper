@@ -20,8 +20,7 @@ class KeyPad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          Theme.of(context).copyWith(canvasColor: Colors.white).canvasColor,
+      
       body: SafeArea(
         child: Column(
           children: [
