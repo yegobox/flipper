@@ -94,6 +94,7 @@ class PosViewModel extends ReactiveViewModel {
       while (_expr.isNotEmpty) {
         _expr = _expr.substring(0, _expr.length - 1);
       }
+      _expr = '0.0';
       ProxyService.sharedState.setClear(c: true);
     } else if (key == '+') {
       changeOrderStatus();

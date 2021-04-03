@@ -219,8 +219,6 @@ class DatabaseService {
     final results = q.execute();
     if (results.isEmpty) return null;
 
-    print(results);
-
     final qq = Query(db, 'SELECT  id WHERE table=\$T AND productId=\$P');
     qq.parameters = {'T': AppTables.variation, 'P': results[0]['id']};
     final result = qq.execute();
