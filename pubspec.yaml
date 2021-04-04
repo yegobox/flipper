@@ -45,9 +45,6 @@ dependencies:
   customappbar: 
     path:
       './packages/custom_appbar'
-      
-  flipper_ui: ^1.0.0
-  
   rubber: ^0.4.0
   get_storage: ^1.4.0 
   country_picker: ^1.1.3
@@ -114,6 +111,9 @@ dependencies:
   flipper_services:
     path:
       './packages/flipper_services'
+  flipper_ui:
+    path:
+      './packages/flipper_ui'
   flipper_models:
     path:
       './packages/flipper_models'

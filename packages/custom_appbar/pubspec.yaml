@@ -11,7 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   apptheme: ^1.0.0
-  flipper_ui: ^1.0.0
+  flipper_ui:
+    path:
+      './../flipper_ui'
   google_fonts:  ^1.1.0
     
 dev_dependencies:

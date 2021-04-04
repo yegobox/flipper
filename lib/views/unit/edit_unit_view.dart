@@ -74,7 +74,7 @@ class _EditUnitViewState extends State<EditUnitView> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 Routing.navigator.pop();
               },

@@ -36,7 +36,7 @@ class OpenCloseDrawerView extends StatelessWidget {
         return Hero(
           tag: 'open-btn',
           child: Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

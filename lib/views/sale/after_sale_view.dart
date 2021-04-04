@@ -1,6 +1,5 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
-// import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_models/view_models/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -18,7 +17,8 @@ class AfterSaleView extends StatelessWidget {
             (BuildContext context, CompleteSaleViewModel model, Widget child) {
           return SafeArea(
             child: Scaffold(
-              appBar: CommonAppBar(
+              appBar: CustomAppBar(
+                useTransparentButton: true,
                 onPop: () {
                   ProxyService.nav.popUntil(Routing.dashboard);
                 },
@@ -76,7 +76,7 @@ class AfterSaleView extends StatelessWidget {
                                 const EdgeInsets.only(left: 18.0, right: 18.0),
                             child: Container(
                               width: double.infinity,
-                              child: const Button(
+                              child: const FLipperButton(
                                 disableButton: false,
                                 onPressedCallback: null,
                                 buttonName: 'Email',
@@ -89,7 +89,7 @@ class AfterSaleView extends StatelessWidget {
                                 const EdgeInsets.only(left: 18.0, right: 18.0),
                             child: Container(
                               width: double.infinity,
-                              child: const Button(
+                              child: const FLipperButton(
                                 disableButton: false,
                                 onPressedCallback: null,
                                 buttonName: 'No Receipt',

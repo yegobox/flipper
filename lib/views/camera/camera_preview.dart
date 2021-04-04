@@ -14,7 +14,7 @@ class _CameraPreviewState extends State<CameraPreview> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(
+      appBar: CustomAppBar(
         onPop: () {
           Routing.navigator.pop();
         },

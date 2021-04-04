@@ -9,12 +9,12 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:uuid/uuid.dart';
 
-enum ITEM { ITEMNAME, ITEMPRICE }
 
 class KeyPadService with ReactiveServiceMixin {
   final _state = locator<SharedStateService>();
@@ -62,16 +62,10 @@ class KeyPadService with ReactiveServiceMixin {
         customAmount: customAmount,
         stockId: stockId,
         variation: Variation.fromMap(variation.jsonProperties));
-    order.listen((order) {
-      if (order != null && order.active && order.draft && !takeNewOrder) {
-        final Document orderDocument = _db.getById(id: order.id);
-        orderDocument.properties['amount'] = customAmount;
-        _db.update(document: orderDocument);
-      }
-    });
+
   }
 
-  /// create an order given a varition, a caller should
+  /// create an order given a variation, a caller should
   /// specify if he/she wants to use a product's name in orderSummary or not.
   Order createOrder(
       {double customAmount,
@@ -104,35 +98,50 @@ class KeyPadService with ReactiveServiceMixin {
 
     final Document doc = _db.getById(id: id4);
     order.value = Order.fromMap(doc.jsonProperties);
-    print(id4);
+
     ProxyService.sharedPref.setCustomOrderId(orderId: id4);
     return order.value;
+  }
+  void updateOrder({@required Order order, @required double customAmount}){
+    final Document orderDocument = _db.getById(id: order.id);
+    orderDocument.properties['amount'] = customAmount;
+    _db.update(document: orderDocument);
+    notifyListeners();
   }
 
   /// the pending order will return the existing order if draft and active are still true otherwise
   /// wise it will create a new active & draft order.
   /// Also it is very important to treat order as an item added to the
+  /// this check if the current order's id from local storage is not completed if then remove it from local storage
   void pendingOrder(
       {double customAmount, String stockId, Variation variation}) {
-    // ProxyService.sharedPref.removeKey(key: 'custom_orderId');
+    print(ProxyService.sharedPref.getCustomOrderId());
+    checkOrderAuthenticity();
     if (ProxyService.sharedPref.getCustomOrderId() == 'null' ||
         ProxyService.sharedPref.getCustomOrderId() == null) {
-      createOrder(
+      final Order order= createOrder(
           stockId: stockId,
           variation: variation,
           useProductName: true,
           customAmount: customAmount,
           orderType: 'custom');
+      updateOrder(customAmount: customAmount,order:order);
       notifyListeners();
     } else {
-      order.value = null;
-
       final String id = ProxyService.sharedPref.getCustomOrderId();
-
       final Document doc = _db.getById(id: id);
-
       order.value = Order.fromMap(doc.jsonProperties);
+
+      updateOrder(customAmount: customAmount,order:Order.fromMap(doc.jsonProperties));
       notifyListeners();
+    }
+  }
+
+  void checkOrderAuthenticity(){
+    final String id = ProxyService.sharedPref.getCustomOrderId();
+    final Document doc = _db.getById(id: id);
+    if(Order.fromMap(doc.jsonProperties).status =='completed'){
+      ProxyService.sharedPref.removeKey(key:'custom_orderId');
     }
   }
 

@@ -50,7 +50,7 @@ class _VariantWidgetState extends State<VariantWidget> {
         return WillPopScope(
           onWillPop: onWillPop,
           child: Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 Routing.navigator.pop();
               },

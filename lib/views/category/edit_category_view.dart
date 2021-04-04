@@ -91,7 +91,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
         viewModelBuilder: () => CategoryViewModel(),
         builder: (BuildContext context, CategoryViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

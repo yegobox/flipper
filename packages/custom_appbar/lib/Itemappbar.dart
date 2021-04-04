@@ -78,7 +78,7 @@ class Itemappbar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                 trailing: _showActionButton == null || !_showActionButton
                     ? const SizedBox.shrink()
-                    : Button(
+                    : FLipperButton(
                         disableButton: _disableButton,
                         onPressedCallback: _onPressedCallback,
                         buttonName: _actionButtonName ?? "",

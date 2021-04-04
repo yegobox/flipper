@@ -21,7 +21,7 @@ class AddCategoryView extends StatelessWidget {
         },
         builder: (BuildContext context, CategoryViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

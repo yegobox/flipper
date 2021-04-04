@@ -47,7 +47,7 @@ class AddUnitTypeScreen extends StatelessWidget {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, AddUnitViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

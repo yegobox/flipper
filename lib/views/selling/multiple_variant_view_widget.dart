@@ -25,7 +25,7 @@ class MultipleVariantViewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(
+      appBar: CustomAppBar(
         onPop: () {
           Routing.navigator.pop();
         },

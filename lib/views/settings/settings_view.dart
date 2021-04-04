@@ -36,7 +36,7 @@ class _SettingsViewState extends State<SettingsView> {
         builder:
             (BuildContext context, BlueToothViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

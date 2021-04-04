@@ -31,7 +31,7 @@ class SignUpView extends StatelessWidget {
           return model.didSingup == true
               ?LoadingPercentageView()
               : Scaffold(
-                  appBar: CommonAppBar(
+                  appBar: CustomAppBar(
                     title: '',
                     showActionButton: true,
                     disableButton: false,

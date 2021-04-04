@@ -67,7 +67,7 @@ class AddProductView extends StatelessWidget {
         return WillPopScope(
           onWillPop: _onWillPop,
           child: Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

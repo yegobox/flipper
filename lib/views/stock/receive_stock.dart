@@ -18,7 +18,7 @@ class ReceiveStockScreen extends StatelessWidget {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, StockViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

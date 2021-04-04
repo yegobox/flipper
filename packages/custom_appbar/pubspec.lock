@@ -88,9 +88,9 @@ packages:
   flipper_ui:
     dependency: "direct main"
     description:
-      name: flipper_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../flipper_ui"
+      relative: true
+    source: path
     version: "1.0.0"
   flutter:
     dependency: "direct main"

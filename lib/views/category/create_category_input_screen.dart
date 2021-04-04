@@ -16,7 +16,7 @@ class CreateCategoryInputScreen extends StatelessWidget {
     return ViewModelBuilder.reactive(
       builder: (BuildContext context, CategoryViewModel model, Widget child) {
         return Scaffold(
-          appBar: CommonAppBar(
+          appBar: CustomAppBar(
             onPop: () {
               model.createCategory(name: _name.text);
               ProxyService.nav.pop();

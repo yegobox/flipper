@@ -14,7 +14,7 @@ class NewTicket extends StatelessWidget {
         builder: (BuildContext context, TicketsViewModel model, Widget child) {
           return SafeArea(
             child: Scaffold(
-              appBar: CommonAppBar(
+              appBar: CustomAppBar(
                 onPop: () async {
                   await model.saveNewTicket();
                   ProxyService.nav.pop();

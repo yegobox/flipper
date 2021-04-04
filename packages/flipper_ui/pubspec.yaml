@@ -1,0 +1,30 @@
+name: flipper_ui
+description: A new Flutter package project.
+version: 1.0.0
+
+homepage: "https://yegobox.com"
+
+environment:
+  sdk: ">=2.9.2 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  apptheme: ^1.0.0
+  google_fonts:  ^1.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+flutter:
+#  plugin:
+#    platforms:
+#      android:
+#        package: rw.flipper.subscription
+#        pluginClass: Subscription
+#      ios:
+#        pluginClass: Subscription
+
+# flutter pub publish --dry-run
+# flutter pub publish
+

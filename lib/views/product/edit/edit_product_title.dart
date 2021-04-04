@@ -22,7 +22,7 @@ class EditItemTitle extends StatelessWidget {
             return const SizedBox
                 .shrink(); //a nice place to show loading screen.
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },

@@ -21,7 +21,7 @@ String spennToJson(Spenn data) => json.encode(data.toJson());
 SpennpaymentStatus spennpaymentStatusFromJson(String str) =>
     SpennpaymentStatus.fromJson(json.decode(str));
 
-String spennpaymentStatusToJson(SpennpaymentStatus data) =>
+String spennPaymentStatusToJson(SpennpaymentStatus data) =>
     json.encode(data.toJson());
 
 class SpennpaymentStatus {
@@ -95,7 +95,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
         } else if (spennpaymentStatus.paymentSuccess == 2) {
           ProxyService.sharedPref.removeKey(key: 'custom_orderId');
           // TODO: right now we are saving a ticket as system, we need to keep in consideration
-          // when a ticket is resusmed, no need of creating a new ticket just use the resumed ticket
+          // when a ticket is resumed, no need of creating a new ticket just use the resumed ticket
           ProxyService.ticket.saveNewTicket(
             ticketName: 'system_ticket',
             cashReceived: keypad.amount,

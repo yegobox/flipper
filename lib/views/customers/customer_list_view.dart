@@ -12,7 +12,7 @@ class CustomerListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: CommonAppBar(
+        appBar: CustomAppBar(
           onPop: () {
             ProxyService.nav.pop();
           },
@@ -64,7 +64,7 @@ class CustomerListView extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 18.0, right: 18.0),
                 child: Container(
                   width: double.infinity,
-                  child: Button(
+                  child: FLipperButton(
                     disableButton: false,
                     onPressedCallback: () {
                       ProxyService.nav.navigateTo(Routing.addCustomerView);

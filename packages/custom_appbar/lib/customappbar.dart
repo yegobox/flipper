@@ -7,8 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 enum CLOSEBUTTON { ICON, BUTTON }
 
-class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonAppBar({
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomAppBar({
     Widget action,
     bool showActionButton,
     @required String title,
@@ -21,6 +21,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     String rightActionButtonName,
     String leftActionButtonName,
     CLOSEBUTTON closeButton = CLOSEBUTTON.ICON,
+    bool useTransparentButton = false,
     Key key,
   })  : _additionalText = action,
         _showActionButton = showActionButton,
@@ -34,6 +35,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
         _rightActionButtonName = rightActionButtonName,
         _leftActionButtonName = leftActionButtonName,
         _closeButton = closeButton,
+        _useTransparentButton = useTransparentButton,
         super(key: key);
 
   final String _rightActionButtonName;
@@ -47,6 +49,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Function _onPressedCallback;
   final bool _showActionButton;
   final String _title;
+  final bool _useTransparentButton;
 
   @override
   Size get preferredSize => Size.fromHeight(
@@ -74,7 +77,8 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                       onPressed: _onPop,
                     )
-                  : Button(
+                  : FLipperButton(
+                      transparent: _useTransparentButton,
                       disableButton: _disableButton,
                       onPressedCallback: _onPop,
                       buttonName: _leftActionButtonName ?? '',
@@ -92,7 +96,8 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
               trailing: _showActionButton == null || !_showActionButton
                   ? const SizedBox.shrink()
-                  : Button(
+                  : FLipperButton(
+                      transparent: _useTransparentButton,
                       disableButton: _disableButton,
                       onPressedCallback: _onPressedCallback,
                       buttonName: _rightActionButtonName ?? '',

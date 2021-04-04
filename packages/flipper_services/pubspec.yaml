@@ -1,8 +1,8 @@
 name: flipper_services
 description: A new Flutter package project.
 version: 0.0.1
-author:
-homepage:
+author: Richard
+#homepage:
 
 environment:
   sdk: ">=2.10.0 <3.0.0"
@@ -36,9 +36,7 @@ dependencies:
   
   timezone: ^0.5.6
   # this will deprecate soon do not use them
-  flutter_barcode_scanner: 
-  flipper_ui: ^1.0.0
-  
+  flutter_barcode_scanner:
   rubber: ^0.4.0
   get_storage: ^1.4.0 #replaced shared_preferences because shared_preferences is slow
   country_picker: ^1.1.3

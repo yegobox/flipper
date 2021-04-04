@@ -23,7 +23,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
       converter: CommonViewModel.fromStore,
       builder: (context, vm) {
         return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 Routing.navigator.pop();
               },

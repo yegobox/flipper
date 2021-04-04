@@ -39,7 +39,7 @@ class _EditVariationScreenState extends State<EditVariationScreen> {
         builder:
             (BuildContext context, VariationViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 Routing.navigator.pop();
               },

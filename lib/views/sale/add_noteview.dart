@@ -17,7 +17,7 @@ class AddNoteView extends StatelessWidget {
           (BuildContext context, CompleteSaleViewModel model, Widget child) {
         return SafeArea(
           child: Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.popUntil(Routing.dashboard);
               },

@@ -11,7 +11,7 @@ class AddCustomerView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: CommonAppBar(
+        appBar: CustomAppBar(
           onPop: () {
             ProxyService.nav.pop();
           },
@@ -151,7 +151,7 @@ class AddCustomerView extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 18.0, right: 18.0),
                 child: Container(
                   width: double.infinity,
-                  child: const Button(
+                  child: const FLipperButton(
                     disableButton: false,
                     onPressedCallback: null,
                     buttonName: 'Add',

@@ -22,7 +22,7 @@ class AddVariationScreen extends StatelessWidget {
         builder:
             (BuildContext context, VariationViewModel model, Widget child) {
           return Scaffold(
-            appBar: CommonAppBar(
+            appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.pop();
               },
