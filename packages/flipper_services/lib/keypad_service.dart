@@ -140,7 +140,7 @@ class KeyPadService with ReactiveServiceMixin {
   void checkOrderAuthenticity(){
     final String id = ProxyService.sharedPref.getCustomOrderId();
     final Document doc = _db.getById(id: id);
-    if(Order.fromMap(doc.jsonProperties).status =='completed'){
+    if(doc!=null && Order.fromMap(doc.jsonProperties).status =='completed'){
       ProxyService.sharedPref.removeKey(key:'custom_orderId');
     }
   }

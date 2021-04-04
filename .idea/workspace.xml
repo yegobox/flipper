@@ -23,55 +23,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/camera/camera_preview.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/camera/camera_preview.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/customers/add_customer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/add_customer.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/open_close_drawerview.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/open_close_drawerview.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_category_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/edit/edit_product_title.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/edit/edit_product_title.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/add_noteview.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/add_noteview.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/collect_cash_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/collect_cash_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/payment_option_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/payment_option_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/selling/multiple_variant_view_widget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/selling/multiple_variant_view_widget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/settings/settings_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/settings/settings_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/stock/receive_stock.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/stock/receive_stock.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/tickets/new_ticket.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/tickets/new_ticket.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/tickets/tickets_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/tickets/tickets_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/transactions/transaction_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/transactions/transaction_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/unit/add_unit_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/unit/add_unit_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/unit/edit_unit_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/unit/edit_unit_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/add_variation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/add_variation_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/edit_variation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/edit_variation_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/variation/variant_widget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/variant_widget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/welcome/settings/settings_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/welcome/settings/settings_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/welcome/signup/signup_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/welcome/signup/signup_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/custom_appbar/lib/Itemappbar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/custom_appbar/lib/Itemappbar.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/custom_appbar/lib/customappbar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/custom_appbar/lib/customappbar.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/custom_appbar/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/custom_appbar/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/custom_appbar/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/custom_appbar/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/.metadata" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/.metadata" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/CHANGELOG.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/LICENSE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/lib/flipper_ui.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/lib/flipper_ui.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/ui/test/ui_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/test/ui_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,7 +98,7 @@
       <workItem from="1617474886181" duration="1638000" />
       <workItem from="1617477466701" duration="1067000" />
       <workItem from="1617515683944" duration="593000" />
-      <workItem from="1617524363992" duration="5901000" />
+      <workItem from="1617524363992" duration="8521000" />
     </task>
     <servers />
   </component>
@@ -163,27 +116,6 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart</url>
-          <line>58</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart</url>
-          <line>54</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart</url>
-          <line>52</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
