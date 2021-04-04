@@ -45,10 +45,6 @@ Future<void> main() async {
   // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupLocator();
 
-  if (isInDebugMode) {
-    // enableFlipper();
-  }
-  //
   Logger.level = isInDebugMode ? Level.verbose : Level.info;
   // Set `enableInDevMode` to true to see reports while in debug mode
   // This is only to be used for confirming that reports are being
