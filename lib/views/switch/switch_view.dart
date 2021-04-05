@@ -1,14 +1,13 @@
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/views/business_home_view.dart';
-import 'package:flipper_services/flipperNavigation_service.dart';
-
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/switch_model.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
+import 'package:flipper_models/view_models/switch_model.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper/utils/HexColor.dart';
 
 class SwitchView extends StatelessWidget {
   SwitchView({
