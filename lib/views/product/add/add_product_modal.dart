@@ -80,7 +80,6 @@ class AddProductModal extends StatelessWidget {
           );
         },
         onModelReady: (AddProductModalViewModal model) {
-          
           model.createTemporalProduct(productName: 'tmp', userId: userId);
         },
         viewModelBuilder: () => AddProductModalViewModal());

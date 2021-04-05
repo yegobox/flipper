@@ -24,8 +24,9 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_modal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_modal.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_modal_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_modal_viewmodal.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,7 +117,7 @@
       <workItem from="1617616210258" duration="7333000" />
       <workItem from="1617624332369" duration="4666000" />
       <workItem from="1617633709841" duration="3314000" />
-      <workItem from="1617637454468" duration="4355000" />
+      <workItem from="1617637454468" duration="6393000" />
     </task>
     <servers />
   </component>
@@ -142,6 +143,11 @@
           <url>file://$PROJECT_DIR$/lib/views/switch/switch_view.dart</url>
           <line>30</line>
           <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_modal_viewmodal.dart</url>
+          <line>138</line>
+          <option name="timeStamp" value="129" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

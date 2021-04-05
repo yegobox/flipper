@@ -1,19 +1,20 @@
 library flipper_models;
+
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/tax.dart';
-import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
-import 'package:logger/logger.dart';
-import 'package:uuid/uuid.dart';
-
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
+import 'package:logger/logger.dart';
+import 'package:uuid/uuid.dart';
 
 import 'base_model.dart';
 
@@ -39,55 +40,40 @@ class AddProductModalViewModal extends BaseModel {
 
   // this is a product to edit later on and add variation on it.
   Future createTemporalProduct({String productName, String userId}) async {
-    final DatabaseService _databaseService = ProxyService.database;
+    final DatabaseService _db = ProxyService.database;
 
     assert(_sharedStateService.branch.id != null);
 
-    final q = Query(
-        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+    final q = Query(_db.db, Queries.Q_4);
 
     q.parameters = {'VALUE': AppTables.category, 'NAME': 'NONE'};
 
-     q.addChangeListener((categories) {
-       if (categories.allResults.isNotEmpty) {
-         for (Map map in categories.allResults) {
-           map.forEach((key, value) {
-             log.d(value);
-             _category = Category.fromMap(value);
-           });
-           notifyListeners();
-         }
-       }
-     });
-
+    final categories = q.execute();
+    for (Map map in categories.allResults) {
+      _category = Category.fromMap(map);
+    }
 
     //  find tmp product
-    final product = Query(
-        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+    final product = Query(_db.db, Queries.Q_5);
 
     product.parameters = {'VALUE': AppTables.product, 'NAME': productName};
 
-    final getTax = Query(
-        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+    final getTax = Query(_db.db, Queries.Q_6);
 
     getTax.parameters = {'VALUE': AppTables.tax, 'NAME': 'Vat'};
 
     final taxResults = getTax.execute();
     final productResults = product.execute();
-    if (productResults.allResults.isNotEmpty) {
-      if (taxResults.allResults.isNotEmpty) {
-        for (Map map in taxResults.allResults) {
-          map.forEach((key, value) {
-            _taxId = Tax.fromMap(value).id;
-          });
-          notifyListeners();
-        }
+    final List t = productResults.allResults;
+    if (t.isEmpty) {
+      for (Map map in taxResults.allResults) {
+        _taxId = Tax.fromMap(map).id;
       }
-
+      notifyListeners();
 
       final id1 = Uuid().v1();
 
-      final Document productDoc = _databaseService.insert(id: id1, data: {
+      final Document productDoc = _db.insert(id: id1, data: {
         'name': productName,
         'categoryId': category.id,
         'color': '#955be9',
@@ -108,7 +94,7 @@ class AddProductModalViewModal extends BaseModel {
       // we make productDoc.ID equal to variation.ID on regular variant to make it easy to update the regular variant
       // otherwise other variant should have independent ID to avoid mixeup
       final variantId = Uuid().v1();
-      _databaseService.insert(id: variantId, data: {
+      _db.insert(id: variantId, data: {
         'isActive': false,
         'name': 'Regular',
         'unit': 'kg',
@@ -124,7 +110,7 @@ class AddProductModalViewModal extends BaseModel {
 
       final id3 = Uuid().v1();
 
-      _databaseService.insert(id: id3, data: {
+      _db.insert(id: id3, data: {
         'variantId': variantId,
         'supplyPrice': 0.0,
         'canTrackingStock': false,
@@ -141,7 +127,7 @@ class AddProductModalViewModal extends BaseModel {
         'createdAt': DateTime.now().toIso8601String(),
       });
       final id4 = Uuid().v1();
-      _databaseService.insert(id: id4, data: {
+      _db.insert(id: id4, data: {
         'branchId': _sharedStateService.branch.id,
         'productId': productDoc.ID,
         'table': AppTables.branchProduct,
@@ -150,13 +136,10 @@ class AddProductModalViewModal extends BaseModel {
       // log.d('productId:' + productDoc.ID);
       return productDoc.ID;
     } else {
-      for (Map map in productResults.allResults) {
-        map.forEach((key, value) {
-          _productId = Product.fromMap(value).id;
-        });
-        notifyListeners();
+      for (Map map in t) {
+        _productId = Product.fromMap(map).id;
       }
-
+      notifyListeners();
       return productId;
     }
   }
