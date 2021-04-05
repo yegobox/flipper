@@ -1,7 +1,7 @@
-import 'package:flipper_models/view_models/add_product_modal_viewmodal.dart';
 
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper/utils/flitter_color.dart';
+import 'package:flipper_models/view_models/add_product_modal_viewmodal.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';

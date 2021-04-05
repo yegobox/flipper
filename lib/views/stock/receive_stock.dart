@@ -1,6 +1,6 @@
 import 'package:customappbar/customappbar.dart';
+import 'package:flipper_models/view_models/stock_viewmodel.dart';
 
-import 'package:flipper/views/stock/stock_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';

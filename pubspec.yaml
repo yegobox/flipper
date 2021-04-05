@@ -95,7 +95,7 @@ dependencies:
   connectivity: ^2.0.2
   # background_fetch: '^0.5.1'
   flutter_icons: ^1.1.0
-  couchbase_lite_dart: ^0.3.1
+  couchbase_lite_dart: ^0.4.0
   bluetooth_thermal_printer: ^0.0.4
   firebase_remote_config: ^0.6.0
   # FIXME: not used

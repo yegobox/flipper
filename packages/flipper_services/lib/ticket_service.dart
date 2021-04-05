@@ -40,15 +40,15 @@ class TicketService with ReactiveServiceMixin {
         'orders': []
       });
 
-      q.addChangeListener((List results) {
-        if (results.isNotEmpty) {
-          for (Map map in results) {
+      q.addChangeListener((results) {
+        if (results.allResults.isNotEmpty) {
+          for (Map map in results.allResults) {
             map.forEach((key, value) {
               final pendingTicket =
                   ProxyService.database.getById(id: ticket.ID);
               List<String> ods = [];
               if (pendingTicket.properties['orders'] != null) {
-                ods = Ticket.fromMap(pendingTicket.jsonProperties)
+                ods = Ticket.fromMap(pendingTicket.map)
                     .orders
                     .toList();
                 ods.add(Order.fromMap(value).id);

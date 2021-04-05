@@ -1,5 +1,5 @@
 import 'package:flipper/views/category/category_selecter_view.dart';
-import 'package:flipper/views/category/category_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/category_viewmodel.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';

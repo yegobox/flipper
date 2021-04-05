@@ -25,13 +25,14 @@ class ChatViewModel extends ReactiveViewModel {
 
     q.parameters = {'VALUE': AppTables.chats};
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
+    q.addChangeListener((results) {
+      for (Map map in results.allResults) {
         if (!_chats.contains(Chat.fromMap(map))) {
           _chats.add(Chat.fromMap(map));
           notifyListeners();
         }
       }
+      results.dispose();
     });
   }
 

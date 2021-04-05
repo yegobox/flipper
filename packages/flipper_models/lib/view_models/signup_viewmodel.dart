@@ -1,16 +1,18 @@
 library flipper_models;
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/domain/redux/authentication/auth_actions.dart';
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 
@@ -155,8 +157,7 @@ class SignUpViewModel extends BaseViewModel {
 
     final Document branch =
         ProxyService.database.insert(id: branchId, data: _mapBranch);
-    ProxyService.sharedState
-        .setBranch(branch: Branch.fromMap(branch.jsonProperties));
+    ProxyService.sharedState.setBranch(branch: Branch.fromMap(branch.map));
     return branch.ID;
   }
 
@@ -236,7 +237,7 @@ class SignUpViewModel extends BaseViewModel {
     ProxyService.database.insert(id: id, data: category);
   }
 
-  bool didSingup = true;
+  bool didSignUp = true;
   final DatabaseService _db = ProxyService.database;
 
   /// this method is used to check if the user has signup before
@@ -250,21 +251,21 @@ class SignUpViewModel extends BaseViewModel {
 
     q.parameters = {
       'VALUE': AppTables.business,
-      'USERID': ProxyService.sharedState.user.id
+      'USERID': ProxyService.sharedState.user?.id
     };
 
     await Future.delayed(const Duration(
         seconds: 4)); //put here to avoid having to show the wrong widget
-    q.addChangeListener((List results) async {
-      if (results.isNotEmpty) {
-        didSingup = true;
-        StoreProvider.of<AppState>(context)
-            .dispatch(VerifyAuthenticationState());
+    q.addChangeListener((results) async {
+      if (results.allResults.isNotEmpty) {
+        didSignUp = true;
+        final FlipperNavigationService _navigationService = ProxyService.nav;
+        _navigationService.navigateTo(Routing.dashboard);
         notifyListeners();
       } else {
         //delay 3 seconds as updating this might be an error
         await Future.delayed(const Duration(seconds: 4));
-        didSingup = false;
+        didSignUp = false;
         notifyListeners();
       }
     });

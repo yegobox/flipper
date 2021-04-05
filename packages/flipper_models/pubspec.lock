@@ -196,7 +196,7 @@ packages:
       name: cli_util
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.4"
+    version: "0.2.0"
   clock:
     dependency: transitive
     description:
@@ -287,7 +287,7 @@ packages:
       name: couchbase_lite_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.0"
   country_code_picker:
     dependency: transitive
     description:
@@ -571,9 +571,9 @@ packages:
   flipper_ui:
     dependency: transitive
     description:
-      name: flipper_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../flipper_ui"
+      relative: true
+    source: path
     version: "1.0.0"
   flutter:
     dependency: "direct main"

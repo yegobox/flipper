@@ -2,7 +2,6 @@ library flipper_models;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/variation.dart';
 import 'package:flipper/utils/constant.dart';
-import 'package:flipper/viewmodels/base_model.dart';
 
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper/utils/logger.dart';
@@ -11,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:logger/logger.dart';
+import 'base_model.dart';
 
 class SupplierViewmodel extends BaseModel {
   final Logger log = Logging.getLogger('supplier viewmodel:)');
@@ -27,8 +27,8 @@ class SupplierViewmodel extends BaseModel {
 
     q.parameters = {'VALUE': AppTables.variation};
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
+    q.addChangeListener(( results) {
+      for (Map map in results.allResults) {
         map.forEach((key, value) {
           _variation.add(Variation.fromMap(value));
         });

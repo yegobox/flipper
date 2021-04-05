@@ -57,12 +57,12 @@ class KeyPadService with ReactiveServiceMixin {
     final Document variation = _db.getCustomProductVariant();
 
     final String stockId = _db.getStockIdGivenVariantId(
-        variantId: Variation.fromMap(variation.jsonProperties).id);
+        variantId: Variation.fromMap(variation.map).id);
 
     pendingOrder(
         customAmount: customAmount,
         stockId: stockId,
-        variation: Variation.fromMap(variation.jsonProperties));
+        variation: Variation.fromMap(variation.map));
 
   }
 
@@ -98,7 +98,7 @@ class KeyPadService with ReactiveServiceMixin {
     order.value = null;
 
     final Document doc = _db.getById(id: id4);
-    order.value = Order.fromMap(doc.jsonProperties);
+    order.value = Order.fromMap(doc.map);
 
     ProxyService.sharedPref.setCustomOrderId(orderId: id4);
     return order.value;
@@ -132,9 +132,9 @@ class KeyPadService with ReactiveServiceMixin {
     } else {
       final String id = ProxyService.sharedPref.getCustomOrderId();
       final Document doc = _db.getById(id: id);
-      order.value = Order.fromMap(doc.jsonProperties);
+      order.value = Order.fromMap(doc.map);
 
-      updateOrder(customAmount: customAmount,order:Order.fromMap(doc.jsonProperties));
+      updateOrder(customAmount: customAmount,order:Order.fromMap(doc.map));
       notifyListeners();
     }
   }
@@ -142,7 +142,7 @@ class KeyPadService with ReactiveServiceMixin {
   Future<void> checkOrderAuthenticity()async {
     final String id = ProxyService.sharedPref.getCustomOrderId();
     final Document doc = _db.getById(id: id);
-    if(doc!=null && Order.fromMap(doc.jsonProperties).status =='completed'){
+    if(doc!=null && Order.fromMap(doc.map).status =='completed'){
       await ProxyService.sharedPref.removeKey(key:'custom_orderId');
     }
   }
@@ -170,10 +170,11 @@ class KeyPadService with ReactiveServiceMixin {
               'SELECT  id  WHERE table=\$T AND status=\$S');
           q.parameters = {'T': AppTables.order, 'S': 'pending'};
           final results = q.execute();
-          if (results.isNotEmpty) {
-            for (Map id in results) {
+          if (results.allResults.isNotEmpty) {
+            for (Map id in results.allResults) {
               ProxyService.database.delete(id: id['id']);
             }
+            results.dispose();
           }
           setPayable.value = 0.0;
           notifyListeners();
@@ -191,9 +192,9 @@ class KeyPadService with ReactiveServiceMixin {
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
     final results = q.execute();
-    if (results.isNotEmpty) {
+    if (results.allResults.isNotEmpty) {
       currentSale.clear();
-      for (Map map in results) {
+      for (Map map in results.allResults) {
         map.forEach((key, value) {
           currentSale.add({
             'name': Order.fromMap(value).variantName,
@@ -202,6 +203,7 @@ class KeyPadService with ReactiveServiceMixin {
           });
         });
       }
+      results.dispose();
     }
     setPayable.value = 0;
     // ignore: avoid_function_literals_in_foreach_calls

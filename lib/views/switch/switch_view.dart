@@ -2,7 +2,7 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/business_home_view.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 
-import 'package:flipper/viewmodels/switch_model.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/switch_model.dart';
 import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flutter/material.dart';
@@ -81,7 +81,7 @@ class SwitchView extends StatelessWidget {
       },
       viewModelBuilder: () => SwitchModel(),
       onModelReady: (SwitchModel model) {
-        model.getDraweState();
+        model.getDrawerState();
       },
     );
   }

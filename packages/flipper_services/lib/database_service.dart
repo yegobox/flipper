@@ -204,8 +204,8 @@ class DatabaseService {
     final q = Query(db, 'SELECT  id WHERE table=\$T AND variantId=\$variantId');
     q.parameters = {'T': AppTables.stock, 'variantId': variantId};
     final results = q.execute();
-    if (results.isEmpty) return null;
-    return results[0]['id'];
+    if (results.allResults.isNotEmpty) return null;
+    return results.allResults[0]['id'];
   }
 
   /// given that we only have one Custom Amount product in system
@@ -217,11 +217,11 @@ class DatabaseService {
 
     // get this product then use it's id to get related variant
     final results = q.execute();
-    if (results.isEmpty) return null;
+    if (results.allResults.isNotEmpty) return null;
 
     final qq = Query(db, 'SELECT  id WHERE table=\$T AND productId=\$P');
-    qq.parameters = {'T': AppTables.variation, 'P': results[0]['id']};
+    qq.parameters = {'T': AppTables.variation, 'P': results.allResults[0]['id']};
     final result = qq.execute();
-    return getById(id: result[0]['id']);
+    return getById(id: result.allResults[0]['id']);
   }
 }

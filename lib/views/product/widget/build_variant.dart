@@ -20,9 +20,9 @@ Future<List<Variation>> buildVariantsList(
   q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': product.id};
   List<Variation> variants;
 
-  final variationsResults = q.execute();
+  final results = q.execute();
 
-  for (Map map in variationsResults) {
+  for (Map map in results.allResults) {
     map.forEach((key, value) {
       variants.add(Variation.fromMap(value));
     });

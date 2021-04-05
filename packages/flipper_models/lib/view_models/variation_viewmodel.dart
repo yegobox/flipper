@@ -11,12 +11,13 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flipper/viewmodels/base_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
+
+import 'base_model.dart';
 
 class VariationViewModel extends BaseModel {
   final Logger log = Logging.getLogger('variation model:)');
@@ -41,13 +42,14 @@ class VariationViewModel extends BaseModel {
 
     q.parameters = {'VALUE': AppTables.variation, 'productId': productId};
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
+    q.addChangeListener((results) {
+      for (Map map in results.allResults) {
         map.forEach((key, value) {
           _stock = Stock.fromMap(value);
         });
         notifyListeners();
       }
+
     });
   }
 
@@ -57,9 +59,9 @@ class VariationViewModel extends BaseModel {
         
 
     q.parameters = {'PRODUCTID': productId ?? sharedStateService.product.id};
-    q.addChangeListener((List results) {
+    q.addChangeListener((results) {
       // issue found in the joun query is that it show result of two joined doc eventhoug I expect one!
-      for (Map map in results) {
+      for (Map map in results.allResults) {
         if (map.length > 2) {
           if (!_variations.contains(VariantStock.fromMap(map))) {
             _variations.add(VariantStock.fromMap(map));
@@ -67,6 +69,7 @@ class VariationViewModel extends BaseModel {
         }
         notifyListeners();
       }
+
     });
   }
 
@@ -79,12 +82,13 @@ class VariationViewModel extends BaseModel {
     q.parameters = {'VALUE': AppTables.product, 'productId': productId};
 
     final productResults = q.execute();
-    for (Map map in productResults) {
+    for (Map map in productResults.allResults) {
       map.forEach((key, value) {
         _product = Product.fromMap(value);
       });
       notifyListeners();
     }
+
   }
 
   void getProducts({BuildContext context}) {
@@ -96,14 +100,15 @@ class VariationViewModel extends BaseModel {
 
     q.parameters = {'VALUE': AppTables.variation};
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
+    q.addChangeListener((results) {
+      for (Map map in results.allResults) {
         map.forEach((key, value) {
           list.add(Product.fromMap(value));
         });
         setBusy(false);
         notifyListeners();
       }
+
     });
   }
 

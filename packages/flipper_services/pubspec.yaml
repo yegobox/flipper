@@ -84,7 +84,7 @@ dependencies:
   awesome_notifications: ^0.0.5+4
   pusher: ^1.0.0
  
-  couchbase_lite_dart: ^0.3.1
+  couchbase_lite_dart: ^0.4.0
   path_provider: ^1.6.27
   flipper_models:
     path:

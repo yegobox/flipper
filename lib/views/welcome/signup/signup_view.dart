@@ -28,7 +28,7 @@ class SignUpView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
         builder: (BuildContext context, SignUpViewModel model, Widget child) {
-          return model.didSingup == true
+          return model.didSignUp == true
               ?LoadingPercentageView()
               : Scaffold(
                   appBar: CustomAppBar(

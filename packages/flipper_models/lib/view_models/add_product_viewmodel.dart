@@ -113,8 +113,8 @@ class AddProductViewmodel extends ReactiveViewModel {
 
     final variations = q.execute();
 
-    if (variations.isNotEmpty) {
-      for (Map map in variations) {
+    if (variations.allResults.isNotEmpty) {
+      for (Map map in variations.allResults) {
         map.forEach((key, value) {
           //expect variation to be 1 as variant = one stock
           updateVariationsStock(
@@ -125,6 +125,7 @@ class AddProductViewmodel extends ReactiveViewModel {
           );
         });
       }
+
     }
   }
 
@@ -151,8 +152,8 @@ class AddProductViewmodel extends ReactiveViewModel {
 
       final stocks = q.execute();
 
-      if (stocks.isNotEmpty) {
-        for (Map map in stocks) {
+      if (stocks.allResults.isNotEmpty) {
+        for (Map map in stocks.allResults) {
           map.forEach((key, value) {
             //expect stock to be 1 as variant = one stock
             _stock = Stock.fromMap(value);
@@ -166,6 +167,7 @@ class AddProductViewmodel extends ReactiveViewModel {
             _databaseService.update(document: stock);
           });
         }
+
       }
     }
   }
@@ -214,8 +216,8 @@ class AddProductViewmodel extends ReactiveViewModel {
 
     final products = q.execute();
 
-    if (products.isNotEmpty) {
-      for (Map map in products) {
+    if (products.allResults.isNotEmpty) {
+      for (Map map in products.allResults) {
         map.forEach((key, value) {
           //get the Regular variant to update when needed
           final regularVariant = Query(_databaseService.db,
@@ -227,15 +229,17 @@ class AddProductViewmodel extends ReactiveViewModel {
             'PRODUCTID': Product.fromMap(value).id
           };
           final results = regularVariant.execute();
-          if (results.isNotEmpty) {
-            for (Map map in results) {
+          if (results.allResults.isNotEmpty) {
+            for (Map map in results.allResults) {
               sharedStateService.setVariation(
                   variation: Variation.fromMap(map));
             }
+
           }
         });
         notifyListeners();
       }
+
     }
 
     setBusy(false);

@@ -1,26 +1,19 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-import 'package:flipper/domain/redux/branch/branch_actions.dart';
-import 'package:flipper/domain/redux/business/business_actions.dart';
 import 'package:flipper/domain/redux/user/user_actions.dart';
-import 'package:flipper_models/pcolor.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/branch.dart';
-import 'package:flipper_models/business.dart';
-import 'package:flipper_models/fuser.dart';
-import 'package:flipper_models/hint.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flipper/utils/logger.dart';
+import 'package:flipper_models/fuser.dart';
+import 'package:flipper_models/pcolor.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
-import 'package:uuid/uuid.dart';
 
 import '../app_state.dart';
 import 'auth_actions.dart';
@@ -47,13 +40,17 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     // ProxyService.database.openDB();
     final FlipperNavigationService _navigationService = ProxyService.nav;
 
-    final String loggedInuserId = await isUserCurrentlyLoggedIn(store);
-    if (loggedInuserId == null) {
+    final String loggedInUserId = await isUserCurrentlyLoggedIn(store);
+    if (loggedInUserId == null) {
       _navigationService.navigateTo(Routing.afterSplash);
       return;
+    } else {
+      //TODO: rename signup as startupView
+      final FlipperNavigationService _navigationService = ProxyService.nav;
+      _navigationService.navigateTo(Routing.signUpView,
+          arguments:
+              SignUpViewArguments(userId: loggedInUserId, avatar: 'avatar'));
     }
-
-    await getBusinesses(store: store, loggedInuserId: loggedInuserId);
     await getAppColors();
   };
 }
@@ -68,14 +65,13 @@ Future getAppColors() async {
 
   q.parameters = {'VALUE': AppTables.color};
 
-  final results = q.execute();
-  if (results.isNotEmpty) {
-    for (Map map in results) {
+  q.addChangeListener((results) {
+    for (Map map in results.allResults) {
       map.forEach((key, value) {
         colors.add(PColor.fromMap(value));
       });
     }
-  }
+  });
 }
 
 /// the mthod login and connect to a database`
@@ -105,22 +101,13 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
       'VALUE': AppTables.user,
     };
 
-    final results = q.execute();
-
-    if (results.isNotEmpty) {
-      for (Map map in results) {
+    q.addChangeListener((results) {
+      for (Map map in results.allResults) {
         map.forEach((key, value) async {
           if (value.containsKey('userId') &&
               loggedInuserId == FUser.fromMap(value).userId) {
             ProxyService.sharedState.setUser(user: FUser.fromMap(value));
 
-            if (ProxyService.sharedState.user != null) {
-              // await ProxyService.firestore.addContacts({
-              //   'phoneNumber': ProxyService.sharedState.user.name,
-              //   'name': ProxyService.sharedState.user.name,
-              //   'channels': [ProxyService.sharedState.user.id]
-              // });
-            }
             store.dispatch(WithUser(user: FUser.fromMap(value)));
             try {
               saveDeviceToken(value);
@@ -129,7 +116,8 @@ Future<String> isUserCurrentlyLoggedIn(Store<AppState> store) async {
           }
         });
       }
-    }
+      // results.dispose();
+    });
     return loggedInuserId;
   }
 }
@@ -145,59 +133,6 @@ Future saveDeviceToken(value) async {
   // });
 }
 
-Future<List<Branch>> getBranches(
-    Store<AppState> store, String loggedInuserId) async {
-  final DatabaseService _databaseService = ProxyService.database;
-
-  final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
-
-  final List<Branch> branches = [];
-  q.parameters = {
-    'VALUE': AppTables.branch,
-  };
-
-  final results = q.execute();
-  if (results.isNotEmpty) {
-    for (Map map in results) {
-      map.forEach((key, value) {
-        branches.add(Branch.fromMap(value));
-      });
-    }
-  }
-
-  for (Branch branch in branches) {
-    if (branch.active) {
-      //set current active branch
-      ProxyService.sharedState.setBranch(branch: branch);
-
-      final bool weHaveCustomCategory = await isCategory(branchId: branch.id);
-
-      if (!weHaveCustomCategory) {
-        final String id = Uuid().v1();
-        _databaseService.insert(id: id, data: {
-          'active': true,
-          'table': AppTables.category,
-          'branchId': branch.id,
-          'focused': true,
-          'id': id,
-          'channels': [loggedInuserId],
-          'name': 'custom'
-        });
-      }
-      store.dispatch(
-        OnCurrentBranchAction(branch: branch),
-      );
-      //set branch hint
-      final Hint hint = Hint((HintBuilder b) => b
-        ..type = HintType.Branch
-        ..name = branch.name);
-      store.dispatch(OnHintLoaded(hint: hint));
-    }
-  }
-  store.dispatch(OnBranchLoaded(branches: branches));
-  return branches;
-}
-
 Future<bool> isCategory({String branchId}) async {
   final DatabaseService _databaseService = ProxyService.database;
 
@@ -207,7 +142,7 @@ Future<bool> isCategory({String branchId}) async {
     'VALUE': AppTables.category,
   };
 
-  return q.execute().isNotEmpty;
+  return q.execute().allResults.isNotEmpty;
 }
 
 Future<void> createSystemStockReasons(Store<AppState> store) async {
@@ -254,68 +189,6 @@ Future<void> createTemporalOrder(Store<AppState> store) async {
     return;
   }
   DataManager.createTemporalOrder(store);
-}
-
-Future<void> getBusinesses(
-    {Store<AppState> store, String loggedInuserId}) async {
-  // log.d(loggedInuserId);
-  final DatabaseService _databaseService = ProxyService.database;
-
-  final List<Business> businesses = [];
-
-  final q = Query(
-      _databaseService.db, 'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
-
-  q.parameters = {'VALUE': AppTables.business, 'USERID': loggedInuserId};
-
-  final results = q.execute();
-  if (results.isNotEmpty) {
-    for (Map map in results) {
-      map.forEach((key, value) {
-        if (!businesses.contains(Business.fromMap(value))) {
-          ProxyService.sharedState
-              .setBusiness(business: Business.fromMap(value));
-          businesses.add(Business.fromMap(value));
-        }
-      });
-    }
-  }
-
-  await getBranches(store, loggedInuserId);
-  await createTemporalOrder(store);
-
-  for (Business business in businesses) {
-    if (business.active) {
-      ProxyService.sharedState.setBusiness(business: business);
-      store.dispatch(
-        ActiveBusinessAction(business),
-      );
-    }
-  }
-
-  final FlipperNavigationService _navigationService = ProxyService.nav;
-
-  if (businesses.isEmpty) {
-    if (loggedInuserId != null) {
-      _navigationService.navigateTo(
-        Routing.signUpView,
-        arguments: SignUpViewArguments(
-          userId: loggedInuserId,
-          name: store.state.user.name,
-          avatar: 'avatar',
-          email: store.state.user.email,
-          token: store.state.user.token,
-        ),
-      );
-    } else {
-      _navigationService.navigateTo(Routing.afterSplash);
-    }
-  } else if (loggedInuserId == null) {
-    _navigationService.navigateTo(Routing.afterSplash);
-  } else {
-    store.dispatch(OnBusinessLoaded(business: businesses));
-    _navigationService.navigateTo(Routing.dashboard);
-  }
 }
 
 void Function(

@@ -44,14 +44,15 @@ class ChatRoomViewModel extends ReactiveViewModel {
 
     q.parameters = {'VALUE': AppTables.chats};
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
+    q.addChangeListener((results) {
+      for (Map map in results.allResults) {
         // TODO: should come up with how I will load chat heat not chat messages but from chat messages
         if (!_chats.contains(Chat.fromMap(map))) {
           _chats.add(Chat.fromMap(map));
           notifyListeners();
         }
       }
+      results.dispose();
     });
   }
 

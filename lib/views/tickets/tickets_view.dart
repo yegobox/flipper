@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/utils/HexColor.dart';
-import 'package:flipper/views/tickets/tickets_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/tickets_viewmodel.dart';
 import 'package:flipper_models/ticket.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';

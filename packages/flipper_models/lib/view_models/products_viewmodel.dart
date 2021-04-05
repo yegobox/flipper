@@ -33,7 +33,7 @@ class ProductsViewModel extends ReactiveViewModel {
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
 
     q.parameters = {'VALUE': AppTables.category, 'NAME': 'custom'};
-    return q.execute().isNotEmpty;
+    return q.execute().allResults.isNotEmpty;
   }
 
   String get branchId {
@@ -54,15 +54,16 @@ class ProductsViewModel extends ReactiveViewModel {
     branche.parameters = {'VALUE': AppTables.branch};
     final branchResult = branche.execute();
     final List<Branch> branches = [];
-    if (branchResult.isNotEmpty) {
+    if (branchResult.allResults.isNotEmpty) {
       // ignore: unnecessary_type_check
-      for (Map map in branchResult) {
+      for (Map map in branchResult.allResults) {
         map.forEach((key, value) {
           if (!branches.contains(Branch.fromMap(value))) {
             branches.add(Branch.fromMap(value));
           }
         });
       }
+
     }
 
     for (Branch branch in branches) {
@@ -79,14 +80,15 @@ class ProductsViewModel extends ReactiveViewModel {
 
     final List<Business> businesses = [];
 
-    if (docResults.isNotEmpty) {
-      for (Map map in docResults) {
+    if (docResults.allResults.isNotEmpty) {
+      for (Map map in docResults.allResults) {
         map.forEach((key, value) {
           if (!businesses.contains(Business.fromMap(value))) {
             businesses.add(Business.fromMap(value));
           }
         });
       }
+
     }
 
     for (Business business in businesses) {
@@ -106,8 +108,8 @@ class ProductsViewModel extends ReactiveViewModel {
 
     q.parameters = {'VALUE': AppTables.product, 'BID': _sharedState.branch.id};
 
-    q.addChangeListener((List results) {
-      for (Map map in results) {
+    q.addChangeListener((results) {
+      for (Map map in results.allResults) {
         map.forEach((key, value) {
           if (!_products.contains(Product.fromMap(value))) {
             _products.add(Product.fromMap(value));

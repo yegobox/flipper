@@ -1,5 +1,5 @@
 import 'package:flipper_models/business.dart';
-import 'package:flipper/viewmodels/drawer_viewmodel.dart';
+import 'package:flipper_models/view_models/drawer_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper/utils/HexColor.dart';

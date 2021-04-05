@@ -21,11 +21,11 @@ class TicketsViewModel extends ReactiveViewModel {
       'T': AppTables.tickets,
       'S': 'parked'
     }; //looking for active order joined with stock_histories
-    ticketsQuery.addChangeListener((List orders) {
+    ticketsQuery.addChangeListener((orders) {
       // String orderId;
       // delete all and orders
-      if (orders.isNotEmpty) {
-        for (Map map in orders) {
+      if (orders.allResults.isNotEmpty) {
+        for (Map map in orders.allResults) {
           //NOTE: debuging
           // Ticket.fromMap(map).orders.toList().forEach((orderId) {
           //   _databaseService.delete(id: orderId);
@@ -68,7 +68,7 @@ class TicketsViewModel extends ReactiveViewModel {
     ProxyService.keypad.order.listen((order) {
       List<String> ods = [];
       if (pendingTicket.properties['orders'] != null) {
-        ods = Ticket.fromMap(pendingTicket.jsonProperties).orders.toList();
+        ods = Ticket.fromMap(pendingTicket.map).orders.toList();
         ods.add(order.id);
         pendingTicket.properties['orders'] = ods;
         ProxyService.database.update(document: pendingTicket);
@@ -96,7 +96,7 @@ class TicketsViewModel extends ReactiveViewModel {
   void resumeOrder({String ticketId}) {
     final Document ticket = _databaseService.getById(id: ticketId);
     // set resumable ticket this set the payable to save and with charge amount to be
-    ticket.jsonProperties['orders'].toList().forEach((orderId) {
+    ticket.map['orders'].toList().forEach((orderId) {
       final Document pendingOrder = ProxyService.database.getById(id: orderId);
       pendingOrder.properties['active'] = true;
       pendingOrder.properties['draft'] = true;

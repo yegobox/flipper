@@ -42,7 +42,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       final Document u = ProxyService.database
           .insert(id: store.state.user.id.toString(), data: mapUser);
 
-      store.dispatch(WithUser(user: FUser.fromMap(u.jsonProperties)));
+      store.dispatch(WithUser(user: FUser.fromMap(u.map)));
 
       store.dispatch(CreateBusinessOnSignUp());
     }

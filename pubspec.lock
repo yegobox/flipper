@@ -287,7 +287,7 @@ packages:
       name: couchbase_lite_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.0"
   country_code_picker:
     dependency: transitive
     description:

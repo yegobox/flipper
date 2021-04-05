@@ -9,12 +9,13 @@ import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flipper/viewmodels/base_model.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
+
+import 'base_model.dart';
 
 class AddProductModalViewModal extends BaseModel {
   final Logger log = Logging.getLogger('Add Product:');
@@ -47,17 +48,19 @@ class AddProductModalViewModal extends BaseModel {
 
     q.parameters = {'VALUE': AppTables.category, 'NAME': 'NONE'};
 
-    final categories = q.execute();
+     q.addChangeListener((categories) {
+       if (categories.allResults.isNotEmpty) {
+         for (Map map in categories.allResults) {
+           map.forEach((key, value) {
+             log.d(value);
+             _category = Category.fromMap(value);
+           });
+           notifyListeners();
+         }
+       }
+     });
 
-    if (categories.isNotEmpty) {
-      for (Map map in categories) {
-        map.forEach((key, value) {
-          log.d(value);
-          _category = Category.fromMap(value);
-        });
-        notifyListeners();
-      }
-    }
+
     //  find tmp product
     final product = Query(
         _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
@@ -71,15 +74,17 @@ class AddProductModalViewModal extends BaseModel {
 
     final taxResults = getTax.execute();
     final productResults = product.execute();
-    if (productResults.isEmpty) {
-      if (taxResults.isNotEmpty) {
-        for (Map map in taxResults) {
+    if (productResults.allResults.isNotEmpty) {
+      if (taxResults.allResults.isNotEmpty) {
+        for (Map map in taxResults.allResults) {
           map.forEach((key, value) {
             _taxId = Tax.fromMap(value).id;
           });
           notifyListeners();
         }
       }
+
+
       final id1 = Uuid().v1();
 
       final Document productDoc = _databaseService.insert(id: id1, data: {
@@ -145,12 +150,13 @@ class AddProductModalViewModal extends BaseModel {
       // log.d('productId:' + productDoc.ID);
       return productDoc.ID;
     } else {
-      for (Map map in productResults) {
+      for (Map map in productResults.allResults) {
         map.forEach((key, value) {
           _productId = Product.fromMap(value).id;
         });
         notifyListeners();
       }
+
       return productId;
     }
   }

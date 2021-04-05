@@ -7,7 +7,7 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/generated/l10n.dart';
 
-import 'package:flipper/views/category/category_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/category_viewmodel.dart';
 
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';

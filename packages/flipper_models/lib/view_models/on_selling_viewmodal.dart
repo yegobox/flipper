@@ -94,8 +94,8 @@ class OnProductSellingViewModal extends ReactiveViewModel {
         'SELECT variants.name,products.name as productName, variants.id,variants.sku,variants.unit,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId JOIN products ON variants.productId=products.id WHERE variants.table=\$VALUE AND variants.productId=\$PID');
 
     docs.parameters = {'VALUE': AppTables.variation, 'PID': productId};
-    docs.addChangeListener((List stocks) {
-      for (Map map in stocks) {
+    docs.addChangeListener((stocks) {
+      for (Map map in stocks.allResults) {
         if (map.length == 6) {
           //to avoid anomalitie caused by join query.
           if (!_variations.contains(VariantStock.fromMap(map))) {
@@ -105,6 +105,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
         setBusy(false);
         notifyListeners();
       }
+
     });
   }
 
@@ -119,7 +120,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
     _keypad.createOrder(
       customAmount: amount,
       useProductName: true,
-      variation: Variation.fromMap(doc.jsonProperties),
+      variation: Variation.fromMap(doc.map),
       stockId: stockId,
       orderType: 'regular',
     );

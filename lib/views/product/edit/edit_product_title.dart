@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flipper/views/product/edit/edit_product_viewmodel.dart';
+import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/edit_product_viewmodel.dart';
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';

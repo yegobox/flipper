@@ -49,17 +49,18 @@ class PosViewModel extends ReactiveViewModel {
 
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
-    q.addChangeListener((List results) {
+    q.addChangeListener((results) {
       _currentSale.clear();
-      if (results.isNotEmpty) {
+      if (results.allResults.isNotEmpty) {
         keyPad.setPayable.value = 0.0; //reset on new value to re-count again
-        for (Map map in results) {
+        for (Map map in results.allResults) {
           map.forEach((key, value) {
             // ProxyService.database.delete(id: value['id']);
             keyPad.setPayable.value += Order.fromMap(value).amount;
             _currentSale.add(Order.fromMap(value));
           });
         }
+
         notifyListeners();
       } else {
         _currentSale.clear();
