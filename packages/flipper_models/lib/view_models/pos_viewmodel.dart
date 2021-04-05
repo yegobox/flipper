@@ -1,16 +1,16 @@
 library flipper_models;
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 class PosViewModel extends ReactiveViewModel {
   var digits = <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
- 
+
   String keypadValue = '0.0';
   var operators = <String>['+', '-', '*', '/'];
   String result = '';
@@ -51,21 +51,15 @@ class PosViewModel extends ReactiveViewModel {
 
     q.addChangeListener((results) {
       _currentSale.clear();
-      if (results.allResults.isNotEmpty) {
-        keyPad.setPayable.value = 0.0; //reset on new value to re-count again
-        for (Map map in results.allResults) {
-          map.forEach((key, value) {
-            // ProxyService.database.delete(id: value['id']);
-            keyPad.setPayable.value += Order.fromMap(value).amount;
-            _currentSale.add(Order.fromMap(value));
-          });
-        }
-
-        notifyListeners();
-      } else {
-        _currentSale.clear();
-        notifyListeners();
+      keyPad.setPayable.value = 0.0; //reset on new value to re-count again
+      for (Map map in results.allResults) {
+        map.forEach((key, value) {
+          // ProxyService.database.delete(id: value['id']);
+          keyPad.setPayable.value += Order.fromMap(value).amount;
+          _currentSale.add(Order.fromMap(value));
+        });
       }
+      notifyListeners();
     });
   }
 
