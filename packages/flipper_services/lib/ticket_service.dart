@@ -3,6 +3,7 @@ library flipper_services;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/ticket.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
@@ -21,8 +22,7 @@ class TicketService with ReactiveServiceMixin {
       String status = 'parked'}) async {
     if (ticketName != null) {
       // ProxyService.keypad.order.listen((order) {
-      final q = Query(ProxyService.database.db,
-          'SELECT  *  WHERE table=\$T AND status=\$S');
+      final q = Query(ProxyService.database.db, Queries.Q_3);
 
       q.parameters = {'T': AppTables.order, 'S': 'pending'};
       final id5 = Uuid().v1();
@@ -42,26 +42,23 @@ class TicketService with ReactiveServiceMixin {
 
       q.addChangeListener((results) {
         for (Map map in results.allResults) {
-          map.forEach((key, value) {
-            final pendingTicket = ProxyService.database.getById(id: ticket.ID);
-            List<String> ods = [];
-            if (pendingTicket.properties['orders'] != null) {
-              ods = Ticket.fromMap(pendingTicket.map).orders.toList();
-              ods.add(Order.fromMap(value).id);
-              pendingTicket.properties['orders'] = ods;
-              ProxyService.database.update(document: pendingTicket);
-            }
-            final Document parkedOrder =
-                ProxyService.database.getById(id: Order.fromMap(value).id);
-            parkedOrder.properties['active'] = false;
-            parkedOrder.properties['draft'] = false;
-            parkedOrder.properties['orderNote'] = status;
-            parkedOrder.properties['status'] = status;
-            ProxyService.database.update(document: parkedOrder);
-          });
+          final pendingTicket = ProxyService.database.getById(id: ticket.ID);
+          List<String> ods = [];
+          if (pendingTicket.properties['orders'] != null) {
+            ods = Ticket.fromMap(pendingTicket.map).orders.toList();
+            ods.add(Order.fromMap(map).id);
+            pendingTicket.properties['orders'] = ods;
+            ProxyService.database.update(document: pendingTicket);
+          }
+          final Document parkedOrder =
+              ProxyService.database.getById(id: Order.fromMap(map).id);
+          parkedOrder.properties['active'] = false;
+          parkedOrder.properties['draft'] = false;
+          parkedOrder.properties['orderNote'] = status;
+          parkedOrder.properties['status'] = status;
+          ProxyService.database.update(document: parkedOrder);
         }
       });
-
       ProxyService.sharedState.setClear(c: true);
     }
   }

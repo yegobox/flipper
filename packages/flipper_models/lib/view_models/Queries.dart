@@ -21,4 +21,5 @@ class Queries {
   //table = variation
   static const String Q_7 =
       'SELECT id,name,sku,productId,unit,table,channels WHERE table=\$VALUE AND name=\$NAME AND productId=\$PRODUCTID';
+  //table = order
 }
