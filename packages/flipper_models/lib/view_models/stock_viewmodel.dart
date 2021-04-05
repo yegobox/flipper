@@ -8,6 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
+import 'Queries.dart';
 import 'base_model.dart';
 
 class StockViewModel extends BaseModel {
@@ -63,8 +64,7 @@ class StockViewModel extends BaseModel {
   /// load stock of the given productId and update [stocks array]
   /// This is the most heavy Query since we need to query each product and get related stock
   void loadStockByProductId({BuildContext context, String productId}) async {
-    final q = Query(_databaseService.db,
-        'SELECT id, sku, productId, name, unit, table, productName,  channels WHERE table=\$VALUE AND productId=\$PRODUCTID');
+    final q = Query(_databaseService.db, Queries.Q_1);
 
     q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': productId};
     final variants = q.execute();
@@ -73,8 +73,7 @@ class StockViewModel extends BaseModel {
       _variantId = Variation.fromMap(map).id;
     }
     notifyListeners();
-    final qq = Query(_databaseService.db,
-        'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$VALUE AND variantId=\$VARIANTID');
+    final qq = Query(_databaseService.db, Queries.Q_2);
 
     qq.parameters = {'VALUE': AppTables.stock, 'VARIANTID': variantId};
 
