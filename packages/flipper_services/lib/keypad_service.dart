@@ -3,6 +3,7 @@ library flipper_services;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -184,8 +185,7 @@ class KeyPadService with ReactiveServiceMixin {
   ///it is very important to understand that an order is an item too since
   ///it has a variant ID etc...
   void setCurrentItemKeyPadSaleValue() {
-    final q = Query(
-        ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
+    final q = Query(ProxyService.database.db, Queries.Q_3);
 
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
@@ -201,13 +201,10 @@ class KeyPadService with ReactiveServiceMixin {
         });
       });
     }
-    //results.dispose();
-
     setPayable.value = 0;
     // ignore: avoid_function_literals_in_foreach_calls
     currentSale.forEach((e) {
       setPayable.value += e['price'];
     });
-    notifyListeners();
   }
 }
