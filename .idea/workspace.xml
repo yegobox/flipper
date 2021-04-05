@@ -23,67 +23,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/arm64-v8a/libCouchbaseLiteC.so" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/jniLibs/arm64-v8a/libCouchbaseLiteC.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/armeabi-v7a/libCouchbaseLiteC.so" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/jniLibs/armeabi-v7a/libCouchbaseLiteC.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/x86/libCouchbaseLiteC.so" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/jniLibs/x86/libCouchbaseLiteC.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/x86_64/libCouchbaseLiteC.so" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/jniLibs/x86_64/libCouchbaseLiteC.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/domain/redux/user/user_middleware.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/domain/redux/user/user_middleware.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/flipper_app.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/flipper_app.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/viewmodels/base_model.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/base_model.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/viewmodels/drawer_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/drawer_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/viewmodels/main_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/main_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/viewmodels/open_business_model.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/open_business_model.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/viewmodels/switch_model.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/switch_model.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/business/business_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/business/business_list.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/category_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/category_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/flipper_drawer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/flipper_drawer.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/open_close_drawerview.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/open_close_drawerview.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_category_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_modal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_modal.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/edit/edit_product_title.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/edit/edit_product_title.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/edit/edit_product_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/edit_product_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/section_select_unit.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/section_select_unit.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/build_product_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/build_product_list.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/build_variant.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/build_variant.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/stock/receive_stock.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/stock/receive_stock.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/stock/stock_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/stock_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/switch/switch_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/switch/switch_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/tickets/new_ticket.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/tickets/new_ticket.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/tickets/tickets_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/tickets/tickets_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/tickets/tickets_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/tickets_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/welcome/signup/signup_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/welcome/signup/signup_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widget/atoms/unit_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/unit_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widget/category_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widget/category_list.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_room_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_room_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/chat_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_modal_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_modal_viewmodal.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/products_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/products_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/retail_price_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/retail_price_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/signup_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/signup_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/sku_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/sku_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/supplier_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/supplier_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/variation_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/variation_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/database_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/database_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/ticket_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/ticket_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/pos/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/pos/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/drawer_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/drawer_viewmodel.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +103,8 @@
       <workItem from="1617603209061" duration="49000" />
       <workItem from="1617603285051" duration="981000" />
       <workItem from="1617604368447" duration="10828000" />
-      <workItem from="1617616210258" duration="3415000" />
+      <workItem from="1617616210258" duration="7333000" />
+      <workItem from="1617624332369" duration="3089000" />
     </task>
     <servers />
   </component>
@@ -186,16 +130,6 @@
           <url>file://$PROJECT_DIR$/lib/views/switch/switch_view.dart</url>
           <line>30</line>
           <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/business_home_view.dart</url>
-          <line>36</line>
-          <option name="timeStamp" value="32" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/business_home_view.dart</url>
-          <line>39</line>
-          <option name="timeStamp" value="33" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

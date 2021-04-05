@@ -143,8 +143,8 @@ class FlipperDrawer extends StatelessWidget {
     return ViewModelBuilder<DrawerViewModel>.reactive(
       viewModelBuilder: () => DrawerViewModel(),
       onModelReady: (DrawerViewModel model) {
-        model.getBusiness();
-        model.getBranches();
+        // model.getBusiness();
+        // model.getBranches();
       },
       builder: (BuildContext context, DrawerViewModel model, Widget child) =>
           Container(

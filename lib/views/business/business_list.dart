@@ -1,8 +1,7 @@
+import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/view_models/drawer_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
-
-import 'package:flipper/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';

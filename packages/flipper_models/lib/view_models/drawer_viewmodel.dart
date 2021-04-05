@@ -1,12 +1,14 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/fuser.dart';
+import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -15,10 +17,10 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 
 class DrawerViewModel extends ReactiveViewModel {
   final state = locator<SharedStateService>();
+  final DatabaseService _db = ProxyService.database;
 
   FUser get user => state.user;
   Business get business => state.business;
@@ -32,62 +34,43 @@ class DrawerViewModel extends ReactiveViewModel {
   List<Business> get businesses => _businesses;
 
   Future getBranches() async {
-    final q = Query(ProxyService.database.db, 'SELECT * WHERE table=\$VALUE');
+    final q = Query(_db.db,
+        'SELECT id,businessId,createdAt,name,mapLatitude,mapLongitude,updatedAt,description,active,channels,location WHERE table=\$VALUE');
 
     q.parameters = {'VALUE': AppTables.branch};
 
-    q.addChangeListener((results) {
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          if (!_branches.contains(Branch.fromMap(value))) {
-            _branches.add(Branch.fromMap(value));
-          }
-        });
-      }
+    final results = q.execute();
 
-      notifyListeners();
-    });
+    for (Map map in results.allResults) {
+      if (!_branches.contains(Branch.fromMap(map))) {
+        _branches.add(Branch.fromMap(map));
+        state.setBranch(branch: Branch.fromMap(map));
+      }
+    }
+    notifyListeners();
   }
 
   Future getBusiness() async {
     assert(user.id != null);
-
+    print(user.id);
     final Logger log = Logging.getLogger('get business:');
 
-    // log.d(user.id);
     final q = Query(ProxyService.database.db,
-        'SELECT * WHERE table=\$VALUE AND userId=\$USERID');
+        'SELECT id,name,active,currency,categoryId,latitude,longitude,userId,typeId,timeZone,createdAt,updatedAt,channels,country,businessUrl,hexColor,image,type,table WHERE table=\$VALUE AND userId=\$USERID');
 
     q.parameters = {'VALUE': AppTables.business, 'USERID': user.id};
 
-    q.addChangeListener((results) {
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          if (!_businesses.contains(Business.fromMap(value))) {
-            if (Business.fromMap(value).active) {
-              state.setBusiness(business: Business.fromMap(value));
-            }
-            _businesses.add(Business.fromMap(value));
-           
-          }
-        });
-         notifyListeners();
-      }
-    });
+    final business = q.execute();
 
-    //NOTE: in case a listner is not registered because the query has no change!
-    final results = q.execute();
-    if (results.allResults.isNotEmpty) {
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          if (!businesses.contains(Business.fromMap(value))) {
-            businesses.add(Business.fromMap(value));        
-          }
-        });
+    for (Map map in business.allResults) {
+      if (!_businesses.contains(Business.fromMap(map))) {
+        if (Business.fromMap(map).active) {
+          state.setBusiness(business: Business.fromMap(map));
+        }
+        _businesses.add(Business.fromMap(map));
       }
-
-      //  notifyListeners();
     }
+    notifyListeners();
   }
 
   Future<void> desktopLogin({BuildContext context, String code}) async {
@@ -140,8 +123,7 @@ class DrawerViewModel extends ReactiveViewModel {
 
     final Document toBusiness = ProxyService.database.getById(id: to.id);
 
-    toBusiness.properties['active'] =
-        !Business.fromMap(toBusiness.map).active;
+    toBusiness.properties['active'] = !Business.fromMap(toBusiness.map).active;
 
     final k = ProxyService.database.update(document: toBusiness);
 
