@@ -150,7 +150,7 @@ class BusinessList extends StatelessWidget {
                       _buildThirdSection(model: model),
                     ],
                   ),
-                  Positioned(bottom: 0.0, child: _buildFourthSection(context))
+                  // Positioned(bottom: 0.0, child: _buildFourthSection(context))
                 ],
               ),
             ),
