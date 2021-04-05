@@ -164,18 +164,15 @@ class KeyPadService with ReactiveServiceMixin {
   void cleanKeypad() {
     ProxyService.sharedState.clear.listen((e) {
       if (e != null) {
-        ProxyService.sharedPref.removeKey(key: 'custom_orderId');
         if (ProxyService.database.db != null) {
           final q = Query(ProxyService.database.db,
               'SELECT  id  WHERE table=\$T AND status=\$S');
           q.parameters = {'T': AppTables.order, 'S': 'pending'};
           final results = q.execute();
-          // if (results.allResults.isNotEmpty) {
-          for (Map id in results.allResults) {
-            ProxyService.database.delete(id: id['id']);
+          for (Map map in results.allResults) {
+            ProxyService.database.delete(id: map['id']);
           }
-          results.dispose();
-          // }
+          ProxyService.sharedPref.removeKey(key: 'custom_orderId');
           setPayable.value = 0.0;
           notifyListeners();
         }
