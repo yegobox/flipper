@@ -24,8 +24,11 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/ticket_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/ticket_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/domain/redux/authentication/auth_middleware.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/section_select_unit.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/section_select_unit.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +46,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1q6WWdqvS266rVStFhS6FiZxoxT" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="autoscrollFromSource" value="true" />
     <option name="autoscrollToSource" value="true" />

@@ -1,10 +1,9 @@
 import 'package:flipper/routes/router.gr.dart';
-
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_models/view_models/unit_viewmodel.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/unit_viewmodel.dart';
-import 'package:flipper_models/unit.dart';
-import 'package:flipper_services/proxy.dart';
 
 class SectionSelectUnit extends StatelessWidget {
   const SectionSelectUnit({Key key}) : super(key: key);

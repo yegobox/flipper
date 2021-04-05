@@ -61,7 +61,7 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
   };
 }
 
-//TODO: fix dups from drawer_viewmodel and have one method
+//TODO: fix duplicate function from drawer_viewmodel and have one method
 Future getBranches({String userId}) async {
   final q = Query(ProxyService.database.db,
       'SELECT id,businessId,createdAt,name,mapLatitude,mapLongitude,updatedAt,description,active,channels,location WHERE table=\$VALUE');
@@ -90,7 +90,7 @@ Future getBusiness({String userId}) async {
     state.setBusiness(business: Business.fromMap(map));
   }
 }
-//TODO: end of dups
+//TODO: end of duplicate function
 
 Future getAppColors() async {
   final Logger log = Logging.getLogger('Get business: ');
