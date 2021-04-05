@@ -52,11 +52,11 @@ class PosViewModel extends ReactiveViewModel {
     q.addChangeListener((List results) {
       _currentSale.clear();
       if (results.isNotEmpty) {
-        keyPad.setTotalAmount.value = 0.0; //reset on new value to re-count again
+        keyPad.setPayable.value = 0.0; //reset on new value to re-count again
         for (Map map in results) {
           map.forEach((key, value) {
             // ProxyService.database.delete(id: value['id']);
-            keyPad.setTotalAmount.value += Order.fromMap(value).amount;
+            keyPad.setPayable.value += Order.fromMap(value).amount;
             _currentSale.add(Order.fromMap(value));
           });
         }
@@ -144,9 +144,9 @@ class PosViewModel extends ReactiveViewModel {
     ProxyService.inAppNav.navigateTo(path: 'ticketsView');
   }
 
-  /// Go to sale to complete a sale with a current total we have on [keyPad.totalPayable].
+  /// Go to sale to complete a sale with a current total we have on [keyPad.payable].
   void goSale() {
-    if (keyPad.totalPayable != 0.0) {
+    if (keyPad.payable != 0.0) {
       //TODO: show animation like square when amount ==0.0
       ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
     }

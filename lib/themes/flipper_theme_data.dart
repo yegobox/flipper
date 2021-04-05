@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 class FlipperThemeData {
   static const _lightFillColor = Colors.white;
   static const _darkFillColor = Colors.white;
-
   static final Color _lightFocusColor = Colors.black.withOpacity(0.12);
   static final Color _darkFocusColor = Colors.white.withOpacity(0.12);
 
@@ -33,7 +32,6 @@ class FlipperThemeData {
       ),
       iconTheme: IconThemeData(color: colorScheme.onPrimary),
       canvasColor: colorScheme.background,
-
       highlightColor: Colors.transparent,
       accentColor: colorScheme.primary,
       focusColor: focusColor,

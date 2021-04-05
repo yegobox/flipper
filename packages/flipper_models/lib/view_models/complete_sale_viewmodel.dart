@@ -79,7 +79,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   // var completedSale;
   final RxValue<bool> completedSale = RxValue<bool>(initial: null);
 
-  double total = 0.0;
 
   set phone(String phone) {
     _phone = phone;
@@ -98,7 +97,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
           // when a ticket is resumed, no need of creating a new ticket just use the resumed ticket
           ProxyService.ticket.saveNewTicket(
             ticketName: 'system_ticket',
-            cashReceived: keypad.amount,
+            cashReceived: keypad.cashReceived,
             status: 'completed',
           );
           completedSale.value = true;
@@ -112,13 +111,11 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   void collectSPENNPayment() async {
     final String transactionNumber = Uuid().v1();
-
-
     try {
       final http.Response response = await http.post(
           'https://flipper.yegobox.com/pay',
           body: jsonEncode({
-            'amount': keypad.totalPayable,
+            'amount': keypad.payable,
             'message': ProxyService.sharedState.business.name.substring(0, 3) +
                 '-' +
                 transactionNumber.substring(0, 4),
@@ -141,34 +138,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
     }
   }
 
-  ///this load all pending order's item to show on order summary
-  ///it is very important to understand that an order is an item too since
-  ///it has a variant ID etc...
-  void setCurrentItemKeyPadSaleValue() {
-    final q = Query(
-        ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
 
-    q.parameters = {'T': AppTables.order, 'S': 'pending'};
-
-    final results = q.execute();
-    if (results.isNotEmpty) {
-      keypad.currentSale.clear();
-      for (Map map in results) {
-        map.forEach((key, value) {
-          keypad.currentSale.add({
-            'name': Order.fromMap(value).variantName,
-            'price': Order.fromMap(value).amount,
-            'id': Order.fromMap(value).id
-          });
-        });
-      }
-    }
-    // ignore: avoid_function_literals_in_foreach_calls
-    keypad.currentSale.forEach((e) {
-      total += e['price'];
-    });
-    notifyListeners();
-  }
 
   /// The method create a ticket and add all
   /// the order that are in pending state with cash received
@@ -176,7 +146,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   void collectCashPayment() {
     ProxyService.ticket.saveNewTicket(
       ticketName: 'system_ticket',
-      cashReceived: keypad.amount,
+      cashReceived: keypad.cashReceived,
       status: 'completed',
     );
     ProxyService.sharedPref.removeKey(key: 'custom_orderId');

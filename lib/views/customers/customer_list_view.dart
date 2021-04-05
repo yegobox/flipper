@@ -99,15 +99,17 @@ class CustomerListView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 18.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        // ignore: prefer_const_literals_to_create_immutables
-                        children: [
-                          const Text('Muragijimana Richard'),
-                          const Text('0783054874|murag.richard@gmailc.com')
-                        ],
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 18.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // ignore: prefer_const_literals_to_create_immutables
+                          children: [
+                            const Text('Muragijimana Richard',overflow: TextOverflow.ellipsis,),
+                            const Text('0783054874|muragijimanarichard@gmail.com',overflow: TextOverflow.ellipsis,)
+                          ],
+                        ),
                       ),
                     )
                   ],

@@ -94,7 +94,7 @@ class CollectCashView extends StatelessWidget {
                                     return null;
                                   },
                                   onChanged: (String cash) {
-                                    model.keypad.cash.value =
+                                    model.keypad.setCashReceived.value =
                                         double.parse(cash);
                                   },
                                   decoration: InputDecoration(
@@ -118,6 +118,7 @@ class CollectCashView extends StatelessWidget {
                               controller: _btnController,
                               onPressed: () {
                                 if (_formKey.currentState.validate()) {
+
                                   if (paymentType == 'spenn') {
                                     model.collectSPENNPayment();
                                   } else {

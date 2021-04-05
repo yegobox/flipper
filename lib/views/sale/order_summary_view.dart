@@ -44,7 +44,7 @@ class OrderSummary extends StatelessWidget {
     list.add(ListTile(
       contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
       trailing: Text(
-        display(model.total).toString(),
+        display(model.keypad.payable).toString(),
         style: const TextStyle(color: Colors.black),
       ),
       leading: const Text('Total', style: TextStyle(color: Colors.black)),
@@ -62,7 +62,7 @@ class OrderSummary extends StatelessWidget {
               onPop: () {
                 ProxyService.nav.pop();
               },
-              title: 'Total: Frw' + display(model.total).toString(),
+              title: 'Total: Frw' + display(model.keypad.payable).toString(),
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,
@@ -77,7 +77,7 @@ class OrderSummary extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          model.setCurrentItemKeyPadSaleValue();
+          model.keypad.setCurrentItemKeyPadSaleValue();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

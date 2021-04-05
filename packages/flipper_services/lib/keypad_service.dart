@@ -28,16 +28,17 @@ class KeyPadService with ReactiveServiceMixin {
 
   final Logger log = Logging.getLogger('O2:)');
 
-  final RxValue<double> setTotalAmount = RxValue<double>(initial: 0.0);
+  final RxValue<double> setPayable = RxValue<double>(initial: 0.0);
 
-  double get totalPayable => setTotalAmount.value;
+  double get payable => setPayable.value;
 
   final List<Map> currentSale = [];
   List<Map> get currentSalesItem => currentSale;
 
-  final RxValue<double> cash = RxValue<double>(initial: 0.0);
+  final RxValue<double> setCashReceived = RxValue<double>(initial: 0.0);
 
-  double get amount => cash.value;
+
+  double get cashReceived => setCashReceived.value;
 
   final DatabaseService _db = ProxyService.database;
 
@@ -106,17 +107,18 @@ class KeyPadService with ReactiveServiceMixin {
     final Document orderDocument = _db.getById(id: order.id);
     orderDocument.properties['amount'] = customAmount;
     _db.update(document: orderDocument);
+    setPayable.value = customAmount;
     notifyListeners();
   }
 
+  //0b8783e0-9| 751bddb0-9
   /// the pending order will return the existing order if draft and active are still true otherwise
   /// wise it will create a new active & draft order.
   /// Also it is very important to treat order as an item added to the
   /// this check if the current order's id from local storage is not completed if then remove it from local storage
   void pendingOrder(
-      {double customAmount, String stockId, Variation variation}) {
-    print(ProxyService.sharedPref.getCustomOrderId());
-    checkOrderAuthenticity();
+      {double customAmount, String stockId, Variation variation}) async{
+    await checkOrderAuthenticity();
     if (ProxyService.sharedPref.getCustomOrderId() == 'null' ||
         ProxyService.sharedPref.getCustomOrderId() == null) {
       final Order order= createOrder(
@@ -137,11 +139,11 @@ class KeyPadService with ReactiveServiceMixin {
     }
   }
 
-  void checkOrderAuthenticity(){
+  Future<void> checkOrderAuthenticity()async {
     final String id = ProxyService.sharedPref.getCustomOrderId();
     final Document doc = _db.getById(id: id);
     if(doc!=null && Order.fromMap(doc.jsonProperties).status =='completed'){
-      ProxyService.sharedPref.removeKey(key:'custom_orderId');
+      await ProxyService.sharedPref.removeKey(key:'custom_orderId');
     }
   }
 
@@ -154,8 +156,8 @@ class KeyPadService with ReactiveServiceMixin {
 
   /// the cleaning the keypad was meant like when the app start we should start fresh
   /// Note that this was to simulate the square app but due to it's complexity
-  /// It is abandoned atleast for now, in our app for now when it restart it will load the
-  /// current pending order so the user if he/she is no longer intrested in order he will
+  /// It is abandoned at least for now, in our app for now when it restart it will load the
+  /// current pending order so the user if he/she is no longer interested in order he will
   /// need to click on C button to clean the keypad for now will not invoke the function on app start
   /// TODO: should use stack algorithm to remove one element by one as a user click on C button
   /// but for now it wipe everything.
@@ -173,10 +175,39 @@ class KeyPadService with ReactiveServiceMixin {
               ProxyService.database.delete(id: id['id']);
             }
           }
-          setTotalAmount.value = 0.0;
+          setPayable.value = 0.0;
           notifyListeners();
         }
       }
     });
+  }
+  ///this load all pending order's item to show on order summary
+  ///it is very important to understand that an order is an item too since
+  ///it has a variant ID etc...
+  void setCurrentItemKeyPadSaleValue() {
+    final q = Query(
+        ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
+
+    q.parameters = {'T': AppTables.order, 'S': 'pending'};
+
+    final results = q.execute();
+    if (results.isNotEmpty) {
+      currentSale.clear();
+      for (Map map in results) {
+        map.forEach((key, value) {
+          currentSale.add({
+            'name': Order.fromMap(value).variantName,
+            'price': Order.fromMap(value).amount,
+            'id': Order.fromMap(value).id
+          });
+        });
+      }
+    }
+    setPayable.value = 0;
+    // ignore: avoid_function_literals_in_foreach_calls
+    currentSale.forEach((e) {
+      setPayable.value += e['price'];
+    });
+    notifyListeners();
   }
 }

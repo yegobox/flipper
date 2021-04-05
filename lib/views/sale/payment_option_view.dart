@@ -42,7 +42,7 @@ class PaymentOptionView extends StatelessWidget {
                         children: [
                           const SizedBox(height: 40),
                           Text(
-                            'FRw ' + display(model.total).toString(),
+                            'FRw ' + display(model.keypad.payable).toString(),
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
@@ -115,7 +115,7 @@ class PaymentOptionView extends StatelessWidget {
         },
         onModelReady: (CompleteSaleViewModel model) {
           ProxyService.pusher.clean();
-          model.setCurrentItemKeyPadSaleValue();
+          model.keypad.setCurrentItemKeyPadSaleValue();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

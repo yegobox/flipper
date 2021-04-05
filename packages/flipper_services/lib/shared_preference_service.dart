@@ -20,9 +20,8 @@ class SharedPreferenceService {
     return box.read('custom_orderId') ?? 'null';
   }
 
-  bool removeKey({dynamic key}) {
-    box.remove(key);
-    return true;
+  Future<void> removeKey({String key})async {
+    return await box.remove(key);
   }
 
   String getUserId() {

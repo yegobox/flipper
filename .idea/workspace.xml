@@ -23,13 +23,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/packages/flipper_models/lib/customer.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/themes/flipper_theme_data.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/themes/flipper_theme_data.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/sale/collect_cash_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/collect_cash_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/sale/payment_option_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/payment_option_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/shared_preference_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/shared_preference_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/pos/lib/payable/payable_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/pos/lib/payable/payable_view.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Dart File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -98,7 +116,7 @@
       <workItem from="1617474886181" duration="1638000" />
       <workItem from="1617477466701" duration="1067000" />
       <workItem from="1617515683944" duration="593000" />
-      <workItem from="1617524363992" duration="8521000" />
+      <workItem from="1617524363992" duration="17784000" />
     </task>
     <servers />
   </component>
