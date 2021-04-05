@@ -1,18 +1,18 @@
 library flipper_models;
+
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-
-import 'package:flipper/routes/router.gr.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductsViewModel extends ReactiveViewModel {
@@ -44,6 +44,7 @@ class ProductsViewModel extends ReactiveViewModel {
     return _businessId;
   }
 
+  /// @deprecated I have no idea why I created this functions whatsoever
   Future initializeNeededIds({@required userId}) async {
     setBusy(true);
     //load the branch
@@ -63,7 +64,6 @@ class ProductsViewModel extends ReactiveViewModel {
           }
         });
       }
-
     }
 
     for (Branch branch in branches) {
@@ -88,7 +88,6 @@ class ProductsViewModel extends ReactiveViewModel {
           }
         });
       }
-
     }
 
     for (Business business in businesses) {
@@ -103,20 +102,18 @@ class ProductsViewModel extends ReactiveViewModel {
   void getProducts({BuildContext context}) {
     assert(_sharedState.branch.id != null);
 
-    final q = Query(
-        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND branchId=\$BID');
+    final q = Query(_databaseService.db,
+        'SELECT name,id,description,picture,taxId,active,hasPicture,isImageLocal,touched,table,isDraft,color,isCurrentUpdate,businessId,supplierId,categoryId,createdAt,unit,updatedAt,count,channels WHERE table=\$VALUE AND branchId=\$BID');
 
     q.parameters = {'VALUE': AppTables.product, 'BID': _sharedState.branch.id};
 
     q.addChangeListener((results) {
       for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          if (!_products.contains(Product.fromMap(value))) {
-            _products.add(Product.fromMap(value));
-            notifyListeners();
-          }
-        });
+        if (!_products.contains(Product.fromMap(map))) {
+          _products.add(Product.fromMap(map));
+        }
       }
+      notifyListeners();
     });
   }
 

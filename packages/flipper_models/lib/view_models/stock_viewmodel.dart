@@ -1,11 +1,11 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper_models/variation.dart';
 import 'package:flipper/utils/constant.dart';
-import 'package:flipper_models/stock.dart';
-import 'package:flipper_services/database_service.dart';
 import 'package:flipper/utils/logger.dart';
-import 'package:flutter/material.dart';
+import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/variation.dart';
+import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'base_model.dart';
@@ -44,7 +44,6 @@ class StockViewModel extends BaseModel {
           _databaseService.update(document: variantDocument);
         });
       }
-
     });
   }
 
@@ -62,36 +61,30 @@ class StockViewModel extends BaseModel {
   }
 
   /// load stock of the given productId and update [stocks array]
+  /// This is the most heavy Query since we need to query each product and get related stock
   void loadStockByProductId({BuildContext context, String productId}) async {
     final q = Query(_databaseService.db,
-        'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
+        'SELECT id, sku, productId, name, unit, table, productName,  channels WHERE table=\$VALUE AND productId=\$PRODUCTID');
 
     q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': productId};
     final variants = q.execute();
-    if (variants.allResults.isNotEmpty) {
-      for (Map map in variants.allResults) {
-        map.forEach((key, value) {
-          _variantId = Variation.fromMap(value).id;
-        });
-        notifyListeners();
-      }
 
-
-      final q = Query(_databaseService.db,
-          'SELECT * WHERE table=\$VALUE AND variantId=\$VARIANTID');
-
-      q.parameters = {'VALUE': AppTables.stock, 'VARIANTID': variantId};
-
-      q.addChangeListener((results) {
-        for (Map map in results.allResults) {
-          map.forEach((key, value) {
-            if (!_stocks.contains(Stock.fromMap(value))) {
-              _stocks.add(Stock.fromMap(value));
-            }
-          });
-          notifyListeners();
-        }
-      });
+    for (Map map in variants.allResults) {
+      _variantId = Variation.fromMap(map).id;
     }
+    notifyListeners();
+    final qq = Query(_databaseService.db,
+        'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$VALUE AND variantId=\$VARIANTID');
+
+    qq.parameters = {'VALUE': AppTables.stock, 'VARIANTID': variantId};
+
+    qq.addChangeListener((results) {
+      for (Map map in results.allResults) {
+        if (!_stocks.contains(Stock.fromMap(map))) {
+          _stocks.add(Stock.fromMap(map));
+        }
+      }
+      notifyListeners();
+    });
   }
 }
