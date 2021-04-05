@@ -1,9 +1,8 @@
+import 'package:flipper/utils/HexColor.dart';
+import 'package:flipper/views/product/widget/build_product_row.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/view_models/products_viewmodel.dart';
-import 'package:flipper/views/product/widget/build_product_row.dart';
-
-import 'file:///E:/demos/flipper/packages/flipper_models/lib/view_models/stock_viewmodel.dart';
-import 'package:flipper/utils/HexColor.dart';
+import 'package:flipper_models/view_models/stock_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';

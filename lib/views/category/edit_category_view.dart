@@ -78,7 +78,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
     //       .updateItem(item.copyWith(categoryId: categories[i].id));
     // }
   }
-  category_list.dar
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
