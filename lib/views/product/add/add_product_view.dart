@@ -1,23 +1,22 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/HexColor.dart';
+import 'package:flipper/utils/validators.dart';
 import 'package:flipper/views/category/category_view.dart';
-import 'package:flipper_models/view_models/add_product_viewmodel.dart';
-import 'package:flipper/views/shared/divider.dart';
-import 'package:flipper/views/shared/description.dart';
-import 'package:flipper/views/shared/list_divider.dart';
 import 'package:flipper/views/product/retail/retail_price.dart';
 import 'package:flipper/views/product/section_select_unit.dart';
 import 'package:flipper/views/product/sku/sku_view.dart';
 import 'package:flipper/views/shared/build_image_holder.dart';
+import 'package:flipper/views/shared/description.dart';
+import 'package:flipper/views/shared/divider.dart';
+import 'package:flipper/views/shared/list_divider.dart';
 import 'package:flipper/views/supplier/supply_price_widget.dart';
 import 'package:flipper/views/variation/add_variant.dart';
 import 'package:flipper/views/variation/variation_list.dart';
-import 'package:flipper/utils/HexColor.dart';
-import 'package:flipper/utils/validators.dart';
-
+import 'package:flipper_models/view_models/add_product_viewmodel.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 
 // NOTE: this is to add a product and there related variants.
 class AddProductView extends StatelessWidget {
@@ -73,7 +72,6 @@ class AddProductView extends StatelessWidget {
               },
               title: 'Create Product',
               disableButton: model.isLocked,
-              
               showActionButton: true,
               onPressedCallback: () async {
                 await model.handleCreateItem();
