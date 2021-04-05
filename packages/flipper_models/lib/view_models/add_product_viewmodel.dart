@@ -1,24 +1,24 @@
 library flipper_models;
+
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
+import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/image.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/variation.dart';
-
-import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/database_service.dart';
-import 'package:flipper/views/welcome/home/common_view_model.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
-
-import 'package:logger/logger.dart';
-import 'package:stacked/stacked.dart';
-import 'package:flipper_models/stock.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
+import 'package:logger/logger.dart';
+import 'package:stacked/stacked.dart';
 
 class AddProductViewmodel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('add product view model:)');
@@ -106,26 +106,22 @@ class AddProductViewmodel extends ReactiveViewModel {
     );
     // we look for a regular variant which is always have id=to productID and updated it with pricing.
     // final Document variation = _databaseService.getById(id: product.id);
-    final q = Query(_databaseService.db,
-        'SELECT * WHERE table=\$VALUE AND productId=\$PRODUCTID');
+    final q = Query(_databaseService.db, Queries.Q_1);
 
     q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': product.id};
 
     final variations = q.execute();
-
-    if (variations.allResults.isNotEmpty) {
-      for (Map map in variations.allResults) {
-        map.forEach((key, value) {
-          //expect variation to be 1 as variant = one stock
-          updateVariationsStock(
-            variation: Variation.fromMap(value),
-            productName: _name,
-            supplyPrice: _supplierPriceController,
-            retailPrice: _retailPriceController,
-          );
-        });
+    final List t = variations.allResults;
+    if (t.isNotEmpty) {
+      for (Map map in t) {
+        //expect variation to be 1 as variant = one stock
+        updateVariationsStock(
+          variation: Variation.fromMap(map),
+          productName: _name,
+          supplyPrice: _supplierPriceController,
+          retailPrice: _retailPriceController,
+        );
       }
-
     }
   }
 
@@ -145,29 +141,24 @@ class AddProductViewmodel extends ReactiveViewModel {
     if (variation != null) {
       updatedVariation(productName: productName, variationId: variation.id);
 
-      final q = Query(_databaseService.db,
-          'SELECT * WHERE table=\$VALUE AND variantId=\$VARIANT_ID');
+      final q = Query(_databaseService.db, Queries.Q_2);
 
-      q.parameters = {'VALUE': AppTables.stock, 'VARIANT_ID': variation.id};
+      q.parameters = {'VALUE': AppTables.stock, 'VARIANTID': variation.id};
 
       final stocks = q.execute();
-
-      if (stocks.allResults.isNotEmpty) {
-        for (Map map in stocks.allResults) {
-          map.forEach((key, value) {
-            //expect stock to be 1 as variant = one stock
-            _stock = Stock.fromMap(value);
-            final stock = _databaseService.getById(id: _stock.id);
-            assert(stock != null);
-            assert(retailPrice != null);
-            assert(supplyPrice != null);
-
-            stock.properties['retailPrice'] = retailPrice;
-            stock.properties['supplyPrice'] = supplyPrice;
-            _databaseService.update(document: stock);
-          });
+      final List t = stocks.allResults;
+      if (t.isNotEmpty) {
+        for (Map map in t) {
+          //expect stock to be 1 as variant = one stock
+          _stock = Stock.fromMap(map);
+          final stock = _databaseService.getById(id: _stock.id);
+          assert(stock != null);
+          assert(retailPrice != null);
+          assert(supplyPrice != null);
+          stock.properties['retailPrice'] = retailPrice;
+          stock.properties['supplyPrice'] = supplyPrice;
+          _databaseService.update(document: stock);
         }
-
       }
     }
   }
@@ -200,7 +191,6 @@ class AddProductViewmodel extends ReactiveViewModel {
   }
 
   void lock() {
-    // Two
     _name.isEmpty ? _isLocked = true : _isLocked = false;
     notifyListeners();
   }
@@ -209,37 +199,31 @@ class AddProductViewmodel extends ReactiveViewModel {
   Future getTemporalProduct({CommonViewModel vm}) async {
     setBusy(true);
 
-    final q = Query(
-        _databaseService.db, 'SELECT * WHERE table=\$VALUE AND name=\$NAME');
+    final q = Query(_databaseService.db, Queries.Q_5);
 
     q.parameters = {'VALUE': AppTables.product, 'NAME': 'tmp'};
 
     final products = q.execute();
-
-    if (products.allResults.isNotEmpty) {
-      for (Map map in products.allResults) {
-        map.forEach((key, value) {
-          //get the Regular variant to update when needed
-          final regularVariant = Query(_databaseService.db,
-              'SELECT id,name,sku,productId,unit,table,channels WHERE table=\$VALUE AND name=\$NAME AND productId=\$PRODUCTID');
-          sharedStateService.setProduct(product: Product.fromMap(value));
-          regularVariant.parameters = {
-            'VALUE': AppTables.variation,
-            'NAME': 'Regular',
-            'PRODUCTID': Product.fromMap(value).id
-          };
-          final results = regularVariant.execute();
-          if (results.allResults.isNotEmpty) {
-            for (Map map in results.allResults) {
-              sharedStateService.setVariation(
-                  variation: Variation.fromMap(map));
-            }
-
+    final List t = products.allResults;
+    if (t.isNotEmpty) {
+      for (Map map in t) {
+        //get the Regular variant to update when needed
+        final regularVariant = Query(_databaseService.db, Queries.Q_7);
+        sharedStateService.setProduct(product: Product.fromMap(map));
+        regularVariant.parameters = {
+          'VALUE': AppTables.variation,
+          'NAME': 'Regular',
+          'PRODUCTID': Product.fromMap(map).id
+        };
+        final results = regularVariant.execute();
+        final List tt = results.allResults;
+        if (tt.isNotEmpty) {
+          for (Map map in tt) {
+            sharedStateService.setVariation(variation: Variation.fromMap(map));
           }
-        });
-        notifyListeners();
+        }
       }
-
+      notifyListeners();
     }
 
     setBusy(false);

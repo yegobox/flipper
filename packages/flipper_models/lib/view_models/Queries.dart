@@ -18,4 +18,7 @@ class Queries {
   //static=tax
   static const String Q_6 =
       'SELECT name, id,  touched, table,  isDefault, percentage, businessId, channels WHERE table=\$VALUE AND name=\$NAME';
+  //table = variation
+  static const String Q_7 =
+      'SELECT id,name,sku,productId,unit,table,channels WHERE table=\$VALUE AND name=\$NAME AND productId=\$PRODUCTID';
 }
