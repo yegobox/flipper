@@ -7,15 +7,14 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_services/api/fake_api.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/flipper_config.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/logger.dart';
 import 'package:flipper_services/proxy.dart';
-
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/shared_state_service.dart';
 
 class DatabaseService {
   final Logger log = Logging.getLogger('Database:');
@@ -204,7 +203,7 @@ class DatabaseService {
     final q = Query(db, 'SELECT  id WHERE table=\$T AND variantId=\$variantId');
     q.parameters = {'T': AppTables.stock, 'variantId': variantId};
     final results = q.execute();
-    if (results.allResults.isNotEmpty) return null;
+    // if (results.allResults.isNotEmpty) return null;
     return results.allResults[0]['id'];
   }
 
@@ -217,10 +216,11 @@ class DatabaseService {
 
     // get this product then use it's id to get related variant
     final results = q.execute();
-    if (results.allResults.isNotEmpty) return null;
 
     final qq = Query(db, 'SELECT  id WHERE table=\$T AND productId=\$P');
-    qq.parameters = {'T': AppTables.variation, 'P': results.allResults[0]['id']};
+    //FIXME: since I am not checking if null so then make sure the custom amount product exists
+    final Map map = results.allResults[0];
+    qq.parameters = {'T': AppTables.variation, 'P': map['id']};
     final result = qq.execute();
     return getById(id: result.allResults[0]['id']);
   }

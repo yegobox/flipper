@@ -11,10 +11,9 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import 'package:stacked/stacked.dart';
 import 'package:observable_ish/observable_ish.dart';
+import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
-
 
 class KeyPadService with ReactiveServiceMixin {
   final _state = locator<SharedStateService>();
@@ -36,7 +35,6 @@ class KeyPadService with ReactiveServiceMixin {
   List<Map> get currentSalesItem => currentSale;
 
   final RxValue<double> setCashReceived = RxValue<double>(initial: 0.0);
-
 
   double get cashReceived => setCashReceived.value;
 
@@ -63,7 +61,6 @@ class KeyPadService with ReactiveServiceMixin {
         customAmount: customAmount,
         stockId: stockId,
         variation: Variation.fromMap(variation.map));
-
   }
 
   /// create an order given a variation, a caller should
@@ -103,7 +100,8 @@ class KeyPadService with ReactiveServiceMixin {
     ProxyService.sharedPref.setCustomOrderId(orderId: id4);
     return order.value;
   }
-  void updateOrder({@required Order order, @required double customAmount}){
+
+  void updateOrder({@required Order order, @required double customAmount}) {
     final Document orderDocument = _db.getById(id: order.id);
     orderDocument.properties['amount'] = customAmount;
     _db.update(document: orderDocument);
@@ -111,39 +109,41 @@ class KeyPadService with ReactiveServiceMixin {
     notifyListeners();
   }
 
-  //0b8783e0-9| 751bddb0-9
   /// the pending order will return the existing order if draft and active are still true otherwise
   /// wise it will create a new active & draft order.
   /// Also it is very important to treat order as an item added to the
   /// this check if the current order's id from local storage is not completed if then remove it from local storage
   void pendingOrder(
-      {double customAmount, String stockId, Variation variation}) async{
+      {double customAmount, String stockId, Variation variation}) async {
     await checkOrderAuthenticity();
     if (ProxyService.sharedPref.getCustomOrderId() == 'null' ||
         ProxyService.sharedPref.getCustomOrderId() == null) {
-      final Order order= createOrder(
+      final Order order = createOrder(
           stockId: stockId,
           variation: variation,
           useProductName: true,
           customAmount: customAmount,
           orderType: 'custom');
-      updateOrder(customAmount: customAmount,order:order);
+      updateOrder(customAmount: customAmount, order: order);
       notifyListeners();
     } else {
+      // await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
       final String id = ProxyService.sharedPref.getCustomOrderId();
+      // print(id);
       final Document doc = _db.getById(id: id);
       order.value = Order.fromMap(doc.map);
 
-      updateOrder(customAmount: customAmount,order:Order.fromMap(doc.map));
+      updateOrder(customAmount: customAmount, order: Order.fromMap(doc.map));
       notifyListeners();
     }
   }
 
-  Future<void> checkOrderAuthenticity()async {
+  Future<void> checkOrderAuthenticity() async {
+    // await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
     final String id = ProxyService.sharedPref.getCustomOrderId();
     final Document doc = _db.getById(id: id);
-    if(doc!=null && Order.fromMap(doc.map).status =='completed'){
-      await ProxyService.sharedPref.removeKey(key:'custom_orderId');
+    if (doc != null && Order.fromMap(doc.map).status == 'completed') {
+      await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
     }
   }
 
@@ -170,18 +170,19 @@ class KeyPadService with ReactiveServiceMixin {
               'SELECT  id  WHERE table=\$T AND status=\$S');
           q.parameters = {'T': AppTables.order, 'S': 'pending'};
           final results = q.execute();
-          if (results.allResults.isNotEmpty) {
-            for (Map id in results.allResults) {
-              ProxyService.database.delete(id: id['id']);
-            }
-            results.dispose();
+          // if (results.allResults.isNotEmpty) {
+          for (Map id in results.allResults) {
+            ProxyService.database.delete(id: id['id']);
           }
+          results.dispose();
+          // }
           setPayable.value = 0.0;
           notifyListeners();
         }
       }
     });
   }
+
   ///this load all pending order's item to show on order summary
   ///it is very important to understand that an order is an item too since
   ///it has a variant ID etc...
@@ -192,19 +193,19 @@ class KeyPadService with ReactiveServiceMixin {
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
     final results = q.execute();
-    if (results.allResults.isNotEmpty) {
-      currentSale.clear();
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          currentSale.add({
-            'name': Order.fromMap(value).variantName,
-            'price': Order.fromMap(value).amount,
-            'id': Order.fromMap(value).id
-          });
+
+    currentSale.clear();
+    for (Map map in results.allResults) {
+      map.forEach((key, value) {
+        currentSale.add({
+          'name': Order.fromMap(value).variantName,
+          'price': Order.fromMap(value).amount,
+          'id': Order.fromMap(value).id
         });
-      }
-      results.dispose();
+      });
     }
+    //results.dispose();
+
     setPayable.value = 0;
     // ignore: avoid_function_literals_in_foreach_calls
     currentSale.forEach((e) {

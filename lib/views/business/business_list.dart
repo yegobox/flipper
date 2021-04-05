@@ -80,7 +80,7 @@ class BusinessList extends StatelessWidget {
               // _openUserAccount(context);
               // TODO(richard): change the icon should be icon of logout.
 
-              final bool loggedOut = await ProxyService.sharedPref.logout();
+              final bool loggedOut = ProxyService.sharedPref.logout();
               if (loggedOut) {
                 ProxyService.database.logout(context: context);
               }

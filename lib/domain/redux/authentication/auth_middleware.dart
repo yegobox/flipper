@@ -5,11 +5,15 @@ import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/data_manager.dart';
 import 'package:flipper/utils/logger.dart';
+import 'package:flipper_models/branch.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flipper_models/fuser.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
@@ -46,6 +50,8 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
       return;
     } else {
       //TODO: rename signup as startupView
+      getBusiness(userId: loggedInUserId);
+      getBranches(userId: loggedInUserId);
       final FlipperNavigationService _navigationService = ProxyService.nav;
       _navigationService.navigateTo(Routing.signUpView,
           arguments:
@@ -54,6 +60,37 @@ void Function(Store<AppState> store, dynamic action, NextDispatcher next)
     await getAppColors();
   };
 }
+
+//TODO: fix dups from drawer_viewmodel and have one method
+Future getBranches({String userId}) async {
+  final q = Query(ProxyService.database.db,
+      'SELECT id,businessId,createdAt,name,mapLatitude,mapLongitude,updatedAt,description,active,channels,location WHERE table=\$VALUE');
+
+  q.parameters = {'VALUE': AppTables.branch};
+
+  final results = q.execute();
+  final state = locator<SharedStateService>();
+  for (Map map in results.allResults) {
+    state.setBranch(branch: Branch.fromMap(map));
+  }
+}
+
+Future getBusiness({String userId}) async {
+  //final Logger log = Logging.getLogger('get business:');
+
+  final q = Query(ProxyService.database.db,
+      'SELECT id,name,active,currency,categoryId,latitude,longitude,userId,typeId,timeZone,createdAt,updatedAt,channels,country,businessUrl,hexColor,image,type,table WHERE table=\$VALUE AND userId=\$USERID');
+
+  q.parameters = {'VALUE': AppTables.business, 'USERID': userId};
+
+  final business = q.execute();
+  final state = locator<SharedStateService>();
+
+  for (Map map in business.allResults) {
+    state.setBusiness(business: Business.fromMap(map));
+  }
+}
+//TODO: end of dups
 
 Future getAppColors() async {
   final Logger log = Logging.getLogger('Get business: ');

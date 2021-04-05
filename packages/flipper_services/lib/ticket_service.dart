@@ -41,29 +41,24 @@ class TicketService with ReactiveServiceMixin {
       });
 
       q.addChangeListener((results) {
-        if (results.allResults.isNotEmpty) {
-          for (Map map in results.allResults) {
-            map.forEach((key, value) {
-              final pendingTicket =
-                  ProxyService.database.getById(id: ticket.ID);
-              List<String> ods = [];
-              if (pendingTicket.properties['orders'] != null) {
-                ods = Ticket.fromMap(pendingTicket.map)
-                    .orders
-                    .toList();
-                ods.add(Order.fromMap(value).id);
-                pendingTicket.properties['orders'] = ods;
-                ProxyService.database.update(document: pendingTicket);
-              }
-              final Document parkedOrder =
-                  ProxyService.database.getById(id: Order.fromMap(value).id);
-              parkedOrder.properties['active'] = false;
-              parkedOrder.properties['draft'] = false;
-              parkedOrder.properties['orderNote'] = status;
-              parkedOrder.properties['status'] = status;
-              ProxyService.database.update(document: parkedOrder);
-            });
-          }
+        for (Map map in results.allResults) {
+          map.forEach((key, value) {
+            final pendingTicket = ProxyService.database.getById(id: ticket.ID);
+            List<String> ods = [];
+            if (pendingTicket.properties['orders'] != null) {
+              ods = Ticket.fromMap(pendingTicket.map).orders.toList();
+              ods.add(Order.fromMap(value).id);
+              pendingTicket.properties['orders'] = ods;
+              ProxyService.database.update(document: pendingTicket);
+            }
+            final Document parkedOrder =
+                ProxyService.database.getById(id: Order.fromMap(value).id);
+            parkedOrder.properties['active'] = false;
+            parkedOrder.properties['draft'] = false;
+            parkedOrder.properties['orderNote'] = status;
+            parkedOrder.properties['status'] = status;
+            ProxyService.database.update(document: parkedOrder);
+          });
         }
       });
 

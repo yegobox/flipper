@@ -53,7 +53,7 @@ class DrawerViewModel extends ReactiveViewModel {
   Future getBusiness() async {
     assert(user.id != null);
     print(user.id);
-    final Logger log = Logging.getLogger('get business:');
+    //final Logger log = Logging.getLogger('get business:');
 
     final q = Query(ProxyService.database.db,
         'SELECT id,name,active,currency,categoryId,latitude,longitude,userId,typeId,timeZone,createdAt,updatedAt,channels,country,businessUrl,hexColor,image,type,table WHERE table=\$VALUE AND userId=\$USERID');
