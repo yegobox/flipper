@@ -1,21 +1,22 @@
 library flipper_models;
+
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
+import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper_models/business_history.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 
+import 'Queries.dart';
 import 'base_model.dart';
-
 
 class OpenBusinessModel extends BaseModel {
   final DatabaseService _databaseService = ProxyService.database;
@@ -74,13 +75,13 @@ class OpenBusinessModel extends BaseModel {
   String _historyId;
   String get historyId => _historyId;
   void getBusinessHistoryId() {
-    final q = Query(_databaseService.db,
-        'SELECT  id,cashierName,openingHour,isSocial,table,openingFloat,closingFloat,displayText,businessId,userId,createdAt WHERE table=\$T AND openingHour=\$OPEN');
+    final q = Query(_databaseService.db, Queries.Q_8);
 
     q.parameters = {'T': AppTables.drawerHistories, 'OPEN': true};
     final isBusinessOpen = q.execute();
 
-    if (isBusinessOpen.allResults.isNotEmpty) {
+    final List t = isBusinessOpen.allResults;
+    if (t.isEmpty) {
       //it is not open open it now for later to be closed
       final String id = Uuid().v1();
       final Map<String, dynamic> buildMap = {
@@ -99,15 +100,12 @@ class OpenBusinessModel extends BaseModel {
       final Document doc = _databaseService.insert(id: id, data: buildMap);
       _historyId = doc.ID;
       notifyListeners();
-    } else {
-      if (isBusinessOpen.allResults.isNotEmpty) {
-        for (Map map in isBusinessOpen.allResults) {
-          _historyId = BusinessHistory.fromMap(map).id;
-          ProxyService.sharedState
-              .setBusinessHistory(history: BusinessHistory.fromMap(map));
-          notifyListeners();
-        }
-
+    } else if (t.isNotEmpty) {
+      for (Map map in t) {
+        _historyId = BusinessHistory.fromMap(map).id;
+        ProxyService.sharedState
+            .setBusinessHistory(history: BusinessHistory.fromMap(map));
+        notifyListeners();
       }
     }
   }

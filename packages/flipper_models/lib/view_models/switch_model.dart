@@ -7,6 +7,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
 
+import 'Queries.dart';
+
 class SwitchModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('BusinessHistory....');
 
@@ -20,8 +22,7 @@ class SwitchModel extends ReactiveViewModel {
   }
 
   void getDrawerState() async {
-    final q = Query(_databaseService.db,
-        'SELECT  id,cashierName,openingHour,isSocial,table,openingFloat,closingFloat,displayText,businessId,userId,createdAt WHERE table=\$T AND openingHour=\$OPEN');
+    final q = Query(_databaseService.db, Queries.Q_8);
 
     q.parameters = {
       'T': AppTables.drawerHistories,
