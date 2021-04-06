@@ -23,11 +23,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/Sone.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.gr.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.gr.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/business_home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/business_home_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/category_list_view.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/category_list_view_model.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/category_selecter_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_selecter_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/edit_category_view.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/add_category_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/unit/add_unit_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/unit/add_unit_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/open_business_model.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/open_business_model.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/switch_model.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/switch_model.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_unit_viewmodal.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/category_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/category_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/unit_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/unit_viewmodel.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +76,7 @@
     <property name="aspect.path.notification.shown" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../gallery" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
@@ -75,6 +86,7 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\demos\flipper\lib\views\category" />
       <recent name="E:\demos\flipper\packages\flipper_models\lib\view_models" />
       <recent name="E:\demos\flipper\packages\flipper_models\lib" />
     </key>
@@ -111,7 +123,11 @@
       <workItem from="1617633709841" duration="3314000" />
       <workItem from="1617637454468" duration="8337000" />
       <workItem from="1617680014796" duration="1253000" />
-      <workItem from="1617681412641" duration="496000" />
+      <workItem from="1617681412641" duration="3801000" />
+      <workItem from="1617691862747" duration="2100000" />
+      <workItem from="1617696371538" duration="3199000" />
+      <workItem from="1617707639628" duration="1809000" />
+      <workItem from="1617713368928" duration="262000" />
     </task>
     <servers />
   </component>
@@ -134,29 +150,9 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/switch/switch_view.dart</url>
-          <line>29</line>
-          <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/open_business_model.dart</url>
-          <line>80</line>
-          <option name="timeStamp" value="27" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/open_close_drawerview.dart</url>
-          <line>30</line>
-          <option name="timeStamp" value="28" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/switch/switch_view.dart</url>
-          <line>74</line>
-          <option name="timeStamp" value="29" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/switch_model.dart</url>
-          <line>34</line>
-          <option name="timeStamp" value="30" />
+          <url>file://$PROJECT_DIR$/lib/views/unit/add_unit_view.dart</url>
+          <line>18</line>
+          <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

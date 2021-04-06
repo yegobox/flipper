@@ -1,27 +1,22 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:flipper_models/view_models/add_unit_viewmodal.dart';
+import 'package:flipper_models/view_models/unit_viewmodel.dart';
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/bluethooth_service.dart';
-import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/shared_state_service.dart';
 
 class AddUnitTypeScreen extends StatelessWidget {
   const AddUnitTypeScreen({
     Key key,
   }) : super(key: key);
 
-  List<Widget> _getUnitsWidgets(AddUnitViewModel model) {
+  List<Widget> _getUnitsWidgets(UnitViewModel model) {
     final List<Widget> list = <Widget>[];
     for (var i = 0; i < model.sharedStateService.units.length; i++) {
       list.add(
         GestureDetector(
           onTap: () {
-            model.saveFocusedUnit(unit: model.sharedStateService.units[i]);
+            model.saveFocusedUnit(unit: model.units[i]);
           },
           child: ListTile(
             title: Text(
@@ -45,7 +40,7 @@ class AddUnitTypeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-        builder: (BuildContext context, AddUnitViewModel model, Widget child) {
+        builder: (BuildContext context, UnitViewModel model, Widget child) {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
@@ -64,7 +59,7 @@ class AddUnitTypeScreen extends StatelessWidget {
             ),
             body: Stack(
               children: [
-                model.sharedStateService.units.isEmpty
+                model.units.isEmpty
                     ? const SizedBox.shrink()
                     : ListView(
                         children: ListTile.divideTiles(
@@ -76,6 +71,6 @@ class AddUnitTypeScreen extends StatelessWidget {
             ),
           );
         },
-        viewModelBuilder: () => AddUnitViewModel());
+        viewModelBuilder: () => UnitViewModel());
   }
 }

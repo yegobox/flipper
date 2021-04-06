@@ -1,5 +1,7 @@
+import 'package:flipper/routes/router.gr.dart';
 import 'package:flipper/views/category/category_selecter_view.dart';
 import 'package:flipper_models/view_models/category_viewmodel.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -16,7 +18,7 @@ class CategoryView extends StatelessWidget {
                 width: double.infinity,
                 child: GestureDetector(
                   onTap: () {
-                    model.navigateTo(path: 'addCategoryScreen');
+                    ProxyService.nav.navigateTo(Routing.addCategoryScreen);
                   },
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
@@ -29,11 +31,13 @@ class CategoryView extends StatelessWidget {
                                 categories: model.categories,
                               ),
                         Theme(
-                            data: ThemeData(
-                                iconTheme: const IconThemeData(
+                          data: ThemeData(
+                            iconTheme: const IconThemeData(
                               color: Colors.black,
-                            )),
-                            child: const Icon(Icons.arrow_forward_ios))
+                            ),
+                          ),
+                          child: const Icon(Icons.arrow_forward_ios),
+                        )
                       ],
                     ),
                   ),

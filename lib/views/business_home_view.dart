@@ -1,15 +1,15 @@
 import 'package:flipper/views/flipper_drawer.dart';
 import 'package:flipper/views/home_app_bar.dart';
 import 'package:flipper/views/product/add/add_product_modal.dart';
-import 'package:pos/pos.dart';
 import 'package:flipper/views/product/product_view.dart';
-import 'package:pos/payable/payable_view.dart';
 import 'package:flipper/views/welcome/home/common_view_model.dart';
 import 'package:flipper/widget/bottom_menu_bar.dart';
-
-import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/pos_viewmodel.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:pos/payable/payable_view.dart';
+import 'package:pos/pos.dart';
+import 'package:stacked/stacked.dart';
 
 // ignore: must_be_immutable
 class BusinessHomeView extends StatelessWidget {
@@ -67,7 +67,7 @@ class BusinessHomeView extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return AddProductModal(
-                    userId: vm.user.id,
+                    userId: ProxyService.sharedState.user.id,
                   );
                 },
               );

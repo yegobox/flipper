@@ -1,12 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:auto_route/auto_route_annotations.dart';
-import 'package:flipper/views/category/category_list_view.dart';
-import 'package:flipper/views/category/edit_category_view.dart';
+import 'package:flipper/views/camera/camera_preview.dart';
+import 'package:flipper/views/category/add_category_view.dart';
+import 'package:flipper/views/category/create_category_input_screen.dart';
 import 'package:flipper/views/customers/add_customer.dart';
 import 'package:flipper/views/customers/customer_list_view.dart';
 import 'package:flipper/views/discounts/discount_list_view.dart';
 import 'package:flipper/views/discounts/discount_view.dart';
-import 'package:flipper/views/product/add/add_category_view.dart';
+import 'package:flipper/views/open_close_drawerview.dart';
 import 'package:flipper/views/product/add/add_product_view.dart';
 import 'package:flipper/views/product/edit/edit_product_title.dart';
 import 'package:flipper/views/product/product_list_view.dart';
@@ -16,39 +17,27 @@ import 'package:flipper/views/reports/build_sales_View.dart';
 import 'package:flipper/views/sale/add_noteview.dart';
 import 'package:flipper/views/sale/after_sale_view.dart';
 import 'package:flipper/views/sale/collect_cash_view.dart';
-import 'package:flipper/views/sale/payment_option_view.dart';
 import 'package:flipper/views/sale/order_summary_view.dart';
+import 'package:flipper/views/sale/payment_option_view.dart';
+import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
 import 'package:flipper/views/tickets/new_ticket.dart';
 import 'package:flipper/views/tickets/tickets_view.dart';
+import 'package:flipper/views/transactions/transaction_screen.dart';
 import 'package:flipper/views/unit/add_unit_view.dart';
 import 'package:flipper/views/unit/edit_unit_view.dart';
 import 'package:flipper/views/variation/add_variation_screen.dart';
-
 import 'package:flipper/views/variation/edit_variation_screen.dart';
-
-import 'package:flipper/views/welcome/signup/signup_view.dart';
 import 'package:flipper/views/welcome/home/dash_board.dart';
-
+import 'package:flipper/views/welcome/signup/signup_view.dart';
 import 'package:flipper/views/welcome/splash/aftersplash.dart';
 import 'package:flipper/views/welcome/splash/splash_screen.dart';
-
-import 'package:flipper/views/camera/camera_preview.dart';
-
-import 'package:flipper/views/category/create_category_input_screen.dart';
-
-import 'package:flipper/views/open_close_drawerview.dart';
-
-import 'package:flipper/views/selling/change_quantity_selling.dart';
-import 'package:flipper/views/transactions/transaction_screen.dart';
-
 import 'package:flipper/widget/calendar/calenderView.dart';
-
-import 'package:flipper_login/otp.dart';
-import 'package:flipper_contacts/contact_view.dart';
 import 'package:flipper_chat/chat_view.dart';
+import 'package:flipper_contacts/contact_view.dart';
+import 'package:flipper_login/otp.dart';
 
 @MaterialAutoRouter()
 class $Routing {
@@ -81,10 +70,8 @@ class $Routing {
 
   CalendarView calendarView;
   DiscountView discountView;
-  EditCategoryScreen editCategoryScreen;
   EditUnitView editUnitType;
   EditVariationScreen editVariationScreen;
-  ListCategoryView listCategoryView;
   ListDiscountView listDiscountView;
   OnSellingView onSellingView;
   ProductListView productsListView;

@@ -1,8 +1,5 @@
-import 'package:flipper/domain/redux/app_actions/actions.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 
 class CategorySelector extends StatelessWidget {
   const CategorySelector({Key key, this.categories}) : super(key: key);

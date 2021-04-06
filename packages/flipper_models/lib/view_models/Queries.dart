@@ -24,4 +24,10 @@ class Queries {
   //table = drawerHistories
   static const String Q_8 =
       'SELECT  id,cashierName,openingHour,isSocial,table,openingFloat,closingFloat,displayText,businessId,userId,createdAt WHERE table=\$T AND openingHour=\$OPEN';
+  //table = category
+  static const String Q_9 =
+      'SELECT name,id,focused,table,touched,active,branchId,channels WHERE table=\$VALUE AND branchId=\$BRANCHID';
+  //table = unit
+  static const String Q_10 =
+      'SELECT id, name,table,branchId,focused,channels WHERE table=\$T';
 }
