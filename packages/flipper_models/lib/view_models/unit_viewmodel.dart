@@ -39,6 +39,7 @@ class UnitViewModel extends ReactiveViewModel {
     }
     state.setUnits(units: units);
     notifyListeners();
+    notifyListeners();
   }
 
   void updateProductWithCurrentUnit({Unit unit}) async {
