@@ -1,9 +1,8 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper_models/view_models/unit_viewmodel.dart';
-
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 
 class AddUnitTypeScreen extends StatelessWidget {
   const AddUnitTypeScreen({
@@ -12,22 +11,20 @@ class AddUnitTypeScreen extends StatelessWidget {
 
   List<Widget> _getUnitsWidgets(UnitViewModel model) {
     final List<Widget> list = <Widget>[];
-    for (var i = 0; i < model.sharedStateService.units.length; i++) {
+    for (var i = 0; i < model.units.length; i++) {
       list.add(
         GestureDetector(
           onTap: () {
-            model.saveFocusedUnit(unit: model.units[i]);
+            model.saveFocusedUnit(newUnit: model.units[i]);
           },
           child: ListTile(
             title: Text(
-              model.sharedStateService.units[i].name,
+              model.units[i].name,
               style: const TextStyle(color: Colors.black),
             ),
             trailing: Radio(
-              value: model.sharedStateService.units[i].id,
-              groupValue: model.sharedStateService.units[i].focused
-                  ? model.sharedStateService.units[i].id
-                  : 0,
+              value: model.units[i].id,
+              groupValue: model.units[i].focused ? model.units[i].id : 0,
               onChanged: (Object value) {},
             ),
           ),
@@ -47,9 +44,8 @@ class AddUnitTypeScreen extends StatelessWidget {
                 ProxyService.nav.pop();
               },
               title: 'Unit Type',
-              showActionButton: true,
+              showActionButton: false,
               disableButton: false,
-              rightActionButtonName: 'Save',
               onPressedCallback: () {
                 ProxyService.nav.pop();
               },
@@ -70,6 +66,9 @@ class AddUnitTypeScreen extends StatelessWidget {
               ],
             ),
           );
+        },
+        onModelReady: (UnitViewModel model) {
+          model.loadUnits();
         },
         viewModelBuilder: () => UnitViewModel());
   }

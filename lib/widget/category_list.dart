@@ -18,6 +18,10 @@ class CategoryList extends StatelessWidget {
     BuildContext context,
   ) {
     final List<Widget> list = <Widget>[];
+    if (categories == null) {
+      list.add(const SizedBox.shrink());
+      return Wrap(children: list);
+    }
     for (int i = 0; i < categories.length; i++) {
       if (categories[i].name != 'custom') {
         list.add(
@@ -62,7 +66,7 @@ class CategoryList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CategoryViewModel>.reactive(
       viewModelBuilder: () => CategoryViewModel(),
-      onModelReady: (CategoryViewModel model) => model.getCategory(),
+      onModelReady: (CategoryViewModel model) => model.getCategories(),
       builder: (BuildContext context, CategoryViewModel model, Widget child) {
         return _getCategoriesWidgets(categories, model, context);
       },

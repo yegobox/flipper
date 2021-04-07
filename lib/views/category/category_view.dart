@@ -47,7 +47,7 @@ class CategoryView extends StatelessWidget {
           );
         },
         onModelReady: (CategoryViewModel model) {
-          model.getCategory();
+          model.getCategories();
         },
         viewModelBuilder: () => CategoryViewModel());
   }

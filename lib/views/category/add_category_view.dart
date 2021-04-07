@@ -14,7 +14,7 @@ class AddCategoryView extends StatelessWidget {
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => CategoryViewModel(),
         onModelReady: (CategoryViewModel model) {
-          model.getCategory();
+          model.getCategories();
         },
         builder: (BuildContext context, CategoryViewModel model, Widget child) {
           return Scaffold(

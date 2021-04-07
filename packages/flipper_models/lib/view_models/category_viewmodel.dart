@@ -19,17 +19,15 @@ class CategoryViewModel extends BaseModel {
 
   final DatabaseService _databaseService = ProxyService.database;
 
-  final List<Category> _category = [];
-
   Category _focusedCategory;
 
   Category get focusedCategory => _focusedCategory;
 
   final sharedStateService = locator<SharedStateService>();
 
-  List<Category> get categories => _category;
+  final List<Category> categories = [];
 
-  void getCategory({BuildContext context}) {
+  void getCategories() {
     final q = Query(_databaseService.db, Queries.Q_9);
 
     assert(sharedStateService.branch.id != null);
@@ -38,25 +36,54 @@ class CategoryViewModel extends BaseModel {
       'VALUE': AppTables.category,
       'BRANCHID': sharedStateService.branch.id
     };
+    categories.clear();
 
-    q.addChangeListener((results) {
-      for (Map map in results.allResults) {
-        if (!_category.contains(Category.fromMap(map))) {
-          //if we get the category that exist that only changed from one property change it from a list
-          for (var i = 0; i < _category.length; i++) {
-            if (_category[i].id == Category.fromMap(map).id) {
-              //the object was in the list so no need to re-add it twice we need to change the object in list first
-              _category.removeWhere((item) => item.id == _category[i].id);
-            }
-          }
-          if (Category.fromMap(map).focused) {
-            _focusedCategory = Category.fromMap(map);
-          }
-          _category.add(Category.fromMap(map));
-          notifyListeners();
-        }
+    final results = q.execute();
+
+    for (Map map in results.allResults) {
+      if (Category.fromMap(map).focused) {
+        _focusedCategory = Category.fromMap(map);
       }
-    });
+      categories.add(Category.fromMap(map));
+    }
+    print(categories);
+    notifyListeners();
+  }
+
+  /// should always set the prev category to false
+  /// keep moving selected category highlight
+  Future<void> updateCategory({@required Category category}) async {
+    //remove focus from previous focused category
+    final String id = _focusedCategory == null ? 'null' : _focusedCategory.id;
+    final Document prevCategory = _databaseService.getById(id: id);
+    if (prevCategory == null) {
+      nextFocus(category);
+    } else {
+      prevFocus(prevCategory);
+      nextFocus(category);
+    }
+    getCategories();
+  }
+
+  void prevFocus(Document prevCategory) {
+    prevCategory.properties['focused'] = false;
+
+    _databaseService.update(document: prevCategory);
+  }
+
+  void nextFocus(Category category) {
+    final Document getCategory = _databaseService.getById(id: category.id);
+
+    assert(getCategory != null);
+
+    getCategory.properties['focused'] = category.focused == true ? false : true;
+
+    _databaseService.update(document: getCategory);
+
+    final Document updatedCategory = _databaseService.getById(id: category.id);
+    if (Category.fromMap(updatedCategory.map).focused) {
+      _focusedCategory = Category.fromMap(updatedCategory.map);
+    }
   }
 
   void createCategory({String name}) {
@@ -74,32 +101,6 @@ class CategoryViewModel extends BaseModel {
         'name': name
       };
       _databaseService.insert(id: id, data: category);
-    }
-  }
-
-  /// should always set the prev category to false
-  /// keep moving selected category highlight
-  Future<void> updateCategory({@required Category category}) async {
-    //remove focus from previous focused category
-    final prevCategory = _databaseService.getById(id: _focusedCategory.id);
-    assert(prevCategory != null);
-    prevCategory.properties['focused'] = false;
-
-    _databaseService.update(document: prevCategory);
-    //done updating previous selected category
-
-    //then update the current category to select
-    final Document getCategory = _databaseService.getById(id: category.id);
-
-    assert(getCategory != null);
-
-    getCategory.properties['focused'] = category.focused == true ? false : true;
-
-    _databaseService.update(document: getCategory);
-
-    final Document updatedCategory = _databaseService.getById(id: category.id);
-    if (Category.fromMap(updatedCategory.map).focused) {
-      _focusedCategory = Category.fromMap(updatedCategory.map);
     }
   }
 }
