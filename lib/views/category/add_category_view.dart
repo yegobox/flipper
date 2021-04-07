@@ -1,7 +1,7 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper/widget/category_list.dart';
-import 'package:flipper_models/view_models/add_product_viewmodel.dart';
+import 'package:flipper/views/category/category_list.dart';
+import 'package:flipper_models/view_models/category_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -11,13 +11,12 @@ class AddCategoryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(
-        viewModelBuilder: () => AddProductViewmodel(),
-        onModelReady: (AddProductViewmodel model) {
+    return ViewModelBuilder<CategoryViewModel>.reactive(
+        viewModelBuilder: () => CategoryViewModel(),
+        onModelReady: (CategoryViewModel model) {
           model.getCategories();
         },
-        builder:
-            (BuildContext context, AddProductViewmodel model, Widget child) {
+        builder: (BuildContext context, CategoryViewModel model, Widget child) {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
@@ -56,7 +55,7 @@ class AddCategoryView extends StatelessWidget {
                   ),
                 ),
                 CategoryList(
-                  categories: model.categories,
+                  model: model,
                 ),
               ],
             ),

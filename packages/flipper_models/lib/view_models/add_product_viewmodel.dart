@@ -19,7 +19,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
-import 'package:uuid/uuid.dart';
 
 class AddProductViewmodel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('add product view model:)');
@@ -242,84 +241,6 @@ class AddProductViewmodel extends ReactiveViewModel {
   void setDescription({String description}) {
     _description = description;
     notifyListeners();
-  }
-  // final DatabaseService _databaseService = ProxyService.database;
-
-  Category _focusedCategory;
-
-  Category get focusedCategory => _focusedCategory;
-
-  List<Category> categories = [];
-  void getCategories() {
-    final q = Query(_databaseService.db, Queries.Q_9);
-
-    assert(state.branch.id != null);
-
-    q.parameters = {'VALUE': AppTables.category, 'BRANCHID': state.branch.id};
-    categories.clear();
-
-    final results = q.execute();
-
-    for (Map map in results.allResults) {
-      if (Category.fromMap(map).focused) {
-        _focusedCategory = Category.fromMap(map);
-      }
-      categories.add(Category.fromMap(map));
-    }
-    state.setCategories(categories: categories);
-    notifyListeners();
-  }
-
-  /// should always set the prev category to false
-  /// keep moving selected category highlight
-  Future<void> updateCategory({Category category}) async {
-    //remove focus from previous focused category
-    final String id = _focusedCategory == null ? 'null' : _focusedCategory.id;
-    final Document prevCategory = _databaseService.getById(id: id);
-    if (prevCategory == null) {
-      nextFocus(category);
-    } else {
-      prevFocus(prevCategory);
-      nextFocus(category);
-    }
-    getCategories();
-  }
-
-  void prevFocus(Document prevCategory) {
-    prevCategory.properties['focused'] = false;
-
-    _databaseService.update(document: prevCategory);
-  }
-
-  void nextFocus(Category category) {
-    final Document getCategory = _databaseService.getById(id: category.id);
-
-    getCategory.properties['focused'] = true;
-
-    _databaseService.update(document: getCategory);
-
-    final Document updatedCategory = _databaseService.getById(id: category.id);
-    if (Category.fromMap(updatedCategory.map).focused) {
-      _focusedCategory = Category.fromMap(updatedCategory.map);
-    }
-  }
-
-  void createCategory({String name}) {
-    if (name.isNotEmpty) {
-      assert(state.user.id != null);
-      assert(state.branch.id != null);
-      final id = Uuid().v1().substring(0, 10);
-      final Map<String, dynamic> category = {
-        'active': true,
-        'table': AppTables.category,
-        'branchId': state.branch.id,
-        'focused': false,
-        'id': id,
-        'channels': [state.user.id],
-        'name': name
-      };
-      _databaseService.insert(id: id, data: category);
-    }
   }
 
   @override

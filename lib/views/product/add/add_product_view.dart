@@ -57,7 +57,6 @@ class AddProductView extends StatelessWidget {
       viewModelBuilder: () => AddProductViewmodel(),
       onModelReady: (AddProductViewmodel model) {
         model.getTemporalProduct();
-        model.getCategories();
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         if (model.product == null) {
@@ -122,7 +121,7 @@ class AddProductView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    CategoryView(model: model),
+                    CategoryView(),
 
                     const CenterDivider(
                       width: 300,

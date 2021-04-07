@@ -23,20 +23,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/category/add_category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/add_category_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/category/category_selecter_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_selecter_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/category/category_selecter_view.dart" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/category/category_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/create_category_input_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/section_select_unit.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/section_select_unit.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/unit/add_unit_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/unit/add_unit_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widget/category_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widget/category_list.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/widget/category_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/category/category_list.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/add_product_viewmodel.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/category_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/category_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/unit_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/unit_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/shared_state_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/shared_state_service.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,8 +79,8 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="E:\demos\flipper\android\app" />
       <recent name="E:\demos\flipper\lib\views\category" />
+      <recent name="E:\demos\flipper\android\app" />
       <recent name="E:\demos\flipper\packages\flipper_models\lib\view_models" />
       <recent name="E:\demos\flipper\packages\flipper_models\lib" />
     </key>
@@ -129,7 +124,7 @@
       <workItem from="1617713368928" duration="1853000" />
       <workItem from="1617719136394" duration="682000" />
       <workItem from="1617759182240" duration="20281000" />
-      <workItem from="1617790203812" duration="7334000" />
+      <workItem from="1617790203812" duration="9865000" />
     </task>
     <servers />
   </component>
@@ -147,22 +142,6 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/category/category_selecter_view.dart</url>
-          <line>10</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/category/category_selecter_view.dart</url>
-          <line>13</line>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
