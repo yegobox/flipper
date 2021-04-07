@@ -19,6 +19,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:logger/logger.dart';
 import 'package:stacked/stacked.dart';
+import 'package:uuid/uuid.dart';
 
 class AddProductViewmodel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('add product view model:)');
@@ -39,7 +40,7 @@ class AddProductViewmodel extends ReactiveViewModel {
 
   double _retailPriceController;
 
-  final sharedStateService = locator<SharedStateService>();
+  final state = locator<SharedStateService>();
 
   double _supplierPriceController;
 
@@ -58,13 +59,13 @@ class AddProductViewmodel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  List<PColor> get colors => sharedStateService.colors;
+  List<PColor> get colors => state.colors;
 
-  ImageP get image => sharedStateService.image;
+  ImageP get image => state.image;
 
-  PColor get currentColor => sharedStateService.currentColor;
+  PColor get currentColor => state.currentColor;
 
-  Product get product => sharedStateService.product;
+  Product get product => state.product;
 
   bool get isLocked {
     return _isLocked;
@@ -101,7 +102,7 @@ class AddProductViewmodel extends ReactiveViewModel {
 
     await updateProduct(
       productId: product.id,
-      color: sharedStateService.currentColor.name,
+      color: state.currentColor.name,
       categoryId: category == null ? '10' : category.id,
     );
     // we look for a regular variant which is always have id=to productID and updated it with pricing.
@@ -209,7 +210,7 @@ class AddProductViewmodel extends ReactiveViewModel {
       for (Map map in t) {
         //get the Regular variant to update when needed
         final regularVariant = Query(_databaseService.db, Queries.Q_7);
-        sharedStateService.setProduct(product: Product.fromMap(map));
+        state.setProduct(product: Product.fromMap(map));
         regularVariant.parameters = {
           'VALUE': AppTables.variation,
           'NAME': 'Regular',
@@ -219,7 +220,7 @@ class AddProductViewmodel extends ReactiveViewModel {
         final List tt = results.allResults;
         if (tt.isNotEmpty) {
           for (Map map in tt) {
-            sharedStateService.setVariation(variation: Variation.fromMap(map));
+            state.setVariation(variation: Variation.fromMap(map));
           }
         }
       }
@@ -242,7 +243,85 @@ class AddProductViewmodel extends ReactiveViewModel {
     _description = description;
     notifyListeners();
   }
+  // final DatabaseService _databaseService = ProxyService.database;
+
+  Category _focusedCategory;
+
+  Category get focusedCategory => _focusedCategory;
+
+  List<Category> categories = [];
+  void getCategories() {
+    final q = Query(_databaseService.db, Queries.Q_9);
+
+    assert(state.branch.id != null);
+
+    q.parameters = {'VALUE': AppTables.category, 'BRANCHID': state.branch.id};
+    categories.clear();
+
+    final results = q.execute();
+
+    for (Map map in results.allResults) {
+      if (Category.fromMap(map).focused) {
+        _focusedCategory = Category.fromMap(map);
+      }
+      categories.add(Category.fromMap(map));
+    }
+    state.setCategories(categories: categories);
+    notifyListeners();
+  }
+
+  /// should always set the prev category to false
+  /// keep moving selected category highlight
+  Future<void> updateCategory({Category category}) async {
+    //remove focus from previous focused category
+    final String id = _focusedCategory == null ? 'null' : _focusedCategory.id;
+    final Document prevCategory = _databaseService.getById(id: id);
+    if (prevCategory == null) {
+      nextFocus(category);
+    } else {
+      prevFocus(prevCategory);
+      nextFocus(category);
+    }
+    getCategories();
+  }
+
+  void prevFocus(Document prevCategory) {
+    prevCategory.properties['focused'] = false;
+
+    _databaseService.update(document: prevCategory);
+  }
+
+  void nextFocus(Category category) {
+    final Document getCategory = _databaseService.getById(id: category.id);
+
+    getCategory.properties['focused'] = true;
+
+    _databaseService.update(document: getCategory);
+
+    final Document updatedCategory = _databaseService.getById(id: category.id);
+    if (Category.fromMap(updatedCategory.map).focused) {
+      _focusedCategory = Category.fromMap(updatedCategory.map);
+    }
+  }
+
+  void createCategory({String name}) {
+    if (name.isNotEmpty) {
+      assert(state.user.id != null);
+      assert(state.branch.id != null);
+      final id = Uuid().v1().substring(0, 10);
+      final Map<String, dynamic> category = {
+        'active': true,
+        'table': AppTables.category,
+        'branchId': state.branch.id,
+        'focused': false,
+        'id': id,
+        'channels': [state.user.id],
+        'name': name
+      };
+      _databaseService.insert(id: id, data: category);
+    }
+  }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [sharedStateService];
+  List<ReactiveServiceMixin> get reactiveServices => [state];
 }

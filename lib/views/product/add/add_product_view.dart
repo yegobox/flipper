@@ -57,6 +57,7 @@ class AddProductView extends StatelessWidget {
       viewModelBuilder: () => AddProductViewmodel(),
       onModelReady: (AddProductViewmodel model) {
         model.getTemporalProduct();
+        model.getCategories();
       },
       builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         if (model.product == null) {
@@ -121,7 +122,7 @@ class AddProductView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    CategoryView(),
+                    CategoryView(model: model),
 
                     const CenterDivider(
                       width: 300,
@@ -159,7 +160,7 @@ class AddProductView extends StatelessWidget {
                         ProxyService.nav.navigateTo(
                           Routing.receiveStock,
                           arguments: ReceiveStockScreenArguments(
-                            id: model.sharedStateService.variation.id,
+                            id: model.state.variation.id,
                           ),
                         ); //passing a regular variantId to update
                       },
@@ -184,8 +185,7 @@ class AddProductView extends StatelessWidget {
 
                     AddVariant(
                       onPressedCallback: () {
-                        model.createVariant(
-                            productId: model.sharedStateService.product.id);
+                        model.createVariant(productId: model.state.product.id);
                       },
                     ),
                     const CenterDivider(

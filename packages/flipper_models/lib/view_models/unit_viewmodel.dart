@@ -21,7 +21,7 @@ class UnitViewModel extends ReactiveViewModel {
 
   List<Unit> units = [];
 
-  final sharedStateService = locator<SharedStateService>();
+  final state = locator<SharedStateService>();
   final Logger log = Logging.getLogger('units:)');
 
   void navigateTo({String path}) {
@@ -36,13 +36,13 @@ class UnitViewModel extends ReactiveViewModel {
     final results = q.execute();
     for (Map map in results.allResults) {
       units.add(Unit.fromMap(map));
-      sharedStateService.setUnits(units: units);
     }
+    state.setUnits(units: units);
     notifyListeners();
   }
 
   void updateProductWithCurrentUnit({Unit unit}) async {
-    final Document productDoc = _db.getById(id: sharedStateService.product.id);
+    final Document productDoc = _db.getById(id: state.product.id);
     productDoc.properties['unit'] = unit.name;
     _db.update(document: productDoc);
   }
@@ -69,5 +69,5 @@ class UnitViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [sharedStateService];
+  List<ReactiveServiceMixin> get reactiveServices => [state];
 }

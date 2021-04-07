@@ -1,19 +1,17 @@
 library flipper_services;
 
-import 'package:flipper_models/business_history.dart';
-import 'package:flutter/foundation.dart';
-import 'package:observable_ish/observable_ish.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
-import 'package:flipper_models/pcolor.dart';
-import 'package:flipper_models/variation.dart';
-import 'package:flipper_models/image.dart';
-import 'package:flipper_models/product.dart';
+import 'package:flipper_models/business_history.dart';
+import 'package:flipper_models/category.dart';
 import 'package:flipper_models/fuser.dart';
+import 'package:flipper_models/image.dart';
+import 'package:flipper_models/pcolor.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flipper_models/unit.dart';
-//the entire app action no more actions! since we may reject redux fully!
-// import 'package:flipper/model/fuser.dart';
+import 'package:flipper_models/variation.dart';
+import 'package:observable_ish/observable_ish.dart';
+import 'package:stacked/stacked.dart';
 
 class SharedStateService with ReactiveServiceMixin {
   SharedStateService() {
@@ -26,7 +24,9 @@ class SharedStateService with ReactiveServiceMixin {
       _businesses,
       _blueConnected,
       _bluethoothDevices,
-      _variation
+      _variation,
+      _categories,
+      _units
     ]);
   }
 
@@ -64,6 +64,11 @@ class SharedStateService with ReactiveServiceMixin {
   final RxValue<List<Unit>> _units = RxValue<List<Unit>>(initial: []);
 
   List<Unit> get units => _units.value;
+
+  final RxValue<List<Category>> _categories =
+      RxValue<List<Category>>(initial: []);
+
+  List<Category> get categories => _categories.value;
 
   List<PColor> get colors => _colors.value;
 
@@ -122,7 +127,15 @@ class SharedStateService with ReactiveServiceMixin {
   }
 
   void setUnits({List<Unit> units}) {
+    _units.value = null;
     _units.value = units;
+    // notifyListeners();
+  }
+
+  void setCategories({List<Category> categories}) {
+    _categories.value = null;
+    _categories.value = categories;
+    // notifyListeners();
   }
 
   final RxValue<bool> _blueConnected = RxValue<bool>(initial: false);
@@ -150,7 +163,7 @@ class SharedStateService with ReactiveServiceMixin {
   }
 
   final RxValue<Map> resumeOrders = RxValue<Map>(initial: {});
-  void setResumeOrders({@required String orderId, @required String ticketId}) {
+  void setResumeOrders({String orderId, String ticketId}) {
     resumeOrders.value = {'orderId': orderId, 'ticketId': ticketId};
   }
 }

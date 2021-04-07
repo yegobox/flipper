@@ -11,20 +11,21 @@ class AddUnitTypeScreen extends StatelessWidget {
 
   List<Widget> _getUnitsWidgets(UnitViewModel model) {
     final List<Widget> list = <Widget>[];
-    for (var i = 0; i < model.units.length; i++) {
+    for (var i = 0; i < model.state.units.length; i++) {
       list.add(
         GestureDetector(
           onTap: () {
-            model.saveFocusedUnit(newUnit: model.units[i]);
+            model.saveFocusedUnit(newUnit: model.state.units[i]);
           },
           child: ListTile(
             title: Text(
-              model.units[i].name,
+              model.state.units[i].name,
               style: const TextStyle(color: Colors.black),
             ),
             trailing: Radio(
-              value: model.units[i].id,
-              groupValue: model.units[i].focused ? model.units[i].id : 0,
+              value: model.state.units[i].id,
+              groupValue:
+                  model.state.units[i].focused ? model.state.units[i].id : 0,
               onChanged: (Object value) {},
             ),
           ),
@@ -55,7 +56,7 @@ class AddUnitTypeScreen extends StatelessWidget {
             ),
             body: Stack(
               children: [
-                model.units.isEmpty
+                model.state.units.isEmpty
                     ? const SizedBox.shrink()
                     : ListView(
                         children: ListTile.divideTiles(

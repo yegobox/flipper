@@ -1,5 +1,5 @@
 import 'package:customappbar/customappbar.dart';
-import 'package:flipper_models/view_models/category_viewmodel.dart';
+import 'package:flipper_models/view_models/add_product_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -10,7 +10,7 @@ class CreateCategoryInputScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
-      builder: (BuildContext context, CategoryViewModel model, Widget child) {
+      builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
@@ -35,7 +35,7 @@ class CreateCategoryInputScreen extends StatelessWidget {
           ),
         );
       },
-      viewModelBuilder: () => CategoryViewModel(),
+      viewModelBuilder: () => AddProductViewmodel(),
     );
   }
 }

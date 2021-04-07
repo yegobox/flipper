@@ -1,6 +1,6 @@
 import 'package:flipper/utils/HexColor.dart';
 import 'package:flipper_models/category.dart';
-import 'package:flipper_models/view_models/category_viewmodel.dart';
+import 'package:flipper_models/view_models/add_product_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -14,7 +14,7 @@ class CategoryList extends StatelessWidget {
 
   Wrap _getCategoriesWidgets(
     List<Category> categories,
-    CategoryViewModel model,
+    AddProductViewmodel model,
     BuildContext context,
   ) {
     final List<Widget> list = <Widget>[];
@@ -64,10 +64,10 @@ class CategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<CategoryViewModel>.reactive(
-      viewModelBuilder: () => CategoryViewModel(),
-      onModelReady: (CategoryViewModel model) => model.getCategories(),
-      builder: (BuildContext context, CategoryViewModel model, Widget child) {
+    return ViewModelBuilder<AddProductViewmodel>.reactive(
+      viewModelBuilder: () => AddProductViewmodel(),
+      onModelReady: (AddProductViewmodel model) => model.getCategories(),
+      builder: (BuildContext context, AddProductViewmodel model, Widget child) {
         return _getCategoriesWidgets(categories, model, context);
       },
     );
