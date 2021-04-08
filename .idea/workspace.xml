@@ -24,8 +24,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/business_home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/business_home_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/stock_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/stock_viewmodel.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -121,7 +119,7 @@
       <workItem from="1617759182240" duration="20281000" />
       <workItem from="1617790203812" duration="11555000" />
       <workItem from="1617816315432" duration="3907000" />
-      <workItem from="1617861696808" duration="6181000" />
+      <workItem from="1617861696808" duration="8831000" />
     </task>
     <servers />
   </component>
@@ -152,6 +150,11 @@
           <url>file://$PROJECT_DIR$/packages/pos/lib/pos.dart</url>
           <line>474</line>
           <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/stock_viewmodel.dart</url>
+          <line>82</line>
+          <option name="timeStamp" value="16" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

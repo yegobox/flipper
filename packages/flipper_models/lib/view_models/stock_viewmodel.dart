@@ -72,7 +72,7 @@ class StockViewModel extends BaseModel {
     for (Map map in variants.allResults) {
       _variantId = Variation.fromMap(map).id;
     }
-    notifyListeners();
+
     final qq = Query(_databaseService.db, Queries.Q_2);
 
     qq.parameters = {'VALUE': AppTables.stock, 'VARIANTID': variantId};
@@ -83,7 +83,7 @@ class StockViewModel extends BaseModel {
           _stocks.add(Stock.fromMap(map));
         }
       }
-      // notifyListeners();
+      notifyListeners();
     });
   }
 }
