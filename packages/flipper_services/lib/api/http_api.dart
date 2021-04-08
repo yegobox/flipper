@@ -3,6 +3,7 @@
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/ticket.dart';
 import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/abstractions/api.dart';
@@ -33,7 +34,7 @@ class HttpApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
   double totalSaleCount;
   final List<Order> _currentSale = [];
-
+  final List<PColor> _colors = [];
   final List<Customer> _customers = [];
 
   @override
@@ -71,5 +72,17 @@ class HttpApi implements Api {
       _customers.add(Customer.fromMap(map));
     }
     return _customers;
+  }
+
+  @override
+  List<PColor> colors() {
+    final q = Query(ProxyService.database.db, Queries.Q_12);
+    q.parameters = {'T': AppTables.color};
+    _colors.clear();
+    final results = q.execute();
+    for (Map value in results.allResults) {
+      _colors.add(PColor.fromMap(value));
+    }
+    return _colors;
   }
 }

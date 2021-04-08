@@ -2,12 +2,10 @@ import 'dart:io';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper/utils/upload_response.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/product.dart';
-import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
@@ -152,21 +150,16 @@ class EditProductViewModel extends ReactiveViewModel {
   }
 
   void observeColors() {
-    final List<PColor> colors = [];
-    final q = Query(_databaseService.db, Queries.Q_12);
+    List<PColor> colors = [];
 
-    q.parameters = {'T': AppTables.color};
-    colors.clear();
-    final results = q.execute();
-    for (Map value in results.allResults) {
-      if (!colors.contains(PColor.fromMap(value))) {
-        colors.add(PColor.fromMap(value));
-        if (PColor.fromMap(value).isActive) {
-          _state.setCurrentColor(color: PColor.fromMap(value));
-        }
+    colors = ProxyService.api.colors();
+
+    for (PColor color in colors) {
+      if (color.isActive) {
+        _state.setCurrentColor(color: color);
       }
-      _state.setColors(colors: colors);
     }
+    _state.setColors(colors: colors);
     notifyListeners();
   }
 

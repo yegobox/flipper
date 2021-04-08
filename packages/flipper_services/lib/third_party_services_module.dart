@@ -13,6 +13,7 @@ import 'package:flipper_services/firestore_service.dart';
 import 'package:flipper_services/flipperNavigation_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/mail_service.dart';
+import 'package:flipper_services/navigation_service.dart';
 import 'package:flipper_services/performance_service.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/shared_preference_service.dart';
@@ -21,7 +22,6 @@ import 'package:flipper_services/ticket_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-import 'package:flipper_services/navigation_service.dart';
 // import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper/bluethooth_service.dart';
 import 'abstractions/api.dart';
@@ -49,7 +49,7 @@ abstract class ThirdPartyServicesModule {
     // ignore: prefer_typing_uninitialized_variables
     var apiService;
     const ApiProvider choosenProvider =
-        ApiProvider.Fake; // change this to change the proider
+        ApiProvider.Rest; // change this to change the proider
     switch (choosenProvider) {
       case ApiProvider.Fake:
         apiService = FakeApi();
