@@ -83,7 +83,7 @@ class StockViewModel extends BaseModel {
           _stocks.add(Stock.fromMap(map));
         }
       }
-      notifyListeners();
+      // notifyListeners();
     });
   }
 }

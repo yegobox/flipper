@@ -44,10 +44,11 @@ class BusinessHomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(
+    return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => PosViewModel(),
       onModelReady: (PosViewModel model) {
         model.countItemOnCurrentOrder();
+        model.initTab();
         model.keyPad.cleanKeypad();
       },
       builder: (BuildContext context, PosViewModel model, Widget child) {

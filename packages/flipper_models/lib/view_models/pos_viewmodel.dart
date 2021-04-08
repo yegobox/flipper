@@ -16,7 +16,7 @@ class PosViewModel extends ReactiveViewModel {
   String result = '';
   final List<Order> _currentSale = [];
   List<Order> get currentSale => _currentSale;
-  int _tab = 0;
+  int _tab = -1;
 
   int get tab {
     return _tab;
@@ -59,7 +59,6 @@ class PosViewModel extends ReactiveViewModel {
           _currentSale.add(Order.fromMap(value));
         });
       }
-      notifyListeners();
     });
   }
 
