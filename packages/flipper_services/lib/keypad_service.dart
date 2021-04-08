@@ -116,6 +116,7 @@ class KeyPadService with ReactiveServiceMixin {
   /// this check if the current order's id from local storage is not completed if then remove it from local storage
   void pendingOrder(
       {double customAmount, String stockId, Variation variation}) async {
+    // await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
     await checkOrderAuthenticity();
     if (ProxyService.sharedPref.getCustomOrderId() == 'null' ||
         ProxyService.sharedPref.getCustomOrderId() == null) {
@@ -192,13 +193,11 @@ class KeyPadService with ReactiveServiceMixin {
     final results = q.execute();
 
     currentSale.clear();
-    for (Map map in results.allResults) {
-      map.forEach((key, value) {
-        currentSale.add({
-          'name': Order.fromMap(value).variantName,
-          'price': Order.fromMap(value).amount,
-          'id': Order.fromMap(value).id
-        });
+    for (Map value in results.allResults) {
+      currentSale.add({
+        'name': Order.fromMap(value).variantName,
+        'price': Order.fromMap(value).amount,
+        'id': Order.fromMap(value).id
       });
     }
     setPayable.value = 0;

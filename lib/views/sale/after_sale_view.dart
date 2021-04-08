@@ -46,7 +46,8 @@ class AfterSaleView extends StatelessWidget {
                           const SizedBox(height: 40),
                           Text(
                             'FRw' +
-                                (model.keypad.cashReceived - model.keypad.payable)
+                                (model.keypad.cashReceived -
+                                        model.keypad.payable)
                                     .toStringAsFixed(0) +
                                 ' Change',
                             style: const TextStyle(
@@ -120,8 +121,6 @@ class AfterSaleView extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          //listen on completed.
-          // ProxyService.pusher.subs();
           model.keypad.setCurrentItemKeyPadSaleValue();
         },
         viewModelBuilder: () => CompleteSaleViewModel());

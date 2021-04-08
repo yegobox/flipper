@@ -8,7 +8,8 @@ class Queries {
   static const String Q_2 =
       'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$VALUE AND variantId=\$VARIANTID';
   //table = order
-  static const String Q_3 = 'SELECT  *  WHERE table=\$T AND status=\$S';
+  static const String Q_3 =
+      'SELECT  id,branchId,reference,draft,active,orderType,orderNUmber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue  WHERE table=\$T AND status=\$S';
   //table = category
   static const String Q_4 =
       'SELECT name,id,focused,table,touched,active,branchId,channels WHERE table=\$VALUE AND name=\$NAME';

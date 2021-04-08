@@ -273,7 +273,7 @@ packages:
       name: couchbase_lite_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.0"
   country_code_picker:
     dependency: "direct main"
     description:
@@ -550,9 +550,9 @@ packages:
   flipper_ui:
     dependency: transitive
     description:
-      name: flipper_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../flipper_ui"
+      relative: true
+    source: path
     version: "1.0.0"
   flutter:
     dependency: "direct main"
@@ -636,6 +636,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.0"
+  flutter_slidable:
+    dependency: transitive
+    description:
+      name: flutter_slidable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.7"
   flutter_svg:
     dependency: transitive
     description:
@@ -933,6 +940,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
+  number_display:
+    dependency: transitive
+    description:
+      name: number_display
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.0"
   observable_ish:
     dependency: transitive
     description:
