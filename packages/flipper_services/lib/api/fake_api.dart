@@ -1,3 +1,6 @@
+import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_models/ticket.dart';
 import 'package:flipper_services/abstractions/api.dart';
 
 final List<Map<String, String>> mockUnits = [
@@ -89,5 +92,23 @@ class FakeApi implements Api {
     // ignore: always_specify_types
     await Future.delayed(const Duration(microseconds: 2000));
     return ApiResponse(success: true, data: mockData['payrolls']);
+  }
+
+  @override
+  List<Order> currentOrders() {
+    // TODO: implement currentOrders
+    throw UnimplementedError();
+  }
+
+  @override
+  List<Ticket> currentTickets() {
+    // TODO: implement currentTickets
+    throw UnimplementedError();
+  }
+
+  @override
+  List<Customer> customers() {
+    // TODO: implement customers
+    throw UnimplementedError();
   }
 }

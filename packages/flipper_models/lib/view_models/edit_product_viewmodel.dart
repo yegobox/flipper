@@ -2,43 +2,43 @@ import 'dart:io';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:flipper_models/image.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
+import 'package:flipper/utils/upload_response.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/database_service.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/upload_response.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:redux/redux.dart';
-import 'package:stacked/stacked.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/shared_state_service.dart';
+import 'package:redux/redux.dart';
+import 'package:stacked/stacked.dart';
 
 class EditProductViewModel extends ReactiveViewModel {
   final Logger log = Logging.getLogger('Edit Color:');
 
   PColor _currentColor;
   final DatabaseService _databaseService = ProxyService.database;
-  final _sharedStateService = locator<SharedStateService>();
+  final _state = locator<SharedStateService>();
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [_sharedStateService];
+  List<ReactiveServiceMixin> get reactiveServices => [_state];
 
-  List<PColor> get colors => _sharedStateService.colors;
+  List<PColor> get colors => _state.colors;
 
   PColor get currentColor {
     return _currentColor;
   }
 
-  Product get product => _sharedStateService.product;
+  Product get product => _state.product;
 
   Future takePicture({BuildContext context}) async {
     final File image = await ImagePicker.pickImage(source: ImageSource.camera);
@@ -82,18 +82,7 @@ class EditProductViewModel extends ReactiveViewModel {
 
       final Document productUpdated = _databaseService.getById(id: product.id);
 
-      _sharedStateService.setProduct(
-          product: Product.fromMap(productUpdated.map));
-
-      // store.dispatch(
-      //   ImagePreview(
-      //     image: ImageP(
-      //       (ImagePBuilder img) => img
-      //         ..path = compresedFile.path
-      //         ..isLocal = true,
-      //     ),
-      //   ),
-      // );
+      _state.setProduct(product: Product.fromMap(productUpdated.map));
 
       final bool internetAvailable = await isInternetAvailable();
       if (internetAvailable) {
@@ -155,8 +144,7 @@ class EditProductViewModel extends ReactiveViewModel {
       productDoc.properties['picture'] = uploadResponse.url;
       _databaseService.update(document: productDoc);
       final Document product = _databaseService.getById(id: productId);
-      _sharedStateService.setProduct(
-          product: Product.fromMap(product.map));
+      _state.setProduct(product: Product.fromMap(product.map));
       // final Product product = Product.fromMap(productDoc.jsonProperties);
     }, onError: (ex, stacktrace) {
       print('error' + stacktrace.toString());
@@ -165,60 +153,40 @@ class EditProductViewModel extends ReactiveViewModel {
 
   void observeColors() {
     final List<PColor> colors = [];
-    final q = Query(_databaseService.db, 'SELECT * WHERE table=\$VALUE');
+    final q = Query(_databaseService.db, Queries.Q_12);
 
-    q.parameters = {'VALUE': AppTables.color};
-
-    q.addChangeListener((results) {
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          if (!colors.contains(PColor.fromMap(value))) {
-            colors.add(PColor.fromMap(value));
-          }
-        });
-        _sharedStateService.setColors(colors: colors);
-
-        notifyListeners();
-      }
-
-    });
-
-    //NOTE: in case a listner is not registered because the query has no change!
+    q.parameters = {'T': AppTables.color};
+    colors.clear();
     final results = q.execute();
-    if (results.allResults.isNotEmpty) {
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          if (!colors.contains(PColor.fromMap(value))) {
-            if (PColor.fromMap(value).isActive) {
-              _sharedStateService.setCurrentColor(color: PColor.fromMap(value));
-            }
-            colors.add(PColor.fromMap(value));
-            notifyListeners();
-          }
-        });
+    for (Map value in results.allResults) {
+      if (!colors.contains(PColor.fromMap(value))) {
+        colors.add(PColor.fromMap(value));
+        if (PColor.fromMap(value).isActive) {
+          _state.setCurrentColor(color: PColor.fromMap(value));
+        }
       }
+      _state.setColors(colors: colors);
     }
+    notifyListeners();
   }
 
+  /// we know color length is 8, using colors.length was giving dupes!
+  /// set all other color to active false then set one to active.
   void switchColor({PColor color, @required BuildContext context}) async {
     //reset all other color to not selected
     for (var y = 0; y < 8; y++) {
-      //we know color lenght is 8, using colors.lenght was giving dups!
-      //set all other color to active false then set one to active.
       final Document _color = _databaseService.getById(id: colors[y].id);
       _color.properties['isActive'] = false;
       _databaseService.update(document: _color);
     }
     final Document _colordoc = _databaseService.getById(id: color.id);
-
     _colordoc.properties['isActive'] = true;
 
     _databaseService.update(document: _colordoc);
 
-    _sharedStateService.setCurrentColor(color: color);
+    _state.setCurrentColor(color: color);
 
     _currentColor = color;
-
-    notifyListeners();
+    observeColors();
   }
 }

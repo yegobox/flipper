@@ -27,7 +27,7 @@ List<Widget> buildProductList(
     context: context,
     createButtonName: createButtonName,
     userId: userId,
-    type: 'reward', //on top of product there should be Add buttom
+    type: 'reward', //on top of product there should be Add bottom
   );
 
   // build a list of products.

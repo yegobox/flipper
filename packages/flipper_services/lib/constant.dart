@@ -24,6 +24,7 @@ class AppTables {
   static const String color = 'colors';
 
   static const String user = 'users';
+  static const String customers = 'customers';
 
   static const String tickets = 'tickets';
 }

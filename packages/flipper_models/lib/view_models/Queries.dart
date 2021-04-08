@@ -31,4 +31,9 @@ class Queries {
   //table = unit
   static const String Q_10 =
       'SELECT id, name,table,branchId,focused,channels WHERE table=\$T';
+  //table = customer
+  static const String Q_11 =
+      'SELECT id,name,email,totalPoints,totalVisit,firstVisit,totalSpent,phoneNumber,address,city,region,postalCode,countryCode,customerCode,note,createdAt,updatedAt,channels WHERE table=\$T';
+  //table = color
+  static String Q_12 = 'SELECT id,name,table,isActive,channels WHERE table=\$T';
 }

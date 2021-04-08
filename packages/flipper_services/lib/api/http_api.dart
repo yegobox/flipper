@@ -1,6 +1,13 @@
 // import 'package:flipper/services/abstractions/api.dart';
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_models/ticket.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/abstractions/api.dart';
+import 'package:flipper_services/constant.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 
@@ -23,13 +30,46 @@ class ExtendedClient extends http.BaseClient {
 @lazySingleton
 class HttpApi implements Api {
   static const String endPoint = 'https://jsonplaceholder.typicode.com';
-
   ExtendedClient client = ExtendedClient(http.Client());
+  double totalSaleCount;
+  final List<Order> _currentSale = [];
+
+  final List<Customer> _customers = [];
 
   @override
   // ignore: always_specify_types
   Future payroll() {
     // TODO(richard): implement payroll
     return null;
+  }
+
+  @override
+  List<Order> currentOrders() {
+    final q = Query(ProxyService.database.db, Queries.Q_3);
+    q.parameters = {'T': AppTables.order, 'S': 'pending'};
+
+    final counts = q.execute();
+    for (Map map in counts.allResults) {
+      _currentSale.add(Order.fromMap(map));
+    }
+    return _currentSale;
+  }
+
+  @override
+  List<Ticket> currentTickets() {
+    // TODO: implement currentTickets
+    throw UnimplementedError();
+  }
+
+  @override
+  List<Customer> customers() {
+    final q = Query(ProxyService.database.db, Queries.Q_3);
+    q.parameters = {'T': AppTables.customers};
+
+    final counts = q.execute();
+    for (Map map in counts.allResults) {
+      _customers.add(Customer.fromMap(map));
+    }
+    return _customers;
   }
 }

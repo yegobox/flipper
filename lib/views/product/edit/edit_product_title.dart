@@ -11,7 +11,7 @@ import 'package:stacked/stacked.dart';
 // testing.
 class EditItemTitle extends StatelessWidget {
   EditItemTitle({Key key}) : super(key: key);
-  final Logger log = Logging.getLogger('Add Product:');
+  final Logger log = Logging.getLogger('Edit product tile:');
 
   @override
   Widget build(BuildContext context) {

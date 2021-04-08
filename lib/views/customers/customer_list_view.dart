@@ -1,12 +1,26 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper/utils/HexColor.dart';
+import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/view_models/customer_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper/utils/HexColor.dart';
+import 'package:stacked/stacked.dart';
 
 class CustomerListView extends StatelessWidget {
   const CustomerListView({Key key}) : super(key: key);
+
+  List<Widget> buildCustomerList({CustomerViewModel model}) {
+    final List<Widget> list = <Widget>[];
+    for (Customer customer in model.loadCustomers()) {
+      list.add(Text(
+        customer.name,
+        overflow: TextOverflow.ellipsis,
+      ));
+    }
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,98 +40,104 @@ class CustomerListView extends StatelessWidget {
           multi: 3,
           bottomSpacer: 52,
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(top: 48.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 18, right: 18),
-                child: Container(
-                  width: double.infinity,
-                  child: TextFormField(
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText1
-                        .copyWith(color: Colors.black),
-                    // validator: Validators.isValid,
-                    onChanged: (String name) async {
-                      // model.setName(name: name);
-                      // model.lock();
-                    },
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: 'Name, Email, Phone',
-                      fillColor: Theme.of(context)
-                          .copyWith(canvasColor: Colors.white)
-                          .canvasColor,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(left: 18.0, right: 18.0),
-                child: Container(
-                  width: double.infinity,
-                  child: FLipperButton(
-                    disableButton: false,
-                    onPressedCallback: () {
-                      ProxyService.nav.navigateTo(Routing.addCustomerView);
-                    },
-                    buttonName: 'Create New Customer',
-                  ),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(left: 18.0, top: 20),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text('RECENTLY CREATED'),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.only(left: 18.0, right: 18.0, top: 20),
-                child: Row(
+        body: ViewModelBuilder.reactive(
+            viewModelBuilder: () => CustomerViewModel(),
+            // onModelReady: (CustomerViewModel model){
+            //   model.loadCustomers();
+            // },
+            builder:
+                (BuildContext context, CustomerViewModel model, Widget child) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 48.0),
+                child: Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(40.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 18, right: 18),
                       child: Container(
-                        color: Colors.blue,
-                        height: 50.0,
-                        width: 50.0,
-                        child: const Center(
-                          child: Text(
-                            'MR',
-                            style: TextStyle(color: Colors.white),
+                        width: double.infinity,
+                        child: TextFormField(
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              .copyWith(color: Colors.black),
+                          // validator: Validators.isValid,
+                          onChanged: (String name) async {
+                            // model.setName(name: name);
+                            // model.lock();
+                          },
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.search),
+                            hintText: 'Name, Email, Phone',
+                            fillColor: Theme.of(context)
+                                .copyWith(canvasColor: Colors.white)
+                                .canvasColor,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: HexColor('#D0D7E3')),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 18.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          // ignore: prefer_const_literals_to_create_immutables
-                          children: [
-                            const Text('Muragijimana Richard',overflow: TextOverflow.ellipsis,),
-                            const Text('0783054874|muragijimanarichard@gmail.com',overflow: TextOverflow.ellipsis,)
-                          ],
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 18.0, right: 18.0),
+                      child: Container(
+                        width: double.infinity,
+                        child: FLipperButton(
+                          disableButton: false,
+                          onPressedCallback: () {
+                            ProxyService.nav
+                                .navigateTo(Routing.addCustomerView);
+                          },
+                          buttonName: 'Create New Customer',
                         ),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 18.0, top: 20),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text('RECENTLY CREATED'),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 18.0, right: 18.0, top: 20),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(40.0),
+                            child: Container(
+                              color: Colors.blue,
+                              height: 50.0,
+                              width: 50.0,
+                              child: const Center(
+                                child: Text(
+                                  'MR',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 18.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: buildCustomerList(model: model),
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                     )
                   ],
                 ),
-              )
-            ],
-          ),
-        ),
+              );
+            }),
       ),
     );
   }
