@@ -22,17 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/customers/add_customer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/add_customer.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/abstractions/api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/abstractions/api.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/api/fake_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/api/fake_api.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart" afterDir="false" />
-    </list>
+    <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -134,6 +124,7 @@
       <workItem from="1617953865900" duration="633000" />
       <workItem from="1617957203460" duration="4619000" />
       <workItem from="1617972350075" duration="1098000" />
+      <workItem from="1617987384290" duration="300000" />
     </task>
     <servers />
   </component>
