@@ -2,36 +2,39 @@ library pos;
 
 import 'dart:ui';
 
+import 'package:flipper_models/view_models/pos_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/payable/payable_view.dart';
+import 'package:stacked/stacked.dart';
 
-
-import 'package:flipper_models/view_models/pos_viewmodel.dart';
 class AlwaysDisabledFocusNode extends FocusNode {
   @override
   bool get hasFocus => false;
 }
 
 class KeyPad extends StatelessWidget {
-  const KeyPad({Key key, this.model}) : super(key: key);
-  final PosViewModel model;
+  const KeyPad({Key key}) : super(key: key);
+  // final PosViewModel model;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      
-      body: SafeArea(
-        child: Column(
-          children: [
-            Display(
-              model: model,
+    return ViewModelBuilder.reactive(
+        viewModelBuilder: () => PosViewModel(),
+        builder: (BuildContext context, PosViewModel model, Widget child) {
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Display(
+                    model: model,
+                  ),
+                  Expanded(child: Keyboard(model: model))
+                ],
+              ),
             ),
-            Expanded(child: Keyboard(model: model))
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 }
 
@@ -55,9 +58,9 @@ class _onCreate extends State<Display> {
   Widget build(BuildContext context) {
     etAddNote = TextEditingController(text: addNote);
     return Column(children: <Widget>[
-      Padding(
-        padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-        child: PayableView(model: model),
+      const Padding(
+        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+        child: PayableView(),
       ),
       InkWell(
         onTap: () {

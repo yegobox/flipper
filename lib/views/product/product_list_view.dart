@@ -23,6 +23,7 @@ class ProductListView extends StatelessWidget {
                       .copyWith(color: Colors.grey[800]),
                 ),
                 iconTheme: const IconThemeData(color: Colors.black),
+                // ignore: prefer_const_literals_to_create_immutables
                 actions: [],
               ),
               body: Container(

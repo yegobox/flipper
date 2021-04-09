@@ -1,8 +1,7 @@
 import 'package:flipper/widget/custom_widgets.dart';
 import 'package:flipper/widget/tabItem.dart';
-
-import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/pos_viewmodel.dart';
+import 'package:flutter/material.dart';
 
 class BottomMenubar extends StatefulWidget {
   const BottomMenubar({this.model});
@@ -76,8 +75,8 @@ class _BottomMenubarState extends State<BottomMenubar> {
           Container(
             //alignment: Alignment.centerLeft,
             //padding: EdgeInsets.only(right:10),
-            child: _icon(null, widget.model.tab == 0 ? true : false, 0,
-                icon: widget.model.tab == 0
+            child: _icon(null, widget.model.keyPad.tab == 0 ? true : false, 0,
+                icon: widget.model.keyPad.tab == 0
                     ? const Image(
                         width: 28,
                         height: 25,
@@ -91,8 +90,8 @@ class _BottomMenubarState extends State<BottomMenubar> {
           ),
           Container(
             // alignment: Alignment.centerRight,
-            child: _icon(null, widget.model.tab == 1 ? true : false, 1,
-                icon: widget.model.tab == 1
+            child: _icon(null, widget.model.keyPad.tab == 1 ? true : false, 1,
+                icon: widget.model.keyPad.tab == 1
                     ? const Image(
                         width: 28,
                         height: 25,
@@ -160,7 +159,7 @@ class _BottomMenubarState extends State<BottomMenubar> {
                               : Theme.of(context).textTheme.caption.color,
                         ),
               onPressed: () {
-                widget.model.switchTab(index);
+                widget.model.keyPad.switchTab(index);
               },
             ),
           ),

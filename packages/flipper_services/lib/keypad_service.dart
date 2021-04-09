@@ -3,7 +3,6 @@ library flipper_services;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/variation.dart';
-import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -23,6 +22,7 @@ class KeyPadService with ReactiveServiceMixin {
   // String note;
   final RxValue<String> note = RxValue<String>(initial: null);
   String get getNote => note.value;
+  final List<Order> orders = [];
 
   Order get currentSales => order.value;
 
@@ -62,6 +62,7 @@ class KeyPadService with ReactiveServiceMixin {
         customAmount: customAmount,
         stockId: stockId,
         variation: Variation.fromMap(variation.map));
+    getOrders();
   }
 
   /// create an order given a variation, a caller should
@@ -165,20 +166,19 @@ class KeyPadService with ReactiveServiceMixin {
   /// but for now it wipe everything.
   void cleanKeypad() {
     ProxyService.sharedState.clear.listen((e) {
-      if (e != null) {
-        if (ProxyService.database.db != null) {
-          final q = Query(ProxyService.database.db,
-              'SELECT  id  WHERE table=\$T AND status=\$S');
-          q.parameters = {'T': AppTables.order, 'S': 'pending'};
-          final results = q.execute();
-          for (Map map in results.allResults) {
-            ProxyService.database.delete(id: map['id']);
-          }
+      if (ProxyService.database.db != null) {
+        final List<Order> _orders = ProxyService.api.currentOrders();
+        currentSale.clear();
+        orders.clear();
+        for (Order order in _orders) {
+          try {
+            ProxyService.database.delete(id: order.id);
+          } catch (e) {}
           ProxyService.sharedPref.removeKey(key: 'custom_orderId');
           setPayable.value = 0.0;
-          notifyListeners();
         }
       }
+      notifyListeners();
     });
   }
 
@@ -186,24 +186,45 @@ class KeyPadService with ReactiveServiceMixin {
   ///it is very important to understand that an order is an item too since
   ///it has a variant ID etc...
   void setCurrentItemKeyPadSaleValue() {
-    final q = Query(ProxyService.database.db, Queries.Q_3);
-
-    q.parameters = {'T': AppTables.order, 'S': 'pending'};
-
-    final results = q.execute();
-
+    final List<Order> _orders = ProxyService.api.currentOrders();
     currentSale.clear();
-    for (Map value in results.allResults) {
-      currentSale.add({
-        'name': Order.fromMap(value).variantName,
-        'price': Order.fromMap(value).amount,
-        'id': Order.fromMap(value).id
-      });
+    for (Order order in _orders) {
+      currentSale.add(
+          {'name': order.variantName, 'price': order.amount, 'id': order.id});
     }
     setPayable.value = 0;
     // ignore: avoid_function_literals_in_foreach_calls
     currentSale.forEach((e) {
       setPayable.value += e['price'];
     });
+
+    notifyListeners();
+  }
+
+  void getOrders() {
+    orders.clear();
+    final List<Order> _orders = ProxyService.api.currentOrders();
+    for (Order order in _orders) {
+      setPayable.value += order.amount;
+      orders.add(order);
+    }
+    notifyListeners();
+    notifyListeners(); //sometime a ticket is not updated as the update is done.
+  }
+
+  int _tab = -1;
+
+  int get tab {
+    return _tab;
+  }
+
+  void switchTab(int tab) {
+    _tab = tab;
+    notifyListeners();
+  }
+
+  void initTab() {
+    _tab = 0;
+    notifyListeners();
   }
 }

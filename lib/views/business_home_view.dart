@@ -34,7 +34,7 @@ class BusinessHomeView extends StatelessWidget {
       @required PosViewModel model}) {
     switch (index) {
       case 0:
-        return KeyPad(model: model);
+        return const KeyPad();
         break;
       case 1:
         return ProductView(userId: vm.user.id, items: true);
@@ -47,8 +47,8 @@ class BusinessHomeView extends StatelessWidget {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => PosViewModel(),
       onModelReady: (PosViewModel model) {
-        model.countItemOnCurrentOrder();
-        model.initTab();
+        model.keyPad.getOrders();
+        model.keyPad.initTab();
         model.keyPad.cleanKeypad();
       },
       builder: (BuildContext context, PosViewModel model, Widget child) {
@@ -60,7 +60,6 @@ class BusinessHomeView extends StatelessWidget {
           appBar: HomeAppBar(
             scaffoldKey: _scaffoldKey,
             sideOpenController: sideOpenController,
-            model: model,
           ),
           floatingActionButton: GestureDetector(
             onTap: () {
@@ -105,14 +104,13 @@ class BusinessHomeView extends StatelessWidget {
           ),
           body: Column(
             children: <Widget>[
-              model.tab == 1
-                  ? PayableView(model: model)
-                  : const SizedBox.shrink(),
+              model.keyPad.tab == 1 ? PayableView() : const SizedBox.shrink(),
               Expanded(
                 child: Container(
                   child: SafeArea(
                     child: Container(
-                      child: _getPage(index: model.tab, vm: vm, model: model),
+                      child: _getPage(
+                          index: model.keyPad.tab, vm: vm, model: model),
                     ),
                   ),
                 ),

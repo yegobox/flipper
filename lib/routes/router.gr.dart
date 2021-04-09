@@ -27,7 +27,6 @@ import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/order_summary_view.dart';
 // import 'package:built_collection/src/list/built_list.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
-import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
@@ -332,18 +331,6 @@ class Routing {
         final typedArgs = args as Key;
         return MaterialPageRoute<dynamic>(
           builder: (_) => CreateCategoryInputScreen(key: typedArgs),
-          settings: settings,
-          fullscreenDialog: true,
-        );
-      case Routing.editQuantityItemScreen:
-        if (hasInvalidArgs<ChangeQuantityForSellingArguments>(args,
-            isRequired: true)) {
-          return misTypedArgsRoute<ChangeQuantityForSellingArguments>(args);
-        }
-        final typedArgs = args as ChangeQuantityForSellingArguments;
-        return MaterialPageRoute<dynamic>(
-          builder: (_) => ChangeQuantityForSelling(
-              key: typedArgs.key, productId: typedArgs.productId),
           settings: settings,
           fullscreenDialog: true,
         );

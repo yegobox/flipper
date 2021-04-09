@@ -19,7 +19,6 @@ import 'package:flipper/views/sale/after_sale_view.dart';
 import 'package:flipper/views/sale/collect_cash_view.dart';
 import 'package:flipper/views/sale/order_summary_view.dart';
 import 'package:flipper/views/sale/payment_option_view.dart';
-import 'package:flipper/views/selling/change_quantity_selling.dart';
 import 'package:flipper/views/settings/settings_view.dart';
 import 'package:flipper/views/stock/receive_stock.dart';
 import 'package:flipper/views/switch/switch_view.dart';
@@ -106,9 +105,6 @@ class $Routing {
 
   @MaterialRoute(fullscreenDialog: true)
   CreateCategoryInputScreen createCategoryInputScreen;
-
-  @MaterialRoute(fullscreenDialog: true)
-  ChangeQuantityForSelling editQuantityItemScreen;
 
   @MaterialRoute(fullscreenDialog: true)
   CameraPreview cameraPreview;

@@ -22,7 +22,22 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="" />
+    <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/home_app_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.gr.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.gr.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/business_home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/business_home_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/home_app_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/home_app_bar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/product_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/product_list_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/selling/change_quantity_selling.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/widget/bottom_menu_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widget/bottom_menu_bar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/pos/lib/payable/payable_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/pos/lib/payable/payable_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/pos/lib/pos.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/pos/lib/pos.dart" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -76,6 +91,17 @@
     </key>
   </component>
   <component name="RunManager">
+    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
       <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
       <method v="2" />
@@ -124,7 +150,8 @@
       <workItem from="1617953865900" duration="633000" />
       <workItem from="1617957203460" duration="4619000" />
       <workItem from="1617972350075" duration="1098000" />
-      <workItem from="1617987384290" duration="300000" />
+      <workItem from="1617987384290" duration="2396000" />
+      <workItem from="1618004033277" duration="5363000" />
     </task>
     <servers />
   </component>

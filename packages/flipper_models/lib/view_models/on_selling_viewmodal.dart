@@ -88,8 +88,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
   /// the order should keep  the qty of ordered item, the stock id of ordered item
   /// on finalizing the order should decrement the sock value to given ordered qty.
   void loadVariants({String productId}) {
-    setBusy(true);
-
+   //TODO: change to use exact query not a listener
     final docs = Query(_databaseService.db,
         'SELECT variants.name,products.name as productName, variants.id,variants.sku,variants.unit,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId JOIN products ON variants.productId=products.id WHERE variants.table=\$VALUE AND variants.productId=\$PID');
 
@@ -97,12 +96,11 @@ class OnProductSellingViewModal extends ReactiveViewModel {
     docs.addChangeListener((stocks) {
       for (Map map in stocks.allResults) {
         if (map.length == 6) {
-          //to avoid anomalitie caused by join query.
+          //to avoid anomalies caused by join query.
           if (!_variations.contains(VariantStock.fromMap(map))) {
             _variations.add(VariantStock.fromMap(map));
           }
         }
-        setBusy(false);
         notifyListeners();
       }
 
@@ -111,7 +109,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
 
   /// save order, this create a new order with orderType ${regular} does not use pending
   /// this is to avoid confusion with the existing order which can be
-  /// a custom item in progress so it can be caunted as second order and differ from previouses orders
+  /// a custom item in progress so it can be counted as second order and differ from previous orders
   void saveOrder({String variationId, double amount}) {
     final String stockId = _db.getStockIdGivenVariantId(variantId: variationId);
 
@@ -124,6 +122,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
       stockId: stockId,
       orderType: 'regular',
     );
+    _keypad.getOrders();
   }
 
   @override

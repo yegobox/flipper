@@ -1,73 +1,77 @@
-import 'package:flipper_models/view_models/pos_viewmodel.dart';
-
+import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/view_models/home_app_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import 'package:flipper/routes/router.gr.dart';
+import 'package:stacked/stacked.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({
     @required this.scaffoldKey,
     @required this.sideOpenController,
-    this.model,
   });
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueNotifier<bool> sideOpenController;
-  final PosViewModel model;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: true,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
-        leading: _hamburger(),
-        title: Container(
-          color: Theme.of(context)
-              .copyWith(canvasColor: Colors.transparent)
-              .canvasColor,
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: 60,
-            child: Row(children: <Widget>[
-              Expanded(
-                child: FlatButton(
-                    onPressed: () {
-                      ProxyService.nav.navigateTo(Routing.orderSummaryView);
-                    },
-                    child: buildSaleWording(model: model, context: context)),
-              ),
-              GestureDetector(
-                onTap: () async {
-                  final bool loggedOut = ProxyService.sharedPref.logout();
-                  if (loggedOut) {
-                    ProxyService.database.logout(context: context);
-                  }
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  child: Text(
-                    'Log Out',
-                    textAlign: TextAlign.end,
-                    style: Theme.of(context).textTheme.headline4.copyWith(
-                        fontSize: 15,
-                        color: const Color(0xff363f47),
-                        fontWeight: FontWeight.w600),
-                  ),
+    return ViewModelBuilder.reactive(
+        viewModelBuilder: () => HomeAppBarViewModel(),
+        builder:
+            (BuildContext context, HomeAppBarViewModel model, Widget child) {
+          return SafeArea(
+            top: true,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
+              leading: _hamburger(),
+              title: Container(
+                color: Theme.of(context)
+                    .copyWith(canvasColor: Colors.transparent)
+                    .canvasColor,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 60,
+                  child: Row(children: <Widget>[
+                    Expanded(
+                      child: FlatButton(
+                          onPressed: () {
+                            ProxyService.nav
+                                .navigateTo(Routing.orderSummaryView);
+                          },
+                          child:
+                              buildSaleWording(model: model, context: context)),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final bool loggedOut = ProxyService.sharedPref.logout();
+                        if (loggedOut) {
+                          ProxyService.database.logout(context: context);
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        child: Text(
+                          'Log Out',
+                          textAlign: TextAlign.end,
+                          style: Theme.of(context).textTheme.headline4.copyWith(
+                              fontSize: 15,
+                              color: const Color(0xff363f47),
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ]),
                 ),
               ),
-            ]),
-          ),
-        ),
-      ),
-    );
+            ),
+          );
+        });
   }
 
-  Widget buildSaleWording({PosViewModel model, BuildContext context}) {
-    if (model.tab == 0 || model.tab == 1) {
-      if (model.currentSale.isEmpty) {
+  Widget buildSaleWording({HomeAppBarViewModel model, BuildContext context}) {
+    if (model.keyPad.tab == 0 || model.keyPad.tab == 1) {
+      if (model.keyPad.orders.isEmpty) {
         return Text('No Sale',
             style: Theme.of(context).textTheme.headline4.copyWith(
                 fontSize: 16,
@@ -82,7 +86,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               alignment: AlignmentDirectional.center,
               // ignore: prefer_const_literals_to_create_immutables
               children: [
-                Text(model.currentSale.length.toString()),
+                Text(model.keyPad.orders.length.toString()),
                 const IconButton(
                   icon: FaIcon(FontAwesomeIcons.clone),
                   onPressed: null,
@@ -97,7 +101,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
   }
 
-
   Widget _hamburger() {
     return Material(
       color: Colors.transparent,
@@ -106,8 +109,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           scaffoldKey.currentState.openDrawer();
         },
         child: Container(
-          width:  44.0,
-          height:  44.0,
+          width: 44.0,
+          height: 44.0,
           child: Center(
             child: Stack(
               overflow: Overflow.visible,
@@ -141,5 +144,5 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight( 44.0);
+  Size get preferredSize => const Size.fromHeight(44.0);
 }

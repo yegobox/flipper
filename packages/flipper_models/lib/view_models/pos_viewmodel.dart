@@ -1,8 +1,6 @@
 library flipper_models;
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper_models/order.dart';
-import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
@@ -14,27 +12,10 @@ class PosViewModel extends ReactiveViewModel {
   String keypadValue = '0.0';
   var operators = <String>['+', '-', '*', '/'];
   String result = '';
-  final List<Order> _currentSale = [];
-  List<Order> get currentSale => _currentSale;
-  int _tab = -1;
-
-  int get tab {
-    return _tab;
-  }
 
   int _items;
   int get items {
     return _items;
-  }
-
-  void switchTab(int tab) {
-    _tab = tab;
-    notifyListeners();
-  }
-
-  void initTab() {
-    _tab = 0;
-    notifyListeners();
   }
 
   final keyPad = locator<KeyPadService>();
@@ -43,24 +24,6 @@ class PosViewModel extends ReactiveViewModel {
   /// payable widget so we know if we show save or tickets button
   /// we show tickets currentSale array is empty otherwise if we have dirty order i.e
   /// active and draft them we count them and show them as savable items i.e item to show when user click Current Sale.
-  void countItemOnCurrentOrder() {
-    final q = Query(
-        ProxyService.database.db, 'SELECT  *  WHERE table=\$T AND status=\$S');
-
-    q.parameters = {'T': AppTables.order, 'S': 'pending'};
-
-    q.addChangeListener((results) {
-      _currentSale.clear();
-      keyPad.setPayable.value = 0.0; //reset on new value to re-count again
-      for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          // ProxyService.database.delete(id: value['id']);
-          keyPad.setPayable.value += Order.fromMap(value).amount;
-          _currentSale.add(Order.fromMap(value));
-        });
-      }
-    });
-  }
 
   void addKey(String key) {
     var _expr = keypadValue;
