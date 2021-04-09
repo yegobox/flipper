@@ -118,4 +118,10 @@ class FakeApi implements Api {
     // TODO: implement colors
     throw UnimplementedError();
   }
+
+  @override
+  Customer create({Map<dynamic, dynamic> customer, String id}) {
+    // TODO: implement create
+    throw UnimplementedError();
+  }
 }

@@ -64,7 +64,7 @@ class HttpApi implements Api {
 
   @override
   List<Customer> customers() {
-    final q = Query(ProxyService.database.db, Queries.Q_3);
+    final q = Query(ProxyService.database.db, Queries.Q_11);
     q.parameters = {'T': AppTables.customers};
 
     final counts = q.execute();
@@ -84,5 +84,11 @@ class HttpApi implements Api {
       _colors.add(PColor.fromMap(value));
     }
     return _colors;
+  }
+
+  @override
+  Customer create({Map<dynamic, dynamic> customer, String id}) {
+    final Document doc = ProxyService.database.insert(id: id, data: customer);
+    return Customer.fromMap(doc.map);
   }
 }

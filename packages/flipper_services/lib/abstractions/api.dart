@@ -5,11 +5,11 @@ import 'package:flipper_models/ticket.dart';
 
 abstract class Api {
   // Home screen futures api calls
-
   // ignore: always_specify_types
   Future payroll();
   List<Order> currentOrders();
   List<Ticket> currentTickets();
   List<Customer> customers();
   List<PColor> colors();
+  Customer create({Map customer, String id});
 }

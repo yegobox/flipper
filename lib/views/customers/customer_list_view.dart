@@ -14,9 +14,29 @@ class CustomerListView extends StatelessWidget {
   List<Widget> buildCustomerList({CustomerViewModel model}) {
     final List<Widget> list = <Widget>[];
     for (Customer customer in model.loadCustomers()) {
-      list.add(Text(
-        customer.name,
-        overflow: TextOverflow.ellipsis,
+      list.add(Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(40.0),
+            child: Container(
+              color: Colors.blue,
+              height: 50.0,
+              width: 50.0,
+              child: Center(
+                child: Text(
+                  customer.name.substring(0, 2),
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 18.0),
+              child: Text(customer.name),
+            ),
+          )
+        ],
       ));
     }
     return list;
@@ -42,9 +62,6 @@ class CustomerListView extends StatelessWidget {
         ),
         body: ViewModelBuilder.reactive(
             viewModelBuilder: () => CustomerViewModel(),
-            // onModelReady: (CustomerViewModel model){
-            //   model.loadCustomers();
-            // },
             builder:
                 (BuildContext context, CustomerViewModel model, Widget child) {
               return Padding(
@@ -106,33 +123,7 @@ class CustomerListView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 18.0, right: 18.0, top: 20),
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(40.0),
-                            child: Container(
-                              color: Colors.blue,
-                              height: 50.0,
-                              width: 50.0,
-                              child: const Center(
-                                child: Text(
-                                  'MR',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Flexible(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 18.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: buildCustomerList(model: model),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
+                      child: Column(children: buildCustomerList(model: model)),
                     )
                   ],
                 ),
