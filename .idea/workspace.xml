@@ -24,14 +24,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/on_selling_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/on_selling_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/converters/serializers.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/order.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/order.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/order.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/order.g.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/Queries.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/widget/bottom_menu_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widget/bottom_menu_bar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/pos_viewmodel.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -146,7 +140,7 @@
       <workItem from="1617957203460" duration="4619000" />
       <workItem from="1617972350075" duration="1098000" />
       <workItem from="1617987384290" duration="2396000" />
-      <workItem from="1618004033277" duration="13149000" />
+      <workItem from="1618004033277" duration="13527000" />
     </task>
     <servers />
   </component>

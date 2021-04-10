@@ -110,4 +110,9 @@ class PosViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [keyPad];
+
+  void switchTab(index) {
+    keyPad.switchTab(index);
+    notifyListeners();
+  }
 }
