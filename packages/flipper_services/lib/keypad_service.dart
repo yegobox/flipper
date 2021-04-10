@@ -63,7 +63,7 @@ class KeyPadService with ReactiveServiceMixin {
         customAmount: customAmount,
         stockId: stockId,
         variation: Variation.fromMap(variation.map));
-    getOrders();
+    lGetOrders();
   }
 
   /// create an order given a variation, a caller should
@@ -76,10 +76,12 @@ class KeyPadService with ReactiveServiceMixin {
       String orderType = 'custom',
       double quantity = 1}) {
     final id4 = Uuid().v1();
+    final ref = Uuid().v1();
+    final orderNUmber = Uuid().v1();
     final Document _doc = _db.insert(id: id4, data: {
-      'reference': id4.substring(0, 4),
+      'reference': ref,
       'quantity': quantity,
-      'orderNUmber': id4.substring(0, 5),
+      'orderNUmber': orderNUmber,
       'status': 'pending',
       'variantId': variation.id,
       'variantName': useProductName ? variation.productName : variation.name,
@@ -109,6 +111,7 @@ class KeyPadService with ReactiveServiceMixin {
   void updateOrder({@required Order order, @required double customAmount}) {
     final Document orderDocument = _db.getById(id: order.id);
     orderDocument.properties['amount'] = customAmount;
+    orderDocument.properties['subTotal'] = customAmount;
     _db.update(document: orderDocument);
     notifyListeners();
   }
@@ -121,6 +124,7 @@ class KeyPadService with ReactiveServiceMixin {
       {double customAmount, String stockId, Variation variation}) async {
     // await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
     await checkOrderAuthenticity();
+
     if (ProxyService.sharedPref.getCustomOrderId() == 'null' ||
         ProxyService.sharedPref.getCustomOrderId() == null) {
       final Order order = createOrder(
@@ -189,11 +193,31 @@ class KeyPadService with ReactiveServiceMixin {
           ProxyService.sharedPref.removeKey(key: 'custom_orderId');
         }
       }
-      getOrders();
+      lGetOrders();
     });
   }
 
-  void getOrders() {
+  /// should call this when not expecting rebuild of view. in real time
+  List<Order> getOrders() {
+    orders.value.clear();
+    if (ProxyService.database.db == null) return [];
+    final q = Query(ProxyService.database.db, Queries.Q_3);
+    q.parameters = {'T': AppTables.order, 'S': 'pending'};
+    final results = q.execute();
+    final t = results.allResults; //to avoid sgate! error
+    if (t.isNotEmpty) {
+      orders.value.clear();
+      for (Map map in t) {
+        orders.value.add(Order.fromMap(map));
+      }
+    } else {
+      orders.value.clear();
+    }
+    return orders.value;
+  }
+
+  ///The method that start with l is a listener
+  void lGetOrders() {
     orders.value.clear();
     if (ProxyService.database.db == null) return;
     // final List<Order> o = ProxyService.api.currentOrders();
@@ -208,6 +232,8 @@ class KeyPadService with ReactiveServiceMixin {
           orders.value.add(Order.fromMap(map));
         }
         notifyListeners();
+      } else {
+        orders.value.clear();
       }
     });
   }

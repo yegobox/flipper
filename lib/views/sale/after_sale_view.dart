@@ -1,5 +1,6 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/order.dart';
 import 'package:flipper_models/view_models/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -7,9 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
 
-class AfterSaleView extends StatelessWidget {
+class AfterSaleView extends StatefulWidget {
   const AfterSaleView({Key key}) : super(key: key);
 
+  @override
+  _AfterSaleViewState createState() => _AfterSaleViewState();
+}
+
+class _AfterSaleViewState extends State<AfterSaleView> {
+  List<Order> orders;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -47,9 +54,8 @@ class AfterSaleView extends StatelessWidget {
                           //TODO: get completed ticketID and get last information to display
                           Text(
                             'FRw' +
-                                (model.keypad.orders.value
-                                            .fold(0, (a, b) => a + b.amount) -
-                                        model.keypad.cashReceived)
+                                (model.keypad.cashReceived -
+                                        orders.fold(0, (a, b) => a + b.amount))
                                     .toStringAsFixed(0) +
                                 ' Change',
                             style: const TextStyle(
@@ -122,8 +128,10 @@ class AfterSaleView extends StatelessWidget {
             ),
           );
         },
-        onModelReady: (CompleteSaleViewModel model) {
-          // model.keypad.getOrders();
+        onModelReady: (CompleteSaleViewModel model) async {
+          setState(() {
+            orders = model.keypad.getOrders();
+          });
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

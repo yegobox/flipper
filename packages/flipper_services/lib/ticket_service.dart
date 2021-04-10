@@ -40,26 +40,24 @@ class TicketService with ReactiveServiceMixin {
         'orders': []
       });
 
-      q.addChangeListener((results) {
-        for (Map map in results.allResults) {
-          final pendingTicket = ProxyService.database.getById(id: ticket.ID);
-          List<String> ods = [];
-          if (pendingTicket.properties['orders'] != null) {
-            ods = Ticket.fromMap(pendingTicket.map).orders.toList();
-            ods.add(Order.fromMap(map).id);
-            pendingTicket.properties['orders'] = ods;
-            ProxyService.database.update(document: pendingTicket);
-          }
-          final Document parkedOrder =
-              ProxyService.database.getById(id: Order.fromMap(map).id);
-          parkedOrder.properties['active'] = false;
-          parkedOrder.properties['draft'] = false;
-          parkedOrder.properties['orderNote'] = status;
-          parkedOrder.properties['status'] = status;
-          ProxyService.database.update(document: parkedOrder);
+      final results = q.execute();
+      for (Map map in results.allResults) {
+        final pendingTicket = ProxyService.database.getById(id: ticket.ID);
+        List<String> ods = [];
+        if (pendingTicket.properties['orders'] != null) {
+          ods = Ticket.fromMap(pendingTicket.map).orders.toList();
+          ods.add(Order.fromMap(map).id);
+          pendingTicket.properties['orders'] = ods;
+          ProxyService.database.update(document: pendingTicket);
         }
-      });
-      ProxyService.sharedState.setClear(c: true);
+        final Document parkedOrder =
+            ProxyService.database.getById(id: Order.fromMap(map).id);
+        parkedOrder.properties['active'] = false;
+        parkedOrder.properties['draft'] = false;
+        parkedOrder.properties['orderNote'] = status;
+        parkedOrder.properties['status'] = status;
+        ProxyService.database.update(document: parkedOrder);
+      }
     }
   }
 }

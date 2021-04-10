@@ -122,7 +122,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
       stockId: stockId,
       orderType: 'regular',
     );
-    _keypad.getOrders();
+    _keypad.lGetOrders();
   }
 
   @override

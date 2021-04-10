@@ -89,7 +89,7 @@ class OrderSummary extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          model.keypad.getOrders();
+          model.keypad.lGetOrders();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

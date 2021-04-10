@@ -151,6 +151,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   void deleteOrder({String id}) {
     ProxyService.database.delete(id: id);
-    keypad.getOrders();
+    keypad.lGetOrders();
   }
 }

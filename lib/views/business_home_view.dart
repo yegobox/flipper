@@ -47,7 +47,7 @@ class BusinessHomeView extends StatelessWidget {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => PosViewModel(),
       onModelReady: (PosViewModel model) {
-        model.keyPad.getOrders();
+        model.keyPad.lGetOrders();
         model.keyPad.initTab();
         model.keyPad.cleanKeypad();
       },
@@ -104,7 +104,9 @@ class BusinessHomeView extends StatelessWidget {
           ),
           body: Column(
             children: <Widget>[
-              model.keyPad.tab == 1 ? const PayableView() : const SizedBox.shrink(),
+              model.keyPad.tab == 1
+                  ? const PayableView()
+                  : const SizedBox.shrink(),
               Expanded(
                 child: Container(
                   child: SafeArea(

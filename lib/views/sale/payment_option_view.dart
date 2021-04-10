@@ -1,16 +1,23 @@
 import 'package:customappbar/customappbar.dart';
 import 'package:flipper/routes/router.gr.dart';
+import 'package:flipper_models/order.dart';
 import 'package:flipper_models/view_models/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 
-class PaymentOptionView extends StatelessWidget {
+class PaymentOptionView extends StatefulWidget {
+  @override
+  _PaymentOptionViewState createState() => _PaymentOptionViewState();
+}
+
+class _PaymentOptionViewState extends State<PaymentOptionView> {
   final display = createDisplay(
     length: 8,
     decimal: 0,
   );
+  List<Order> orders;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -42,8 +49,8 @@ class PaymentOptionView extends StatelessWidget {
                           const SizedBox(height: 40),
                           Text(
                             'FRw ' +
-                                display(model.keypad.orders.value.fold(
-                                    0, (a, b) => a + b.amount)).toString(),
+                                display(orders.fold(0, (a, b) => a + b.amount))
+                                    .toString(),
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
@@ -116,7 +123,9 @@ class PaymentOptionView extends StatelessWidget {
         },
         onModelReady: (CompleteSaleViewModel model) {
           ProxyService.pusher.clean();
-          model.keypad.getOrders();
+          setState(() {
+            orders = model.keypad.getOrders();
+          });
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

@@ -161,3 +161,5 @@ class $Routing {
 //https://pub.dev/packages/flutter_sms
 // https://pub.dev/packages/miniplayer
 // 84f3d28555 (flutter working version SDK keep this.)
+//Known errors
+//W/LiteCore [Query](18717): cbl_result_next: got error 4/2
