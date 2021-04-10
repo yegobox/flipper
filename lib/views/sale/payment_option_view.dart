@@ -18,6 +18,16 @@ class _PaymentOptionViewState extends State<PaymentOptionView> {
     decimal: 0,
   );
   List<Order> orders;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      orders = ProxyService.api.currentOrders();
+      ProxyService.sharedState.setOrders(orders: orders);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -123,9 +133,6 @@ class _PaymentOptionViewState extends State<PaymentOptionView> {
         },
         onModelReady: (CompleteSaleViewModel model) {
           ProxyService.pusher.clean();
-          setState(() {
-            orders = model.keypad.getOrders();
-          });
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

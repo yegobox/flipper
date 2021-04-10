@@ -6,6 +6,7 @@ import 'package:flipper_models/business_history.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/fuser.dart';
 import 'package:flipper_models/image.dart';
+import 'package:flipper_models/order.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/unit.dart';
@@ -130,6 +131,15 @@ class SharedStateService with ReactiveServiceMixin {
     _units.value = null;
     _units.value = units;
     // notifyListeners();
+  }
+
+  final RxValue<List<Order>> _orders = RxValue<List<Order>>(initial: []);
+
+  List<Order> get orders => _orders.value;
+
+  void setOrders({List<Order> orders}) {
+    _orders.value = null;
+    _orders.value = orders;
   }
 
   void setCategories({List<Category> categories}) {

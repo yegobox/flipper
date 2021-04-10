@@ -24,15 +24,11 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/business_home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/business_home_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/order_summary_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/views/sale/payment_option_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/payment_option_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/on_selling_viewmodal.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/ticket_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/ticket_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/shared_state_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/shared_state_service.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -147,7 +143,7 @@
       <workItem from="1617957203460" duration="4619000" />
       <workItem from="1617972350075" duration="1098000" />
       <workItem from="1617987384290" duration="2396000" />
-      <workItem from="1618004033277" duration="27431000" />
+      <workItem from="1618004033277" duration="29746000" />
     </task>
     <servers />
   </component>
@@ -188,11 +184,6 @@
           <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart</url>
           <line>16</line>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/lib/views/sale/after_sale_view.dart</url>
-          <line>15</line>
-          <option name="timeStamp" value="38" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="Dart">
           <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/complete_sale_viewmodel.dart</url>

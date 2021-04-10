@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 
 class AfterSaleView extends StatefulWidget {
@@ -17,6 +18,21 @@ class AfterSaleView extends StatefulWidget {
 
 class _AfterSaleViewState extends State<AfterSaleView> {
   List<Order> orders;
+  double total;
+  final display = createDisplay(
+    length: 8,
+    decimal: 0,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      orders = ProxyService.sharedState.orders;
+      total = orders.fold(0, (a, b) => a + b.amount);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -54,9 +70,8 @@ class _AfterSaleViewState extends State<AfterSaleView> {
                           //TODO: get completed ticketID and get last information to display
                           Text(
                             'FRw' +
-                                (model.keypad.cashReceived -
-                                        orders.fold(0, (a, b) => a + b.amount))
-                                    .toStringAsFixed(0) +
+                                display(model.keypad.cashReceived - total)
+                                    .toString() +
                                 ' Change',
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
@@ -127,11 +142,6 @@ class _AfterSaleViewState extends State<AfterSaleView> {
               ),
             ),
           );
-        },
-        onModelReady: (CompleteSaleViewModel model) async {
-          setState(() {
-            orders = model.keypad.getOrders();
-          });
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

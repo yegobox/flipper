@@ -33,7 +33,7 @@ class HttpApi implements Api {
   static const String endPoint = 'https://jsonplaceholder.typicode.com';
   ExtendedClient client = ExtendedClient(http.Client());
   double totalSaleCount;
-  final List<Order> _currentSale = [];
+
   final List<PColor> _colors = [];
   final List<Customer> _customers = [];
 
@@ -46,8 +46,10 @@ class HttpApi implements Api {
 
   @override
   List<Order> currentOrders() {
-    _currentSale.clear();
+    // ignore: prefer_final_locals
+    List<Order> _currentSale = [];
     final q = Query(ProxyService.database.db, Queries.Q_3);
+
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
     final counts = q.execute();

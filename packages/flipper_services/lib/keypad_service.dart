@@ -197,25 +197,6 @@ class KeyPadService with ReactiveServiceMixin {
     });
   }
 
-  /// should call this when not expecting rebuild of view. in real time
-  List<Order> getOrders() {
-    orders.value.clear();
-    if (ProxyService.database.db == null) return [];
-    final q = Query(ProxyService.database.db, Queries.Q_3);
-    q.parameters = {'T': AppTables.order, 'S': 'pending'};
-    final results = q.execute();
-    final t = results.allResults; //to avoid sgate! error
-    if (t.isNotEmpty) {
-      orders.value.clear();
-      for (Map map in t) {
-        orders.value.add(Order.fromMap(map));
-      }
-    } else {
-      orders.value.clear();
-    }
-    return orders.value;
-  }
-
   ///The method that start with l is a listener
   void lGetOrders() {
     orders.value.clear();
