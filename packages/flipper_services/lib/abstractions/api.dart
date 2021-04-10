@@ -1,4 +1,5 @@
 import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/g_customer.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/ticket.dart';
@@ -9,7 +10,7 @@ abstract class Api {
   Future payroll();
   List<Order> currentOrders();
   List<Ticket> currentTickets();
-  List<Customer> customers();
+  Future<List<GCustomer>> customers();
   List<PColor> colors();
   Customer create({Map customer, String id});
 }

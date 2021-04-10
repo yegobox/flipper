@@ -1,4 +1,5 @@
 import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/g_customer.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/pcolor.dart';
 import 'package:flipper_models/ticket.dart';
@@ -108,12 +109,6 @@ class FakeApi implements Api {
   }
 
   @override
-  List<Customer> customers() {
-    // TODO: implement customers
-    throw UnimplementedError();
-  }
-
-  @override
   List<PColor> colors() {
     // TODO: implement colors
     throw UnimplementedError();
@@ -122,6 +117,12 @@ class FakeApi implements Api {
   @override
   Customer create({Map<dynamic, dynamic> customer, String id}) {
     // TODO: implement create
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<GCustomer>> customers() {
+    // TODO: implement customers
     throw UnimplementedError();
   }
 }

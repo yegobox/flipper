@@ -1,6 +1,6 @@
 library flipper_models;
 
-import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/g_customer.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/locator.dart';
@@ -11,11 +11,7 @@ import 'base_model.dart';
 
 class CustomerViewModel extends BaseModel {
   final api = locator<Api>();
-  List<Customer> customers;
-  List<Customer> loadCustomers() {
-    customers = api.customers();
-    return customers;
-  }
+  List<GCustomer> customers = [];
 
   String _name;
   String _email;
@@ -57,6 +53,10 @@ class CustomerViewModel extends BaseModel {
       'channels': [ProxyService.sharedState.user.id.toString()]
     };
     ProxyService.api.create(customer: customer, id: id);
-    loadCustomers();
+  }
+
+  void getCustomers() async {
+    customers = await ProxyService.api.customers();
+    notifyListeners();
   }
 }

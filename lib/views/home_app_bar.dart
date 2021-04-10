@@ -36,8 +36,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     Expanded(
                       child: FlatButton(
                           onPressed: () {
+                            // ProxyService.nav
+                            //     .navigateTo(Routing.orderSummaryView);
                             ProxyService.nav
-                                .navigateTo(Routing.orderSummaryView);
+                                .navigateTo(Routing.customerListView);
                           },
                           child:
                               buildSaleWording(model: model, context: context)),
