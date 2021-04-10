@@ -75,8 +75,8 @@ class KeyPadService with ReactiveServiceMixin {
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) {
-    final id4 = Uuid().v1().substring(0, 10);
-    _db.insert(id: id4, data: {
+    final id4 = Uuid().v1();
+    final Document _doc = _db.insert(id: id4, data: {
       'reference': id4.substring(0, 4),
       'quantity': quantity,
       'orderNUmber': id4.substring(0, 5),
@@ -84,8 +84,8 @@ class KeyPadService with ReactiveServiceMixin {
       'variantId': variation.id,
       'variantName': useProductName ? variation.productName : variation.name,
       'orderType': orderType,
-      'active':
-          true, //used to check if order is parked becomes parked when false.
+      //used to check if order is parked becomes parked when false.
+      'active': true,
       'draft': true,
       'channels': [_state.user.id.toString()],
       'subTotal': customAmount,
@@ -99,7 +99,7 @@ class KeyPadService with ReactiveServiceMixin {
     });
     order.value = null;
 
-    final Document doc = _db.getById(id: id4);
+    final Document doc = _db.getById(id: _doc.ID);
     order.value = Order.fromMap(doc.map);
 
     ProxyService.sharedPref.setCustomOrderId(orderId: id4);
@@ -132,10 +132,20 @@ class KeyPadService with ReactiveServiceMixin {
       updateOrder(customAmount: customAmount, order: order);
       notifyListeners();
     } else {
-      // await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
       final String id = ProxyService.sharedPref.getCustomOrderId();
-      // print(id);
       final Document doc = _db.getById(id: id);
+      if (doc == null) {
+        await ProxyService.sharedPref.removeKey(key: 'custom_orderId');
+        final Order order = createOrder(
+            stockId: stockId,
+            variation: variation,
+            useProductName: true,
+            customAmount: customAmount,
+            orderType: 'custom');
+        updateOrder(customAmount: customAmount, order: order);
+        notifyListeners();
+        return;
+      }
       order.value = Order.fromMap(doc.map);
 
       updateOrder(customAmount: customAmount, order: Order.fromMap(doc.map));
@@ -170,9 +180,12 @@ class KeyPadService with ReactiveServiceMixin {
       if (ProxyService.database.db != null) {
         final List<Order> _orders = ProxyService.api.currentOrders();
         for (Order order in _orders) {
+          ProxyService.sharedPref.removeKey(key: 'custom_orderId');
           try {
             ProxyService.database.delete(id: order.id);
-          } catch (e) {}
+          } catch (e) {
+            log.d(e);
+          }
           ProxyService.sharedPref.removeKey(key: 'custom_orderId');
         }
       }
