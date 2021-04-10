@@ -31,6 +31,7 @@ abstract class Order implements Built<Order, OrderBuilder> {
 
   double get amount;
 
+  double get quantity;
   @nullable
   double get saleTotal;
 
@@ -41,7 +42,7 @@ abstract class Order implements Built<Order, OrderBuilder> {
   String get status;
 
   String get variantId;
- 
+
   String get stockId;
 
   @nullable

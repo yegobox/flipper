@@ -73,10 +73,12 @@ class KeyPadService with ReactiveServiceMixin {
       Variation variation,
       String stockId,
       bool useProductName = false,
-      String orderType = 'custom'}) {
+      String orderType = 'custom',
+      double quantity = 1}) {
     final id4 = Uuid().v1().substring(0, 10);
     _db.insert(id: id4, data: {
       'reference': id4.substring(0, 4),
+      'quantity': quantity,
       'orderNUmber': id4.substring(0, 5),
       'status': 'pending',
       'variantId': variation.id,

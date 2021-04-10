@@ -30,14 +30,23 @@ class OrderSummary extends StatelessWidget {
             )
           ],
           child: ListTile(
-            contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
-            trailing: Text(
-              display(order.amount).toString(),
-              style: const TextStyle(color: Colors.black),
-            ),
-            leading: Text(order.variantName,
-                style: const TextStyle(color: Colors.black)),
-          ),
+              contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+              trailing: Text(
+                display(order.amount).toString(),
+                style: const TextStyle(color: Colors.black),
+              ),
+              leading: Text(order.variantName,
+                  style: const TextStyle(color: Colors.black)),
+              // ignore: prefer_const_literals_to_create_immutables
+              title: Row(children: [
+                const Icon(
+                  Icons.close,
+                  color: Colors.black,
+                  size: 16.0,
+                ),
+                const Text(' '),
+                Text(order.quantity.toInt().toString())
+              ])),
         ),
       );
     }

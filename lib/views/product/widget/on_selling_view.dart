@@ -1,14 +1,13 @@
 import 'package:customappbar/Itemappbar.dart';
 import 'package:flipper_models/product.dart';
-
+import 'package:flipper_models/variant_stock.dart';
 // import 'package:flipper_services/locator.dart';
 import 'package:flipper_models/view_models/on_selling_viewmodal.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/variant_stock.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 
 class OnSellingView extends StatefulWidget {
   const OnSellingView({Key key, this.product}) : super(key: key);
@@ -94,7 +93,6 @@ class _onCreate extends State<OnSellingView> {
 
   Widget _quantityWidget(
       {OnProductSellingViewModal model, BuildContext context}) {
-    // NOTE: [telesphore] in case of func parameter let's use the name parameter as it is much readable
     return SingleChildScrollView(
       child: Container(
         child: Padding(

@@ -1,18 +1,18 @@
 library flipper_models;
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/variation.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
-import 'package:flipper/utils/logger.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
+import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:stacked/stacked.dart';
 
 class OnProductSellingViewModal extends ReactiveViewModel {
   // NOTE: leason learned, never put anything that invoke ui for ex TextEditingController in viewmodel as it will make it hard to test the logic of viewmodel
@@ -88,7 +88,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
   /// the order should keep  the qty of ordered item, the stock id of ordered item
   /// on finalizing the order should decrement the sock value to given ordered qty.
   void loadVariants({String productId}) {
-   //TODO: change to use exact query not a listener
+    //TODO: change to use exact query not a listener
     final docs = Query(_databaseService.db,
         'SELECT variants.name,products.name as productName, variants.id,variants.sku,variants.unit,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId JOIN products ON variants.productId=products.id WHERE variants.table=\$VALUE AND variants.productId=\$PID');
 
@@ -103,7 +103,6 @@ class OnProductSellingViewModal extends ReactiveViewModel {
         }
         notifyListeners();
       }
-
     });
   }
 
@@ -117,6 +116,7 @@ class OnProductSellingViewModal extends ReactiveViewModel {
 
     _keypad.createOrder(
       customAmount: amount,
+      quantity: _quantity,
       useProductName: true,
       variation: Variation.fromMap(doc.map),
       stockId: stockId,

@@ -9,7 +9,7 @@ class Queries {
       'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$VALUE AND variantId=\$VARIANTID';
   //table = order
   static const String Q_3 =
-      'SELECT  id,branchId,reference,draft,active,orderType,orderNUmber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue  WHERE table=\$T AND status=\$S';
+      'SELECT  id,branchId,quantity,reference,draft,active,orderType,orderNUmber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue  WHERE table=\$T AND status=\$S';
   //table = category
   static const String Q_4 =
       'SELECT name,id,focused,table,touched,active,branchId,channels WHERE table=\$VALUE AND name=\$NAME';
@@ -35,5 +35,6 @@ class Queries {
   static const String Q_11 =
       'SELECT id,name,email,totalPoints,totalVisit,firstVisit,totalSpent,phoneNumber,address,city,region,postalCode,countryCode,customerCode,note,createdAt,updatedAt,channels WHERE table=\$T';
   //table = color
-  static String Q_12 = 'SELECT id,name,table,isActive,channels WHERE table=\$T';
+  static const String Q_12 =
+      'SELECT id,name,table,isActive,channels WHERE table=\$T';
 }

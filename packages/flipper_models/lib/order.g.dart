@@ -42,6 +42,9 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
       'amount',
       serializers.serialize(object.amount,
           specifiedType: const FullType(double)),
+      'quantity',
+      serializers.serialize(object.quantity,
+          specifiedType: const FullType(double)),
       'variantId',
       serializers.serialize(object.variantId,
           specifiedType: const FullType(String)),
@@ -143,6 +146,10 @@ class _$OrderSerializer implements StructuredSerializer<Order> {
           result.amount = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
           break;
+        case 'quantity':
+          result.quantity = serializers.deserialize(value,
+              specifiedType: const FullType(double)) as double;
+          break;
         case 'saleTotal':
           result.saleTotal = serializers.deserialize(value,
               specifiedType: const FullType(double)) as double;
@@ -210,6 +217,8 @@ class _$Order extends Order {
   @override
   final double amount;
   @override
+  final double quantity;
+  @override
   final double saleTotal;
   @override
   final String orderNote;
@@ -242,6 +251,7 @@ class _$Order extends Order {
       this.subTotal,
       this.taxAmount,
       this.amount,
+      this.quantity,
       this.saleTotal,
       this.orderNote,
       this.status,
@@ -278,6 +288,9 @@ class _$Order extends Order {
     }
     if (amount == null) {
       throw new BuiltValueNullFieldError('Order', 'amount');
+    }
+    if (quantity == null) {
+      throw new BuiltValueNullFieldError('Order', 'quantity');
     }
     if (variantId == null) {
       throw new BuiltValueNullFieldError('Order', 'variantId');
@@ -317,6 +330,7 @@ class _$Order extends Order {
         subTotal == other.subTotal &&
         taxAmount == other.taxAmount &&
         amount == other.amount &&
+        quantity == other.quantity &&
         saleTotal == other.saleTotal &&
         orderNote == other.orderNote &&
         status == other.status &&
@@ -348,23 +362,17 @@ class _$Order extends Order {
                                                                 $jc(
                                                                     $jc(
                                                                         $jc(
-                                                                            $jc(
-                                                                                0,
-                                                                                id
-                                                                                    .hashCode),
-                                                                            branchId
-                                                                                .hashCode),
-                                                                        reference
-                                                                            .hashCode),
-                                                                    draft
-                                                                        .hashCode),
-                                                                active
-                                                                    .hashCode),
-                                                            orderType.hashCode),
-                                                        orderNUmber.hashCode),
-                                                    subTotal.hashCode),
-                                                taxAmount.hashCode),
-                                            amount.hashCode),
+                                                                            $jc($jc(0, id.hashCode),
+                                                                                branchId.hashCode),
+                                                                            reference.hashCode),
+                                                                        draft.hashCode),
+                                                                    active.hashCode),
+                                                                orderType.hashCode),
+                                                            orderNUmber.hashCode),
+                                                        subTotal.hashCode),
+                                                    taxAmount.hashCode),
+                                                amount.hashCode),
+                                            quantity.hashCode),
                                         saleTotal.hashCode),
                                     orderNote.hashCode),
                                 status.hashCode),
@@ -389,6 +397,7 @@ class _$Order extends Order {
           ..add('subTotal', subTotal)
           ..add('taxAmount', taxAmount)
           ..add('amount', amount)
+          ..add('quantity', quantity)
           ..add('saleTotal', saleTotal)
           ..add('orderNote', orderNote)
           ..add('status', status)
@@ -445,6 +454,10 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
   double get amount => _$this._amount;
   set amount(double amount) => _$this._amount = amount;
 
+  double _quantity;
+  double get quantity => _$this._quantity;
+  set quantity(double quantity) => _$this._quantity = quantity;
+
   double _saleTotal;
   double get saleTotal => _$this._saleTotal;
   set saleTotal(double saleTotal) => _$this._saleTotal = saleTotal;
@@ -497,6 +510,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
       _subTotal = _$v.subTotal;
       _taxAmount = _$v.taxAmount;
       _amount = _$v.amount;
+      _quantity = _$v.quantity;
       _saleTotal = _$v.saleTotal;
       _orderNote = _$v.orderNote;
       _status = _$v.status;
@@ -540,6 +554,7 @@ class OrderBuilder implements Builder<Order, OrderBuilder> {
               subTotal: subTotal,
               taxAmount: taxAmount,
               amount: amount,
+              quantity: quantity,
               saleTotal: saleTotal,
               orderNote: orderNote,
               status: status,
