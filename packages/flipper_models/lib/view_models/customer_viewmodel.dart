@@ -55,6 +55,14 @@ class CustomerViewModel extends BaseModel {
     ProxyService.api.create(customer: customer, id: id);
   }
 
+  ///It sort by number for now todo: will add other fields later on
+  void search({String phoneNumber}) {
+    //todo: this is draft need to come up with proper algorithm
+    customers
+        .sort((a, b) => a.phoneNumber.length.compareTo(phoneNumber.length));
+    notifyListeners();
+  }
+
   void getCustomers() async {
     customers = await ProxyService.api.customers();
     notifyListeners();

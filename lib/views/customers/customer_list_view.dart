@@ -78,13 +78,12 @@ class CustomerListView extends StatelessWidget {
                             .bodyText1
                             .copyWith(color: Colors.black),
                         // validator: Validators.isValid,
-                        onChanged: (String name) async {
-                          // model.setName(name: name);
-                          // model.lock();
+                        onChanged: (String phoneNumber) async {
+                          model.search(phoneNumber: phoneNumber);
                         },
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.search),
-                          hintText: 'Name, Email, Phone',
+                          hintText: 'By Phone',
                           fillColor: Theme.of(context)
                               .copyWith(canvasColor: Colors.white)
                               .canvasColor,
