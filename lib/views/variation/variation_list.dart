@@ -1,6 +1,5 @@
-import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper/routes/router.gr.dart';
-
+import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/view_models/variation_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -10,15 +9,10 @@ class VariationList extends StatelessWidget {
   const VariationList({Key key}) : super(key: key);
 
   Widget _buildVariationsList({List<VariantStock> variations}) {
-    // final Logger log = Logging.getLogger('variation List:)');
     final List<Widget> list = <Widget>[];
-
-    if (variations.length < 2) {
-      return const SizedBox
-          .shrink(); //we do not show a regular variant if it is only variant we have, otherwise if a user has added other non default variants then show them
-    }
     for (var i = 0; i < variations.length; i++) {
-      if (variations[i].name != 'tmp') {
+      //TODO: show regular when stocked! i.e stock is not 0
+      if (variations[i].name != 'tmp' && variations[i].name != 'Regular') {
         list.add(
           Center(
             child: SizedBox(
@@ -58,9 +52,6 @@ class VariationList extends StatelessWidget {
           ),
         );
       }
-    }
-    if (list.isEmpty) {
-      return const SizedBox.shrink();
     }
     return Column(children: list);
   }

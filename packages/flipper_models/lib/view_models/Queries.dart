@@ -37,4 +37,9 @@ class Queries {
   //table = color
   static const String Q_12 =
       'SELECT id,name,table,isActive,channels WHERE table=\$T';
+
+  //table NONE
+  static const String Q_13 =
+      'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID';
+
 }

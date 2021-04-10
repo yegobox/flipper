@@ -11,7 +11,6 @@ import 'package:flipper/views/shared/description.dart';
 import 'package:flipper/views/shared/divider.dart';
 import 'package:flipper/views/shared/list_divider.dart';
 import 'package:flipper/views/supplier/supply_price_widget.dart';
-import 'package:flipper/views/variation/add_variant.dart';
 import 'package:flipper/views/variation/variation_list.dart';
 import 'package:flipper_models/view_models/add_product_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
@@ -182,10 +181,20 @@ class AddProductView extends StatelessWidget {
                     ),
                     const VariationList(),
 
-                    AddVariant(
-                      onPressedCallback: () {
-                        model.createVariant(productId: model.state.product.id);
-                      },
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(left: 18, right: 18, top: 10),
+                      child: SizedBox(
+                        height: 50,
+                        width: double.infinity,
+                        child: OutlineButton(
+                          child: const Text('Add Variation'),
+                          onPressed: () {
+                            model.createVariant(
+                                productId: model.state.product.id);
+                          },
+                        ),
+                      ),
                     ),
                     const CenterDivider(
                       width: double.infinity,

@@ -1,22 +1,25 @@
 library flipper_models;
+
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper/utils/constant.dart';
+import 'package:flipper/utils/logger.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/variation.dart';
 import 'package:flipper_services/database_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
-import 'package:flipper/utils/constant.dart';
-import 'package:flipper/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
 import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
+import 'Queries.dart';
 import 'base_model.dart';
 
 class VariationViewModel extends BaseModel {
@@ -37,39 +40,31 @@ class VariationViewModel extends BaseModel {
   final sharedStateService = locator<SharedStateService>();
 
   void getStockByProductId({String productId, BuildContext context}) async {
-    final q = Query(_databaseService.db,
-        'SELECT * WHERE table=\$VALUE AND productId=\$productId');
+    final q = Query(_databaseService.db, Queries.Q_1);
 
-    q.parameters = {'VALUE': AppTables.variation, 'productId': productId};
+    q.parameters = {'VALUE': AppTables.variation, 'PRODUCTID': productId};
 
     q.addChangeListener((results) {
       for (Map map in results.allResults) {
-        map.forEach((key, value) {
-          _stock = Stock.fromMap(value);
-        });
+        _stock = Stock.fromMap(map);
         notifyListeners();
       }
-
     });
   }
 
   void getVariationsByProductId({String productId}) async {
-    final q = Query(_databaseService.db,
-        'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID');
-        
+    final q = Query(_databaseService.db, Queries.Q_13);
 
     q.parameters = {'PRODUCTID': productId ?? sharedStateService.product.id};
     q.addChangeListener((results) {
-      // issue found in the joun query is that it show result of two joined doc eventhoug I expect one!
+      // issue found in the join query is that it show result of two joined doc even though I expect one!
       for (Map map in results.allResults) {
+        _variations.clear();
         if (map.length > 2) {
-          if (!_variations.contains(VariantStock.fromMap(map))) {
-            _variations.add(VariantStock.fromMap(map));
-          }
+          _variations.add(VariantStock.fromMap(map));
         }
         notifyListeners();
       }
-
     });
   }
 
@@ -88,7 +83,6 @@ class VariationViewModel extends BaseModel {
       });
       notifyListeners();
     }
-
   }
 
   void getProducts({BuildContext context}) {
@@ -108,7 +102,6 @@ class VariationViewModel extends BaseModel {
         setBusy(false);
         notifyListeners();
       }
-
     });
   }
 
@@ -160,17 +153,22 @@ class VariationViewModel extends BaseModel {
   // create a variation and create stock related to it with supplier and cost price
   Future<void> createVariant({BuildContext context, String productId}) async {
     final Store<AppState> store = StoreProvider.of<AppState>(context);
-
+    String unit;
+    for (Unit u in ProxyService.sharedState.units) {
+      if (u.focused) {
+        unit = u.name;
+      }
+    }
     // create variation
     final String id = Uuid().v1();
     final Document variant = _databaseService.insert(id: id, data: {
       'isActive': true,
       'name': nameController.text,
-      'unit': 'kg', //TODO: get unit from the sharedStateService
+      'unit': unit,
       'channels': <String>[store.state.user.id],
       'table': AppTables.variation,
       'productId': productId,
-      'sku': Uuid().v1().substring(0, 4),
+      'sku': Uuid().v1().substring(0, 4), //todo: also consider user input
       'id': id,
       'createdAt': DateTime.now().toIso8601String(),
     });
