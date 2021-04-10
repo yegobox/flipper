@@ -33,56 +33,62 @@ class _onCreate extends State<OnSellingView> {
 
     for (VariantStock variation in model.variations) {
       list.add(SingleChildScrollView(
-        child: Container(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 4.0),
-            child: Column(
-              children: [
-                Divider(
-                  color: Colors.grey[400],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        variation.name,
-                        style: GoogleFonts.lato(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13.0,
-                              color: Colors.grey[900]),
+        child: InkWell(
+          onTap: () {
+            model.updateAmountTotalDefault(
+                value: variation.retailPrice, variant: variation);
+          },
+          child: Container(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 4.0),
+              child: Column(
+                children: [
+                  Divider(
+                    color: Colors.grey[400],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          variation.name,
+                          style: GoogleFonts.lato(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.0,
+                                color: Colors.grey[900]),
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      child: Row(children: [
-                        Container(
-                          child: Text(
-                            'Frw${variation.retailPrice?.toInt()}',
-                            style: GoogleFonts.lato(
-                              textStyle: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12.0,
-                                  color: Colors.grey[500]),
+                      Container(
+                        child: Row(children: [
+                          Container(
+                            child: Text(
+                              'Frw${variation.retailPrice?.toInt()}',
+                              style: GoogleFonts.lato(
+                                textStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.0,
+                                    color: Colors.grey[500]),
+                              ),
                             ),
                           ),
-                        ),
-                        Container(
-                          child: Radio(
-                            value: variation.retailPrice,
-                            groupValue: model.checked,
-                            onChanged: (double value) {
-                              model.updateAmountTotalDefault(
-                                  value: value, variant: variation);
-                            },
+                          Container(
+                            child: Radio(
+                              value: variation.retailPrice,
+                              groupValue: model.checked,
+                              onChanged: (double value) {
+                                model.updateAmountTotalDefault(
+                                    value: value, variant: variation);
+                              },
+                            ),
                           ),
-                        ),
-                      ]),
-                    ),
-                  ],
-                ),
-              ],
+                        ]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
