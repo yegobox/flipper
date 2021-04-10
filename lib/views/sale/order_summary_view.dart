@@ -25,7 +25,7 @@ class OrderSummary extends StatelessWidget {
               color: Colors.red,
               icon: Icons.delete,
               onTap: () {
-                print('hello');
+                model.deleteOrder(id: order.id);
               },
             )
           ],

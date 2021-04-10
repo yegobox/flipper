@@ -148,4 +148,9 @@ class CompleteSaleViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_sharedState, keypad];
+
+  void deleteOrder({String id}) {
+    ProxyService.database.delete(id: id);
+    keypad.getOrders();
+  }
 }
