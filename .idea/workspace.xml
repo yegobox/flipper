@@ -24,7 +24,11 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/product/widget/on_selling_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/widget/on_selling_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/product/add/add_product_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/variation/add_variation_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/add_variation_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/variation/variant_widget.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/variation/variation_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/variation/variation_list.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/variation_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/variation_viewmodel.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -192,6 +196,9 @@
           <option name="timeStamp" value="57" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="dart-exception" />
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">

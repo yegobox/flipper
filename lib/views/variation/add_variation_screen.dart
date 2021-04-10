@@ -32,6 +32,7 @@ class AddVariationScreen extends StatelessWidget {
                 if (_formKey.currentState.validate()) {
                   await model.createVariant(
                       context: context, productId: productId);
+                  ProxyService.nav.pop();
                 }
               },
               icon: Icons.close,

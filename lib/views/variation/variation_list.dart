@@ -3,10 +3,15 @@ import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/view_models/variation_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 
 class VariationList extends StatelessWidget {
-  const VariationList({Key key}) : super(key: key);
+  VariationList({Key key}) : super(key: key);
+  final display = createDisplay(
+    length: 8,
+    decimal: 0,
+  );
 
   Widget _buildVariationsList({List<VariantStock> variations}) {
     final List<Widget> list = <Widget>[];
@@ -31,7 +36,7 @@ class VariationList extends StatelessWidget {
                       child: Text(
                         variations[i].currentStock == 0
                             ? 'Receive Stock'
-                            : variations[i].currentStock.toString() +
+                            : display(variations[i].currentStock).toString() +
                                 ' ' +
                                 'in Stock',
                       ),

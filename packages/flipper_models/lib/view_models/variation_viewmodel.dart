@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/domain/redux/app_state.dart';
 import 'package:flipper/utils/constant.dart';
 import 'package:flipper/utils/logger.dart';
 import 'package:flipper_models/product.dart';
@@ -14,9 +13,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:logger/logger.dart';
-import 'package:redux/redux.dart';
 import 'package:uuid/uuid.dart';
 
 import 'Queries.dart';
@@ -152,7 +149,6 @@ class VariationViewModel extends BaseModel {
   // insert default regular variant, the product should have one variant
   // create a variation and create stock related to it with supplier and cost price
   Future<void> createVariant({BuildContext context, String productId}) async {
-    final Store<AppState> store = StoreProvider.of<AppState>(context);
     String unit;
     for (Unit u in ProxyService.sharedState.units) {
       if (u.focused) {
@@ -165,7 +161,7 @@ class VariationViewModel extends BaseModel {
       'isActive': true,
       'name': nameController.text,
       'unit': unit,
-      'channels': <String>[store.state.user.id],
+      'channels': <String>[ProxyService.sharedState.user.id.toString()],
       'table': AppTables.variation,
       'productId': productId,
       'sku': Uuid().v1().substring(0, 4), //todo: also consider user input
@@ -182,14 +178,14 @@ class VariationViewModel extends BaseModel {
       'canTrackingStock': false,
       'showLowStockAlert': false,
       'retailPrice': double.parse(retailController.text),
-      'channels': [store.state.user.id],
+      'channels': [ProxyService.sharedState.user.id.toString()],
       'isActive': true,
       'table': AppTables.stock,
       'lowStock': 0.0,
       'currentStock': 0.0,
       'id': stockId,
       'productId': productId,
-      'branchId': store.state.branch.id,
+      'branchId': ProxyService.sharedState.branch.id,
       'createdAt': DateTime.now().toIso8601String(),
     });
   }

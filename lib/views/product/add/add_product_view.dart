@@ -179,8 +179,7 @@ class AddProductView extends StatelessWidget {
                     const ListDivider(
                       height: 10,
                     ),
-                    const VariationList(),
-
+                    VariationList(),
                     Padding(
                       padding:
                           const EdgeInsets.only(left: 18, right: 18, top: 10),
