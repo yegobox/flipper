@@ -46,6 +46,7 @@ class HttpApi implements Api {
 
   @override
   List<Order> currentOrders() {
+    _currentSale.clear();
     final q = Query(ProxyService.database.db, Queries.Q_3);
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
 
@@ -64,6 +65,7 @@ class HttpApi implements Api {
 
   @override
   List<Customer> customers() {
+    _customers.clear();
     final q = Query(ProxyService.database.db, Queries.Q_11);
     q.parameters = {'T': AppTables.customers};
 
@@ -76,9 +78,10 @@ class HttpApi implements Api {
 
   @override
   List<PColor> colors() {
+    _colors.clear();
     final q = Query(ProxyService.database.db, Queries.Q_12);
     q.parameters = {'T': AppTables.color};
-    _colors.clear();
+
     final results = q.execute();
     for (Map value in results.allResults) {
       _colors.add(PColor.fromMap(value));

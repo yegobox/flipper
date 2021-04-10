@@ -104,7 +104,7 @@ class BusinessHomeView extends StatelessWidget {
           ),
           body: Column(
             children: <Widget>[
-              model.keyPad.tab == 1 ? PayableView() : const SizedBox.shrink(),
+              model.keyPad.tab == 1 ? const PayableView() : const SizedBox.shrink(),
               Expanded(
                 child: Container(
                   child: SafeArea(

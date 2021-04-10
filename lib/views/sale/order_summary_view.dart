@@ -1,10 +1,11 @@
+import 'package:customappbar/customappbar.dart';
+import 'package:flipper_models/order.dart';
 import 'package:flipper_models/view_models/complete_sale_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:customappbar/customappbar.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
+import 'package:stacked/stacked.dart';
 
 class OrderSummary extends StatelessWidget {
   final display = createDisplay(
@@ -13,8 +14,8 @@ class OrderSummary extends StatelessWidget {
   );
   List<Widget> buildItems({CompleteSaleViewModel model}) {
     final List<Widget> list = [];
-    // ignore: avoid_function_literals_in_foreach_calls
-    model.keypad.currentSalesItem.forEach((e) {
+
+    for (Order order in model.keypad.orders) {
       list.add(
         Slidable(
           actionPane: const SlidableDrawerActionPane(),
@@ -31,20 +32,19 @@ class OrderSummary extends StatelessWidget {
           child: ListTile(
             contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
             trailing: Text(
-              display(e['price']).toString(),
+              display(order.amount).toString(),
               style: const TextStyle(color: Colors.black),
             ),
-            leading:
-                Text(e['name'], style: const TextStyle(color: Colors.black)),
+            leading: Text(order.variantName,
+                style: const TextStyle(color: Colors.black)),
           ),
         ),
       );
-    });
-
+    }
     list.add(ListTile(
       contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
       trailing: Text(
-        display(model.keypad.payable).toString(),
+        display(model.keypad.orders.fold(0, (a, b) => a + b.amount)).toString(),
         style: const TextStyle(color: Colors.black),
       ),
       leading: const Text('Total', style: TextStyle(color: Colors.black)),
@@ -62,7 +62,9 @@ class OrderSummary extends StatelessWidget {
               onPop: () {
                 ProxyService.nav.pop();
               },
-              title: 'Total: Frw' + display(model.keypad.payable).toString(),
+              title: 'Total: Frw' +
+                  display(model.keypad.orders.fold(0, (a, b) => a + b.amount))
+                      .toString(),
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,
@@ -77,7 +79,7 @@ class OrderSummary extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          model.keypad.setCurrentItemKeyPadSaleValue();
+          model.keypad.getOrders();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

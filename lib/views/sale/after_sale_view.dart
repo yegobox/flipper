@@ -44,12 +44,9 @@ class AfterSaleView extends StatelessWidget {
                         // ignore: prefer_const_literals_to_create_immutables
                         children: [
                           const SizedBox(height: 40),
+                          //TODO: get completed ticketID and get last information to display
                           Text(
-                            'FRw' +
-                                (model.keypad.cashReceived -
-                                        model.keypad.payable)
-                                    .toStringAsFixed(0) +
-                                ' Change',
+                            'FRw' + (0).toStringAsFixed(0) + ' Change',
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),
@@ -121,7 +118,7 @@ class AfterSaleView extends StatelessWidget {
           );
         },
         onModelReady: (CompleteSaleViewModel model) {
-          model.keypad.setCurrentItemKeyPadSaleValue();
+          // model.keypad.getOrders();
         },
         viewModelBuilder: () => CompleteSaleViewModel());
   }

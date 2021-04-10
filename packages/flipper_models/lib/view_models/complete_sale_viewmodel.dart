@@ -1,19 +1,16 @@
 library flipper_models;
+
 import 'dart:convert';
 
 import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper_models/order.dart';
-import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/shared_state_service.dart';
-import 'package:stacked/stacked.dart';
-import 'package:observable_ish/observable_ish.dart';
 import 'package:http/http.dart' as http;
+import 'package:observable_ish/observable_ish.dart';
+import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 Spenn spennFromJson(String str) => Spenn.fromJson(json.decode(str));
 
@@ -79,7 +76,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
   // var completedSale;
   final RxValue<bool> completedSale = RxValue<bool>(initial: null);
 
-
   set phone(String phone) {
     _phone = phone;
   }
@@ -115,7 +111,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
       final http.Response response = await http.post(
           'https://flipper.yegobox.com/pay',
           body: jsonEncode({
-            'amount': keypad.payable,
+            'amount': keypad.orders.fold(0, (a, b) => a + b.amount),
             'message': ProxyService.sharedState.business.name.substring(0, 3) +
                 '-' +
                 transactionNumber.substring(0, 4),
@@ -137,8 +133,6 @@ class CompleteSaleViewModel extends ReactiveViewModel {
       rethrow;
     }
   }
-
-
 
   /// The method create a ticket and add all
   /// the order that are in pending state with cash received

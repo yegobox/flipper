@@ -21,7 +21,8 @@ class PayableView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      if (model.keyPad.payable == 0.0) {
+                      if (model.keyPad.orders.fold(0, (a, b) => a + b.amount) ==
+                          0.0) {
                         model.viewTickets();
                       } else {
                         model.saveTicket();
@@ -121,49 +122,52 @@ class PayableView extends StatelessWidget {
       length: 8,
       decimal: 2,
     );
-    if (model.keyPad.payable == 0.0) {
+    if (model.keyPad.orders.fold(0, (a, b) => a + b.amount) == 0.0) {
       return Text(
-        'Charge FRw' + display(model.keyPad.payable).toString(),
+        'Charge FRw' +
+            display(model.keyPad.orders.fold(0, (a, b) => a + b.amount))
+                .toString(),
         style: const TextStyle(
           fontSize: 20.0,
           color: Colors.white,
         ),
       );
     } else {
-      return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Container(
-              child: Container(
-                child: const Text(
-                  'Charge',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
+      return Column(mainAxisAlignment: MainAxisAlignment.center, children: <
+          Widget>[
+        Container(
+          child: Container(
+            child: const Text(
+              'Charge',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        Flexible(
+          child: Container(
+            child: Container(
+              padding: const EdgeInsets.only(left: 10),
+              child: Text(
+                'FRw' +
+                    display(model.keyPad.orders.fold(0, (a, b) => a + b.amount))
+                        .toString(),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
                 ),
               ),
             ),
-            Flexible(
-              child: Container(
-                child: Container(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: Text(
-                    'FRw' + display(model.keyPad.payable).toString(),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ]);
+          ),
+        )
+      ]);
     }
   }
 }

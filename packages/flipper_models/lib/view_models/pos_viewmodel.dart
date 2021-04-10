@@ -103,7 +103,7 @@ class PosViewModel extends ReactiveViewModel {
 
   /// Go to sale to complete a sale with a current total we have on [keyPad.payable].
   void goSale() {
-    if (keyPad.payable != 0.0) {
+    if (keyPad.orders.isNotEmpty) {
       //TODO: show animation like square when amount ==0.0
       ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
     }

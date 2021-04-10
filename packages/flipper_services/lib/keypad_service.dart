@@ -28,12 +28,9 @@ class KeyPadService with ReactiveServiceMixin {
 
   final Logger log = Logging.getLogger('O2:)');
 
-  final RxValue<double> setPayable = RxValue<double>(initial: 0.0);
+  // final RxValue<double> setPayable = RxValue<double>(initial: 0.0);
 
-  double get payable => setPayable.value;
-
-  final List<Map> currentSale = [];
-  List<Map> get currentSalesItem => currentSale;
+  // double get payable => setPayable.value;
 
   final RxValue<double> setCashReceived = RxValue<double>(initial: 0.0);
 
@@ -107,7 +104,6 @@ class KeyPadService with ReactiveServiceMixin {
     final Document orderDocument = _db.getById(id: order.id);
     orderDocument.properties['amount'] = customAmount;
     _db.update(document: orderDocument);
-    setPayable.value = customAmount;
     notifyListeners();
   }
 
@@ -168,48 +164,23 @@ class KeyPadService with ReactiveServiceMixin {
     ProxyService.sharedState.clear.listen((e) {
       if (ProxyService.database.db != null) {
         final List<Order> _orders = ProxyService.api.currentOrders();
-        currentSale.clear();
         orders.clear();
         for (Order order in _orders) {
           try {
             ProxyService.database.delete(id: order.id);
           } catch (e) {}
           ProxyService.sharedPref.removeKey(key: 'custom_orderId');
-          setPayable.value = 0.0;
         }
       }
       notifyListeners();
     });
   }
 
-  ///this load all pending order's item to show on order summary
-  ///it is very important to understand that an order is an item too since
-  ///it has a variant ID etc...
-  void setCurrentItemKeyPadSaleValue() {
-    final List<Order> _orders = ProxyService.api.currentOrders();
-    currentSale.clear();
-    for (Order order in _orders) {
-      currentSale.add(
-          {'name': order.variantName, 'price': order.amount, 'id': order.id});
-    }
-    setPayable.value = 0;
-    // ignore: avoid_function_literals_in_foreach_calls
-    currentSale.forEach((e) {
-      setPayable.value += e['price'];
-    });
-
-    notifyListeners();
-  }
-
   void getOrders() {
     orders.clear();
-    final List<Order> _orders = ProxyService.api.currentOrders();
-    for (Order order in _orders) {
-      setPayable.value += order.amount;
-      orders.add(order);
-    }
-    notifyListeners();
-    notifyListeners(); //sometime a ticket is not updated as the update is done.
+    final List<Order> o = ProxyService.api.currentOrders();
+    // ignore: avoid_function_literals_in_foreach_calls
+    o.forEach((order) => orders.add(order));
   }
 
   int _tab = -1;
@@ -220,11 +191,9 @@ class KeyPadService with ReactiveServiceMixin {
 
   void switchTab(int tab) {
     _tab = tab;
-    notifyListeners();
   }
 
   void initTab() {
     _tab = 0;
-    notifyListeners();
   }
 }
