@@ -104,7 +104,7 @@ class _onCreate extends State<Display> {
           fontSize: 15,
         ),
         decoration: InputDecoration(
-          hintText: model.keyPad.getNote ?? 'Add a note',
+          hintText: model.keyPad.note.value ?? 'Add a note',
           border: InputBorder.none,
           hintStyle: const TextStyle(
             color: Colors.black26,

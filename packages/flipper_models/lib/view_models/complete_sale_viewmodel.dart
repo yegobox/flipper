@@ -111,7 +111,7 @@ class CompleteSaleViewModel extends ReactiveViewModel {
       final http.Response response = await http.post(
           'https://flipper.yegobox.com/pay',
           body: jsonEncode({
-            'amount': keypad.orders.fold(0, (a, b) => a + b.amount),
+            'amount': keypad.orders.value.fold(0, (a, b) => a + b.amount),
             'message': ProxyService.sharedState.business.name.substring(0, 3) +
                 '-' +
                 transactionNumber.substring(0, 4),

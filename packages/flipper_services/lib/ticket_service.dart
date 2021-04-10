@@ -32,7 +32,7 @@ class TicketService with ReactiveServiceMixin {
         'table': AppTables.tickets,
         'cashReceived':
             cashReceived, //this will be updated when complete an order.
-        'note': ProxyService.keypad.getNote ?? '',
+        'note': ProxyService.keypad.note.value ?? '',
         'resumed': false,
         'status': status,
         'createdAt': DateTime.now().toIso8601String(),

@@ -3,6 +3,7 @@ library flipper_services;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/view_models/Queries.dart';
 import 'package:flipper_services/constant.dart';
 import 'package:flipper_services/database_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -16,17 +17,20 @@ import 'package:stacked/stacked.dart';
 import 'package:uuid/uuid.dart';
 
 class KeyPadService with ReactiveServiceMixin {
+  KeyPadService() {
+    listenToReactiveValues([orders, note]);
+  }
   final _state = locator<SharedStateService>();
-  final RxValue<Order> order = RxValue<Order>(initial: null);
+  final RxValue<Order> order = RxValue<Order>();
 
   // String note;
-  final RxValue<String> note = RxValue<String>(initial: null);
-  String get getNote => note.value;
-  final List<Order> orders = [];
+  final RxValue<String> note = RxValue<String>();
+
+  final RxValue<List<Order>> orders = RxValue<List<Order>>(initial: []);
 
   Order get currentSales => order.value;
 
-  final Logger log = Logging.getLogger('O2:)');
+  final Logger log = Logging.getLogger('KeyPad:)');
 
   // final RxValue<double> setPayable = RxValue<double>(initial: 0.0);
 
@@ -133,7 +137,6 @@ class KeyPadService with ReactiveServiceMixin {
       order.value = Order.fromMap(doc.map);
 
       updateOrder(customAmount: customAmount, order: Order.fromMap(doc.map));
-      notifyListeners();
     }
   }
 
@@ -164,7 +167,6 @@ class KeyPadService with ReactiveServiceMixin {
     ProxyService.sharedState.clear.listen((e) {
       if (ProxyService.database.db != null) {
         final List<Order> _orders = ProxyService.api.currentOrders();
-        orders.clear();
         for (Order order in _orders) {
           try {
             ProxyService.database.delete(id: order.id);
@@ -172,15 +174,24 @@ class KeyPadService with ReactiveServiceMixin {
           ProxyService.sharedPref.removeKey(key: 'custom_orderId');
         }
       }
-      notifyListeners();
+      getOrders();
     });
   }
 
   void getOrders() {
-    orders.clear();
-    final List<Order> o = ProxyService.api.currentOrders();
+    orders.value.clear();
+    if (ProxyService.database.db == null) return;
+    // final List<Order> o = ProxyService.api.currentOrders();
     // ignore: avoid_function_literals_in_foreach_calls
-    o.forEach((order) => orders.add(order));
+    final q = Query(ProxyService.database.db, Queries.Q_3);
+    q.parameters = {'T': AppTables.order, 'S': 'pending'};
+    q.addChangeListener((results) {
+      orders.value.clear();
+      for (Map map in results.allResults) {
+        orders.value.add(Order.fromMap(map));
+      }
+      notifyListeners();
+    });
   }
 
   int _tab = -1;

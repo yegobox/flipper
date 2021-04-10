@@ -15,7 +15,7 @@ class OrderSummary extends StatelessWidget {
   List<Widget> buildItems({CompleteSaleViewModel model}) {
     final List<Widget> list = [];
 
-    for (Order order in model.keypad.orders) {
+    for (Order order in model.keypad.orders.value) {
       list.add(
         Slidable(
           actionPane: const SlidableDrawerActionPane(),
@@ -44,7 +44,8 @@ class OrderSummary extends StatelessWidget {
     list.add(ListTile(
       contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
       trailing: Text(
-        display(model.keypad.orders.fold(0, (a, b) => a + b.amount)).toString(),
+        display(model.keypad.orders.value.fold(0, (a, b) => a + b.amount))
+            .toString(),
         style: const TextStyle(color: Colors.black),
       ),
       leading: const Text('Total', style: TextStyle(color: Colors.black)),
@@ -63,8 +64,8 @@ class OrderSummary extends StatelessWidget {
                 ProxyService.nav.pop();
               },
               title: 'Total: Frw' +
-                  display(model.keypad.orders.fold(0, (a, b) => a + b.amount))
-                      .toString(),
+                  display(model.keypad.orders.value
+                      .fold(0, (a, b) => a + b.amount)).toString(),
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 52,

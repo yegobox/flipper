@@ -46,7 +46,6 @@ class PosViewModel extends ReactiveViewModel {
       _expr += key;
       keyPad.sellCustomAmount(
           customAmount: double.parse(_expr), takeNewOrder: false);
-      notifyListeners();
     } else if (key == 'C') {
       while (_expr.isNotEmpty) {
         _expr = _expr.substring(0, _expr.length - 1);
@@ -103,7 +102,7 @@ class PosViewModel extends ReactiveViewModel {
 
   /// Go to sale to complete a sale with a current total we have on [keyPad.payable].
   void goSale() {
-    if (keyPad.orders.isNotEmpty) {
+    if (ProxyService.api.currentOrders().isNotEmpty) {
       //TODO: show animation like square when amount ==0.0
       ProxyService.inAppNav.navigateTo(path: 'completeSaleView');
     }

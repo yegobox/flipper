@@ -42,7 +42,7 @@ class PaymentOptionView extends StatelessWidget {
                           const SizedBox(height: 40),
                           Text(
                             'FRw ' +
-                                display(model.keypad.orders.fold(
+                                display(model.keypad.orders.value.fold(
                                     0, (a, b) => a + b.amount)).toString(),
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
