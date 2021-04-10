@@ -46,7 +46,12 @@ class AfterSaleView extends StatelessWidget {
                           const SizedBox(height: 40),
                           //TODO: get completed ticketID and get last information to display
                           Text(
-                            'FRw' + (0).toStringAsFixed(0) + ' Change',
+                            'FRw' +
+                                (model.keypad.orders.value
+                                            .fold(0, (a, b) => a + b.amount) -
+                                        model.keypad.cashReceived)
+                                    .toStringAsFixed(0) +
+                                ' Change',
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),
                           ),

@@ -24,6 +24,7 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/sale/after_sale_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -139,7 +140,7 @@
       <workItem from="1617957203460" duration="4619000" />
       <workItem from="1617972350075" duration="1098000" />
       <workItem from="1617987384290" duration="2396000" />
-      <workItem from="1618004033277" duration="17918000" />
+      <workItem from="1618004033277" duration="18580000" />
     </task>
     <servers />
   </component>
@@ -182,9 +183,19 @@
           <option name="timeStamp" value="24" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="Dart">
-          <url>file://$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart</url>
-          <line>137</line>
-          <option name="timeStamp" value="37" />
+          <url>file://$PROJECT_DIR$/lib/views/sale/after_sale_view.dart</url>
+          <line>22</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/views/sale/collect_cash_view.dart</url>
+          <line>129</line>
+          <option name="timeStamp" value="39" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/views/sale/collect_cash_view.dart</url>
+          <line>125</line>
+          <option name="timeStamp" value="40" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

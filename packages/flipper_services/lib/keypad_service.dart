@@ -201,11 +201,14 @@ class KeyPadService with ReactiveServiceMixin {
     final q = Query(ProxyService.database.db, Queries.Q_3);
     q.parameters = {'T': AppTables.order, 'S': 'pending'};
     q.addChangeListener((results) {
-      orders.value.clear();
-      for (Map map in results.allResults) {
-        orders.value.add(Order.fromMap(map));
+      final t = results.allResults; //to avoid sgate! error
+      if (t.isNotEmpty) {
+        orders.value.clear();
+        for (Map map in t) {
+          orders.value.add(Order.fromMap(map));
+        }
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 
