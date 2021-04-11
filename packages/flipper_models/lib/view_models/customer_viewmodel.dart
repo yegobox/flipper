@@ -34,15 +34,13 @@ class CustomerViewModel extends BaseModel {
     notifyListeners();
   }
 
-  void createCustomer() {
-    //TODO: add real validation here
+  Future<void> createCustomer() async {
     assert(_name != null);
-    assert(_email != null);
+
     assert(_phoneNumber != null);
     final id = Uuid().v1();
-    final Map<dynamic, dynamic> customer = {
+    final customer = {
       'name': _name,
-      'id': id,
       'email': _email,
       'phoneNumber': _phoneNumber,
       'totalPoints': 0.0,
@@ -52,7 +50,8 @@ class CustomerViewModel extends BaseModel {
       'table': AppTables.customers,
       'channels': [ProxyService.sharedState.user.id.toString()]
     };
-    ProxyService.api.create(customer: customer, id: id);
+    await ProxyService.api.create(customer: customer, id: id);
+    getCustomers(); //load newly created user
   }
 
   ///It sort by number for now todo: will add other fields later on

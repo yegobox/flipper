@@ -163,3 +163,9 @@ class $Routing {
 // 84f3d28555 (flutter working version SDK keep this.)
 //Known errors
 //W/LiteCore [Query](18717): cbl_result_next: got error 4/2
+
+//TODO: this is was how we can use built_value for all serialization https://stackoverflow.com/questions/49453226/dart-built-value-deserialize-list-of-objects
+// // final List<Customer> customers = data
+//     //     .map<Customer>((Map<String, dynamic> map) => standardSerializers
+//     //         .deserializeWith<Customer>(Customer.serializer, map))
+//     //     .toList();

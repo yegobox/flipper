@@ -8,7 +8,7 @@ import 'dart:convert';
 
 List<GCustomer> customerFromJson(String str) =>
     List<GCustomer>.from(json.decode(str).map((x) => GCustomer.fromJson(x)));
-
+GCustomer fromMap(String str) => GCustomer.fromSingleCustomer(json.decode(str));
 String customerToJson(List<GCustomer> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
@@ -71,6 +71,25 @@ class GCustomer {
         channels: List<String>.from(json["channels"].map((x) => x)),
       );
 
+  factory GCustomer.fromSingleCustomer(Map<String, dynamic> json) => GCustomer(
+        id: json["id"],
+        name: json["name"],
+        totalPoints: json["totalPoints"],
+        totalVisits: json["totalVisits"],
+        firstVisit: json["firstVisit"],
+        totalSpent: json["totalSpent"],
+        phoneNumber: json["phoneNumber"],
+        address: json["address"],
+        city: json["city"],
+        region: json["region"],
+        postalCode: json["postalCode"],
+        countryCode: json["countryCode"],
+        customerCode: json["customerCode"],
+        note: json["note"],
+        createdAt: json["createdAt"],
+        updatedAt: json["updatedAt"],
+        channels: List<String>.from(json["channels"].map((x) => x)),
+      );
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,

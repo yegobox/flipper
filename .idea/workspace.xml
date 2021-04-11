@@ -24,8 +24,13 @@
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/customer_list_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/routes/router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes/router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/views/customers/add_customer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/views/customers/add_customer.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/g_customer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/g_customer.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/abstractions/api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/abstractions/api.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/api/fake_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/api/fake_api.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,19 +85,6 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="CLASS" />
-      <properties />
-      <listeners />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
       <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
       <method v="2" />
@@ -143,7 +135,8 @@
       <workItem from="1617972350075" duration="1098000" />
       <workItem from="1617987384290" duration="2396000" />
       <workItem from="1618004033277" duration="29746000" />
-      <workItem from="1618053628869" duration="8911000" />
+      <workItem from="1618053628869" duration="12766000" />
+      <workItem from="1618158273496" duration="652000" />
     </task>
     <servers />
   </component>
@@ -174,6 +167,36 @@
           <url>file://$PROJECT_DIR$/packages/flipper_services/lib/keypad_service.dart</url>
           <line>163</line>
           <option name="timeStamp" value="57" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/views/customers/add_customer.dart</url>
+          <line>147</line>
+          <option name="timeStamp" value="72" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart</url>
+          <line>52</line>
+          <option name="timeStamp" value="73" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_models/lib/view_models/customer_viewmodel.dart</url>
+          <line>53</line>
+          <option name="timeStamp" value="74" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart</url>
+          <line>110</line>
+          <option name="timeStamp" value="76" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_services/lib/api/http_api.dart</url>
+          <line>108</line>
+          <option name="timeStamp" value="77" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/views/business_home_view.dart</url>
+          <line>54</line>
+          <option name="timeStamp" value="78" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

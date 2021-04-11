@@ -1,7 +1,6 @@
 // import 'package:flipper/services/abstractions/api.dart';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/g_customer.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/pcolor.dart';
@@ -90,14 +89,7 @@ class HttpApi implements Api {
   @override
   Future<List<GCustomer>> customers() async {
     final http.Response response = await get(endPoint: 'api/customers');
-
-    final List<GCustomer> customers = customerFromJson(response.body);
-    // final List<Customer> customers = data
-    //     .map<Customer>((Map<String, dynamic> map) => standardSerializers
-    //         .deserializeWith<Customer>(Customer.serializer, map))
-    //     .toList();
-    print(customers);
-    return customers;
+    return customerFromJson(response.body);
   }
 
   @override
@@ -105,7 +97,6 @@ class HttpApi implements Api {
     _colors.clear();
     final q = Query(ProxyService.database.db, Queries.Q_12);
     q.parameters = {'T': AppTables.color};
-
     final results = q.execute();
     for (Map value in results.allResults) {
       _colors.add(PColor.fromMap(value));
@@ -114,8 +105,9 @@ class HttpApi implements Api {
   }
 
   @override
-  Customer create({Map<dynamic, dynamic> customer, String id}) {
-    final Document doc = ProxyService.database.insert(id: id, data: customer);
-    return Customer.fromMap(doc.map);
+  Future<GCustomer> create({Map<dynamic, dynamic> customer, String id}) async {
+    final http.Response response =
+        await post(endPoint: 'api/customers', body: customer);
+    return fromMap(response.body);
   }
 }
