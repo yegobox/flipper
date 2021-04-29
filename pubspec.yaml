@@ -110,7 +110,6 @@ dependencies:
   google_fonts:
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: 
-  couchbase_lite_dart: ^0.5.0-nullsafety.2
   moor_flutter: ^4.0.0
   firebase_dynamic_links: ^2.0.1
   share: ^2.0.1
