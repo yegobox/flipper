@@ -3,23 +3,16 @@ buildscript {
     repositories {
         google()
         jcenter()
-        maven {
-            url 'https://dl.google.com/dl/android/maven2'
-        }
-        maven {
-            url 'https://maven.fabric.io/public'
-        }
     }
-
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.0'
+         classpath 'com.android.tools.build:gradle:3.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        
-        classpath 'com.google.gms:google-services:4.3.4'
-        classpath 'io.fabric.tools:gradle:1.28.0'
+        classpath 'com.google.gms:google-services:4.3.5'
+         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.5.2'
     }
 }
+
 
 allprojects {
     repositories {
