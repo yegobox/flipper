@@ -1,273 +1,139 @@
-library flipper_models;
+import 'dart:ui';
 
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'package:flipper/domain/redux/app_state.dart';
-import 'package:flipper/domain/redux/authentication/auth_actions.dart';
-import 'package:flipper/routes/router.gr.dart';
-import 'package:flipper_models/branch.dart';
-import 'package:flipper_models/business.dart';
-import 'package:flipper_services/constant.dart';
-import 'package:flipper_services/database_service.dart';
-import 'package:flipper_services/flipperNavigation_service.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flipper/routes.router.dart';
+import 'package:flipper_models/models/business.dart';
+import 'package:flipper_models/models/branch.dart';
+import 'package:flipper_models/models/category.dart';
+import 'package:flipper_models/models/color.dart';
+import 'package:flipper_models/models/unit.dart';
+import 'package:flipper_models/models/unit_mock.dart';
 import 'package:stacked/stacked.dart';
+import 'package:universal_platform/universal_platform.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_login/signup_form_view.form.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_services/constants.dart';
 
-class SignUpViewModel extends BaseViewModel {
-  bool get nameisEmpty {
-    return _name.text.isEmpty;
-  }
+final isWindows = UniversalPlatform.isWindows;
 
-  final List<Business> _business = <Business>[];
-  List<Business> get business {
-    return _business;
-  }
+class SignupViewModel extends FormViewModel {
+  String? businessType = 'business';
 
-  Branch _branch;
-  Branch get branch {
-    return _branch;
-  }
-
-  GlobalKey<FormState> _formKey;
-  GlobalKey<FormState> get formKey {
-    return _formKey;
-  }
-
-  TextEditingController _name;
-  TextEditingController get name {
-    return _name;
-  }
-
-  TextEditingController _referralCOde;
-  TextEditingController get referralCode {
-    return _referralCOde;
-  }
-
-  TextEditingController _email;
-  TextEditingController get email {
-    return _email;
-  }
-
-  Position _position;
-  Position get position {
-    return _position;
-  }
-
-  // ignore: always_declare_return_types
-  getCurrentLocation() async {
-    final Geolocator geolocator = Geolocator();
-    const LocationOptions locationOptions =
-        LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
-
-    geolocator.getPositionStream(locationOptions).listen((Position location) {
-      _position = location;
-    });
+  void setBuinessType({required String type}) {
+    businessType = type;
     notifyListeners();
   }
 
-  // ignore: always_declare_return_types
-  singUp({BuildContext context, String token, String userId}) async {
-    if (nameisEmpty) {
-      return;
-    }
+  late String? longitude;
+  late String? latitude;
 
-    if (_formKey.currentState == null) {
-      return;
-    }
-    // _formKey.currentState.validate();
-
-    if (_formKey.currentState.validate()) {
-      _formKey.currentState.save();
-
-      // create a business
-      final businessId = await createBusiness(
-          userId: userId, businessName: _name.text, context: context);
-
-      // create a it's branches
-      final branchId = await createBranch(
-          businessId: businessId, businessName: _name.text, userId: userId);
-
-      await generateAppColors(userId: userId);
-      await generateAppDefaultCategory(branchId: branchId, userId: userId);
-
-      await ProxyService.database.initialAppData(
-          branchId: branchId, userId: userId, businessId: businessId);
-      await ProxyService.sharedPref.setIsAppConstantsInitialized();
-      // then navigate to a right page ditch auth middleware
-      StoreProvider.of<AppState>(context).dispatch(VerifyAuthenticationState());
-    }
-  }
-
-  Future<void> generateAppColors({String userId}) async {
-    final List<String> colors = [
-      '#d63031',
-      '#0984e3',
-      '#e84393',
-      '#2d3436',
-      '#6c5ce7',
-      '#74b9ff',
-      '#ff7675',
-      '#a29bfe'
-    ];
-    //insert default colors for the app
-    final _databaseService = ProxyService.database;
-
-    for (int i = 0; i < colors.length; i++) {
-      final id = Uuid().v1();
-      _databaseService.insert(id: id, data: {
-        'name': colors[i],
-        'id': id,
-        'isActive': false,
-        'channels': [userId],
-        'table': AppTables.color
-      });
-    }
-  }
-
-  void initFields(
-      {TextEditingController name,
-      TextEditingController email,
-      GlobalKey<FormState> formKey}) {
+  String? _name;
+  void setName({required String name}) {
     _name = name;
-    _email = email;
-    _formKey = formKey;
   }
 
-  Future<String> createBranch(
-      {@required String userId, String businessName, String businessId}) async {
-    assert(userId != null);
-    final String branchId = Uuid().v1();
-    final Map<String, dynamic> _mapBranch = {
-      'active': true,
-      'name': businessName,
-      'channels': [userId],
-      'businessId': businessId,
-      'id': branchId,
-      'syncedOnline': true, //we don't need  really
-      'channel': userId, //we don't need  really
-      'table': AppTables.branch,
-      'mapLatitude': '0.0',
-      'mapLongitude': ' 0.0',
-      'createdAt': DateTime.now().toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String(),
-    };
-
-    final Document branch =
-        ProxyService.database.insert(id: branchId, data: _mapBranch);
-    ProxyService.sharedState.setBranch(branch: Branch.fromMap(branch.map));
-    return branch.ID;
+  String? _country;
+  void setCountry({required String country}) {
+    _country = country;
   }
 
-  Future<String> createBusiness(
-      {@required String userId,
-      String businessName,
-      BuildContext context}) async {
-    assert(userId != null);
-
-    final businessId = Uuid().v1();
-    final Map<String, dynamic> _mapBusiness = {
-      'active': true,
-      'id': businessId,
-      'categoryId': '10', //pet store a default id when signup on mobile
-      'channels': [userId],
-      'typeId': '1', //pet store a default id when signup on mobile
-      'table': AppTables.business,
-      'country': 'Rwanda',
-      'currency': 'RWF',
-      'name': businessName,
-      'userId': userId,
-      'createdAt': DateTime.now().toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String(),
-    };
-
-    final Document business =
-        ProxyService.database.insert(id: businessId, data: _mapBusiness);
-
-    // ignore: always_specify_types
-    final taxId = Uuid().v1();
-    final Map<String, dynamic> _notTax = {
-      'active': true,
-      'channels': [userId],
-      'businessId': business.ID,
-      'table': AppTables.tax,
-      'createdAt': DateTime.now().toIso8601String(),
-      'id': taxId,
-      'updatedAt': DateTime.now().toIso8601String(),
-      'isDefault': false,
-      'name': 'No Tax',
-      'percentage': 0,
-    };
-
-    ProxyService.database.insert(id: taxId, data: _notTax);
-
-    final tax2Id = Uuid().v1();
-
-    final Map<String, dynamic> vat = {
-      'active': true,
-      'channels': [userId],
-      'businessId': business.ID,
-      'table': AppTables.tax,
-      'createdAt': DateTime.now().toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String(),
-      'id': tax2Id,
-      'isDefault': true,
-      'name': 'Vat',
-      'percentage': 18,
-    };
-
-    ProxyService.database.insert(id: tax2Id, data: vat);
-
-    return business.ID;
+  String? _type;
+  void setType({required String type}) {
+    _type = type;
   }
 
-  Future generateAppDefaultCategory({String branchId, String userId}) async {
-    final id = Uuid().v1();
-    final Map<String, dynamic> category = {
-      'active': true,
-      'table': AppTables.category,
-      'branchId': branchId,
-      'focused': true,
-      'id': id,
-      'channels': [userId],
-      'name': 'NONE'
-    };
-    ProxyService.database.insert(id: id, data: category);
+  void registerLocation() async {
+    final permission = await ProxyService.location.doWeHaveLocationPermission();
+    if (permission) {
+      final Map<String, String> location =
+          await ProxyService.location.getLocation();
+      longitude = location['longitude'];
+      latitude = location['latitude'];
+
+      notifyListeners();
+    } else {
+      final Map<String, String> location =
+          await ProxyService.location.getLocation();
+      longitude = location['longitude'];
+      latitude = location['latitude'];
+      notifyListeners();
+    }
   }
 
-  bool didSignUp = true;
-  final DatabaseService _db = ProxyService.database;
-
-  /// this method is used to check if the user has signup before
-  /// this is to avoid user creating a duplicate business
-  /// so we wait for [didSingup to be updated] so we can decide
-  /// if we show a sign up form or otherwise we go strait with verifying authMiddleware
-  /// again so it can do its things to get user in.
-  Future<void> didUserSignUpBefore({BuildContext context}) async {
-    final q =
-        Query(_db.db, 'SELECT id WHERE table=\$VALUE AND userId=\$USERID');
-
-    q.parameters = {
-      'VALUE': AppTables.business,
-      'USERID': ProxyService.sharedState.user?.id
-    };
-
-    await Future.delayed(const Duration(
-        seconds: 4)); //put here to avoid having to show the wrong widget
-    q.addChangeListener((results) async {
-      if (results.allResults.isNotEmpty) {
-        didSignUp = true;
-        final FlipperNavigationService _navigationService = ProxyService.nav;
-        _navigationService.navigateTo(Routing.dashboard);
-        notifyListeners();
-      } else {
-        //delay 3 seconds as updating this might be an error
-        await Future.delayed(const Duration(seconds: 4));
-        didSignUp = false;
-        notifyListeners();
-      }
+  void signup({Locale? locale}) async {
+    print(nameValue);
+    int okStatus = await ProxyService.api.signup(business: {
+      'name': _name,
+      'latitude': latitude,
+      'longitude': longitude,
+      'currency': 'RW',
+      'userId': ProxyService.box.read(key: 'userId'),
+      'type': businessType,
+      // ignore: todo
+      //TODO: right now I am not sure locale!.countryCode can be reliable as sometime it need to test it on real-device
+      'country': 'RW'
     });
+    if (okStatus == 200) {
+      //get businesses's id then look for related branch [0] create the default category
+      List<Business> businesses = await ProxyService.api.businesses();
+
+      List<Branch> branches =
+          await ProxyService.api.branches(businessId: businesses[0].id);
+      final String? userId = ProxyService.box.read(key: 'userId');
+      final categoryId = Uuid().v1();
+      final Category category = new Category(
+        id: categoryId,
+        active: true,
+        table: AppTables.category,
+        focused: true,
+        name: 'NONE',
+        channels: [userId!],
+        branchId: branches[0].id,
+      );
+      await ProxyService.api
+          .create<Category>(data: category.toJson(), endPoint: 'category');
+      //get default colors for this branch
+      final List<String> colors = [
+        '#d63031',
+        '#0984e3',
+        '#e84393',
+        '#2d3436',
+        '#6c5ce7',
+        '#74b9ff',
+        '#ff7675',
+        '#a29bfe'
+      ];
+      final colorId = Uuid().v1();
+      final PColor color = new PColor(
+        id: colorId,
+        colors: colors,
+        table: AppTables.color,
+        channels: [userId],
+        active: false,
+        branchId: branches[0].id,
+        name: 'sample',
+      );
+      await ProxyService.api
+          .create<PColor>(data: color.toJson(), endPoint: 'color');
+      //now create default units for this branch
+      final unitId = Uuid().v1();
+      final units = new Unit(
+        name: 'sample',
+        focused: false,
+        id: unitId,
+        table: AppTables.unit,
+        units: mockUnits,
+        branchId: branches[0].id,
+        channels: [userId],
+      );
+      await ProxyService.api.addUnits(data: units.toJson());
+
+      ProxyService.nav.navigateTo(Routes.businessHomeView);
+    }
+  }
+
+  @override
+  void setFormStatus() {
+    // TODO: implement setFormStatus
   }
 }

@@ -1,4 +1,4 @@
-# FlipperLogin
+# flipper_login
 
 A new Flutter package project.
 

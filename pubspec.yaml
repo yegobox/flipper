@@ -1,150 +1,132 @@
 name: flipper
-
-description: A business application
+description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none'
-# commit
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
+# Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 99.99.99+99
-# new
+
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
+  country_code_picker: ^2.0.1
+  flutter_country_picker: ^0.1.6
   flutter:
     sdk: flutter
-  flutter_svg: ^0.18.0
-  # firebase_performance: 0.4.0+2
-  geolocator: ^5.3.0 #null save available
-  permission_handler: ^5.0.1+1
-  flutter_redux: 
-  redux: 
-  flutter_masked_text: ^0.8.0
-  built_value: ^7.1.0 #null safe available
-  image_picker: ^0.6.4 #null safe available
-  built_collection: ^4.3.2 #null safe available
-  # flutter_date_pickers: ^0.0.6
-  # flutter_material_color_picker: ^0.0.5
-  flutter_image_compress: ^0.6.5+1
-  tabbar: ^0.1.1
-  intl: ^0.16.1
-  jiffy: ^3.0.1
-  expandable: ^4.1.4
-  syncfusion_flutter_charts: ^18.3.44
-  
-  uuid: 2.2.2
-  
-  timezone: ^0.5.6
-  # this will deprecate soon do not use them
-  flutter_barcode_scanner: 
-  cupertino_icons: ^0.1.3
-  #local package
-  google_fonts:  ^1.1.0
-  customappbar: 
-    path:
-      './packages/custom_appbar'
-  rubber: ^0.4.0
-  get_storage: ^1.4.0 
-  country_picker: ^1.1.3
-  # background_fetch: 0.6.0
-  # social sign in
-  firebase_auth: "^0.20.0"
-  # end social signin
-  firebase_core: "^0.7.0" #null ready,web,mac,android,ios
-  cloud_firestore: "^0.16.0" #null ready,web,mac,android,ios
-  firebase_messaging: "^8.0.0-dev.13" #null ready,web,mac,android,ios
-  pusher_beams: "^0.5.3+3"
-  firebase_analytics: "^7.0.1"
-  camera: 0.5.8+11
-  
-  flutter_uploader:
-  flipper_login:
-    path:
-      './packages/flipper_login'
-  rxdart: ^0.24.1
-  loading: ^1.0.2
-  firebase_crashlytics: "^0.4.0"
-  logger: ^0.6.0
-  async: ^2.4.1
-  # filledstacks | state management
-  stacked: ^1.7.1
-  stacked_hooks: 0.1.1+3
-  stacked_services: ^0.5.4+2
-   # get it
-  get_it: 
-  injectable:
-  #FIXME: not needed
-  flutter_calendar_carousel: ^1.5.1
-  syncfusion_flutter_datepicker: ^18.3.48-beta
-  slider_button: ^0.6.0
-  sliding_switch: ^0.0.3
-  #FIXME: end of not needed
+  universal_platform: 1.0.0-nullsafety
+  animations: ^2.0.0
+  # sized_context: ^0.2.1+1
 
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
   
- 
-  # provider
-  provider: ^4.1.3
-  cached_network_image: ^2.2.0+1
-  flutter_dotenv: ^3.1.0
-  mailer: ^3.2.1
-  contacts_service: ^0.4.6
-  # flutter_reactive_ble: ^2.5.3
-  flutter_text_drawable: ^0.3.1
-  connectivity: ^2.0.2
-  # background_fetch: '^0.5.1'
-  flutter_icons: ^1.1.0
-  couchbase_lite_dart: ^0.4.0
-  bluetooth_thermal_printer: ^0.0.4
-  firebase_remote_config: ^0.6.0
-  # FIXME: not used
-  awesome_dialog: ^1.3.1
-  # FIXME: not used
-  esc_pos_utils: ^0.4.9
-  # awesome_notifications: ^0.0.5+4 //enable this when remoteConfig issu is solved and show some modal based on config.
-  pusher: ^1.0.0
-  # yegobox pubs
-  pos: 
-    path:
-      './packages/pos'
-  flipper_services:
-    path:
-      './packages/flipper_services'
-  flipper_ui:
-    path:
-      './packages/flipper_ui'
-  flipper_models:
-    path:
-      './packages/flipper_models'
-  font_awesome_flutter: ^8.11.0
-  firebase_dynamic_links: ^0.5.0+11
-  share: ^0.6.4+3
-  in_app_review: ^1.0.4 #implement this. https://github.com/britannio/in_app_review
+  injectable: ^1.2.0
+  http: ^0.13.0
+  get_it: ^6.0.0
+  # flipper_services:
+  #   path:
+  #     'packages/flipper_services'
   flipper_chat:
-    path: './packages/flipper_chat'
-  flipper_contacts:
-    path: './packages/flipper_contacts'
-  cron: ^0.2.4
-  pattern_formatter: ^1.0.2
-  timeago: ^2.0.30
-  rounded_loading_button: ^1.0.18
-  get:
-  flutter_slidable: 0.5.7
-  number_display: ^2.3.0
+    path:
+      'packages/flipper_chat'
+  flipper_dashboard:
+    path: 'packages/flipper_dashboard'
+  # firebase_messaging: ^9.0.0
+  firebase_auth: ^1.0.1
+  firebase_core: ^1.0.2
+  stacked_firebase_auth: ^0.2.2+1
+  cloud_firestore: ^1.0.1
+  camera: ^0.8.0
+  auto_route:
+  awesome_notifications:
+  # geolocator:
+  location:
+  permission_handler:
+  built_value:
+  image_picker: 0.7.4
+  built_collection:
+  flutter_image_compress: 1.0.0
+  jiffy: 
+  expandable:
+  timezone: 0.7.0-nullsafety.0
+  cupertino_icons:
+  get_storage: ^2.0.2
+  country_picker:
+ 
+  rxdart:
+  # loading: not available
+  firebase_crashlytics: 
+  logger:
+  async:
+  stacked: ^2.0.4
+  stacked_hooks:
+  stacked_services: 
+  provider:
+  cached_network_image: 3.0.0-nullsafety
+  flutter_dotenv: 4.0.0-nullsafety.0
+  mailer:
+  connectivity:
+ 
+  get: 
+  flutter_slidable: 
+  in_app_review:
+  timeago:
+  cron:
+  number_display: ^3.0.0
+  # firebase_dynamic_links: not available
+  # bluetooth_thermal_printer: not available
+  # firebase_remote_config: not available
+  # esc_pos_utils: not available
+  # pusher: not available
+  contacts_service:
+  # pusher_beams: not available for null safe
+  # firebase_analytics: 
+  flutter_uploader: 3.0.0-beta.1
+  
+  bitsdojo_window: 
+  observable_ish:
+  qr_flutter: ^4.0.0
+  adaptive_breakpoints: ^0.0.4
+  
+# custom packages locally built
+  flipper_login:
+    path: 'packages/flipper_login'
+  flipper_models:
+    path: 'packages/flipper_models'
+  flipper_services:
+    path: 'packages/flipper_services'
+  google_fonts:
+  font_awesome_flutter: ^9.0.0
+  flutter_text_drawable: 
+  couchbase_lite_dart: ^0.5.0-nullsafety.2
+  moor_flutter: ^4.0.0
+  firebase_dynamic_links: ^2.0.1
+  share: ^2.0.1
 dev_dependencies:
-  # test: ^1.5.3
-  test_coverage: ^0.4.2
-  build_runner: 
-  analyzer: '0.39.17'
-  build_resolvers: '1.3.10'
-  built_value_generator:
-  auto_route_generator: 0.3.2
-  injectable_generator:
-  mockito:
   flutter_test:
     sdk: flutter
-
+  # integration_test:
+  #   sdk: flutter
+  # flutter_driver:
+  #   sdk: flutter
+  build_runner:
+  auto_route_generator:
+  injectable_generator:
+  stacked_generator:
+  mockito:
+  
   
 
 # For information on the generic Dart part of this file, see the
@@ -152,66 +134,15 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
   assets:
-    - .env
-    - assets/images/
     - assets/
-    - assets/graphics/
-    - assets/card_provider/
-    - assets/graphics/drawer/
-
-
+    - assets/images/
+    - assets/icons/
   fonts:
     - family: TwitterIcon
       fonts:
         - asset: assets/fonts/icons.ttf
-    - family: HelveticaNeue
-      fonts:
-        - asset: assets/fonts/HelveticaNeue.ttf
-        - asset: assets/fonts/HelveticaNeue400.ttf
-          weight: 400
-        - asset: assets/fonts/HelveticaNeue500.ttf
-          weight: 500
-        - asset: assets/fonts/HelveticaNeue600.ttf
-          weight: 600
-        - asset: assets/fonts/HelveticaNeue700.ttf
-          weight: 700
-        - asset: assets/fonts/HelveticaNeue800.ttf
-          weight: 800
-        - asset: assets/fonts/HelveticaNeue900.ttf
-          weight: 900
-        - asset: assets/fonts/HelveticaNeueIt.ttf
-          style: italic
-flutter_intl:
-  enabled: true
-  
-# 1.5.33
-#  flutter packages pub run build_runner watch --delete-conflicting-outputs  --enable-experiment=non-nullable
-#  rw.flipper
-# app bundle
-# flutter build appbundle --build-name=1.5.212  --build-number=15212 --no-tree-shake-icons
-# app apk
-# flutter build apk --build-name=1.5.131  --build-number=15131
-# Db on device for debugging purpose: This PC\Pixel\Internal shared storage\Android\data\rw.flipper\files\database-development
-
-# icon
-# fixing issue when building release app is not working. reference:https://issuetracker.google.com/issues/158753935
-# flutter pub run flutter_launcher_icons:main
-# flutter run --debug
-# flutter run --profile
-# TODO: simulate production
-# flutter run --release
-# debug key
-# keytool -list -v  -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore
-# dynamic link to work on ios
-# https://medium.com/dev-genius/firebase-flutter-dynamic-links-step-by-step-guide-630402ee729b
-
-# 
-# https://medium.com/flutter-community/building-flutter-qr-code-generator-scanner-and-sharing-app-703e73b228d3
-# https://stackoverflow.com/questions/51556540/whats-the-setter-of-a-built-values-object
+  # flutter run
+  # flutter create --template=package hello
+  # ./flutterw packages pub run build_runner build --delete-conflicting-outputs
