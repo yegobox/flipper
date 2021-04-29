@@ -32,6 +32,6 @@ jobs:
 
     - run: flutter build -v web --release
 
-    - run: firebase deploy -P hosting
+    - run: firebase deploy --only hosting
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
