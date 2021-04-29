@@ -3,9 +3,10 @@ on:
   workflow_dispatch: # Enable manual run
   pull_request: #TODO:remove
   push:
+    branches: [web]
     # Sequence of patterns matched against refs/tags
-    tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    # tags:
+    # - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   deploy-web:
