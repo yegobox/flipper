@@ -5,8 +5,8 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     branches: [mobile]
-    # tags:
-    #   - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10 we are on v1.7.0
 
 jobs:
   generate-changelog:
