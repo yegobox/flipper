@@ -385,6 +385,7 @@ import 'package:flipper_models/models/branch.dart';
 import 'abstractions/api.dart';
 
 class LiteApi implements Api {
+  LiteApi({dynamic database});
   @override
   Future<int> addUnits({required Map data}) {
     // TODO: implement addUnits
