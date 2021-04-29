@@ -1,3 +1,5 @@
+library flipper_models;
+
 import 'product.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';

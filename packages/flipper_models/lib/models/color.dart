@@ -1,6 +1,7 @@
 // To parse this JSON data, do
 //
 //     final pColor = pColorFromJson(jsonString);
+library flipper_models;
 
 import 'dart:convert';
 

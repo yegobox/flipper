@@ -1,6 +1,7 @@
 // To parse this JSON data, do
 //
 //     final stock = stockFromJson(jsonString);
+library flipper_models;
 
 import 'dart:convert';
 
