@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-import 'package:flipper_models/g_customer.dart';
-import 'package:flipper_models/order.dart';
-import 'package:flipper_models/pcolor.dart';
-import 'package:flipper_models/ticket.dart';
-
-abstract class Api {
-  // Home screen futures api calls
-  // ignore: always_specify_types
-  Future payroll();
-  List<Order> currentOrders();
-  List<Ticket> currentTickets();
-  Future<List<GCustomer>> customers();
-  List<PColor> colors();
-  Future<GCustomer> create({Map customer, String id});
-=======
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper_models/models/product.dart';
@@ -52,5 +36,4 @@ abstract class Api<T> {
   Future<Product> createProduct({required Product product});
   Future<List<Product>> isTempProductExist();
   Future<bool> logOut();
->>>>>>> feature
 }
