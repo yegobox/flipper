@@ -2,7 +2,6 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-// import 'package:get_storage/get_storage.dart';
 
 class StartUpViewModel extends BaseViewModel {
   bool didSync = false;
