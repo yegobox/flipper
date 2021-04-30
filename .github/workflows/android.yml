@@ -65,12 +65,13 @@ jobs:
     - uses: actions/setup-java@v1
       with:
         java-version: '8.x'
-    - uses: subosito/flutter-action@v1
+    - uses: subosito/flutter-action@master
       with:
-        flutter-version: '1.22.3'
-        channel: 'stable'
-    - run: flutter pub get
-    - run: flutter test
+        # flutter-version: '1.22.3'
+        channel: 'master'
+    # pause test on server for now
+    # - run: flutter pub get
+    # - run: flutter test
     - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
     - run: flutter build appbundle --no-tree-shake-icons
     - name: Create a Release in GitHub
