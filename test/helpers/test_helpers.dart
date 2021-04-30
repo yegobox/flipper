@@ -52,6 +52,7 @@ void registerServices() {
 void unregisterServices() {
   locator.unregister<Api>();
   locator.unregister<NavigationService>();
+  locator.unregister<LocalStorage>();
 }
 
 void _removeRegistrationIfExists<T extends Object>() {

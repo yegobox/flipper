@@ -1,11 +1,10 @@
 import 'package:flipper_models/models/business.dart';
-import 'package:flipper_models/view_models/startup_viewmodel.dart';
+// import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/test_helpers.dart';
-import 'startup_viewmodel_test.mocks.dart';
 
-StartUpViewModel _getModel() => StartUpViewModel();
+// StartUpViewModel _getModel() => StartUpViewModel();
 void main() {
   group('StartUpViewModel', () {
     setUp(() => registerServices());
