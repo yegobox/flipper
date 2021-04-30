@@ -7,9 +7,6 @@ import 'startup_viewmodel_test.mocks.dart';
 
 StartUpViewModel _getModel() => StartUpViewModel();
 void main() {
-  final model = StartUpViewModel();
-  final client = MockApi();
-  final box = MockLocalStorage();
   group('StartUpViewModel', () {
     setUp(() => registerServices());
     tearDown(() => unregisterServices());
