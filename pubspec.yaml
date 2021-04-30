@@ -35,15 +35,12 @@ dependencies:
   injectable: ^1.2.0
   http: ^0.13.0
   get_it: ^6.0.0
-  # flipper_services:
-  #   path:
-  #     'packages/flipper_services'
   flipper_chat:
     path:
       'packages/flipper_chat'
   flipper_dashboard:
     path: 'packages/flipper_dashboard'
-  # firebase_messaging: ^9.0.0
+  firebase_messaging: ^9.1.3
   firebase_auth: ^1.0.1
   firebase_core: ^1.0.2
   stacked_firebase_auth: ^0.2.2+1
@@ -86,13 +83,11 @@ dependencies:
   cron:
   number_display: ^3.0.0
   # firebase_dynamic_links: not available
-  # bluetooth_thermal_printer: not available
   # firebase_remote_config: not available
   # esc_pos_utils: not available
   # pusher: not available
   contacts_service:
   # pusher_beams: not available for null safe
-  # firebase_analytics: 
   flutter_uploader: 3.0.0-beta.1
   
   bitsdojo_window: 
@@ -114,6 +109,10 @@ dependencies:
   moor_flutter: ^4.0.0
   firebase_dynamic_links: ^2.0.1
   share: ^2.0.1
+  firebase_analytics: ^8.0.2
+  bluetooth_thermal_printer: ^0.0.6
+  esc_pos_utils_plus: ^2.0.1+3
+  printing: ^5.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -139,6 +138,7 @@ flutter:
     - assets/
     - assets/images/
     - assets/icons/
+    - dynlib/
   fonts:
     - family: TwitterIcon
       fonts:
