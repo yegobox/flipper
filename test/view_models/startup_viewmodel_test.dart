@@ -33,17 +33,5 @@ void main() {
       expect(model.didSync, false);
       verify(navigationService.replaceWith(Routes.loginView));
     });
-    // test('when logged in but not synced should take you to signup', () async {
-    //   // List<Business> c = [];
-    //   final api = getAndRegisterApi(businesses: []);
-    //   final appService = getAndRegisterAppService(hasLoggedInUser: true);
-    //   final navigationService = getAndRegisterNavigationService();
-    //   final model = _getModel();
-    //   appService.isLoggedIn();
-    //   model.runStartupLogic();
-    //   await api.businesses();
-    //   expect(model.didSync, true);
-    //   verify(navigationService.navigateTo(Routes.signUpFormView));
-    // });
   });
 }
