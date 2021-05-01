@@ -21,8 +21,8 @@ class BusinessHomeViewModel extends BaseViewModel {
   List<Business> _businesses = [];
   List<Business> get businesses => _businesses;
   void loadBusinesses() async {
-    List<Business> response = await ProxyService.api.businesses();
-    _businesses = response;
+    List<Business>? response = await ProxyService.api.businesses();
+    _businesses = response!;
     notifyListeners();
   }
 }

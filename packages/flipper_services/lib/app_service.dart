@@ -50,6 +50,14 @@ class AppService with ReactiveServiceMixin {
     }
   }
 
+  bool _loggedIn = false;
+  bool get hasLoggedInUser => _loggedIn;
+
+  bool isLoggedIn() {
+    return _loggedIn =
+        ProxyService.box.read(key: 'userId') == null ? false : true;
+  }
+
   AppService() {
     listenToReactiveValues([_categories, _units, _colors, _currentColor]);
   }

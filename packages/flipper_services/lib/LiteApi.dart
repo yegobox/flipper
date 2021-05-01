@@ -127,7 +127,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Business>> businesses() async {
+  Future<List<Business>?> businesses() async {
     Q14.parameters = {'VALUE': AppTables.business};
     final ResultSet business = Q14.execute();
     final List<Business> businesses = [];
