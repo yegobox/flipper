@@ -11,18 +11,14 @@ void main() {
     test('test adding variant ...', () async {
       final model = _getModel();
       final productSerice = getAndRegisterProductService(
-          currentUnit: 'kg', branchId: 'B', userId: 'UID');
+          currentUnit: 'kg', branchId: 'BID', userId: 'UID');
       // final api = getAndRegisterApi();
       final result = await model.addVariant(
         name: 'name',
         retailPrice: 0.0,
         supplyPrice: 0.0,
         sku: 'sku',
-        branchId: 'b',
         productId: 'ID',
-        unit: 'kg',
-        userid: 'uid',
-        productName: 'name',
       );
       expect(productSerice.currentUnit, 'kg');
       expect(result, 200);

@@ -5,11 +5,11 @@ import 'package:uuid/uuid.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 
-final id = Uuid().v1();
+// final id = Uuid().v1();
 final AppService _appService = locator<AppService>();
 
 final productMock = new Product(
-  id: id,
+  id: '',
   draft: true,
   currentUpdate: true,
   taxId: "XX",

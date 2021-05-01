@@ -175,7 +175,10 @@ class LiteApi<T> implements Api {
 
   @override
   Future<Product> createProduct({required Product product}) async {
-    final doc = Document(product.id, data: product.toJson());
+    final Map data = product.toJson();
+    final productid = Uuid().v1();
+    data['id'] = productid;
+    final doc = Document(product.id, data: data);
 
     final Document productDocument = db.saveDocument(doc);
     //create  variation
