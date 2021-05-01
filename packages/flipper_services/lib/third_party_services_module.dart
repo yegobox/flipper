@@ -27,6 +27,8 @@ import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import 'product_service.dart';
+
 final Database db = Database("main_01");
 final isWindows = UniversalPlatform.isWindows;
 // UniversalPlatform.platform;
@@ -132,6 +134,8 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   AppService get appService;
+  @lazySingleton
+  ProductService get productService;
 }
 
 class UnsupportedPlatformUpload implements UploadT {

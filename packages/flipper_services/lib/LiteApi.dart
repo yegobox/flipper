@@ -197,7 +197,6 @@ class LiteApi<T> implements Api {
       supplyPrice: 0.0,
       retailPrice: 0.0,
       canTrackingStock: false,
-      stockId: 'XX',
       branchId: branchId!,
     );
     final variationDoc = Document(variation.id, data: variation.toJson());
@@ -360,5 +359,16 @@ class LiteApi<T> implements Api {
     //transform this into
     Document doc = db.getDocument(id);
     return spColorFromJson(doc.json);
+  }
+
+  @override
+  Future<int> addVariant({Map? data}) async {
+    final unitId = Uuid().v1();
+    data!['id'] = unitId;
+    data['table'] = AppTables.unit;
+    final doc = Document(unitId, data: data);
+    db.saveDocument(doc);
+
+    return 200;
   }
 }

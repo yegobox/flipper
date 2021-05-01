@@ -6,6 +6,11 @@ import 'package:flipper_models/models/unit.dart';
 import 'proxy.dart';
 
 class AppService with ReactiveServiceMixin {
+  // required constants
+  String? get userid => ProxyService.box.read(key: 'userId');
+  String? get businessId => ProxyService.box.read(key: 'businessId');
+  String? get branchId => ProxyService.box.read(key: 'branchId');
+
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
 

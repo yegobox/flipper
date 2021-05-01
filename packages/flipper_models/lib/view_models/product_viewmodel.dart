@@ -6,16 +6,19 @@ import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/variant_stock.dart';
+import 'package:flipper_models/models/variation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/product_service.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flipper_services/constants.dart';
 
 class ProductViewModel extends ReactiveViewModel {
   final AppService _appService = locator<AppService>();
+  final ProductService _productService = locator<ProductService>();
   List<Product> _products = [];
   get products => _products;
   bool _isLocked = false;
@@ -29,9 +32,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   List<VariantStock> _variantStock = [];
   get variants => _variantStock;
-
-  Product? _product;
-  get product => _product;
+  get product => _productService.product;
   String? _name;
   get name => _name;
 
@@ -50,13 +51,14 @@ class ProductViewModel extends ReactiveViewModel {
       Product product =
           await ProxyService.api.createProduct(product: productMock);
       variantsProduct(productId: product.id);
-      _product = product;
+
+      _productService.setCurrentProduct(Product: product);
       notifyListeners();
       return product.id;
     }
-    _product = isTemp[0];
+    _productService.setCurrentProduct(Product: isTemp);
     variantsProduct(productId: isTemp[0].id);
-    notifyListeners();
+
     return isTemp[0].id;
   }
 
@@ -204,5 +206,40 @@ class ProductViewModel extends ReactiveViewModel {
     _appService.setCurrentColor(color: color.name);
 
     loadColors();
+  }
+
+  setUnit({required String unit}) {
+    _productService.setProductUnit(unit: unit);
+  }
+
+  Future<int> addVariant({
+    required String name,
+    required double retailPrice,
+    required double supplyPrice,
+    bool canTrackingStock = false,
+    required String productId,
+    required String unit,
+    required String userid,
+    required String branchId,
+    required String productName,
+    String? sku,
+  }) async {
+    Variation data = new Variation(
+      name: name,
+      sku: sku!,
+      retailPrice: retailPrice,
+      productId: productId,
+      unit: unit,
+      channels: [userid],
+      productName: productName,
+      currentStock: 0.0,
+      supplyPrice: supplyPrice,
+      canTrackingStock: canTrackingStock,
+      branchId: branchId,
+      id: '',
+      table: '',
+    );
+    int result = await ProxyService.api.addVariant(data: data.toJson());
+    return result;
   }
 }

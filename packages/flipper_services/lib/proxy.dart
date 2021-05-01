@@ -9,6 +9,7 @@ import 'abstractions/share.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
 import 'locator.dart';
+import 'product_service.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -22,6 +23,7 @@ final FlipperLocation _location = locator<FlipperLocation>();
 final LocalStorage _box = locator<LocalStorage>();
 final UploadT _upload = locator<UploadT>();
 final AppService _appService = locator<AppService>();
+final ProductService _productService = locator<ProductService>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -32,5 +34,6 @@ abstract class ProxyService {
   static LocalStorage get box => _box;
   static LoginStandard get auth => _auth;
   static AppService get appService => _appService;
+  static ProductService get productService => _productService;
   static UploadT get upload => _upload;
 }
