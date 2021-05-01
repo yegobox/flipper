@@ -218,4 +218,10 @@ class HttpApi<T> implements Api {
         headers: {'Content-Type': 'application/json'});
     return response.statusCode;
   }
+
+  @override
+  Future<Product> getProduct({required String id}) async {
+    final response = await client.get(Uri.parse("$apihub/api/product/$id"));
+    return sproductFromJson(response.body);
+  }
 }

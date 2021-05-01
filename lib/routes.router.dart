@@ -145,8 +145,12 @@ class StackedRouter extends RouterBase {
       );
     },
     ListUnits: (data) {
+      var args = data.getArgs<ListUnitsArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const ListUnits(),
+        builder: (context) => ListUnits(
+          key: args.key,
+          type: args.type,
+        ),
         settings: data,
       );
     },
@@ -187,4 +191,11 @@ class ReceiveStockArguments {
 class AddCategoryArguments {
   final Key? key;
   AddCategoryArguments({this.key});
+}
+
+/// ListUnits arguments holder class
+class ListUnitsArguments {
+  final Key? key;
+  final String type;
+  ListUnitsArguments({this.key, required this.type});
 }

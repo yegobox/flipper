@@ -52,11 +52,11 @@ class ProductViewModel extends ReactiveViewModel {
           await ProxyService.api.createProduct(product: productMock);
       variantsProduct(productId: product.id);
 
-      _productService.setCurrentProduct(Product: product);
+      _productService.setCurrentProduct(product: product);
       notifyListeners();
       return product.id;
     }
-    _productService.setCurrentProduct(Product: isTemp);
+    _productService.setCurrentProduct(product: isTemp[0]);
     variantsProduct(productId: isTemp[0].id);
 
     return isTemp[0].id;
@@ -135,8 +135,10 @@ class ProductViewModel extends ReactiveViewModel {
     _appService.loadCategories();
   }
 
-  /// change the focus on unit [TODO: the unit not changing now.]
-  void saveFocusedUnit({required Unit newUnit}) async {
+  /// Should save a focused unit given the id to persist to
+  /// the Id can be ID of product or variant
+  void saveFocusedUnit(
+      {required Unit newUnit, String? id, required String type}) async {
     for (Unit unit in units) {
       if (unit.focused) {
         unit.focused = !unit.focused;
@@ -154,6 +156,18 @@ class ProductViewModel extends ReactiveViewModel {
       endPoint: 'unit/$id',
       data: unit.toJson(),
     );
+    if (type == 'product') {
+      final Map data = product.toJson();
+      data['unit'] = unit.name;
+      ProxyService.api.update(data: data, endPoint: 'product');
+      Product p = await ProxyService.api.getProduct(id: id);
+      _productService.setCurrentProduct(product: p);
+    }
+    if (type == 'variant') {
+      final Map data = product.toJson();
+      data['unit'] = unit.name;
+      ProxyService.api.update(data: data, endPoint: 'variant');
+    }
     _appService.loadUnits();
   }
 

@@ -32,6 +32,7 @@ abstract class Api<T> {
   });
   Future<int> addUnits({required Map data});
   Future<int> addVariant({Map? data});
+  Future<Product> getProduct({required String id});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});

@@ -58,7 +58,8 @@ class AddProductView extends StatelessWidget {
                       ? SizedBox.shrink()
                       : ImagePlaceHolderView(
                           currentColor: model.currentColor,
-                          product: model.product),
+                          product: model.product,
+                        ),
                   const Text('Product'),
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
@@ -107,7 +108,9 @@ class AddProductView extends StatelessWidget {
                   const CenterDivider(
                     width: double.infinity,
                   ),
-                  SectionSelectUnit(units: model.units),
+                  model.product == null
+                      ? SizedBox.shrink()
+                      : SectionSelectUnit(product: model.product),
                   const CenterDivider(
                     width: double.infinity,
                   ),

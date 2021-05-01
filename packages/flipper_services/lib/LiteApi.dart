@@ -374,4 +374,10 @@ class LiteApi<T> implements Api {
 
     return 200;
   }
+
+  @override
+  Future<Product> getProduct({required String id}) async {
+    Document doc = db.getDocument(id);
+    return sproductFromJson(doc.json);
+  }
 }
