@@ -12,7 +12,9 @@ void main() {
       final model = _getModel();
       final productSerice = getAndRegisterProductService(
           currentUnit: 'kg', branchId: 'BID', userId: 'UID');
-      // final api = getAndRegisterApi();
+
+      model.setUnit(unit: 'kg');
+
       final result = await model.addVariant(
         name: 'name',
         retailPrice: 0.0,
@@ -20,6 +22,7 @@ void main() {
         sku: 'sku',
         productId: 'ID',
       );
+
       expect(productSerice.currentUnit, 'kg');
       expect(result, 200);
     });
