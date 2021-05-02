@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/color.dart';
@@ -56,6 +57,8 @@ class ProductViewModel extends ReactiveViewModel {
       notifyListeners();
       return product.id;
     }
+    // ProxyService.api.delete(id: isTemp[0].id);
+    // return "d";
     _productService.setCurrentProduct(product: isTemp[0]);
     variantsProduct(productId: isTemp[0].id);
 
@@ -160,7 +163,7 @@ class ProductViewModel extends ReactiveViewModel {
       final Map data = product.toJson();
       data['unit'] = unit.name;
       ProxyService.api.update(data: data, endPoint: 'product');
-      Product p = await ProxyService.api.getProduct(id: id);
+      final Product p = await ProxyService.api.getProduct(id: product.id);
       _productService.setCurrentProduct(product: p);
     }
     if (type == 'variant') {
@@ -251,5 +254,10 @@ class ProductViewModel extends ReactiveViewModel {
     );
     int result = await ProxyService.api.addVariant(data: data.toJson());
     return result;
+  }
+
+  void navigateAddVariation({required String productId}) {
+    ProxyService.nav.navigateTo(Routes.addVariation,
+        arguments: AddVariationArguments(productId: productId));
   }
 }

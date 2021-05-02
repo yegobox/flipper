@@ -141,6 +141,11 @@ class MockApi<T> extends _i1.Mock implements _i6.Api<T> {
       (super.noSuchMethod(Invocation.method(#addVariant, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i7.Future<int>);
   @override
+  _i7.Future<_i5.Product> getProduct({String? id}) =>
+      (super.noSuchMethod(Invocation.method(#getProduct, [], {#id: id}),
+              returnValue: Future<_i5.Product>.value(_FakeProduct()))
+          as _i7.Future<_i5.Product>);
+  @override
   _i7.Future<_i5.Product> createProduct({_i5.Product? product}) =>
       (super.noSuchMethod(
               Invocation.method(#createProduct, [], {#product: product}),
@@ -164,6 +169,26 @@ class MockProductService extends _i1.Mock implements _i14.ProductService {
   @override
   dynamic setProductUnit({String? unit}) =>
       super.noSuchMethod(Invocation.method(#setProductUnit, [], {#unit: unit}));
+  @override
+  dynamic setCurrentProduct({_i5.Product? product}) => super.noSuchMethod(
+      Invocation.method(#setCurrentProduct, [], {#product: product}));
+  @override
+  void listenToReactiveValues(List<dynamic>? reactiveValues) =>
+      super.noSuchMethod(
+          Invocation.method(#listenToReactiveValues, [reactiveValues]),
+          returnValueForMissingStub: null);
+  @override
+  void addListener(void Function()? listener) =>
+      super.noSuchMethod(Invocation.method(#addListener, [listener]),
+          returnValueForMissingStub: null);
+  @override
+  void removeListener(void Function()? listener) =>
+      super.noSuchMethod(Invocation.method(#removeListener, [listener]),
+          returnValueForMissingStub: null);
+  @override
+  void notifyListeners() =>
+      super.noSuchMethod(Invocation.method(#notifyListeners, []),
+          returnValueForMissingStub: null);
 }
 
 /// A class which mocks [LocalStorage].

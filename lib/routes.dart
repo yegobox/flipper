@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
+import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
@@ -26,6 +27,7 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: ColorTile),
     MaterialRoute(page: ReceiveStock),
     MaterialRoute(page: AddCategory),
+    MaterialRoute(page: AddVariation),
     MaterialRoute(page: ListUnits),
   ],
   dependencies: [

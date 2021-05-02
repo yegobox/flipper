@@ -178,7 +178,10 @@ class LiteApi<T> implements Api {
     final Map data = product.toJson();
     final productid = Uuid().v1();
     data['id'] = productid;
-    final doc = Document(product.id, data: data);
+    data['active'] = false;
+    data['description'] = 'description';
+    data['hasPicture'] = false;
+    final doc = Document(data['id'], data: data);
 
     final Document productDocument = db.saveDocument(doc);
     //create  variation
@@ -378,6 +381,7 @@ class LiteApi<T> implements Api {
   @override
   Future<Product> getProduct({required String id}) async {
     Document doc = db.getDocument(id);
+
     return sproductFromJson(doc.json);
   }
 }

@@ -131,6 +131,21 @@ class AddProductView extends StatelessWidget {
                       model.deleteVariant(id: id);
                     },
                   ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 18, right: 18, top: 10),
+                    child: SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: OutlineButton(
+                        child: const Text('Add Variation'),
+                        onPressed: () {
+                          model.navigateAddVariation(
+                              productId: model.product.id);
+                        },
+                      ),
+                    ),
+                  ),
                 ])
               ],
             ),

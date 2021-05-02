@@ -78,7 +78,7 @@ abstract class ThirdPartyServicesModule {
   Api get apiService {
     Api apiService;
     if (UniversalPlatform.isWindows ||
-        UniversalPlatform.isAndroid ||
+        // UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       apiService = LiteApi(database: db);
     } else {
