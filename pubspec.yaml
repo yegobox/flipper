@@ -112,6 +112,17 @@ dependencies:
   bluetooth_thermal_printer: ^0.0.6
   esc_pos_utils_plus: ^2.0.1+3
   printing: ^5.2.1
+  couchbase_lite_dart: ^0.5.0-nullsafety.2
+  flutter_launcher_icons: ^0.9.0
+  flutter_native_splash: ^1.1.8+4
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  # windows: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
+  # adaptive_icon_background: "assets/images/christmas-background.png" # only available for Android 8.0 devices and above
+  # adaptive_icon_foreground: "assets/images/icon-foreground-432x432.png" # only available for Android 8.0 devices and above
 dev_dependencies:
   flutter_test:
     sdk: flutter

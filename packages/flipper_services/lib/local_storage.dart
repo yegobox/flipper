@@ -4,7 +4,7 @@ import 'package:get_storage/get_storage.dart';
 class LocalStorageImpl implements LocalStorage {
   final box = GetStorage();
   @override
-  String read({required String key}) {
+  dynamic read({required String key}) {
     return box.read(key);
   }
 

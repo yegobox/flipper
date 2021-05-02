@@ -40,7 +40,7 @@ class Product {
 
   String id;
   String name;
-  String description;
+  String? description;
   List<String> channels;
   bool active;
   dynamic taxId;

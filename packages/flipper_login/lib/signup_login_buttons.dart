@@ -1,8 +1,5 @@
-import 'package:flipper_login/otp_view.dart';
 import 'package:flipper_login/phone_number_view.dart';
 import 'package:flipper_models/view_models/login_viewmodel.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 

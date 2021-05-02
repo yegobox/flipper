@@ -1,18 +1,18 @@
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/unit.dart';
+import 'package:flipper_models/models/product.dart';
 
 class SectionSelectUnit extends StatelessWidget {
-  const SectionSelectUnit({Key? key, required this.units}) : super(key: key);
-  final List<Unit> units;
-  Text unitSelector(List<Unit> units) {
+  const SectionSelectUnit({Key? key, required this.product}) : super(key: key);
+  final Product product;
+  Text unitSelector(Product units) {
     late Text text = Text('Select Unit');
-    for (Unit unit in units) {
-      if (unit.focused) {
-        text = Text(unit.name);
-      }
+
+    if (product.unit != '') {
+      text = Text(product.unit);
     }
+
     return text;
   }
 
@@ -24,28 +24,28 @@ class SectionSelectUnit extends StatelessWidget {
         width: double.infinity,
         child: GestureDetector(
           onTap: () {
-            ProxyService.nav.navigateTo(
-              Routes.listUnits,
-            );
+            ProxyService.nav.navigateTo(Routes.listUnits,
+                arguments: ListUnitsArguments(type: 'product'));
           },
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.4),
             dense: true,
             leading: const Text('Unit Type'),
-            trailing: units.isNotEmpty
-                ? Wrap(
-                    children: [
-                      unitSelector(units),
-                      Theme(
-                          data: ThemeData(
-                            iconTheme: const IconThemeData(
-                              color: Colors.black,
-                            ),
-                          ),
-                          child: const Icon(Icons.arrow_forward_ios))
-                    ],
-                  )
-                : const Text('Select Unit'),
+            trailing: Wrap(
+              children: [
+                unitSelector(product),
+                Theme(
+                  data: ThemeData(
+                    iconTheme: const IconThemeData(
+                      color: Colors.black,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios,
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),

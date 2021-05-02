@@ -1,6 +1,7 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'dart:io';
 import 'package:flipper_services/mobile_upload.dart';
+import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
@@ -76,8 +77,9 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Api get apiService {
     Api apiService;
-    if (UniversalPlatform.isWindows ||
-        UniversalPlatform.isAndroid ||
+    if (
+        // UniversalPlatform.isWindows ||
+        // UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       apiService = LiteApi(database: db);
     } else {
@@ -133,6 +135,8 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   AppService get appService;
+  @lazySingleton
+  ProductService get productService;
 }
 
 class UnsupportedPlatformUpload implements UploadT {

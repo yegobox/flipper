@@ -9,6 +9,7 @@
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
+import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
@@ -32,6 +33,7 @@ class Routes {
   static const String colorTile = '/color-tile';
   static const String receiveStock = '/receive-stock';
   static const String addCategory = '/add-category';
+  static const String addVariation = '/add-variation';
   static const String listUnits = '/list-units';
   static const all = <String>{
     startUpView,
@@ -44,6 +46,7 @@ class Routes {
     colorTile,
     receiveStock,
     addCategory,
+    addVariation,
     listUnits,
   };
 }
@@ -62,6 +65,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.colorTile, page: ColorTile),
     RouteDef(Routes.receiveStock, page: ReceiveStock),
     RouteDef(Routes.addCategory, page: AddCategory),
+    RouteDef(Routes.addVariation, page: AddVariation),
     RouteDef(Routes.listUnits, page: ListUnits),
   ];
   @override
@@ -144,9 +148,23 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
-    ListUnits: (data) {
+    AddVariation: (data) {
+      var args = data.getArgs<AddVariationArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const ListUnits(),
+        builder: (context) => AddVariation(
+          key: args.key,
+          productId: args.productId,
+        ),
+        settings: data,
+      );
+    },
+    ListUnits: (data) {
+      var args = data.getArgs<ListUnitsArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => ListUnits(
+          key: args.key,
+          type: args.type,
+        ),
         settings: data,
       );
     },
@@ -187,4 +205,18 @@ class ReceiveStockArguments {
 class AddCategoryArguments {
   final Key? key;
   AddCategoryArguments({this.key});
+}
+
+/// AddVariation arguments holder class
+class AddVariationArguments {
+  final Key? key;
+  final String productId;
+  AddVariationArguments({this.key, required this.productId});
+}
+
+/// ListUnits arguments holder class
+class ListUnitsArguments {
+  final Key? key;
+  final String type;
+  ListUnitsArguments({this.key, required this.type});
 }

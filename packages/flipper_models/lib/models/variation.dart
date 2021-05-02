@@ -25,7 +25,6 @@ class Variation {
     required this.supplyPrice,
     required this.retailPrice,
     required this.canTrackingStock,
-    required this.stockId,
     required this.branchId,
     this.lowStock,
   });
@@ -42,7 +41,6 @@ class Variation {
   double supplyPrice;
   double retailPrice;
   bool canTrackingStock;
-  String stockId;
   String branchId;
   double? lowStock;
 
@@ -59,7 +57,6 @@ class Variation {
       supplyPrice: json["supplyPrice"],
       retailPrice: json["retailPrice"],
       canTrackingStock: json["canTrackingStock"],
-      stockId: json["stockId"],
       branchId: json["branchId"],
       lowStock: json["branchId"] == null ? 0.0 : json["lowStock"]);
 
@@ -76,7 +73,6 @@ class Variation {
         "supplyPrice": supplyPrice,
         "retailPrice": retailPrice,
         "canTrackingStock": canTrackingStock,
-        "stockId": stockId,
         "branchId": branchId,
         "lowStock": lowStock == null ? 0.0 : lowStock
       };

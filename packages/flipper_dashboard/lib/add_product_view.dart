@@ -58,7 +58,8 @@ class AddProductView extends StatelessWidget {
                       ? SizedBox.shrink()
                       : ImagePlaceHolderView(
                           currentColor: model.currentColor,
-                          product: model.product),
+                          product: model.product,
+                        ),
                   const Text('Product'),
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
@@ -107,7 +108,9 @@ class AddProductView extends StatelessWidget {
                   const CenterDivider(
                     width: double.infinity,
                   ),
-                  SectionSelectUnit(units: model.units),
+                  model.product == null
+                      ? SizedBox.shrink()
+                      : SectionSelectUnit(product: model.product),
                   const CenterDivider(
                     width: double.infinity,
                   ),
@@ -127,6 +130,21 @@ class AddProductView extends StatelessWidget {
                     deleteVariant: (id) {
                       model.deleteVariant(id: id);
                     },
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 18, right: 18, top: 10),
+                    child: SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: OutlineButton(
+                        child: const Text('Add Variation'),
+                        onPressed: () {
+                          model.navigateAddVariation(
+                              productId: model.product.id);
+                        },
+                      ),
+                    ),
                   ),
                 ])
               ],

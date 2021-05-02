@@ -13,9 +13,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/sync.dart';
 import 'package:injectable/injectable.dart';
 import 'package:get_storage/get_storage.dart';
-
+import 'package:uuid/uuid.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
+
+import 'constants.dart';
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
@@ -63,7 +65,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Business>> businesses() async {
+  Future<List<Business>?> businesses() async {
     final response = await client.get(Uri.parse("$apihub/api/businesses"));
 
     return businessFromJson(response.body);
@@ -189,6 +191,9 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> addUnits({required Map data}) async {
+    final unitId = Uuid().v1();
+    data['id'] = unitId;
+    data['table'] = AppTables.unit;
     final http.Response response = await client.post(
         Uri.parse("$apihub/api/unit"),
         body: jsonEncode(data),
@@ -200,5 +205,23 @@ class HttpApi<T> implements Api {
   Future<PColor> getColor({required String id, String? endPoint}) async {
     final response = await client.get(Uri.parse("$apihub/api/$endPoint/$id"));
     return spColorFromJson(response.body);
+  }
+
+  @override
+  Future<int> addVariant({Map? data}) async {
+    final unitId = Uuid().v1();
+    data!['id'] = unitId;
+    data['table'] = AppTables.variation;
+    final http.Response response = await client.post(
+        Uri.parse("$apihub/api/variation"),
+        body: jsonEncode(data),
+        headers: {'Content-Type': 'application/json'});
+    return response.statusCode;
+  }
+
+  @override
+  Future<Product> getProduct({required String id}) async {
+    final response = await client.get(Uri.parse("$apihub/api/product/$id"));
+    return sproductFromJson(response.body);
   }
 }

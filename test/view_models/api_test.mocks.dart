@@ -61,10 +61,10 @@ class MockApi<T> extends _i1.Mock implements _i6.Api<T> {
           returnValue:
               Future<_i3.Sync>.value(_FakeSync())) as _i7.Future<_i3.Sync>);
   @override
-  _i7.Future<List<_i8.Business>> businesses() =>
+  _i7.Future<List<_i8.Business>?> businesses() =>
       (super.noSuchMethod(Invocation.method(#businesses, []),
-              returnValue: Future<List<_i8.Business>>.value(<_i8.Business>[]))
-          as _i7.Future<List<_i8.Business>>);
+              returnValue: Future<List<_i8.Business>?>.value(<_i8.Business>[]))
+          as _i7.Future<List<_i8.Business>?>);
   @override
   _i7.Future<List<_i9.Branch>> branches({String? businessId}) =>
       (super.noSuchMethod(
@@ -134,6 +134,15 @@ class MockApi<T> extends _i1.Mock implements _i6.Api<T> {
   _i7.Future<int> addUnits({Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i7.Future<int>);
+  @override
+  _i7.Future<int> addVariant({Map<dynamic, dynamic>? data}) =>
+      (super.noSuchMethod(Invocation.method(#addVariant, [], {#data: data}),
+          returnValue: Future<int>.value(0)) as _i7.Future<int>);
+  @override
+  _i7.Future<_i5.Product> getProduct({String? id}) =>
+      (super.noSuchMethod(Invocation.method(#getProduct, [], {#id: id}),
+              returnValue: Future<_i5.Product>.value(_FakeProduct()))
+          as _i7.Future<_i5.Product>);
   @override
   _i7.Future<_i5.Product> createProduct({_i5.Product? product}) =>
       (super.noSuchMethod(

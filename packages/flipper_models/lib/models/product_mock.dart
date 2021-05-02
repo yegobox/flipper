@@ -1,21 +1,20 @@
 library flipper_models;
 
 import 'product.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/app_service.dart';
 
-final id = Uuid().v1();
-// final time = DateTime.now();
-final String? userid = ProxyService.box.read(key: 'userId');
-final String? businessId = ProxyService.box.read(key: 'businessId');
-final String? branchId = ProxyService.box.read(key: 'branchId');
+// final id = Uuid().v1();
+final AppService _appService = locator<AppService>();
+
 final productMock = new Product(
-  id: id,
+  id: '',
   draft: true,
   currentUpdate: true,
   taxId: "XX",
   imageLocal: false,
-  businessId: businessId!,
+  businessId: _appService.businessId!,
   name: "temp",
   description: "L",
   active: true,
@@ -25,7 +24,7 @@ final productMock = new Product(
   supplierId: "XXX",
   categoryId: "XXX",
   unit: "kg",
-  channels: [userid!],
+  channels: [_appService.userid!],
   createdAt: DateTime.now().toIso8601String(),
   variants: [
     AllVariant(
@@ -34,11 +33,11 @@ final productMock = new Product(
       retailPrice: 0,
       canTrackingStock: false,
       supplyPrice: 0,
-      branchId: branchId,
+      branchId: _appService.branchId!,
       currentStock: 0,
       unit: "kg",
       table: "variants",
-      channels: [userid!],
+      channels: [_appService.userid!],
       // updatedAt: DateTime.now().toIso8601String()
     )
   ],

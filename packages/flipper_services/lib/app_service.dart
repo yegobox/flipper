@@ -6,6 +6,11 @@ import 'package:flipper_models/models/unit.dart';
 import 'proxy.dart';
 
 class AppService with ReactiveServiceMixin {
+  // required constants
+  String? get userid => ProxyService.box.read(key: 'userId');
+  String? get businessId => ProxyService.box.read(key: 'businessId');
+  String? get branchId => ProxyService.box.read(key: 'branchId');
+
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
 
@@ -48,6 +53,14 @@ class AppService with ReactiveServiceMixin {
         setCurrentColor(color: color.name);
       }
     }
+  }
+
+  bool _loggedIn = false;
+  bool get hasLoggedInUser => _loggedIn;
+
+  bool isLoggedIn() {
+    return _loggedIn =
+        ProxyService.box.read(key: 'userId') == null ? false : true;
   }
 
   AppService() {

@@ -14,7 +14,7 @@ abstract class Api<T> {
   Future<List<Product>> products();
   Future<int> signup({required Map business});
   Future<Sync> authenticateWithOfflineDb({required String userId});
-  Future<List<Business>> businesses();
+  Future<List<Business>?> businesses();
   Future<List<Branch>> branches({required String businessId});
   Future<List<Stock>> stocks({required String productId});
   Future<List<PColor>> colors({required String branchId});
@@ -31,6 +31,8 @@ abstract class Api<T> {
     required String productId,
   });
   Future<int> addUnits({required Map data});
+  Future<int> addVariant({Map? data});
+  Future<Product> getProduct({required String id});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});

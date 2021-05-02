@@ -4,7 +4,7 @@ on:
     # Enable manual run
   push:
     # Sequence of patterns matched against refs/tags
-    branches: [mobile]
+    # branches: [mobile]
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10 we are on v1.7.0
 

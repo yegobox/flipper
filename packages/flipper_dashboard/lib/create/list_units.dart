@@ -6,7 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 
 class ListUnits extends StatelessWidget {
-  const ListUnits({Key? key}) : super(key: key);
+  const ListUnits({Key? key, required this.type}) : super(key: key);
+  final String type;
 
   List<Widget> _getUnitsWidgets(ProductViewModel model) {
     final List<Widget> list = <Widget>[];
@@ -14,7 +15,8 @@ class ListUnits extends StatelessWidget {
       list.add(
         GestureDetector(
           onTap: () {
-            model.saveFocusedUnit(newUnit: model.units[i]);
+            model.saveFocusedUnit(
+                newUnit: model.units[i], id: model.product.id, type: type);
           },
           child: ListTile(
             title: Text(
