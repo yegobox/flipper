@@ -3,23 +3,26 @@ library flipper_login;
 import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked/stacked_annotations.dart';
 
 import 'button_view.dart';
-import 'otp_view.form.dart';
 
-@FormView(fields: [
-  FormTextField(name: 'otp'),
-])
-class OtpView extends StatelessWidget with $OtpView {
+class OtpView extends StatefulWidget {
   static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+
+  @override
+  _OtpViewState createState() => _OtpViewState();
+}
+
+class _OtpViewState extends State<OtpView> {
+  TextEditingController otpController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
         viewModelBuilder: () => LoginViewModel(),
         builder: (context, model, child) {
           return Form(
-            key: _formKey,
+            key: OtpView._formKey,
             child: Container(
               color: Colors.transparent,
               child: Container(
@@ -98,18 +101,11 @@ class OtpView extends StatelessWidget with $OtpView {
                         ),
                       ),
                     ),
-                    // Container(
-                    //   child: const Text(
-                    //     'Otp',
-                    //     textAlign: TextAlign.center,
-                    //     style: TextStyle(color: Colors.grey),
-                    //   ),
-                    // ),
                     Container(
                       child: ButtonView(
                         'Verify',
                         () {
-                          if (_formKey.currentState!.validate()) {
+                          if (OtpView._formKey.currentState!.validate()) {
                             model.setOtp(ot: otpController.value.text);
                             model.fb.verifyWithOtp();
                           }
