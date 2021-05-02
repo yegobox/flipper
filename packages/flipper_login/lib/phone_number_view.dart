@@ -63,7 +63,6 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                     children: [
                       CountryCodePicker(
                         initialSelection: 'RW',
-                        // ignore: prefer_const_literals_to_create_immutables
                         favorite: ['+250', 'RWF'],
                         showFlagDialog: true,
                         onChanged: (code) {
@@ -140,9 +139,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                               .validate()) {
                             //TODO(richard): more phone validation to come!
                             model.setPhoneNumber(
-                                phone: phoneController.value
-                                    .text); //Can not use stacked to get value with phoneValue on Login_viewmodel
-                            // model.saveData();
+                                phone: phoneController.value.text);
                             final phoneAuth =
                                 await model.login(context: context);
                             if (isWindows && phoneAuth) {
