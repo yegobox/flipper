@@ -13,10 +13,9 @@ class SignUpLoginButton extends StatelessWidget {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
-          padding: EdgeInsets.only(bottom: 0),
+          padding: MediaQuery.of(context).viewInsets,
           child: Container(
             child: PhoneNumberView(),
-            // height: 400,
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
