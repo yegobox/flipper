@@ -117,8 +117,11 @@ dependencies:
 flutter_icons:
   android: "launcher_icon"
   ios: true
+  # windows: true
   image_path: "assets/icon/icon.png"
   remove_alpha_ios: true
+  # adaptive_icon_background: "assets/images/christmas-background.png" # only available for Android 8.0 devices and above
+  # adaptive_icon_foreground: "assets/images/icon-foreground-432x432.png" # only available for Android 8.0 devices and above
 dev_dependencies:
   flutter_test:
     sdk: flutter
