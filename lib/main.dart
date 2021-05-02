@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -16,7 +16,7 @@ final isMacOs = UniversalPlatform.isMacOS;
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
-  (isWindows || isMacOs) ? Cbl.init() : '';
+  // (isWindows || isMacOs) ? Cbl.init() : '';
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();

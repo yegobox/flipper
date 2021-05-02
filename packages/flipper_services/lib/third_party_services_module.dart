@@ -77,7 +77,8 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Api get apiService {
     Api apiService;
-    if (UniversalPlatform.isWindows ||
+    if (
+        // UniversalPlatform.isWindows ||
         // UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       apiService = LiteApi(database: db);
