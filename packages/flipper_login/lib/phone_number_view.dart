@@ -2,30 +2,32 @@ library flipper_login;
 
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/login_viewmodel.dart';
-import 'phone_number_view.form.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/otp_view.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
-@FormView(fields: [
-  FormTextField(name: 'phone'),
-])
-class PhoneNumberView extends StatelessWidget with $PhoneNumberView {
+class PhoneNumberView extends StatefulWidget {
   static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+
+  @override
+  _PhoneNumberViewState createState() => _PhoneNumberViewState();
+}
+
+class _PhoneNumberViewState extends State<PhoneNumberView> {
+  TextEditingController phoneController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
-      onModelReady: (model) => listenToFormUpdated(model),
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         return SingleChildScrollView(
           child: Form(
-            key: _formKey,
+            key: PhoneNumberView._formKey,
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               const SizedBox(
@@ -88,10 +90,10 @@ class PhoneNumberView extends StatelessWidget with $PhoneNumberView {
                             },
                             textInputAction: TextInputAction.next,
                             keyboardType: TextInputType.phone,
-                            style:
-                                Theme.of(context).textTheme.bodyText2!.copyWith(
-                                      color: Colors.black,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2!
+                                .copyWith(color: Colors.black),
                             controller: phoneController,
                             decoration: const InputDecoration(
                               focusColor: Colors.black,
@@ -131,12 +133,11 @@ class PhoneNumberView extends StatelessWidget with $PhoneNumberView {
                         color: Colors.blue,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5.0),
-                            side: const BorderSide(
-                              color: Colors.blue,
-                            )),
+                            side: const BorderSide(color: Colors.blue)),
                         padding: const EdgeInsets.all(0.0),
                         onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
+                          if (PhoneNumberView._formKey.currentState!
+                              .validate()) {
                             //TODO(richard): more phone validation to come!
                             model.setPhoneNumber(
                                 phone: phoneController.value
@@ -151,10 +152,9 @@ class PhoneNumberView extends StatelessWidget with $PhoneNumberView {
                                 isScrollControlled: true,
                                 builder: (BuildContext context) {
                                   return Padding(
-                                    padding: EdgeInsets.only(bottom: 0),
+                                    padding: MediaQuery.of(context).viewInsets,
                                     child: Container(
                                       child: OtpView(),
-                                      height: 400,
                                       decoration: const BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.only(
