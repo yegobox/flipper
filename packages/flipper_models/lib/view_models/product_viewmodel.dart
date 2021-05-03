@@ -75,11 +75,13 @@ class ProductViewModel extends ReactiveViewModel {
 
   void setName({String? name}) {
     _name = name;
+    final cleaned = name?.trim();
+    _lock = cleaned?.length == null || cleaned?.length == 0;
+    notifyListeners();
   }
 
-  bool lock() {
-    return name?.length == null || name?.length == 0;
-  }
+  bool _lock = false;
+  bool get lock => _lock;
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_appService];

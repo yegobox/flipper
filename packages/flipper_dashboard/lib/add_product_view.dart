@@ -40,7 +40,7 @@ class AddProductView extends StatelessWidget {
                 ProxyService.nav.back();
               },
               title: 'Create Product',
-              disableButton: model.lock(),
+              disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {},
               rightActionButtonName: 'Save',

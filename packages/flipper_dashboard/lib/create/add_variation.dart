@@ -36,7 +36,7 @@ class _AddVariationState extends State<AddVariation> {
               },
               title: 'Add Variation',
               showActionButton: true,
-              disableButton: model.lock(),
+              disableButton: model.lock,
               rightActionButtonName: 'Save',
               onPressedCallback: () async {
                 if (AddVariation._formKey.currentState!.validate()) {
@@ -80,7 +80,7 @@ class _AddVariationState extends State<AddVariation> {
                                 return null;
                               },
                               onChanged: (String _name) {
-                                model.lock();
+                                model.lock;
                               },
                               decoration: InputDecoration(
                                 hintText: 'Name',
