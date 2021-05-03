@@ -493,6 +493,30 @@ class LiteApi implements Api {
     // TODO: implement update
     throw UnimplementedError();
   }
+
+  @override
+  Future<int> addVariant({Map? data}) {
+    // TODO: implement addVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Product> getProduct({required String id}) {
+    // TODO: implement getProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<VariantStock>> variantStock(
+      {required String branchId, required String variantId}) {
+    // TODO: implement variantStock
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<VariantStock>> variantProduct(
       {required String branchId, required String productId}) {
+    // TODO: implement variantProduct
+    throw UnimplementedError();
+  }
 }
