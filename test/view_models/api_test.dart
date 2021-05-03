@@ -3,7 +3,6 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'dart:io';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:mockito/mockito.dart';
