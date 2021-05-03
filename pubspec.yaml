@@ -86,8 +86,11 @@ dependencies:
   # firebase_remote_config: not available
   # esc_pos_utils: not available
   # pusher: not available
+  # pusher: 
+  #   path: 'packages/pusher'
   contacts_service:
-  # pusher_beams: not available for null safe
+  # pusher_beams: 
+  #   path: 'packages/flutter_pusher_beams'
   flutter_uploader: 3.0.0-beta.1
   
   bitsdojo_window: 
@@ -115,6 +118,7 @@ dependencies:
   # couchbase_lite_dart: ^0.5.0-nullsafety.2
   flutter_launcher_icons: ^0.9.0
   flutter_native_splash: ^1.1.8+4
+  stomp_dart_client: ^0.4.1
 flutter_icons:
   android: "launcher_icon"
   ios: true
@@ -135,6 +139,7 @@ dev_dependencies:
   injectable_generator:
   stacked_generator:
   mockito:
+  test: ^1.5.3
   
   
 

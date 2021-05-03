@@ -379,6 +379,45 @@ import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/category.dart';
 
 import 'package:flipper_models/models/business.dart';
+<<<<<<< HEAD
+=======
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'Queries.dart';
+import 'abstractions/api.dart';
+import 'constants.dart';
+import 'http_api.dart';
+import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
+
+class LiteApi<T> implements Api {
+  Replicator? replicator;
+  Database db = Database("main_01");
+  ExtendedClient client = ExtendedClient(http.Client());
+  String flipperApi = "https://flipper.yegobox.com";
+  String apihub = "https://apihub.yegobox.com";
+  dynamic Q14;
+  dynamic Q1;
+  dynamic Q15;
+  dynamic Q9;
+  dynamic Q12;
+  dynamic Q10;
+  dynamic Q16;
+  dynamic Q17;
+  dynamic Q18;
+  dynamic Q5;
+  registerQueries() {
+    Q14 = Query(db, Queries.Q_14);
+    Q1 = Query(db, Queries.Q_1);
+    Q15 = Query(db, Queries.Q_15);
+    Q9 = Query(db, Queries.Q_9);
+    Q12 = Query(db, Queries.Q_12);
+    Q10 = Query(db, Queries.Q_10);
+    Q16 = Query(db, Queries.Q_16);
+    Q17 = Query(db, Queries.Q_17);
+    Q18 = Query(db, Queries.Q_18);
+    Q5 = Query(db, Queries.Q_5);
+  }
+>>>>>>> mobile
 
 import 'package:flipper_models/models/branch.dart';
 
@@ -477,9 +516,32 @@ class LiteApi implements Api {
   }
 
   @override
+<<<<<<< HEAD
   Future<List<Stock>> stocks({required String productId}) {
     // TODO: implement stocks
     throw UnimplementedError();
+=======
+  Future<List<VariantStock>> variantProduct(
+      {required String branchId, required String productId}) async {
+    Q17.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
+    final ResultSet business = Q17.execute();
+    final List<VariantStock> variantStocks = [];
+    for (Map map in business.allResults) {
+      variantStocks.add(svariantStockFromJson(jsonEncode(map)));
+    }
+    final Document product = db.getDocument(productId);
+    Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
+    final ResultSet variants = Q1.execute();
+    for (Map map in variants.allResults) {
+      print(map);
+    }
+    // TODO: change algorithm since join is a joke!
+    // get the proeuct
+    // get variants
+    // get stock merge what I want into variantStock map then
+    // use  variantStocks.add(svariantStockFromJson(jsonEncode(map))); on that map.
+    return variantStocks;
+>>>>>>> mobile
   }
 
   @override

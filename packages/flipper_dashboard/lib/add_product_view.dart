@@ -40,7 +40,7 @@ class AddProductView extends StatelessWidget {
                 ProxyService.nav.back();
               },
               title: 'Create Product',
-              disableButton: model.isLocked,
+              disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {},
               rightActionButtonName: 'Save',
@@ -73,7 +73,6 @@ class AddProductView extends StatelessWidget {
                         // validator: Validators.isValid,
                         onChanged: (String name) async {
                           model.setName(name: name);
-                          model.lock();
                         },
                         decoration: InputDecoration(
                           hintText: 'Product name',
