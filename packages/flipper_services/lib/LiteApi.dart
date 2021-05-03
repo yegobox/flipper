@@ -34,6 +34,7 @@ class LiteApi<T> implements Api {
   String flipperApi = "https://flipper.yegobox.com";
   String apihub = "https://apihub.yegobox.com";
   dynamic Q14;
+  dynamic Q1;
   dynamic Q15;
   dynamic Q9;
   dynamic Q12;
@@ -44,6 +45,7 @@ class LiteApi<T> implements Api {
   dynamic Q5;
   registerQueries() {
     Q14 = Query(db, Queries.Q_14);
+    Q1 = Query(db, Queries.Q_1);
     Q15 = Query(db, Queries.Q_15);
     Q9 = Query(db, Queries.Q_9);
     Q12 = Query(db, Queries.Q_12);
@@ -321,6 +323,12 @@ class LiteApi<T> implements Api {
     final List<VariantStock> variantStocks = [];
     for (Map map in business.allResults) {
       variantStocks.add(svariantStockFromJson(jsonEncode(map)));
+    }
+    final Document product = db.getDocument(productId);
+    Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
+    final ResultSet variants = Q1.execute();
+    for (Map map in variants.allResults) {
+      print(map);
     }
     // TODO: change algorithm since join is a joke!
     // get the proeuct

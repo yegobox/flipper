@@ -1,0 +1,14 @@
+.DS_Store
+.dart_tool/
+
+.packages
+.pub/
+
+build/
+
+.idea/
+example/ios/Podfile.lock
+
+example/pubspec.lock
+
+google-services.json

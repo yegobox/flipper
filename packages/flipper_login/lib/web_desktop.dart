@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class WeLogin extends StatelessWidget {
-  const WeLogin({Key? key}) : super(key: key);
+class WebDesktopLogin extends StatelessWidget {
+  const WebDesktopLogin({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

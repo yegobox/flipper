@@ -1,0 +1,17 @@
+# Don’t commit the following directories created by pub.
+.buildlog
+.pub/
+build/
+packages
+.packages
+doc/api
+# Or the files created by dart2js.
+*.dart.js
+*.js_
+*.js.deps
+*.js.map
+.dart_tool/
+.packages
+
+# Include when developing application packages.
+pubspec.lock
