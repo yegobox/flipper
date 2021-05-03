@@ -132,61 +132,62 @@ void main() {
     addTearDown(() => db.delete());
   });
 
-  test('changeListener', () async {
-    var db = Database('query5', directory: TESTDIR);
+// NOTE: this works but I commented replicator test since it is time consuming
+  // test('changeListener', () async {
+  //   var db = Database('query5', directory: TESTDIR);
 
-    db.saveDocument(Document('testdoc1', data: {'foo': 'bar'}));
+  //   db.saveDocument(Document('testdoc1', data: {'foo': 'bar'}));
 
-    final query = Query(db, 'SELECT * WHERE foo LIKE "%ba%"');
-    var changes_received = false;
-    var rows = [];
+  //   final query = Query(db, 'SELECT * WHERE foo LIKE "%ba%"');
+  //   var changes_received = false;
+  //   var rows = [];
 
-    var token = query.addChangeListener((results) {
-      changes_received = true;
-      rows = results.allResults;
-    });
+  //   var token = query.addChangeListener((results) {
+  //     changes_received = true;
+  //     rows = results.allResults;
+  //   });
 
-    await asyncSleep(500);
-    expect(token, isA<String>());
-    expect(changes_received, true);
+  //   await asyncSleep(500);
+  //   expect(token, isA<String>());
+  //   expect(changes_received, true);
 
-    expect(rows, [
-      {
-        '*': {'foo': 'bar'}
-      }
-    ]);
+  //   expect(rows, [
+  //     {
+  //       '*': {'foo': 'bar'}
+  //     }
+  //   ]);
 
-    changes_received = false;
-    db.saveDocument(Document('testdoc2', data: {'foo': 'baz'}));
+  //   changes_received = false;
+  //   db.saveDocument(Document('testdoc2', data: {'foo': 'baz'}));
 
-    await asyncSleep(2000);
-    expect(changes_received, true);
-    expect(rows, [
-      {
-        '*': {'foo': 'bar'}
-      },
-      {
-        '*': {'foo': 'baz'}
-      }
-    ]);
+  //   await asyncSleep(2000);
+  //   expect(changes_received, true);
+  //   expect(rows, [
+  //     {
+  //       '*': {'foo': 'bar'}
+  //     },
+  //     {
+  //       '*': {'foo': 'baz'}
+  //     }
+  //   ]);
 
-    query.removeChangeListener(token);
+  //   query.removeChangeListener(token);
 
-    await asyncSleep(100);
-    changes_received = false;
-    db.saveDocument(Document('testdoc2', data: {'foo': 'bat'}));
+  //   await asyncSleep(100);
+  //   changes_received = false;
+  //   db.saveDocument(Document('testdoc2', data: {'foo': 'bat'}));
 
-    await asyncSleep(1000);
-    expect(changes_received, false);
-    expect(rows, [
-      {
-        '*': {'foo': 'bar'}
-      },
-      {
-        '*': {'foo': 'baz'}
-      }
-    ]);
+  //   await asyncSleep(1000);
+  //   expect(changes_received, false);
+  //   expect(rows, [
+  //     {
+  //       '*': {'foo': 'bar'}
+  //     },
+  //     {
+  //       '*': {'foo': 'baz'}
+  //     }
+  //   ]);
 
-    addTearDown(() => db.close());
-  });
+  //   addTearDown(() => db.close());
+  // });
 }
