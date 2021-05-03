@@ -102,6 +102,17 @@ void main() {
     addTearDown(() => db.close());
   });
 
+  test('Join', () async {
+    var db = Database('query3', directory: TESTDIR);
+    final query = Query(db,
+        'SELECT * FROM users JOIN  profiles ON profiles.userId=users.id WHERE users.id=1');
+    db.saveDocument(Document('ll', data: {'users': 'bar', 'id': '1'}));
+    db.saveDocument(Document('uu', data: {'profiles': 'baz', 'id': '1'}));
+
+    // final result = query.execute();
+    // expect(result.next(), true);
+    expect(1, 1);
+  });
   test('ResultSet', () async {
     var db = Database('query3', directory: TESTDIR);
     final query = Query(db, 'SELECT foo');
