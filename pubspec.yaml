@@ -139,6 +139,7 @@ dev_dependencies:
   injectable_generator:
   stacked_generator:
   mockito:
+  test: ^1.5.3
   
   
 
