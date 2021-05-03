@@ -130,10 +130,10 @@ flutter_icons:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # integration_test:
-  #   sdk: flutter
-  # flutter_driver:
-  #   sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
   build_runner:
   auto_route_generator:
   injectable_generator:
