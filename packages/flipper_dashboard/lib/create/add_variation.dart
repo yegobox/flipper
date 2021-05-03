@@ -36,7 +36,7 @@ class _AddVariationState extends State<AddVariation> {
               },
               title: 'Add Variation',
               showActionButton: true,
-              disableButton: model.isLocked,
+              disableButton: model.lock(),
               rightActionButtonName: 'Save',
               onPressedCallback: () async {
                 if (AddVariation._formKey.currentState!.validate()) {

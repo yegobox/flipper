@@ -22,8 +22,6 @@ class ProductViewModel extends ReactiveViewModel {
   final ProductService _productService = locator<ProductService>();
   List<Product> _products = [];
   get products => _products;
-  bool _isLocked = false;
-  get isLocked => _isLocked;
 
   List<PColor> get colors => _appService.colors;
 
@@ -79,7 +77,9 @@ class ProductViewModel extends ReactiveViewModel {
     _name = name;
   }
 
-  void lock() {}
+  bool lock() {
+    return name?.length == null || name?.length == 0;
+  }
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_appService];
