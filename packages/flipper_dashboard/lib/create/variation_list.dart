@@ -1,24 +1,21 @@
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/models/variation.dart';
 
 class VariationList extends StatelessWidget {
   const VariationList(
       {Key? key, required this.variations, required this.deleteVariant})
       : super(key: key);
-  final List<VariantStock> variations;
+  final List<Variation> variations;
   final Function deleteVariant;
-  Widget _buildVariationsList({required List<VariantStock> variations}) {
+  Widget _buildVariationsList({required List<Variation> variations}) {
     final List<Widget> list = <Widget>[];
 
     for (var i = 0; i < variations.length; i++) {
-      //TODO: show regular when stocked! i.e stock is not 0
-      if (variations[i].variantName != 'temp') {
-        // &&
-        // variations[i].variantName != 'Regular'
+      if (variations[i].name != 'temp') {
         list.add(
           Slidable(
             child: Center(
@@ -31,7 +28,7 @@ class VariationList extends StatelessWidget {
                       Icons.dehaze,
                     ),
                     subtitle: Text(
-                        '${variations[i].variantName} \nRWF ${variations[i].retailPrice}'),
+                        '${variations[i].name} \nRWF ${variations[i].retailPrice}'),
                     trailing:
                         Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
                       FlatButton(
@@ -63,7 +60,7 @@ class VariationList extends StatelessWidget {
                 color: Colors.red,
                 icon: Icons.delete,
                 onTap: () {
-                  deleteVariant(variations[i].variantId);
+                  deleteVariant(variations[i].id);
                 },
               ),
             ],
