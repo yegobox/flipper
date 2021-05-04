@@ -4,12 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/view_models/product_viewmodel.dart';
+import 'package:flipper_models/models/stock.dart';
 
 class VariationList extends StatelessWidget {
-  const VariationList(
-      {Key? key, required this.variations, required this.deleteVariant})
-      : super(key: key);
+  const VariationList({
+    Key? key,
+    required this.variations,
+    required this.deleteVariant,
+    required this.model,
+  }) : super(key: key);
   final List<Variation> variations;
+  final ProductViewModel model;
   final Function deleteVariant;
   Widget _buildVariationsList({required List<Variation> variations}) {
     final List<Widget> list = <Widget>[];
@@ -29,26 +35,35 @@ class VariationList extends StatelessWidget {
                     ),
                     subtitle: Text(
                         '${variations[i].name} \nRWF ${variations[i].retailPrice}'),
-                    trailing:
-                        Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                      FlatButton(
-                        child: Text(
-                          variations[i].currentStock == 0
-                              ? 'Receive Stock'
-                              : variations[i].currentStock.toString() +
-                                  ' ' +
-                                  'in Stock',
-                        ),
-                        onPressed: () {
-                          ProxyService.nav.navigateTo(
-                            Routes.receiveStock,
-                            arguments: ReceiveStockArguments(
-                              variantId: variations[i].id,
-                            ),
-                          );
-                        },
-                      ),
-                    ]),
+                    trailing: FutureBuilder(
+                        future: model.loadStock(variantId: variations[i].id),
+                        builder: (context, snap) {
+                          if (snap.connectionState == ConnectionState.done) {
+                            final Stock stock = snap.data as Stock;
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextButton(
+                                  child: Text(
+                                    stock.currentStock == 0.0
+                                        ? 'Receive Stock'
+                                        : stock.currentStock.toString(),
+                                  ),
+                                  onPressed: () {
+                                    ProxyService.nav.navigateTo(
+                                      Routes.receiveStock,
+                                      arguments: ReceiveStockArguments(
+                                        variantId: variations[i].id,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          } else {
+                            return Text('...');
+                          }
+                        }),
                     dense: true,
                   )
                 ]),

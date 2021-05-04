@@ -170,9 +170,8 @@ class HttpApi<T> implements Api {
   @override
   Future<List<Variation>> variants(
       {required String branchId, required String productId}) async {
-    print("$branchId/$productId");
-    final response = await client
-        .get(Uri.parse("$apihub/api/stock-product/$branchId/$productId"));
+    final response =
+        await client.get(Uri.parse("$apihub/api/variants/$productId"));
 
     return variationFromJson(response.body);
   }
@@ -225,5 +224,12 @@ class HttpApi<T> implements Api {
   Future<Product> getProduct({required String id}) async {
     final response = await client.get(Uri.parse("$apihub/api/product/$id"));
     return sproductFromJson(response.body);
+  }
+
+  @override
+  Future<Stock> stockByVariantId({required String variantId}) async {
+    final response = await client
+        .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
+    return sstockFromJson(response.body);
   }
 }

@@ -43,6 +43,7 @@ class LiteApi<T> implements Api {
   dynamic Q17;
   dynamic Q18;
   dynamic Q5;
+  dynamic Q2;
   registerQueries() {
     Q14 = Query(db, Queries.Q_14);
     Q1 = Query(db, Queries.Q_1);
@@ -54,6 +55,7 @@ class LiteApi<T> implements Api {
     Q17 = Query(db, Queries.Q_17);
     Q18 = Query(db, Queries.Q_18);
     Q5 = Query(db, Queries.Q_5);
+    Q2 = Query(db, Queries.Q_2);
   }
 
   LiteApi({required Database database}) {
@@ -200,7 +202,6 @@ class LiteApi<T> implements Api {
       table: AppTables.variation,
       channels: [userId!],
       productName: productMap['name'],
-      currentStock: 0.0,
       lowStock: 0.0,
       supplyPrice: 0.0,
       retailPrice: 0.0,
@@ -380,5 +381,16 @@ class LiteApi<T> implements Api {
     Document doc = db.getDocument(id);
 
     return sproductFromJson(doc.json);
+  }
+
+  @override
+  Future<Stock> stockByVariantId({required String variantId}) async {
+    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
+    final ResultSet business = Q2.execute();
+    final List<Stock> stocks = [];
+    for (Map map in business.allResults) {
+      stocks.add(sstockFromJson(jsonEncode(map)));
+    }
+    return stocks[0];
   }
 }

@@ -6,7 +6,6 @@ import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'package:flipper_models/models/product_mock.dart';
-import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/variation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
@@ -246,7 +245,6 @@ class ProductViewModel extends ReactiveViewModel {
       unit: _productService.currentUnit!,
       channels: [_productService.userId!],
       productName: _productService.product!.name,
-      currentStock: 0.0,
       supplyPrice: supplyPrice,
       canTrackingStock: canTrackingStock,
       branchId: _productService.branchId!,
@@ -261,4 +259,6 @@ class ProductViewModel extends ReactiveViewModel {
     ProxyService.nav.navigateTo(Routes.addVariation,
         arguments: AddVariationArguments(productId: productId));
   }
+
+  loadStock({required String variantId}) {}
 }

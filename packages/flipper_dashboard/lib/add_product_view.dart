@@ -127,6 +127,7 @@ class AddProductView extends StatelessWidget {
                   ),
                   VariationList(
                     variations: model.variants,
+                    model: model,
                     deleteVariant: (id) {
                       model.deleteVariant(id: id);
                     },

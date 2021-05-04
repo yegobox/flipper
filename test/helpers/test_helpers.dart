@@ -42,7 +42,6 @@ Api getAndRegisterApi(
     unit: 'kg',
     channels: ['UID'],
     productName: 'temp',
-    currentStock: 0.0,
     supplyPrice: 0.0,
     canTrackingStock: false,
     branchId: 'BID',

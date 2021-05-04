@@ -5,6 +5,10 @@ library flipper_models;
 
 import 'dart:convert';
 
+Stock sstockFromJson(String str) => Stock.fromJson(json.decode(str));
+
+String sstockToJson(Stock data) => json.encode(data.toJson());
+
 List<Stock> stockFromJson(String str) =>
     List<Stock>.from(json.decode(str).map((x) => Stock.fromJson(x)));
 
@@ -41,7 +45,7 @@ class Stock {
   bool showLowStockAlert;
   List<String> channels;
   String table;
-  dynamic productId;
+  String productId;
   bool active;
 
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
