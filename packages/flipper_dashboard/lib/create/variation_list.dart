@@ -47,7 +47,8 @@ class VariationList extends StatelessWidget {
                                   child: Text(
                                     stock.currentStock == 0.0
                                         ? 'Receive Stock'
-                                        : stock.currentStock.toString(),
+                                        : stock.currentStock.toString() +
+                                            ' in stock',
                                   ),
                                   onPressed: () {
                                     ProxyService.nav.navigateTo(

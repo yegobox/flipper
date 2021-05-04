@@ -312,7 +312,7 @@ class LiteApi<T> implements Api {
       doc.properties[key] = value;
     });
     db.saveDocument(doc);
-    return 1;
+    return 200;
   }
 
   @override

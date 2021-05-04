@@ -175,11 +175,14 @@ class ProductViewModel extends ReactiveViewModel {
     _appService.loadUnits();
   }
 
-  void updateStock({required String variantId}) {
-    // TODO: will make validation to work with default value 0 in
+  void updateStock({required String variantId}) async {
     if (_stockValue != null) {
-      print(_stockValue);
-      print(variantId);
+      Stock stock =
+          await ProxyService.api.stockByVariantId(variantId: variantId);
+      Map data = stock.toJson();
+      data['currentStock'] = _stockValue;
+      ProxyService.api.update(data: data, endPoint: 'stock');
+      variantsProduct(productId: product.id);
     }
   }
 

@@ -41,7 +41,7 @@ class ReceiveStock extends StatelessWidget {
                   children: <Widget>[
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty || value == '0') {
                           return 'Please enter stock value';
                         }
                         return null;
