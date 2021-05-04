@@ -29,6 +29,7 @@ class AddProductView extends StatelessWidget {
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
+        model.setName(name: ' '); //start locking the save button
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {

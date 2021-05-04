@@ -8,6 +8,7 @@ import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/sync.dart';
+import 'package:flipper_models/models/variation.dart';
 
 abstract class Api<T> {
   Future<Login> login({required String phone});
@@ -26,7 +27,7 @@ abstract class Api<T> {
   Future<PColor> getColor({required String id, String? endPoint});
   Future<List<VariantStock>> variantStock(
       {required String branchId, required String variantId});
-  Future<List<VariantStock>> variantProduct({
+  Future<List<Variation>> variants({
     required String branchId,
     required String productId,
   });

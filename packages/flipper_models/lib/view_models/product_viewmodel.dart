@@ -29,8 +29,8 @@ class ProductViewModel extends ReactiveViewModel {
 
   get categories => _appService.categories;
 
-  List<VariantStock> _variantStock = [];
-  get variants => _variantStock;
+  List<Variation> _variants = [];
+  get variants => _variants;
   get product => _productService.product;
   String? _name;
   get name => _name;
@@ -63,14 +63,13 @@ class ProductViewModel extends ReactiveViewModel {
     return isTemp[0].id;
   }
 
-  Future<List<VariantStock>> variantsProduct(
-      {required String productId}) async {
+  Future<List<Variation>> variantsProduct({required String productId}) async {
     final String? branchId = ProxyService.box.read(key: 'branchId');
 
-    _variantStock = await ProxyService.api
-        .variantProduct(branchId: branchId!, productId: productId);
+    _variants = await ProxyService.api
+        .variants(branchId: branchId!, productId: productId);
     notifyListeners();
-    return _variantStock;
+    return _variants;
   }
 
   void setName({String? name}) {

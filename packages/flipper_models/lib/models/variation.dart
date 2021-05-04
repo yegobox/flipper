@@ -5,6 +5,11 @@ library flipper_models;
 
 import 'dart:convert';
 
+Variation svariationFromJson(String str) =>
+    Variation.fromJson(json.decode(str));
+
+String svariationToJson(Variation data) => json.encode(data.toJson());
+
 List<Variation> variationFromJson(String str) =>
     List<Variation>.from(json.decode(str).map((x) => Variation.fromJson(x)));
 

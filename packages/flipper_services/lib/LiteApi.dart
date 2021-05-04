@@ -316,25 +316,14 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<VariantStock>> variantProduct(
+  Future<List<Variation>> variants(
       {required String branchId, required String productId}) async {
-    Q17.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
-    final ResultSet business = Q17.execute();
-    final List<VariantStock> variantStocks = [];
-    for (Map map in business.allResults) {
-      variantStocks.add(svariantStockFromJson(jsonEncode(map)));
-    }
-    final Document product = db.getDocument(productId);
+    final List<Variation> variantStocks = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet variants = Q1.execute();
     for (Map map in variants.allResults) {
-      print(map);
+      variantStocks.add(svariationFromJson(jsonEncode(map)));
     }
-    // TODO: change algorithm since join is a joke!
-    // get the proeuct
-    // get variants
-    // get stock merge what I want into variantStock map then
-    // use  variantStocks.add(svariantStockFromJson(jsonEncode(map))); on that map.
     return variantStocks;
   }
 
