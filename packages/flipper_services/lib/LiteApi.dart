@@ -216,7 +216,6 @@ class LiteApi<T> implements Api {
 
     final stock = new Stock(
       id: stockId,
-      value: 0.0,
       branchId: branchId,
       variantId: variationMap['id'],
       lowStock: 0.0,
