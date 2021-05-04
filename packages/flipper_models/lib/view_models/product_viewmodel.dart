@@ -4,6 +4,7 @@ import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/color.dart';
+import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/variation.dart';
@@ -260,5 +261,7 @@ class ProductViewModel extends ReactiveViewModel {
         arguments: AddVariationArguments(productId: productId));
   }
 
-  loadStock({required String variantId}) {}
+  Future<Stock> loadStock({required String variantId}) async {
+    return await ProxyService.api.stockByVariantId(variantId: variantId);
+  }
 }
