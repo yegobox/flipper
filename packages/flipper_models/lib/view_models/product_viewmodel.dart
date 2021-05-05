@@ -267,8 +267,8 @@ class ProductViewModel extends ReactiveViewModel {
         if (variation.name == "Regular") {
           Map data = variation.toJson();
           data['supplyPrice'] = supplyPrice;
-          // TODO: implment PUT endPoint: 'variation'
-          ProxyService.api.update(data: data, endPoint: 'variation');
+          String id = data['id'];
+          ProxyService.api.update(data: data, endPoint: 'variant/$id');
         }
       }
     }
@@ -278,8 +278,8 @@ class ProductViewModel extends ReactiveViewModel {
         if (variation.name == "Regular") {
           Map data = variation.toJson();
           data['retailPrice'] = retailPrice;
-          // TODO: implment PUT endPoint: 'variation'
-          ProxyService.api.update(data: data, endPoint: 'variation');
+          String id = data['id'];
+          ProxyService.api.update(data: data, endPoint: 'variant/$id');
         }
       }
     }
