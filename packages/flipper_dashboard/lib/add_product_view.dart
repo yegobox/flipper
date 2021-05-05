@@ -114,11 +114,17 @@ class AddProductView extends StatelessWidget {
                   const CenterDivider(
                     width: double.infinity,
                   ),
-                  RetailPrice(onModelUpdate: (value) {}),
+                  RetailPrice(onModelUpdate: (value) {
+                    model.updateRegularVariant(
+                        retailPrice: double.parse(value));
+                  }),
                   const CenterDivider(
                     width: double.infinity,
                   ),
-                  SupplyPrice(onModelUpdate: (value) {}),
+                  SupplyPrice(onModelUpdate: (value) {
+                    model.updateRegularVariant(
+                        supplyPrice: double.parse(value));
+                  }),
                   const ListDivider(
                     height: 10,
                   ),

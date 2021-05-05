@@ -261,6 +261,31 @@ class ProductViewModel extends ReactiveViewModel {
     );
   }
 
+  void updateRegularVariant({double? supplyPrice, double? retailPrice}) {
+    if (supplyPrice != null) {
+      for (Variation variation in variants!) {
+        if (variation.name == "Regular") {
+          Map data = variation.toJson();
+          data['supplyPrice'] = supplyPrice;
+          // TODO: implment PUT endPoint: 'variation'
+          ProxyService.api.update(data: data, endPoint: 'variation');
+        }
+      }
+    }
+    if (retailPrice != null) {
+      //get regular price
+      for (Variation variation in variants!) {
+        if (variation.name == "Regular") {
+          Map data = variation.toJson();
+          data['retailPrice'] = retailPrice;
+          // TODO: implment PUT endPoint: 'variation'
+          ProxyService.api.update(data: data, endPoint: 'variation');
+        }
+      }
+    }
+    _productService.variantsProduct(productId: product.id);
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [_appService, _productService];
