@@ -232,4 +232,11 @@ class HttpApi<T> implements Api {
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
     return sstockFromJson(response.body);
   }
+
+  @override
+  Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
+    final response = await client
+        .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
+    yield sstockFromJson(response.body);
+  }
 }

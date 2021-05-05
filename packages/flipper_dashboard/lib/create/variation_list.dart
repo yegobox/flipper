@@ -35,35 +35,36 @@ class VariationList extends StatelessWidget {
                     ),
                     subtitle: Text(
                         '${variations[i].name} \nRWF ${variations[i].retailPrice}'),
-                    trailing: FutureBuilder(
-                        future: model.loadStock(variantId: variations[i].id),
-                        builder: (context, snap) {
-                          if (snap.connectionState == ConnectionState.done) {
-                            final Stock stock = snap.data as Stock;
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextButton(
-                                  child: Text(
-                                    stock.currentStock == 0.0
-                                        ? 'Receive Stock'
-                                        : stock.currentStock.toString() +
-                                            ' in stock',
-                                  ),
-                                  onPressed: () {
-                                    ProxyService.nav.navigateTo(
-                                      Routes.receiveStock,
-                                      arguments: ReceiveStockArguments(
-                                        variantId: variations[i].id,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            );
-                          } else {
-                            return Text('...');
+                    trailing: StreamBuilder<Stock>(
+                        stream: ProxyService.api.stockByVariantIdStream(
+                          variantId: variations[i].id,
+                        ),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Text('....');
                           }
+                          final Stock? stock = snapshot.data;
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              TextButton(
+                                child: Text(
+                                  stock == null || stock.currentStock == 0.0
+                                      ? 'Receive Stock'
+                                      : stock.currentStock.toString() +
+                                          ' in stock',
+                                ),
+                                onPressed: () {
+                                  ProxyService.nav.navigateTo(
+                                    Routes.receiveStock,
+                                    arguments: ReceiveStockArguments(
+                                      variantId: variations[i].id,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
                         }),
                     dense: true,
                   )

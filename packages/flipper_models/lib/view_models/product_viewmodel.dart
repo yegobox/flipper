@@ -29,13 +29,13 @@ class ProductViewModel extends ReactiveViewModel {
 
   get categories => _appService.categories;
 
-  List<Variation> _variants = [];
-  get variants => _variants;
   get product => _productService.product;
   String? _name;
   get name => _name;
 
   get currentColor => _appService.currentColor;
+
+  List<Variation>? get variants => _productService.variants;
 
   Future<List<Product>> loadProducts() async {
     _products = await ProxyService.api.products();
@@ -44,12 +44,15 @@ class ProductViewModel extends ReactiveViewModel {
     return _products;
   }
 
+  /// Create a temporal product to use during this session of product creation
+  /// the same product will be use if it is still temp product
+  ///
   Future<String> createTemporalProduct() async {
     final List<Product> isTemp = await ProxyService.api.isTempProductExist();
     if (isTemp.isEmpty) {
       Product product =
           await ProxyService.api.createProduct(product: productMock);
-      variantsProduct(productId: product.id);
+      _productService.variantsProduct(productId: product.id);
 
       _productService.setCurrentProduct(product: product);
       notifyListeners();
@@ -58,18 +61,9 @@ class ProductViewModel extends ReactiveViewModel {
     // ProxyService.api.delete(id: isTemp[0].id);
     // return "d";
     _productService.setCurrentProduct(product: isTemp[0]);
-    variantsProduct(productId: isTemp[0].id);
+    _productService.variantsProduct(productId: isTemp[0].id);
 
     return isTemp[0].id;
-  }
-
-  Future<List<Variation>> variantsProduct({required String productId}) async {
-    final String? branchId = ProxyService.box.read(key: 'branchId');
-
-    _variants = await ProxyService.api
-        .variants(branchId: branchId!, productId: productId);
-    notifyListeners();
-    return _variants;
   }
 
   void setName({String? name}) {
@@ -81,9 +75,6 @@ class ProductViewModel extends ReactiveViewModel {
 
   bool _lock = false;
   bool get lock => _lock;
-
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [_appService];
 
   void loadCategories() {
     _appService.loadCategories();
@@ -182,8 +173,10 @@ class ProductViewModel extends ReactiveViewModel {
       Map data = stock.toJson();
       data['currentStock'] = _stockValue;
       ProxyService.api.update(data: data, endPoint: 'stock');
-      variantsProduct(productId: product.id);
+      _productService.variantsProduct(productId: product.id);
     }
+    // ProxyService.api.stockByVariantIdStream(variantId: variantId);
+    _productService.variantsProduct(productId: product.id);
   }
 
   double? _stockValue;
@@ -260,11 +253,15 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void navigateAddVariation({required String productId}) {
-    ProxyService.nav.navigateTo(Routes.addVariation,
-        arguments: AddVariationArguments(productId: productId));
+    ProxyService.nav.navigateTo(
+      Routes.addVariation,
+      arguments: AddVariationArguments(
+        productId: productId,
+      ),
+    );
   }
 
-  Future<Stock> loadStock({required String variantId}) async {
-    return await ProxyService.api.stockByVariantId(variantId: variantId);
-  }
+  @override
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [_appService, _productService];
 }

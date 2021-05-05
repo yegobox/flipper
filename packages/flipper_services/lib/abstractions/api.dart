@@ -18,6 +18,7 @@ abstract class Api<T> {
   Future<List<Business>?> businesses();
   Future<List<Branch>> branches({required String businessId});
   Future<List<Stock>> stocks({required String productId});
+  Stream<Stock> stockByVariantIdStream({required String variantId});
   Future<Stock> stockByVariantId({required String variantId});
   Future<List<PColor>> colors({required String branchId});
   Future<List<Category>> categories({required String branchId});

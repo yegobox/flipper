@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/models/variant_stock.dart';
@@ -31,6 +32,7 @@ class LiteApi<T> implements Api {
   Replicator? replicator;
   Database db = Database("main_01");
   ExtendedClient client = ExtendedClient(http.Client());
+  StreamController<Stock> controller = StreamController<Stock>.broadcast();
   String flipperApi = "https://flipper.yegobox.com";
   String apihub = "https://apihub.yegobox.com";
   dynamic Q14;
@@ -383,11 +385,28 @@ class LiteApi<T> implements Api {
   }
 
   @override
+  Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
+    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
+    final ResultSet stock = Q2.execute();
+    final List<Stock> stocks = [];
+    for (Map map in stock.allResults) {
+      stocks.add(sstockFromJson(jsonEncode(map)));
+    }
+    // FIXME: should use changeListner so we can show change in realtime.
+    yield stocks[0];
+    // Q2.addChangeListener((results) {
+    //   for (Map map in results.allResults) {
+    //     controller.add(sstockFromJson(jsonEncode(map)));
+    //   }
+    // });
+  }
+
+  @override
   Future<Stock> stockByVariantId({required String variantId}) async {
     Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
-    final ResultSet business = Q2.execute();
+    final ResultSet stock = Q2.execute();
     final List<Stock> stocks = [];
-    for (Map map in business.allResults) {
+    for (Map map in stock.allResults) {
       stocks.add(sstockFromJson(jsonEncode(map)));
     }
     return stocks[0];

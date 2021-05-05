@@ -125,13 +125,15 @@ class AddProductView extends StatelessWidget {
                   const ListDivider(
                     height: 10,
                   ),
-                  VariationList(
-                    variations: model.variants,
-                    model: model,
-                    deleteVariant: (id) {
-                      model.deleteVariant(id: id);
-                    },
-                  ),
+                  model.variants == null
+                      ? SizedBox.shrink()
+                      : VariationList(
+                          variations: model.variants!,
+                          model: model,
+                          deleteVariant: (id) {
+                            model.deleteVariant(id: id);
+                          },
+                        ),
                   Padding(
                     padding:
                         const EdgeInsets.only(left: 18, right: 18, top: 10),
