@@ -258,25 +258,30 @@ class ProductViewModel extends ReactiveViewModel {
     );
   }
 
-  void updateRegularVariant({double? supplyPrice, double? retailPrice}) {
+  /// When called should check the related product's variant and set the retail and or supply price
+  /// of related stock
+  void updateRegularVariant({double? supplyPrice, double? retailPrice}) async {
     if (supplyPrice != null) {
       for (Variation variation in variants!) {
         if (variation.name == "Regular") {
-          Map data = variation.toJson();
+          Stock stock =
+              await ProxyService.api.stockByVariantId(variantId: variation.id);
+          Map data = stock.toJson();
           data['supplyPrice'] = supplyPrice;
           String id = data['id'];
-          ProxyService.api.update(data: data, endPoint: 'variant/$id');
+          ProxyService.api.update(data: data, endPoint: 'stock/$id');
         }
       }
     }
     if (retailPrice != null) {
-      //get regular price
       for (Variation variation in variants!) {
         if (variation.name == "Regular") {
-          Map data = variation.toJson();
+          Stock stock =
+              await ProxyService.api.stockByVariantId(variantId: variation.id);
+          Map data = stock.toJson();
           data['retailPrice'] = retailPrice;
           String id = data['id'];
-          ProxyService.api.update(data: data, endPoint: 'variant/$id');
+          ProxyService.api.update(data: data, endPoint: 'stock/$id');
         }
       }
     }
