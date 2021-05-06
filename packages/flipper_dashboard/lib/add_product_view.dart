@@ -110,7 +110,10 @@ class AddProductView extends StatelessWidget {
                   ),
                   model.product == null
                       ? SizedBox.shrink()
-                      : SectionSelectUnit(product: model.product),
+                      : SectionSelectUnit(
+                          product: model.product,
+                          type: 'product',
+                        ),
                   const CenterDivider(
                     width: double.infinity,
                   ),

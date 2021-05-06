@@ -140,6 +140,7 @@ dev_dependencies:
   stacked_generator:
   mockito:
   test: ^1.5.3
+  msix: ^2.0.0
   
   
 

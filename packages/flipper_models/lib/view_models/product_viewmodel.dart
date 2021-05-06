@@ -155,13 +155,14 @@ class ProductViewModel extends ReactiveViewModel {
       final Map data = product.toJson();
       data['unit'] = unit.name;
       ProxyService.api.update(data: data, endPoint: 'product');
-      final Product p = await ProxyService.api.getProduct(id: product.id);
-      _productService.setCurrentProduct(product: p);
+      final Product uProduct =
+          await ProxyService.api.getProduct(id: product.id);
+      _productService.setCurrentProduct(product: uProduct);
     }
     if (type == 'variant') {
-      final Map data = product.toJson();
-      data['unit'] = unit.name;
-      ProxyService.api.update(data: data, endPoint: 'variant');
+      // final Map data = product.toJson();
+      // data['unit'] = unit.name;
+      // ProxyService.api.update(data: data, endPoint: 'variant');
     }
     _appService.loadUnits();
   }
