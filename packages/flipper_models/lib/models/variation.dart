@@ -26,11 +26,7 @@ class Variation {
     required this.table,
     required this.channels,
     required this.productName,
-    required this.supplyPrice,
-    required this.retailPrice,
-    required this.canTrackingStock,
     required this.branchId,
-    this.lowStock,
   });
 
   String id;
@@ -41,11 +37,7 @@ class Variation {
   String table;
   List<String> channels;
   String productName;
-  double supplyPrice;
-  double retailPrice;
-  bool canTrackingStock;
   String branchId;
-  double? lowStock;
 
   factory Variation.fromJson(Map<String, dynamic> json) => Variation(
         id: json["id"],
@@ -56,11 +48,7 @@ class Variation {
         table: json["table"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         productName: json["productName"],
-        supplyPrice: json["supplyPrice"],
-        retailPrice: json["retailPrice"],
-        canTrackingStock: json["canTrackingStock"],
         branchId: json["branchId"],
-        lowStock: json["lowStock"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -72,10 +60,6 @@ class Variation {
         "table": table,
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "productName": productName,
-        "supplyPrice": supplyPrice,
-        "retailPrice": retailPrice,
-        "canTrackingStock": canTrackingStock,
         "branchId": branchId,
-        "lowStock": lowStock == null ? 0.0 : lowStock
       };
 }

@@ -204,10 +204,6 @@ class LiteApi<T> implements Api {
       table: AppTables.variation,
       channels: [userId!],
       productName: productMap['name'],
-      lowStock: 0.0,
-      supplyPrice: 0.0,
-      retailPrice: 0.0,
-      canTrackingStock: false,
       branchId: branchId!,
     );
     final variationDoc = Document(variation.id, data: variation.toJson());

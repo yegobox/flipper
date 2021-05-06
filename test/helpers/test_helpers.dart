@@ -23,7 +23,7 @@ Api getAndRegisterApi(
     {bool hasLoggedInUser = false, List<Business>? businesses}) {
   _removeRegistrationIfExists<Api>();
   final service = MockApi();
-  final productService = MockProductService();
+  // final productService = MockProductService();
   when(service.login()).thenAnswer(
     (_) async => Login(
       id: 1,
@@ -37,13 +37,10 @@ Api getAndRegisterApi(
   Variation data = new Variation(
     name: 'name',
     sku: 'sku',
-    retailPrice: 0.0,
     productId: '',
     unit: 'kg',
     channels: ['UID'],
     productName: 'temp',
-    supplyPrice: 0.0,
-    canTrackingStock: false,
     branchId: 'BID',
     id: '',
     table: '',

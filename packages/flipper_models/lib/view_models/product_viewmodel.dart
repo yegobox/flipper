@@ -237,13 +237,10 @@ class ProductViewModel extends ReactiveViewModel {
     Variation data = new Variation(
       name: name,
       sku: sku!,
-      retailPrice: retailPrice,
       productId: _productService.product!.id,
       unit: _productService.currentUnit!,
       channels: [_productService.userId!],
       productName: _productService.product!.name,
-      supplyPrice: supplyPrice,
-      canTrackingStock: canTrackingStock,
       branchId: _productService.branchId!,
       id: '',
       table: '',
