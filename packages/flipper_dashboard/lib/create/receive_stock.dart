@@ -1,3 +1,4 @@
+import 'package:flipper/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
@@ -41,7 +42,7 @@ class ReceiveStock extends StatelessWidget {
                   children: <Widget>[
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty || value == '0') {
                           return 'Please enter stock value';
                         }
                         return null;

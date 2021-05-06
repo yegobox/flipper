@@ -3,10 +3,10 @@ library flipper_models;
 class Queries {
   //table = variation
   static const String Q_1 =
-      'SELECT id, sku, productId, name, unit, table, productName,  channels WHERE table=\$T AND productId=\$PRODUCTID';
+      'SELECT id, sku, productId,supplyPrice,retailPrice,canTrackingStock,branchId, name, unit, table, productName,  channels WHERE table=\$T AND productId=\$PRODUCTID';
   //table = stock
   static const String Q_2 =
-      'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$VALUE AND variantId=\$VARIANTID';
+      'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$T AND variantId=\$VARIANTID';
   //table = order
   static const String Q_3 =
       'SELECT  id,branchId,quantity,reference,draft,active,orderType,orderNUmber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue  WHERE table=\$T AND status=\$S';

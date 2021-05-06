@@ -64,8 +64,7 @@ class _AddVariationState extends State<AddVariation> {
                           height: 20,
                         ),
                         SectionSelectUnit(
-                          product: model.product,
-                        ),
+                            product: model.product, type: 'variation'),
                         Padding(
                           padding: const EdgeInsets.only(left: 18, right: 18),
                           child: Container(

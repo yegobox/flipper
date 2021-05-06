@@ -5,6 +5,10 @@ library flipper_models;
 
 import 'dart:convert';
 
+Stock sstockFromJson(String str) => Stock.fromJson(json.decode(str));
+
+String sstockToJson(Stock data) => json.encode(data.toJson());
+
 List<Stock> stockFromJson(String str) =>
     List<Stock>.from(json.decode(str).map((x) => Stock.fromJson(x)));
 
@@ -14,7 +18,6 @@ String stockToJson(List<Stock> data) =>
 class Stock {
   Stock({
     required this.id,
-    required this.value,
     required this.branchId,
     required this.variantId,
     required this.lowStock,
@@ -26,11 +29,10 @@ class Stock {
     required this.channels,
     required this.table,
     required this.productId,
-    required this.active,
+    this.active,
   });
 
   String id;
-  double value;
   String branchId;
   String variantId;
   double lowStock;
@@ -41,12 +43,11 @@ class Stock {
   bool showLowStockAlert;
   List<String> channels;
   String table;
-  dynamic productId;
-  bool active;
+  String productId;
+  bool? active;
 
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
         id: json["id"],
-        value: json["value"],
         branchId: json["branchId"],
         variantId: json["variantId"],
         lowStock: json["lowStock"],
@@ -58,12 +59,11 @@ class Stock {
         channels: List<String>.from(json["channels"].map((x) => x)),
         table: json["table"],
         productId: json["productId"],
-        active: json["active"],
+        active: json["active"] == null ? false : json["active"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
-        "value": value,
         "branchId": branchId,
         "variantId": variantId,
         "lowStock": lowStock,
@@ -75,6 +75,6 @@ class Stock {
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "table": table,
         "productId": productId,
-        "active": active,
+        "active": active == null ? false : active,
       };
 }

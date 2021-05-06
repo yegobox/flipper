@@ -16,6 +16,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:uuid/uuid.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
+import 'package:flipper_models/models/variation.dart';
 
 import 'constants.dart';
 
@@ -164,15 +165,15 @@ class HttpApi<T> implements Api {
     final response = await client.get(Uri.parse("$apihub/api/Product/temp"));
     return productFromJson(response.body);
   }
+  // FIXME: fix the api to retun variants by productId
 
   @override
-  Future<List<VariantStock>> variantProduct(
+  Future<List<Variation>> variants(
       {required String branchId, required String productId}) async {
-    print("$branchId/$productId");
-    final response = await client
-        .get(Uri.parse("$apihub/api/stock-product/$branchId/$productId"));
+    final response =
+        await client.get(Uri.parse("$apihub/api/variants/$productId"));
 
-    return variantStockFromJson(response.body);
+    return variationFromJson(response.body);
   }
 
   @override
@@ -223,5 +224,19 @@ class HttpApi<T> implements Api {
   Future<Product> getProduct({required String id}) async {
     final response = await client.get(Uri.parse("$apihub/api/product/$id"));
     return sproductFromJson(response.body);
+  }
+
+  @override
+  Future<Stock> stockByVariantId({required String variantId}) async {
+    final response = await client
+        .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
+    return sstockFromJson(response.body);
+  }
+
+  @override
+  Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
+    final response = await client
+        .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
+    yield sstockFromJson(response.body);
   }
 }

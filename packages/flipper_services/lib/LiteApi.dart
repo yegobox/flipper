@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/models/variant_stock.dart';
@@ -31,6 +32,7 @@ class LiteApi<T> implements Api {
   Replicator? replicator;
   Database db = Database("main_01");
   ExtendedClient client = ExtendedClient(http.Client());
+  StreamController<Stock> controller = StreamController<Stock>.broadcast();
   String flipperApi = "https://flipper.yegobox.com";
   String apihub = "https://apihub.yegobox.com";
   dynamic Q14;
@@ -43,6 +45,7 @@ class LiteApi<T> implements Api {
   dynamic Q17;
   dynamic Q18;
   dynamic Q5;
+  dynamic Q2;
   registerQueries() {
     Q14 = Query(db, Queries.Q_14);
     Q1 = Query(db, Queries.Q_1);
@@ -54,6 +57,7 @@ class LiteApi<T> implements Api {
     Q17 = Query(db, Queries.Q_17);
     Q18 = Query(db, Queries.Q_18);
     Q5 = Query(db, Queries.Q_5);
+    Q2 = Query(db, Queries.Q_2);
   }
 
   LiteApi({required Database database}) {
@@ -200,11 +204,6 @@ class LiteApi<T> implements Api {
       table: AppTables.variation,
       channels: [userId!],
       productName: productMap['name'],
-      currentStock: 0.0,
-      lowStock: 0.0,
-      supplyPrice: 0.0,
-      retailPrice: 0.0,
-      canTrackingStock: false,
       branchId: branchId!,
     );
     final variationDoc = Document(variation.id, data: variation.toJson());
@@ -215,7 +214,6 @@ class LiteApi<T> implements Api {
 
     final stock = new Stock(
       id: stockId,
-      value: 0.0,
       branchId: branchId,
       variantId: variationMap['id'],
       lowStock: 0.0,
@@ -312,29 +310,18 @@ class LiteApi<T> implements Api {
       doc.properties[key] = value;
     });
     db.saveDocument(doc);
-    return 1;
+    return 200;
   }
 
   @override
-  Future<List<VariantStock>> variantProduct(
+  Future<List<Variation>> variants(
       {required String branchId, required String productId}) async {
-    Q17.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
-    final ResultSet business = Q17.execute();
-    final List<VariantStock> variantStocks = [];
-    for (Map map in business.allResults) {
-      variantStocks.add(svariantStockFromJson(jsonEncode(map)));
-    }
-    final Document product = db.getDocument(productId);
+    final List<Variation> variantStocks = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet variants = Q1.execute();
     for (Map map in variants.allResults) {
-      print(map);
+      variantStocks.add(svariationFromJson(jsonEncode(map)));
     }
-    // TODO: change algorithm since join is a joke!
-    // get the proeuct
-    // get variants
-    // get stock merge what I want into variantStock map then
-    // use  variantStocks.add(svariantStockFromJson(jsonEncode(map))); on that map.
     return variantStocks;
   }
 
@@ -391,5 +378,33 @@ class LiteApi<T> implements Api {
     Document doc = db.getDocument(id);
 
     return sproductFromJson(doc.json);
+  }
+
+  @override
+  Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
+    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
+    final ResultSet stock = Q2.execute();
+    final List<Stock> stocks = [];
+    for (Map map in stock.allResults) {
+      stocks.add(sstockFromJson(jsonEncode(map)));
+    }
+    // FIXME: should use changeListner so we can show change in realtime.
+    yield stocks[0];
+    // Q2.addChangeListener((results) {
+    //   for (Map map in results.allResults) {
+    //     controller.add(sstockFromJson(jsonEncode(map)));
+    //   }
+    // });
+  }
+
+  @override
+  Future<Stock> stockByVariantId({required String variantId}) async {
+    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
+    final ResultSet stock = Q2.execute();
+    final List<Stock> stocks = [];
+    for (Map map in stock.allResults) {
+      stocks.add(sstockFromJson(jsonEncode(map)));
+    }
+    return stocks[0];
   }
 }
