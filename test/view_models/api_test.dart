@@ -29,9 +29,9 @@ void main() {
   group('Start#2', () {
     setUp(() {
       registerServices();
-      if (!Directory(TESTDIR).existsSync()) {
-        Directory(TESTDIR).createSync();
-      }
+      // if (!Directory(TESTDIR).existsSync()) {
+      //   Directory(TESTDIR).createSync();
+      // }
     });
     tearDown(() => unregisterServices());
     test('when logged in but not synced should take you to signup', () async {

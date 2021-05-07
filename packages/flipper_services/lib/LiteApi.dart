@@ -381,6 +381,7 @@ import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/business.dart';
 
 import 'package:flipper_models/models/branch.dart';
+import 'package:flipper_models/models/variation.dart';
 
 import 'abstractions/api.dart';
 
@@ -517,6 +518,25 @@ class LiteApi implements Api {
   Future<List<VariantStock>> variantProduct(
       {required String branchId, required String productId}) {
     // TODO: implement variantProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Stock> stockByVariantId({required String variantId}) {
+    // TODO: implement stockByVariantId
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<Stock> stockByVariantIdStream({required String variantId}) {
+    // TODO: implement stockByVariantIdStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Variation>> variants(
+      {required String branchId, required String productId}) {
+    // TODO: implement variants
     throw UnimplementedError();
   }
 }

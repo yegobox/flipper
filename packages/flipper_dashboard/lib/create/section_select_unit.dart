@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/models/product.dart';
 
 class SectionSelectUnit extends StatelessWidget {
-  const SectionSelectUnit({Key? key, required this.product}) : super(key: key);
+  const SectionSelectUnit({Key? key, required this.product, required this.type})
+      : super(key: key);
   final Product product;
+  final String type;
   Text unitSelector(Product units) {
     late Text text = Text('Select Unit');
 
@@ -25,7 +27,7 @@ class SectionSelectUnit extends StatelessWidget {
         child: GestureDetector(
           onTap: () {
             ProxyService.nav.navigateTo(Routes.listUnits,
-                arguments: ListUnitsArguments(type: 'product'));
+                arguments: ListUnitsArguments(type: type));
           },
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.4),

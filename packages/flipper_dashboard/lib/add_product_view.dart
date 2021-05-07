@@ -29,6 +29,7 @@ class AddProductView extends StatelessWidget {
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
+        model.setName(name: ' '); //start locking the save button
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -109,27 +110,39 @@ class AddProductView extends StatelessWidget {
                   ),
                   model.product == null
                       ? SizedBox.shrink()
-                      : SectionSelectUnit(product: model.product),
+                      : SectionSelectUnit(
+                          product: model.product,
+                          type: 'product',
+                        ),
                   const CenterDivider(
                     width: double.infinity,
                   ),
-                  RetailPrice(onModelUpdate: (value) {}),
+                  RetailPrice(onModelUpdate: (value) {
+                    model.updateRegularVariant(
+                        retailPrice: double.parse(value));
+                  }),
                   const CenterDivider(
                     width: double.infinity,
                   ),
-                  SupplyPrice(onModelUpdate: (value) {}),
+                  SupplyPrice(onModelUpdate: (value) {
+                    model.updateRegularVariant(
+                        supplyPrice: double.parse(value));
+                  }),
                   const ListDivider(
                     height: 10,
                   ),
                   const ListDivider(
                     height: 10,
                   ),
-                  VariationList(
-                    variations: model.variants,
-                    deleteVariant: (id) {
-                      model.deleteVariant(id: id);
-                    },
-                  ),
+                  model.variants == null
+                      ? SizedBox.shrink()
+                      : VariationList(
+                          variations: model.variants!,
+                          model: model,
+                          deleteVariant: (id) {
+                            model.deleteVariant(id: id);
+                          },
+                        ),
                   Padding(
                     padding:
                         const EdgeInsets.only(left: 18, right: 18, top: 10),

@@ -14,6 +14,7 @@ import 'package:flipper_models/models/stock.dart' as _i10;
 import 'package:flipper_models/models/sync.dart' as _i3;
 import 'package:flipper_models/models/unit.dart' as _i12;
 import 'package:flipper_models/models/variant_stock.dart' as _i13;
+import 'package:flipper_models/models/variation.dart' as _i14;
 import 'package:flipper_services/abstractions/api.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 
@@ -122,14 +123,14 @@ class MockApi<T> extends _i1.Mock implements _i6.Api<T> {
           returnValue: Future<List<_i13.VariantStock>>.value(
               <_i13.VariantStock>[])) as _i7.Future<List<_i13.VariantStock>>);
   @override
-  _i7.Future<List<_i13.VariantStock>> variantProduct(
+  _i7.Future<List<_i14.Variation>> variants(
           {String? branchId, String? productId}) =>
       (super.noSuchMethod(
               Invocation.method(#variantProduct, [],
                   {#branchId: branchId, #productId: productId}),
               returnValue:
-                  Future<List<_i13.VariantStock>>.value(<_i13.VariantStock>[]))
-          as _i7.Future<List<_i13.VariantStock>>);
+                  Future<List<_i14.Variation>>.value(<_i14.Variation>[]))
+          as _i7.Future<List<_i14.Variation>>);
   @override
   _i7.Future<int> addUnits({Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),

@@ -1,6 +1,7 @@
 import 'package:flipper_models/models/product.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/models/variation.dart';
 
 class ProductService with ReactiveServiceMixin {
   String? _currentUnit;
@@ -20,7 +21,17 @@ class ProductService with ReactiveServiceMixin {
     _product.value = product;
   }
 
+  final _variants = ReactiveValue<dynamic>(null);
+  List<Variation>? get variants => _variants.value;
+
+  Future<void> variantsProduct({required String productId}) async {
+    final String? branchId = ProxyService.box.read(key: 'branchId');
+
+    _variants.value = await ProxyService.api
+        .variants(branchId: branchId!, productId: productId);
+  }
+
   ProductService() {
-    listenToReactiveValues([_product]);
+    listenToReactiveValues([_product, _variants]);
   }
 }

@@ -5,6 +5,11 @@ library flipper_models;
 
 import 'dart:convert';
 
+Variation svariationFromJson(String str) =>
+    Variation.fromJson(json.decode(str));
+
+String svariationToJson(Variation data) => json.encode(data.toJson());
+
 List<Variation> variationFromJson(String str) =>
     List<Variation>.from(json.decode(str).map((x) => Variation.fromJson(x)));
 
@@ -21,12 +26,7 @@ class Variation {
     required this.table,
     required this.channels,
     required this.productName,
-    required this.currentStock,
-    required this.supplyPrice,
-    required this.retailPrice,
-    required this.canTrackingStock,
     required this.branchId,
-    this.lowStock,
   });
 
   String id;
@@ -37,28 +37,19 @@ class Variation {
   String table;
   List<String> channels;
   String productName;
-  double currentStock;
-  double supplyPrice;
-  double retailPrice;
-  bool canTrackingStock;
   String branchId;
-  double? lowStock;
 
   factory Variation.fromJson(Map<String, dynamic> json) => Variation(
-      id: json["id"],
-      name: json["name"],
-      sku: json["sku"],
-      productId: json["productId"],
-      unit: json["unit"],
-      table: json["table"],
-      channels: List<String>.from(json["channels"].map((x) => x)),
-      productName: json["productName"],
-      currentStock: json["currentStock"],
-      supplyPrice: json["supplyPrice"],
-      retailPrice: json["retailPrice"],
-      canTrackingStock: json["canTrackingStock"],
-      branchId: json["branchId"],
-      lowStock: json["branchId"] == null ? 0.0 : json["lowStock"]);
+        id: json["id"],
+        name: json["name"],
+        sku: json["sku"],
+        productId: json["productId"],
+        unit: json["unit"],
+        table: json["table"],
+        channels: List<String>.from(json["channels"].map((x) => x)),
+        productName: json["productName"],
+        branchId: json["branchId"],
+      );
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -69,11 +60,6 @@ class Variation {
         "table": table,
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "productName": productName,
-        "currentStock": currentStock,
-        "supplyPrice": supplyPrice,
-        "retailPrice": retailPrice,
-        "canTrackingStock": canTrackingStock,
         "branchId": branchId,
-        "lowStock": lowStock == null ? 0.0 : lowStock
       };
 }
