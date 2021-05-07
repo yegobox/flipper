@@ -17,6 +17,7 @@ class FlipperApp extends StatelessWidget {
       final FirebaseAnalytics analytics = FirebaseAnalytics();
       final FirebaseAnalyticsObserver observer =
           FirebaseAnalyticsObserver(analytics: analytics);
+
       return MaterialApp(
         themeMode: ThemeMode.system,
         theme: FlipperThemeData.lightThemeData
