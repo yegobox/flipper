@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
@@ -19,11 +17,7 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
   (isWindows || isMacOs) ? Cbl.init() : '';
-  if (!isWindows && !isMacOs) {
-    final FirebaseAnalytics analytics = FirebaseAnalytics();
-    final FirebaseAnalyticsObserver observer =
-        FirebaseAnalyticsObserver(analytics: analytics);
-  }
+
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
