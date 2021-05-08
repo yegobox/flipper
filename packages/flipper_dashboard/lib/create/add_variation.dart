@@ -4,8 +4,10 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_services/constants.dart';
 import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
@@ -23,7 +25,7 @@ class _AddVariationState extends State<AddVariation> {
   TextEditingController costController = TextEditingController();
 
   TextEditingController nameController = TextEditingController();
-
+  String sku = '';
   @override
   Widget build(BuildContext context) {
     // ignore: always_specify_types
@@ -40,12 +42,21 @@ class _AddVariationState extends State<AddVariation> {
               rightActionButtonName: 'Save',
               onPressedCallback: () async {
                 if (AddVariation._formKey.currentState!.validate()) {
-                  await model.addVariant(
+                  final variantId = Uuid().v1();
+                  List<Variation> variations = [];
+                  Variation data = new Variation(
                     name: nameController.text,
-                    retailPrice: double.parse(retailController.text),
-                    supplyPrice: double.parse(costController.text),
-                    productId: widget.productId,
+                    sku: sku,
+                    productId: model.product.id,
+                    unit: model.productService.currentUnit!,
+                    channels: [model.productService.userId!],
+                    productName: model.product.name,
+                    branchId: model.productService.branchId!,
+                    id: variantId,
+                    table: AppTables.variation,
                   );
+                  variations.add(data);
+                  await model.addVariant(variations: variations);
                 }
               },
               icon: Icons.close,
@@ -113,8 +124,8 @@ class _AddVariationState extends State<AddVariation> {
                             width: double.infinity,
                             child: TextFormField(
                                 style: TextStyle(color: HexColor('#2d3436')),
-                                onChanged: (String sku) {
-                                  if (sku == '') {
+                                onChanged: (String value) {
+                                  if (value == '') {
                                     sku = DateTime.now().year.toString() +
                                         Uuid().v1().substring(0, 4);
                                   } else {

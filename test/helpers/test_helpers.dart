@@ -5,6 +5,7 @@ import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -20,7 +21,9 @@ import 'package:flipper_services/locator.dart';
   MockSpec<NavigationService>(returnNullOnMissingStub: true),
 ])
 Api getAndRegisterApi(
-    {bool hasLoggedInUser = false, List<Business>? businesses}) {
+    {bool hasLoggedInUser = false,
+    List<Business>? businesses,
+    List<Variation>? variations}) {
   _removeRegistrationIfExists<Api>();
   final service = MockApi();
   // final productService = MockProductService();
@@ -34,20 +37,9 @@ Api getAndRegisterApi(
       token: 't',
     ),
   );
-  Variation data = new Variation(
-    name: 'name',
-    sku: 'sku',
-    productId: '',
-    unit: 'kg',
-    channels: ['UID'],
-    productName: 'temp',
-    branchId: 'BID',
-    id: '',
-    table: '',
-  );
+
   when(service.businesses()).thenAnswer((_) async => businesses!);
-  when(service.addVariant()).thenAnswer((_) async => 200);
-  when(service.addVariant(data: data.toJson())).thenAnswer((_) async => 200);
+  when(service.addVariant(data: variations)).thenAnswer((_) async => 200);
 
   locator.registerSingleton<Api>(service);
   return service;

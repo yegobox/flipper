@@ -19,8 +19,11 @@ import 'package:flipper_services/constants.dart';
 
 class ProductViewModel extends ReactiveViewModel {
   final AppService _appService = locator<AppService>();
-  final ProductService _productService = locator<ProductService>();
+
+  final ProductService productService = locator<ProductService>();
+
   List<Product> _products = [];
+
   get products => _products;
 
   List<PColor> get colors => _appService.colors;
@@ -29,13 +32,15 @@ class ProductViewModel extends ReactiveViewModel {
 
   get categories => _appService.categories;
 
-  get product => _productService.product;
+  get product => productService.product;
+
   String? _name;
+
   get name => _name;
 
   get currentColor => _appService.currentColor;
 
-  List<Variation>? get variants => _productService.variants;
+  List<Variation>? get variants => productService.variants;
 
   Future<List<Product>> loadProducts() async {
     _products = await ProxyService.api.products();
@@ -52,16 +57,16 @@ class ProductViewModel extends ReactiveViewModel {
     if (isTemp.isEmpty) {
       Product product =
           await ProxyService.api.createProduct(product: productMock);
-      _productService.variantsProduct(productId: product.id);
+      productService.variantsProduct(productId: product.id);
 
-      _productService.setCurrentProduct(product: product);
+      productService.setCurrentProduct(product: product);
       notifyListeners();
       return product.id;
     }
     // ProxyService.api.delete(id: isTemp[0].id);
     // return "d";
-    _productService.setCurrentProduct(product: isTemp[0]);
-    _productService.variantsProduct(productId: isTemp[0].id);
+    productService.setCurrentProduct(product: isTemp[0]);
+    productService.variantsProduct(productId: isTemp[0].id);
 
     return isTemp[0].id;
   }
@@ -161,7 +166,7 @@ class ProductViewModel extends ReactiveViewModel {
       ProxyService.api.update(data: data, endPoint: 'product');
       final Product uProduct =
           await ProxyService.api.getProduct(id: product.id);
-      _productService.setCurrentProduct(product: uProduct);
+      productService.setCurrentProduct(product: uProduct);
     }
     if (type == 'variant') {
       // final Map data = product.toJson();
@@ -180,9 +185,9 @@ class ProductViewModel extends ReactiveViewModel {
       final String stockId = data['id'];
 
       ProxyService.api.update(data: data, endPoint: 'stock/$stockId');
-      _productService.variantsProduct(productId: product.id);
+      productService.variantsProduct(productId: product.id);
     }
-    _productService.variantsProduct(productId: product.id);
+    productService.variantsProduct(productId: product.id);
   }
 
   double? _stockValue;
@@ -229,33 +234,16 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   setUnit({required String unit}) {
-    _productService.setProductUnit(unit: unit);
+    productService.setProductUnit(unit: unit);
   }
 
-  Future<int> addVariant({
-    required String name,
-    required double retailPrice,
-    required double supplyPrice,
-    bool canTrackingStock = false,
-    required String productId,
-    String? sku,
-  }) async {
-    Variation data = new Variation(
-      name: name,
-      sku: sku!,
-      productId: _productService.product!.id,
-      unit: _productService.currentUnit!,
-      channels: [_productService.userId!],
-      productName: _productService.product!.name,
-      branchId: _productService.branchId!,
-      id: '',
-      table: '',
-    );
-    int result = await ProxyService.api.addVariant(data: data.toJson());
+  Future<int> addVariant({List<Variation>? variations}) async {
+    int result = await ProxyService.api.addVariant(data: variations!);
     return result;
   }
 
   void navigateAddVariation({required String productId}) {
+    // print(productId);
     ProxyService.nav.navigateTo(
       Routes.addVariation,
       arguments: AddVariationArguments(
@@ -297,10 +285,10 @@ class ProductViewModel extends ReactiveViewModel {
         }
       }
     }
-    _productService.variantsProduct(productId: product.id);
+    productService.variantsProduct(productId: product.id);
   }
 
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
-      [_appService, _productService];
+      [_appService, productService];
 }

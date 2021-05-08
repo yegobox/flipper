@@ -496,7 +496,7 @@ class LiteApi implements Api {
   }
 
   @override
-  Future<int> addVariant({Map? data}) {
+  Future<int> addVariant({required List<Variation> data}) {
     // TODO: implement addVariant
     throw UnimplementedError();
   }

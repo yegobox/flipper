@@ -213,12 +213,9 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<int> addVariant({Map? data}) async {
-    final unitId = Uuid().v1();
-    data!['id'] = unitId;
-    data['table'] = AppTables.variation;
+  Future<int> addVariant({required List<Variation> data}) async {
     final http.Response response = await client.post(
-        Uri.parse("$apihub/api/variation"),
+        Uri.parse("$apihub/api/variant"),
         body: jsonEncode(data),
         headers: {'Content-Type': 'application/json'});
     return response.statusCode;
