@@ -6,7 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
-// import 'package:image_picker_platform_interface/src/types/picked_file/unsupported.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_luban/flutter_luban.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/login.dart';
@@ -19,6 +20,7 @@ import 'abstractions/platform.dart';
 import 'abstractions/share.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
+import 'package:path_provider/path_provider.dart';
 import 'app_service.dart';
 import 'dynamic_link_service.dart';
 import 'flipper_firebase_auth.dart';
@@ -142,12 +144,45 @@ abstract class ThirdPartyServicesModule {
 class UnsupportedPlatformUpload implements UploadT {
   @override
   Future browsePictureFromGallery({required String productId}) async {
-    print('no supported on this platform');
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      await handleImage(image: file, productId: productId);
+    } else {
+      // User canceled the picker
+      print('nothing is done');
+    }
+    print('now loading files');
   }
 
   @override
   Future handleImage({required File image, required String productId}) async {
-    print('no supported on this platform');
+    final String targetPath = (await getTemporaryDirectory()).path +
+        '/' +
+        DateTime.now().toIso8601String() +
+        '.jpg';
+
+    final tempDir = await getTemporaryDirectory();
+    CompressObject compressObject = CompressObject(
+      imageFile: image, //image
+      path: tempDir.path, //compress to path
+      quality: 85, //first compress quality, default 80
+      //compress quality step, The bigger the fast, Smaller is more accurate, default 6
+      step: 9,
+      mode: CompressMode.LARGE2SMALL, //default AUTO
+    );
+    Luban.compressImage(compressObject).then((_path) {
+      final String fileName = _path!.split('/').removeLast();
+      final String storagePath = _path.replaceAll('/' + fileName, '');
+      // final Document productUpdated = _databaseService.getById(id: product.id);
+
+      // _state.setProduct(product: Product.fromMap(productUpdated.map));
+      // final bool internetAvailable = await isInternetAvailable();
+      // if (internetAvailable) {
+      upload(
+          fileName: fileName, productId: productId, storagePath: storagePath);
+      // }
+    });
   }
 
   @override

@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'abstractions/upload.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
-
+import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 
 class MobileUpload implements UploadT {
@@ -18,28 +18,27 @@ class MobileUpload implements UploadT {
         DateTime.now().toIso8601String() +
         '.jpg';
 
-    final File? compresedFile = await FlutterImageCompress.compressAndGetFile(
-      image.absolute.path,
-      targetPath,
-      minHeight: 80,
-      minWidth: 80,
-      quality: 95,
-      rotate: 0,
+    final tempDir = await getTemporaryDirectory();
+    CompressObject compressObject = CompressObject(
+      imageFile: image, //image
+      path: tempDir.path, //compress to path
+      quality: 85, //first compress quality, default 80
+      //compress quality step, The bigger the fast, Smaller is more accurate, default 6
+      step: 9,
+      mode: CompressMode.LARGE2SMALL, //default AUTO
     );
+    Luban.compressImage(compressObject).then((_path) {
+      final String fileName = _path!.split('/').removeLast();
+      final String storagePath = _path.replaceAll('/' + fileName, '');
+      // final Document productUpdated = _databaseService.getById(id: product.id);
 
-    final String fileName = compresedFile!.path.split('/').removeLast();
-    final String storagePath =
-        compresedFile.path.replaceAll('/' + fileName, '');
-
-    // final Document productUpdated = _databaseService.getById(id: product.id);
-
-    // _state.setProduct(product: Product.fromMap(productUpdated.map));
-
-    final bool internetAvailable = await isInternetAvailable();
-    if (internetAvailable) {
+      // _state.setProduct(product: Product.fromMap(productUpdated.map));
+      // final bool internetAvailable = await isInternetAvailable();
+      // if (internetAvailable) {
       upload(
           fileName: fileName, productId: productId, storagePath: storagePath);
-    }
+      // }
+    });
   }
 
   @override
