@@ -77,6 +77,7 @@ class ProductViewModel extends ReactiveViewModel {
   bool get lock => _lock;
 
   void loadCategories() {
+    print('#1');
     _appService.loadCategories();
   }
 
@@ -112,20 +113,23 @@ class ProductViewModel extends ReactiveViewModel {
       if (category.focused) {
         Category cat = category;
         cat.focused = !cat.focused;
+        cat.active = !cat.active;
         String categoryId = category.id;
         await ProxyService.api.update(
           endPoint: 'category/$categoryId',
-          data: category.toJson(),
+          data: cat.toJson(),
         );
       }
     }
+
     Category cat = category;
     cat.focused = !cat.focused;
+    cat.active = !cat.active;
 
     String categoryId = category.id;
     await ProxyService.api.update(
       endPoint: 'category/$categoryId',
-      data: category.toJson(),
+      data: cat.toJson(),
     );
     _appService.loadCategories();
   }

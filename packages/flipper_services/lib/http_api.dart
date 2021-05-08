@@ -19,6 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_models/models/variation.dart';
 
 import 'constants.dart';
+import 'errors.dart';
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
@@ -105,6 +106,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> create<T>({required Map data, required String endPoint}) async {
+    print(data);
     final http.Response response = await client.post(
         Uri.parse("$apihub/api/$endPoint"),
         body: jsonEncode(data),
@@ -129,6 +131,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<List<Category>> categories({required String branchId}) async {
+    print('loading categories of' + branchId);
     final response =
         await client.get(Uri.parse("$apihub/api/categories/$branchId"));
 
@@ -178,8 +181,9 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> update<T>({required Map data, required String endPoint}) async {
+    print(data);
     final response = await client.patch(Uri.parse("$apihub/api/$endPoint"),
-        body: jsonEncode(data));
+        body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
     return response.statusCode;
   }
 
@@ -202,6 +206,7 @@ class HttpApi<T> implements Api {
     return response.statusCode;
   }
 
+  // TODO: create API endPoint for this.
   @override
   Future<PColor> getColor({required String id, String? endPoint}) async {
     final response = await client.get(Uri.parse("$apihub/api/$endPoint/$id"));

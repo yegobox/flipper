@@ -34,7 +34,8 @@ class StartUpViewModel extends BaseViewModel {
       List<Business>? businesses = await ProxyService.api.businesses();
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses![0].id);
-
+      // print(businesses[0].id);
+      // print(branches[0].id);
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
       ProxyService.box.write(key: 'businessId', value: businesses[0].id);
     }

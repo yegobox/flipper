@@ -126,21 +126,22 @@ class FlipperFirebaseAuthenticationService extends FirebaseAuthenticationService
     } catch (e) {}
     FirebaseAuth.instance.authStateChanges().listen((event) async {
       if (event != null) {
-        print('got the user with web');
         Login login = await ProxyService.api.login(phone: phone!);
 
         ///call api to sync! start by syncing
         ///so that we cover the case when a user synced and deleted app
         ///and come again in this case the API will have sync!
-        await ProxyService.api
-            .authenticateWithOfflineDb(userId: login.id.toString());
+        await ProxyService.api.authenticateWithOfflineDb(
+          userId: login.id.toString(),
+        );
 
         //then go startup logic
         ProxyService.nav.navigateTo(Routes.startUpView);
+        //this mark that we are logged in
         ProxyService.box.write(
-            key: 'userId',
-            value: login.id.toString()); //this mark that we are logged in
-
+          key: 'userId',
+          value: login.id.toString(),
+        );
       }
     });
   }

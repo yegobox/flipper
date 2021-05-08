@@ -120,7 +120,6 @@ dependencies:
   flutter_native_splash: ^1.1.8+4
   stomp_dart_client: ^0.4.1
   hive: ^2.0.4
-  hive_flutter: ^1.0.0
 flutter_icons:
   android: "launcher_icon"
   ios: true

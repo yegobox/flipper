@@ -30,22 +30,35 @@
 </head>
 
 <body>
-  <!-- This script installs service_worker.js to provide PWA functionality to
-       application. For more information, see:
-       https://developers.google.com/web/fundamentals/primers/service-workers -->
-  <script src="/__/firebase/8.4.2/firebase-app.js"></script>
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-app.js"></script>
 
   <!-- TODO: Add SDKs for Firebase products that you want to use
-          https://firebase.google.com/docs/web/setup#available-libraries -->
-  <script src="/__/firebase/8.4.2/firebase-analytics.js"></script>
-  <script src="/__/firebase/8.4.1/firebase-firestore.js"></script>
-  <script src="/__/firebase/8.4.1/firebase-auth.js"></script>
-  <script src="/__/firebase/8.4.1/firebase-messaging.js"></script>
-  <script src="/__/firebase/8.4.1/firebase-remote-config.js"></script>
-  <script src="/__/firebase/8.4.1/firebase.js"></script>
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-messaging.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.5.0/firebase-storage.js"></script>
 
-  <!-- Initialize Firebase -->
-  <script src="/__/firebase/init.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    var firebaseConfig = {
+      apiKey: "AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA",
+      authDomain: "yegobox-2ee43.firebaseapp.com",
+      databaseURL: "https://yegobox-2ee43.firebaseio.com",
+      projectId: "yegobox-2ee43",
+      storageBucket: "yegobox-2ee43.appspot.com",
+      messagingSenderId: "672237316015",
+      appId: "1:672237316015:web:e289bfb5c92506c1c2715a",
+      measurementId: "G-88GKL70K3K"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
   <picture id="splash">
     <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x"
       media="(prefers-color-scheme: light) or (prefers-color-scheme: no-preference)">
