@@ -278,6 +278,7 @@ class ProductViewModel extends ReactiveViewModel {
         }
       }
     }
+
     if (retailPrice != null) {
       for (Variation variation in variants!) {
         if (variation.name == "Regular") {
@@ -287,6 +288,11 @@ class ProductViewModel extends ReactiveViewModel {
           data['retailPrice'] = retailPrice;
           String id = data['id'];
           ProxyService.api.update(data: data, endPoint: 'stock/$id');
+
+          Stock ustock =
+              await ProxyService.api.stockByVariantId(variantId: variation.id);
+          print('we got update!');
+          print(ustock.currentStock);
         }
       }
     }

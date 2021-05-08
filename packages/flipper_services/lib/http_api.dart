@@ -181,7 +181,6 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> update<T>({required Map data, required String endPoint}) async {
-    print(data);
     final response = await client.patch(Uri.parse("$apihub/api/$endPoint"),
         body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
     return response.statusCode;
@@ -235,13 +234,16 @@ class HttpApi<T> implements Api {
   Future<Stock> stockByVariantId({required String variantId}) async {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
-    return sstockFromJson(response.body);
+
+    return stockFromJson(response.body)[0];
   }
 
   @override
   Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
-    yield sstockFromJson(response.body);
+    print('stream:$variantId');
+
+    yield stockFromJson(response.body)[0];
   }
 }
