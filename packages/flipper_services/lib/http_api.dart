@@ -214,10 +214,13 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> addVariant({required List<Variation> data}) async {
+    print('adding....');
+    print(data[0]);
     final http.Response response = await client.post(
         Uri.parse("$apihub/api/variant"),
         body: jsonEncode(data),
         headers: {'Content-Type': 'application/json'});
+    print(response.body);
     return response.statusCode;
   }
 

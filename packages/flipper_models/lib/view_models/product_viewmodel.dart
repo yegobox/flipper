@@ -198,7 +198,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void deleteVariant({required String id}) {
-    ProxyService.api.delete(id: id);
+    ProxyService.api.delete(id: id, endPoint: 'variant');
     createTemporalProduct(); //this will reload the variations remain
   }
 

@@ -57,6 +57,7 @@ class _AddVariationState extends State<AddVariation> {
                   );
                   variations.add(data);
                   await model.addVariant(variations: variations);
+                  ProxyService.nav.back();
                 }
               },
               icon: Icons.close,
