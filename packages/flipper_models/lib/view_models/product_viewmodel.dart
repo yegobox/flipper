@@ -82,7 +82,6 @@ class ProductViewModel extends ReactiveViewModel {
   bool get lock => _lock;
 
   void loadCategories() {
-    print('#1');
     _appService.loadCategories();
   }
 
@@ -213,20 +212,23 @@ class ProductViewModel extends ReactiveViewModel {
   Future<void> switchColor({required PColor color}) async {
     for (PColor c in colors) {
       if (c.active) {
-        final PColor _color = await ProxyService.api.getColor(id: c.id);
+        final PColor _color =
+            await ProxyService.api.getColor(id: c.id, endPoint: 'color');
         final Map mapColor = _color.toJson();
         mapColor['active'] = false;
-        ProxyService.api.update(data: mapColor, endPoint: 'color');
+        final id = mapColor['id'];
+        ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
       }
     }
 
-    final PColor _color = await ProxyService.api.getColor(id: color.id);
+    final PColor _color =
+        await ProxyService.api.getColor(id: color.id, endPoint: 'color');
 
     final Map mapColor = _color.toJson();
 
     mapColor['active'] = true;
-
-    ProxyService.api.update(data: mapColor, endPoint: 'color');
+    final id = mapColor['id'];
+    ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
 
     _appService.setCurrentColor(color: color.name!);
 
@@ -278,10 +280,9 @@ class ProductViewModel extends ReactiveViewModel {
           String id = data['id'];
           ProxyService.api.update(data: data, endPoint: 'stock/$id');
 
-          Stock ustock =
-              await ProxyService.api.stockByVariantId(variantId: variation.id);
-          print('we got update!');
-          print(ustock.currentStock);
+          // Stock ustock =
+          //     await ProxyService.api.stockByVariantId(variantId: variation.id);
+
         }
       }
     }

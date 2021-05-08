@@ -14,9 +14,6 @@ class CategorySelector extends StatelessWidget {
     if (categories.isEmpty) {
       return const Text('Select Category');
     }
-    print(categories[0].name);
-    print(categories[0].focused);
-    print(categories[0].active);
     for (Category category in categories) {
       if (category.focused) {
         text = Text(

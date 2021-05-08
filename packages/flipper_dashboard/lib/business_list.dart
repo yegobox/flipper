@@ -122,8 +122,6 @@ class BusinessList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(businesses);
-
     return SafeArea(
       child: Container(
         color: HexColor('#130f1f'),

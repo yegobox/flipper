@@ -13,7 +13,6 @@ class ImagePlaceHolderView extends StatelessWidget {
   final String currentColor;
   @override
   Widget build(BuildContext context) {
-    print(currentColor);
     return GestureDetector(
       onTap: () {
         ProxyService.nav.navigateTo(Routes.colorTile);
