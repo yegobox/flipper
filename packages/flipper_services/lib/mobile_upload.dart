@@ -13,11 +13,6 @@ class MobileUpload implements UploadT {
 
   @override
   Future handleImage({required File image, required String productId}) async {
-    final String targetPath = (await getTemporaryDirectory()).path +
-        '/' +
-        DateTime.now().toIso8601String() +
-        '.jpg';
-
     final tempDir = await getTemporaryDirectory();
     CompressObject compressObject = CompressObject(
       imageFile: image, //image

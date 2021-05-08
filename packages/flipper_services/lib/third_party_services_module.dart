@@ -1,5 +1,6 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -13,6 +14,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper/routes.router.dart';
 import 'LiteApi.dart';
+import 'package:image/image.dart' as imglib;
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -146,28 +148,27 @@ class UnsupportedPlatformUpload implements UploadT {
   Future browsePictureFromGallery({required String productId}) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
-      File file = File(result.files.single.path!);
-      await handleImage(image: file, productId: productId);
+      // File file = File(result.files.single.bytes!);
+      // imglib.Image image = _image(result.files.single.bytes);
+      // print(image);
+
+      // await handleImage(image: file, productId: productId);
+      print('Work is not done still need more work');
     } else {
       // User canceled the picker
       print('nothing is done');
     }
-    print('now loading files');
   }
 
   @override
   Future handleImage({required File image, required String productId}) async {
-    final String targetPath = (await getTemporaryDirectory()).path +
-        '/' +
-        DateTime.now().toIso8601String() +
-        '.jpg';
-
     final tempDir = await getTemporaryDirectory();
     CompressObject compressObject = CompressObject(
       imageFile: image, //image
       path: tempDir.path, //compress to path
-      quality: 85, //first compress quality, default 80
+      //first compress quality, default 80
       //compress quality step, The bigger the fast, Smaller is more accurate, default 6
+      quality: 85,
       step: 9,
       mode: CompressMode.LARGE2SMALL, //default AUTO
     );
@@ -179,8 +180,13 @@ class UnsupportedPlatformUpload implements UploadT {
       // _state.setProduct(product: Product.fromMap(productUpdated.map));
       // final bool internetAvailable = await isInternetAvailable();
       // if (internetAvailable) {
-      upload(
-          fileName: fileName, productId: productId, storagePath: storagePath);
+      print(fileName);
+      print(storagePath);
+      // upload(
+      //   fileName: fileName,
+      //   productId: productId,
+      //   storagePath: storagePath,
+      // );
       // }
     });
   }
