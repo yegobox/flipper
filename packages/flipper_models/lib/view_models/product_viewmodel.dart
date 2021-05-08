@@ -177,10 +177,11 @@ class ProductViewModel extends ReactiveViewModel {
           await ProxyService.api.stockByVariantId(variantId: variantId);
       Map data = stock.toJson();
       data['currentStock'] = _stockValue;
-      ProxyService.api.update(data: data, endPoint: 'stock');
+      final String stockId = data['id'];
+
+      ProxyService.api.update(data: data, endPoint: 'stock/$stockId');
       _productService.variantsProduct(productId: product.id);
     }
-    // ProxyService.api.stockByVariantIdStream(variantId: variantId);
     _productService.variantsProduct(productId: product.id);
   }
 
