@@ -106,7 +106,6 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> create<T>({required Map data, required String endPoint}) async {
-    print(data);
     final http.Response response = await client.post(
         Uri.parse("$apihub/api/$endPoint"),
         body: jsonEncode(data),
@@ -131,7 +130,6 @@ class HttpApi<T> implements Api {
 
   @override
   Future<List<Category>> categories({required String branchId}) async {
-    print('loading categories of' + branchId);
     final response =
         await client.get(Uri.parse("$apihub/api/categories/$branchId"));
 
@@ -214,13 +212,11 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> addVariant({required List<Variation> data}) async {
-    print('adding....');
-    print(data[0]);
     final http.Response response = await client.post(
         Uri.parse("$apihub/api/variant"),
         body: jsonEncode(data),
         headers: {'Content-Type': 'application/json'});
-    print(response.body);
+
     return response.statusCode;
   }
 

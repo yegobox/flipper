@@ -177,10 +177,10 @@ class ColorTile extends StatelessWidget {
                 child: FlatButton(
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
-                      color: HexColor(colors[i].name),
+                      color: HexColor(colors[i].name!),
                     ),
                   ),
-                  color: HexColor(colors[i].name),
+                  color: HexColor(colors[i].name!),
                   child: Text(''),
                   onPressed: () {
                     //reset all other color to not selected

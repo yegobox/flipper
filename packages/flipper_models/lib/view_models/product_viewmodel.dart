@@ -228,7 +228,7 @@ class ProductViewModel extends ReactiveViewModel {
 
     ProxyService.api.update(data: mapColor, endPoint: 'color');
 
-    _appService.setCurrentColor(color: color.name);
+    _appService.setCurrentColor(color: color.name!);
 
     loadColors();
   }
