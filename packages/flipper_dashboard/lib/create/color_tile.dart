@@ -14,8 +14,6 @@ class ColorTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
       builder: (context, model, child) {
-        if (model.colors.isEmpty)
-          return const SizedBox.shrink(); //a nice place to show loading screen.
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
@@ -27,18 +25,18 @@ class ColorTile extends StatelessWidget {
             bottomSpacer: 52,
           ),
           body: ListView(
-            children: <Widget>[
+            children: [
               Align(
                 alignment: Alignment.center,
                 child: Column(
-                  children: <Widget>[
+                  children: [
                     const SizedBox(
                       height: 10,
                     ),
                     GestureDetector(
                       onTap: () {},
                       child: Column(
-                        children: <Widget>[
+                        children: [
                           Container(
                             width: 80,
                             height: 80,
@@ -125,7 +123,7 @@ class ColorTile extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
+                  children: [
                     SizedBox(
                       height: 50,
                       width: 180,
@@ -165,14 +163,14 @@ class ColorTile extends StatelessWidget {
 
   List<Widget> buildStack(
       BuildContext context, List<PColor> colors, ProductViewModel model) {
-    final List<Widget> stacks = <Widget>[];
+    final List<Widget> stacks = [];
 
     if (colors.isNotEmpty) {
       for (var i = 0; i < colors.length; i++) {
         stacks.add(
           Stack(
             alignment: Alignment.center,
-            children: <Widget>[
+            children: [
               Container(
                 height: 80,
                 width: 120,
