@@ -203,7 +203,6 @@ class HttpApi<T> implements Api {
     return response.statusCode;
   }
 
-  // TODO: create API endPoint for this.
   @override
   Future<PColor> getColor({required String id, String? endPoint}) async {
     final response = await client.get(Uri.parse("$apihub/api/$endPoint/$id"));
