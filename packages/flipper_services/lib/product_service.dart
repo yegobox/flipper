@@ -4,7 +4,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/models/variation.dart';
 
 class ProductService with ReactiveServiceMixin {
-  String? _currentUnit;
+  String? _currentUnit = 'Kg'; //set default to kg
   String? get currentUnit => _currentUnit;
 
   final _product = ReactiveValue<dynamic>(null);

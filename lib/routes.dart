@@ -49,4 +49,5 @@ class AppSetup {
 // flutter create --template=package hello
 // flutter run -d chrome --release
 //  flutter pub add moor_flutter
+// flutter pub run msix:create
 

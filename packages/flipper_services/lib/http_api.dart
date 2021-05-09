@@ -19,6 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_models/models/variation.dart';
 
 import 'constants.dart';
+import 'errors.dart';
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
@@ -179,7 +180,7 @@ class HttpApi<T> implements Api {
   @override
   Future<int> update<T>({required Map data, required String endPoint}) async {
     final response = await client.patch(Uri.parse("$apihub/api/$endPoint"),
-        body: jsonEncode(data));
+        body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
     return response.statusCode;
   }
 
@@ -209,14 +210,12 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<int> addVariant({Map? data}) async {
-    final unitId = Uuid().v1();
-    data!['id'] = unitId;
-    data['table'] = AppTables.variation;
+  Future<int> addVariant({required List<Variation> data}) async {
     final http.Response response = await client.post(
-        Uri.parse("$apihub/api/variation"),
+        Uri.parse("$apihub/api/variant"),
         body: jsonEncode(data),
         headers: {'Content-Type': 'application/json'});
+
     return response.statusCode;
   }
 
@@ -230,13 +229,16 @@ class HttpApi<T> implements Api {
   Future<Stock> stockByVariantId({required String variantId}) async {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
-    return sstockFromJson(response.body);
+
+    return stockFromJson(response.body)[0];
   }
 
   @override
   Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
-    yield sstockFromJson(response.body);
+    print('stream:$variantId');
+
+    yield stockFromJson(response.body)[0];
   }
 }

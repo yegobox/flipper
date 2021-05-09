@@ -61,7 +61,6 @@ class SignupViewModel extends FormViewModel {
   }
 
   void signup({Locale? locale}) async {
-    print(nameValue);
     int okStatus = await ProxyService.api.signup(business: {
       'name': _name,
       'latitude': latitude,

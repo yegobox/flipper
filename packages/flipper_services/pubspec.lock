@@ -29,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  ansicolor:
+    dependency: transitive
+    description:
+      name: ansicolor
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1"
   archive:
     dependency: transitive
     description:
@@ -441,7 +448,7 @@ packages:
       name: firebase_analytics
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "8.0.2"
+    version: "8.0.3"
   firebase_analytics_platform_interface:
     dependency: transitive
     description:
@@ -622,13 +629,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.0"
-  flutter_image_compress:
+  flutter_launcher_icons:
     dependency: transitive
     description:
-      name: flutter_image_compress
+      name: flutter_launcher_icons
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "0.9.0"
+  flutter_luban:
+    dependency: transitive
+    description:
+      name: flutter_luban
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.13"
+  flutter_native_splash:
+    dependency: transitive
+    description:
+      name: flutter_native_splash
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.8+4"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -744,6 +765,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.0"
+  hive:
+    dependency: transitive
+    description:
+      name: hive
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.4"
   html:
     dependency: transitive
     description:
@@ -828,6 +856,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.2"
+  injector:
+    dependency: transitive
+    description:
+      name: injector
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   intl:
     dependency: transitive
     description:
@@ -947,6 +982,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
+  msix:
+    dependency: transitive
+    description:
+      name: msix
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0"
   nested:
     dependency: transitive
     description:
@@ -1253,6 +1295,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.8.0-nullsafety.1"
+  stomp_dart_client:
+    dependency: transitive
+    description:
+      name: stomp_dart_client
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.1"
   stream_channel:
     dependency: transitive
     description:
@@ -1323,6 +1372,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0"
+  universal_io:
+    dependency: transitive
+    description:
+      name: universal_io
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.4"
   universal_platform:
     dependency: transitive
     description:

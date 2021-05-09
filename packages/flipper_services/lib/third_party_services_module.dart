@@ -1,11 +1,13 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flipper_services/mobile_upload.dart';
+import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
-// import 'package:image_picker_platform_interface/src/types/picked_file/unsupported.dart';
+import 'package:flutter_luban/flutter_luban.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/login.dart';
@@ -18,18 +20,18 @@ import 'abstractions/platform.dart';
 import 'abstractions/share.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
+import 'package:path_provider/path_provider.dart';
 import 'app_service.dart';
 import 'dynamic_link_service.dart';
 import 'flipper_firebase_auth.dart';
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'http_api.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'product_service.dart';
-
-final Database db = Database("main_01");
+// final Database db = Database("main_01");
+final dynamic db = {}; //fake db it is not going to be used on web anyway!
 final isWindows = UniversalPlatform.isWindows;
 // UniversalPlatform.platform;
 enum ApiProvider {
@@ -142,12 +144,38 @@ abstract class ThirdPartyServicesModule {
 class UnsupportedPlatformUpload implements UploadT {
   @override
   Future browsePictureFromGallery({required String productId}) async {
-    print('no supported on this platform');
+    print('Work is not done still need more work');
   }
 
   @override
   Future handleImage({required File image, required String productId}) async {
-    print('no supported on this platform');
+    final tempDir = await getTemporaryDirectory();
+    CompressObject compressObject = CompressObject(
+      imageFile: image, //image
+      path: tempDir.path, //compress to path
+      //first compress quality, default 80
+      //compress quality step, The bigger the fast, Smaller is more accurate, default 6
+      quality: 85,
+      step: 9,
+      mode: CompressMode.LARGE2SMALL, //default AUTO
+    );
+    Luban.compressImage(compressObject).then((_path) {
+      final String fileName = _path!.split('/').removeLast();
+      final String storagePath = _path.replaceAll('/' + fileName, '');
+      // final Document productUpdated = _databaseService.getById(id: product.id);
+
+      // _state.setProduct(product: Product.fromMap(productUpdated.map));
+      // final bool internetAvailable = await isInternetAvailable();
+      // if (internetAvailable) {
+      print(fileName);
+      print(storagePath);
+      // upload(
+      //   fileName: fileName,
+      //   productId: productId,
+      //   storagePath: storagePath,
+      // );
+      // }
+    });
   }
 
   @override

@@ -54,7 +54,6 @@ dependencies:
   built_value:
   image_picker: 0.7.4
   built_collection:
-  flutter_image_compress: 1.0.0
   jiffy: 
   expandable:
   timezone: 0.7.0-nullsafety.0
@@ -111,7 +110,7 @@ dependencies:
   moor_flutter: ^4.0.0
   firebase_dynamic_links: ^2.0.1
   share: ^2.0.1
-  firebase_analytics: ^8.0.2
+  firebase_analytics: ^8.0.3
   bluetooth_thermal_printer: ^0.0.6
   esc_pos_utils_plus: ^2.0.1+3
   printing: ^5.2.1
@@ -119,12 +118,17 @@ dependencies:
   flutter_launcher_icons: ^0.9.0
   flutter_native_splash: ^1.1.8+4
   stomp_dart_client: ^0.4.1
+  hive: ^2.0.4
+  flutter_luban: ^0.1.13
+  image: ^3.0.2
+  msix: ^2.0.0
 flutter_icons:
   android: "launcher_icon"
   ios: true
   # windows: true
   image_path: "assets/icon/icon.png"
   remove_alpha_ios: true
+
   # adaptive_icon_background: "assets/images/christmas-background.png" # only available for Android 8.0 devices and above
   # adaptive_icon_foreground: "assets/images/icon-foreground-432x432.png" # only available for Android 8.0 devices and above
 dev_dependencies:
@@ -140,9 +144,31 @@ dev_dependencies:
   stacked_generator:
   mockito:
   test: ^1.5.3
-  msix: ^2.0.0
-  
-  
+  hive_generator: ^1.1.0
+msix_config:
+  display_name: Flipper
+  publisher_display_name: Yegobox
+  identity_name: Yegobox.Flipper
+  msix_version: 1.0.0.2
+  certificate_path: ./certs/CERTIFICATE.pfx
+  certificate_password: "::flipper::"
+  # publisher: C=RW, ST="Some-State", L=Kigali, O="Yegobox Ltd", CN="yegobox.com", emailAddress="yegobox@gmail.com"
+  publisher: CN=Yegobox Ltd, O=Yegobox Ltd, L=Berlin, S=Kigali, C=RW
+  # logo_path: C:\<PathToIcon>\<Logo.png>
+  # start_menu_icon_path: C:\<PathToIcon>\<Icon.png>
+  # tile_icon_path: C:\<PathToIcon>\<Icon.png>
+  # vs_generated_images_folder_path: C:\<PathToFolder>\icons
+  icons_background_color: transparent
+  architecture: x64
+  capabilities: 'internetClient,location,microphone,webcam'
+  store: true
+  # ::flipper::
+  # https://www.codestories.gr/index.php/2019/03/17/generate-a-pfx-certificate-using-the-windows-certificate-store/
+  # https://www.codestories.gr/index.php/2019/03/22/generate-a-pfx-certificate-using-openssl/
+  # https://docs.microsoft.com/en-us/dotnet/framework/tools/signtool-exe
+  # https://docs.microsoft.com/en-us/windows/msix/package/create-app-package-with-makeappx-tool
+  # https://github.com/YehudaKremer/msix/issues/19
+  # Final (https://sahajrana.medium.com/how-to-generate-a-pfx-certificate-for-flutter-windows-msix-lib-a860cdcebb8)
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

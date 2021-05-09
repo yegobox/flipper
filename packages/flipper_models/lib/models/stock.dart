@@ -31,7 +31,6 @@ class Stock {
     required this.productId,
     this.active,
   });
-
   String id;
   String branchId;
   String variantId;

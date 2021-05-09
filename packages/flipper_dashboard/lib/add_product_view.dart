@@ -43,7 +43,9 @@ class AddProductView extends StatelessWidget {
               title: 'Create Product',
               disableButton: model.lock,
               showActionButton: true,
-              onPressedCallback: () async {},
+              onPressedCallback: () async {
+                print('we got it adding product');
+              },
               rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,

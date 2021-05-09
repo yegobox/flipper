@@ -17,7 +17,7 @@ String pColorToJson(List<PColor> data) =>
 class PColor {
   PColor({
     required this.id,
-    required this.name,
+    this.name,
     required this.channels,
     this.colors,
     required this.table,
@@ -26,7 +26,7 @@ class PColor {
   });
 
   String id;
-  String name;
+  String? name;
   List<String> channels;
   List<String>? colors;
   String table;
@@ -35,7 +35,7 @@ class PColor {
 
   factory PColor.fromJson(Map<String, dynamic> json) => PColor(
         id: json["id"],
-        name: json["name"],
+        name: json["name"] == null ? '#ee5253' : json["name"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         colors: json["colors"] == null
             ? []
@@ -47,7 +47,7 @@ class PColor {
 
   Map<String, dynamic> toJson() => {
         "id": id,
-        "name": name,
+        "name": name == null ? '#ee5253' : name,
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "colors":
             colors == null ? [] : List<dynamic>.from(colors!.map((x) => x)),
