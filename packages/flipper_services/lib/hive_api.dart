@@ -30,12 +30,6 @@ class HiveApi implements Api {
   }
 
   @override
-  Future<int> addVariant({Map? data}) {
-    // TODO: implement addVariant
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Sync> authenticateWithOfflineDb({required String userId}) {
     // TODO: implement authenticateWithOfflineDb
     throw UnimplementedError();
@@ -166,6 +160,12 @@ class HiveApi implements Api {
   Future<List<Variation>> variants(
       {required String branchId, required String productId}) {
     // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> addVariant({required List<Variation> data}) {
+    // TODO: implement addVariant
     throw UnimplementedError();
   }
 }

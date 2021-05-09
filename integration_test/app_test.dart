@@ -10,12 +10,9 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('end-to-end test', () {
-    setUp(() => registerServices());
-    tearDown(() => unregisterServices());
     testWidgets('Should load the app and act as real user!',
         (WidgetTester tester) async {
       //start by logging out the user
-      ProxyService.api.logOut();
       app.main();
       await tester.pumpAndSettle();
 
@@ -27,7 +24,7 @@ void main() {
 //  should start by showing a loading screen before moving to other screen
       final loaderView = find.byKey(Key('createAccountButton'));
       await tester.pumpAndSettle();
-      expect(1, 1); //for now fake testing.
+      expect(loaderView, findsOneWidget); //for now fake testing.
     });
   });
 }
