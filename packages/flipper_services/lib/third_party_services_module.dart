@@ -24,7 +24,7 @@ import 'package:path_provider/path_provider.dart';
 import 'app_service.dart';
 import 'dynamic_link_service.dart';
 import 'flipper_firebase_auth.dart';
-// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:image_picker/image_picker.dart';
 import 'http_api.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
@@ -142,9 +142,14 @@ abstract class ThirdPartyServicesModule {
 }
 
 class UnsupportedPlatformUpload implements UploadT {
+  final _picker = ImagePicker();
+
   @override
   Future browsePictureFromGallery({required String productId}) async {
-    print('Work is not done still need more work');
+    // final PickedFile? image =
+    //     await _picker.getImage(source: ImageSource.gallery);
+    // final File file = File(image!.path);
+    // await handleImage(image: file, productId: productId);
   }
 
   @override
@@ -163,18 +168,16 @@ class UnsupportedPlatformUpload implements UploadT {
       final String fileName = _path!.split('/').removeLast();
       final String storagePath = _path.replaceAll('/' + fileName, '');
       // final Document productUpdated = _databaseService.getById(id: product.id);
-
       // _state.setProduct(product: Product.fromMap(productUpdated.map));
       // final bool internetAvailable = await isInternetAvailable();
-      // if (internetAvailable) {
+      print('we got here');
       print(fileName);
       print(storagePath);
-      // upload(
-      //   fileName: fileName,
-      //   productId: productId,
-      //   storagePath: storagePath,
-      // );
-      // }
+      upload(
+        fileName: fileName,
+        productId: productId,
+        storagePath: storagePath,
+      );
     });
   }
 

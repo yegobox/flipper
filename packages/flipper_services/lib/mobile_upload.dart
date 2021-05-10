@@ -26,13 +26,14 @@ class MobileUpload implements UploadT {
       final String fileName = _path!.split('/').removeLast();
       final String storagePath = _path.replaceAll('/' + fileName, '');
       // final Document productUpdated = _databaseService.getById(id: product.id);
-
       // _state.setProduct(product: Product.fromMap(productUpdated.map));
       // final bool internetAvailable = await isInternetAvailable();
-      // if (internetAvailable) {
+
       upload(
-          fileName: fileName, productId: productId, storagePath: storagePath);
-      // }
+        fileName: fileName,
+        productId: productId,
+        storagePath: storagePath,
+      );
     });
   }
 
@@ -87,17 +88,6 @@ class MobileUpload implements UploadT {
     return false;
   }
 
-  // Future takePicture({BuildContext context}) async {
-  // final File image = await ImagePicker.pickImage(source: ImageSource.camera);
-
-  // await handleImage(image, context);
-  // }
-
-  // Future browsePictureFromGallery({BuildContext context}) async {
-  //   final File image = await ImagePicker.pickImage(source: ImageSource.gallery);
-
-  //   await handleImage(image, context);
-  // }
   @override
   Future browsePictureFromGallery({required String productId}) async {
     final PickedFile? image =

@@ -52,7 +52,6 @@ dependencies:
   location:
   permission_handler:
   built_value:
-  image_picker: 0.7.4
   built_collection:
   jiffy: 
   expandable:
@@ -121,6 +120,7 @@ dependencies:
   flutter_luban: ^0.1.13
   image: ^3.0.2
   msix: ^2.0.0
+  image_picker: ^0.7.4
 flutter_icons:
   android: "launcher_icon"
   ios: true
