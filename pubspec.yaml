@@ -152,8 +152,8 @@ msix_config:
   msix_version: 1.0.0.2
   certificate_path: ./certs/CERTIFICATE.pfx
   certificate_password: "::flipper::"
-  # publisher: C=RW, ST="Some-State", L=Kigali, O="Yegobox Ltd", CN="yegobox.com", emailAddress="yegobox@gmail.com"
-  publisher: CN=Yegobox Ltd, O=Yegobox Ltd, L=Berlin, S=Kigali, C=RW
+  # publisher: CN=Yegobox Ltd, O=Yegobox Ltd, L=Berlin, S=Kigali, C=RW
+  publisher: C=RW, ST=Some-State, L=Kigali, O=Yegobox Ltd, CN=yegobox.com, emailAddress=yegobox@gmail.com
   # logo_path: C:\<PathToIcon>\<Logo.png>
   # start_menu_icon_path: C:\<PathToIcon>\<Icon.png>
   # tile_icon_path: C:\<PathToIcon>\<Icon.png>
@@ -188,3 +188,8 @@ flutter:
   # flutter run
   # flutter create --template=package hello
   # ./flutterw packages pub run build_runner build --delete-conflicting-outputs
+
+  # openssl genrsa -out windows.key 2048
+  # openssl req -new -key windows.key -out csr.csr
+  # openssl x509 -in csr.csr -out crt.crt -req -signkey windows.key -days 365
+  # openssl pkcs12 -export -out CERTIFICATE.pfx -inkey windows.key -in crt.crt
