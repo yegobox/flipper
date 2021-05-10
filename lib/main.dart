@@ -9,12 +9,15 @@ import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
 // cd android && ./gradlew signingReport
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
+  (isWindows) ? Cbl.init() : '';
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();

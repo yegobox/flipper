@@ -282,7 +282,6 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Stock>> stocks({required String productId}) async {
-    // TODO: implement when internet is available to load from internet and when not load from local
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byProductId/$productId"));
 
@@ -357,7 +356,6 @@ class LiteApi<T> implements Api {
 
   @override
   Future<PColor> getColor({required String id, String? endPoint}) async {
-    //transform this into
     Document doc = db.getDocument(id);
     return spColorFromJson(doc.json);
   }
@@ -390,13 +388,7 @@ class LiteApi<T> implements Api {
     for (Map map in stock.allResults) {
       stocks.add(sstockFromJson(jsonEncode(map)));
     }
-    // FIXME: should use changeListner so we can show change in realtime.
     yield stocks[0];
-    // Q2.addChangeListener((results) {
-    //   for (Map map in results.allResults) {
-    //     controller.add(sstockFromJson(jsonEncode(map)));
-    //   }
-    // });
   }
 
   @override
