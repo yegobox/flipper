@@ -60,21 +60,7 @@ void main() {
       model.setName(name: ' '); //test when even empty string is given
       expect(model.lock, true);
     });
-    test('should save a product when a name is given temp product is not null',
-        () async {
-      final model = _getModel();
-      Product product = productService.product!;
-      Map data = product.toJson();
 
-      model.setName(name: 'product name');
-      expect(model.product, isA<Product>());
-
-      expect(model.name, 'product name');
-      // data['name'] = 'product name';
-      getAndRegisterApi(productService: productService, uri: 'product');
-
-      expect(await model.addProduct(), true);
-    });
     test('When name is given lock should be removed to enable save', () async {
       final model = _getModel();
       model.setName(name: 'richie');
