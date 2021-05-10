@@ -23,7 +23,7 @@ import 'package:flipper_services/locator.dart';
 Api getAndRegisterApi(
     {bool hasLoggedInUser = false,
     List<Business>? businesses,
-    ProductService? productService,
+    Map? data,
     String? uri,
     List<Variation>? variations}) {
   _removeRegistrationIfExists<Api>();
@@ -41,8 +41,7 @@ Api getAndRegisterApi(
 
   when(service.businesses()).thenAnswer((_) async => businesses!);
   when(service.addVariant(data: variations)).thenAnswer((_) async => 200);
-  if (productService != null) {
-    Map data = productService.product!.toJson();
+  if (data != null) {
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);
   }

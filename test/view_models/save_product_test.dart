@@ -11,6 +11,7 @@ ProductViewModel _getModel() => ProductViewModel();
 void main() {
   group('Test AddProduct Method', () {
     late ProductService productService;
+    late Map data;
     setUp(() {
       registerServices();
       productService = getAndRegisterProductService(
@@ -18,6 +19,9 @@ void main() {
         branchId: 'BID',
         userId: 'UID',
       );
+      data = productService.product!.toJson();
+      data['name'] = 'product name';
+      getAndRegisterApi(data: data, uri: 'product');
     });
     tearDown(() => unregisterServices());
     test('should save a product when a name is given temp product is not null',
@@ -28,9 +32,8 @@ void main() {
       expect(model.product, isA<Product>());
 
       expect(model.name, 'product name');
-      getAndRegisterApi(productService: productService, uri: 'product');
 
-      expect(await model.addProduct(), true);
+      expect(await model.addProduct(mproduct: data), true);
     });
   });
 }

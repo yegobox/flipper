@@ -14,6 +14,7 @@ ProductViewModel _getModel() => ProductViewModel();
 void main() {
   group('Test Add product', () {
     late ProductService productService;
+    late Map data;
     setUp(() {
       registerServices();
       productService = getAndRegisterProductService(
@@ -21,13 +22,16 @@ void main() {
         branchId: 'BID',
         userId: 'UID',
       );
+      data = productService.product!.toJson();
+      data['name'] = 'product name';
+      getAndRegisterApi(data: data, uri: 'product');
     });
     tearDown(() => unregisterServices());
     test('test adding variant ...', () async {
       final model = _getModel();
 
       List<Variation> ls = [];
-      Variation data = new Variation(
+      Variation v = new Variation(
         name: 'name',
         sku: 'N/A',
         productId: "",
@@ -38,10 +42,10 @@ void main() {
         id: 'ID',
         table: AppTables.variation,
       );
-      ls.add(data);
+      ls.add(v);
       getAndRegisterApi(
         variations: ls,
-        productService: productService,
+        data: data,
       );
 
       model.navigateAddVariation(productId: 'ID');

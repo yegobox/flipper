@@ -44,7 +44,8 @@ class AddProductView extends StatelessWidget {
               disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {
-                model.addProduct();
+                await model.addProduct(mproduct: model.product.toJson());
+                ProxyService.nav.back();
               },
               rightActionButtonName: 'Save',
               icon: Icons.close,
