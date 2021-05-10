@@ -23,10 +23,11 @@ import 'package:flipper_services/locator.dart';
 Api getAndRegisterApi(
     {bool hasLoggedInUser = false,
     List<Business>? businesses,
+    ProductService? productService,
+    String? uri,
     List<Variation>? variations}) {
   _removeRegistrationIfExists<Api>();
   final service = MockApi();
-  // final productService = MockProductService();
   when(service.login()).thenAnswer(
     (_) async => Login(
       id: 1,
@@ -40,6 +41,11 @@ Api getAndRegisterApi(
 
   when(service.businesses()).thenAnswer((_) async => businesses!);
   when(service.addVariant(data: variations)).thenAnswer((_) async => 200);
+  if (productService != null) {
+    Map data = productService.product!.toJson();
+    when(service.update(data: data, endPoint: uri))
+        .thenAnswer((_) async => 200);
+  }
 
   locator.registerSingleton<Api>(service);
   return service;

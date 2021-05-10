@@ -144,22 +144,22 @@ dev_dependencies:
   mockito:
   test: ^1.5.3
   hive_generator: ^1.1.0
-msix_config:
-  display_name: Flipper
-  publisher_display_name: Yegobox
-  identity_name: Yegobox.Flipper
-  msix_version: 1.0.0.2
-  certificate_path: ./certs/CERTIFICATE.pfx
-  certificate_password: "::flipper::"
-  publisher: E="yegobox@gmail.com" CN="yegobox.com" O="Yegobox Ltd" L=Kigali S=G C=RW
-  # logo_path: C:\<PathToIcon>\<Logo.png>
-  # start_menu_icon_path: C:\<PathToIcon>\<Icon.png>
-  # tile_icon_path: C:\<PathToIcon>\<Icon.png>
-  # vs_generated_images_folder_path: C:\<PathToFolder>\icons
-  # icons_background_color: transparent
-  architecture: x64
-  capabilities: 'internetClient,location,microphone,webcam'
-  store: true
+# msix_config:
+#   display_name: Flipper
+#   publisher_display_name: Yegobox
+#   identity_name: Yegobox.Flipper
+#   msix_version: 1.0.0.2
+#   certificate_path: ./certs/CERTIFICATE.pfx
+#   certificate_password: "::flipper::"
+#   publisher: E="yegobox@gmail.com" CN="yegobox.com" O="Yegobox Ltd" L=Kigali S=G C=RW
+#   # logo_path: C:\<PathToIcon>\<Logo.png>
+#   # start_menu_icon_path: C:\<PathToIcon>\<Icon.png>
+#   # tile_icon_path: C:\<PathToIcon>\<Icon.png>
+#   # vs_generated_images_folder_path: C:\<PathToFolder>\icons
+#   # icons_background_color: transparent
+#   architecture: x64
+#   capabilities: 'internetClient,location,microphone,webcam'
+#   store: true
   # ::flipper::
   # https://www.codestories.gr/index.php/2019/03/17/generate-a-pfx-certificate-using-the-windows-certificate-store/
   # https://www.codestories.gr/index.php/2019/03/22/generate-a-pfx-certificate-using-openssl/

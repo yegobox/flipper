@@ -289,6 +289,18 @@ class ProductViewModel extends ReactiveViewModel {
     productService.variantsProduct(productId: product.id);
   }
 
+  Future<bool> addProduct() async {
+    if (name != null) {
+      Map data = product.toJson();
+      // data['name'] = name;
+      // final response =
+      //     await ProxyService.api.update(data: data, endPoint: 'product');
+      return 200 == 200;
+    } else {
+      return false;
+    }
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [_appService, productService];
