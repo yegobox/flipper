@@ -7,14 +7,12 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_luban/flutter_luban.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper/routes.router.dart';
 import 'LiteApi.dart';
-import 'package:image/image.dart' as imglib;
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -146,18 +144,7 @@ abstract class ThirdPartyServicesModule {
 class UnsupportedPlatformUpload implements UploadT {
   @override
   Future browsePictureFromGallery({required String productId}) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      // File file = File(result.files.single.bytes!);
-      // imglib.Image image = _image(result.files.single.bytes);
-      // print(image);
-
-      // await handleImage(image: file, productId: productId);
-      print('Work is not done still need more work');
-    } else {
-      // User canceled the picker
-      print('nothing is done');
-    }
+    print('Work is not done still need more work');
   }
 
   @override

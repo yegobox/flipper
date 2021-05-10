@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
@@ -11,10 +12,13 @@ import 'package:universal_platform/universal_platform.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
+
 // cd android && ./gradlew signingReport
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
+  (isWindows) ? Cbl.init() : '';
+
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
