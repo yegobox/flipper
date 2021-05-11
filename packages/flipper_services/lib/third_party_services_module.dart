@@ -29,9 +29,10 @@ import 'http_api.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
-// final Database db = Database("main_01");
-final dynamic db = {}; //fake db it is not going to be used on web anyway!
+final Database db = Database("main_01");
+// final dynamic db = {}; //fake db it is not going to be used on web anyway!
 final isWindows = UniversalPlatform.isWindows;
 // UniversalPlatform.platform;
 enum ApiProvider {
@@ -79,8 +80,7 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Api get apiService {
     Api apiService;
-    if (
-        // UniversalPlatform.isWindows ||
+    if (UniversalPlatform.isWindows ||
         // UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       apiService = LiteApi(database: db);

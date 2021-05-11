@@ -34,7 +34,10 @@ abstract class Api<T> {
     required String productId,
   });
   Future<int> addUnits({required Map data});
-  Future<int> addVariant({required List<Variation> data});
+  Future<int> addVariant(
+      {required List<Variation> data,
+      required double retailPrice,
+      required double supplyPrice});
   Future<Product> getProduct({required String id});
   // Future
   //this function for now figure out what is the business id on backend side.

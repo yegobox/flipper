@@ -210,7 +210,10 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<int> addVariant({required List<Variation> data}) async {
+  Future<int> addVariant(
+      {required List<Variation> data,
+      required double retailPrice,
+      required double supplyPrice}) async {
     final http.Response response = await client.post(
         Uri.parse("$apihub/api/variant"),
         body: jsonEncode(data),

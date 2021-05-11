@@ -22,9 +22,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   final ProductService productService = locator<ProductService>();
 
-  List<Product> _products = [];
-
-  get products => _products;
+  get products => productService.products;
 
   List<PColor> get colors => _appService.colors;
 
@@ -42,11 +40,8 @@ class ProductViewModel extends ReactiveViewModel {
 
   List<Variation>? get variants => productService.variants;
 
-  Future<List<Product>> loadProducts() async {
-    _products = await ProxyService.api.products();
-
-    notifyListeners();
-    return _products;
+  Future<void> loadProducts() async {
+    await productService.loadProducts();
   }
 
   /// Create a temporal product to use during this session of product creation
@@ -239,8 +234,12 @@ class ProductViewModel extends ReactiveViewModel {
     productService.setProductUnit(unit: unit);
   }
 
-  Future<int> addVariant({List<Variation>? variations}) async {
-    int result = await ProxyService.api.addVariant(data: variations!);
+  Future<int> addVariant(
+      {List<Variation>? variations,
+      required double retailPrice,
+      required double supplyPrice}) async {
+    int result = await ProxyService.api.addVariant(
+        data: variations!, retailPrice: retailPrice, supplyPrice: supplyPrice);
     return result;
   }
 

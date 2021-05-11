@@ -46,6 +46,7 @@ class LiteApi<T> implements Api {
   dynamic Q18;
   dynamic Q5;
   dynamic Q2;
+  dynamic Q19;
   registerQueries() {
     Q14 = Query(db, Queries.Q_14);
     Q1 = Query(db, Queries.Q_1);
@@ -58,6 +59,7 @@ class LiteApi<T> implements Api {
     Q18 = Query(db, Queries.Q_18);
     Q5 = Query(db, Queries.Q_5);
     Q2 = Query(db, Queries.Q_2);
+    Q19 = Query(db, Queries.Q_19);
   }
 
   LiteApi({required Database database}) {
@@ -208,7 +210,7 @@ class LiteApi<T> implements Api {
     );
     final variationDoc = Document(variation.id, data: variation.toJson());
     final Document variationDocument = db.saveDocument(variationDoc);
-    final stockId = Uuid().v1() + '-STOCK';
+    final stockId = Uuid().v1() + '-stock';
     final Map variationMap = json.decode(variationDocument.json);
     //create stock now.
 
@@ -282,10 +284,13 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Stock>> stocks({required String productId}) async {
-    final response = await client
-        .get(Uri.parse("$apihub/api/stocks-byProductId/$productId"));
-
-    return stockFromJson(response.body);
+    Q19.parameters = {'T': AppTables.stock, 'PRODUCTID': productId};
+    final ResultSet stock = Q19.execute();
+    final List<Stock> stocks = [];
+    for (Map map in stock.allResults) {
+      stocks.add(sstockFromJson(jsonEncode(map)));
+    }
+    return stocks;
   }
 
   @override
@@ -319,6 +324,9 @@ class LiteApi<T> implements Api {
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet variants = Q1.execute();
     for (Map map in variants.allResults) {
+      // if (map['name'] == "Jeans") {
+      //   db.purgeDocument(map['id']);
+      // }
       variantStocks.add(svariationFromJson(jsonEncode(map)));
     }
     return variantStocks;
@@ -361,14 +369,36 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<int> addVariant({required List<Variation> data}) async {
-    final unitId = Uuid().v1();
+  Future<int> addVariant(
+      {required List<Variation> data,
+      required double retailPrice,
+      required double supplyPrice}) async {
     for (Variation variation in data) {
       Map d = variation.toJson();
-      d['id'] = unitId;
-      d['table'] = AppTables.unit;
-      final doc = Document(unitId, data: data);
-      db.saveDocument(doc);
+
+      final doc = Document(d["id"], data: d);
+      Document variant = db.saveDocument(doc);
+
+      //create related stock
+      final stockId = Uuid().v1() + '-stock';
+      String? userId = ProxyService.box.read(key: 'userId');
+      final stock = new Stock(
+        id: stockId,
+        branchId: d['branchId'],
+        variantId: variant.ID,
+        lowStock: 0.0,
+        currentStock: 0.0,
+        supplyPrice: supplyPrice,
+        retailPrice: retailPrice,
+        canTrackingStock: false,
+        showLowStockAlert: false,
+        channels: [userId!],
+        table: AppTables.stock,
+        productId: d['productId'],
+        active: false,
+      );
+      final Document stockDoc = Document(stock.id, data: stock.toJson());
+      db.saveDocument(stockDoc);
     }
     return 200;
   }
