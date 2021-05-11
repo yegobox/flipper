@@ -26,6 +26,7 @@ import 'dynamic_link_service.dart';
 import 'flipper_firebase_auth.dart';
 // import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'http_api.dart';
+import 'keypad_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -139,6 +140,9 @@ abstract class ThirdPartyServicesModule {
   AppService get appService;
   @lazySingleton
   ProductService get productService;
+
+  @lazySingleton
+  KeyPadService get keypadService;
 }
 
 class UnsupportedPlatformUpload implements UploadT {

@@ -5,7 +5,7 @@ import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -68,6 +68,13 @@ AppService getAndRegisterAppService(
   return service;
 }
 
+KeyPadService getAndRegisterKeyPadService() {
+  _removeRegistrationIfExists<KeyPadService>();
+  final service = KeyPadService();
+  locator.registerSingleton<KeyPadService>(service);
+  return service;
+}
+
 ProductService getAndRegisterProductService(
     {String currentUnit = 'kg',
     String branchId = 'BID',
@@ -103,6 +110,7 @@ void registerServices() {
   getAndRegisterLocalStorage();
   getAndRegisterAppService();
   getAndRegisterProductService();
+  getAndRegisterKeyPadService();
 }
 
 void unregisterServices() {
