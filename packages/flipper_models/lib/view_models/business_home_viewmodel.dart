@@ -9,14 +9,18 @@ import 'package:flipper_services/proxy.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   final KeyPadService _keypad = locator<KeyPadService>();
-
+  String get key => _keypad.key;
   // keypad service
   get keyPad => null;
 
   get keypadValue => null;
 
   void addKey(String key) {
-    ProxyService.keypad.addKey(key);
+    if (key == 'C') {
+      ProxyService.keypad.reset();
+    } else {
+      ProxyService.keypad.addKey(key);
+    }
   }
 
   // products methods

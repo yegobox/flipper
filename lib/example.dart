@@ -1,13 +1,17 @@
 import 'package:flipper/stack.dart';
+// import 'package:flutter_money_formatter/flutter_money_formatter.dart';
 
 void main() {
-  final stack = Stack<int>();
-  stack.push(1);
-  stack.push(0);
-  stack.push(0);
+  final stack = Stack<String>();
+  stack.push('4');
+  stack.push('4');
   // stack.print();
-  print(stack.list);
-  stack.pop();
+  // print(stack.list);
+  // stack.pop();
+  // final amount = stack.list.join('');
+  // FlutterMoneyFormatter fmf = FlutterMoneyFormatter(
+  //   amount: double.parse(amount),
+  // );
   print(stack.list.join(''));
   // final top = myStack.pop();
   //start fake

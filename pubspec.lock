@@ -655,6 +655,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.13"
+  flutter_money_formatter:
+    dependency: "direct main"
+    description:
+      path: "packages/flutter_money_formatter"
+      relative: true
+    source: path
+    version: "0.8.3"
   flutter_native_splash:
     dependency: "direct main"
     description:
