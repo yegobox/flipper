@@ -150,8 +150,16 @@ class MockApi<T> extends _i1.Mock implements _i7.Api<T> {
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i8.Future<int>);
   @override
-  _i8.Future<int> addVariant({List<_i14.Variation>? data}) =>
-      (super.noSuchMethod(Invocation.method(#addVariant, [], {#data: data}),
+  _i8.Future<int> addVariant(
+          {List<_i14.Variation>? data,
+          double? retailPrice,
+          double? supplyPrice}) =>
+      (super.noSuchMethod(
+          Invocation.method(#addVariant, [], {
+            #data: data,
+            #retailPrice: retailPrice,
+            #supplyPrice: supplyPrice
+          }),
           returnValue: Future<int>.value(0)) as _i8.Future<int>);
   @override
   _i8.Future<_i6.Product> getProduct({String? id}) =>

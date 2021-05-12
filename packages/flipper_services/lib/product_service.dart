@@ -10,6 +10,10 @@ class ProductService with ReactiveServiceMixin {
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
 
+  final _products = ReactiveValue<List<Product>>([]);
+  List<Product> get products =>
+      _products.value.where((element) => element.name != 'temp').toList();
+
   String? get userId => ProxyService.box.read(key: 'userId');
   String? get branchId => ProxyService.box.read(key: 'branchId');
 
@@ -31,7 +35,11 @@ class ProductService with ReactiveServiceMixin {
         .variants(branchId: branchId!, productId: productId);
   }
 
+  Future<void> loadProducts() async {
+    _products.value = await ProxyService.api.products();
+  }
+
   ProductService() {
-    listenToReactiveValues([_product, _variants]);
+    listenToReactiveValues([_product, _variants, _products]);
   }
 }

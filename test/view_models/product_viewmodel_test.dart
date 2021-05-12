@@ -53,8 +53,7 @@ void main() {
       model.setUnit(unit: 'kg');
 
       final result = await model.addVariant(
-        variations: ls,
-      );
+          variations: ls, supplyPrice: 0.0, retailPrice: 0.0);
 
       expect(productService.currentUnit, 'kg');
       expect(result, 200);

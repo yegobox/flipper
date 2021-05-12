@@ -57,4 +57,7 @@ class Queries {
   //static table = variantStock
   static const String Q_18 =
       'SELECT variants.name,products.name as productName, variants.id,variants.sku,variants.unit,stocks.retailPrice,stocks.canTrackingStock,stocks.currentStock,stocks.lowStock,stocks.branchId FROM variants JOIN stocks ON variants.productId=stocks.productId JOIN products ON variants.productId=products.id WHERE variants.table=\$T AND variants.id=\$VARIANTID';
+
+  static const String Q_19 =
+      'SELECT id,branchId,variantId,lowStock,currentStock,supplyPrice,retailPrice,canTrackingStock,showLowStockAlert,channels,table,productId,active WHERE table=\$T AND productId=\$PRODUCTID';
 }

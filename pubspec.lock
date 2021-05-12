@@ -323,6 +323,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+  couchbase_lite_dart:
+    dependency: "direct main"
+    description:
+      name: couchbase_lite_dart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.0-nullsafety.2"
   country_code_picker:
     dependency: "direct main"
     description:
@@ -648,6 +655,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.13"
+  flutter_money_formatter:
+    dependency: "direct main"
+    description:
+      path: "packages/flutter_money_formatter"
+      relative: true
+    source: path
+    version: "0.8.3"
   flutter_native_splash:
     dependency: "direct main"
     description:

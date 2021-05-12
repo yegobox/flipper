@@ -56,7 +56,10 @@ class _AddVariationState extends State<AddVariation> {
                     table: AppTables.variation,
                   );
                   variations.add(data);
-                  await model.addVariant(variations: variations);
+                  await model.addVariant(
+                      variations: variations,
+                      retailPrice: double.parse(retailController.text),
+                      supplyPrice: double.parse(costController.text));
                   ProxyService.nav.back();
                 }
               },

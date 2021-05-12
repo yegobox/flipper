@@ -152,8 +152,16 @@ class MockApi<T> extends _i1.Mock implements _i7.Api<T> {
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i8.Future<int>);
   @override
-  _i8.Future<int> addVariant({List<_i14.Variation>? data}) =>
-      (super.noSuchMethod(Invocation.method(#addVariant, [], {#data: data}),
+  _i8.Future<int> addVariant(
+          {List<_i14.Variation>? data,
+          double? retailPrice,
+          double? supplyPrice}) =>
+      (super.noSuchMethod(
+          Invocation.method(#addVariant, [], {
+            #data: data,
+            #retailPrice: retailPrice,
+            #supplyPrice: supplyPrice
+          }),
           returnValue: Future<int>.value(0)) as _i8.Future<int>);
   @override
   _i8.Future<_i6.Product> getProduct({String? id}) =>
@@ -182,6 +190,10 @@ class MockApi<T> extends _i1.Mock implements _i7.Api<T> {
 /// See the documentation for Mockito's code generation for more information.
 class MockProductService extends _i1.Mock implements _i15.ProductService {
   @override
+  List<_i6.Product> get products =>
+      (super.noSuchMethod(Invocation.getter(#products),
+          returnValue: <_i6.Product>[]) as List<_i6.Product>);
+  @override
   dynamic setProductUnit({String? unit}) =>
       super.noSuchMethod(Invocation.method(#setProductUnit, [], {#unit: unit}));
   @override
@@ -192,6 +204,11 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
       Invocation.method(#variantsProduct, [], {#productId: productId}),
       returnValue: Future<void>.value(null),
       returnValueForMissingStub: Future.value()) as _i8.Future<void>);
+  @override
+  _i8.Future<void> loadProducts() =>
+      (super.noSuchMethod(Invocation.method(#loadProducts, []),
+          returnValue: Future<void>.value(null),
+          returnValueForMissingStub: Future.value()) as _i8.Future<void>);
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(

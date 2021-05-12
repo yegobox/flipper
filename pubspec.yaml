@@ -103,6 +103,8 @@ dependencies:
     path: 'packages/flipper_models'
   flipper_services:
     path: 'packages/flipper_services'
+  flutter_money_formatter:
+    path: 'packages/flutter_money_formatter' #to be replace when PR is merged
   google_fonts:
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: 

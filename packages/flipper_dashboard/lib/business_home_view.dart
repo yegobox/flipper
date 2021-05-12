@@ -105,7 +105,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                             ),
                             onClick: () {},
                             controller: controller,
-                            amount: 800,
+                            amount: double.parse(model.key),
                           )
                         : SizedBox.shrink(),
                     tab == 0

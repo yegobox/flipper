@@ -5,7 +5,7 @@ import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -40,7 +40,12 @@ Api getAndRegisterApi(
   );
 
   when(service.businesses()).thenAnswer((_) async => businesses!);
+<<<<<<< HEAD
   when(service.addVariant(data: variations)).thenAnswer((_) async => 200);
+=======
+  when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
+      .thenAnswer((_) async => 200);
+>>>>>>> mobile
   if (data != null) {
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);
@@ -64,6 +69,13 @@ AppService getAndRegisterAppService(
   when(service.isLoggedIn()).thenAnswer((realInvocation) => hasLoggedInUser);
   locator.registerSingleton<AppService>(service);
 
+  return service;
+}
+
+KeyPadService getAndRegisterKeyPadService() {
+  _removeRegistrationIfExists<KeyPadService>();
+  final service = KeyPadService();
+  locator.registerSingleton<KeyPadService>(service);
   return service;
 }
 
@@ -102,6 +114,7 @@ void registerServices() {
   getAndRegisterLocalStorage();
   getAndRegisterAppService();
   getAndRegisterProductService();
+  getAndRegisterKeyPadService();
 }
 
 void unregisterServices() {
