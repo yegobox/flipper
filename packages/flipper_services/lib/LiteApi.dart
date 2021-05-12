@@ -132,12 +132,6 @@ class LiteApi implements Api {
   }
 
   @override
-  Future<int> addVariant({required List<Variation> data}) {
-    // TODO: implement addVariant
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Product> getProduct({required String id}) {
     // TODO: implement getProduct
     throw UnimplementedError();
@@ -173,6 +167,15 @@ class LiteApi implements Api {
   Future<List<Variation>> variants(
       {required String branchId, required String productId}) {
     // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> addVariant(
+      {required List<Variation> data,
+      required double retailPrice,
+      required double supplyPrice}) {
+    // TODO: implement addVariant
     throw UnimplementedError();
   }
 }
