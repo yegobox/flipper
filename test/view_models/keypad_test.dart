@@ -14,19 +14,29 @@ void main() {
       keypadService = getAndRegisterKeyPadService();
     });
     tearDown(() => unregisterServices());
-    test('should react on keypad pressed and reset', () {
+    test('should react on keypad pressed and pop keys and can reset', () {
       final model = _getModel();
       model.addKey('4');
       model.addKey('4');
       expect(keypadService.key, '44');
       //reset
-      model.reset();
+      model.pop();
       expect(keypadService.key, '4');
+      model.pop();
+      expect(keypadService.key, '0.0');
+
+      model.addKey('5');
+      model.addKey('5');
+      expect(keypadService.key, '55');
       model.reset();
       expect(keypadService.key, '0.0');
     });
+
     test('Pressing + should create a new order', () {
       final model = _getModel();
+      model.addKey('+');
+
+      expect(1, 1);
     });
   });
 }

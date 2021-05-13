@@ -193,4 +193,16 @@ class HiveApi implements Api {
     // TODO: implement updateOrder
     throw UnimplementedError();
   }
+
+  @override
+  Future<Variation> getCustomProductVariant() {
+    // TODO: implement getCustomProductVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Order>> orders() {
+    // TODO: implement orders
+    throw UnimplementedError();
+  }
 }

@@ -4,6 +4,10 @@
 
 import 'dart:convert';
 
+Order sorderFromJson(String str) => Order.fromJson(json.decode(str));
+
+String sorderToJson(Order data) => json.encode(data.toJson());
+
 List<Order> orderFromJson(String str) =>
     List<Order>.from(json.decode(str).map((x) => Order.fromJson(x)));
 

@@ -1,6 +1,9 @@
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper_models/models/product_mock.dart';
+import 'package:flipper_models/models/variation_mock.dart';
+import 'package:flipper_models/models/stock_mock.dart';
+import 'package:flipper_models/models/order_mock.dart';
 import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
@@ -42,6 +45,13 @@ Api getAndRegisterApi(
   when(service.businesses()).thenAnswer((_) async => businesses!);
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
+  when(service.getCustomProductVariant())
+      .thenAnswer((_) async => variationMock);
+  when(service.createOrder(
+          customAmount: 0.0, variation: variationMock, stockId: stockMock.id))
+      .thenAnswer((_) async => orderMock);
+  when(service.stockByVariantId(variantId: variationMock.id))
+      .thenAnswer((_) async => stockMock);
   if (data != null) {
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);

@@ -40,6 +40,7 @@ class LiteApi<T> implements Api {
   dynamic Q1;
   dynamic Q15;
   dynamic Q9;
+  dynamic Q3;
   dynamic Q12;
   dynamic Q10;
   dynamic Q16;
@@ -48,9 +49,12 @@ class LiteApi<T> implements Api {
   dynamic Q5;
   dynamic Q2;
   dynamic Q19;
+  dynamic Q20;
+  dynamic Q21;
   registerQueries() {
     Q14 = Query(db, Queries.Q_14);
     Q1 = Query(db, Queries.Q_1);
+    Q3 = Query(db, Queries.Q_3);
     Q15 = Query(db, Queries.Q_15);
     Q9 = Query(db, Queries.Q_9);
     Q12 = Query(db, Queries.Q_12);
@@ -61,6 +65,8 @@ class LiteApi<T> implements Api {
     Q5 = Query(db, Queries.Q_5);
     Q2 = Query(db, Queries.Q_2);
     Q19 = Query(db, Queries.Q_19);
+    Q20 = Query(db, Queries.Q_20);
+    Q21 = Query(db, Queries.Q_21);
   }
 
   LiteApi({required Database database}) {
@@ -452,5 +458,27 @@ class LiteApi<T> implements Api {
       bool completeOrder = false}) {
     // TODO: implement updateOrder
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Variation> getCustomProductVariant() async {
+    Q20.parameters = {'T': AppTables.product, 'NAME': 'Custom Amount'};
+    final ResultSet results = Q20.execute();
+    final Map map = results.allResults[0];
+    Q21.parameters = {'T': AppTables.variation, 'PRODUCTID': map['id']};
+    final ResultSet rresults = Q21.execute();
+    Document doc = db.getDocument(rresults.allResults[0]['id']);
+    return svariationFromJson(doc.json);
+  }
+
+  @override
+  Future<List<Order>> orders() async {
+    Q3.parameters = {'T': AppTables.order, 'status': 'pending'};
+    final ResultSet business = Q3.execute();
+    final List<Order> orders = [];
+    for (Map map in business.allResults) {
+      orders.add(sorderFromJson(jsonEncode(map)));
+    }
+    return orders;
   }
 }
