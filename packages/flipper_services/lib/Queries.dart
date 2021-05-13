@@ -60,4 +60,8 @@ class Queries {
 
   static const String Q_19 =
       'SELECT id,branchId,variantId,lowStock,currentStock,supplyPrice,retailPrice,canTrackingStock,showLowStockAlert,channels,table,productId,active WHERE table=\$T AND productId=\$PRODUCTID';
+  static const String Q_20 =
+      'SELECT  id,name WHERE table=\$T AND name=\$NAME LIMIT 1';
+  static const String Q_21 =
+      'SELECT  id WHERE table=\$T AND productId=\$PRODUCTID';
 }

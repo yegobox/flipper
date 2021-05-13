@@ -3,6 +3,7 @@ library flipper_models;
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/models/product_mock.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -15,9 +16,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   get keypadValue => null;
 
-  void addKey(String key) {
+  void addKey(String key) async {
     if (key == 'C') {
       ProxyService.keypad.reset();
+    } else if (key == '+') {
+      print('we got here');
+      // await ProxyService.api.createProduct(product: customProductMock);
+      // ProxyService.api.createOrder(
+      //     customAmount: customAmount, variation: variation, stockId: stockId);
     } else {
       ProxyService.keypad.addKey(key);
     }

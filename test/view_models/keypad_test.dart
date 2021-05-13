@@ -25,5 +25,8 @@ void main() {
       model.reset();
       expect(keypadService.key, '0.0');
     });
+    test('Pressing + should create a new order', () {
+      final model = _getModel();
+    });
   });
 }

@@ -5,12 +5,13 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/color.dart';
+import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'package:flipper_models/models/unit_mock.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_login/signup_form_view.form.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/constants.dart';
 
@@ -126,6 +127,9 @@ class SignupViewModel extends FormViewModel {
         channels: [userId],
       );
       await ProxyService.api.addUnits(data: units.toJson());
+
+      //now create a default custom product
+      await ProxyService.api.createProduct(product: customProductMock);
 
       ProxyService.nav.navigateTo(Routes.businessHomeView);
     }
