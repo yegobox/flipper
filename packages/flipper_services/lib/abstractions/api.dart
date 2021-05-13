@@ -6,6 +6,7 @@ import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/color.dart';
+import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/sync.dart';
 import 'package:flipper_models/models/variation.dart';
@@ -34,14 +35,35 @@ abstract class Api<T> {
     required String productId,
   });
   Future<int> addUnits({required Map data});
-  Future<int> addVariant(
-      {required List<Variation> data,
-      required double retailPrice,
-      required double supplyPrice});
+
+  Future<int> addVariant({
+    required List<Variation> data,
+    required double retailPrice,
+    required double supplyPrice,
+  });
+
   Future<Product> getProduct({required String id});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});
   Future<List<Product>> isTempProductExist();
   Future<bool> logOut();
+
+  ///create an order if no pending order exist should create a new one
+  ///then if it exist should return the existing one!
+  Future<Order> createOrder({
+    required double customAmount,
+    required Variation variation,
+    required String stockId,
+    bool useProductName = false,
+    String orderType = 'custom',
+    double quantity = 1,
+  });
+
+  ///update the given order with amount given.
+  ///when complete is passed should set status to completed
+  Future<bool> updateOrder(
+      {required Order order,
+      required double customAmount,
+      bool completeOrder = false});
 }

@@ -1,8 +1,11 @@
 // import 'package:flipper/routes.router.dart';
+import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/product_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flipper_models/models/product_mock.dart';
 // import 'package:mockito/mockito.dart';
 
 import '../helpers/test_helpers.dart';
@@ -10,24 +13,25 @@ import '../helpers/test_helpers.dart';
 ProductViewModel _getModel() => ProductViewModel();
 void main() {
   group('Test Add product', () {
-    setUp(() => registerServices());
+    late ProductService productService;
+    late Map data;
+    setUp(() {
+      registerServices();
+      productService = getAndRegisterProductService(
+        currentUnit: 'kg',
+        branchId: 'BID',
+        userId: 'UID',
+      );
+      data = productService.product!.toJson();
+      data['name'] = 'product name';
+      getAndRegisterApi(data: data, uri: 'product');
+    });
     tearDown(() => unregisterServices());
-    test('When name is empty save should be disabled', () async {
-      final model = _getModel();
-      model.setName(name: ' '); //test when even empty string is given
-      expect(model.lock, true);
-    });
-    test('When name is given lock should be removed to enable save', () async {
-      final model = _getModel();
-      model.setName(name: 'richie');
-      expect(model.lock, false);
-    });
     test('test adding variant ...', () async {
       final model = _getModel();
-      final productSerice = getAndRegisterProductService(
-          currentUnit: 'kg', branchId: 'BID', userId: 'UID');
+
       List<Variation> ls = [];
-      Variation data = new Variation(
+      Variation v = new Variation(
         name: 'name',
         sku: 'N/A',
         productId: "",
@@ -38,8 +42,11 @@ void main() {
         id: 'ID',
         table: AppTables.variation,
       );
-      ls.add(data);
-      getAndRegisterApi(variations: ls);
+      ls.add(v);
+      getAndRegisterApi(
+        variations: ls,
+        data: data,
+      );
 
       model.navigateAddVariation(productId: 'ID');
 
@@ -48,8 +55,19 @@ void main() {
       final result = await model.addVariant(
           variations: ls, supplyPrice: 0.0, retailPrice: 0.0);
 
-      expect(productSerice.currentUnit, 'kg');
+      expect(productService.currentUnit, 'kg');
       expect(result, 200);
+    });
+    test('When name is empty save should be disabled', () async {
+      final model = _getModel();
+      model.setName(name: ' '); //test when even empty string is given
+      expect(model.lock, true);
+    });
+
+    test('When name is given lock should be removed to enable save', () async {
+      final model = _getModel();
+      model.setName(name: 'richie');
+      expect(model.lock, false);
     });
   });
 }

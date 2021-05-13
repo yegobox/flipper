@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/unit.dart';
 
@@ -430,5 +431,26 @@ class LiteApi<T> implements Api {
       stocks.add(sstockFromJson(jsonEncode(map)));
     }
     return stocks[0];
+  }
+
+  @override
+  Future<Order> createOrder(
+      {required double customAmount,
+      required Variation variation,
+      required String stockId,
+      bool useProductName = false,
+      String orderType = 'custom',
+      double quantity = 1}) {
+    // TODO: implement createOrder
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> updateOrder(
+      {required Order order,
+      required double customAmount,
+      bool completeOrder = false}) {
+    // TODO: implement updateOrder
+    throw UnimplementedError();
   }
 }

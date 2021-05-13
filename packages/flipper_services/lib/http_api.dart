@@ -4,6 +4,7 @@ import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/login.dart';
+import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/category.dart';
@@ -19,7 +20,6 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_models/models/variation.dart';
 
 import 'constants.dart';
-import 'errors.dart';
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
@@ -243,5 +243,26 @@ class HttpApi<T> implements Api {
     print('stream:$variantId');
 
     yield stockFromJson(response.body)[0];
+  }
+
+  @override
+  Future<Order> createOrder(
+      {required double customAmount,
+      required Variation variation,
+      required String stockId,
+      bool useProductName = false,
+      String orderType = 'custom',
+      double quantity = 1}) {
+    // TODO: implement createOrder
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> updateOrder(
+      {required Order order,
+      required double customAmount,
+      bool completeOrder = false}) {
+    // TODO: implement updateOrder
+    throw UnimplementedError();
   }
 }
