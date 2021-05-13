@@ -205,6 +205,11 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
               returnValue: Future<_i7.Order>.value(_FakeOrder()))
           as _i10.Future<_i7.Order>);
   @override
+  _i10.Future<List<_i7.Order>> orders() =>
+      (super.noSuchMethod(Invocation.method(#orders, []),
+              returnValue: Future<List<_i7.Order>>.value(<_i7.Order>[]))
+          as _i10.Future<List<_i7.Order>>);
+  @override
   _i10.Future<bool> updateOrder(
           {_i7.Order? order,
           double? customAmount,

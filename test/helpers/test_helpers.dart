@@ -19,6 +19,7 @@ import 'package:flipper_services/locator.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<Api>(returnNullOnMissingStub: true),
   MockSpec<ProductService>(returnNullOnMissingStub: true),
+  MockSpec<KeyPadService>(returnNullOnMissingStub: true),
   MockSpec<LocalStorage>(returnNullOnMissingStub: true),
   MockSpec<AppService>(returnNullOnMissingStub: true),
   MockSpec<NavigationService>(returnNullOnMissingStub: true),
@@ -50,6 +51,7 @@ Api getAndRegisterApi(
   when(service.createOrder(
           customAmount: 0.0, variation: variationMock, stockId: stockMock.id))
       .thenAnswer((_) async => orderMock);
+  when(service.orders()).thenAnswer((_) async => [orderMock]);
   when(service.stockByVariantId(variantId: variationMock.id))
       .thenAnswer((_) async => stockMock);
   if (data != null) {
@@ -78,10 +80,17 @@ AppService getAndRegisterAppService(
   return service;
 }
 
-KeyPadService getAndRegisterKeyPadService() {
+KeyPadService getAndRegisterKeyPadServiceUnmocked() {
   _removeRegistrationIfExists<KeyPadService>();
   final service = KeyPadService();
   locator.registerSingleton<KeyPadService>(service);
+  return service;
+}
+
+KeyPadService getAndRegisterKeyPadService() {
+  final service = MockKeyPadService();
+  when(service.orders).thenReturn([orderMock]);
+
   return service;
 }
 
@@ -120,6 +129,7 @@ void registerServices() {
   getAndRegisterLocalStorage();
   getAndRegisterAppService();
   getAndRegisterProductService();
+  getAndRegisterKeyPadServiceUnmocked();
   getAndRegisterKeyPadService();
 }
 
