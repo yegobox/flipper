@@ -40,12 +40,8 @@ Api getAndRegisterApi(
   );
 
   when(service.businesses()).thenAnswer((_) async => businesses!);
-<<<<<<< HEAD
-  when(service.addVariant(data: variations)).thenAnswer((_) async => 200);
-=======
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
->>>>>>> mobile
   if (data != null) {
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);

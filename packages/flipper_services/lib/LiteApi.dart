@@ -1,3 +1,4 @@
+import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/variant_stock.dart';
 
 import 'package:flipper_models/models/unit.dart';
@@ -176,6 +177,29 @@ class LiteApi implements Api {
       required double retailPrice,
       required double supplyPrice}) {
     // TODO: implement addVariant
+    throw UnimplementedError();
+  }
+
+  ///create an order if no pending order exist should create a new one
+  ///then if it exist should return the existing one!
+  @override
+  Future<Order> createOrder(
+      {required double customAmount,
+      required Variation variation,
+      required String stockId,
+      bool useProductName = false,
+      String orderType = 'custom',
+      double quantity = 1}) {
+    // TODO: implement createOrder
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> updateOrder(
+      {required Order order,
+      required double customAmount,
+      bool completeOrder = false}) {
+    // TODO: implement updateOrder
     throw UnimplementedError();
   }
 }

@@ -1,11 +1,5 @@
 import 'package:flipper_models/models/product.dart';
-<<<<<<< HEAD
-import 'package:flipper_models/models/variation.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
-import 'package:flipper_services/constants.dart';
-=======
-import 'package:flipper_models/view_models/product_viewmodel.dart';
->>>>>>> mobile
 import 'package:flipper_services/product_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 

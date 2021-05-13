@@ -1,3 +1,4 @@
+import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/variation.dart';
 
 import 'package:flipper_models/models/variant_stock.dart';
@@ -164,8 +165,32 @@ class HiveApi implements Api {
   }
 
   @override
-  Future<int> addVariant({required List<Variation> data}) {
+  Future<int> addVariant(
+      {required List<Variation> data,
+      required double retailPrice,
+      required double supplyPrice}) {
     // TODO: implement addVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Order> createOrder(
+      {required double customAmount,
+      required Variation variation,
+      required String stockId,
+      bool useProductName = false,
+      String orderType = 'custom',
+      double quantity = 1}) {
+    // TODO: implement createOrder
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> updateOrder(
+      {required Order order,
+      required double customAmount,
+      bool completeOrder = false}) {
+    // TODO: implement updateOrder
     throw UnimplementedError();
   }
 }
