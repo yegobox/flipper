@@ -332,11 +332,9 @@ class LiteApi<T> implements Api {
     final List<Variation> variantStocks = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet variants = Q1.execute();
-    for (Map map in variants.allResults) {
-      // if (map['name'] == "Jeans") {
-      //   db.purgeDocument(map['id']);
-      // }
-      variantStocks.add(svariationFromJson(jsonEncode(map)));
+    while (variants.next()) {
+      final row = variants.rowDict;
+      variantStocks.add(svariationFromJson(row.json));
     }
     return variantStocks;
   }
@@ -347,8 +345,9 @@ class LiteApi<T> implements Api {
     Q17.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
     final ResultSet business = Q17.execute();
     final List<VariantStock> variantStocks = [];
-    for (Map map in business.allResults) {
-      variantStocks.add(svariantStockFromJson(jsonEncode(map)));
+    while (business.next()) {
+      final row = business.rowDict;
+      variantStocks.add(svariantStockFromJson(row.json));
     }
     return variantStocks;
   }
@@ -441,6 +440,17 @@ class LiteApi<T> implements Api {
     return stocks[0];
   }
 
+  Future<Order?> pendingOrderExist({required String variantId}) async {
+    Q22.parameters = {'T': AppTables.order, 'VARIANTID': variantId};
+    final ResultSet results = Q22.execute();
+    Order? order;
+    while (results.next()) {
+      final row = results.rowDict;
+      order = sorderFromJson(row.json);
+    }
+    return order;
+  }
+
   @override
   Future<Order> createOrder(
       {required double customAmount,
@@ -454,19 +464,8 @@ class LiteApi<T> implements Api {
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     String branchId = ProxyService.box.read(key: 'branchId');
-    //do we have pending order then update it with given amount.
-    Q22.parameters = {'T': AppTables.order, 'VARIANTID': variation.id};
-
-    final ResultSet results = Q22.execute();
-    if (results.allResults.length > 0) {
-      Order order = sorderFromJson(results.allResults[0].json);
-      Map data = order.toJson();
-      data['amount'] = customAmount;
-      data['subTotal'] = customAmount;
-      await update(data: data, endPoint: 'order');
-      return sorderFromJson(results.allResults[0].json);
-    } else {
-      print(customAmount);
+    Order? existOrder = await pendingOrderExist(variantId: variation.id);
+    if (existOrder == null) {
       final Document _doc = Document(id4, data: {
         'reference': ref,
         'quantity': quantity,
@@ -490,8 +489,13 @@ class LiteApi<T> implements Api {
         'createdAt': DateTime.now().toIso8601String(),
       });
       Document d = db.saveDocument(_doc);
-      print(d.json);
+
       return sorderFromJson(d.json);
+    } else {
+      Map data = existOrder.toJson();
+      data['amount'] = customAmount;
+      update(data: data, endPoint: 'order');
+      return existOrder;
     }
   }
 
@@ -511,9 +515,10 @@ class LiteApi<T> implements Api {
     Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
     final ResultSet order = Q3.execute();
     final List<Order> orders = [];
-    for (Map map in order.allResults) {
-      // db.purgeDocument(map['id']);
-      orders.add(sorderFromJson(jsonEncode(map)));
+
+    while (order.next()) {
+      final row = order.rowDict;
+      orders.add(sorderFromJson(row.json));
     }
     return orders;
   }
