@@ -19,20 +19,22 @@ class KeyPadService with ReactiveServiceMixin {
   }
 
   void getOrders() async {
-    final result = await ProxyService.api.orders();
-    print(result);
-    _orders.value = result;
+    _orders.value = await ProxyService.api.orders();
+    ;
   }
 
   void reset() {
     _key.value = '0.0';
+    while (stack.isNotEmpty) {
+      stack.pop();
+    }
   }
 
   void pop() {
     if (stack.isNotEmpty && stack.length > 1) {
       stack.pop();
       _key.value = stack.list.join('');
-    } else {
+    } else if (stack.isNotEmpty) {
       stack.pop();
       _key.value = '0.0';
     }
