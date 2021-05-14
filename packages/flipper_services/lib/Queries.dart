@@ -9,7 +9,7 @@ class Queries {
       'SELECT id,branchId,variantId,isActive,canTrackingStock,productId,lowStock,currentStock,supplyPrice,retailPrice,showLowStockAlert,channels,table WHERE table=\$T AND variantId=\$VARIANTID';
   //table = order
   static const String Q_3 =
-      'SELECT  id,branchId,quantity,reference,draft,active,orderType,orderNumber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue  WHERE table=\$T AND status=\$S';
+      'SELECT  id,reference,orderNumber,branchId,status,orderType,active,draft,subTotal,cashReceived,customerChangeDue,createdAt,updatedAt,orderItems,table,channels,amount  WHERE table=\$T AND status=\$S';
   //table = category
   static const String Q_4 =
       'SELECT name,id,focused,table,touched,active,branchId,channels WHERE table=\$VALUE AND name=\$NAME';
@@ -65,5 +65,5 @@ class Queries {
   static const String Q_21 =
       'SELECT  id WHERE table=\$T AND productId=\$PRODUCTID';
   static const String Q_22 =
-      'SELECT  id,branchId,quantity,reference,draft,active,orderType,orderNUmber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue  WHERE table=\$T AND variantId=\$VARIANTID';
+      'SELECT  id,table,branchId,quantity,reference,draft,active,orderType,orderNumber,subTotal,taxAmount,amount,saleTotal,orderNote,status,variantId,stockId,productName,variantName,channels,customerChangeDue,cashReceived  WHERE table=\$T AND variantId=\$VARIANTID';
 }

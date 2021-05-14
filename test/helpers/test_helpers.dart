@@ -118,7 +118,8 @@ NavigationService getAndRegisterNavigationService() {
 MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
-  when(service.read(key: 'userId')).thenAnswer((_) => true);
+  when(service.read(key: 'userId')).thenAnswer((_) => '300');
+  when(service.read(key: 'branchId')).thenAnswer((_) => 'NN');
   locator.registerSingleton<LocalStorage>(service);
   return service;
 }
