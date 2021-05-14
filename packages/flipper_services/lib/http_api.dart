@@ -258,15 +258,6 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<bool> updateOrder(
-      {required Order order,
-      required double customAmount,
-      bool completeOrder = false}) {
-    // TODO: implement updateOrder
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Variation> getCustomProductVariant() {
     // TODO: implement getCustomProductVariant
     throw UnimplementedError();

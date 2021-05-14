@@ -68,6 +68,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
         model.loadBusinesses();
+        model.getOrders();
       },
       builder: (context, model, child) {
         return WillPopScope(
@@ -80,7 +81,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
               sideOpenController: _sideOpenController,
               child: SaleIndicator(
                 totalAmount: 300,
-                counts: 0,
+                counts: model.orders.length,
                 onClick: () {},
                 onLogout: () async {
                   await ProxyService.api.logOut();

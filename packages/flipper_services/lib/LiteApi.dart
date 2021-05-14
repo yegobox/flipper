@@ -51,6 +51,7 @@ class LiteApi<T> implements Api {
   dynamic Q19;
   dynamic Q20;
   dynamic Q21;
+  dynamic Q22;
   registerQueries() {
     Q14 = Query(db, Queries.Q_14);
     Q1 = Query(db, Queries.Q_1);
@@ -67,6 +68,7 @@ class LiteApi<T> implements Api {
     Q19 = Query(db, Queries.Q_19);
     Q20 = Query(db, Queries.Q_20);
     Q21 = Query(db, Queries.Q_21);
+    Q22 = Query(db, Queries.Q_22);
   }
 
   LiteApi({required Database database}) {
@@ -244,7 +246,7 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Product>> isTempProductExist() async {
-    Q5!.parameters = {'T': AppTables.product, 'NAME': 'temp'};
+    Q5.parameters = {'T': AppTables.product, 'NAME': 'temp'};
     final ResultSet product = Q5.execute();
     final List<Product> p = [];
     for (Map map in product.allResults) {
@@ -446,18 +448,51 @@ class LiteApi<T> implements Api {
       required String stockId,
       bool useProductName = false,
       String orderType = 'custom',
-      double quantity = 1}) {
-    // TODO: implement createOrder
-    throw UnimplementedError();
-  }
+      double quantity = 1}) async {
+    final id4 = Uuid().v1();
+    final ref = Uuid().v1();
+    final orderNUmber = Uuid().v1();
+    String userId = ProxyService.box.read(key: 'userId');
+    String branchId = ProxyService.box.read(key: 'branchId');
+    //do we have pending order then update it with given amount.
+    Q22.parameters = {'T': AppTables.order, 'VARIANTID': variation.id};
 
-  @override
-  Future<bool> updateOrder(
-      {required Order order,
-      required double customAmount,
-      bool completeOrder = false}) {
-    // TODO: implement updateOrder
-    throw UnimplementedError();
+    final ResultSet results = Q22.execute();
+    if (results.allResults.length > 0) {
+      Order order = sorderFromJson(results.allResults[0].json);
+      Map data = order.toJson();
+      data['amount'] = customAmount;
+      data['subTotal'] = customAmount;
+      await update(data: data, endPoint: 'order');
+      return sorderFromJson(results.allResults[0].json);
+    } else {
+      print(customAmount);
+      final Document _doc = Document(id4, data: {
+        'reference': ref,
+        'quantity': quantity,
+        'orderNumber': orderNUmber,
+        'status': 'pending',
+        'variantId': variation.id,
+        'variantName': useProductName ? variation.productName : variation.name,
+        'orderType': orderType,
+        'active': true,
+        'draft': true,
+        'channels': [userId],
+        'subTotal': customAmount,
+        'table': AppTables.order,
+        'cashReceived': customAmount,
+        'updatedAt': DateTime.now().toIso8601String(),
+        'amount': customAmount,
+        'customerChangeDue': 0.0,
+        'id': id4,
+        'stockId': stockId,
+        'branchId': branchId,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+      Document d = db.saveDocument(_doc);
+      print(d.json);
+      return sorderFromJson(d.json);
+    }
   }
 
   @override
@@ -473,10 +508,11 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Order>> orders() async {
-    Q3.parameters = {'T': AppTables.order, 'status': 'pending'};
-    final ResultSet business = Q3.execute();
+    Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
+    final ResultSet order = Q3.execute();
     final List<Order> orders = [];
-    for (Map map in business.allResults) {
+    for (Map map in order.allResults) {
+      // db.purgeDocument(map['id']);
       orders.add(sorderFromJson(jsonEncode(map)));
     }
     return orders;

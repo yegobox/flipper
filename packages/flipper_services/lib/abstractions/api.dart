@@ -62,11 +62,5 @@ abstract class Api<T> {
 
   Future<List<Order>> orders();
 
-  ///update the given order with amount given.
-  ///when complete is passed should set status to completed
-  Future<bool> updateOrder(
-      {required Order order,
-      required double customAmount,
-      bool completeOrder = false});
   Future<Variation> getCustomProductVariant();
 }

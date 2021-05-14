@@ -2,6 +2,7 @@ library flipper_models;
 
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper_models/models/business.dart';
+import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/stock.dart';
@@ -17,6 +18,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   get keyPad => null;
 
   get keypadValue => null;
+
+  List<Order> get orders => _keypad.orders;
 
   void addKey(String key) async {
     if (key == 'C') {
@@ -36,6 +39,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else {
       ProxyService.keypad.addKey(key);
     }
+  }
+
+  void getOrders() {
+    ProxyService.keypad.getOrders();
   }
 
   // products methods

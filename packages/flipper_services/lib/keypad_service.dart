@@ -19,7 +19,9 @@ class KeyPadService with ReactiveServiceMixin {
   }
 
   void getOrders() async {
-    _orders.value = await ProxyService.api.orders();
+    final result = await ProxyService.api.orders();
+    print(result);
+    _orders.value = result;
   }
 
   void reset() {

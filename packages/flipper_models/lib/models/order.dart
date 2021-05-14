@@ -43,15 +43,15 @@ class Order {
   String orderType;
   bool active;
   bool draft;
-  int subTotal;
-  int cashReceived;
-  int customerChangeDue;
+  double subTotal;
+  double cashReceived;
+  double customerChangeDue;
   String? createdAt;
   String? updatedAt;
   dynamic orderItems;
   String table;
   List<String> channels;
-  int amount;
+  double amount;
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
         id: json["id"],
