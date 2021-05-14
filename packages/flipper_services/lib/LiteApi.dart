@@ -332,11 +332,9 @@ class LiteApi<T> implements Api {
     final List<Variation> variantStocks = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet variants = Q1.execute();
-    for (Map map in variants.allResults) {
-      // if (map['name'] == "Jeans") {
-      //   db.purgeDocument(map['id']);
-      // }
-      variantStocks.add(svariationFromJson(jsonEncode(map)));
+    while (variants.next()) {
+      final row = variants.rowDict;
+      variantStocks.add(svariationFromJson(row.json));
     }
     return variantStocks;
   }
@@ -347,8 +345,9 @@ class LiteApi<T> implements Api {
     Q17.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
     final ResultSet business = Q17.execute();
     final List<VariantStock> variantStocks = [];
-    for (Map map in business.allResults) {
-      variantStocks.add(svariantStockFromJson(jsonEncode(map)));
+    while (business.next()) {
+      final row = business.rowDict;
+      variantStocks.add(svariantStockFromJson(row.json));
     }
     return variantStocks;
   }
