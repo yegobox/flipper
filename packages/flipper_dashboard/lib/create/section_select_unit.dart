@@ -26,7 +26,7 @@ class SectionSelectUnit extends StatelessWidget {
         width: double.infinity,
         child: GestureDetector(
           onTap: () {
-            ProxyService.nav.navigateTo(Routes.listUnits,
+            ProxyService.nav.navigateTo(Routes.units,
                 arguments: ListUnitsArguments(type: type));
           },
           child: ListTile(

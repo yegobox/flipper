@@ -84,7 +84,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                 counts: model.countedOrderItems,
                 onClick: () {
                   if (model.countedOrderItems > 0) {
-                    ProxyService.nav.navigateTo(Routes.orderSummary);
+                    ProxyService.nav.navigateTo(Routes.summary);
                   }
                 },
                 onLogout: () async {

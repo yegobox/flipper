@@ -19,12 +19,12 @@ class StartUpViewModel extends BaseViewModel {
 
       didSync = (response != null && response.isNotEmpty) ? true : false;
       if (didSync) {
-        _navigationService.navigateTo(Routes.businessHomeView);
+        _navigationService.navigateTo(Routes.home);
       } else {
-        _navigationService.navigateTo(Routes.signUpFormView);
+        _navigationService.navigateTo(Routes.signup);
       }
     } else {
-      _navigationService.replaceWith(Routes.loginView);
+      _navigationService.replaceWith(Routes.login);
     }
   }
 

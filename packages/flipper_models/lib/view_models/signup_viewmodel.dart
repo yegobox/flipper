@@ -131,7 +131,7 @@ class SignupViewModel extends FormViewModel {
       //now create a default custom product
       await ProxyService.api.createProduct(product: customProductMock);
 
-      ProxyService.nav.navigateTo(Routes.businessHomeView);
+      ProxyService.nav.navigateTo(Routes.home);
     }
   }
 

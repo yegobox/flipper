@@ -53,7 +53,7 @@ class VariationList extends StatelessWidget {
                               ),
                               onPressed: () {
                                 ProxyService.nav.navigateTo(
-                                  Routes.receiveStock,
+                                  Routes.stock,
                                   arguments: ReceiveStockArguments(
                                     variantId: variations[i].id,
                                   ),

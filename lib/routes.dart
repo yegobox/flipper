@@ -11,24 +11,26 @@ import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/order_summary.dart';
+import 'package:flipper_dashboard/sell.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 @StackedApp(
   routes: [
     MaterialRoute(page: StartUpView, initial: true),
-    MaterialRoute(page: DashboardView),
-    MaterialRoute(page: SignUpFormView),
-    MaterialRoute(page: BusinessHomeView),
-    MaterialRoute(page: LoginView),
-    MaterialRoute(page: AddProductView),
-    MaterialRoute(page: ListCategories),
-    MaterialRoute(page: ColorTile),
-    MaterialRoute(page: ReceiveStock),
-    MaterialRoute(page: AddCategory),
-    MaterialRoute(page: AddVariation),
-    MaterialRoute(page: ListUnits),
-    MaterialRoute(page: OrderSummary),
+    MaterialRoute(page: DashboardView, name: 'dashboard'),
+    MaterialRoute(page: SignUpFormView, name: 'signup'),
+    MaterialRoute(page: BusinessHomeView, name: 'home'),
+    MaterialRoute(page: LoginView, name: 'login'),
+    MaterialRoute(page: AddProductView, name: 'product'),
+    MaterialRoute(page: ListCategories, name: 'categories'),
+    MaterialRoute(page: ColorTile, name: 'colors'),
+    MaterialRoute(page: ReceiveStock, name: 'stock'),
+    MaterialRoute(page: AddCategory, name: 'category'),
+    MaterialRoute(page: AddVariation, name: 'variation'),
+    MaterialRoute(page: ListUnits, name: 'units'),
+    MaterialRoute(page: OrderSummary, name: 'summary'),
+    MaterialRoute(page: Sell, name: 'sell'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

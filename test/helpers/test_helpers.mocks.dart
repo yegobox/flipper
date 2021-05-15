@@ -291,6 +291,9 @@ class MockKeyPadService extends _i1.Mock implements _i18.KeyPadService {
       super.noSuchMethod(Invocation.method(#addKey, [key]),
           returnValueForMissingStub: null);
   @override
+  dynamic setCount({int? count}) =>
+      super.noSuchMethod(Invocation.method(#setCount, [], {#count: count}));
+  @override
   _i11.Future<List<_i7.Order>> getOrders() =>
       (super.noSuchMethod(Invocation.method(#getOrders, []),
               returnValue: Future<List<_i7.Order>>.value(<_i7.Order>[]))

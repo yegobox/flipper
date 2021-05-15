@@ -44,7 +44,7 @@ void main() {
       model.runStartupLogic();
       await api.businesses();
       expect(model.didSync, false);
-      verify(navigationService.navigateTo(Routes.signUpFormView));
+      verify(navigationService.navigateTo(Routes.signup));
     });
     test('create temporal Product', () {
       //code here

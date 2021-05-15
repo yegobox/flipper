@@ -82,7 +82,7 @@ class ListCategories extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    ProxyService.nav.navigateTo(Routes.addCategory);
+                    ProxyService.nav.navigateTo(Routes.category);
                   },
                   child: ListTile(
                     title: const Text('Create Category ',

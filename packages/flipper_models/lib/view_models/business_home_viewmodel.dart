@@ -12,10 +12,6 @@ import 'package:flipper_services/proxy.dart';
 class BusinessHomeViewModel extends ReactiveViewModel {
   final KeyPadService _keypad = locator<KeyPadService>();
   String get key => _keypad.key;
-  // keypad service
-  get keyPad => null;
-
-  get keypadValue => null;
 
   List<Order> get orders => _keypad.orders;
 
