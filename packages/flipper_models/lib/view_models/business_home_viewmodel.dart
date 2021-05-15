@@ -4,7 +4,6 @@ import 'package:flipper/routes.locator.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/product.dart';
-import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/variation.dart';
 import 'package:stacked/stacked.dart';
@@ -20,32 +19,45 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   get keypadValue => null;
 
   List<Order> get orders => _keypad.orders;
+  int _countOrderItems = 0;
+  int get countedOrderItems => _countOrderItems;
 
   void addKey(String key) async {
     if (key == 'C') {
       ProxyService.keypad.pop();
     } else if (key == '+') {
-      Variation variation = await ProxyService.api.getCustomProductVariant();
+      // print(double.parse(ProxyService.keypad.key));
+      if (double.parse(ProxyService.keypad.key) != 0.0) {
+        Variation variation = await ProxyService.api.getCustomProductVariant();
 
-      Stock stock =
-          await ProxyService.api.stockByVariantId(variantId: variation.id);
+        Stock stock =
+            await ProxyService.api.stockByVariantId(variantId: variation.id);
 
-      double amount = double.parse(ProxyService.keypad.key);
+        double amount = double.parse(ProxyService.keypad.key);
 
-      ProxyService.api.createOrder(
-        customAmount: amount,
-        variation: variation,
-        price: stock.retailPrice,
-      );
-      ProxyService.keypad.getOrders();
-      ProxyService.keypad.reset();
+        await ProxyService.api.createOrder(
+          customAmount: amount,
+          variation: variation,
+          price: stock.retailPrice,
+          quantity: 1, //default on keypad
+        );
+        List<Order> orders = await ProxyService.keypad.getOrders();
+        if (orders.isNotEmpty) {
+          _countOrderItems = orders[0].orderItems.length;
+        }
+        ProxyService.keypad.reset();
+      }
     } else {
       ProxyService.keypad.addKey(key);
     }
   }
 
-  void getOrders() {
-    ProxyService.keypad.getOrders();
+  void getOrders() async {
+    List<Order> od = await ProxyService.keypad.getOrders();
+
+    if (od.isNotEmpty) {
+      _countOrderItems = od[0].orderItems.length;
+    }
   }
 
   // products methods

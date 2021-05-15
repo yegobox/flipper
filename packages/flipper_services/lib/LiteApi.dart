@@ -491,7 +491,7 @@ class LiteApi<T> implements Api {
         createdAt: DateTime.now().toIso8601String(),
         orderItems: [
           OrderItem(
-            count: 1,
+            count: quantity,
             name: useProductName ? variation.productName : variation.name,
             variantId: variation.id,
             id: orderItemId,
@@ -505,27 +505,15 @@ class LiteApi<T> implements Api {
 
       return sorderFromJson(d.json);
     } else {
-      //first know if the given variant exist in order Item
-      List<OrderItem>? orderItemsFiltered = existOrder.orderItems
-          .where((item) => item.variantId == variation.id)
-          .toList();
-      if (orderItemsFiltered.isNotEmpty) {
-        Map od = orderItemsFiltered[0].toJson();
-        od['count'] += od['count'];
-        OrderItem item = OrderItem(
-          count: od['count'],
-          name: od['name'],
-          variantId: od['variantId'],
-          id: od['id'],
-          price: od['price'],
-          orderId: od['orderId'],
-        );
-        //now replace this changed order item from other OrderItems so it get updated!
-        existOrder.orderItems
-            .removeWhere((element) => element.variantId == variation.id);
-        //now add it back now updated!
-        existOrder.orderItems.add(item);
-      }
+      OrderItem item = OrderItem(
+        count: 1,
+        name: useProductName ? variation.productName : variation.name,
+        variantId: variation.id,
+        id: orderItemId,
+        price: price,
+        orderId: existOrder.id,
+      );
+      existOrder.orderItems.add(item);
       update(data: existOrder.toJson(), endPoint: 'order');
       return existOrder;
     }
@@ -547,7 +535,10 @@ class LiteApi<T> implements Api {
     Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
     final ResultSet order = Q3.execute();
     final List<Order> orders = [];
-
+    //NOTE: not for debuging incase I need to quickly delete sth
+    // for (Map map in order.allResults) {
+    //   db.purgeDocument(map['id']);
+    // }
     while (order.next()) {
       final row = order.rowDict;
       orders.add(sorderFromJson(row.json));

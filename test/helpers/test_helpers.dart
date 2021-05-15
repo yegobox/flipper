@@ -49,7 +49,7 @@ Api getAndRegisterApi(
   when(service.getCustomProductVariant())
       .thenAnswer((_) async => variationMock);
   when(service.createOrder(
-          customAmount: 0.0, variation: variationMock, price: 0.0))
+          customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
       .thenAnswer((_) async => orderMock);
   when(service.orders()).thenAnswer((_) async => [orderMock]);
   when(service.stockByVariantId(variantId: variationMock.id))

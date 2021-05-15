@@ -36,6 +36,7 @@ void main() {
 
     test('Pressing + should create a new order', () {
       final model = _getModel();
+
       model.addKey('+');
 
       expect(mockedKeyPadService.orders, [orderMock]);

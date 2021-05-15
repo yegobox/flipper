@@ -81,7 +81,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
               sideOpenController: _sideOpenController,
               child: SaleIndicator(
                 totalAmount: 300,
-                counts: model.orders.length,
+                counts: model.countedOrderItems,
                 onClick: () {},
                 onLogout: () async {
                   await ProxyService.api.logOut();

@@ -13,13 +13,23 @@ class KeyPadService with ReactiveServiceMixin {
   final _orders = ReactiveValue<List<Order>>([]);
   List<Order> get orders => _orders.value;
 
+  final _countOrderItems = ReactiveValue<int>(0);
+  int get countOrderItems => _countOrderItems.value;
+
   void addKey(String key) {
     stack.push(key);
     _key.value = stack.list.join('');
   }
 
-  void getOrders() async {
-    _orders.value = await ProxyService.api.orders();
+  Future<List<Order>> getOrders() async {
+    List<Order> od = await ProxyService.api.orders();
+    //NOTE: we assume index[0] as pending order can not be more than one at the moment
+    if (od.isNotEmpty) {
+      _countOrderItems.value = od[0].orderItems.length;
+    }
+
+    _orders.value = od;
+    return _orders.value;
   }
 
   void reset() {
@@ -40,6 +50,6 @@ class KeyPadService with ReactiveServiceMixin {
   }
 
   KeyPadService() {
-    listenToReactiveValues([_key, _orders]);
+    listenToReactiveValues([_key, _orders, _countOrderItems]);
   }
 }
