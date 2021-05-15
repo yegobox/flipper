@@ -26,7 +26,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (key == 'C') {
       ProxyService.keypad.pop();
     } else if (key == '+') {
-      // print(double.parse(ProxyService.keypad.key));
       if (double.parse(ProxyService.keypad.key) != 0.0) {
         Variation variation = await ProxyService.api.getCustomProductVariant();
 
@@ -39,7 +38,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           customAmount: amount,
           variation: variation,
           price: stock.retailPrice,
-          quantity: 1, //default on keypad
+          //default on keypad
+          quantity: 1,
         );
         List<Order> orders = await ProxyService.keypad.getOrders();
         if (orders.isNotEmpty) {
