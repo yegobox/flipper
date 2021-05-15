@@ -54,7 +54,7 @@ abstract class Api<T> {
   Future<Order> createOrder({
     required double customAmount,
     required Variation variation,
-    required String stockId,
+    required double price,
     bool useProductName = false,
     String orderType = 'custom',
     double quantity = 1,

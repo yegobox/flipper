@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/models/order.dart';
+import 'package:flipper_models/models/b.dart';
 import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/unit.dart';
 
@@ -440,9 +441,9 @@ class LiteApi<T> implements Api {
     return stocks[0];
   }
 
-  Future<Order?> pendingOrderExist({required String variantId}) async {
-    Q22.parameters = {'T': AppTables.order, 'VARIANTID': variantId};
-    final ResultSet results = Q22.execute();
+  Future<Order?> pendingOrderExist() async {
+    Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
+    final ResultSet results = Q3.execute();
     Order? order;
     while (results.next()) {
       final row = results.rowDict;
@@ -455,46 +456,77 @@ class LiteApi<T> implements Api {
   Future<Order> createOrder(
       {required double customAmount,
       required Variation variation,
-      required String stockId,
+      required double price,
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
     final id4 = Uuid().v1();
+    final orderItemId = Uuid().v1();
     final ref = Uuid().v1();
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     String branchId = ProxyService.box.read(key: 'branchId');
-    Order? existOrder = await pendingOrderExist(variantId: variation.id);
+    Order? existOrder = await pendingOrderExist();
+
+    // Document docStock = db.getDocument(stockId);
+    // Stock stock = sstockFromJson(docStock.json);
+
     if (existOrder == null) {
-      final Document _doc = Document(id4, data: {
-        'reference': ref,
-        'quantity': quantity,
-        'orderNumber': orderNUmber,
-        'status': 'pending',
-        'variantId': variation.id,
-        'variantName': useProductName ? variation.productName : variation.name,
-        'orderType': orderType,
-        'active': true,
-        'draft': true,
-        'channels': [userId],
-        'subTotal': customAmount,
-        'table': AppTables.order,
-        'cashReceived': customAmount,
-        'updatedAt': DateTime.now().toIso8601String(),
-        'amount': customAmount,
-        'customerChangeDue': 0.0,
-        'id': id4,
-        'stockId': stockId,
-        'branchId': branchId,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
+      Order order = new Order(
+        id: id4,
+        reference: ref,
+        orderNumber: orderNUmber,
+        status: 'pending',
+        orderType: orderType,
+        active: true,
+        draft: true,
+        channels: [userId],
+        subTotal: customAmount,
+        table: AppTables.order,
+        cashReceived: customAmount,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0, //fix this
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+        orderItems: [
+          OrderItem(
+            count: 1,
+            name: useProductName ? variation.productName : variation.name,
+            variantId: variation.id,
+            id: orderItemId,
+            price: price,
+            orderId: id4,
+          )
+        ],
+      );
+      final Document _doc = Document(id4, data: order.toJson());
       Document d = db.saveDocument(_doc);
 
       return sorderFromJson(d.json);
     } else {
-      Map data = existOrder.toJson();
-      data['amount'] = customAmount;
-      update(data: data, endPoint: 'order');
+      //first know if the given variant exist in order Item
+      List<OrderItem>? orderItemsFiltered = existOrder.orderItems
+          .where((item) => item.variantId == variation.id)
+          .toList();
+      if (orderItemsFiltered.isNotEmpty) {
+        Map od = orderItemsFiltered[0].toJson();
+        od['count'] += od['count'];
+        OrderItem item = OrderItem(
+          count: od['count'],
+          name: od['name'],
+          variantId: od['variantId'],
+          id: od['id'],
+          price: od['price'],
+          orderId: od['orderId'],
+        );
+        //now replace this changed order item from other OrderItems so it get updated!
+        existOrder.orderItems
+            .removeWhere((element) => element.variantId == variation.id);
+        //now add it back now updated!
+        existOrder.orderItems.add(item);
+      }
+      update(data: existOrder.toJson(), endPoint: 'order');
       return existOrder;
     }
   }
@@ -521,5 +553,27 @@ class LiteApi<T> implements Api {
       orders.add(sorderFromJson(row.json));
     }
     return orders;
+  }
+
+  /// experimenting methods
+  /// this methods are here to experiments before we
+  /// take big decision in general app
+  Future<B> insertB() async {
+    Document b = Document('1', data: {
+      'id': '1b',
+      'name': 'name',
+      'asi': [
+        {
+          'id': '1a',
+          'name': 'aa',
+        },
+        {
+          'id': '1aa',
+          'name': 'aaa',
+        }
+      ]
+    });
+    Document d = db.saveDocument(b);
+    return sbFromJson(d.json);
   }
 }

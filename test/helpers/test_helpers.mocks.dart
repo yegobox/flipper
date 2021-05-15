@@ -195,7 +195,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
   _i11.Future<_i7.Order> createOrder(
           {double? customAmount,
           _i8.Variation? variation,
-          String? stockId,
+          double? price,
           bool? useProductName = false,
           String? orderType = r'custom',
           double? quantity = 1.0}) =>
@@ -203,7 +203,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               Invocation.method(#createOrder, [], {
                 #customAmount: customAmount,
                 #variation: variation,
-                #stockId: stockId,
+                #price: price,
                 #useProductName: useProductName,
                 #orderType: orderType,
                 #quantity: quantity
@@ -215,18 +215,6 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
       (super.noSuchMethod(Invocation.method(#orders, []),
               returnValue: Future<List<_i7.Order>>.value(<_i7.Order>[]))
           as _i11.Future<List<_i7.Order>>);
-  @override
-  _i11.Future<bool> updateOrder(
-          {_i7.Order? order,
-          double? customAmount,
-          bool? completeOrder = false}) =>
-      (super.noSuchMethod(
-          Invocation.method(#updateOrder, [], {
-            #order: order,
-            #customAmount: customAmount,
-            #completeOrder: completeOrder
-          }),
-          returnValue: Future<bool>.value(false)) as _i11.Future<bool>);
   @override
   _i11.Future<_i8.Variation> getCustomProductVariant() =>
       (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),

@@ -9,10 +9,21 @@ final orderMock = new Order(
   orderType: 'local',
   active: true,
   draft: true,
-  subTotal: 40,
-  cashReceived: 40,
-  customerChangeDue: 0,
+  subTotal: 300,
+  cashReceived: 300,
+  customerChangeDue: 0.0,
   table: 'orders',
   channels: ['300'],
-  amount: 40,
+  createdAt: DateTime.now().toIso8601String(),
+  orderItems: [
+    OrderItem(
+      count: 1,
+      name: 'regular',
+      orderId: 'caa5cbf1-b3c3-11eb-85f9-4df3cd820e94',
+      id: 'id',
+      price: 300,
+      variantId: 'vid',
+    )
+  ],
+  paymentType: 'Cash',
 );

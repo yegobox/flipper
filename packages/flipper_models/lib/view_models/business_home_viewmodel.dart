@@ -33,7 +33,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       double amount = double.parse(ProxyService.keypad.key);
 
       ProxyService.api.createOrder(
-          customAmount: amount, variation: variation, stockId: stock.id);
+        customAmount: amount,
+        variation: variation,
+        price: stock.retailPrice,
+      );
       ProxyService.keypad.getOrders();
       ProxyService.keypad.reset();
     } else {
