@@ -82,7 +82,11 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
               child: SaleIndicator(
                 totalAmount: 300,
                 counts: model.countedOrderItems,
-                onClick: () {},
+                onClick: () {
+                  if (model.countedOrderItems > 0) {
+                    ProxyService.nav.navigateTo(Routes.orderSummary);
+                  }
+                },
                 onLogout: () async {
                   await ProxyService.api.logOut();
                   ProxyService.nav.navigateTo(Routes.startUpView);

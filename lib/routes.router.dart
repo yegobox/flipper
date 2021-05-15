@@ -15,6 +15,7 @@ import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
+import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
@@ -35,6 +36,7 @@ class Routes {
   static const String addCategory = '/add-category';
   static const String addVariation = '/add-variation';
   static const String listUnits = '/list-units';
+  static const String orderSummary = '/order-summary';
   static const all = <String>{
     startUpView,
     dashboardView,
@@ -48,6 +50,7 @@ class Routes {
     addCategory,
     addVariation,
     listUnits,
+    orderSummary,
   };
 }
 
@@ -67,6 +70,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.addCategory, page: AddCategory),
     RouteDef(Routes.addVariation, page: AddVariation),
     RouteDef(Routes.listUnits, page: ListUnits),
+    RouteDef(Routes.orderSummary, page: OrderSummary),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -168,6 +172,15 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    OrderSummary: (data) {
+      var args = data.getArgs<OrderSummaryArguments>(
+        orElse: () => OrderSummaryArguments(),
+      );
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => OrderSummary(key: args.key),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -219,4 +232,10 @@ class ListUnitsArguments {
   final Key? key;
   final String type;
   ListUnitsArguments({this.key, required this.type});
+}
+
+/// OrderSummary arguments holder class
+class OrderSummaryArguments {
+  final Key? key;
+  OrderSummaryArguments({this.key});
 }

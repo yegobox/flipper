@@ -8,6 +8,9 @@ class KeyPadService with ReactiveServiceMixin {
 
   Stack stack = Stack<String>();
 
+  final _count = ReactiveValue<int>(0);
+  get count => _count.value;
+
   String get key => _key.value;
 
   final _orders = ReactiveValue<List<Order>>([]);
@@ -19,6 +22,10 @@ class KeyPadService with ReactiveServiceMixin {
   void addKey(String key) {
     stack.push(key);
     _key.value = stack.list.join('');
+  }
+
+  setCount({required int count}) {
+    _count.value = count;
   }
 
   Future<List<Order>> getOrders() async {

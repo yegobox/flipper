@@ -355,8 +355,7 @@ class LiteApi<T> implements Api {
 
   @override
   Future<bool> delete({required String id, String? endPoint}) async {
-    db.purgeDocument(id);
-    return true;
+    return db.purgeDocument(id);
   }
 
   @override

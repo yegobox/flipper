@@ -4,7 +4,6 @@ import 'package:flipper/routes.locator.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/product.dart';
-import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/variation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -19,8 +18,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   get keypadValue => null;
 
   List<Order> get orders => _keypad.orders;
-  int _countOrderItems = 0;
-  int get countedOrderItems => _countOrderItems;
+
+  int get countedOrderItems => _keypad.count;
 
   void addKey(String key) async {
     if (key == 'C') {
@@ -28,22 +27,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
         Variation variation = await ProxyService.api.getCustomProductVariant();
-
-        Stock stock =
-            await ProxyService.api.stockByVariantId(variantId: variation.id);
-
+        // Stock stock =
+        //     await ProxyService.api.stockByVariantId(variantId: variation.id);
         double amount = double.parse(ProxyService.keypad.key);
 
         await ProxyService.api.createOrder(
           customAmount: amount,
           variation: variation,
-          price: stock.retailPrice,
+          price: double.parse(ProxyService.keypad.key),
           //default on keypad
           quantity: 1,
         );
         List<Order> orders = await ProxyService.keypad.getOrders();
         if (orders.isNotEmpty) {
-          _countOrderItems = orders[0].orderItems.length;
+          _keypad.setCount(count: orders[0].orderItems.length);
         }
         ProxyService.keypad.reset();
       }
@@ -55,8 +52,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void getOrders() async {
     List<Order> od = await ProxyService.keypad.getOrders();
 
-    if (od.isNotEmpty) {
-      _countOrderItems = od[0].orderItems.length;
+    if (od[0].orderItems.isNotEmpty) {
+      _keypad.setCount(count: orders[0].orderItems.length);
+    } else {
+      _keypad.setCount(count: 0);
+      ProxyService.nav.back(); //if no item then navigate back home!
     }
   }
 
@@ -79,6 +79,16 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void reset() {
     ProxyService.keypad.reset();
+  }
+
+  Future<bool> deleteOrderItem({required String id}) async {
+    Order order = orders[0];
+    if (order.orderItems.isNotEmpty) {
+      order.orderItems.removeWhere((element) => element.id == id);
+      ProxyService.api.update(data: order.toJson(), endPoint: 'order');
+    }
+    getOrders();
+    return false;
   }
 
   @override

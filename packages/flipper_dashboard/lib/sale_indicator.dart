@@ -26,7 +26,8 @@ class SaleIndicator extends StatelessWidget {
           height: 60,
           child: Row(children: <Widget>[
             Expanded(
-              child: FlatButton(
+              child: TextButton(
+                style: TextButton.styleFrom(primary: Colors.black),
                 onPressed: () {
                   onClick();
                 },
