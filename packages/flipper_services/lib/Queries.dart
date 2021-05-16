@@ -40,7 +40,7 @@ class Queries {
 
   //table NONE
   static const String Q_13 =
-      'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID';
+      'SELECT variants.id,variants.name, stocks.lowStock,stocks.currentStock,stocks.supplyPrice,stocks.retailPrice,stocks.value FROM variants JOIN stocks ON variants.productId=stocks.productId WHERE variants.table = "variants" AND variants.productId=\$PRODUCTID';
   //table =business
   static const String Q_14 =
       'SELECT id,name,active,currency,categoryId,latitude,longitude,userId,typeId,timeZone,createdAt,updatedAt,channels,country,businessUrl,hexColor,image,type,table WHERE table=\$T';
@@ -59,7 +59,7 @@ class Queries {
       'SELECT variants.taxtName,variants.taxPercentage, variants.name as variantName,products.name as productName, variants.id as variantId,variants.id,variants.sku,variants.unit,stocks.retailPrice,stocks.canTrackingStock,stocks.currentStock,stocks.lowStock,stocks.value,stocks.branchId FROM variants JOIN stocks ON variants.id=stocks.variantId JOIN products ON variants.productId=products.id WHERE variants.table=\$T AND variants.id=\$VARIANTID';
 
   static const String Q_19 =
-      'SELECT id,branchId,variantId,lowStock,currentStock,supplyPrice,retailPrice,canTrackingStock,showLowStockAlert,channels,table,productId,active WHERE table=\$T AND productId=\$PRODUCTID';
+      'SELECT id,branchId,variantId,lowStock,value,currentStock,supplyPrice,retailPrice,canTrackingStock,showLowStockAlert,channels,table,productId,active WHERE table=\$T AND productId=\$PRODUCTID';
   static const String Q_20 =
       'SELECT  id,name WHERE table=\$T AND name=\$NAME LIMIT 1';
   static const String Q_21 =
