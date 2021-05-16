@@ -162,9 +162,9 @@ class LiteApi<T> implements Api {
     Q9.parameters = {'VALUE': AppTables.category, 'BRANCHID': branchId};
     final ResultSet business = Q9.execute();
     final List<Category> categories = [];
-    for (Map map in business.allResults) {
-      categories.add(scategoryFromJson(jsonEncode(map)));
-    }
+    // for (Map map in business.allResults) {
+    //   categories.add(scategoryFromJson(jsonEncode(map)));
+    // }
     while (business.next()) {
       final row = business.rowDict;
       categories.add(scategoryFromJson(row.json));
@@ -338,11 +338,6 @@ class LiteApi<T> implements Api {
       final row = unit.rowDict;
       _units.add(sunitFromJson(row.json));
     }
-    // for (Map map in business.allResults) {
-    //   if (map['name'] != null && map['focused'] != null && map['id'] != null) {
-    //     units.add(sunitFromJson(jsonEncode(map)));
-    //   }
-    // }
     return _units;
   }
 
