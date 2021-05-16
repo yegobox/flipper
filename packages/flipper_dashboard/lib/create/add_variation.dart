@@ -54,6 +54,8 @@ class _AddVariationState extends State<AddVariation> {
                     branchId: model.productService.branchId!,
                     id: variantId,
                     table: AppTables.variation,
+                    taxName: 'N/A', //TODO: replace with branch/business config
+                    taxPercentage: 0.0,
                   );
                   variations.add(data);
                   await model.addVariant(

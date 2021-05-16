@@ -69,10 +69,10 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
           returnValue:
               Future<_i3.Sync>.value(_FakeSync())) as _i10.Future<_i3.Sync>);
   @override
-  _i10.Future<List<_i11.Business>?> businesses() => (super.noSuchMethod(
-          Invocation.method(#businesses, []),
-          returnValue: Future<List<_i11.Business>?>.value(<_i11.Business>[]))
-      as _i10.Future<List<_i11.Business>?>);
+  _i10.Future<List<_i11.Business>> businesses() =>
+      (super.noSuchMethod(Invocation.method(#businesses, []),
+              returnValue: Future<List<_i11.Business>>.value(<_i11.Business>[]))
+          as _i10.Future<List<_i11.Business>>);
   @override
   _i10.Future<List<_i12.Branch>> branches({String? businessId}) =>
       (super.noSuchMethod(

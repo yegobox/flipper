@@ -21,6 +21,7 @@ import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/models/category.dart';
+import 'package:flipper_models/models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -186,8 +187,12 @@ class StackedRouter extends RouterBase {
       );
     },
     Sell: (data) {
+      var args = data.getArgs<SellArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const Sell(),
+        builder: (context) => Sell(
+          key: args.key,
+          product: args.product,
+        ),
         settings: data,
       );
     },
@@ -248,4 +253,11 @@ class ListUnitsArguments {
 class OrderSummaryArguments {
   final Key? key;
   OrderSummaryArguments({this.key});
+}
+
+/// Sell arguments holder class
+class SellArguments {
+  final Key? key;
+  final Product product;
+  SellArguments({this.key, required this.product});
 }

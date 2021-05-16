@@ -2,9 +2,10 @@ import 'package:stacked/stacked.dart';
 
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/color.dart';
+import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'proxy.dart';
-import 'package:flipper_models/models/stock.dart';
+// import 'package:flipper_models/models/stock.dart';
 
 class AppService with ReactiveServiceMixin {
   // required constants
@@ -14,6 +15,9 @@ class AppService with ReactiveServiceMixin {
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
+
+  final _businesses = ReactiveValue<List<Business>>([]);
+  List<Business> get businesses => _businesses.value;
 
   final _units = ReactiveValue<List<Unit>>([]);
   List<Unit> get units => _units.value;
@@ -26,6 +30,10 @@ class AppService with ReactiveServiceMixin {
 
   setCurrentColor({required String color}) {
     _currentColor.value = color;
+  }
+
+  setBusiness({required List<Business> businesses}) {
+    _businesses.value = businesses;
   }
 
   void loadCategories() async {
@@ -65,6 +73,7 @@ class AppService with ReactiveServiceMixin {
   }
 
   AppService() {
-    listenToReactiveValues([_categories, _units, _colors, _currentColor]);
+    listenToReactiveValues(
+        [_categories, _units, _colors, _currentColor, _businesses]);
   }
 }

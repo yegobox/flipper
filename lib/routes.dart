@@ -52,4 +52,6 @@ class AppSetup {
 // flutter run -d chrome --release
 //  flutter pub add moor_flutter
 // flutter pub run msix:create
+//cheat code
+//TODO: push notification service https://github.com/Pronto-AG/Pronto-MIA-App/blob/master/pronto_mia/lib/core/services/push_notification_service.dart
 

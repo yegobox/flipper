@@ -43,7 +43,7 @@ class HiveApi implements Api {
   }
 
   @override
-  Future<List<Business>?> businesses() {
+  Future<List<Business>> businesses() {
     // TODO: implement businesses
     throw UnimplementedError();
   }

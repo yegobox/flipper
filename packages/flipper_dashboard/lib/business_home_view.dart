@@ -67,7 +67,6 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
-        model.loadBusinesses();
         model.getOrders();
       },
       builder: (context, model, child) {

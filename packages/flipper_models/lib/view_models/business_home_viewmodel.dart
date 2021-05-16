@@ -4,18 +4,30 @@ import 'package:flipper/routes.locator.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/variation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   final KeyPadService _keypad = locator<KeyPadService>();
+  final AppService _app = locator<AppService>();
   String get key => _keypad.key;
 
   List<Order> get orders => _keypad.orders;
 
   int get countedOrderItems => _keypad.count;
+
+  double get amountTotal => _keypad.amountTotal;
+
+  get checked => null;
+
+  get quantity => _keypad.quantity;
+
+  List<VariantStock> _variantsStocks = [];
+  get variantsStocks => _variantsStocks;
 
   void addKey(String key) async {
     if (key == 'C') {
@@ -48,7 +60,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void getOrders() async {
     List<Order> od = await ProxyService.keypad.getOrders();
 
-    if (od[0].orderItems.isNotEmpty) {
+    if (od.isNotEmpty && od[0].orderItems.isNotEmpty) {
       _keypad.setCount(count: orders[0].orderItems.length);
     } else {
       _keypad.setCount(count: 0);
@@ -61,13 +73,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return await ProxyService.api.products();
   }
 
-  List<Business> _businesses = [];
-  List<Business> get businesses => _businesses;
-  void loadBusinesses() async {
-    List<Business>? response = await ProxyService.api.businesses();
-    _businesses = response!;
-    notifyListeners();
-  }
+  List<Business> get businesses => _app.businesses;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -87,6 +93,31 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return false;
   }
 
+  void decreaseQty() {
+    ProxyService.keypad.decreaseQty();
+  }
+
+  void increaseQty() {
+    ProxyService.keypad.increaseQty();
+  }
+
+  void setAmount({required double amount}) {
+    ProxyService.keypad.setAmount(amount: 300);
+  }
+
+  void loadVariantStock({required String variantId}) async {
+    String branchId = ProxyService.box.read(key: 'branchId');
+    _variantsStocks = await ProxyService.api
+        .variantStock(branchId: branchId, variantId: variantId);
+  }
+
+  Future<String> getVariant({required String productId}) async {
+    String branchId = ProxyService.box.read(key: 'branchId');
+    List<Variation> variants = await ProxyService.api
+        .variants(branchId: branchId, productId: productId);
+    return variants[0].id;
+  }
+
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [_keypad];
+  List<ReactiveServiceMixin> get reactiveServices => [_keypad, _app];
 }

@@ -41,6 +41,8 @@ void main() {
         branchId: 'BID',
         id: 'ID',
         table: AppTables.variation,
+        taxName: 'N/A',
+        taxPercentage: 0.0,
       );
       ls.add(v);
       getAndRegisterApi(

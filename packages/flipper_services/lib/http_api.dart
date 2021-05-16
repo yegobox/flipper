@@ -67,7 +67,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Business>?> businesses() async {
+  Future<List<Business>> businesses() async {
     final response = await client.get(Uri.parse("$apihub/api/businesses"));
 
     return businessFromJson(response.body);

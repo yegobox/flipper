@@ -75,10 +75,10 @@ class SignupViewModel extends FormViewModel {
     });
     if (okStatus == 200) {
       //get businesses's id then look for related branch [0] create the default category
-      List<Business>? businesses = await ProxyService.api.businesses();
+      List<Business> businesses = await ProxyService.api.businesses();
 
       List<Branch> branches =
-          await ProxyService.api.branches(businessId: businesses![0].id);
+          await ProxyService.api.branches(businessId: businesses[0].id);
       final String? userId = ProxyService.box.read(key: 'userId');
       final categoryId = Uuid().v1();
       final Category category = new Category(

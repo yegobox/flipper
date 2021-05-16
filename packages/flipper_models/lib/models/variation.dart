@@ -17,17 +17,18 @@ String variationToJson(List<Variation> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class Variation {
-  Variation({
-    required this.id,
-    required this.name,
-    required this.sku,
-    required this.productId,
-    required this.unit,
-    required this.table,
-    required this.channels,
-    required this.productName,
-    required this.branchId,
-  });
+  Variation(
+      {required this.id,
+      required this.name,
+      required this.sku,
+      required this.productId,
+      required this.unit,
+      required this.table,
+      required this.channels,
+      required this.productName,
+      required this.branchId,
+      required this.taxName,
+      required this.taxPercentage});
 
   String id;
   String name;
@@ -38,18 +39,21 @@ class Variation {
   List<String> channels;
   String productName;
   String branchId;
+  String taxName;
+  double taxPercentage;
 
   factory Variation.fromJson(Map<String, dynamic> json) => Variation(
-        id: json["id"],
-        name: json["name"],
-        sku: json["sku"],
-        productId: json["productId"],
-        unit: json["unit"],
-        table: json["table"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
-        productName: json["productName"],
-        branchId: json["branchId"],
-      );
+      id: json["id"],
+      name: json["name"],
+      sku: json["sku"],
+      productId: json["productId"],
+      unit: json["unit"],
+      table: json["table"],
+      channels: List<String>.from(json["channels"].map((x) => x)),
+      productName: json["productName"],
+      branchId: json["branchId"],
+      taxName: json["taxName"],
+      taxPercentage: json["taxPercentage"]);
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -61,5 +65,7 @@ class Variation {
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "productName": productName,
         "branchId": branchId,
+        "taxName": taxName,
+        "taxPercentage": taxPercentage
       };
 }
