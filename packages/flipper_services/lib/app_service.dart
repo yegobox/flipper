@@ -5,7 +5,6 @@ import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'proxy.dart';
-// import 'package:flipper_models/models/stock.dart';
 
 class AppService with ReactiveServiceMixin {
   // required constants

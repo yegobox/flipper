@@ -103,7 +103,7 @@ class SignupViewModel extends FormViewModel {
         '#ff7675',
         '#a29bfe'
       ];
-      print(branches[0].id);
+
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
       final colorId = Uuid().v1();

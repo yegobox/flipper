@@ -83,7 +83,7 @@ class LiteApi<T> implements Api {
     // final String appDocPath = appDocDir.path;
     // ignore: prefer_single_quotes
     // db = Database("main", directory: appDocPath);
-    print(db);
+    // print(db);
     if (!db.isOpen) {
       db.open();
     }
@@ -176,7 +176,7 @@ class LiteApi<T> implements Api {
   Future<List<PColor>> colors({required String branchId}) async {
     Q12.parameters = {'T': AppTables.color, 'BRANCHID': branchId};
     final ResultSet colors = Q12.execute();
-    print(branchId);
+
     final List<PColor> _colors = [];
     while (colors.next()) {
       final row = colors.rowDict;
@@ -193,7 +193,6 @@ class LiteApi<T> implements Api {
   Future<int> create<T>({required Map data, required String endPoint}) async {
     if (endPoint == 'color') {
       for (String co in data['colors']) {
-        // String
         final colorId = Uuid().v1();
         Map newColor = {
           'id': colorId,
@@ -203,7 +202,6 @@ class LiteApi<T> implements Api {
           'branchId': data['branchId'],
           'active': data['active'],
         };
-        print(newColor);
         final doc = Document(colorId, data: newColor);
         db.saveDocument(doc);
       }
