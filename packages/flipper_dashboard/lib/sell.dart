@@ -27,7 +27,7 @@ class Sell extends StatelessWidget {
     return product.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
-  Widget _quantityWidget(
+  Widget Quantity(
       {required BusinessHomeViewModel model, required BuildContext context}) {
     return SingleChildScrollView(
       child: Container(
@@ -468,15 +468,15 @@ class Sell extends StatelessWidget {
     );
   }
 
-  List<Widget> _productCategory({required BusinessHomeViewModel model}) {
+  List<Widget> Variants({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
     for (VariantStock variation in model.variantsStocks) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
-            // model.updateAmountTotalDefault(
-            //     value: variation.retailPrice, variant: variation);
+            model.keypad
+                .setAmount(amount: variation.retailPrice * model.quantity);
           },
           child: Container(
             child: Padding(
@@ -515,12 +515,9 @@ class Sell extends StatelessWidget {
                           ),
                           Container(
                             child: Radio(
-                              value: variation.retailPrice,
-                              groupValue: model.checked, onChanged: (value) {},
-                              // onChanged: (double value) {
-                              //   model.updateAmountTotalDefault(
-                              //       value: value, variant: variation);
-                              // },
+                              value: model.groupValue,
+                              groupValue: model.checked,
+                              onChanged: (value) {},
                             ),
                           ),
                         ]),
@@ -600,11 +597,11 @@ class Sell extends StatelessWidget {
 
                         ListView(
                           shrinkWrap: true,
-                          children: _productCategory(model: model),
+                          children: Variants(model: model),
                         ),
 
                         // endloop  == start/and discounts
-                        _quantityWidget(context: context, model: model),
+                        Quantity(context: context, model: model),
                       ],
                     ),
                   ),

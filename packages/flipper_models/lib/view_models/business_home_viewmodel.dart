@@ -12,19 +12,22 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
-  final KeyPadService _keypad = locator<KeyPadService>();
+  final KeyPadService keypad = locator<KeyPadService>();
   final AppService _app = locator<AppService>();
-  String get key => _keypad.key;
+  String get key => keypad.key;
 
-  List<Order> get orders => _keypad.orders;
+  List<Order> get orders => keypad.orders;
 
-  int get countedOrderItems => _keypad.count;
+  int get countedOrderItems => keypad.count;
 
-  double get amountTotal => _keypad.amountTotal;
+  double get amountTotal => keypad.amountTotal;
 
-  get checked => null;
+  bool _check = true;
+  bool get checked => _check;
 
-  get quantity => _keypad.quantity;
+  bool get groupValue => true;
+
+  get quantity => keypad.quantity;
 
   List<VariantStock> _variantsStocks = [];
   get variantsStocks => _variantsStocks;
@@ -48,7 +51,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         );
         List<Order> orders = await ProxyService.keypad.getOrders();
         if (orders.isNotEmpty) {
-          _keypad.setCount(count: orders[0].orderItems.length);
+          keypad.setCount(count: orders[0].orderItems.length);
         }
         ProxyService.keypad.reset();
       }
@@ -61,9 +64,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     List<Order> od = await ProxyService.keypad.getOrders();
 
     if (od.isNotEmpty && od[0].orderItems.isNotEmpty) {
-      _keypad.setCount(count: orders[0].orderItems.length);
+      keypad.setCount(count: orders[0].orderItems.length);
     } else {
-      _keypad.setCount(count: 0);
+      keypad.setCount(count: 0);
     }
   }
 
@@ -101,13 +104,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void setAmount({required double amount}) {
-    ProxyService.keypad.setAmount(amount: 300);
+    ProxyService.keypad.setAmount(amount: amount);
   }
 
   void loadVariantStock({required String variantId}) async {
     String branchId = ProxyService.box.read(key: 'branchId');
     _variantsStocks = await ProxyService.api
         .variantStock(branchId: branchId, variantId: variantId);
+    notifyListeners();
   }
 
   Future<String> getVariant({required String productId}) async {
@@ -118,5 +122,5 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [_keypad, _app];
+  List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
 }
