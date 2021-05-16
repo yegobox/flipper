@@ -55,8 +55,9 @@ class AppService with ReactiveServiceMixin {
   Future<void> loadColors() async {
     String? branchId = ProxyService.box.read(key: 'branchId');
 
-    final result = await ProxyService.api.colors(branchId: branchId!);
+    List<PColor> result = await ProxyService.api.colors(branchId: branchId!);
     _colors.value = result;
+
     for (PColor color in _colors.value) {
       if (color.active) {
         setCurrentColor(color: color.name!);

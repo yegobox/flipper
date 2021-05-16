@@ -165,28 +165,43 @@ class LiteApi<T> implements Api {
     for (Map map in business.allResults) {
       categories.add(scategoryFromJson(jsonEncode(map)));
     }
+    while (business.next()) {
+      final row = business.rowDict;
+      categories.add(scategoryFromJson(row.json));
+    }
     return categories;
   }
 
   @override
   Future<List<PColor>> colors({required String branchId}) async {
     Q12.parameters = {'T': AppTables.color, 'BRANCHID': branchId};
-    final ResultSet business = Q12.execute();
-    final List<PColor> colors = [];
-    for (Map map in business.allResults) {
-      if (map['name'] != null &&
-          map['id'] != null &&
-          map['table'] != null &&
-          map['branchId'] != null &&
-          map['active'] != null) {
-        colors.add(spColorFromJson(jsonEncode(map)));
-      }
+    final ResultSet colors = Q12.execute();
+    final List<PColor> _colors = [];
+    while (colors.next()) {
+      final row = colors.rowDict;
+      _colors.add(spColorFromJson(row.json));
     }
-    return colors;
+    return _colors;
   }
 
   @override
   Future<int> create<T>({required Map data, required String endPoint}) async {
+    if (endPoint == 'color') {
+      for (String co in data['colors']) {
+        final colorId = Uuid().v1();
+        Map newColor = {
+          'id': colorId,
+          'name': co,
+          'channels': data['channels'],
+          'table': data['table'],
+          'branchId': data['branchId'],
+          'active': data['active'],
+        };
+        final doc = Document(colorId, data: newColor);
+        db.saveDocument(doc);
+      }
+      return 200;
+    }
     final doc = Document(data['id'], data: data);
 
     db.saveDocument(doc);
@@ -255,8 +270,10 @@ class LiteApi<T> implements Api {
     Q5.parameters = {'T': AppTables.product, 'NAME': 'temp'};
     final ResultSet product = Q5.execute();
     final List<Product> p = [];
-    for (Map map in product.allResults) {
-      p.add(sproductFromJson(jsonEncode(map)));
+
+    while (product.next()) {
+      final row = product.rowDict;
+      p.add(sproductFromJson(row.json));
     }
     return p;
   }
@@ -282,8 +299,10 @@ class LiteApi<T> implements Api {
     Q16.parameters = {'T': AppTables.product};
     final ResultSet product = Q16.execute();
     final List<Product> p = [];
-    for (Map map in product.allResults) {
-      p.add(sproductFromJson(jsonEncode(map)));
+
+    while (product.next()) {
+      final row = product.rowDict;
+      p.add(sproductFromJson(row.json));
     }
     return p;
   }
@@ -313,14 +332,18 @@ class LiteApi<T> implements Api {
   @override
   Future<List<Unit>> units({required String branchId}) async {
     Q10.parameters = {'T': AppTables.unit, 'BRANCHID': branchId};
-    final ResultSet business = Q10.execute();
-    final List<Unit> units = [];
-    for (Map map in business.allResults) {
-      if (map['name'] != null && map['focused'] != null && map['id'] != null) {
-        units.add(sunitFromJson(jsonEncode(map)));
-      }
+    final ResultSet unit = Q10.execute();
+    final List<Unit> _units = [];
+    while (unit.next()) {
+      final row = unit.rowDict;
+      _units.add(sunitFromJson(row.json));
     }
-    return units;
+    // for (Map map in business.allResults) {
+    //   if (map['name'] != null && map['focused'] != null && map['id'] != null) {
+    //     units.add(sunitFromJson(jsonEncode(map)));
+    //   }
+    // }
+    return _units;
   }
 
   @override
