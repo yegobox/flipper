@@ -495,6 +495,9 @@ class BuildProductsView extends StatelessWidget {
                     product: product,
                     name: product.name,
                     imageUrl: product.imageUrl,
+                    delete: (productId) {
+                      model.deleteProduct(productId: productId);
+                    },
                   ),
                 )
                 .toList(),

@@ -9,19 +9,21 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/product.dart';
 
 class ProductRow extends StatelessWidget {
-  const ProductRow({
-    Key? key,
-    required this.color,
-    required this.name,
-    required this.hasImage,
-    this.imageUrl,
-    required this.product,
-  }) : super(key: key);
+  const ProductRow(
+      {Key? key,
+      required this.color,
+      required this.name,
+      required this.hasImage,
+      this.imageUrl,
+      required this.product,
+      required this.delete})
+      : super(key: key);
   final String color;
   final String name;
   final bool hasImage;
   final String? imageUrl;
   final Product product;
+  final Function delete;
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +111,7 @@ class ProductRow extends StatelessWidget {
           icon: Icons.delete,
           onTap: () {
             // model.deleteProduct(productId: product.id);
+            delete(product.id);
           },
         ),
       ],
