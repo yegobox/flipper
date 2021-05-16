@@ -17,6 +17,7 @@ class StartUpViewModel extends BaseViewModel {
       List<Business>? businesses = await ProxyService.api.businesses();
 
       didSync = (businesses.isNotEmpty) ? true : false;
+
       if (didSync) {
         ProxyService.appService.setBusiness(businesses: businesses);
         _navigationService.replaceWith(Routes.home);
@@ -34,7 +35,7 @@ class StartUpViewModel extends BaseViewModel {
       List<Business>? businesses = await ProxyService.api.businesses();
       try {
         List<Branch> branches =
-            await ProxyService.api.branches(businessId: businesses![0].id);
+            await ProxyService.api.branches(businessId: businesses[0].id);
         // print(businesses[0].id);
         // print(branches[0].id);
         ProxyService.box.write(key: 'branchId', value: branches[0].id);

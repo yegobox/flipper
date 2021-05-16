@@ -5,7 +5,7 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/color.dart';
-import 'package:flipper_models/models/product.dart';
+// import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'package:flipper_models/models/unit_mock.dart';

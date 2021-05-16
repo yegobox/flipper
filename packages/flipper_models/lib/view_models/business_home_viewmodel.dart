@@ -64,7 +64,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       _keypad.setCount(count: orders[0].orderItems.length);
     } else {
       _keypad.setCount(count: 0);
-      ProxyService.nav.back(); //if no item then navigate back home!
     }
   }
 
