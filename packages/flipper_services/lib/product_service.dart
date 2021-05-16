@@ -11,8 +11,10 @@ class ProductService with ReactiveServiceMixin {
   Product? get product => _product.value;
 
   final _products = ReactiveValue<List<Product>>([]);
-  List<Product> get products =>
-      _products.value.where((element) => element.name != 'temp').toList();
+  List<Product> get products => _products.value
+      .where((element) =>
+          element.name != 'temp' && element.name != 'Custom Amount')
+      .toList();
 
   String? get userId => ProxyService.box.read(key: 'userId');
   String? get branchId => ProxyService.box.read(key: 'branchId');

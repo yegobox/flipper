@@ -22,7 +22,7 @@ void main() {
       model.runStartupLogic();
       await api.businesses();
       expect(model.didSync, true);
-      verify(navigationService.navigateTo(Routes.businessHomeView));
+      verify(navigationService.replaceWith(Routes.home));
     });
     test('When user not logged in should take user to login', () async {
       final appService = getAndRegisterAppService(hasLoggedInUser: false);
@@ -31,7 +31,7 @@ void main() {
       appService.isLoggedIn();
       model.runStartupLogic();
       expect(model.didSync, false);
-      verify(navigationService.replaceWith(Routes.loginView));
+      verify(navigationService.replaceWith(Routes.login));
     });
   });
 }

@@ -15,39 +15,46 @@ import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
+import 'package:flipper_dashboard/order_summary.dart';
+import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/models/category.dart';
+import 'package:flipper_models/models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class Routes {
   static const String startUpView = '/';
-  static const String dashboardView = '/dashboard-view';
-  static const String signUpFormView = '/sign-up-form-view';
-  static const String businessHomeView = '/business-home-view';
-  static const String loginView = '/login-view';
-  static const String addProductView = '/add-product-view';
-  static const String listCategories = '/list-categories';
-  static const String colorTile = '/color-tile';
-  static const String receiveStock = '/receive-stock';
-  static const String addCategory = '/add-category';
-  static const String addVariation = '/add-variation';
-  static const String listUnits = '/list-units';
+  static const String dashboard = '/dashboard-view';
+  static const String signup = '/sign-up-form-view';
+  static const String home = '/business-home-view';
+  static const String login = '/login-view';
+  static const String product = '/add-product-view';
+  static const String categories = '/list-categories';
+  static const String colors = '/color-tile';
+  static const String stock = '/receive-stock';
+  static const String category = '/add-category';
+  static const String variation = '/add-variation';
+  static const String units = '/list-units';
+  static const String summary = '/order-summary';
+  static const String sell = '/Sell';
   static const all = <String>{
     startUpView,
-    dashboardView,
-    signUpFormView,
-    businessHomeView,
-    loginView,
-    addProductView,
-    listCategories,
-    colorTile,
-    receiveStock,
-    addCategory,
-    addVariation,
-    listUnits,
+    dashboard,
+    signup,
+    home,
+    login,
+    product,
+    categories,
+    colors,
+    stock,
+    category,
+    variation,
+    units,
+    summary,
+    sell,
   };
 }
 
@@ -56,17 +63,19 @@ class StackedRouter extends RouterBase {
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
     RouteDef(Routes.startUpView, page: StartUpView),
-    RouteDef(Routes.dashboardView, page: DashboardView),
-    RouteDef(Routes.signUpFormView, page: SignUpFormView),
-    RouteDef(Routes.businessHomeView, page: BusinessHomeView),
-    RouteDef(Routes.loginView, page: LoginView),
-    RouteDef(Routes.addProductView, page: AddProductView),
-    RouteDef(Routes.listCategories, page: ListCategories),
-    RouteDef(Routes.colorTile, page: ColorTile),
-    RouteDef(Routes.receiveStock, page: ReceiveStock),
-    RouteDef(Routes.addCategory, page: AddCategory),
-    RouteDef(Routes.addVariation, page: AddVariation),
-    RouteDef(Routes.listUnits, page: ListUnits),
+    RouteDef(Routes.dashboard, page: DashboardView),
+    RouteDef(Routes.signup, page: SignUpFormView),
+    RouteDef(Routes.home, page: BusinessHomeView),
+    RouteDef(Routes.login, page: LoginView),
+    RouteDef(Routes.product, page: AddProductView),
+    RouteDef(Routes.categories, page: ListCategories),
+    RouteDef(Routes.colors, page: ColorTile),
+    RouteDef(Routes.stock, page: ReceiveStock),
+    RouteDef(Routes.category, page: AddCategory),
+    RouteDef(Routes.variation, page: AddVariation),
+    RouteDef(Routes.units, page: ListUnits),
+    RouteDef(Routes.summary, page: OrderSummary),
+    RouteDef(Routes.sell, page: Sell),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -168,6 +177,25 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    OrderSummary: (data) {
+      var args = data.getArgs<OrderSummaryArguments>(
+        orElse: () => OrderSummaryArguments(),
+      );
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => OrderSummary(key: args.key),
+        settings: data,
+      );
+    },
+    Sell: (data) {
+      var args = data.getArgs<SellArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => Sell(
+          key: args.key,
+          product: args.product,
+        ),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -219,4 +247,17 @@ class ListUnitsArguments {
   final Key? key;
   final String type;
   ListUnitsArguments({this.key, required this.type});
+}
+
+/// OrderSummary arguments holder class
+class OrderSummaryArguments {
+  final Key? key;
+  OrderSummaryArguments({this.key});
+}
+
+/// Sell arguments holder class
+class SellArguments {
+  final Key? key;
+  final Product product;
+  SellArguments({this.key, required this.product});
 }

@@ -27,7 +27,7 @@ class AddProductButtons extends StatelessWidget {
                         .copyWith(canvasColor: HexColor('#0097e6'))
                         .canvasColor,
                     onPressed: () async {
-                      ProxyService.nav.navigateTo(Routes.addProductView);
+                      ProxyService.nav.navigateTo(Routes.product);
                     },
                     child: Text(
                       'Add Product',

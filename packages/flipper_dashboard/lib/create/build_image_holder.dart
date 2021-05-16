@@ -15,7 +15,7 @@ class ImagePlaceHolderView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ProxyService.nav.navigateTo(Routes.colorTile);
+        ProxyService.nav.navigateTo(Routes.colors);
       },
       child: product.imageUrl == null
           ? Container(

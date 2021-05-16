@@ -30,6 +30,7 @@ class Stock {
     required this.table,
     required this.productId,
     this.active,
+    required this.value,
   });
   String id;
   String branchId;
@@ -44,22 +45,23 @@ class Stock {
   String table;
   String productId;
   bool? active;
+  double value; // the value of stock items ie. count * retailPrice
 
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
-        id: json["id"],
-        branchId: json["branchId"],
-        variantId: json["variantId"],
-        lowStock: json["lowStock"],
-        currentStock: json["currentStock"],
-        supplyPrice: json["supplyPrice"],
-        retailPrice: json["retailPrice"],
-        canTrackingStock: json["canTrackingStock"],
-        showLowStockAlert: json["showLowStockAlert"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
-        table: json["table"],
-        productId: json["productId"],
-        active: json["active"] == null ? false : json["active"],
-      );
+      id: json["id"],
+      branchId: json["branchId"],
+      variantId: json["variantId"],
+      lowStock: json["lowStock"],
+      currentStock: json["currentStock"],
+      supplyPrice: json["supplyPrice"],
+      retailPrice: json["retailPrice"],
+      canTrackingStock: json["canTrackingStock"],
+      showLowStockAlert: json["showLowStockAlert"],
+      channels: List<String>.from(json["channels"].map((x) => x)),
+      table: json["table"],
+      productId: json["productId"],
+      active: json["active"] == null ? false : json["active"],
+      value: json["value"]);
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -75,5 +77,6 @@ class Stock {
         "table": table,
         "productId": productId,
         "active": active == null ? false : active,
+        "value": value
       };
 }

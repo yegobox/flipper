@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/models/order.dart';
+import 'package:flipper_models/models/b.dart';
 import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/unit.dart';
 
@@ -31,7 +32,7 @@ import 'package:uuid/uuid.dart';
 
 class LiteApi<T> implements Api {
   Replicator? replicator;
-  Database db = Database("main_01");
+  Database db = Database("db");
   ExtendedClient client = ExtendedClient(http.Client());
   StreamController<Stock> controller = StreamController<Stock>.broadcast();
   String flipperApi = "https://flipper.yegobox.com";
@@ -82,7 +83,7 @@ class LiteApi<T> implements Api {
     // final String appDocPath = appDocDir.path;
     // ignore: prefer_single_quotes
     // db = Database("main", directory: appDocPath);
-    print(db);
+    // print(db);
     if (!db.isOpen) {
       db.open();
     }
@@ -96,27 +97,24 @@ class LiteApi<T> implements Api {
     // final String gatewayUrl = flipperConfig.gateway;
     // final String username = flipperConfig.username;
     // final String password = flipperConfig.password;
-
+    // TODO: only enable replication in production
     // assert(gatewayUrl != null);
     // assert(username != null);
     // assert(password != null);
-    final gatewayUrl = "yegobox.com:4985";
-    replicator = Replicator(
-      db,
-      endpointUrl: 'ws://$gatewayUrl/main/',
-      username: 'admin',
-      password: 'iloveaurore',
-      channels: ["300"],
-      continuous: true,
-      //in dev use pushAndPull to keep experimental otherwise push only.
-      replicatorType: ReplicatorType.pushAndPull,
-    );
-
-    // Set up a status listener
-    replicator!.addChangeListener((status) {
-      print('Replicator status: ' + status.activityLevel.toString());
-    });
-    replicator!.start();
+    // final gatewayUrl = "yegobox.com:4985";
+    // replicator = Replicator(
+    //   db,
+    //   endpointUrl: 'ws://$gatewayUrl/main/',
+    //   username: 'admin',
+    //   password: 'iloveaurore',
+    //   channels: ["300"],
+    //   continuous: true,
+    //   replicatorType: ReplicatorType.pushAndPull,
+    // );
+    // replicator!.addChangeListener((status) {
+    //   print('Replicator status: ' + status.activityLevel.toString());
+    // });
+    // replicator!.start();
   }
 
   @override
@@ -134,24 +132,29 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Branch>> branches({required String businessId}) async {
-    Q15.parameters = {'T': AppTables.branch, 'BUSINESSID': businessId};
-    final ResultSet result = Q15.execute();
-    final List<Branch> branches = [];
-    for (Map map in result.allResults) {
-      branches.add(sbranchFromJson(jsonEncode(map)));
-    }
-    return branches;
+    // Q15.parameters = {'T': AppTables.branch, 'BUSINESSID': businessId};
+    // final ResultSet result = Q15.execute();
+    // final List<Branch> branches = [];
+    // for (Map map in result.allResults) {
+    //   branches.add(sbranchFromJson(jsonEncode(map)));
+    // }
+    // return branches;
+    final response =
+        await client.get(Uri.parse("$apihub/api/branches/$businessId"));
+    return branchFromJson(response.body);
   }
 
   @override
-  Future<List<Business>?> businesses() async {
-    Q14.parameters = {'VALUE': AppTables.business};
-    final ResultSet business = Q14.execute();
-    final List<Business> businesses = [];
-    for (Map map in business.allResults) {
-      businesses.add(sbusinessFromJson(jsonEncode(map)));
-    }
-    return businesses;
+  Future<List<Business>> businesses() async {
+    // Q14.parameters = {'T': AppTables.business};
+    // final ResultSet business = Q14.execute();
+    // final List<Business> businesses = [];
+    // for (Map map in business.allResults) {
+    //   businesses.add(sbusinessFromJson(jsonEncode(map)));
+    // }
+    // return businesses;
+    final response = await client.get(Uri.parse("$apihub/api/businesses"));
+    return businessFromJson(response.body);
   }
 
   @override
@@ -159,8 +162,12 @@ class LiteApi<T> implements Api {
     Q9.parameters = {'VALUE': AppTables.category, 'BRANCHID': branchId};
     final ResultSet business = Q9.execute();
     final List<Category> categories = [];
-    for (Map map in business.allResults) {
-      categories.add(scategoryFromJson(jsonEncode(map)));
+    // for (Map map in business.allResults) {
+    //   categories.add(scategoryFromJson(jsonEncode(map)));
+    // }
+    while (business.next()) {
+      final row = business.rowDict;
+      categories.add(scategoryFromJson(row.json));
     }
     return categories;
   }
@@ -168,22 +175,38 @@ class LiteApi<T> implements Api {
   @override
   Future<List<PColor>> colors({required String branchId}) async {
     Q12.parameters = {'T': AppTables.color, 'BRANCHID': branchId};
-    final ResultSet business = Q12.execute();
-    final List<PColor> colors = [];
-    for (Map map in business.allResults) {
-      if (map['name'] != null &&
-          map['id'] != null &&
-          map['table'] != null &&
-          map['branchId'] != null &&
-          map['active'] != null) {
-        colors.add(spColorFromJson(jsonEncode(map)));
-      }
+    final ResultSet colors = Q12.execute();
+
+    final List<PColor> _colors = [];
+    while (colors.next()) {
+      final row = colors.rowDict;
+      _colors.add(spColorFromJson(row.json));
     }
-    return colors;
+    return _colors;
+    // 2cd5e891-ea91-47ad-9606-b666facad96e
+    // 0a62d674-915c-4483-80e3-b792448b64bc
+    // 0a62d674-915c-4483-80e3-b792448b64bc
+    // 0a62d674-915c-4483-80e3-b792448b64bc
   }
 
   @override
   Future<int> create<T>({required Map data, required String endPoint}) async {
+    if (endPoint == 'color') {
+      for (String co in data['colors']) {
+        final colorId = Uuid().v1();
+        Map newColor = {
+          'id': colorId,
+          'name': co,
+          'channels': data['channels'],
+          'table': data['table'],
+          'branchId': data['branchId'],
+          'active': data['active'],
+        };
+        final doc = Document(colorId, data: newColor);
+        db.saveDocument(doc);
+      }
+      return 200;
+    }
     final doc = Document(data['id'], data: data);
 
     db.saveDocument(doc);
@@ -216,6 +239,8 @@ class LiteApi<T> implements Api {
       channels: [userId!],
       productName: productMap['name'],
       branchId: branchId!,
+      taxName: 'N/A', //TODO: get value from branch/business config
+      taxPercentage: 0.0,
     );
     final variationDoc = Document(variation.id, data: variation.toJson());
     final Document variationDocument = db.saveDocument(variationDoc);
@@ -237,6 +262,7 @@ class LiteApi<T> implements Api {
       table: AppTables.stock,
       productId: productMap['id'],
       active: false,
+      value: 0,
     );
     final Document stockDoc = Document(stock.id, data: stock.toJson());
     db.saveDocument(stockDoc);
@@ -249,8 +275,10 @@ class LiteApi<T> implements Api {
     Q5.parameters = {'T': AppTables.product, 'NAME': 'temp'};
     final ResultSet product = Q5.execute();
     final List<Product> p = [];
-    for (Map map in product.allResults) {
-      p.add(sproductFromJson(jsonEncode(map)));
+
+    while (product.next()) {
+      final row = product.rowDict;
+      p.add(sproductFromJson(row.json));
     }
     return p;
   }
@@ -259,6 +287,8 @@ class LiteApi<T> implements Api {
   Future<bool> logOut() async {
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'businessId');
     return true;
   }
 
@@ -276,8 +306,10 @@ class LiteApi<T> implements Api {
     Q16.parameters = {'T': AppTables.product};
     final ResultSet product = Q16.execute();
     final List<Product> p = [];
-    for (Map map in product.allResults) {
-      p.add(sproductFromJson(jsonEncode(map)));
+
+    while (product.next()) {
+      final row = product.rowDict;
+      p.add(sproductFromJson(row.json));
     }
     return p;
   }
@@ -293,9 +325,11 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Stock>> stocks({required String productId}) async {
+    final List<Stock> stocks = [];
+
     Q19.parameters = {'T': AppTables.stock, 'PRODUCTID': productId};
     final ResultSet stock = Q19.execute();
-    final List<Stock> stocks = [];
+
     for (Map map in stock.allResults) {
       stocks.add(sstockFromJson(jsonEncode(map)));
     }
@@ -305,14 +339,13 @@ class LiteApi<T> implements Api {
   @override
   Future<List<Unit>> units({required String branchId}) async {
     Q10.parameters = {'T': AppTables.unit, 'BRANCHID': branchId};
-    final ResultSet business = Q10.execute();
-    final List<Unit> units = [];
-    for (Map map in business.allResults) {
-      if (map['name'] != null && map['focused'] != null && map['id'] != null) {
-        units.add(sunitFromJson(jsonEncode(map)));
-      }
+    final ResultSet unit = Q10.execute();
+    final List<Unit> _units = [];
+    while (unit.next()) {
+      final row = unit.rowDict;
+      _units.add(sunitFromJson(row.json));
     }
-    return units;
+    return _units;
   }
 
   @override
@@ -329,21 +362,21 @@ class LiteApi<T> implements Api {
   @override
   Future<List<Variation>> variants(
       {required String branchId, required String productId}) async {
-    final List<Variation> variantStocks = [];
+    final List<Variation> variants = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
-    final ResultSet variants = Q1.execute();
-    while (variants.next()) {
-      final row = variants.rowDict;
-      variantStocks.add(svariationFromJson(row.json));
+    final ResultSet _variants = Q1.execute();
+    while (_variants.next()) {
+      final row = _variants.rowDict;
+      variants.add(svariationFromJson(row.json));
     }
-    return variantStocks;
+    return variants;
   }
 
   @override
   Future<List<VariantStock>> variantStock(
       {required String branchId, required String variantId}) async {
-    Q17.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
-    final ResultSet business = Q17.execute();
+    Q18.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
+    final ResultSet business = Q18.execute();
     final List<VariantStock> variantStocks = [];
     while (business.next()) {
       final row = business.rowDict;
@@ -354,8 +387,7 @@ class LiteApi<T> implements Api {
 
   @override
   Future<bool> delete({required String id, String? endPoint}) async {
-    db.purgeDocument(id);
-    return true;
+    return db.purgeDocument(id);
   }
 
   @override
@@ -403,6 +435,7 @@ class LiteApi<T> implements Api {
         channels: [userId!],
         table: AppTables.stock,
         productId: d['productId'],
+        value: 0,
         active: false,
       );
       final Document stockDoc = Document(stock.id, data: stock.toJson());
@@ -440,9 +473,9 @@ class LiteApi<T> implements Api {
     return stocks[0];
   }
 
-  Future<Order?> pendingOrderExist({required String variantId}) async {
-    Q22.parameters = {'T': AppTables.order, 'VARIANTID': variantId};
-    final ResultSet results = Q22.execute();
+  Future<Order?> pendingOrderExist() async {
+    Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
+    final ResultSet results = Q3.execute();
     Order? order;
     while (results.next()) {
       final row = results.rowDict;
@@ -455,46 +488,65 @@ class LiteApi<T> implements Api {
   Future<Order> createOrder(
       {required double customAmount,
       required Variation variation,
-      required String stockId,
+      required double price,
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
     final id4 = Uuid().v1();
+    final orderItemId = Uuid().v1();
     final ref = Uuid().v1();
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     String branchId = ProxyService.box.read(key: 'branchId');
-    Order? existOrder = await pendingOrderExist(variantId: variation.id);
+    Order? existOrder = await pendingOrderExist();
+
+    // Document docStock = db.getDocument(stockId);
+    // Stock stock = sstockFromJson(docStock.json);
+
     if (existOrder == null) {
-      final Document _doc = Document(id4, data: {
-        'reference': ref,
-        'quantity': quantity,
-        'orderNumber': orderNUmber,
-        'status': 'pending',
-        'variantId': variation.id,
-        'variantName': useProductName ? variation.productName : variation.name,
-        'orderType': orderType,
-        'active': true,
-        'draft': true,
-        'channels': [userId],
-        'subTotal': customAmount,
-        'table': AppTables.order,
-        'cashReceived': customAmount,
-        'updatedAt': DateTime.now().toIso8601String(),
-        'amount': customAmount,
-        'customerChangeDue': 0.0,
-        'id': id4,
-        'stockId': stockId,
-        'branchId': branchId,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
+      Order order = new Order(
+        id: id4,
+        reference: ref,
+        orderNumber: orderNUmber,
+        status: 'pending',
+        orderType: orderType,
+        active: true,
+        draft: true,
+        channels: [userId],
+        subTotal: customAmount,
+        table: AppTables.order,
+        cashReceived: customAmount,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0, //fix this
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+        orderItems: [
+          OrderItem(
+            count: quantity,
+            name: useProductName ? variation.productName : variation.name,
+            variantId: variation.id,
+            id: orderItemId,
+            price: price,
+            orderId: id4,
+          )
+        ],
+      );
+      final Document _doc = Document(id4, data: order.toJson());
       Document d = db.saveDocument(_doc);
 
       return sorderFromJson(d.json);
     } else {
-      Map data = existOrder.toJson();
-      data['amount'] = customAmount;
-      update(data: data, endPoint: 'order');
+      OrderItem item = OrderItem(
+        count: 1,
+        name: useProductName ? variation.productName : variation.name,
+        variantId: variation.id,
+        id: orderItemId,
+        price: price,
+        orderId: existOrder.id,
+      );
+      existOrder.orderItems.add(item);
+      update(data: existOrder.toJson(), endPoint: 'order');
       return existOrder;
     }
   }
@@ -515,11 +567,36 @@ class LiteApi<T> implements Api {
     Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
     final ResultSet order = Q3.execute();
     final List<Order> orders = [];
-
+    //NOTE: not for debuging incase I need to quickly delete sth
+    // for (Map map in order.allResults) {
+    //   db.purgeDocument(map['id']);
+    // }
     while (order.next()) {
       final row = order.rowDict;
       orders.add(sorderFromJson(row.json));
     }
     return orders;
+  }
+
+  /// experimenting methods
+  /// this methods are here to experiments before we
+  /// take big decision in general app
+  Future<B> insertB() async {
+    Document b = Document('1', data: {
+      'id': '1b',
+      'name': 'name',
+      'asi': [
+        {
+          'id': '1a',
+          'name': 'aa',
+        },
+        {
+          'id': '1aa',
+          'name': 'aaa',
+        }
+      ]
+    });
+    Document d = db.saveDocument(b);
+    return sbFromJson(d.json);
   }
 }

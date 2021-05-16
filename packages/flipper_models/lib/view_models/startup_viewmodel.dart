@@ -4,7 +4,6 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-// import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
 
@@ -15,16 +14,18 @@ class StartUpViewModel extends BaseViewModel {
   Future<void> runStartupLogic() async {
     appService.isLoggedIn();
     if (appService.hasLoggedInUser) {
-      List<Business>? response = await ProxyService.api.businesses();
+      List<Business>? businesses = await ProxyService.api.businesses();
 
-      didSync = (response != null && response.isNotEmpty) ? true : false;
+      didSync = (businesses.isNotEmpty) ? true : false;
+
       if (didSync) {
-        _navigationService.navigateTo(Routes.businessHomeView);
+        ProxyService.appService.setBusiness(businesses: businesses);
+        _navigationService.replaceWith(Routes.home);
       } else {
-        _navigationService.navigateTo(Routes.signUpFormView);
+        _navigationService.navigateTo(Routes.signup);
       }
     } else {
-      _navigationService.replaceWith(Routes.loginView);
+      _navigationService.replaceWith(Routes.login);
     }
   }
 
@@ -32,13 +33,16 @@ class StartUpViewModel extends BaseViewModel {
   appInit() async {
     if (appService.hasLoggedInUser) {
       List<Business>? businesses = await ProxyService.api.businesses();
-      List<Branch> branches =
-          await ProxyService.api.branches(businessId: businesses![0].id);
-
-      // print(businesses[0].id);
-      // print(branches[0].id);
-      ProxyService.box.write(key: 'branchId', value: branches[0].id);
-      ProxyService.box.write(key: 'businessId', value: businesses[0].id);
+      try {
+        List<Branch> branches =
+            await ProxyService.api.branches(businessId: businesses[0].id);
+        // print(businesses[0].id);
+        // print(branches[0].id);
+        print(branches[0].id);
+        ProxyService.box.write(key: 'branchId', value: branches[0].id);
+        ProxyService.box.write(key: 'businessId', value: businesses[0].id);
+        // we sometime get index out of bounds when attempty to access businesses[0] and yet no business have been created
+      } catch (e) {}
     }
   }
 }

@@ -25,14 +25,14 @@ class Order {
     required this.active,
     required this.draft,
     required this.subTotal,
+    required this.paymentType,
     required this.cashReceived,
     required this.customerChangeDue,
-    this.createdAt,
+    required this.createdAt,
     this.updatedAt,
-    this.orderItems,
+    required this.orderItems,
     required this.table,
     required this.channels,
-    required this.amount,
   });
 
   String id;
@@ -44,14 +44,14 @@ class Order {
   bool active;
   bool draft;
   double subTotal;
+  String paymentType;
   double cashReceived;
   double customerChangeDue;
-  String? createdAt;
+  String createdAt;
   String? updatedAt;
-  dynamic orderItems;
+  List<OrderItem> orderItems;
   String table;
   List<String> channels;
-  double amount;
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
         id: json["id"],
@@ -63,14 +63,15 @@ class Order {
         active: json["active"],
         draft: json["draft"],
         subTotal: json["subTotal"],
+        paymentType: json["paymentType"],
         cashReceived: json["cashReceived"],
         customerChangeDue: json["customerChangeDue"],
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
-        orderItems: json["orderItems"],
+        orderItems: List<OrderItem>.from(
+            json["orderItems"].map((x) => OrderItem.fromJson(x))),
         table: json["table"],
         channels: List<String>.from(json["channels"].map((x) => x)),
-        amount: json["amount"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -83,13 +84,49 @@ class Order {
         "active": active,
         "draft": draft,
         "subTotal": subTotal,
+        "paymentType": paymentType,
         "cashReceived": cashReceived,
         "customerChangeDue": customerChangeDue,
         "createdAt": createdAt,
         "updatedAt": updatedAt,
-        "orderItems": orderItems,
+        "orderItems": List<dynamic>.from(orderItems.map((x) => x.toJson())),
         "table": table,
         "channels": List<dynamic>.from(channels.map((x) => x)),
-        "amount": amount,
+      };
+}
+
+class OrderItem {
+  OrderItem({
+    required this.id,
+    required this.name,
+    required this.variantId,
+    required this.count,
+    required this.price,
+    required this.orderId,
+  });
+
+  String id;
+  String name;
+  String variantId;
+  double count;
+  double price;
+  String orderId;
+
+  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
+        id: json["id"],
+        name: json["name"],
+        variantId: json["variantId"],
+        count: json["count"],
+        price: json["price"].toDouble(),
+        orderId: json["orderId"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "variantId": variantId,
+        "count": count,
+        "price": price,
+        "orderId": orderId,
       };
 }

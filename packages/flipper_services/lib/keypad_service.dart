@@ -8,37 +8,76 @@ class KeyPadService with ReactiveServiceMixin {
 
   Stack stack = Stack<String>();
 
+  final _count = ReactiveValue<int>(0);
+  get count => _count.value;
+
+  final _quantity = ReactiveValue<int>(0);
+  get quantity => _quantity.value;
+
   String get key => _key.value;
 
   final _orders = ReactiveValue<List<Order>>([]);
   List<Order> get orders => _orders.value;
+
+  final _countOrderItems = ReactiveValue<int>(0);
+  int get countOrderItems => _countOrderItems.value;
+
+  final _amountTotal = ReactiveValue<double>(0.0);
+  double get amountTotal => _amountTotal.value;
 
   void addKey(String key) {
     stack.push(key);
     _key.value = stack.list.join('');
   }
 
-  void getOrders() async {
-    final result = await ProxyService.api.orders();
-    print(result);
-    _orders.value = result;
+  setAmount({required double amount}) {
+    _amountTotal.value = amount;
+  }
+
+  setCount({required int count}) {
+    _count.value = count;
+  }
+
+  Future<List<Order>> getOrders() async {
+    List<Order> od = await ProxyService.api.orders();
+    //NOTE: we assume index[0] as pending order can not be more than one at the moment
+    if (od.isNotEmpty) {
+      _countOrderItems.value = od[0].orderItems.length;
+    }
+
+    _orders.value = od;
+    return _orders.value;
   }
 
   void reset() {
     _key.value = '0.0';
+    while (stack.isNotEmpty) {
+      stack.pop();
+    }
+  }
+
+  void increaseQty() {
+    _quantity.value++;
+  }
+
+  void decreaseQty() {
+    _quantity.value--;
   }
 
   void pop() {
     if (stack.isNotEmpty && stack.length > 1) {
       stack.pop();
       _key.value = stack.list.join('');
-    } else {
+    } else if (stack.isNotEmpty) {
       stack.pop();
       _key.value = '0.0';
     }
   }
 
+  //increase quantity
+
   KeyPadService() {
-    listenToReactiveValues([_key, _orders]);
+    listenToReactiveValues(
+        [_key, _orders, _countOrderItems, _quantity, _amountTotal]);
   }
 }

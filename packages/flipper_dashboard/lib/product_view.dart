@@ -492,9 +492,12 @@ class BuildProductsView extends StatelessWidget {
                   (Product product) => ProductRow(
                     color: product.color,
                     hasImage: product.hasPicture,
-                    productId: product.id,
+                    product: product,
                     name: product.name,
                     imageUrl: product.imageUrl,
+                    delete: (productId) {
+                      model.deleteProduct(productId: productId);
+                    },
                   ),
                 )
                 .toList(),

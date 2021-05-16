@@ -42,7 +42,7 @@ class CategorySelector extends StatelessWidget {
           child: GestureDetector(
             onTap: () {
               ProxyService.nav.navigateTo(
-                Routes.listCategories,
+                Routes.categories,
                 arguments: ListCategoriesArguments(
                   categories: categories,
                 ),

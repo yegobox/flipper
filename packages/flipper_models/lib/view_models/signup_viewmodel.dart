@@ -5,7 +5,7 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/color.dart';
-import 'package:flipper_models/models/product.dart';
+// import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/product_mock.dart';
 import 'package:flipper_models/models/unit.dart';
 import 'package:flipper_models/models/unit_mock.dart';
@@ -75,10 +75,11 @@ class SignupViewModel extends FormViewModel {
     });
     if (okStatus == 200) {
       //get businesses's id then look for related branch [0] create the default category
-      List<Business>? businesses = await ProxyService.api.businesses();
-
+      List<Business> businesses = await ProxyService.api.businesses();
+      ProxyService.box.write(key: 'businessId', value: businesses[0].id);
+      ProxyService.appService.setBusiness(businesses: businesses);
       List<Branch> branches =
-          await ProxyService.api.branches(businessId: businesses![0].id);
+          await ProxyService.api.branches(businessId: businesses[0].id);
       final String? userId = ProxyService.box.read(key: 'userId');
       final categoryId = Uuid().v1();
       final Category category = new Category(
@@ -103,6 +104,9 @@ class SignupViewModel extends FormViewModel {
         '#ff7675',
         '#a29bfe'
       ];
+
+      ProxyService.box.write(key: 'branchId', value: branches[0].id);
+
       final colorId = Uuid().v1();
       final PColor color = new PColor(
         id: colorId,
@@ -131,7 +135,7 @@ class SignupViewModel extends FormViewModel {
       //now create a default custom product
       await ProxyService.api.createProduct(product: customProductMock);
 
-      ProxyService.nav.navigateTo(Routes.businessHomeView);
+      ProxyService.nav.navigateTo(Routes.home);
     }
   }
 

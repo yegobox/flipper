@@ -1,42 +1,40 @@
+import 'package:flipper/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/view_models/stock_viewmodel.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/models/product.dart';
 
 class ProductRow extends StatelessWidget {
-  const ProductRow({
-    Key? key,
-    required this.color,
-    required this.name,
-    required this.hasImage,
-    this.imageUrl,
-    required this.productId,
-  }) : super(key: key);
+  const ProductRow(
+      {Key? key,
+      required this.color,
+      required this.name,
+      required this.hasImage,
+      this.imageUrl,
+      required this.product,
+      required this.delete})
+      : super(key: key);
   final String color;
   final String name;
   final bool hasImage;
   final String? imageUrl;
-  final String productId;
+  final Product product;
+  final Function delete;
 
   @override
   Widget build(BuildContext context) {
     return Slidable(
       child: GestureDetector(
         onTap: () {
-          // if (shouldSeeItem) {
-          //   // model.shouldSeeItemOnly(context, product);
-          // } else {
-          //   // model.onSellingItem(context, product);
-          // }
+          ProxyService.nav.navigateTo(Routes.sell,
+              arguments: SellArguments(product: product));
         },
         onLongPress: () {
-          // if (shouldSeeItem) {
-          //   // model.shouldSeeItemOnly(context, product);
-          // } else {
-          //   // model.onSellingItem(context, product);
-          // }
+          ProxyService.nav.navigateTo(Routes.sell);
         },
         child: Column(children: <Widget>[
           ListTile(
@@ -78,7 +76,7 @@ class ProductRow extends StatelessWidget {
             trailing: ViewModelBuilder<StockViewModel>.reactive(
               viewModelBuilder: () => StockViewModel(),
               onModelReady: (StockViewModel stockModel) =>
-                  stockModel.loadStockByProductId(productId: productId),
+                  stockModel.loadStockByProductId(productId: product.id),
               builder: (context, stockModel, child) {
                 return stockModel.stocks.isEmpty
                     ? const Text(
@@ -113,6 +111,7 @@ class ProductRow extends StatelessWidget {
           icon: Icons.delete,
           onTap: () {
             // model.deleteProduct(productId: product.id);
+            delete(product.id);
           },
         ),
       ],

@@ -10,4 +10,6 @@ final variationMock = new Variation(
   channels: ['300'],
   productName: 'Custom Amount',
   branchId: 'b9c0ad93-3f43-49f9-9f52-98538f8c1e42',
+  taxName: 'N/A',
+  taxPercentage: 0.0,
 );

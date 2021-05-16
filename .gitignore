@@ -47,4 +47,6 @@ app.*.map.json
 /test/lite/
 lite
 index.local.html
+main_01.cblite2
+db.cblite2
 _tmp

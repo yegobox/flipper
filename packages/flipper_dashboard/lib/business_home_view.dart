@@ -67,7 +67,6 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
-        model.loadBusinesses();
         model.getOrders();
       },
       builder: (context, model, child) {
@@ -81,8 +80,12 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
               sideOpenController: _sideOpenController,
               child: SaleIndicator(
                 totalAmount: 300,
-                counts: model.orders.length,
-                onClick: () {},
+                counts: model.countedOrderItems,
+                onClick: () {
+                  if (model.countedOrderItems > 0) {
+                    ProxyService.nav.navigateTo(Routes.summary);
+                  }
+                },
                 onLogout: () async {
                   await ProxyService.api.logOut();
                   ProxyService.nav.navigateTo(Routes.startUpView);

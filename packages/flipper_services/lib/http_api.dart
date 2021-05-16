@@ -67,7 +67,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Business>?> businesses() async {
+  Future<List<Business>> businesses() async {
     final response = await client.get(Uri.parse("$apihub/api/businesses"));
 
     return businessFromJson(response.body);
@@ -249,7 +249,7 @@ class HttpApi<T> implements Api {
   Future<Order> createOrder(
       {required double customAmount,
       required Variation variation,
-      required String stockId,
+      required double price,
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) {

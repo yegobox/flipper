@@ -246,7 +246,7 @@ class ProductViewModel extends ReactiveViewModel {
   void navigateAddVariation({required String productId}) {
     // print(productId);
     ProxyService.nav.navigateTo(
-      Routes.addVariation,
+      Routes.variation,
       arguments: AddVariationArguments(
         productId: productId,
       ),
@@ -297,6 +297,23 @@ class ProductViewModel extends ReactiveViewModel {
     } else {
       return false;
     }
+  }
+
+  void deleteProduct({required String productId}) async {
+    //get variants->delete
+    String branchId = ProxyService.box.read(key: 'branchId');
+    List<Variation> variations = await ProxyService.api
+        .variants(branchId: branchId, productId: productId);
+    for (Variation variation in variations) {
+      ProxyService.api.delete(id: variation.id, endPoint: 'variation');
+      //get stock->delete
+      Stock stock =
+          await ProxyService.api.stockByVariantId(variantId: variation.id);
+      ProxyService.api.delete(id: stock.id, endPoint: 'stock');
+    }
+    //then delete the product
+    ProxyService.api.delete(id: productId, endPoint: 'product');
+    loadProducts(); //refresh list of products
   }
 
   @override
