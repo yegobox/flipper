@@ -38,6 +38,7 @@ class StartUpViewModel extends BaseViewModel {
             await ProxyService.api.branches(businessId: businesses[0].id);
         // print(businesses[0].id);
         // print(branches[0].id);
+        print(branches[0].id);
         ProxyService.box.write(key: 'branchId', value: branches[0].id);
         ProxyService.box.write(key: 'businessId', value: businesses[0].id);
         // we sometime get index out of bounds when attempty to access businesses[0] and yet no business have been created

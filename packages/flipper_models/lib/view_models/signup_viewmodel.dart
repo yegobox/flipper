@@ -76,7 +76,7 @@ class SignupViewModel extends FormViewModel {
     if (okStatus == 200) {
       //get businesses's id then look for related branch [0] create the default category
       List<Business> businesses = await ProxyService.api.businesses();
-
+      ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses[0].id);
       final String? userId = ProxyService.box.read(key: 'userId');
@@ -103,6 +103,9 @@ class SignupViewModel extends FormViewModel {
         '#ff7675',
         '#a29bfe'
       ];
+      print(branches[0].id);
+      ProxyService.box.write(key: 'branchId', value: branches[0].id);
+
       final colorId = Uuid().v1();
       final PColor color = new PColor(
         id: colorId,

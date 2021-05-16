@@ -54,4 +54,5 @@ class AppSetup {
 // flutter pub run msix:create
 //cheat code
 //TODO: push notification service https://github.com/Pronto-AG/Pronto-MIA-App/blob/master/pronto_mia/lib/core/services/push_notification_service.dart
-
+// find . -name '*.dart' | xargs wc -l
+//  16693  +633  +1388 = 18714

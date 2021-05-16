@@ -176,18 +176,24 @@ class LiteApi<T> implements Api {
   Future<List<PColor>> colors({required String branchId}) async {
     Q12.parameters = {'T': AppTables.color, 'BRANCHID': branchId};
     final ResultSet colors = Q12.execute();
+    print(branchId);
     final List<PColor> _colors = [];
     while (colors.next()) {
       final row = colors.rowDict;
       _colors.add(spColorFromJson(row.json));
     }
     return _colors;
+    // 2cd5e891-ea91-47ad-9606-b666facad96e
+    // 0a62d674-915c-4483-80e3-b792448b64bc
+    // 0a62d674-915c-4483-80e3-b792448b64bc
+    // 0a62d674-915c-4483-80e3-b792448b64bc
   }
 
   @override
   Future<int> create<T>({required Map data, required String endPoint}) async {
     if (endPoint == 'color') {
       for (String co in data['colors']) {
+        // String
         final colorId = Uuid().v1();
         Map newColor = {
           'id': colorId,
@@ -197,6 +203,7 @@ class LiteApi<T> implements Api {
           'branchId': data['branchId'],
           'active': data['active'],
         };
+        print(newColor);
         final doc = Document(colorId, data: newColor);
         db.saveDocument(doc);
       }
@@ -282,6 +289,8 @@ class LiteApi<T> implements Api {
   Future<bool> logOut() async {
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'businessId');
     return true;
   }
 
