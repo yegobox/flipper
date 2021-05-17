@@ -9,13 +9,13 @@ import 'package:flipper_models/models/business.dart' as _i11;
 import 'package:flipper_models/models/category.dart' as _i13;
 import 'package:flipper_models/models/color.dart' as _i5;
 import 'package:flipper_models/models/login.dart' as _i2;
-import 'package:flipper_models/models/order.dart' as _i7;
-import 'package:flipper_models/models/product.dart' as _i6;
+import 'package:flipper_models/models/order.dart' as _i8;
+import 'package:flipper_models/models/product.dart' as _i7;
 import 'package:flipper_models/models/stock.dart' as _i4;
 import 'package:flipper_models/models/sync.dart' as _i3;
 import 'package:flipper_models/models/unit.dart' as _i14;
 import 'package:flipper_models/models/variant_stock.dart' as _i15;
-import 'package:flipper_models/models/variation.dart' as _i8;
+import 'package:flipper_models/models/variation.dart' as _i6;
 import 'package:flipper_services/abstractions/api.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 
@@ -34,11 +34,11 @@ class _FakeStock extends _i1.Fake implements _i4.Stock {}
 
 class _FakePColor extends _i1.Fake implements _i5.PColor {}
 
-class _FakeProduct extends _i1.Fake implements _i6.Product {}
+class _FakeVariation extends _i1.Fake implements _i6.Variation {}
 
-class _FakeOrder extends _i1.Fake implements _i7.Order {}
+class _FakeProduct extends _i1.Fake implements _i7.Product {}
 
-class _FakeVariation extends _i1.Fake implements _i8.Variation {}
+class _FakeOrder extends _i1.Fake implements _i8.Order {}
 
 /// A class which mocks [Api].
 ///
@@ -54,10 +54,10 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
               returnValue: Future<_i2.Login>.value(_FakeLogin()))
           as _i10.Future<_i2.Login>);
   @override
-  _i10.Future<List<_i6.Product>> products() =>
+  _i10.Future<List<_i7.Product>> products() =>
       (super.noSuchMethod(Invocation.method(#products, []),
-              returnValue: Future<List<_i6.Product>>.value(<_i6.Product>[]))
-          as _i10.Future<List<_i6.Product>>);
+              returnValue: Future<List<_i7.Product>>.value(<_i7.Product>[]))
+          as _i10.Future<List<_i7.Product>>);
   @override
   _i10.Future<int> signup({Map<dynamic, dynamic>? business}) =>
       (super.noSuchMethod(Invocation.method(#signup, [], {#business: business}),
@@ -142,20 +142,26 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
           returnValue: Future<List<_i15.VariantStock>>.value(
               <_i15.VariantStock>[])) as _i10.Future<List<_i15.VariantStock>>);
   @override
-  _i10.Future<List<_i8.Variation>> variants(
+  _i10.Future<List<_i6.Variation>> variants(
           {String? branchId, String? productId}) =>
       (super.noSuchMethod(
               Invocation.method(
                   #variants, [], {#branchId: branchId, #productId: productId}),
-              returnValue: Future<List<_i8.Variation>>.value(<_i8.Variation>[]))
-          as _i10.Future<List<_i8.Variation>>);
+              returnValue: Future<List<_i6.Variation>>.value(<_i6.Variation>[]))
+          as _i10.Future<List<_i6.Variation>>);
+  @override
+  _i10.Future<_i6.Variation> variant({String? variantId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#variant, [], {#variantId: variantId}),
+              returnValue: Future<_i6.Variation>.value(_FakeVariation()))
+          as _i10.Future<_i6.Variation>);
   @override
   _i10.Future<int> addUnits({Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i10.Future<int>);
   @override
   _i10.Future<int> addVariant(
-          {List<_i8.Variation>? data,
+          {List<_i6.Variation>? data,
           double? retailPrice,
           double? supplyPrice}) =>
       (super.noSuchMethod(
@@ -166,29 +172,29 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
           }),
           returnValue: Future<int>.value(0)) as _i10.Future<int>);
   @override
-  _i10.Future<_i6.Product> getProduct({String? id}) =>
+  _i10.Future<_i7.Product> getProduct({String? id}) =>
       (super.noSuchMethod(Invocation.method(#getProduct, [], {#id: id}),
-              returnValue: Future<_i6.Product>.value(_FakeProduct()))
-          as _i10.Future<_i6.Product>);
+              returnValue: Future<_i7.Product>.value(_FakeProduct()))
+          as _i10.Future<_i7.Product>);
   @override
-  _i10.Future<_i6.Product> createProduct({_i6.Product? product}) =>
+  _i10.Future<_i7.Product> createProduct({_i7.Product? product}) =>
       (super.noSuchMethod(
               Invocation.method(#createProduct, [], {#product: product}),
-              returnValue: Future<_i6.Product>.value(_FakeProduct()))
-          as _i10.Future<_i6.Product>);
+              returnValue: Future<_i7.Product>.value(_FakeProduct()))
+          as _i10.Future<_i7.Product>);
   @override
-  _i10.Future<List<_i6.Product>> isTempProductExist() =>
+  _i10.Future<List<_i7.Product>> isTempProductExist() =>
       (super.noSuchMethod(Invocation.method(#isTempProductExist, []),
-              returnValue: Future<List<_i6.Product>>.value(<_i6.Product>[]))
-          as _i10.Future<List<_i6.Product>>);
+              returnValue: Future<List<_i7.Product>>.value(<_i7.Product>[]))
+          as _i10.Future<List<_i7.Product>>);
   @override
   _i10.Future<bool> logOut() =>
       (super.noSuchMethod(Invocation.method(#logOut, []),
           returnValue: Future<bool>.value(false)) as _i10.Future<bool>);
   @override
-  _i10.Future<_i7.Order> createOrder(
+  _i10.Future<_i8.Order> createOrder(
           {double? customAmount,
-          _i8.Variation? variation,
+          _i6.Variation? variation,
           double? price,
           bool? useProductName = false,
           String? orderType = r'custom',
@@ -202,16 +208,16 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
                 #orderType: orderType,
                 #quantity: quantity
               }),
-              returnValue: Future<_i7.Order>.value(_FakeOrder()))
-          as _i10.Future<_i7.Order>);
+              returnValue: Future<_i8.Order>.value(_FakeOrder()))
+          as _i10.Future<_i8.Order>);
   @override
-  _i10.Future<List<_i7.Order>> orders() =>
+  _i10.Future<List<_i8.Order>> orders() =>
       (super.noSuchMethod(Invocation.method(#orders, []),
-              returnValue: Future<List<_i7.Order>>.value(<_i7.Order>[]))
-          as _i10.Future<List<_i7.Order>>);
+              returnValue: Future<List<_i8.Order>>.value(<_i8.Order>[]))
+          as _i10.Future<List<_i8.Order>>);
   @override
-  _i10.Future<_i8.Variation> getCustomProductVariant() =>
+  _i10.Future<_i6.Variation> getCustomProductVariant() =>
       (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),
-              returnValue: Future<_i8.Variation>.value(_FakeVariation()))
-          as _i10.Future<_i8.Variation>);
+              returnValue: Future<_i6.Variation>.value(_FakeVariation()))
+          as _i10.Future<_i6.Variation>);
 }

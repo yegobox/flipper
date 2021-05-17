@@ -37,8 +37,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
         Variation variation = await ProxyService.api.getCustomProductVariant();
-        // Stock stock =
-        //     await ProxyService.api.stockByVariantId(variantId: variation.id);
+
         double amount = double.parse(ProxyService.keypad.key);
 
         await ProxyService.api.createOrder(
@@ -69,7 +68,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
-  // products methods
+  ///list products availabe for sell
   Future<List<Product>> products() async {
     return await ProxyService.api.products();
   }

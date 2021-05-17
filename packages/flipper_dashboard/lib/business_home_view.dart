@@ -102,10 +102,13 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                     tab == 0
                         ? KeyPadHead(
                             payable: PayableView(
-                              onClick: () {},
+                              onClick: () {
+                                ProxyService.nav.navigateTo(Routes.pay);
+                              },
                               tickets: 0,
                               orders: 0,
-                              duePay: 0,
+                              duePay: model.orders[0].orderItems
+                                  .fold(0, (a, b) => a + b.price),
                             ),
                             onClick: () {},
                             controller: controller,
