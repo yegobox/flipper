@@ -11,6 +11,7 @@ import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/order_summary.dart';
+import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:stacked/stacked_annotations.dart';
@@ -33,6 +34,7 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: OrderSummary, name: 'summary'),
     MaterialRoute(page: Sell, name: 'sell'),
     MaterialRoute(page: Payments, name: 'pay'),
+    MaterialRoute(page: CollectCashView, name: 'collect'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

@@ -1,3 +1,4 @@
+import 'package:flipper/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -37,7 +38,6 @@ class Payments extends StatelessWidget {
                   children: [
                     Center(
                       child: Column(
-                        // ignore: prefer_const_literals_to_create_immutables
                         children: [
                           const SizedBox(height: 40),
                           Text(
@@ -61,21 +61,24 @@ class Payments extends StatelessWidget {
                       right: 0,
                       left: 0,
                       child: Column(
-                        // ignore: prefer_const_literals_to_create_immutables
                         children: [
-                          // ignore: prefer_const_constructors
                           GestureDetector(
                             onTap: () {
-                              // ProxyService.nav.navigateTo(
-                              //     Routing.collectCashView,
-                              //     arguments: CollectCashViewArguments(
-                              //         paymentType: 'cash'));
+                              ProxyService.nav.navigateTo(
+                                Routes.collect,
+                                arguments: CollectCashViewArguments(
+                                  paymentType: 'cash',
+                                ),
+                              );
                             },
                             child: const ListTile(
-                              leading: Text('Cash',
-                                  style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold)),
+                              leading: Text(
+                                'Cash',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               trailing: Icon(
                                 Icons.arrow_forward_ios,
                                 color: Colors.pink,
@@ -84,19 +87,23 @@ class Payments extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // ignore: prefer_const_constructors
                           GestureDetector(
                             onTap: () {
-                              // ProxyService.nav.navigateTo(
-                              //     Routing.collectCashView,
-                              //     arguments: CollectCashViewArguments(
-                              //         paymentType: 'spenn'));
+                              ProxyService.nav.navigateTo(
+                                Routes.collect,
+                                arguments: CollectCashViewArguments(
+                                  paymentType: 'spenn',
+                                ),
+                              );
                             },
                             child: const ListTile(
-                              leading: Text('SPENN',
-                                  style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold)),
+                              leading: Text(
+                                'SPENN',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               trailing: Icon(
                                 Icons.arrow_forward_ios,
                                 color: Colors.pink,
@@ -113,9 +120,6 @@ class Payments extends StatelessWidget {
               ),
             ),
           );
-        },
-        onModelReady: (model) {
-          // ProxyService.pusher.clean();
         },
         viewModelBuilder: () => BusinessHomeViewModel());
   }

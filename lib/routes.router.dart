@@ -8,6 +8,7 @@
 
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
+import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -42,6 +43,7 @@ class Routes {
   static const String summary = '/order-summary';
   static const String sell = '/Sell';
   static const String pay = '/Payments';
+  static const String collect = '/collect-cash-view';
   static const all = <String>{
     startUpView,
     dashboard,
@@ -58,6 +60,7 @@ class Routes {
     summary,
     sell,
     pay,
+    collect,
   };
 }
 
@@ -80,6 +83,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.summary, page: OrderSummary),
     RouteDef(Routes.sell, page: Sell),
     RouteDef(Routes.pay, page: Payments),
+    RouteDef(Routes.collect, page: CollectCashView),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -209,6 +213,16 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    CollectCashView: (data) {
+      var args = data.getArgs<CollectCashViewArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => CollectCashView(
+          key: args.key,
+          paymentType: args.paymentType,
+        ),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -279,4 +293,11 @@ class SellArguments {
 class PaymentsArguments {
   final Key? key;
   PaymentsArguments({this.key});
+}
+
+/// CollectCashView arguments holder class
+class CollectCashViewArguments {
+  final Key? key;
+  final String paymentType;
+  CollectCashViewArguments({this.key, required this.paymentType});
 }
