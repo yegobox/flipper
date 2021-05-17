@@ -201,8 +201,11 @@ class StackedRouter extends RouterBase {
       );
     },
     Payments: (data) {
+      var args = data.getArgs<PaymentsArguments>(
+        orElse: () => PaymentsArguments(),
+      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const Payments(),
+        builder: (context) => Payments(key: args.key),
         settings: data,
       );
     },
@@ -270,4 +273,10 @@ class SellArguments {
   final Key? key;
   final Product product;
   SellArguments({this.key, required this.product});
+}
+
+/// Payments arguments holder class
+class PaymentsArguments {
+  final Key? key;
+  PaymentsArguments({this.key});
 }

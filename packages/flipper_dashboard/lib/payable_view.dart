@@ -22,7 +22,7 @@ class PayableView extends StatelessWidget {
       required this.onClick})
       : super(key: key);
   final double tickets;
-  final double orders;
+  final int orders;
   final double duePay;
   final Function onClick;
 
@@ -38,10 +38,8 @@ class PayableView extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 if (tickets == 0) {
-                  // model.viewTickets();
                   onClick();
                 } else {
-                  // model.saveTicket();
                   onClick();
                 }
               },
@@ -90,7 +88,7 @@ class PayableView extends StatelessWidget {
     );
   }
 
-  Widget ticketText({required double orders}) {
+  Widget ticketText({required int orders}) {
     if (orders == 0) {
       return const Text(
         'Tickets',

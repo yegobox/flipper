@@ -106,9 +106,11 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                                 ProxyService.nav.navigateTo(Routes.pay);
                               },
                               tickets: 0,
-                              orders: 0,
-                              duePay: model.orders[0].orderItems
-                                  .fold(0, (a, b) => a + b.price),
+                              orders: model.orders.length,
+                              duePay: model.orders.isNotEmpty
+                                  ? model.orders[0].orderItems
+                                      .fold(0, (a, b) => a + b.price)
+                                  : 0.0,
                             ),
                             onClick: () {},
                             controller: controller,
