@@ -19,7 +19,7 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
-import 'package:flipper/localize.dart';
+// import 'package:flipper/localize.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class BusinessHomeView extends StatefulWidget {
@@ -167,8 +167,6 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                         flex: 1,
                         child: Text(
                           ' Add Product',
-                          // localize(context)?.addProduct ?? '',
-                          // FlipperLocalizations.of(context).rallyTitleBills,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Colors.white,
