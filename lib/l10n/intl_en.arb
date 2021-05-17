@@ -1,4 +1,5 @@
 {
+    "addProduct": "Add Product",
     "githubRepo": "{repoName} GitHub repository",
     "@githubRepo": {
         "description": "Represents a link to a GitHub repository.",

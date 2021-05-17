@@ -97,12 +97,16 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// We take _variantsStocks[0] because we know
   void decreaseQty() {
     ProxyService.keypad.decreaseQty();
-    keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    if (_variantsStocks.isNotEmpty) {
+      keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    }
   }
 
   void increaseQty() {
     ProxyService.keypad.increaseQty();
-    keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    if (_variantsStocks.isNotEmpty) {
+      keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    }
   }
 
   void setAmount({required double amount}) {

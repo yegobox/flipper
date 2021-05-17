@@ -16,10 +16,10 @@ import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
-
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
+import 'package:flipper/localize.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class BusinessHomeView extends StatefulWidget {
@@ -160,8 +160,10 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                       ),
                       Flexible(
                         flex: 1,
-                        child: const Text(
+                        child: Text(
                           ' Add Product',
+                          // localize(context)?.addProduct ?? '',
+                          // FlipperLocalizations.of(context).rallyTitleBills,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Colors.white,
