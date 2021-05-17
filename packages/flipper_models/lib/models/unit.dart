@@ -20,7 +20,7 @@ class Unit {
     required this.branchId,
     required this.name,
     required this.table,
-    required this.focused,
+    required this.active,
     required this.channels,
     this.units,
   });
@@ -29,7 +29,7 @@ class Unit {
   String branchId;
   String name;
   String table;
-  bool focused;
+  bool active;
   List<String> channels;
   List<Map<String, dynamic>>? units;
 
@@ -38,7 +38,7 @@ class Unit {
         branchId: json["branchId"],
         name: json["name"],
         table: json["table"],
-        focused: json["focused"],
+        active: json["active"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         units: json["units"] == null
             ? []
@@ -50,7 +50,7 @@ class Unit {
         "branchId": branchId,
         "name": name,
         "table": table,
-        "focused": focused,
+        "active": active,
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "units": units == null ? [] : List<dynamic>.from(units!.map((x) => x)),
       };

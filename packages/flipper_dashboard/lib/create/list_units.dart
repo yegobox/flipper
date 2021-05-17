@@ -25,7 +25,7 @@ class ListUnits extends StatelessWidget {
             ),
             trailing: Radio<Object?>(
               value: model.units[i].id,
-              groupValue: model.units[i].focused ? model.units[i].id : 0,
+              groupValue: model.units[i].active ? model.units[i].id : 0,
               onChanged: (value) {},
             ),
           ),

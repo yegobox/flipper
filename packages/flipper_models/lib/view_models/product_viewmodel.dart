@@ -138,8 +138,8 @@ class ProductViewModel extends ReactiveViewModel {
   void saveFocusedUnit(
       {required Unit newUnit, String? id, required String type}) async {
     for (Unit unit in units) {
-      if (unit.focused) {
-        unit.focused = !unit.focused;
+      if (unit.active) {
+        unit.active = !unit.active;
         String id = unit.id;
         await ProxyService.api.update(
           endPoint: 'unit/$id',
@@ -148,7 +148,7 @@ class ProductViewModel extends ReactiveViewModel {
       }
     }
     Unit unit = newUnit;
-    unit.focused = !unit.focused;
+    unit.active = !unit.active;
     String id = unit.id;
     await ProxyService.api.update(
       endPoint: 'unit/$id',

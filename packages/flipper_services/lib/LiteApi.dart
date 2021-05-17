@@ -393,10 +393,12 @@ class LiteApi<T> implements Api {
   @override
   Future<int> addUnits({required Map data}) async {
     String branchId = ProxyService.box.read(key: 'branchId');
+    String userId = ProxyService.box.read(key: 'userId');
     for (Map map in data['units']) {
       final unitId = Uuid().v1();
       map['id'] = unitId;
       map['table'] = AppTables.unit;
+      map['channels'] = [userId];
       map['branchId'] = branchId;
       final doc = Document(unitId, data: map);
       db.saveDocument(doc);
