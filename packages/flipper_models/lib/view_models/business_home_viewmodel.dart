@@ -135,7 +135,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await ProxyService.api.createOrder(
       customAmount: amountTotal,
       variation: variation,
-      price: double.parse(ProxyService.keypad.key),
+      price: amountTotal,
       quantity: quantity.toDouble(),
     );
     List<Order> orders = await ProxyService.keypad.getOrders();
