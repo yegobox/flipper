@@ -22,8 +22,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   double get amountTotal => keypad.amountTotal;
 
-  bool _check = true;
-  bool get checked => _check;
+  String get checked => keypad.check;
 
   bool get groupValue => true;
 
@@ -95,12 +94,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return false;
   }
 
+  /// We take _variantsStocks[0] because we know
   void decreaseQty() {
     ProxyService.keypad.decreaseQty();
+    keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
   }
 
   void increaseQty() {
     ProxyService.keypad.increaseQty();
+    keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
   }
 
   void setAmount({required double amount}) {
@@ -119,6 +121,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     List<Variation> variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
     return variants[0].id;
+  }
+
+  void toggleCheckbox({required String variantId}) {
+    keypad.toggleCheckbox(variantId: variantId);
   }
 
   @override
