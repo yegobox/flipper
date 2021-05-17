@@ -557,10 +557,10 @@ class Sell extends StatelessWidget {
                 disableButton: false,
                 showActionButton: true,
                 onPressedCallback: () async {
-                  // model.saveOrder(
-                  //   variationId: model.variations[0].id,
-                  //   amount: model.amountTotal,
-                  // );
+                  await model.saveOrder(
+                    variationId: model.checked,
+                    amount: model.amountTotal,
+                  );
                   ProxyService.nav.back();
                 },
                 // actionButtonName: 'Add',

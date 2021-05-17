@@ -34,6 +34,7 @@ abstract class Api<T> {
     required String branchId,
     required String productId,
   });
+  Future<Variation> variant({required String variantId});
   Future<int> addUnits({required Map data});
 
   Future<int> addVariant({

@@ -603,4 +603,10 @@ class LiteApi<T> implements Api {
     Document d = db.saveDocument(b);
     return sbFromJson(d.json);
   }
+
+  @override
+  Future<Variation> variant({required String variantId}) async {
+    Document doc = db.getDocument(variantId);
+    return svariationFromJson(doc.json);
+  }
 }

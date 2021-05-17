@@ -268,4 +268,10 @@ class HttpApi<T> implements Api {
     // TODO: implement orders
     throw UnimplementedError();
   }
+
+  @override
+  Future<Variation> variant({required String variantId}) {
+    // TODO: implement variant
+    throw UnimplementedError();
+  }
 }

@@ -127,6 +127,23 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.toggleCheckbox(variantId: variantId);
   }
 
+  Future saveOrder(
+      {required String variationId, required double amount}) async {
+    Variation variation = await ProxyService.api.variant(
+      variantId: variationId,
+    );
+    await ProxyService.api.createOrder(
+      customAmount: amountTotal,
+      variation: variation,
+      price: double.parse(ProxyService.keypad.key),
+      quantity: quantity.toDouble(),
+    );
+    List<Order> orders = await ProxyService.keypad.getOrders();
+    if (orders.isNotEmpty) {
+      keypad.setCount(count: orders[0].orderItems.length);
+    }
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
 }
