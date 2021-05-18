@@ -316,13 +316,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  contacts_service:
-    dependency: transitive
-    description:
-      name: contacts_service
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.0"
   convert:
     dependency: transitive
     description:
@@ -636,13 +629,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.0"
-  flutter_launcher_icons:
+  flutter_icons:
     dependency: transitive
     description:
-      name: flutter_launcher_icons
+      path: "."
+      ref: master
+      resolved-ref: "0831af6f0f239d20fb9578612d7a893e2a53d044"
+      url: "https://github.com/adarsh-technocrat/flutter-icons"
+    source: git
+    version: "1.1.1-nullsafety.0"
+  flutter_localizations:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_localized_locales:
+    dependency: transitive
+    description:
+      name: flutter_localized_locales
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.0"
+    version: "2.0.1"
   flutter_luban:
     dependency: transitive
     description:
@@ -1024,6 +1031,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+  objectbox:
+    dependency: transitive
+    description:
+      name: objectbox
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  objectbox_flutter_libs:
+    dependency: transitive
+    description:
+      name: objectbox_flutter_libs
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   observable_ish:
     dependency: transitive
     description:
@@ -1206,6 +1227,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  rounded_loading_button:
+    dependency: transitive
+    description:
+      name: rounded_loading_button
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.4"
   rxdart:
     dependency: transitive
     description:
@@ -1294,7 +1322,7 @@ packages:
       name: stacked
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.4"
+    version: "2.1.6"
   stacked_firebase_auth:
     dependency: transitive
     description:

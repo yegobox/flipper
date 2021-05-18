@@ -23,7 +23,7 @@ import 'package:flipper_models/models/branch.dart';
 
 import 'abstractions/api.dart';
 
-class HiveApi implements Api {
+class ObjectBoxApi implements Api {
   @override
   Future<int> addUnits({required Map data}) {
     // TODO: implement addUnits

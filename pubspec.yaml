@@ -88,7 +88,7 @@ dependencies:
   # pusher: not available
   # pusher: 
   #   path: 'packages/pusher'
-  contacts_service:
+  # contacts_service:
   # pusher_beams: 
   #   path: 'packages/flutter_pusher_beams'
   flutter_uploader: 3.0.0-beta.1
@@ -134,6 +134,8 @@ dependencies:
   intl: ^0.17.0
   provider: ^5.0.0
   rounded_loading_button: ^2.0.4
+  objectbox: ^1.0.0
+  objectbox_flutter_libs: any
   # adaptive_icon_background: "assets/images/christmas-background.png" # only available for Android 8.0 devices and above
   # adaptive_icon_foreground: "assets/images/icon-foreground-432x432.png" # only available for Android 8.0 devices and above
 dev_dependencies:
@@ -151,6 +153,8 @@ dev_dependencies:
   test: ^1.5.3
   hive_generator: ^1.1.0
   flutter_launcher_icons: ^0.9.0
+  objectbox_generator: any
+
 flutter_icons:
   android: "launcher_icon"
   ios: true

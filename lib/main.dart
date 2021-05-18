@@ -13,12 +13,13 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
+final isAndroid = UniversalPlatform.isAndroid;
 
 // cd android && ./gradlew signingReport
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
-  (isWindows) ? Cbl.init() : '';
+  (isWindows || isAndroid) ? Cbl.init() : '';
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();

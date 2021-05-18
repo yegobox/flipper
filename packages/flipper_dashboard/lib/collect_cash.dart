@@ -36,7 +36,6 @@ class CollectCashView extends StatelessWidget {
                       child: Form(
                         key: _formKey,
                         child: Column(
-                          // ignore: prefer_const_literals_to_create_immutables
                           children: [
                             const SizedBox(height: 40),
                             paymentType == 'spenn'
@@ -50,10 +49,7 @@ class CollectCashView extends StatelessWidget {
                                             .textTheme
                                             .bodyText1!
                                             .copyWith(color: Colors.black),
-                                        // validator: (){},
-                                        onChanged: (String phone) {
-                                          // model.phone = phone;
-                                        },
+                                        onChanged: (String phone) {},
                                         decoration: InputDecoration(
                                           hintText: 'Payer phone number',
                                           fillColor: Theme.of(context)
@@ -90,10 +86,7 @@ class CollectCashView extends StatelessWidget {
                                     }
                                     return null;
                                   },
-                                  onChanged: (String cash) {
-                                    // model.keypad.setCashReceived.value =
-                                    //     double.parse(cash);
-                                  },
+                                  onChanged: (String cash) {},
                                   decoration: InputDecoration(
                                     hintText: 'Cash Received',
                                     fillColor: Theme.of(context)
@@ -102,7 +95,8 @@ class CollectCashView extends StatelessWidget {
                                     filled: true,
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color: HexColor('#D0D7E3')),
+                                        color: HexColor('#D0D7E3'),
+                                      ),
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                   ),
