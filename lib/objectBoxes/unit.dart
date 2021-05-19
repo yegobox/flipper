@@ -12,7 +12,7 @@ String unitToJson(List<Unit> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @Entity()
-class Unit {
+class Unit<T> {
   Unit(
       {required this.id,
       required this.branchId,

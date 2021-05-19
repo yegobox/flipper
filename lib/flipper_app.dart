@@ -12,7 +12,8 @@ import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this li
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:path_provider/path_provider.dart';
-// import 'objectbox.g.dart';
+
+import 'objectbox.g.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -28,10 +29,10 @@ class _FlipperAppState extends State<FlipperApp> {
 
   @override
   void initState() {
-    // getApplicationDocumentsDirectory().then((Directory dir) {
-    //   // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-    //   _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
-    // });
+    getApplicationDocumentsDirectory().then((Directory dir) {
+      // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+      _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
+    });
     super.initState();
   }
 

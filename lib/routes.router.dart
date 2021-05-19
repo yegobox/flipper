@@ -7,6 +7,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:flipper_dashboard/add_product_view.dart';
+import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
@@ -44,6 +45,7 @@ class Routes {
   static const String sell = '/Sell';
   static const String pay = '/Payments';
   static const String collect = '/collect-cash-view';
+  static const String afterSale = '/after-sale';
   static const all = <String>{
     startUpView,
     dashboard,
@@ -61,6 +63,7 @@ class Routes {
     sell,
     pay,
     collect,
+    afterSale,
   };
 }
 
@@ -84,6 +87,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.sell, page: Sell),
     RouteDef(Routes.pay, page: Payments),
     RouteDef(Routes.collect, page: CollectCashView),
+    RouteDef(Routes.afterSale, page: AfterSale),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -220,6 +224,12 @@ class StackedRouter extends RouterBase {
           key: args.key,
           paymentType: args.paymentType,
         ),
+        settings: data,
+      );
+    },
+    AfterSale: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const AfterSale(),
         settings: data,
       );
     },

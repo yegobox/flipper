@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_services/proxy.dart';
@@ -5,13 +8,68 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
+import 'package:flipper/routes.router.dart';
 
-class CollectCashView extends StatelessWidget {
+final socketUrl = 'https://apihub.yegobox.com/ws-message';
+
+class CollectCashView extends StatefulWidget {
   CollectCashView({Key? key, required this.paymentType}) : super(key: key);
+  final String paymentType;
+
+  @override
+  State<CollectCashView> createState() => _CollectCashViewState();
+}
+
+class _CollectCashViewState extends State<CollectCashView> {
   final RoundedLoadingButtonController _btnController =
       RoundedLoadingButtonController();
-  final String paymentType;
+
   final _formKey = GlobalKey<FormState>();
+  String message = '';
+  TextEditingController phoneController = TextEditingController();
+  StreamController<String> streamController =
+      StreamController<String>.broadcast();
+  late StreamSubscription<String> subscription;
+  StompClient? stompClient;
+  void onConnect(StompFrame frame) {
+    stompClient?.subscribe(
+        destination: '/topic/message',
+        callback: (StompFrame frame) {
+          if (frame.body != null) {
+            Map<String, dynamic> result = json.decode(frame.body!);
+            streamController.add(result['message']);
+          }
+        });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (stompClient == null) {
+      stompClient = StompClient(
+          config: StompConfig.SockJS(
+        url: socketUrl,
+        onConnect: onConnect,
+        onWebSocketError: (dynamic error) => print(error.toString()),
+      ));
+
+      stompClient?.activate();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (stompClient != null) {
+      stompClient?.deactivate();
+    }
+    // streamController.dispose();
+    subscription?.cancel(); //unsubscribe from stream
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +96,7 @@ class CollectCashView extends StatelessWidget {
                         child: Column(
                           children: [
                             const SizedBox(height: 40),
-                            paymentType == 'spenn'
+                            widget.paymentType == 'spenn'
                                 ? Padding(
                                     padding: const EdgeInsets.only(
                                         left: 18, right: 18),
@@ -49,7 +107,8 @@ class CollectCashView extends StatelessWidget {
                                             .textTheme
                                             .bodyText1!
                                             .copyWith(color: Colors.black),
-                                        onChanged: (String phone) {},
+                                        // onChanged: (String phone) {},
+                                        controller: phoneController,
                                         decoration: InputDecoration(
                                           hintText: 'Payer phone number',
                                           fillColor: Theme.of(context)
@@ -107,21 +166,27 @@ class CollectCashView extends StatelessWidget {
                             RoundedLoadingButton(
                               borderRadius: 20.0,
                               controller: _btnController,
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
-                                  if (paymentType == 'spenn') {
-                                    // model.collectSPENNPayment();
+                                  if (widget.paymentType == 'spenn') {
+                                    await model.collectSPENNPayment(
+                                        phoneNumber: phoneController.text);
                                   } else {
-                                    // model.collectCashPayment();
-                                    // ProxyService.nav
-                                    //     .navigateTo(Routing.afterSaleView);
+                                    model.collectCashPayment();
+                                    _btnController.success();
+                                    ProxyService.nav
+                                        .navigateTo(Routes.afterSale);
                                   }
                                 } else {
                                   _btnController.stop();
                                 }
                               },
-                              child: const Text('Tender',
-                                  style: TextStyle(color: Colors.white)),
+                              child: const Text(
+                                'Tender',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
                             )
                           ],
                         ),
@@ -133,21 +198,17 @@ class CollectCashView extends StatelessWidget {
             ),
           );
         },
-        onModelReady: (BusinessHomeViewModel model) {
-          // model.completedSale.value = null;
-          // model.completedSale.listen((v) {
-          //   try {
-          //     if (v != null && v == true) {
-          //       _btnController.success();
-          //     } else if (v != null && v == false) {
-          //       _btnController.error();
-          //     }
-          //   } on Exception {
-          //     rethrow;
-          //   }
-          // });
-          // ProxyService.pusher.subs();
-          // model.listenPaymentComplete();
+        onModelReady: (model) {
+          Stream<String> stream = streamController.stream;
+          subscription = stream.listen((event) {
+            String userId = ProxyService.box.read(key: 'userId');
+            if (event == userId) {
+              _btnController.success();
+              ProxyService.nav.navigateTo(Routes.afterSale);
+            } else {
+              _btnController.error();
+            }
+          });
         },
         viewModelBuilder: () => BusinessHomeViewModel());
   }

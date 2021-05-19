@@ -1,4 +1,5 @@
 import 'package:flipper_models/models/order.dart';
+import 'package:flipper_models/models/spenn.dart';
 import 'package:flipper_models/models/variation.dart';
 
 import 'package:flipper_models/models/variant_stock.dart';
@@ -200,6 +201,19 @@ class ObjectBoxApi implements Api {
   @override
   Future<Variation> variant({required String variantId}) {
     // TODO: implement variant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> collectCashPayment(
+      {required double cashReceived, required Order order}) {
+    // TODO: implement collectCashPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Spenn> spennPayment({required double amount, required phoneNumber}) {
+    // TODO: implement spennPayment
     throw UnimplementedError();
   }
 }

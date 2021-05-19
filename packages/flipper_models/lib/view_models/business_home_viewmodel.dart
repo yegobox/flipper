@@ -147,6 +147,26 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
+  Future collectSPENNPayment({required String phoneNumber}) async {
+    if (orders.isEmpty && amountTotal != 0.0) {
+      //should show a global snack bar
+      return;
+    }
+    await ProxyService.api
+        .spennPayment(amount: amountTotal, phoneNumber: phoneNumber);
+    await ProxyService.api
+        .collectCashPayment(cashReceived: amountTotal, order: orders[0]);
+  }
+
+  void collectCashPayment() {
+    if (orders.isEmpty && amountTotal != 0.0) {
+      //should show a global snack bar
+      return;
+    }
+    ProxyService.api
+        .collectCashPayment(cashReceived: amountTotal, order: orders[0]);
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
 }

@@ -6,6 +6,7 @@ import 'package:flipper_models/models/color.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/models/spenn.dart';
 import 'package:flipper_models/models/stock.dart';
 import 'package:flipper_models/models/category.dart';
 import 'package:flipper_models/models/unit.dart';
@@ -272,6 +273,19 @@ class HttpApi<T> implements Api {
   @override
   Future<Variation> variant({required String variantId}) {
     // TODO: implement variant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Spenn> spennPayment({required double amount, required phoneNumber}) {
+    // TODO: implement spennPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> collectCashPayment(
+      {required double cashReceived, required Order order}) {
+    // TODO: implement collectCashPayment
     throw UnimplementedError();
   }
 }
