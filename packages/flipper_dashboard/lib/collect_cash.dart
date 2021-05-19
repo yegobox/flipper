@@ -30,6 +30,7 @@ class _CollectCashViewState extends State<CollectCashView> {
   final _formKey = GlobalKey<FormState>();
   String message = '';
   TextEditingController phoneController = TextEditingController();
+  TextEditingController cashReceivedController = TextEditingController();
   StreamController<String> streamController =
       StreamController<String>.broadcast();
   late StreamSubscription<String> subscription;
@@ -67,7 +68,7 @@ class _CollectCashViewState extends State<CollectCashView> {
       stompClient?.deactivate();
     }
     // streamController.dispose();
-    subscription?.cancel(); //unsubscribe from stream
+    subscription.cancel(); //unsubscribe from stream
     super.dispose();
   }
 
@@ -143,8 +144,16 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter Cash Received';
                                     }
+                                    double totalOrderAmount = model
+                                        .orders[0].orderItems
+                                        .fold(0, (a, b) => a + b.price);
+                                    if (double.parse(value) <
+                                        totalOrderAmount) {
+                                      return "Amount is less than amount payable";
+                                    }
                                     return null;
                                   },
+                                  controller: cashReceivedController,
                                   onChanged: (String cash) {},
                                   decoration: InputDecoration(
                                     hintText: 'Cash Received',
@@ -168,14 +177,24 @@ class _CollectCashViewState extends State<CollectCashView> {
                               controller: _btnController,
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
+                                  model.keypad.setCashReceived(
+                                      amount: double.parse(
+                                          cashReceivedController.text));
                                   if (widget.paymentType == 'spenn') {
                                     await model.collectSPENNPayment(
                                         phoneNumber: phoneController.text);
                                   } else {
                                     model.collectCashPayment();
                                     _btnController.success();
-                                    ProxyService.nav
-                                        .navigateTo(Routes.afterSale);
+                                    double totalOrderAmount = model
+                                        .orders[0].orderItems
+                                        .fold(0, (a, b) => a + b.price);
+                                    ProxyService.nav.navigateTo(
+                                      Routes.afterSale,
+                                      arguments: AfterSaleArguments(
+                                        totalOrderAmount: totalOrderAmount,
+                                      ),
+                                    );
                                   }
                                 } else {
                                   _btnController.stop();
@@ -204,7 +223,11 @@ class _CollectCashViewState extends State<CollectCashView> {
             String userId = ProxyService.box.read(key: 'userId');
             if (event == userId) {
               _btnController.success();
-              ProxyService.nav.navigateTo(Routes.afterSale);
+              double totalOrderAmount =
+                  model.orders[0].orderItems.fold(0, (a, b) => a + b.price);
+              ProxyService.nav.navigateTo(Routes.afterSale,
+                  arguments:
+                      AfterSaleArguments(totalOrderAmount: totalOrderAmount));
             } else {
               _btnController.error();
             }

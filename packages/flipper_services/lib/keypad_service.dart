@@ -34,6 +34,10 @@ class KeyPadService with ReactiveServiceMixin {
 
   String get check => _check.value;
 
+  final _cashReceived = ReactiveValue<double>(0.0);
+
+  get cashReceived => _cashReceived;
+
   void addKey(String key) {
     stack.push(key);
     _key.value = stack.list.join('');
@@ -41,6 +45,10 @@ class KeyPadService with ReactiveServiceMixin {
 
   setAmount({required double amount}) {
     _amountTotal.value = amount;
+  }
+
+  setCashReceived({required double amount}) {
+    _cashReceived.value = amount;
   }
 
   void toggleCheckbox({required String variantId}) {
@@ -89,7 +97,14 @@ class KeyPadService with ReactiveServiceMixin {
   //increase quantity
 
   KeyPadService() {
-    listenToReactiveValues(
-        [_key, _orders, _countOrderItems, _quantity, _amountTotal, _check]);
+    listenToReactiveValues([
+      _key,
+      _orders,
+      _countOrderItems,
+      _quantity,
+      _amountTotal,
+      _check,
+      _cashReceived
+    ]);
   }
 }

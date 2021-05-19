@@ -228,8 +228,12 @@ class StackedRouter extends RouterBase {
       );
     },
     AfterSale: (data) {
+      var args = data.getArgs<AfterSaleArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const AfterSale(),
+        builder: (context) => AfterSale(
+          key: args.key,
+          totalOrderAmount: args.totalOrderAmount,
+        ),
         settings: data,
       );
     },
@@ -310,4 +314,11 @@ class CollectCashViewArguments {
   final Key? key;
   final String paymentType;
   CollectCashViewArguments({this.key, required this.paymentType});
+}
+
+/// AfterSale arguments holder class
+class AfterSaleArguments {
+  final Key? key;
+  final double totalOrderAmount;
+  AfterSaleArguments({this.key, required this.totalOrderAmount});
 }
