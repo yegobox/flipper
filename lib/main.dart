@@ -19,7 +19,7 @@ final isAndroid = UniversalPlatform.isAndroid;
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
-  (isWindows || isAndroid) ? Cbl.init() : '';
+  // (isWindows || isAndroid) ? Cbl.init() : '';
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
