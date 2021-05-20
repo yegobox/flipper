@@ -52,7 +52,7 @@ dependencies:
   auto_route:
   awesome_notifications:
   # geolocator:
-  location:
+  # location:
   permission_handler:
   built_value:
   built_collection:
@@ -200,6 +200,8 @@ flutter:
       fonts:
         - asset: assets/fonts/icons.ttf
   generate: true
+  # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
+  deferred-components:
   # flutter run
   # flutter create --template=package hello
   # ./flutterw packages pub run build_runner build --delete-conflicting-outputs

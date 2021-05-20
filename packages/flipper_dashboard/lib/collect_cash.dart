@@ -67,7 +67,6 @@ class _CollectCashViewState extends State<CollectCashView> {
     if (stompClient != null) {
       stompClient?.deactivate();
     }
-    // streamController.dispose();
     subscription.cancel(); //unsubscribe from stream
     super.dispose();
   }
@@ -108,7 +107,6 @@ class _CollectCashViewState extends State<CollectCashView> {
                                             .textTheme
                                             .bodyText1!
                                             .copyWith(color: Colors.black),
-                                        // onChanged: (String phone) {},
                                         controller: phoneController,
                                         decoration: InputDecoration(
                                           hintText: 'Payer phone number',
