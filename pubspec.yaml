@@ -49,15 +49,14 @@ dependencies:
   stacked_firebase_auth: ^0.2.2+1
   cloud_firestore: ^1.0.1
   camera: ^0.8.0
-  auto_route:
-  awesome_notifications:
+  awesome_notifications: ^0.0.6+7
   # geolocator:
-  # location:
-  permission_handler:
+  location: ^4.1.1
+  # permission_handler:
   built_value:
   built_collection:
   jiffy: 
-  expandable:
+  expandable: ^5.0.1
   timezone: 0.7.0-nullsafety.0
   cupertino_icons:
   get_storage: ^2.0.2
@@ -77,7 +76,7 @@ dependencies:
   connectivity:
  
   get: 
-  flutter_slidable: 
+  flutter_slidable: ^0.6.0
   in_app_review:
   timeago:
   cron:
@@ -110,7 +109,7 @@ dependencies:
     path: 'packages/flutter_money_formatter' #to be replace when PR is merged
   google_fonts:
   font_awesome_flutter: ^9.0.0
-  flutter_text_drawable: 
+  flutter_text_drawable: ^1.0.0
   moor_flutter: ^4.0.0
   firebase_dynamic_links: ^2.0.1
   share: ^2.0.1
@@ -149,7 +148,7 @@ dev_dependencies:
   auto_route_generator:
   injectable_generator:
   stacked_generator:
-  mockito:
+  mockito: 5.0.8
   test: ^1.5.3
   hive_generator: ^1.1.0
   flutter_launcher_icons: ^0.9.0
