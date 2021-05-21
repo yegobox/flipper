@@ -246,6 +246,12 @@ class HttpApi<T> implements Api {
     yield stockFromJson(response.body)[0];
   }
 
+  Future<Order?> pendingOrderExist() async {
+    final response = await client.get(Uri.parse("$apihub/api/draft-order"));
+
+    return sorderFromJson(response.body[0]);
+  }
+
   @override
   Future<Order> createOrder(
       {required double customAmount,
@@ -253,39 +259,124 @@ class HttpApi<T> implements Api {
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
-      double quantity = 1}) {
-    // TODO: implement createOrder
-    throw UnimplementedError();
+      double quantity = 1}) async {
+    final id4 = Uuid().v1();
+    final orderItemId = Uuid().v1();
+    final ref = Uuid().v1();
+    final orderNUmber = Uuid().v1();
+    String userId = ProxyService.box.read(key: 'userId');
+    String branchId = ProxyService.box.read(key: 'branchId');
+    Order? existOrder = await pendingOrderExist();
+
+    // Document docStock = db.getDocument(stockId);
+    // Stock stock = sstockFromJson(docStock.json);
+
+    if (existOrder == null) {
+      Order order = new Order(
+        id: id4,
+        reference: ref,
+        orderNumber: orderNUmber,
+        status: 'pending',
+        orderType: orderType,
+        active: true,
+        draft: true,
+        channels: [userId],
+        subTotal: customAmount,
+        table: AppTables.order,
+        cashReceived: customAmount,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0, //fix this
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+        orderItems: [
+          OrderItem(
+            count: quantity,
+            name: useProductName ? variation.productName : variation.name,
+            variantId: variation.id,
+            id: orderItemId,
+            price: price,
+            orderId: id4,
+          )
+        ],
+      );
+
+      final http.Response response = await client.post(
+          Uri.parse("$apihub/api/order"),
+          body: jsonEncode(order.toJson()),
+          headers: {'Content-Type': 'application/json'});
+
+      return sorderFromJson(response.body[0]);
+    } else {
+      OrderItem item = OrderItem(
+        count: 1,
+        name: useProductName ? variation.productName : variation.name,
+        variantId: variation.id,
+        id: orderItemId,
+        price: price,
+        orderId: existOrder.id,
+      );
+      existOrder.orderItems.add(item);
+      update(data: existOrder.toJson(), endPoint: 'order');
+      return existOrder;
+    }
   }
 
   @override
-  Future<Variation> getCustomProductVariant() {
-    // TODO: implement getCustomProductVariant
-    throw UnimplementedError();
+  Future<Variation> getCustomProductVariant() async {
+    final response =
+        await client.get(Uri.parse("$apihub/api/variantCustomProduct"));
+
+    return svariationFromJson(response.body[0]);
   }
 
   @override
-  Future<List<Order>> orders() {
-    // TODO: implement orders
-    throw UnimplementedError();
+  Future<List<Order>> orders() async {
+    final response = await client.get(Uri.parse("$apihub/api/orders"));
+
+    return orderFromJson(response.body);
   }
 
   @override
-  Future<Variation> variant({required String variantId}) {
-    // TODO: implement variant
-    throw UnimplementedError();
+  Future<Variation> variant({required String variantId}) async {
+    final response =
+        await client.get(Uri.parse("$apihub/api/variant/$variantId"));
+
+    return svariationFromJson(response.body[0]);
   }
 
   @override
-  Future<Spenn> spennPayment({required double amount, required phoneNumber}) {
-    // TODO: implement spennPayment
-    throw UnimplementedError();
+  Future<Spenn> spennPayment(
+      {required double amount, required phoneNumber}) async {
+    String userId = ProxyService.box.read(key: 'userId');
+    // final response = await client.post(Uri.parse("$flipperApi/pay"),
+    //     body: jsonEncode({
+    //       'amount': amount,
+    //       'message': '-' + transactionNumber.substring(0, 4),
+    //       'phoneNumber': '+25' + phoneNumber,
+    //       'uid': userId
+    //     }),
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'Accept': 'application/json'
+    //     });
+    // return spennFromJson(response.body);
+    print('+25' + phoneNumber);
+    Spenn spenn = new Spenn(id: '1', requestId: 'uid', status: 'complented');
+    return spenn;
+    //
   }
 
   @override
   Future<void> collectCashPayment(
-      {required double cashReceived, required Order order}) {
-    // TODO: implement collectCashPayment
-    throw UnimplementedError();
+      {required double cashReceived, required Order order}) async {
+    final endPoint = "order";
+    Map data = order.toJson();
+    data['cashReceived'] = cashReceived;
+    data['status'] = 'completed';
+    data['draft'] = false;
+
+    await client.patch(Uri.parse("$apihub/api/$endPoint/$data['id']"),
+        body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
   }
 }

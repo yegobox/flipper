@@ -639,6 +639,7 @@ class LiteApi<T> implements Api {
     Map data = order.toJson();
     data['cashReceived'] = cashReceived;
     data['status'] = 'completed';
+    data['draft'] = false;
     update(data: data, endPoint: 'order');
   }
 }
