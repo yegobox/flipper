@@ -32,8 +32,8 @@ import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
-final Database db = Database("db");
-// final dynamic db = {}; //fake db it is not going to be used on web anyway!
+// final Database db = Database("db");
+final dynamic db = {}; //fake db it is not going to be used on web anyway!
 final isWindows = UniversalPlatform.isWindows;
 // UniversalPlatform.platform;
 enum ApiProvider {
