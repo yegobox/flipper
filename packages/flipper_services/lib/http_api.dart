@@ -241,7 +241,6 @@ class HttpApi<T> implements Api {
   Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
-    print('stream:$variantId');
 
     yield stockFromJson(response.body)[0];
   }
@@ -376,7 +375,8 @@ class HttpApi<T> implements Api {
     data['status'] = 'completed';
     data['draft'] = false;
 
-    await client.patch(Uri.parse("$apihub/api/$endPoint/$data['id']"),
+    String id = data['id'];
+    await client.patch(Uri.parse("$apihub/api/$endPoint/$id"),
         body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
   }
 }
