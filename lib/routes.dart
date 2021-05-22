@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
+import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
@@ -11,6 +12,8 @@ import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/order_summary.dart';
+import 'package:flipper_dashboard/collect_cash.dart';
+import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -31,12 +34,14 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: ListUnits, name: 'units'),
     MaterialRoute(page: OrderSummary, name: 'summary'),
     MaterialRoute(page: Sell, name: 'sell'),
+    MaterialRoute(page: Payments, name: 'pay'),
+    MaterialRoute(page: CollectCashView, name: 'collect'),
+    MaterialRoute(page: AfterSale, name: 'afterSale'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),
-    // LazySingleton(classType: AppService),
-    // LazySingleton(classType: LoginViewModel)
   ],
+  logger: StackedLogger(),
 )
 class AppSetup {
   /** Serves no purpose besides having an annotation attached to it */
@@ -56,3 +61,4 @@ class AppSetup {
 //TODO: push notification service https://github.com/Pronto-AG/Pronto-MIA-App/blob/master/pronto_mia/lib/core/services/push_notification_service.dart
 // find . -name '*.dart' | xargs wc -l
 //  16693  +633  +1388 = 18714
+// sudo a2enmod proxy_wstunnel (enabling apache sockets)

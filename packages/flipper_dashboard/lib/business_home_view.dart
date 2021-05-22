@@ -16,10 +16,10 @@ import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
-
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
+// import 'package:flipper/localize.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class BusinessHomeView extends StatefulWidget {
@@ -102,10 +102,15 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                     tab == 0
                         ? KeyPadHead(
                             payable: PayableView(
-                              onClick: () {},
+                              onClick: () {
+                                ProxyService.nav.navigateTo(Routes.pay);
+                              },
                               tickets: 0,
-                              orders: 0,
-                              duePay: 0,
+                              orders: model.orders.length,
+                              duePay: model.orders.isNotEmpty
+                                  ? model.orders[0].orderItems
+                                      .fold(0, (a, b) => a + b.price)
+                                  : 0.0,
                             ),
                             onClick: () {},
                             controller: controller,
@@ -160,7 +165,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
                       ),
                       Flexible(
                         flex: 1,
-                        child: const Text(
+                        child: Text(
                           ' Add Product',
                           textAlign: TextAlign.center,
                           style: TextStyle(

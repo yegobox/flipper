@@ -115,7 +115,7 @@ class ProductRow extends StatelessWidget {
           },
         ),
       ],
-      actionPane: const SlidableDrawerActionPane(),
+      actionPane: SlidableDrawerActionPane(),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper_models/models/product.dart';
 import 'package:flipper_models/models/unit.dart';
+import 'package:flipper_models/models/spenn.dart';
 import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/branch.dart';
 import 'package:flipper_models/models/stock.dart';
@@ -34,6 +35,7 @@ abstract class Api<T> {
     required String branchId,
     required String productId,
   });
+  Future<Variation> variant({required String variantId});
   Future<int> addUnits({required Map data});
 
   Future<int> addVariant({
@@ -63,4 +65,7 @@ abstract class Api<T> {
   Future<List<Order>> orders();
 
   Future<Variation> getCustomProductVariant();
+  Future<Spenn> spennPayment({required double amount, required phoneNumber});
+  Future<void> collectCashPayment(
+      {required double cashReceived, required Order order});
 }

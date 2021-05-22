@@ -7,7 +7,9 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:flipper_dashboard/add_product_view.dart';
+import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
+import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -16,6 +18,7 @@ import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/order_summary.dart';
+import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
@@ -40,6 +43,9 @@ class Routes {
   static const String units = '/list-units';
   static const String summary = '/order-summary';
   static const String sell = '/Sell';
+  static const String pay = '/Payments';
+  static const String collect = '/collect-cash-view';
+  static const String afterSale = '/after-sale';
   static const all = <String>{
     startUpView,
     dashboard,
@@ -55,6 +61,9 @@ class Routes {
     units,
     summary,
     sell,
+    pay,
+    collect,
+    afterSale,
   };
 }
 
@@ -76,6 +85,9 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.units, page: ListUnits),
     RouteDef(Routes.summary, page: OrderSummary),
     RouteDef(Routes.sell, page: Sell),
+    RouteDef(Routes.pay, page: Payments),
+    RouteDef(Routes.collect, page: CollectCashView),
+    RouteDef(Routes.afterSale, page: AfterSale),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -196,6 +208,35 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    Payments: (data) {
+      var args = data.getArgs<PaymentsArguments>(
+        orElse: () => PaymentsArguments(),
+      );
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => Payments(key: args.key),
+        settings: data,
+      );
+    },
+    CollectCashView: (data) {
+      var args = data.getArgs<CollectCashViewArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => CollectCashView(
+          key: args.key,
+          paymentType: args.paymentType,
+        ),
+        settings: data,
+      );
+    },
+    AfterSale: (data) {
+      var args = data.getArgs<AfterSaleArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => AfterSale(
+          key: args.key,
+          totalOrderAmount: args.totalOrderAmount,
+        ),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -260,4 +301,24 @@ class SellArguments {
   final Key? key;
   final Product product;
   SellArguments({this.key, required this.product});
+}
+
+/// Payments arguments holder class
+class PaymentsArguments {
+  final Key? key;
+  PaymentsArguments({this.key});
+}
+
+/// CollectCashView arguments holder class
+class CollectCashViewArguments {
+  final Key? key;
+  final String paymentType;
+  CollectCashViewArguments({this.key, required this.paymentType});
+}
+
+/// AfterSale arguments holder class
+class AfterSaleArguments {
+  final Key? key;
+  final double totalOrderAmount;
+  AfterSaleArguments({this.key, required this.totalOrderAmount});
 }

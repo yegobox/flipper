@@ -22,8 +22,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   double get amountTotal => keypad.amountTotal;
 
-  bool _check = true;
-  bool get checked => _check;
+  String get checked => keypad.check;
 
   bool get groupValue => true;
 
@@ -38,8 +37,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
         Variation variation = await ProxyService.api.getCustomProductVariant();
-        // Stock stock =
-        //     await ProxyService.api.stockByVariantId(variantId: variation.id);
+
         double amount = double.parse(ProxyService.keypad.key);
 
         await ProxyService.api.createOrder(
@@ -70,7 +68,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
-  // products methods
+  ///list products availabe for sell
   Future<List<Product>> products() async {
     return await ProxyService.api.products();
   }
@@ -95,12 +93,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return false;
   }
 
+  /// We take _variantsStocks[0] because we know
   void decreaseQty() {
     ProxyService.keypad.decreaseQty();
+    if (_variantsStocks.isNotEmpty) {
+      keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    }
   }
 
   void increaseQty() {
     ProxyService.keypad.increaseQty();
+    if (_variantsStocks.isNotEmpty) {
+      keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    }
   }
 
   void setAmount({required double amount}) {
@@ -119,6 +124,47 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     List<Variation> variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
     return variants[0].id;
+  }
+
+  void toggleCheckbox({required String variantId}) {
+    keypad.toggleCheckbox(variantId: variantId);
+  }
+
+  Future saveOrder(
+      {required String variationId, required double amount}) async {
+    Variation variation = await ProxyService.api.variant(
+      variantId: variationId,
+    );
+    await ProxyService.api.createOrder(
+      customAmount: amountTotal,
+      variation: variation,
+      price: amountTotal,
+      quantity: quantity.toDouble(),
+    );
+    List<Order> orders = await ProxyService.keypad.getOrders();
+    if (orders.isNotEmpty) {
+      keypad.setCount(count: orders[0].orderItems.length);
+    }
+  }
+
+  Future collectSPENNPayment({required String phoneNumber}) async {
+    if (orders.isEmpty && amountTotal != 0.0) {
+      //should show a global snack bar
+      return;
+    }
+    await ProxyService.api
+        .spennPayment(amount: amountTotal, phoneNumber: phoneNumber);
+    await ProxyService.api
+        .collectCashPayment(cashReceived: amountTotal, order: orders[0]);
+  }
+
+  void collectCashPayment() {
+    if (orders.isEmpty && amountTotal != 0.0) {
+      //should show a global snack bar
+      return;
+    }
+    ProxyService.api
+        .collectCashPayment(cashReceived: amountTotal, order: orders[0]);
   }
 
   @override

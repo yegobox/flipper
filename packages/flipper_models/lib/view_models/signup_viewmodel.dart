@@ -123,7 +123,7 @@ class SignupViewModel extends FormViewModel {
       final unitId = Uuid().v1();
       final units = new Unit(
         name: 'sample',
-        focused: false,
+        active: false,
         id: unitId,
         table: AppTables.unit,
         units: mockUnits,

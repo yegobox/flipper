@@ -5,7 +5,7 @@ import 'package:flipper_models/models/order.dart';
 import 'package:flipper_models/models/b.dart';
 import 'package:flipper_models/models/variant_stock.dart';
 import 'package:flipper_models/models/unit.dart';
-
+import 'package:flipper_models/models/spenn.dart';
 import 'package:flipper_models/models/sync.dart';
 
 import 'package:flipper_models/models/stock.dart';
@@ -392,10 +392,14 @@ class LiteApi<T> implements Api {
 
   @override
   Future<int> addUnits({required Map data}) async {
+    String branchId = ProxyService.box.read(key: 'branchId');
+    String userId = ProxyService.box.read(key: 'userId');
     for (Map map in data['units']) {
       final unitId = Uuid().v1();
       map['id'] = unitId;
       map['table'] = AppTables.unit;
+      map['channels'] = [userId];
+      map['branchId'] = branchId;
       final doc = Document(unitId, data: map);
       db.saveDocument(doc);
     }
@@ -598,5 +602,44 @@ class LiteApi<T> implements Api {
     });
     Document d = db.saveDocument(b);
     return sbFromJson(d.json);
+  }
+
+  @override
+  Future<Variation> variant({required String variantId}) async {
+    Document doc = db.getDocument(variantId);
+    return svariationFromJson(doc.json);
+  }
+
+  @override
+  Future<Spenn> spennPayment(
+      {required double amount, required phoneNumber}) async {
+    final String transactionNumber = Uuid().v1();
+    String userId = ProxyService.box.read(key: 'userId');
+    // final response = await client.post(Uri.parse("$flipperApi/pay"),
+    //     body: jsonEncode({
+    //       'amount': amount,
+    //       'message': '-' + transactionNumber.substring(0, 4),
+    //       'phoneNumber': '+25' + phoneNumber,
+    //       'uid': userId
+    //     }),
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'Accept': 'application/json'
+    //     });
+    // return spennFromJson(response.body);
+    print('+25' + phoneNumber);
+    Spenn spenn = new Spenn(id: '1', requestId: 'uid', status: 'complented');
+    return spenn;
+    //
+  }
+
+  @override
+  Future<void> collectCashPayment(
+      {required double cashReceived, required Order order}) async {
+    Map data = order.toJson();
+    data['cashReceived'] = cashReceived;
+    data['status'] = 'completed';
+    data['draft'] = false;
+    update(data: data, endPoint: 'order');
   }
 }

@@ -30,7 +30,7 @@ class Queries {
       'SELECT name,id,focused,table,touched,active,branchId,channels WHERE table=\$VALUE AND branchId=\$BRANCHID';
   //table = unit
   static const String Q_10 =
-      'SELECT id, name,table,branchId,focused,channels WHERE table=\$T AND branchId=\$BRANCHID';
+      'SELECT id, name,table,branchId,active,channels WHERE table=\$T AND branchId=\$BRANCHID';
   //table = customer
   static const String Q_11 =
       'SELECT id,name,email,totalPoints,totalVisit,firstVisit,totalSpent,phoneNumber,address,city,region,postalCode,countryCode,customerCode,note,createdAt,updatedAt,channels WHERE table=\$T';

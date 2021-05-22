@@ -13,6 +13,7 @@ import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
+final isAndroid = UniversalPlatform.isAndroid;
 
 // cd android && ./gradlew signingReport
 main() async {

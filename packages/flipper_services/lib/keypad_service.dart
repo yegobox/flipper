@@ -9,21 +9,34 @@ class KeyPadService with ReactiveServiceMixin {
   Stack stack = Stack<String>();
 
   final _count = ReactiveValue<int>(0);
+
   get count => _count.value;
 
   final _quantity = ReactiveValue<int>(0);
+
   get quantity => _quantity.value;
 
   String get key => _key.value;
 
   final _orders = ReactiveValue<List<Order>>([]);
+
   List<Order> get orders => _orders.value;
 
   final _countOrderItems = ReactiveValue<int>(0);
+
   int get countOrderItems => _countOrderItems.value;
 
   final _amountTotal = ReactiveValue<double>(0.0);
+
   double get amountTotal => _amountTotal.value;
+
+  final _check = ReactiveValue<String>("");
+
+  String get check => _check.value;
+
+  final _cashReceived = ReactiveValue<double>(0.0);
+
+  get cashReceived => _cashReceived;
 
   void addKey(String key) {
     stack.push(key);
@@ -32,6 +45,14 @@ class KeyPadService with ReactiveServiceMixin {
 
   setAmount({required double amount}) {
     _amountTotal.value = amount;
+  }
+
+  setCashReceived({required double amount}) {
+    _cashReceived.value = amount;
+  }
+
+  void toggleCheckbox({required String variantId}) {
+    _check.value = variantId;
   }
 
   setCount({required int count}) {
@@ -44,7 +65,6 @@ class KeyPadService with ReactiveServiceMixin {
     if (od.isNotEmpty) {
       _countOrderItems.value = od[0].orderItems.length;
     }
-
     _orders.value = od;
     return _orders.value;
   }
@@ -77,7 +97,14 @@ class KeyPadService with ReactiveServiceMixin {
   //increase quantity
 
   KeyPadService() {
-    listenToReactiveValues(
-        [_key, _orders, _countOrderItems, _quantity, _amountTotal]);
+    listenToReactiveValues([
+      _key,
+      _orders,
+      _countOrderItems,
+      _quantity,
+      _amountTotal,
+      _check,
+      _cashReceived
+    ]);
   }
 }

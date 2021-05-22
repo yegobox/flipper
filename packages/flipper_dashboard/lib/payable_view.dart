@@ -22,7 +22,7 @@ class PayableView extends StatelessWidget {
       required this.onClick})
       : super(key: key);
   final double tickets;
-  final double orders;
+  final int orders;
   final double duePay;
   final Function onClick;
 
@@ -38,10 +38,8 @@ class PayableView extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 if (tickets == 0) {
-                  // model.viewTickets();
                   onClick();
                 } else {
-                  // model.saveTicket();
                   onClick();
                 }
               },
@@ -64,20 +62,25 @@ class PayableView extends StatelessWidget {
             color: Colors.black54,
           ),
           Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              height: 60,
-              width: MediaQuery.of(context).size.width,
-              color: Theme.of(context)
-                  .copyWith(
-                    canvasColor: HexColor('#2996CC'),
-                  )
-                  .canvasColor,
-              child: GestureDetector(
-                  onTap: () {
-                    // model.goSale();
-                  },
-                  child: callCharge(payable: duePay)),
+            child: InkWell(
+              onTap: () {
+                onClick();
+              },
+              child: Container(
+                alignment: Alignment.center,
+                height: 60,
+                width: MediaQuery.of(context).size.width,
+                color: Theme.of(context)
+                    .copyWith(
+                      canvasColor: HexColor('#2996CC'),
+                    )
+                    .canvasColor,
+                child: GestureDetector(
+                    onTap: () {
+                      onClick();
+                    },
+                    child: callCharge(payable: duePay)),
+              ),
             ),
           ),
         ],
@@ -85,7 +88,7 @@ class PayableView extends StatelessWidget {
     );
   }
 
-  Widget ticketText({required double orders}) {
+  Widget ticketText({required int orders}) {
     if (orders == 0) {
       return const Text(
         'Tickets',
@@ -146,39 +149,40 @@ class PayableView extends StatelessWidget {
       );
     } else {
       return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Container(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            child: Container(
+              child: const Text(
+                'Charge',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Flexible(
+            child: Container(
               child: Container(
-                child: const Text(
-                  'Charge',
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                  'FRw' + display(payable).toString(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w500,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.w400,
                     color: Colors.white,
                   ),
                 ),
               ),
             ),
-            Flexible(
-              child: Container(
-                child: Container(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: Text(
-                    'FRw' + display(payable).toString(),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ]);
+          )
+        ],
+      );
     }
   }
 }

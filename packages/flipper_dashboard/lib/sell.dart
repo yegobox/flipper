@@ -477,6 +477,7 @@ class Sell extends StatelessWidget {
           onTap: () {
             model.keypad
                 .setAmount(amount: variation.retailPrice * model.quantity);
+            model.toggleCheckbox(variantId: variation.id);
           },
           child: Container(
             child: Padding(
@@ -515,7 +516,8 @@ class Sell extends StatelessWidget {
                           ),
                           Container(
                             child: Radio(
-                              value: model.groupValue,
+                              // toggleable: true,
+                              value: variation.id,
                               groupValue: model.checked,
                               onChanged: (value) {},
                             ),
@@ -551,13 +553,14 @@ class Sell extends StatelessWidget {
                   ProxyService.nav.back();
                 },
                 title: buildTitle(model),
+                rightActionButtonName: 'Save',
                 disableButton: false,
                 showActionButton: true,
                 onPressedCallback: () async {
-                  // model.saveOrder(
-                  //   variationId: model.variations[0].id,
-                  //   amount: model.amountTotal,
-                  // );
+                  await model.saveOrder(
+                    variationId: model.checked,
+                    amount: model.amountTotal,
+                  );
                   ProxyService.nav.back();
                 },
                 // actionButtonName: 'Add',
