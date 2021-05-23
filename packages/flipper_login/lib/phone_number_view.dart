@@ -7,6 +7,8 @@ import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/otp_view.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:loading/indicator/ball_pulse_indicator.dart';
+import 'package:loading/loading.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -128,49 +130,69 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                     child: SizedBox(
                       width: double.infinity,
                       height: 60,
-                      child: RaisedButton(
-                        color: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5.0),
-                            side: const BorderSide(color: Colors.blue)),
-                        padding: const EdgeInsets.all(0.0),
-                        onPressed: () async {
-                          if (PhoneNumberView._formKey.currentState!
-                              .validate()) {
-                            //TODO(richard): more phone validation to come!
-                            model.setPhoneNumber(
-                                phone: phoneController.value.text);
-                            final phoneAuth =
-                                await model.login(context: context);
-                            if (isWindows && phoneAuth) {
-                              ProxyService.nav.back();
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (BuildContext context) {
-                                  return Padding(
-                                    padding: MediaQuery.of(context).viewInsets,
-                                    child: Container(
-                                      child: OtpView(),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(20),
-                                          topRight: Radius.circular(20),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            }
-                          }
-                        },
-                        child: const Text(
-                          'Verify',
-                          style: TextStyle(color: Colors.white, fontSize: 20),
-                        ),
-                      ),
+                      child: !model.loginStart
+                          ? RaisedButton(
+                              color: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  side: const BorderSide(color: Colors.blue)),
+                              padding: const EdgeInsets.all(0.0),
+                              onPressed: () async {
+                                if (PhoneNumberView._formKey.currentState!
+                                    .validate()) {
+                                  //TODOmore phone validation to come!
+                                  model.setPhoneNumber(
+                                      phone: phoneController.value.text);
+                                  final phoneAuth =
+                                      await model.login(context: context);
+                                  if (isWindows && phoneAuth) {
+                                    ProxyService.nav.back();
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder: (BuildContext context) {
+                                        return Padding(
+                                          padding:
+                                              MediaQuery.of(context).viewInsets,
+                                          child: Container(
+                                            child: OtpView(),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(20),
+                                                topRight: Radius.circular(20),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text(
+                                'Verify',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                            )
+                          : Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 8.0, right: 8.0),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 60,
+                                child: RaisedButton(
+                                  color: Colors.blue,
+                                  onPressed: () {},
+                                  child: Loading(
+                                    indicator: BallPulseIndicator(),
+                                    size: 50.0,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
                     ),
                   )
                 ],

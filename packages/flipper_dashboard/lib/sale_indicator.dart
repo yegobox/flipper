@@ -45,7 +45,7 @@ class SaleIndicator extends StatelessWidget {
                         children: [
                           const Text('Current Sale'),
                           Stack(
-                            alignment: AlignmentDirectional.center,
+                            alignment: AlignmentDirectional.bottomCenter,
                             children: [
                               Text(counts.toString()),
                               const IconButton(

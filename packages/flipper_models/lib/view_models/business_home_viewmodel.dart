@@ -16,6 +16,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   final AppService _app = locator<AppService>();
   String get key => keypad.key;
 
+  late String? longitude;
+  late String? latitude;
+
   List<Order> get orders => keypad.orders;
 
   int get countedOrderItems => keypad.count;
@@ -169,4 +172,22 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
+
+  void registerLocation() async {
+    final permission = await ProxyService.location.doWeHaveLocationPermission();
+    if (permission) {
+      final Map<String, String> location =
+          await ProxyService.location.getLocation();
+      longitude = location['longitude'];
+      latitude = location['latitude'];
+
+      notifyListeners();
+    } else {
+      final Map<String, String> location =
+          await ProxyService.location.getLocation();
+      longitude = location['longitude'];
+      latitude = location['latitude'];
+      notifyListeners();
+    }
+  }
 }

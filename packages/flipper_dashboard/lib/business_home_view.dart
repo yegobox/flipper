@@ -68,6 +68,7 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
         model.getOrders();
+        model.registerLocation();
       },
       builder: (context, model, child) {
         return WillPopScope(

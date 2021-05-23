@@ -10,8 +10,12 @@ final isWindows = UniversalPlatform.isWindows;
 
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
+  bool loginStart = false;
+  bool otpStart = false;
   final fb = locator<LoginStandard>();
   Future<bool> login({required BuildContext context}) async {
+    loginStart = true;
+    notifyListeners();
     ProxyService.box.write(key: 'userPhone', value: dialCode + phoneNumber!);
     return await fb.createAccountWithPhone(
         phone: dialCode + phoneNumber!, context: context);
@@ -30,6 +34,8 @@ class LoginViewModel extends FormViewModel {
   }
 
   void setOtp({required String ot}) {
+    otpStart = true;
+    notifyListeners();
     ProxyService.box.write(key: 'otp', value: ot);
   }
 
