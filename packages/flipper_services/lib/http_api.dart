@@ -155,10 +155,14 @@ class HttpApi<T> implements Api {
 
   @override
   Future<Product> createProduct({required Product product}) async {
+    //add businessId and branchId within the request, vatId
+    Map data = product.toJson();
+    data['businessId'] = ProxyService.box.read(key: 'businessId');
+    data['branchId'] = ProxyService.box.read(key: 'branchId');
+    data['taxId'] = 'N/A';
     final response = await client.post(Uri.parse("$apihub/api/product"),
-        body: jsonEncode(product),
-        headers: {'Content-Type': 'application/json'});
-    print(response.body);
+        body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
+
     return sproductFromJson(response.body);
   }
 
@@ -326,7 +330,7 @@ class HttpApi<T> implements Api {
     final response =
         await client.get(Uri.parse("$apihub/api/variantCustomProduct"));
 
-    return svariationFromJson(response.body[0]);
+    return variationFromJson(response.body)[0];
   }
 
   @override
@@ -341,7 +345,7 @@ class HttpApi<T> implements Api {
     final response =
         await client.get(Uri.parse("$apihub/api/variant/$variantId"));
 
-    return svariationFromJson(response.body[0]);
+    return variationFromJson(response.body)[0];
   }
 
   @override

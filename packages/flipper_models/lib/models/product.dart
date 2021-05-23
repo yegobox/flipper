@@ -27,6 +27,7 @@ class Product {
       required this.table,
       required this.color,
       required this.businessId,
+      required this.branchId,
       required this.supplierId,
       required this.categoryId,
       this.createdAt,
@@ -48,6 +49,7 @@ class Product {
   String table;
   String color;
   String businessId;
+  String branchId;
   dynamic supplierId;
   String categoryId;
   String? createdAt;
@@ -70,6 +72,7 @@ class Product {
         table: json["table"],
         color: json["color"],
         businessId: json["businessId"],
+        branchId: json["branchId"],
         supplierId: json["supplierId"],
         categoryId: json["categoryId"],
         createdAt: json["createdAt"],
@@ -100,6 +103,7 @@ class Product {
         "table": table,
         "color": color,
         "businessId": businessId,
+        "branchId": branchId,
         "supplierId": supplierId,
         "categoryId": categoryId,
         "createdAt": createdAt == null ? '' : createdAt!,
