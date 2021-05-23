@@ -223,7 +223,7 @@ class LiteApi<T> implements Api {
     data['hasPicture'] = false;
     data['businessId'] = ProxyService.box.read(key: 'businessId');
     data['branchId'] = ProxyService.box.read(key: 'branchId');
-    data['taxId'] = 'N/A';
+    data['taxId'] = 'XX';
     final doc = Document(data['id'], data: data);
 
     final Document productDocument = db.saveDocument(doc);

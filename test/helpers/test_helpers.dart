@@ -120,6 +120,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
   final service = MockLocalStorage();
   when(service.read(key: 'userId')).thenAnswer((_) => '300');
   when(service.read(key: 'branchId')).thenAnswer((_) => 'NN');
+  when(service.read(key: 'businessId')).thenAnswer((_) => 'XXX');
   locator.registerSingleton<LocalStorage>(service);
   return service;
 }

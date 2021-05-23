@@ -13,7 +13,7 @@ final customProductMock = new Product(
   imageLocal: false,
   businessId: _appService.businessId!,
   name: "Custom Amount",
-  branchId: "XXX",
+  branchId: _appService.branchId!,
   description: "L",
   active: true,
   hasPicture: false,
@@ -43,7 +43,7 @@ final customProductMock = new Product(
 
 final productMock = new Product(
   id: '',
-  branchId: "XXX",
+  branchId: _appService.branchId!,
   draft: true,
   currentUpdate: true,
   taxId: "XX",
