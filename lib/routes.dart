@@ -62,3 +62,6 @@ class AppSetup {
 // find . -name '*.dart' | xargs wc -l
 //  16693  +633  +1388 = 18714
 // sudo a2enmod proxy_wstunnel (enabling apache sockets)
+// bb-operations-sql.database.windows.net
+// 1433
+// https://github.com/metrogistics/laravel-azure-ad-oauth

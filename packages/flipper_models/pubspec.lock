@@ -77,7 +77,7 @@ packages:
       name: awesome_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.5+8"
+    version: "0.0.6+7"
   barcode:
     dependency: transitive
     description:
@@ -329,7 +329,7 @@ packages:
       name: couchbase_lite_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.0-nullsafety.2"
+    version: "0.5.0-nullsafety.3"
   country_code_picker:
     dependency: transitive
     description:
@@ -919,6 +919,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.1"
+  loading:
+    dependency: transitive
+    description:
+      path: "../loading"
+      relative: true
+    source: path
+    version: "2.0.0"
   location:
     dependency: transitive
     description:
@@ -1129,20 +1136,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.11.0"
-  permission_handler:
-    dependency: transitive
-    description:
-      name: permission_handler
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "6.1.1"
-  permission_handler_platform_interface:
-    dependency: transitive
-    description:
-      name: permission_handler_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.1.2"
   petitparser:
     dependency: transitive
     description:
@@ -1535,4 +1528,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
+  flutter: ">=2.0.4"
