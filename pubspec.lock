@@ -316,13 +316,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  couchbase_lite_dart:
-    dependency: "direct main"
-    description:
-      name: couchbase_lite_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.0-nullsafety.3"
   country_code_picker:
     dependency: "direct main"
     description:
@@ -434,7 +427,7 @@ packages:
       name: file
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.0"
+    version: "6.1.1"
   firebase:
     dependency: transitive
     description:
@@ -1082,16 +1075,9 @@ packages:
     source: hosted
     version: "3.0.0"
   objectbox:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: objectbox
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
-  objectbox_flutter_libs:
-    dependency: "direct main"
-    description:
-      name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
