@@ -329,7 +329,7 @@ class HttpApi<T> implements Api {
   Future<Variation> getCustomProductVariant() async {
     final response =
         await client.get(Uri.parse("$apihub/api/variantCustomProduct"));
-
+    print(response.body);
     return variationFromJson(response.body)[0];
   }
 
