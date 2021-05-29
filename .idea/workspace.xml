@@ -23,12 +23,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5178e598-86cc-4bcd-8af7-a2b74f787052" name="Default Changelist" comment="">
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/routes.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/routes.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/http_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/http_api.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/lib/constants.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/constants.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/business_home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/business_home_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/flipper_drawer.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/flipper_drawer.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/drawer_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/drawer_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/startup_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/view_models/startup_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_ui/example/lib/example_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_ui/example/lib/example_view.dart" afterDir="false" />
+>>>>>>> web
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +77,11 @@
     <property name="aspect.path.notification.shown" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="io.flutter.reload.alreadyRun" value="true" />
+<<<<<<< HEAD
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+=======
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../couchbase_lite_dart/flutter_libs/android" />
+>>>>>>> web
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
@@ -154,6 +168,13 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+<<<<<<< HEAD
+=======
+    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1621943859453">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1621943859453" />
+>>>>>>> web
     <state x="277" y="57" key="SettingsEditor" timestamp="1621855881105">
       <screen x="0" y="0" width="1536" height="824" />
     </state>

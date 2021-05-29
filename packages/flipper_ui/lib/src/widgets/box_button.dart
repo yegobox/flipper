@@ -1,6 +1,11 @@
 import 'package:flipper_ui/src/shared/app_colors.dart';
 import 'package:flipper_ui/src/shared/styles.dart';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
+=======
+import 'package:loading/indicator/ball_pulse_indicator.dart';
+import 'package:loading/loading.dart';
+>>>>>>> web
 
 class BoxButton extends StatelessWidget {
   final String title;
@@ -64,9 +69,16 @@ class BoxButton extends StatelessWidget {
                   ),
                 ],
               )
+<<<<<<< HEAD
             : CircularProgressIndicator(
                 strokeWidth: 8,
                 valueColor: AlwaysStoppedAnimation(Colors.white),
+=======
+            : Loading(
+                indicator: BallPulseIndicator(),
+                size: 50.0,
+                color: Colors.white,
+>>>>>>> web
               ),
       ),
     );

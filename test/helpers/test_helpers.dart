@@ -119,6 +119,8 @@ MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
   when(service.read(key: 'userId')).thenAnswer((_) => '300');
+  //TODOrepace TOKEN   here
+  when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
   when(service.read(key: 'branchId')).thenAnswer((_) => 'NN');
   when(service.read(key: 'businessId')).thenAnswer((_) => 'XXX');
   locator.registerSingleton<LocalStorage>(service);

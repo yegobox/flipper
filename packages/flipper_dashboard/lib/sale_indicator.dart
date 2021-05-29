@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isAndroid = UniversalPlatform.isAndroid;
 
 class SaleIndicator extends StatelessWidget {
   const SaleIndicator(
@@ -45,7 +48,9 @@ class SaleIndicator extends StatelessWidget {
                         children: [
                           const Text('Current Sale'),
                           Stack(
-                            alignment: AlignmentDirectional.bottomCenter,
+                            alignment: isAndroid
+                                ? AlignmentDirectional.bottomCenter
+                                : AlignmentDirectional.center,
                             children: [
                               Text(counts.toString()),
                               const IconButton(

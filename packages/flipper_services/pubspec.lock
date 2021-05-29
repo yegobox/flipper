@@ -316,6 +316,7 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+<<<<<<< HEAD
   couchbase_lite_dart:
     dependency: transitive
     description:
@@ -323,6 +324,8 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.0-nullsafety.3"
+=======
+>>>>>>> web
   country_code_picker:
     dependency: transitive
     description:
@@ -428,6 +431,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.0"
+  file_picker:
+    dependency: transitive
+    description:
+      name: file_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.2+2"
   firebase:
     dependency: transitive
     description:
@@ -579,6 +589,13 @@ packages:
     dependency: transitive
     description:
       path: "../flipper_models"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_ui:
+    dependency: transitive
+    description:
+      path: "../flipper_ui"
       relative: true
     source: path
     version: "0.0.1"
@@ -786,6 +803,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.4"
+  hive_flutter:
+    dependency: transitive
+    description:
+      name: hive_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   html:
     dependency: transitive
     description:

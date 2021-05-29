@@ -56,6 +56,7 @@ class KeyPadService with ReactiveServiceMixin {
   }
 
   setCount({required int count}) {
+    print(count);
     _count.value = count;
   }
 

@@ -1,29 +1,3 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:flipper_models/models/order.dart';
-import 'package:flipper_models/models/b.dart';
-import 'package:flipper_models/models/variant_stock.dart';
-import 'package:flipper_models/models/unit.dart';
-import 'package:flipper_models/models/spenn.dart';
-import 'package:flipper_models/models/sync.dart';
-
-import 'package:flipper_models/models/stock.dart';
-
-import 'package:flipper_models/models/product.dart';
-import 'package:flipper_models/models/variation.dart';
-
-import 'package:flipper_models/models/login.dart';
-
-import 'package:flipper_models/models/color.dart';
-
-import 'package:flipper_models/models/category.dart';
-
-import 'package:flipper_models/models/branch.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/business.dart';
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-import 'Queries.dart';
 import 'abstractions/api.dart';
 import 'constants.dart';
 import 'http_api.dart';
@@ -638,13 +612,4 @@ class LiteApi<T> implements Api {
     //
   }
 
-  @override
-  Future<void> collectCashPayment(
-      {required double cashReceived, required Order order}) async {
-    Map data = order.toJson();
-    data['cashReceived'] = cashReceived;
-    data['status'] = 'completed';
-    data['draft'] = false;
-    update(data: data, endPoint: 'order');
-  }
-}
+abstract class LiteApi<T> implements Api {}

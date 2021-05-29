@@ -13,6 +13,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper/routes.router.dart';
 import 'LiteApi.dart';
+import 'package:file_picker/file_picker.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -30,6 +31,10 @@ import 'keypad_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
+<<<<<<< HEAD
+=======
+import 'package:image_picker/image_picker.dart';
+>>>>>>> web
 // import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 // final Database db = Database("db");
@@ -51,7 +56,7 @@ abstract class ThirdPartyServicesModule {
     if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS) {
       upload = MobileUpload();
     } else {
-      upload = UnsupportedPlatformUpload();
+      upload = HttpUpload();
     }
     return upload;
   }
@@ -84,7 +89,8 @@ abstract class ThirdPartyServicesModule {
     if (UniversalPlatform.isWindows ||
         // UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
-      apiService = LiteApi(database: db);
+      // apiService = LiteApi(database: db);
+      apiService = HttpApi();
     } else {
       apiService = HttpApi();
     }
@@ -145,15 +151,24 @@ abstract class ThirdPartyServicesModule {
   KeyPadService get keypadService;
 }
 
-class UnsupportedPlatformUpload implements UploadT {
+class HttpUpload implements UploadT {
   final _picker = ImagePicker();
 
   @override
   Future browsePictureFromGallery({required String productId}) async {
-    // final PickedFile? image =
-    //     await _picker.getImage(source: ImageSource.gallery);
+    final PickedFile? image =
+        await _picker.getImage(source: ImageSource.gallery);
     // final File file = File(image!.path);
     // await handleImage(image: file, productId: productId);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['png', 'jpg'],
+    );
+    File? file = File.fromRawPath(result!.files.first.bytes!);
+    print('printing a file');
+
+    print(file);
+    // result!.files[0].bytes;
   }
 
   @override

@@ -117,6 +117,7 @@ class SignupViewModel extends FormViewModel {
         branchId: branches[0].id,
         name: 'sample',
       );
+
       await ProxyService.api
           .create<PColor>(data: color.toJson(), endPoint: 'color');
       //now create default units for this branch

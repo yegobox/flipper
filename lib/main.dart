@@ -7,9 +7,11 @@ import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
+// import 'package:hive/hive.dart';
+// import 'package:hive_flutter/hive_flutter.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -19,7 +21,9 @@ final isAndroid = UniversalPlatform.isAndroid;
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
-  (isWindows) ? Cbl.init() : '';
+  // (isWindows) ? Cbl.init() : '';
+  // await Hive.initFlutter();
+  // await Hive.openBox<String>('box');
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();

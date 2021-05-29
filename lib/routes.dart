@@ -23,8 +23,8 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: StartUpView, initial: true),
     MaterialRoute(page: DashboardView, name: 'dashboard'),
     MaterialRoute(page: SignUpFormView, name: 'signup'),
-    MaterialRoute(page: BusinessHomeView, name: 'home'),
-    MaterialRoute(page: LoginView, name: 'login'),
+    MaterialRoute(page: Home, name: 'home'),
+    MaterialRoute(page: Login, name: 'login'),
     MaterialRoute(page: AddProductView, name: 'product'),
     MaterialRoute(page: ListCategories, name: 'categories'),
     MaterialRoute(page: ColorTile, name: 'colors'),
@@ -65,3 +65,14 @@ class AppSetup {
 // bb-operations-sql.database.windows.net
 // 1433
 // https://github.com/metrogistics/laravel-azure-ad-oauth
+<<<<<<< HEAD
+=======
+
+//TODO: The nex things in consumer app!
+// https://github.com/JoshuaR503/Stock-Market-App
+// https://www.youtube.com/watch?v=IbJt7tr8kL0
+// https://developers.amadeus.com/self-service/category/air/api-doc/flight-offers-search/api-reference 
+// https://github.com/amadeus4dev/amadeus-java
+// TODO: Qr code.!
+// https://www.youtube.com/watch?v=hHehIGfX_yU
+>>>>>>> web
