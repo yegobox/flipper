@@ -5,7 +5,7 @@ library flipper_models;
 
 import 'dart:convert';
 
-import 'package:flipper/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 Branch sbranchFromJson(String str) => Branch.fromJson(json.decode(str));
 String sbranchToJson(Branch data) => json.encode(data.toJson());
@@ -16,6 +16,7 @@ List<Branch> branchFromJson(String str) =>
 String branchToJson(List<Branch> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class Branch {
   Branch({
     required this.id,

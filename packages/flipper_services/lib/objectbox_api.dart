@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flipper/objectbox.g.dart';
+import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/variation.dart';
@@ -34,16 +34,26 @@ class ObjectBoxApi implements Api {
     _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
   }
   @override
+  Future<List<Unit>> units({required String branchId}) async {
+    return _store
+        .box<Unit>()
+        .getAll()
+        .where((unit) => unit.branchId == branchId)
+        .toList();
+  }
+
+  @override
   Future<int> addUnits({required Map data}) async {
-    final box = _store.box<Unit>();
     for (Map map in data['units']) {
+      final box = _store.box<Unit>();
+
       final unit = Unit(
         active: false,
-        branchId: map['branchId'],
-        table: map['table'],
-        channels: map['channels'],
+        branchId: data['branchId'],
+        table: data['table'],
+        channels: data['channels'],
+        value: map['value'],
         name: map['name'],
-        id: map['id'],
       );
 
       box.put(unit);
@@ -197,23 +207,6 @@ class ObjectBoxApi implements Api {
   Future<List<Stock>> stocks({required String productId}) {
     // TODO: implement stocks
     throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Unit>> units({required String branchId}) async {
-    return _store
-        .box<Unit>()
-        .getAll()
-        .where((unit) => unit.branchId == branchId)
-        .toList();
-    // _store
-    //         .box<Unit>()
-    //         // The simplest possible query that just gets ALL the data out of the Box
-    //         .query()
-    //         .watch(triggerImmediately: true)
-    //         // Watching the query produces a Stream<Query<ShopOrder>>
-    //         // To get the actual data inside a List<ShopOrder>, we need to call find() on the query
-    //         .map((query) => query.find());
   }
 
   @override

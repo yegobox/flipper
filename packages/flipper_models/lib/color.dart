@@ -5,7 +5,7 @@ library flipper_models;
 
 import 'dart:convert';
 
-import 'package:flipper/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 PColor spColorFromJson(String str) => PColor.fromJson(json.decode(str));
 String spColorToJson(PColor data) => json.encode(data.toJson());
@@ -16,6 +16,7 @@ List<PColor> pColorFromJson(String str) =>
 String pColorToJson(List<PColor> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class PColor {
   PColor({
     required this.id,

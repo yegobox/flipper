@@ -5,7 +5,7 @@ library flipper_models;
 
 import 'dart:convert';
 
-import 'package:flipper/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 Variation svariationFromJson(String str) =>
     Variation.fromJson(json.decode(str));
@@ -18,6 +18,7 @@ List<Variation> variationFromJson(String str) =>
 String variationToJson(List<Variation> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class Variation {
   Variation(
       {required this.id,

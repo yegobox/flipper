@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:flipper/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 OrderF sorderFromJson(String str) => OrderF.fromJson(json.decode(str));
 
@@ -16,6 +16,7 @@ List<OrderF> orderFromJson(String str) =>
 String orderToJson(List<OrderF> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class OrderF {
   OrderF({
     required this.id,

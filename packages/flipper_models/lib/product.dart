@@ -4,8 +4,7 @@
 library flipper_models;
 
 import 'dart:convert';
-
-import 'package:flipper/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 Product sproductFromJson(String str) => Product.fromJson(json.decode(str));
 
@@ -17,6 +16,7 @@ List<Product> productFromJson(String str) =>
 String productToJson(List<Product> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class Product {
   Product(
       {required this.id,

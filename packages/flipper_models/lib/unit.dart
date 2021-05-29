@@ -16,29 +16,32 @@ List<Unit> unitFromJson(String str) =>
 String unitToJson(List<Unit> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class Unit {
-  // Unit(){}
-  Unit({
-    required this.id,
-    required this.branchId,
-    required this.name,
-    required this.table,
-    required this.active,
-    required this.channels,
-    this.units,
-  });
+  Unit(
+      {this.id,
+      required this.branchId,
+      required this.name,
+      this.value,
+      required this.table,
+      required this.active,
+      this.channels,
+      this.units,
+      this.tracker = 0});
   @Id()
-  int? tracker;
-  String id;
+  int tracker;
+  String? id;
   String branchId;
   String name;
+  String? value;
   String table;
   bool active;
-  List<String> channels;
+  List<dynamic>? channels;
   List<Map<String, dynamic>>? units;
 
   factory Unit.fromJson(Map<String, dynamic> json) => Unit(
         id: json["id"],
+        value: json["value"],
         branchId: json["branchId"],
         name: json["name"],
         table: json["table"],
@@ -51,11 +54,12 @@ class Unit {
 
   Map<String, dynamic> toJson() => {
         "id": id,
+        "value": value,
         "branchId": branchId,
         "name": name,
         "table": table,
         "active": active,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "units": units == null ? [] : List<dynamic>.from(units!.map((x) => x)),
       };
 }

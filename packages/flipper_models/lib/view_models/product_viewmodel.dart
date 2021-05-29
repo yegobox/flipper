@@ -140,7 +140,7 @@ class ProductViewModel extends ReactiveViewModel {
     for (Unit unit in units) {
       if (unit.active) {
         unit.active = !unit.active;
-        String id = unit.id;
+        String id = unit.id!;
         await ProxyService.api.update(
           endPoint: 'unit/$id',
           data: unit.toJson(),
@@ -149,7 +149,7 @@ class ProductViewModel extends ReactiveViewModel {
     }
     Unit unit = newUnit;
     unit.active = !unit.active;
-    String id = unit.id;
+    String id = unit.id!;
     await ProxyService.api.update(
       endPoint: 'unit/$id',
       data: unit.toJson(),

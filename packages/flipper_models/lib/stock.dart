@@ -5,7 +5,7 @@ library flipper_models;
 
 import 'dart:convert';
 
-import 'package:flipper/objectbox.g.dart';
+import 'package:objectbox/objectbox.dart';
 
 Stock sstockFromJson(String str) => Stock.fromJson(json.decode(str));
 
@@ -17,6 +17,7 @@ List<Stock> stockFromJson(String str) =>
 String stockToJson(List<Stock> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Entity()
 class Stock {
   Stock({
     required this.id,
