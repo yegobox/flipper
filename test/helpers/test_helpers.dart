@@ -1,3 +1,4 @@
+import 'package:flipper/constants.dart';
 import 'package:flipper_models/models/business.dart';
 import 'package:flipper_models/models/login.dart';
 import 'package:flipper_models/models/product_mock.dart';
@@ -123,6 +124,9 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
   when(service.read(key: 'branchId')).thenAnswer((_) => 'NN');
   when(service.read(key: 'businessId')).thenAnswer((_) => 'XXX');
+  when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
+  when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
+
   locator.registerSingleton<LocalStorage>(service);
   return service;
 }
