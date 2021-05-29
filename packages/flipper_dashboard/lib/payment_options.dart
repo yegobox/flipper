@@ -42,7 +42,7 @@ class Payments extends StatelessWidget {
                           const SizedBox(height: 40),
                           Text(
                             'FRw ' +
-                                display(model.orders[0].orderItems.fold(
+                                display(model.orders[0].orderItems!.fold(
                                     0, (a, b) => a! + b.price)).toString(),
                             style: const TextStyle(
                                 fontSize: 20.0, fontWeight: FontWeight.bold),

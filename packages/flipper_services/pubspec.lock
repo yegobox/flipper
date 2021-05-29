@@ -1066,6 +1066,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  objectbox_generator:
+    dependency: "direct dev"
+    description:
+      name: objectbox_generator
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   observable_ish:
     dependency: transitive
     description:

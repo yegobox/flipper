@@ -475,7 +475,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 6319823147793408769),
             name: 'tracker',
             type: 6,
-            flags: 1),
+            flags: 129),
         ModelProperty(
             id: const IdUid(2, 2292528716034359996),
             name: 'id',

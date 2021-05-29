@@ -28,7 +28,7 @@ class Unit {
       this.channels,
       this.units,
       this.tracker = 0});
-  @Id()
+  @Id(assignable: true)
   int tracker;
   String? id;
   String branchId;

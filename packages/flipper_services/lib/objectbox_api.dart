@@ -31,7 +31,7 @@ class ObjectBoxApi implements Api {
   late Store _store;
   ObjectBoxApi({required Directory dir}) {
     // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/db2');
   }
   @override
   Future<List<Unit>> units({required String branchId}) async {

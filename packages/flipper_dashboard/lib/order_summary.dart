@@ -19,7 +19,7 @@ class OrderSummary extends StatelessWidget {
       list.add(Center(child: Text('There is no current order')));
       return list;
     }
-    for (OrderItem item in model.orders[0].orderItems) {
+    for (OrderItem item in model.orders[0].orderItems!) {
       list.add(
         Slidable(
           actionPane: const SlidableDrawerActionPane(),
@@ -94,7 +94,7 @@ class OrderSummary extends StatelessWidget {
               ProxyService.nav.back();
             },
             title: 'Total: Frw' +
-                display(model.orders[0].orderItems
+                display(model.orders[0].orderItems!
                     .fold(0, (a, b) => a! + b.price)).toString(),
             icon: Icons.close,
             multi: 3,
