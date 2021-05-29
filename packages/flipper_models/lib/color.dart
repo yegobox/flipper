@@ -21,18 +21,18 @@ class PColor {
   PColor({
     required this.id,
     this.name,
-    required this.channels,
+    this.channels,
     this.colors,
     required this.table,
     required this.branchId,
     required this.active,
   });
 
-  @Id()
+  @Id(assignable: true)
   int? tracker;
   String id;
   String? name;
-  List<String> channels;
+  List<dynamic>? channels;
   List<String>? colors;
   String table;
   String branchId;
@@ -53,7 +53,7 @@ class PColor {
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name == null ? '#ee5253' : name,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "colors":
             colors == null ? [] : List<dynamic>.from(colors!.map((x) => x)),
         "table": table,

@@ -45,7 +45,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /test/lite/
-lite
+# lite
 index.local.html
 main_01.cblite2
 db.cblite2

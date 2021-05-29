@@ -243,7 +243,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 7621242845431524818),
             name: 'tracker',
             type: 6,
-            flags: 1),
+            flags: 129),
         ModelProperty(
             id: const IdUid(2, 6247229369745145167),
             name: 'id',
@@ -253,11 +253,6 @@ final _entities = <ModelEntity>[
             id: const IdUid(3, 3596443623440777391),
             name: 'name',
             type: 9,
-            flags: 0),
-        ModelProperty(
-            id: const IdUid(4, 2430468931998216420),
-            name: 'channels',
-            type: 30,
             flags: 0),
         ModelProperty(
             id: const IdUid(5, 9066178018393409616),
@@ -674,7 +669,7 @@ ModelDefinition getObjectBoxModel() {
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredPropertyUids: const [2430468931998216420],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -904,8 +899,6 @@ ModelDefinition getObjectBoxModel() {
           final idOffset = fbb.writeString(object.id);
           final nameOffset =
               object.name == null ? null : fbb.writeString(object.name!);
-          final channelsOffset = fbb.writeList(
-              object.channels.map(fbb.writeString).toList(growable: false));
           final colorsOffset = object.colors == null
               ? null
               : fbb.writeList(
@@ -916,7 +909,6 @@ ModelDefinition getObjectBoxModel() {
           fbb.addInt64(0, object.tracker ?? 0);
           fbb.addOffset(1, idOffset);
           fbb.addOffset(2, nameOffset);
-          fbb.addOffset(3, channelsOffset);
           fbb.addOffset(4, colorsOffset);
           fbb.addOffset(5, tableOffset);
           fbb.addOffset(6, branchIdOffset);
@@ -932,8 +924,6 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
               name: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 8),
-              channels: const EagerListReader<String>(fb.StringReader())
-                  .vTableGet(buffer, rootOffset, 10, []),
               colors: const EagerListReader<String>(fb.StringReader())
                   .vTableGetNullable(buffer, rootOffset, 12),
               table:
@@ -1463,24 +1453,20 @@ class PColor_ {
   /// see [PColor.name]
   static final name = QueryStringProperty<PColor>(_entities[3].properties[2]);
 
-  /// see [PColor.channels]
-  static final channels =
-      QueryStringVectorProperty<PColor>(_entities[3].properties[3]);
-
   /// see [PColor.colors]
   static final colors =
-      QueryStringVectorProperty<PColor>(_entities[3].properties[4]);
+      QueryStringVectorProperty<PColor>(_entities[3].properties[3]);
 
   /// see [PColor.table]
-  static final table = QueryStringProperty<PColor>(_entities[3].properties[5]);
+  static final table = QueryStringProperty<PColor>(_entities[3].properties[4]);
 
   /// see [PColor.branchId]
   static final branchId =
-      QueryStringProperty<PColor>(_entities[3].properties[6]);
+      QueryStringProperty<PColor>(_entities[3].properties[5]);
 
   /// see [PColor.active]
   static final active =
-      QueryBooleanProperty<PColor>(_entities[3].properties[7]);
+      QueryBooleanProperty<PColor>(_entities[3].properties[6]);
 }
 
 /// [Product] entity fields to define ObjectBox queries.

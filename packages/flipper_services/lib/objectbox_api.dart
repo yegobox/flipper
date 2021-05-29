@@ -20,14 +20,19 @@ import 'package:flipper_models/login.dart';
 import 'package:flipper_models/color.dart';
 
 import 'package:flipper_models/category.dart';
-
+import 'package:uuid/uuid.dart';
 import 'package:flipper_models/business.dart';
 
 import 'package:flipper_models/branch.dart';
+import 'package:flipper_services/http_api.dart';
 import 'package:path_provider/path_provider.dart';
 import 'abstractions/api.dart';
+import 'package:http/http.dart' as http;
 
 class ObjectBoxApi implements Api {
+  ExtendedClient client = ExtendedClient(http.Client());
+  String flipperApi = "https://flipper.yegobox.com";
+  String apihub = "https://apihub.yegobox.com";
   late Store _store;
   ObjectBoxApi({required Directory dir}) {
     // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
@@ -40,6 +45,51 @@ class ObjectBoxApi implements Api {
         .getAll()
         .where((unit) => unit.branchId == branchId)
         .toList();
+  }
+
+  @override
+  Future<List<Business>> businesses() async {
+    final response = await client.get(Uri.parse("$apihub/api/businesses"));
+    return businessFromJson(response.body);
+  }
+
+  @override
+  Future<List<Category>> categories({required String branchId}) async {
+    return _store
+        .box<Category>()
+        .getAll()
+        .where((category) => category.branchId == branchId)
+        .toList();
+  }
+
+  @override
+  Future<List<PColor>> colors({required String branchId}) async {
+    return _store
+        .box<PColor>()
+        .getAll()
+        .where((color) => color.branchId == branchId)
+        .toList();
+  }
+
+  @override
+  Future<int> create<T>({required Map data, required String endPoint}) async {
+    if (endPoint == 'color') {
+      for (String co in data['colors']) {
+        final box = _store.box<PColor>();
+        final colorId = Uuid().v1();
+        final color = PColor(
+          id: colorId,
+          name: co,
+          channels: data['channels'],
+          table: data['table'],
+          branchId: data['branchId'],
+          active: data['active'],
+        );
+        box.put(color);
+      }
+      return 200;
+    }
+    return 200;
   }
 
   @override
@@ -77,33 +127,9 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Business>> businesses() {
-    // TODO: implement businesses
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Category>> categories({required String branchId}) {
-    // TODO: implement categories
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> collectCashPayment(
       {required double cashReceived, required OrderF order}) {
     // TODO: implement collectCashPayment
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<PColor>> colors({required String branchId}) {
-    // TODO: implement colors
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<int> create<T>({required Map data, required String endPoint}) {
-    // TODO: implement create
     throw UnimplementedError();
   }
 

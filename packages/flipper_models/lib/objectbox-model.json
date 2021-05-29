@@ -224,7 +224,7 @@
           "id": "1:7621242845431524818",
           "name": "tracker",
           "type": 6,
-          "flags": 1
+          "flags": 129
         },
         {
           "id": "2:6247229369745145167",
@@ -235,11 +235,6 @@
           "id": "3:3596443623440777391",
           "name": "name",
           "type": 9
-        },
-        {
-          "id": "4:2430468931998216420",
-          "name": "channels",
-          "type": 30
         },
         {
           "id": "5:9066178018393409616",
@@ -653,7 +648,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    2430468931998216420
+  ],
   "retiredRelationUids": [],
   "version": 1
 }
