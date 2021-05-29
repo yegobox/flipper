@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 VariantStock svariantStockFromJson(String str) =>
     VariantStock.fromJson(json.decode(str));
 String svariantStockToJson(VariantStock data) => json.encode(data.toJson());
@@ -33,6 +35,8 @@ class VariantStock {
     required this.value,
   });
 
+  @Id()
+  int? tracker;
   String id;
   bool canTrackingStock;
   double retailPrice;

@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Product sproductFromJson(String str) => Product.fromJson(json.decode(str));
 
 String sproductToJson(Product data) => json.encode(data.toJson());
@@ -38,7 +40,8 @@ class Product {
       this.imageLocal,
       this.currentUpdate,
       this.imageUrl});
-
+  @Id()
+  int? tracker;
   String id;
   String name;
   String? description;

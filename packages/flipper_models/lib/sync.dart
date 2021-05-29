@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Sync syncFromJson(String str) => Sync.fromJson(json.decode(str));
 
 String syncToJson(Sync data) => json.encode(data.toJson());
@@ -15,7 +17,8 @@ class Sync {
     required this.channels,
     required this.token,
   });
-
+  @Id()
+  int? tracker;
   String userId;
   List<String> channels;
   String token;

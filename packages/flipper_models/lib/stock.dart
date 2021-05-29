@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Stock sstockFromJson(String str) => Stock.fromJson(json.decode(str));
 
 String sstockToJson(Stock data) => json.encode(data.toJson());
@@ -32,6 +34,8 @@ class Stock {
     this.active,
     required this.value,
   });
+  @Id()
+  int? tracker;
   String id;
   String branchId;
   String variantId;

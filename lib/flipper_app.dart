@@ -1,19 +1,17 @@
 import 'dart:io';
 
 import 'package:flipper/flipper_options.dart';
+import 'package:flipper/objectbox.g.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_login/flipper_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localized_locales/flutter_localized_locales.dart';
-// import 'package:objectbox/objectbox.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
-// import 'package:path_provider/path_provider.dart';
-
-// import 'objectbox.g.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -25,14 +23,14 @@ class FlipperApp extends StatefulWidget {
 }
 
 class _FlipperAppState extends State<FlipperApp> {
-  // dynamic _store = (isWeb) ? '' : Store;
+  dynamic _store = (isWeb) ? '' : Store;
 
   @override
   void initState() {
-    // getApplicationDocumentsDirectory().then((Directory dir) {
-    //   // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-    //   _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
-    // });
+    getApplicationDocumentsDirectory().then((Directory dir) {
+      // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+      _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
+    });
     super.initState();
   }
 

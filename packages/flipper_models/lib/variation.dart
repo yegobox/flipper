@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Variation svariationFromJson(String str) =>
     Variation.fromJson(json.decode(str));
 
@@ -30,6 +32,8 @@ class Variation {
       this.taxName,
       this.taxPercentage});
 
+  @Id()
+  int? tracker;
   String id;
   String name;
   String sku;

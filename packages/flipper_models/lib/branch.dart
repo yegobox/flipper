@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Branch sbranchFromJson(String str) => Branch.fromJson(json.decode(str));
 String sbranchToJson(Branch data) => json.encode(data.toJson());
 
@@ -27,6 +29,8 @@ class Branch {
     required this.table,
   });
 
+  @Id()
+  int? tracker;
   String id;
   bool? active;
   List<String> channels;

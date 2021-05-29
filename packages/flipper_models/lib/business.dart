@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Business sbusinessFromJson(String str) => Business.fromJson(json.decode(str));
 String sbusinessToJson(Business data) => json.encode(data.toJson());
 
@@ -35,6 +37,8 @@ class Business {
     this.active = false,
   });
 // TODO:add active propety in the API
+  @Id()
+  int? tracker;
   String id;
   String name;
   dynamic currency;

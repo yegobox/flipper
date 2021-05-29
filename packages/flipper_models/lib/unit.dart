@@ -1,8 +1,10 @@
 // To parse this JSON data, do
 //
 //     final unit = unitFromJson(jsonString);
+
 library flipper_models;
 
+import 'package:objectbox/objectbox.dart';
 import 'dart:convert';
 
 Unit sunitFromJson(String str) => Unit.fromJson(json.decode(str));
@@ -24,7 +26,8 @@ class Unit {
     required this.channels,
     this.units,
   });
-
+  @Id()
+  int? tracker;
   String id;
   String branchId;
   String name;

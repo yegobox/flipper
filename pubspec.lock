@@ -1103,9 +1103,16 @@ packages:
     source: hosted
     version: "3.0.0"
   objectbox:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: objectbox
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  objectbox_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"

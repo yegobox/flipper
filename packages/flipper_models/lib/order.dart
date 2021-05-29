@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 Order sorderFromJson(String str) => Order.fromJson(json.decode(str));
 
 String sorderToJson(Order data) => json.encode(data.toJson());
@@ -104,7 +106,8 @@ class OrderItem {
     required this.price,
     required this.orderId,
   });
-
+  @Id()
+  int? tracker;
   String id;
   String name;
   String variantId;

@@ -5,6 +5,8 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper/objectbox.g.dart';
+
 PColor spColorFromJson(String str) => PColor.fromJson(json.decode(str));
 String spColorToJson(PColor data) => json.encode(data.toJson());
 
@@ -25,6 +27,8 @@ class PColor {
     required this.active,
   });
 
+  @Id()
+  int? tracker;
   String id;
   String? name;
   List<String> channels;

@@ -532,21 +532,21 @@ packages:
       name: firebase_messaging
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.1.4"
+    version: "10.0.0"
   firebase_messaging_platform_interface:
     dependency: transitive
     description:
       name: firebase_messaging_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.4"
+    version: "3.0.0"
   firebase_messaging_web:
     dependency: transitive
     description:
       name: firebase_messaging_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.7"
+    version: "2.0.0"
   fixnum:
     dependency: transitive
     description:
@@ -1052,6 +1052,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+  objectbox:
+    dependency: transitive
+    description:
+      name: objectbox
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  objectbox_flutter_libs:
+    dependency: transitive
+    description:
+      name: objectbox_flutter_libs
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   observable_ish:
     dependency: transitive
     description:
