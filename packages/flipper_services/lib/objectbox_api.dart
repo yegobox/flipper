@@ -38,18 +38,19 @@ class ObjectBoxApi implements Api {
   }
   @override
   Future<int> addUnits({required Map data}) async {
-    // TODO: implement addUnits
     final box = _store.box<Unit>();
-    final unit = Unit(
-      active: false,
-      branchId: data['branchId'],
-      table: data['table'],
-      channels: data['channels'],
-      name: data['name'],
-      id: data['id'],
-    );
+    for (Map map in data['units']) {
+      final unit = Unit(
+        active: false,
+        branchId: map['branchId'],
+        table: map['table'],
+        channels: map['channels'],
+        name: map['name'],
+        id: map['id'],
+      );
 
-    box.put(unit);
+      box.put(unit);
+    }
     return 200;
   }
 
@@ -202,9 +203,16 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Unit>> units({required String branchId}) {
-    // TODO: implement units
-    throw UnimplementedError();
+  Future<List<Unit>> units({required String branchId}) async {
+    return _store.box<Unit>().getAll();
+    // _store
+    //         .box<Unit>()
+    //         // The simplest possible query that just gets ALL the data out of the Box
+    //         .query()
+    //         .watch(triggerImmediately: true)
+    //         // Watching the query produces a Stream<Query<ShopOrder>>
+    //         // To get the actual data inside a List<ShopOrder>, we need to call find() on the query
+    //         .map((query) => query.find());
   }
 
   @override
