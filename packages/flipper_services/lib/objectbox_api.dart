@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flipper/flipper_app.dart';
 import 'package:flipper/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/spenn.dart';
@@ -30,11 +29,9 @@ import 'abstractions/api.dart';
 
 class ObjectBoxApi implements Api {
   late Store _store;
-  ObjectBoxApi() {
-    getApplicationDocumentsDirectory().then((Directory dir) {
-      // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-      _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
-    });
+  ObjectBoxApi({required Directory dir}) {
+    // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
   }
   @override
   Future<int> addUnits({required Map data}) async {
@@ -204,7 +201,11 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Unit>> units({required String branchId}) async {
-    return _store.box<Unit>().getAll();
+    return _store
+        .box<Unit>()
+        .getAll()
+        .where((unit) => unit.branchId == branchId)
+        .toList();
     // _store
     //         .box<Unit>()
     //         // The simplest possible query that just gets ALL the data out of the Box

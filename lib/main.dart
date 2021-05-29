@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/objectbox_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
@@ -23,6 +25,8 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
   (isWindows) ? Cbl.init() : '';
+  Directory dir = await getApplicationDocumentsDirectory();
+  (isWindows || isAndroid || isMacOs) ? ObjectBoxApi(dir: dir) : '';
   // await Hive.initFlutter();
   // await Hive.openBox<String>('box');
   await GetStorage.init();

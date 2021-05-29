@@ -36,6 +36,7 @@ class StartUpViewModel extends BaseViewModel {
 
   /// get IDS to use along the way in the app
   appInit() async {
+    // ProxyService.api.logOut();
     if (appService.hasLoggedInUser) {
       List<Business>? businesses = await ProxyService.api.businesses();
       try {
