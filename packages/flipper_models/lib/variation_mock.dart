@@ -1,4 +1,4 @@
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/variation.dart';
 
 final variationMock = new Variation(
   id: 'caa5cbf1-b3c3-11eb-85f9-4df3cd820e94',

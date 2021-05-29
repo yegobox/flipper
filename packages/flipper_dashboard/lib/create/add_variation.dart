@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/constants.dart';

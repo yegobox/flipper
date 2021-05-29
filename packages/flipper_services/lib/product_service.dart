@@ -1,7 +1,7 @@
-import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/variation.dart';
 
 class ProductService with ReactiveServiceMixin {
   String? _currentUnit = 'Kg'; //set default to kg

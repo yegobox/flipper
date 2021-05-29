@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:number_display/number_display.dart';
-import 'package:flipper_models/models/order.dart';
+import 'package:flipper_models/order.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
 

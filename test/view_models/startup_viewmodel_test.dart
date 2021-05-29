@@ -1,5 +1,5 @@
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_models/models/business.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';

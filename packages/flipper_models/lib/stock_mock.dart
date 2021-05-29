@@ -1,4 +1,4 @@
-import 'package:flipper_models/models/stock.dart';
+import 'package:flipper_models/stock.dart';
 
 final stockMock = new Stock(
   id: 'caa815e0-b3c3-11eb-85f9-4df3cd820e94-stock',

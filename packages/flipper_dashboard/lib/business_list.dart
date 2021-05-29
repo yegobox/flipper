@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flipper_models/models/business.dart';
+import 'package:flipper_models/business.dart';
 
 class BusinessList extends StatelessWidget {
   const BusinessList({Key? key, required this.businesses}) : super(key: key);

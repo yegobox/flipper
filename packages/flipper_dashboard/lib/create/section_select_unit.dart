@@ -1,7 +1,7 @@
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/product.dart';
 
 class SectionSelectUnit extends StatelessWidget {
   const SectionSelectUnit({Key? key, required this.product, required this.type})

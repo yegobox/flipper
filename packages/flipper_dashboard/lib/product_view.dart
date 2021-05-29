@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'custom_dropdown.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';

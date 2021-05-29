@@ -1,6 +1,6 @@
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/category.dart';
+import 'package:flipper_models/category.dart';
 import 'package:flipper_services/proxy.dart';
 
 class CategorySelector extends StatelessWidget {

@@ -6,7 +6,7 @@ import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/view_models/stock_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/product.dart';
 
 class ProductRow extends StatelessWidget {
   const ProductRow(

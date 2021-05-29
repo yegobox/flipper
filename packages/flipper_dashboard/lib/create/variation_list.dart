@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
-import 'package:flipper_models/models/stock.dart';
+import 'package:flipper_models/stock.dart';
 
 class VariationList extends StatelessWidget {
   const VariationList({

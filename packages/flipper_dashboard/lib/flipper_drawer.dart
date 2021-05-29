@@ -7,7 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'business_list.dart';
 import 'custom_widgets.dart';
-import 'package:flipper_models/models/business.dart';
+import 'package:flipper_models/business.dart';
 
 class FlipperDrawer extends StatelessWidget {
   FlipperDrawer({Key? key, required this.businesses}) : super(key: key);

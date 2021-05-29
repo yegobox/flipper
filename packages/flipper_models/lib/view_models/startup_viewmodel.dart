@@ -1,8 +1,8 @@
 import 'package:flipper/constants.dart';
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_models/models/business.dart';
-import 'package:flipper_models/models/branch.dart';
+import 'package:flipper_models/business.dart';
+import 'package:flipper_models/branch.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';

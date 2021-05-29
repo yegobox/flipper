@@ -1,11 +1,11 @@
 // import 'package:flipper/routes.router.dart';
-import 'package:flipper_models/models/product.dart';
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flipper_models/models/product_mock.dart';
+import 'package:flipper_models/product_mock.dart';
 // import 'package:mockito/mockito.dart';
 
 import '../helpers/test_helpers.dart';

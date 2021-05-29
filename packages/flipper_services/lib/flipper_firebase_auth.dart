@@ -8,7 +8,7 @@ import 'package:stacked_firebase_auth/src/firebase_authentication_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_login/otp_view.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_models/models/login.dart';
+import 'package:flipper_models/login.dart';
 import 'abstractions/platform.dart';
 
 class FlipperFirebaseAuthenticationService extends FirebaseAuthenticationService

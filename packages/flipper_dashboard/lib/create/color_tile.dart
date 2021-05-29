@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/color.dart';
+import 'package:flipper_models/color.dart';
 
 import 'list_divider.dart';
 

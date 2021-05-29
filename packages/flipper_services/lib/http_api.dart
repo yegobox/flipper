@@ -1,24 +1,24 @@
 import 'dart:convert';
 
-import 'package:flipper_models/models/branch.dart';
-import 'package:flipper_models/models/business.dart';
-import 'package:flipper_models/models/color.dart';
-import 'package:flipper_models/models/login.dart';
-import 'package:flipper_models/models/order.dart';
-import 'package:flipper_models/models/product.dart';
-import 'package:flipper_models/models/spenn.dart';
-import 'package:flipper_models/models/stock.dart';
-import 'package:flipper_models/models/category.dart';
-import 'package:flipper_models/models/unit.dart';
-import 'package:flipper_models/models/variant_stock.dart';
+import 'package:flipper_models/branch.dart';
+import 'package:flipper_models/business.dart';
+import 'package:flipper_models/color.dart';
+import 'package:flipper_models/login.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/spenn.dart';
+import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/category.dart';
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/sync.dart';
+import 'package:flipper_models/sync.dart';
 import 'package:injectable/injectable.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:uuid/uuid.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/variation.dart';
 
 import 'constants.dart';
 

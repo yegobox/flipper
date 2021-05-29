@@ -10,7 +10,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_luban/flutter_luban.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_models/models/login.dart';
+import 'package:flipper_models/login.dart';
 import 'package:flipper/routes.router.dart';
 import 'LiteApi.dart';
 import 'package:file_picker/file_picker.dart';

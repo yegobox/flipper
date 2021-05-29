@@ -1,4 +1,4 @@
-import 'package:flipper_models/models/stock.dart';
+import 'package:flipper_models/stock.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 

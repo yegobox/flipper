@@ -1,9 +1,9 @@
 import 'package:stacked/stacked.dart';
 
-import 'package:flipper_models/models/category.dart';
-import 'package:flipper_models/models/color.dart';
-import 'package:flipper_models/models/business.dart';
-import 'package:flipper_models/models/unit.dart';
+import 'package:flipper_models/category.dart';
+import 'package:flipper_models/color.dart';
+import 'package:flipper_models/business.dart';
+import 'package:flipper_models/unit.dart';
 import 'proxy.dart';
 
 class AppService with ReactiveServiceMixin {

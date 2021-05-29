@@ -1,13 +1,13 @@
 library flipper_models;
 
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_models/models/category.dart';
-import 'package:flipper_models/models/product.dart';
-import 'package:flipper_models/models/color.dart';
-import 'package:flipper_models/models/stock.dart';
-import 'package:flipper_models/models/unit.dart';
-import 'package:flipper_models/models/product_mock.dart';
-import 'package:flipper_models/models/variation.dart';
+import 'package:flipper_models/category.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/color.dart';
+import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/unit.dart';
+import 'package:flipper_models/product_mock.dart';
+import 'package:flipper_models/variation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';

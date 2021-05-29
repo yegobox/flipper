@@ -1,7 +1,7 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/stack.dart';
-import 'package:flipper_models/models/order.dart';
+import 'package:flipper_models/order.dart';
 
 class KeyPadService with ReactiveServiceMixin {
   final _key = ReactiveValue<String>("0.0");

@@ -3,7 +3,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'close_button.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/product.dart';
 
 class ImagePlaceHolderView extends StatelessWidget {
   const ImagePlaceHolderView(

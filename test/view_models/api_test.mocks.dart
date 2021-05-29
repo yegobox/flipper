@@ -4,19 +4,19 @@
 
 import 'dart:async' as _i11;
 
-import 'package:flipper_models/models/branch.dart' as _i13;
-import 'package:flipper_models/models/business.dart' as _i12;
-import 'package:flipper_models/models/category.dart' as _i14;
-import 'package:flipper_models/models/color.dart' as _i5;
-import 'package:flipper_models/models/login.dart' as _i2;
-import 'package:flipper_models/models/order.dart' as _i8;
-import 'package:flipper_models/models/product.dart' as _i7;
-import 'package:flipper_models/models/spenn.dart' as _i9;
-import 'package:flipper_models/models/stock.dart' as _i4;
-import 'package:flipper_models/models/sync.dart' as _i3;
-import 'package:flipper_models/models/unit.dart' as _i15;
-import 'package:flipper_models/models/variant_stock.dart' as _i16;
-import 'package:flipper_models/models/variation.dart' as _i6;
+import 'package:flipper_models/branch.dart' as _i13;
+import 'package:flipper_models/business.dart' as _i12;
+import 'package:flipper_models/category.dart' as _i14;
+import 'package:flipper_models/color.dart' as _i5;
+import 'package:flipper_models/login.dart' as _i2;
+import 'package:flipper_models/order.dart' as _i8;
+import 'package:flipper_models/product.dart' as _i7;
+import 'package:flipper_models/spenn.dart' as _i9;
+import 'package:flipper_models/stock.dart' as _i4;
+import 'package:flipper_models/sync.dart' as _i3;
+import 'package:flipper_models/unit.dart' as _i15;
+import 'package:flipper_models/variant_stock.dart' as _i16;
+import 'package:flipper_models/variation.dart' as _i6;
 import 'package:flipper_services/abstractions/api.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
 

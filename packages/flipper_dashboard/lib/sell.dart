@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/product.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flipper_services/proxy.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flipper_models/models/variant_stock.dart';
+import 'package:flipper_models/variant_stock.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 enum ForHere { lafayette, jefferson }
