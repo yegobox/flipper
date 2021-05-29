@@ -13,10 +13,10 @@ void main() {
     tearDown(() => unregisterServices());
     test('When user logged in and synced should land on dashboard', () async {
       List<Business> c = [];
-      // c.add(businessMockData);
-      // final api = getAndRegisterApi(businesses: c);
-      // final appService = getAndRegisterAppService(hasLoggedInUser: true);
-      // final navigationService = getAndRegisterNavigationService();
+      c.add(businessMockData);
+      final api = getAndRegisterApi(businesses: c);
+      final appService = getAndRegisterAppService(hasLoggedInUser: true);
+      final navigationService = getAndRegisterNavigationService();
       // final model = _getModel();
       // appService.isLoggedIn();
       // model.runStartupLogic();
