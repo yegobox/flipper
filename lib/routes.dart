@@ -65,8 +65,6 @@ class AppSetup {
 // bb-operations-sql.database.windows.net
 // 1433
 // https://github.com/metrogistics/laravel-azure-ad-oauth
-<<<<<<< HEAD
-=======
 
 //TODO: The nex things in consumer app!
 // https://github.com/JoshuaR503/Stock-Market-App
@@ -75,4 +73,3 @@ class AppSetup {
 // https://github.com/amadeus4dev/amadeus-java
 // TODO: Qr code.!
 // https://www.youtube.com/watch?v=hHehIGfX_yU
->>>>>>> web
