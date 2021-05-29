@@ -32,8 +32,8 @@ class Routes {
   static const String startUpView = '/';
   static const String dashboard = '/dashboard-view';
   static const String signup = '/sign-up-form-view';
-  static const String home = '/business-home-view';
-  static const String login = '/login-view';
+  static const String home = '/Home';
+  static const String login = '/Login';
   static const String product = '/add-product-view';
   static const String categories = '/list-categories';
   static const String colors = '/color-tile';
@@ -74,8 +74,8 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.startUpView, page: StartUpView),
     RouteDef(Routes.dashboard, page: DashboardView),
     RouteDef(Routes.signup, page: SignUpFormView),
-    RouteDef(Routes.home, page: BusinessHomeView),
-    RouteDef(Routes.login, page: LoginView),
+    RouteDef(Routes.home, page: Home),
+    RouteDef(Routes.login, page: Login),
     RouteDef(Routes.product, page: AddProductView),
     RouteDef(Routes.categories, page: ListCategories),
     RouteDef(Routes.colors, page: ColorTile),
@@ -113,15 +113,15 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
-    BusinessHomeView: (data) {
+    Home: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const BusinessHomeView(),
+        builder: (context) => const Home(),
         settings: data,
       );
     },
-    LoginView: (data) {
+    Login: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => LoginView(),
+        builder: (context) => Login(),
         settings: data,
       );
     },

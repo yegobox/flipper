@@ -42,6 +42,7 @@ class AppService with ReactiveServiceMixin {
         await ProxyService.api.categories(branchId: branchId!);
 
     _categories.value = result;
+    notifyListeners();
   }
 
   Future<void> loadUnits() async {
@@ -59,6 +60,7 @@ class AppService with ReactiveServiceMixin {
 
     for (PColor color in _colors.value) {
       if (color.active) {
+        print(color.name);
         setCurrentColor(color: color.name!);
       }
     }

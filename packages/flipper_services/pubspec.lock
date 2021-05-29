@@ -77,7 +77,7 @@ packages:
       name: awesome_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.5+8"
+    version: "0.0.6+7"
   barcode:
     dependency: transitive
     description:
@@ -309,13 +309,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  contacts_service:
-    dependency: transitive
-    description:
-      name: contacts_service
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.0"
   convert:
     dependency: transitive
     description:
@@ -323,13 +316,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  couchbase_lite_dart:
-    dependency: transitive
-    description:
-      name: couchbase_lite_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.0-nullsafety.2"
   country_code_picker:
     dependency: transitive
     description:
@@ -435,6 +421,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.0"
+  file_picker:
+    dependency: transitive
+    description:
+      name: file_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.2+2"
   firebase:
     dependency: transitive
     description:
@@ -589,6 +582,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flipper_ui:
+    dependency: transitive
+    description:
+      path: "../flipper_ui"
+      relative: true
+    source: path
+    version: "0.0.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -629,13 +629,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.0"
-  flutter_launcher_icons:
+  flutter_icons:
     dependency: transitive
     description:
-      name: flutter_launcher_icons
+      path: "."
+      ref: master
+      resolved-ref: "0831af6f0f239d20fb9578612d7a893e2a53d044"
+      url: "https://github.com/adarsh-technocrat/flutter-icons"
+    source: git
+    version: "1.1.1-nullsafety.0"
+  flutter_localizations:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_localized_locales:
+    dependency: transitive
+    description:
+      name: flutter_localized_locales
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.0"
+    version: "2.0.1"
   flutter_luban:
     dependency: transitive
     description:
@@ -779,6 +793,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.4"
+  hive_flutter:
+    dependency: transitive
+    description:
+      name: hive_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   html:
     dependency: transitive
     description:
@@ -905,6 +926,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.1"
+  loading:
+    dependency: transitive
+    description:
+      path: "../loading"
+      relative: true
+    source: path
+    version: "2.0.0"
   location:
     dependency: transitive
     description:
@@ -1094,20 +1122,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.11.0"
-  permission_handler:
-    dependency: transitive
-    description:
-      name: permission_handler
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "6.1.3"
-  permission_handler_platform_interface:
-    dependency: transitive
-    description:
-      name: permission_handler_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.1.3"
   petitparser:
     dependency: transitive
     description:
@@ -1192,6 +1206,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  rounded_loading_button:
+    dependency: transitive
+    description:
+      name: rounded_loading_button
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.4"
   rxdart:
     dependency: transitive
     description:
@@ -1280,7 +1301,7 @@ packages:
       name: stacked
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.4"
+    version: "2.1.6"
   stacked_firebase_auth:
     dependency: transitive
     description:
@@ -1493,4 +1514,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
+  flutter: ">=2.0.4"

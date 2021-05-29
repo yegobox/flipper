@@ -19,24 +19,22 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
-// import 'package:flipper/localize.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
-class BusinessHomeView extends StatefulWidget {
-  const BusinessHomeView({Key? key}) : super(key: key);
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
 
   @override
-  _BusinessHomeViewState createState() => _BusinessHomeViewState();
+  _HomeState createState() => _HomeState();
 }
 
-class _BusinessHomeViewState extends State<BusinessHomeView>
-    with SingleTickerProviderStateMixin {
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   late ValueNotifier<bool> _sideOpenController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late Animation<double> _fadeAnimation;
   late AnimationController _fadeController;
   TextEditingController controller = TextEditingController();
-  int tab = 0;
+
   @override
   void initState() {
     super.initState();
@@ -71,129 +69,144 @@ class _BusinessHomeViewState extends State<BusinessHomeView>
         model.registerLocation();
       },
       builder: (context, model, child) {
-        return WillPopScope(
-          onWillPop: _onWillPop,
-          child: Scaffold(
-            key: _scaffoldKey,
-            extendBody: true,
-            appBar: HomeAppBar(
-              scaffoldKey: _scaffoldKey,
-              sideOpenController: _sideOpenController,
-              child: SaleIndicator(
-                totalAmount: 300,
-                counts: model.countedOrderItems,
-                onClick: () {
-                  if (model.countedOrderItems > 0) {
-                    ProxyService.nav.navigateTo(Routes.summary);
-                  }
-                },
-                onLogout: () async {
-                  await ProxyService.api.logOut();
-                  ProxyService.nav.navigateTo(Routes.startUpView);
-                },
-              ),
-            ),
-            body: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideOutScreen(
-                sideOpenController: _sideOpenController,
-                side: const Text('Side'),
-                main: Column(
-                  children: [
-                    tab == 0
-                        ? KeyPadHead(
-                            payable: PayableView(
-                              onClick: () {
-                                ProxyService.nav.navigateTo(Routes.pay);
-                              },
-                              tickets: 0,
-                              orders: model.orders.length,
-                              duePay: model.orders.isNotEmpty
-                                  ? model.orders[0].orderItems
-                                      .fold(0, (a, b) => a + b.price)
-                                  : 0.0,
-                            ),
-                            onClick: () {},
-                            controller: controller,
-                            amount: double.parse(model.key),
-                          )
-                        : SizedBox.shrink(),
-                    tab == 0
-                        ? KeyPadView(model: model)
-                        // show a list of products and on click handle different scenarios
-                        : ProductView(userId: '1', items: true),
-                  ],
-                ),
-              ),
-            ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.miniCenterDocked,
-            floatingActionButton: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  HeroDialogRoute(
-                    builder: (context) {
-                      return const OptionModal(
-                        child: AddProductButtons(),
-                      );
-                    },
-                  ),
-                );
-              },
-              child: Hero(
-                tag: addProductHero,
-                createRectTween: (begin, end) {
-                  return CustomRectTween(begin: begin, end: end);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.symmetric(horizontal: 10.0),
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.all(Radius.circular(50)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        flex: 1,
-                        child: const Icon(
-                          Icons.add,
-                          size: 20,
-                          color: Colors.white,
+        switch (ProxyService.box.read(key: 'page')) {
+          case 'business':
+            return BusinessWidget(model);
+          case 'social':
+            return Text('social');
+          case 'openBusiness':
+            return Text('open business');
+          case 'closedBusiness':
+            return Text('closed business');
+          default:
+        }
+        return BusinessWidget(model);
+      },
+    );
+  }
+
+  Widget BusinessWidget(BusinessHomeViewModel model) {
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        key: _scaffoldKey,
+        extendBody: true,
+        appBar: HomeAppBar(
+          scaffoldKey: _scaffoldKey,
+          sideOpenController: _sideOpenController,
+          child: SaleIndicator(
+            totalAmount: 300,
+            counts: model.countedOrderItems,
+            onClick: () {
+              if (model.countedOrderItems > 0) {
+                ProxyService.nav.navigateTo(Routes.summary);
+              }
+            },
+            onLogout: () async {
+              await ProxyService.api.logOut();
+              ProxyService.nav.navigateTo(Routes.startUpView);
+            },
+          ),
+        ),
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideOutScreen(
+            sideOpenController: _sideOpenController,
+            side: const Text('Side'),
+            main: Column(
+              children: [
+                model.tab == 0
+                    ? KeyPadHead(
+                        payable: PayableView(
+                          onClick: () {
+                            ProxyService.nav.navigateTo(Routes.pay);
+                          },
+                          tickets: 0,
+                          orders: model.orders.length,
+                          duePay: model.orders.isNotEmpty
+                              ? model.orders[0].orderItems
+                                  .fold(0, (a, b) => a + b.price)
+                              : 0.0,
                         ),
-                      ),
-                      Flexible(
-                        flex: 1,
-                        child: Text(
-                          ' Add Product',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
+                        onClick: () {},
+                        controller: controller,
+                        amount: double.parse(model.key),
                       )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            bottomNavigationBar: SafeArea(
-              child: BottomMenubar(
-                switchTab: (index) {
-                  setState(() {
-                    tab = index;
-                  });
-                },
-              ),
-            ),
-            drawer: FlipperDrawer(
-              businesses: model.businesses,
+                    : SizedBox.shrink(),
+                model.tab == 0
+                    ? KeyPadView(model: model)
+                    // show a list of products and on click handle different scenarios
+                    : ProductView(userId: '1', items: true),
+              ],
             ),
           ),
-        );
-      },
+        ),
+        floatingActionButtonLocation:
+            FloatingActionButtonLocation.miniCenterDocked,
+        floatingActionButton: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              HeroDialogRoute(
+                builder: (context) {
+                  return const OptionModal(
+                    child: AddProductButtons(),
+                  );
+                },
+              ),
+            );
+          },
+          child: Hero(
+            tag: addProductHero,
+            createRectTween: (begin, end) {
+              return CustomRectTween(begin: begin, end: end);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.symmetric(horizontal: 10.0),
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.all(Radius.circular(50)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: const Icon(
+                      Icons.add,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Text(
+                      ' Add Product',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: BottomMenuBar(
+            switchTab: (index) {
+              setState(() {
+                model.setTab(tab: index);
+              });
+            },
+          ),
+        ),
+        drawer: FlipperDrawer(
+          businesses: model.businesses,
+        ),
+      ),
     );
   }
 }

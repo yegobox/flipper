@@ -34,6 +34,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   List<VariantStock> _variantsStocks = [];
   get variantsStocks => _variantsStocks;
 
+  int _tab = 0;
+  int get tab => _tab;
+  setTab({required int tab}) {
+    _tab = tab;
+  }
+
   void addKey(String key) async {
     if (key == 'C') {
       ProxyService.keypad.pop();
@@ -90,7 +96,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Order order = orders[0];
     if (order.orderItems.isNotEmpty) {
       order.orderItems.removeWhere((element) => element.id == id);
-      ProxyService.api.update(data: order.toJson(), endPoint: 'order');
+      String orderId = order.id;
+      ProxyService.api.update(data: order.toJson(), endPoint: 'order/$orderId');
     }
     getOrders();
     return false;

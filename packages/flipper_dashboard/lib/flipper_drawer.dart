@@ -66,9 +66,22 @@ class FlipperDrawer extends StatelessWidget {
       left: 0,
       child: Column(
         children: <Widget>[
+          Row(
+            children: [
+              Text('Swith to Social?'),
+              Switch.adaptive(
+                value: drawerViewmodel.isSwitched,
+                activeTrackColor: Colors.lightGreenAccent,
+                activeColor: Colors.green,
+                onChanged: (newValue) {
+                  drawerViewmodel.setisSwitched();
+                },
+              ),
+            ],
+          ),
           _menuListRowButton('Close a day',
               isEnable: true, context: context, icon: 0xf155, onPressed: () {
-            //TODO:
+            //TODOfinish the feature soon.
             // ProxyService.nav.navigateTo(
             //   Routing.openCloseDrawerview,
             //   arguments: OpenCloseDrawerViewArguments(

@@ -6,9 +6,8 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/otp_view.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:loading/indicator/ball_pulse_indicator.dart';
-import 'package:loading/loading.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -131,13 +130,9 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                       width: double.infinity,
                       height: 60,
                       child: !model.loginStart
-                          ? RaisedButton(
-                              color: Colors.blue,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5.0),
-                                  side: const BorderSide(color: Colors.blue)),
-                              padding: const EdgeInsets.all(0.0),
-                              onPressed: () async {
+                          ? BoxButton(
+                              title: 'SIGN IN',
+                              onTap: () async {
                                 if (PhoneNumberView._formKey.currentState!
                                     .validate()) {
                                   //TODOmore phone validation to come!
@@ -170,11 +165,6 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                                   }
                                 }
                               },
-                              child: const Text(
-                                'Verify',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 20),
-                              ),
                             )
                           : Padding(
                               padding:
@@ -182,14 +172,9 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                               child: SizedBox(
                                 width: double.infinity,
                                 height: 60,
-                                child: RaisedButton(
-                                  color: Colors.blue,
-                                  onPressed: () {},
-                                  child: Loading(
-                                    indicator: BallPulseIndicator(),
-                                    size: 50.0,
-                                    color: Colors.white,
-                                  ),
+                                child: BoxButton(
+                                  title: 'SIGN IN',
+                                  busy: true,
                                 ),
                               ),
                             ),

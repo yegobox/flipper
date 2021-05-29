@@ -2,6 +2,7 @@ import 'package:flipper_login/phone_number_view.dart';
 import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 class SignUpLoginButton extends StatelessWidget {
   const SignUpLoginButton({Key? key, this.portrait = false}) : super(key: key);
@@ -40,28 +41,11 @@ class SignUpLoginButton extends StatelessWidget {
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.only(left: 18.0, right: 18.0, top: 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20.0)),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: FlatButton(
-                      key: Key('createAccountButton'),
-                      onPressed: () {
-                        _showModalBottomSheet(context);
-                      },
-                      color: Colors.blue,
-                      child: Text(
-                        'Create Account',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline6!
-                            .copyWith(color: Colors.white),
-                      ),
-                    ),
-                  ),
+                child: BoxButton(
+                  title: 'Create Account',
+                  onTap: () {
+                    _showModalBottomSheet(context);
+                  },
                 ),
               ),
               Container(
@@ -70,22 +54,18 @@ class SignUpLoginButton extends StatelessWidget {
                 decoration:
                     BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
                 child: SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: OutlineButton(
-                    color: Colors.blue,
-                    child: Text(
-                      'Sign in',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headline6!
-                          .copyWith(color: Colors.blue),
-                    ),
-                    onPressed: () {
-                      _showModalBottomSheet(context);
-                    },
-                  ),
-                ),
+                    width: double.infinity,
+                    height: 60,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: BoxButton.outline(
+                        title: 'SIGN IN',
+                        onTap: () {
+                          _showModalBottomSheet(context);
+                        },
+                      ),
+                    )),
               ),
             ],
           ),

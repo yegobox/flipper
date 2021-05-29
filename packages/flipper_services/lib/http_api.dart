@@ -24,14 +24,13 @@ import 'constants.dart';
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
-  final box = GetStorage();
   // ignore: sort_constructors_first
   ExtendedClient(this._inner);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    String? token = box.read('bearerToken');
-    String? userId = box.read('userId');
+    String? token = ProxyService.box.read(key: 'bearerToken');
+    String? userId = ProxyService.box.read(key: 'userId');
     // you may want to pickup the value from tshared preferences, like:
     // customValue = await LocalStorage.getStringItem('token');
     request.headers['Authorization'] = token == null ? '' : token;
@@ -118,6 +117,10 @@ class HttpApi<T> implements Api {
   Future<bool> logOut() async {
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'UToken');
+    ProxyService.box.remove(key: 'businessId');
+    ProxyService.box.remove(key: 'branchId');
     return true;
   }
 
@@ -157,9 +160,16 @@ class HttpApi<T> implements Api {
   Future<Product> createProduct({required Product product}) async {
     //add businessId and branchId within the request, vatId
     Map data = product.toJson();
+
+    final productid = Uuid().v1();
+    data['id'] = productid;
+    data['active'] = false;
+    data['description'] = 'description';
+    data['hasPicture'] = false;
     data['businessId'] = ProxyService.box.read(key: 'businessId');
     data['branchId'] = ProxyService.box.read(key: 'branchId');
-    data['taxId'] = 'N/A';
+    data['taxId'] = 'XX';
+
     final response = await client.post(Uri.parse("$apihub/api/product"),
         body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
 
@@ -168,7 +178,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<List<Product>> isTempProductExist() async {
-    final response = await client.get(Uri.parse("$apihub/api/Product/temp"));
+    final response = await client.get(Uri.parse("$apihub/api/product/temp"));
     return productFromJson(response.body);
   }
   // FIXME: fix the api to retun variants by productId
@@ -250,9 +260,13 @@ class HttpApi<T> implements Api {
   }
 
   Future<Order?> pendingOrderExist() async {
-    final response = await client.get(Uri.parse("$apihub/api/draft-order"));
+    final response = await client.get(Uri.parse("$apihub/api/draftOrder"));
 
-    return sorderFromJson(response.body[0]);
+    if (orderFromJson(response.body).length > 0) {
+      return orderFromJson(response.body)[0];
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -269,10 +283,8 @@ class HttpApi<T> implements Api {
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     String branchId = ProxyService.box.read(key: 'branchId');
-    Order? existOrder = await pendingOrderExist();
 
-    // Document docStock = db.getDocument(stockId);
-    // Stock stock = sstockFromJson(docStock.json);
+    Order? existOrder = await pendingOrderExist();
 
     if (existOrder == null) {
       Order order = new Order(
@@ -309,7 +321,7 @@ class HttpApi<T> implements Api {
           body: jsonEncode(order.toJson()),
           headers: {'Content-Type': 'application/json'});
 
-      return sorderFromJson(response.body[0]);
+      return orderFromJson(response.body)[0];
     } else {
       OrderItem item = OrderItem(
         count: 1,
@@ -320,7 +332,8 @@ class HttpApi<T> implements Api {
         orderId: existOrder.id,
       );
       existOrder.orderItems.add(item);
-      update(data: existOrder.toJson(), endPoint: 'order');
+      String orderId = existOrder.id;
+      await update(data: existOrder.toJson(), endPoint: 'order/$orderId');
       return existOrder;
     }
   }
@@ -329,7 +342,7 @@ class HttpApi<T> implements Api {
   Future<Variation> getCustomProductVariant() async {
     final response =
         await client.get(Uri.parse("$apihub/api/variantCustomProduct"));
-    print(response.body);
+
     return variationFromJson(response.body)[0];
   }
 
@@ -367,7 +380,6 @@ class HttpApi<T> implements Api {
     print('+25' + phoneNumber);
     Spenn spenn = new Spenn(id: '1', requestId: 'uid', status: 'complented');
     return spenn;
-    //
   }
 
   @override

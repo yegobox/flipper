@@ -316,13 +316,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  couchbase_lite_dart:
-    dependency: transitive
-    description:
-      name: couchbase_lite_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.0-nullsafety.3"
   country_code_picker:
     dependency: transitive
     description:
@@ -579,6 +572,13 @@ packages:
     dependency: transitive
     description:
       path: "../flipper_services"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_ui:
+    dependency: transitive
+    description:
+      path: "../flipper_ui"
       relative: true
     source: path
     version: "0.0.1"
@@ -1024,20 +1024,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  objectbox:
-    dependency: transitive
-    description:
-      name: objectbox
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
-  objectbox_flutter_libs:
-    dependency: transitive
-    description:
-      name: objectbox_flutter_libs
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
   observable_ish:
     dependency: transitive
     description:
