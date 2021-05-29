@@ -54,7 +54,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Sync> authenticateWithOfflineDb({required String userId}) async {
+  Future<SyncF> authenticateWithOfflineDb({required String userId}) async {
     final response = await client.post(Uri.parse("$apihub/auth"),
         body: jsonEncode({'userId': userId}),
         headers: {'Content-Type': 'application/json'});
@@ -259,7 +259,7 @@ class HttpApi<T> implements Api {
     yield stockFromJson(response.body)[0];
   }
 
-  Future<Order?> pendingOrderExist() async {
+  Future<OrderF?> pendingOrderExist() async {
     final response = await client.get(Uri.parse("$apihub/api/draftOrder"));
 
     if (orderFromJson(response.body).length > 0) {
@@ -270,7 +270,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Order> createOrder(
+  Future<OrderF> createOrder(
       {required double customAmount,
       required Variation variation,
       required double price,
@@ -284,10 +284,10 @@ class HttpApi<T> implements Api {
     String userId = ProxyService.box.read(key: 'userId');
     String branchId = ProxyService.box.read(key: 'branchId');
 
-    Order? existOrder = await pendingOrderExist();
+    OrderF? existOrder = await pendingOrderExist();
 
     if (existOrder == null) {
-      Order order = new Order(
+      OrderF order = new OrderF(
         id: id4,
         reference: ref,
         orderNumber: orderNUmber,
@@ -347,7 +347,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Order>> orders() async {
+  Future<List<OrderF>> orders() async {
     final response = await client.get(Uri.parse("$apihub/api/orders"));
 
     return orderFromJson(response.body);
@@ -384,7 +384,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<void> collectCashPayment(
-      {required double cashReceived, required Order order}) async {
+      {required double cashReceived, required OrderF order}) async {
     final endPoint = "order";
     Map data = order.toJson();
     data['cashReceived'] = cashReceived;

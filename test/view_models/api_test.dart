@@ -60,11 +60,11 @@ void main() {
       // Variation variation = await api.getCustomProductVariant();
 
       // api.createOrder(customAmount: 3.0, variation: variation, price: 4.0);
-      Order? order = await api.pendingOrderExist();
+      OrderF? order = await api.pendingOrderExist();
       if (order == null) {
         expect(order, isA<Null>());
       } else {
-        expect(order, isA<Order>());
+        expect(order, isA<OrderF>());
       }
     });
     test('create units', () async {

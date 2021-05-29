@@ -17,6 +17,7 @@ String unitToJson(List<Unit> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class Unit {
+  // Unit(){}
   Unit({
     required this.id,
     required this.branchId,

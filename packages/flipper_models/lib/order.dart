@@ -6,18 +6,18 @@ import 'dart:convert';
 
 import 'package:flipper/objectbox.g.dart';
 
-Order sorderFromJson(String str) => Order.fromJson(json.decode(str));
+OrderF sorderFromJson(String str) => OrderF.fromJson(json.decode(str));
 
-String sorderToJson(Order data) => json.encode(data.toJson());
+String sorderToJson(OrderF data) => json.encode(data.toJson());
 
-List<Order> orderFromJson(String str) =>
-    List<Order>.from(json.decode(str).map((x) => Order.fromJson(x)));
+List<OrderF> orderFromJson(String str) =>
+    List<OrderF>.from(json.decode(str).map((x) => OrderF.fromJson(x)));
 
-String orderToJson(List<Order> data) =>
+String orderToJson(List<OrderF> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-class Order {
-  Order({
+class OrderF {
+  OrderF({
     required this.id,
     required this.reference,
     required this.orderNumber,
@@ -36,7 +36,8 @@ class Order {
     required this.table,
     required this.channels,
   });
-
+  @Id()
+  int? tracker;
   String id;
   String reference;
   String orderNumber;
@@ -55,7 +56,7 @@ class Order {
   String table;
   List<String> channels;
 
-  factory Order.fromJson(Map<String, dynamic> json) => Order(
+  factory OrderF.fromJson(Map<String, dynamic> json) => OrderF(
         id: json["id"],
         reference: json["reference"],
         orderNumber: json["orderNumber"],

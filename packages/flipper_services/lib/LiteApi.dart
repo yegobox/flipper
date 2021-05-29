@@ -118,7 +118,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Sync> authenticateWithOfflineDb({required String userId}) async {
+  Future<SyncF> authenticateWithOfflineDb({required String userId}) async {
     final response = await client.post(Uri.parse("$apihub/auth"),
         body: jsonEncode({'userId': userId}),
         headers: {'Content-Type': 'application/json'});
@@ -482,10 +482,10 @@ class LiteApi<T> implements Api {
     return stocks[0];
   }
 
-  Future<Order?> pendingOrderExist() async {
+  Future<OrderF?> pendingOrderExist() async {
     Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
     final ResultSet results = Q3.execute();
-    Order? order;
+    OrderF? order;
     while (results.next()) {
       final row = results.rowDict;
       order = sorderFromJson(row.json);
@@ -494,7 +494,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Order> createOrder(
+  Future<OrderF> createOrder(
       {required double customAmount,
       required Variation variation,
       required double price,
@@ -507,13 +507,13 @@ class LiteApi<T> implements Api {
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     String branchId = ProxyService.box.read(key: 'branchId');
-    Order? existOrder = await pendingOrderExist();
+    OrderF? existOrder = await pendingOrderExist();
 
     // Document docStock = db.getDocument(stockId);
     // Stock stock = sstockFromJson(docStock.json);
 
     if (existOrder == null) {
-      Order order = new Order(
+      OrderF order = new OrderF(
         id: id4,
         reference: ref,
         orderNumber: orderNUmber,
@@ -572,10 +572,10 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Order>> orders() async {
+  Future<List<OrderF>> orders() async {
     Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
     final ResultSet order = Q3.execute();
-    final List<Order> orders = [];
+    final List<OrderF> orders = [];
     //NOTE: not for debuging incase I need to quickly delete sth
     // for (Map map in order.allResults) {
     //   db.purgeDocument(map['id']);
@@ -640,7 +640,7 @@ class LiteApi<T> implements Api {
 
   @override
   Future<void> collectCashPayment(
-      {required double cashReceived, required Order order}) async {
+      {required double cashReceived, required OrderF order}) async {
     Map data = order.toJson();
     data['cashReceived'] = cashReceived;
     data['status'] = 'completed';

@@ -16,7 +16,7 @@ abstract class Api<T> {
   Future<Login> login({required String phone});
   Future<List<Product>> products();
   Future<int> signup({required Map business});
-  Future<Sync> authenticateWithOfflineDb({required String userId});
+  Future<SyncF> authenticateWithOfflineDb({required String userId});
   Future<List<Business>> businesses();
   Future<List<Branch>> branches({required String businessId});
   Future<List<Stock>> stocks({required String productId});
@@ -53,7 +53,7 @@ abstract class Api<T> {
 
   ///create an order if no pending order exist should create a new one
   ///then if it exist should return the existing one!
-  Future<Order> createOrder({
+  Future<OrderF> createOrder({
     required double customAmount,
     required Variation variation,
     required double price,
@@ -62,10 +62,10 @@ abstract class Api<T> {
     double quantity = 1,
   });
 
-  Future<List<Order>> orders();
+  Future<List<OrderF>> orders();
 
   Future<Variation> getCustomProductVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectCashPayment(
-      {required double cashReceived, required Order order});
+      {required double cashReceived, required OrderF order});
 }

@@ -7,12 +7,12 @@ import 'dart:convert';
 
 import 'package:flipper/objectbox.g.dart';
 
-Sync syncFromJson(String str) => Sync.fromJson(json.decode(str));
+SyncF syncFromJson(String str) => SyncF.fromJson(json.decode(str));
 
-String syncToJson(Sync data) => json.encode(data.toJson());
+String syncToJson(SyncF data) => json.encode(data.toJson());
 
-class Sync {
-  Sync({
+class SyncF {
+  SyncF({
     required this.userId,
     required this.channels,
     required this.token,
@@ -23,7 +23,7 @@ class Sync {
   List<String> channels;
   String token;
 
-  factory Sync.fromJson(Map<String, dynamic> json) => Sync(
+  factory SyncF.fromJson(Map<String, dynamic> json) => SyncF(
         userId: json["userId"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         token: json["token"],

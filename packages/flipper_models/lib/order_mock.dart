@@ -1,6 +1,6 @@
 import 'order.dart';
 
-final orderMock = new Order(
+final orderMock = new OrderF(
   id: 'caa5cbf1-b3c3-11eb-85f9-4df3cd820e94',
   reference: 'caa5cbf1-b3c3-11',
   orderNumber: 'caa5cbf1-b3c3-',

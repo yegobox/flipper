@@ -19,7 +19,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   late String? longitude;
   late String? latitude;
 
-  List<Order> get orders => keypad.orders;
+  List<OrderF> get orders => keypad.orders;
 
   int get countedOrderItems => keypad.count;
 
@@ -56,7 +56,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           //default on keypad
           quantity: 1,
         );
-        List<Order> orders = await ProxyService.keypad.getOrders();
+        List<OrderF> orders = await ProxyService.keypad.getOrders();
         if (orders.isNotEmpty) {
           keypad.setCount(count: orders[0].orderItems.length);
         }
@@ -68,7 +68,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void getOrders() async {
-    List<Order> od = await ProxyService.keypad.getOrders();
+    List<OrderF> od = await ProxyService.keypad.getOrders();
 
     if (od.isNotEmpty && od[0].orderItems.isNotEmpty) {
       keypad.setCount(count: orders[0].orderItems.length);
@@ -93,7 +93,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future<bool> deleteOrderItem({required String id}) async {
-    Order order = orders[0];
+    OrderF order = orders[0];
     if (order.orderItems.isNotEmpty) {
       order.orderItems.removeWhere((element) => element.id == id);
       String orderId = order.id;
@@ -151,7 +151,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       price: amountTotal,
       quantity: quantity.toDouble(),
     );
-    List<Order> orders = await ProxyService.keypad.getOrders();
+    List<OrderF> orders = await ProxyService.keypad.getOrders();
     if (orders.isNotEmpty) {
       keypad.setCount(count: orders[0].orderItems.length);
     }

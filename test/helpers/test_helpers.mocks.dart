@@ -36,7 +36,7 @@ import 'package:stacked_services/src/navigation_service.dart' as _i22;
 
 class _FakeLogin extends _i1.Fake implements _i2.Login {}
 
-class _FakeSync extends _i1.Fake implements _i3.Sync {}
+class _FakeSync extends _i1.Fake implements _i3.SyncF {}
 
 class _FakeStock extends _i1.Fake implements _i4.Stock {}
 
@@ -46,7 +46,7 @@ class _FakeVariation extends _i1.Fake implements _i6.Variation {}
 
 class _FakeProduct extends _i1.Fake implements _i7.Product {}
 
-class _FakeOrder extends _i1.Fake implements _i8.Order {}
+class _FakeOrder extends _i1.Fake implements _i8.OrderF {}
 
 class _FakeSpenn extends _i1.Fake implements _i9.Spenn {}
 
@@ -71,11 +71,11 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
       (super.noSuchMethod(Invocation.method(#signup, [], {#business: business}),
           returnValue: Future<int>.value(0)) as _i12.Future<int>);
   @override
-  _i12.Future<_i3.Sync> authenticateWithOfflineDb({String? userId}) =>
+  _i12.Future<_i3.SyncF> authenticateWithOfflineDb({String? userId}) =>
       (super.noSuchMethod(
           Invocation.method(#authenticateWithOfflineDb, [], {#userId: userId}),
           returnValue:
-              Future<_i3.Sync>.value(_FakeSync())) as _i12.Future<_i3.Sync>);
+              Future<_i3.SyncF>.value(_FakeSync())) as _i12.Future<_i3.SyncF>);
   @override
   _i12.Future<List<_i13.Business>> businesses() =>
       (super.noSuchMethod(Invocation.method(#businesses, []),
@@ -200,7 +200,7 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
       (super.noSuchMethod(Invocation.method(#logOut, []),
           returnValue: Future<bool>.value(false)) as _i12.Future<bool>);
   @override
-  _i12.Future<_i8.Order> createOrder(
+  _i12.Future<_i8.OrderF> createOrder(
           {double? customAmount,
           _i6.Variation? variation,
           double? price,
@@ -216,13 +216,13 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
                 #orderType: orderType,
                 #quantity: quantity
               }),
-              returnValue: Future<_i8.Order>.value(_FakeOrder()))
-          as _i12.Future<_i8.Order>);
+              returnValue: Future<_i8.OrderF>.value(_FakeOrder()))
+          as _i12.Future<_i8.OrderF>);
   @override
-  _i12.Future<List<_i8.Order>> orders() =>
+  _i12.Future<List<_i8.OrderF>> orders() =>
       (super.noSuchMethod(Invocation.method(#orders, []),
-              returnValue: Future<List<_i8.Order>>.value(<_i8.Order>[]))
-          as _i12.Future<List<_i8.Order>>);
+              returnValue: Future<List<_i8.OrderF>>.value(<_i8.OrderF>[]))
+          as _i12.Future<List<_i8.OrderF>>);
   @override
   _i12.Future<_i6.Variation> getCustomProductVariant() =>
       (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),
@@ -237,7 +237,7 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
               Future<_i9.Spenn>.value(_FakeSpenn())) as _i12.Future<_i9.Spenn>);
   @override
   _i12.Future<void> collectCashPayment(
-          {double? cashReceived, _i8.Order? order}) =>
+          {double? cashReceived, _i8.OrderF? order}) =>
       (super.noSuchMethod(
           Invocation.method(#collectCashPayment, [],
               {#cashReceived: cashReceived, #order: order}),
@@ -304,8 +304,8 @@ class MockKeyPadService extends _i1.Mock implements _i19.KeyPadService {
   String get key =>
       (super.noSuchMethod(Invocation.getter(#key), returnValue: '') as String);
   @override
-  List<_i8.Order> get orders => (super.noSuchMethod(Invocation.getter(#orders),
-      returnValue: <_i8.Order>[]) as List<_i8.Order>);
+  List<_i8.OrderF> get orders => (super.noSuchMethod(Invocation.getter(#orders),
+      returnValue: <_i8.OrderF>[]) as List<_i8.OrderF>);
   @override
   int get countOrderItems =>
       (super.noSuchMethod(Invocation.getter(#countOrderItems), returnValue: 0)
@@ -336,10 +336,10 @@ class MockKeyPadService extends _i1.Mock implements _i19.KeyPadService {
   dynamic setCount({int? count}) =>
       super.noSuchMethod(Invocation.method(#setCount, [], {#count: count}));
   @override
-  _i12.Future<List<_i8.Order>> getOrders() =>
+  _i12.Future<List<_i8.OrderF>> getOrders() =>
       (super.noSuchMethod(Invocation.method(#getOrders, []),
-              returnValue: Future<List<_i8.Order>>.value(<_i8.Order>[]))
-          as _i12.Future<List<_i8.Order>>);
+              returnValue: Future<List<_i8.OrderF>>.value(<_i8.OrderF>[]))
+          as _i12.Future<List<_i8.OrderF>>);
   @override
   void reset() => super.noSuchMethod(Invocation.method(#reset, []),
       returnValueForMissingStub: null);

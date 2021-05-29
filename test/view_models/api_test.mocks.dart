@@ -28,7 +28,7 @@ import 'package:mockito/mockito.dart' as _i1;
 
 class _FakeLogin extends _i1.Fake implements _i2.Login {}
 
-class _FakeSync extends _i1.Fake implements _i3.Sync {}
+class _FakeSync extends _i1.Fake implements _i3.SyncF {}
 
 class _FakeStock extends _i1.Fake implements _i4.Stock {}
 
@@ -38,7 +38,7 @@ class _FakeVariation extends _i1.Fake implements _i6.Variation {}
 
 class _FakeProduct extends _i1.Fake implements _i7.Product {}
 
-class _FakeOrder extends _i1.Fake implements _i8.Order {}
+class _FakeOrder extends _i1.Fake implements _i8.OrderF {}
 
 class _FakeSpenn extends _i1.Fake implements _i9.Spenn {}
 
@@ -65,11 +65,11 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
       (super.noSuchMethod(Invocation.method(#signup, [], {#business: business}),
           returnValue: Future<int>.value(0)) as _i11.Future<int>);
   @override
-  _i11.Future<_i3.Sync> authenticateWithOfflineDb({String? userId}) =>
+  _i11.Future<_i3.SyncF> authenticateWithOfflineDb({String? userId}) =>
       (super.noSuchMethod(
           Invocation.method(#authenticateWithOfflineDb, [], {#userId: userId}),
           returnValue:
-              Future<_i3.Sync>.value(_FakeSync())) as _i11.Future<_i3.Sync>);
+              Future<_i3.SyncF>.value(_FakeSync())) as _i11.Future<_i3.SyncF>);
   @override
   _i11.Future<List<_i12.Business>> businesses() =>
       (super.noSuchMethod(Invocation.method(#businesses, []),
@@ -194,7 +194,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
       (super.noSuchMethod(Invocation.method(#logOut, []),
           returnValue: Future<bool>.value(false)) as _i11.Future<bool>);
   @override
-  _i11.Future<_i8.Order> createOrder(
+  _i11.Future<_i8.OrderF> createOrder(
           {double? customAmount,
           _i6.Variation? variation,
           double? price,
@@ -210,13 +210,13 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
                 #orderType: orderType,
                 #quantity: quantity
               }),
-              returnValue: Future<_i8.Order>.value(_FakeOrder()))
-          as _i11.Future<_i8.Order>);
+              returnValue: Future<_i8.OrderF>.value(_FakeOrder()))
+          as _i11.Future<_i8.OrderF>);
   @override
-  _i11.Future<List<_i8.Order>> orders() =>
+  _i11.Future<List<_i8.OrderF>> orders() =>
       (super.noSuchMethod(Invocation.method(#orders, []),
-              returnValue: Future<List<_i8.Order>>.value(<_i8.Order>[]))
-          as _i11.Future<List<_i8.Order>>);
+              returnValue: Future<List<_i8.OrderF>>.value(<_i8.OrderF>[]))
+          as _i11.Future<List<_i8.OrderF>>);
   @override
   _i11.Future<_i6.Variation> getCustomProductVariant() =>
       (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),
@@ -231,7 +231,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               Future<_i9.Spenn>.value(_FakeSpenn())) as _i11.Future<_i9.Spenn>);
   @override
   _i11.Future<void> collectCashPayment(
-          {double? cashReceived, _i8.Order? order}) =>
+          {double? cashReceived, _i8.OrderF? order}) =>
       (super.noSuchMethod(
           Invocation.method(#collectCashPayment, [],
               {#cashReceived: cashReceived, #order: order}),
