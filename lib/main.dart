@@ -11,7 +11,7 @@ import 'package:get_storage/get_storage.dart';
 // import 'package:hive_flutter/hive_flutter.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -21,7 +21,7 @@ final isAndroid = UniversalPlatform.isAndroid;
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
-  // (isWindows) ? Cbl.init() : '';
+  (isWindows) ? Cbl.init() : '';
   // await Hive.initFlutter();
   // await Hive.openBox<String>('box');
   await GetStorage.init();
