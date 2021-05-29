@@ -331,7 +331,7 @@ class HttpApi<T> implements Api {
         price: price,
         orderId: existOrder.id,
       );
-      existOrder.orderItems.add(item);
+      existOrder.orderItems!.add(item);
       String orderId = existOrder.id;
       await update(data: existOrder.toJson(), endPoint: 'order/$orderId');
       return existOrder;

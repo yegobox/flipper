@@ -33,7 +33,7 @@ class OrderF {
     required this.customerChangeDue,
     required this.createdAt,
     this.updatedAt,
-    required this.orderItems,
+    this.orderItems,
     required this.table,
     required this.channels,
   });
@@ -53,7 +53,7 @@ class OrderF {
   double customerChangeDue;
   String createdAt;
   String? updatedAt;
-  List<OrderItem> orderItems;
+  List<OrderItem>? orderItems;
   String table;
   List<String> channels;
 
@@ -93,7 +93,7 @@ class OrderF {
         "customerChangeDue": customerChangeDue,
         "createdAt": createdAt,
         "updatedAt": updatedAt,
-        "orderItems": List<dynamic>.from(orderItems.map((x) => x.toJson())),
+        "orderItems": List<dynamic>.from(orderItems!.map((x) => x.toJson())),
         "table": table,
         "channels": List<dynamic>.from(channels.map((x) => x)),
       };

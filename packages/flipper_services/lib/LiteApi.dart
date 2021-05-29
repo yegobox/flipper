@@ -554,7 +554,7 @@ class LiteApi<T> implements Api {
         price: price,
         orderId: existOrder.id,
       );
-      existOrder.orderItems.add(item);
+      existOrder.orderItems!.add(item);
       update(data: existOrder.toJson(), endPoint: 'order');
       return existOrder;
     }
