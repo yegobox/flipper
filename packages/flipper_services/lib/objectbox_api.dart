@@ -29,6 +29,7 @@ import 'package:flipper_models/branch.dart';
 import 'package:flipper_services/http_api.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 class ObjectBoxApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
@@ -37,7 +38,7 @@ class ObjectBoxApi implements Api {
   late Store _store;
   ObjectBoxApi({required Directory dir}) {
     // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/db2');
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/db3');
   }
   @override
   Future<List<Unit>> units({required int branchId}) async {
@@ -76,7 +77,6 @@ class ObjectBoxApi implements Api {
   Future<int> create<T>({required Map data, required String endPoint}) async {
     if (endPoint == 'color') {
       for (String co in data['colors']) {
-        final box = _store.box<PColor>();
         final color = PColor(
           id: DateTime.now().millisecondsSinceEpoch,
           name: co,
@@ -85,6 +85,7 @@ class ObjectBoxApi implements Api {
           branchId: data['branchId'],
           active: data['active'],
         );
+        final box = _store.box<PColor>();
         box.put(color);
       }
       return 200;
@@ -145,9 +146,8 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Variation> variant({required int variantId}) {
-    // TODO: implement variant
-    throw UnimplementedError();
+  Future<Variation?> variant({required int variantId}) async {
+    return _store.box<Variation>().get(variantId);
   }
 
   @override
@@ -213,7 +213,7 @@ class ObjectBoxApi implements Api {
       String? userId = ProxyService.box.read(key: 'userId');
       final stock = new Stock(
         id: stockId,
-        branchId: d['branchId'],
+        branchId: int.parse(d['branchId']),
         variantId: variantId,
         lowStock: 0.0,
         currentStock: 0.0,
@@ -223,7 +223,7 @@ class ObjectBoxApi implements Api {
         showLowStockAlert: false,
         channels: [userId!],
         table: AppTables.stock,
-        productId: d['productId'],
+        productId: int.parse(d['productId']),
         value: 0,
         active: false,
       );
@@ -234,16 +234,30 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Branch>> branches({required int businessId}) {
-    // TODO: implement branches
-    throw UnimplementedError();
+  Future<List<Branch>> branches({required int businessId}) async {
+    return _store
+        .box<Branch>()
+        .getAll()
+        .where((v) => v.businessId == businessId)
+        .toList();
   }
 
   @override
   Future<void> collectCashPayment(
-      {required double cashReceived, required OrderF order}) {
-    // TODO: implement collectCashPayment
-    throw UnimplementedError();
+      {required double cashReceived, required OrderF order}) async {
+    Map data = order.toJson();
+    data['cashReceived'] = cashReceived;
+    data['status'] = 'completed';
+    data['draft'] = false;
+    update(data: data, endPoint: 'order');
+  }
+
+  Future<OrderF?> pendingOrderExist() async {
+    return _store
+        .box<OrderF>()
+        .query(OrderF_.status.equals('pending'))
+        .build()
+        .findFirst();
   }
 
   @override
@@ -253,68 +267,296 @@ class ObjectBoxApi implements Api {
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
-      double quantity = 1}) {
-    // TODO: implement createOrder
+      double quantity = 1}) async {
+    final id4 = DateTime.now().millisecondsSinceEpoch;
+    final orderItemId = DateTime.now().millisecondsSinceEpoch;
+    final ref = Uuid().v1();
+    final orderNUmber = Uuid().v1();
+    String userId = ProxyService.box.read(key: 'userId');
+    int branchId = ProxyService.box.read(key: 'branchId');
+    OrderF? existOrder = await pendingOrderExist();
+    if (existOrder == null) {
+      OrderF order = new OrderF(
+        id: id4,
+        reference: ref,
+        orderNumber: orderNUmber,
+        status: 'pending',
+        orderType: orderType,
+        active: true,
+        draft: true,
+        channels: [userId],
+        subTotal: customAmount,
+        table: AppTables.order,
+        cashReceived: customAmount,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0, //fix this
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+        orderItems: [
+          OrderItem(
+            count: quantity,
+            name: useProductName ? variation.productName : variation.name,
+            variantId: variation.id,
+            id: orderItemId,
+            price: price,
+            orderId: id4,
+          )
+        ],
+      );
+      final box = _store.box<OrderF>();
+      final id = box.put(order);
+      return _store.box<OrderF>().get(id)!;
+    } else {
+      OrderItem item = OrderItem(
+        count: 1,
+        name: useProductName ? variation.productName : variation.name,
+        variantId: variation.id,
+        id: orderItemId,
+        price: price,
+        orderId: existOrder.id,
+      );
+      existOrder.orderItems!.add(item);
+      update(data: existOrder.toJson(), endPoint: 'order');
+      return existOrder;
+    }
+  }
+
+  @override
+  Future<Product> createProduct({required Product product}) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<Product> createProduct({required Product product}) {
-    // TODO: implement createProduct
-    throw UnimplementedError();
+  Future<PColor?> getColor({required int id, String? endPoint}) async {
+    return _store.box<PColor>().get(id);
   }
 
   @override
-  Future<PColor> getColor({required int id, String? endPoint}) {
-    // TODO: implement getColor
-    throw UnimplementedError();
+  Future<Variation> getCustomProductVariant() async {
+    return _store
+        .box<Variation>()
+        .getAll()
+        .where((v) => v.name == 'Custom Amount')
+        .toList()[0];
   }
 
   @override
-  Future<Variation> getCustomProductVariant() {
-    // TODO: implement getCustomProductVariant
-    throw UnimplementedError();
+  Future<Product?> getProduct({required int id}) async {
+    return _store.box<Product>().get(id);
   }
 
   @override
-  Future<Product> getProduct({required String id}) {
-    // TODO: implement getProduct
-    throw UnimplementedError();
+  Future<List<OrderF>> orders() async {
+    return _store.box<OrderF>().getAll();
   }
 
   @override
-  Future<List<OrderF>> orders() {
-    // TODO: implement orders
-    throw UnimplementedError();
+  Future<Spenn> spennPayment(
+      {required double amount, required phoneNumber}) async {
+    final int transactionNumber = DateTime.now().millisecondsSinceEpoch;
+    String userId = ProxyService.box.read(key: 'userId');
+    // final response = await client.post(Uri.parse("$flipperApi/pay"),
+    //     body: jsonEncode({
+    //       'amount': amount,
+    //       'message': '-' + transactionNumber.substring(0, 4),
+    //       'phoneNumber': '+25' + phoneNumber,
+    //       'uid': userId
+    //     }),
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'Accept': 'application/json'
+    //     });
+    // return spennFromJson(response.body);
+    print('+25' + phoneNumber);
+    Spenn spenn = new Spenn(id: '1', requestId: 'uid', status: 'complented');
+    return spenn;
+    //
   }
 
   @override
-  Future<Spenn> spennPayment({required double amount, required phoneNumber}) {
-    // TODO: implement spennPayment
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stock> stockByVariantId({required int variantId}) {
-    // TODO: implement stockByVariantId
-    throw UnimplementedError();
+  Future<Stock> stockByVariantId({required int variantId}) async {
+    return _store
+        .box<Stock>()
+        .getAll()
+        .where((v) => v.variantId == variantId)
+        .toList()[0];
   }
 
   @override
   Stream<Stock> stockByVariantIdStream({required int variantId}) {
-    // TODO: implement stockByVariantIdStream
-    throw UnimplementedError();
+    return _store
+        .box<Stock>()
+        .query(Stock_.variantId.equals(variantId))
+        .watch(triggerImmediately: true)
+        // Watching the query produces a Stream<Query<Stock>>
+        // To get the actual data inside a List<Stock>, we need to call find() on the query
+        .map((query) => query.find()[0]);
   }
 
   @override
-  Future<int> update<T>({required Map data, required String endPoint}) {
-    // TODO: implement update
-    throw UnimplementedError();
+  Future<int> update<T>({required Map data, required String endPoint}) async {
+    //clean the endPoint so we are able to use switch with no problem
+    //the endPoint can be unit/1 so we want unit and 1 separately
+    final String point = endPoint.split('/')[0];
+    final int id = int.parse(endPoint.split('/')[1]);
+    final Map dn = data;
+    switch (point) {
+      case 'product':
+        Product? color = _store.box<Product>().get(id);
+        Map map = color!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Product product = Product(
+          active: map['active'],
+          branchId: map['branchId'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          businessId: map['businessId'],
+          categoryId: map['categoryId'],
+          color: map['color'],
+          description: map['description'],
+          hasPicture: map['hasPicture'],
+          name: map['name'],
+          unit: map['unit'],
+          allVariants: map['allVariants'],
+          createdAt: map['createdAt'],
+          currentUpdate: map['currentUpdate'],
+          draft: map['draft'],
+          imageLocal: map['imageLocal'],
+          imageUrl: map['imageUrl'],
+          supplierId: map['supplierId'],
+          taxId: map['taxId'],
+          variants: map['variants'],
+        );
+        final box = _store.box<Product>();
+        box.put(product, mode: PutMode.update);
+        break;
+      case 'stock':
+        Stock? color = _store.box<Stock>().get(id);
+        Map map = color!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Stock stock = Stock(
+          active: map['active'],
+          branchId: map['branchId'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          canTrackingStock: map['canTrackingStock'],
+          currentStock: map['currentStock'],
+          lowStock: map['lowStock'],
+          productId: map['productId'],
+          retailPrice: map['retailPrice'],
+          showLowStockAlert: map['showLowStockAlert'],
+          supplyPrice: map['supplyPrice'],
+          value: map['value'],
+          variantId: map['variantId'],
+        );
+        final box = _store.box<Stock>();
+        box.put(stock, mode: PutMode.update);
+        break;
+      case 'category':
+        Category? color = _store.box<Category>().get(id);
+        Map map = color!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Category category = Category(
+          active: map['active'],
+          branchId: map['branchId'],
+          name: map['name'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          focused: map['focused'],
+        );
+        final box = _store.box<Category>();
+        box.put(category, mode: PutMode.update);
+        break;
+      case 'unit':
+        Unit? color = _store.box<Unit>().get(id);
+        Map map = color!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Unit unit = Unit(
+          active: map['active'],
+          branchId: map['branchId'],
+          name: map['name'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          value: map['value'],
+        );
+        final box = _store.box<Unit>();
+        box.put(unit, mode: PutMode.update);
+        break;
+      case 'color':
+        PColor? color = _store.box<PColor>().get(id);
+        Map map = color!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        PColor pcolor = PColor(
+          active: map['active'],
+          branchId: map['branchId'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          name: map['name'],
+        );
+        final box = _store.box<PColor>();
+        box.put(pcolor, mode: PutMode.update);
+        break;
+      case 'order':
+        OrderF? orders = _store.box<OrderF>().get(dn['id']);
+        Map map = orders!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        OrderF order = OrderF(
+          active: map['active'],
+          branchId: map['branchId'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          cashReceived: map['cashReceived'],
+          createdAt: map['createdAt'],
+          customerChangeDue: map['customerChangeDue'],
+          draft: map['draft'],
+          orderNumber: map['orderNumber'],
+          orderType: map['orderType'],
+          paymentType: map['paymentType'],
+          reference: map['reference'],
+          status: map['status'],
+          subTotal: map['subTotal'],
+          orderItems: map['orderItems'],
+          updatedAt: map['updatedAt'],
+        );
+        final box = _store.box<OrderF>();
+        box.put(order, mode: PutMode.update);
+        break;
+      // case 'category'
+      default:
+        return 200;
+    }
+    return 200;
   }
 
   @override
-  Future<SyncF> authenticateWithOfflineDb({required String userId}) {
-    // TODO: implement authenticateWithOfflineDb
-    throw UnimplementedError();
+  Future<SyncF> authenticateWithOfflineDb({required String userId}) async {
+    final response = await client.post(Uri.parse("$apihub/auth"),
+        body: jsonEncode({'userId': userId}),
+        headers: {'Content-Type': 'application/json'});
+
+    ProxyService.box
+        .write(key: 'bearerToken', value: syncFromJson(response.body).token);
+    ProxyService.box
+        .write(key: 'userId', value: syncFromJson(response.body).userId);
+    return syncFromJson(response.body);
   }
 }

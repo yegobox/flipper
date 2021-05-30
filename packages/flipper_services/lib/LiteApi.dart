@@ -417,7 +417,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<PColor> getColor({required int id, String? endPoint}) async {
+  Future<PColor?> getColor({required int id, String? endPoint}) async {
     Document doc = db.getDocument(id.toString());
     return spColorFromJson(doc.json);
   }
@@ -460,8 +460,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Product> getProduct({required String id}) async {
-    Document doc = db.getDocument(id);
+  Future<Product?> getProduct({required int id}) async {
+    Document doc = db.getDocument(id.toString());
 
     return sproductFromJson(doc.json);
   }
@@ -616,7 +616,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Variation> variant({required int variantId}) async {
+  Future<Variation?> variant({required int variantId}) async {
     Document doc = db.getDocument(variantId.toString());
     return svariationFromJson(doc.json);
   }
@@ -624,7 +624,7 @@ class LiteApi<T> implements Api {
   @override
   Future<Spenn> spennPayment(
       {required double amount, required phoneNumber}) async {
-    final String transactionNumber = Uuid().v1();
+    final int transactionNumber = DateTime.now().millisecondsSinceEpoch;
     String userId = ProxyService.box.read(key: 'userId');
     // final response = await client.post(Uri.parse("$flipperApi/pay"),
     //     body: jsonEncode({

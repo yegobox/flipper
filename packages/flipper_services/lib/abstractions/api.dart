@@ -28,14 +28,14 @@ abstract class Api<T> {
   Future<int> create<T>({required Map data, required String endPoint});
   Future<int> update<T>({required Map data, required String endPoint});
   Future<bool> delete({required dynamic id, String? endPoint});
-  Future<PColor> getColor({required int id, String? endPoint});
+  Future<PColor?> getColor({required int id, String? endPoint});
   Future<List<VariantStock>> variantStock(
       {required int branchId, required int variantId});
   Future<List<Variation>> variants({
     required int branchId,
     required int productId,
   });
-  Future<Variation> variant({required int variantId});
+  Future<Variation?> variant({required int variantId});
   Future<int> addUnits({required Map data});
 
   Future<int> addVariant({
@@ -44,7 +44,7 @@ abstract class Api<T> {
     required double supplyPrice,
   });
 
-  Future<Product> getProduct({required String id});
+  Future<Product?> getProduct({required int id});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});

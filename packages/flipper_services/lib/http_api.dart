@@ -219,7 +219,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<PColor> getColor({required int id, String? endPoint}) async {
+  Future<PColor?> getColor({required int id, String? endPoint}) async {
     final response = await client.get(Uri.parse("$apihub/api/$endPoint/$id"));
     return spColorFromJson(response.body);
   }
@@ -238,7 +238,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Product> getProduct({required String id}) async {
+  Future<Product> getProduct({required int id}) async {
     final response = await client.get(Uri.parse("$apihub/api/product/$id"));
     return sproductFromJson(response.body);
   }

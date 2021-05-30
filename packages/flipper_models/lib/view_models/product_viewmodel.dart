@@ -158,9 +158,9 @@ class ProductViewModel extends ReactiveViewModel {
       final Map data = product.toJson();
       data['unit'] = unit.name;
       ProxyService.api.update(data: data, endPoint: 'product');
-      final Product uProduct =
+      final Product? uProduct =
           await ProxyService.api.getProduct(id: product.id);
-      productService.setCurrentProduct(product: uProduct);
+      productService.setCurrentProduct(product: uProduct!);
     }
     if (type == 'variant') {
       // final Map data = product.toJson();
@@ -207,19 +207,19 @@ class ProductViewModel extends ReactiveViewModel {
   Future<void> switchColor({required PColor color}) async {
     for (PColor c in colors) {
       if (c.active) {
-        final PColor _color =
+        final PColor? _color =
             await ProxyService.api.getColor(id: c.id, endPoint: 'color');
-        final Map mapColor = _color.toJson();
+        final Map mapColor = _color!.toJson();
         mapColor['active'] = false;
         final id = mapColor['id'];
         ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
       }
     }
 
-    final PColor _color =
+    final PColor? _color =
         await ProxyService.api.getColor(id: color.id, endPoint: 'color');
 
-    final Map mapColor = _color.toJson();
+    final Map mapColor = _color!.toJson();
 
     mapColor['active'] = true;
     final id = mapColor['id'];

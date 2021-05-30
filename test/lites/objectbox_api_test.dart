@@ -77,5 +77,15 @@ void main() {
     final response = await api.addVariant(
         data: variations, retailPrice: 0.0, supplyPrice: 0.0);
     expect(response, 200);
+
+    List<Variation> variationss =
+        await api.variants(branchId: 11, productId: 2);
+    expect(variationss, isA<List<Variation>>());
+  });
+  test('test create order', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+
+    // api.createOrder(customAmount: 2, variation: variation, price: 300);
   });
 }

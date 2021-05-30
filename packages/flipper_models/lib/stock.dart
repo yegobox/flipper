@@ -47,7 +47,7 @@ class Stock {
   bool showLowStockAlert;
   List<String> channels;
   String table;
-  String productId;
+  int productId;
   bool? active;
   double value; // the value of stock items ie. count * retailPrice
 
@@ -63,7 +63,7 @@ class Stock {
       showLowStockAlert: json["showLowStockAlert"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       table: json["table"],
-      productId: json["productId"],
+      productId: int.parse(json["productId"]),
       active: json["active"] == null ? false : json["active"],
       value: json["value"]);
 

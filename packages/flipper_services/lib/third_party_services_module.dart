@@ -39,6 +39,7 @@ import 'objectbox_api.dart';
 // final dynamic db = {}; //fake db it is not going to be used on web anyway!
 final isWindows = UniversalPlatform.isWindows;
 // UniversalPlatform.platform;
+
 enum ApiProvider {
   Fake,
   Rest,
@@ -82,14 +83,15 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  Future<Api> get apiService async {
-    Api apiService;
+  Api get apiService {
+    late Api apiService;
     if (UniversalPlatform.isWindows ||
         UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       // apiService = LiteApi(database: db); //lite app
-      Directory dir = await getApplicationDocumentsDirectory(); //pro app
-      apiService = ObjectBoxApi(dir: dir);
+      getApplicationDocumentsDirectory().then((dir) {
+        apiService = ObjectBoxApi(dir: dir);
+      }); //pro app
       // apiService = HttpApi(); //lite app
     } else {
       apiService = HttpApi();

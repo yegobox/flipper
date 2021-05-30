@@ -141,12 +141,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future saveOrder({required int variationId, required double amount}) async {
-    Variation variation = await ProxyService.api.variant(
+    Variation? variation = await ProxyService.api.variant(
       variantId: variationId,
     );
     await ProxyService.api.createOrder(
       customAmount: amountTotal,
-      variation: variation,
+      variation: variation!,
       price: amountTotal,
       quantity: quantity.toDouble(),
     );
