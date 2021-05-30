@@ -1,4 +1,5 @@
 import 'order.dart';
+import 'order_item.dart';
 
 final orderMock = new OrderF(
   id: DateTime.now().millisecondsSinceEpoch,
@@ -15,15 +16,5 @@ final orderMock = new OrderF(
   table: 'orders',
   channels: ['300'],
   createdAt: DateTime.now().toIso8601String(),
-  orderItems: [
-    OrderItem(
-      count: 1,
-      name: 'regular',
-      orderId: 10,
-      id: 11,
-      price: 300,
-      variantId: 1,
-    )
-  ],
   paymentType: 'Cash',
 );

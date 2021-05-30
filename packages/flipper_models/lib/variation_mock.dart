@@ -1,10 +1,10 @@
 import 'package:flipper_models/variation.dart';
 
-final variationMock = new Variation(
+final variationMock = new Variant(
   id: DateTime.now().millisecondsSinceEpoch,
   name: 'Regular',
   sku: 'sku',
-  productId: 2,
+  fproductId: 2,
   unit: 'Per Item',
   table: 'variants',
   channels: ['300'],

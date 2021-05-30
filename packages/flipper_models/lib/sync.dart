@@ -12,13 +12,13 @@ String syncToJson(SyncF data) => json.encode(data.toJson());
 class SyncF {
   SyncF({
     required this.userId,
-    required this.channels,
+    this.channels,
     required this.token,
   });
   // @Id()
   int? tracker;
   String userId;
-  List<String> channels;
+  List<dynamic>? channels;
   String token;
 
   factory SyncF.fromJson(Map<String, dynamic> json) => SyncF(
@@ -29,7 +29,7 @@ class SyncF {
 
   Map<String, dynamic> toJson() => {
         "userId": userId,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "token": token,
       };
 }

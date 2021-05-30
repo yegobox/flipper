@@ -5,26 +5,26 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper_models/product.dart';
 import 'package:objectbox/objectbox.dart';
 
-Variation svariationFromJson(String str) =>
-    Variation.fromJson(json.decode(str));
+Variant svariationFromJson(String str) => Variant.fromJson(json.decode(str));
 
-String svariationToJson(Variation data) => json.encode(data.toJson());
+String svariationToJson(Variant data) => json.encode(data.toJson());
 
-List<Variation> variationFromJson(String str) =>
-    List<Variation>.from(json.decode(str).map((x) => Variation.fromJson(x)));
+List<Variant> variationFromJson(String str) =>
+    List<Variant>.from(json.decode(str).map((x) => Variant.fromJson(x)));
 
-String variationToJson(List<Variation> data) =>
+String variationToJson(List<Variant> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-@Entity()
-class Variation {
-  Variation(
+@Entity(uid: 1)
+class Variant {
+  Variant(
       {this.id = 0,
       required this.name,
       required this.sku,
-      required this.productId,
+      required this.fproductId,
       required this.unit,
       required this.table,
       this.channels,
@@ -37,7 +37,7 @@ class Variation {
   int id;
   String name;
   String sku;
-  int productId;
+  int fproductId;
   String unit;
   String table;
   List<dynamic>? channels;
@@ -46,16 +46,18 @@ class Variation {
   String? taxName;
   double? taxPercentage;
 
-  factory Variation.fromJson(Map<String, dynamic> json) => Variation(
+  final product = ToOne<Product>();
+
+  factory Variant.fromJson(Map<String, dynamic> json) => Variant(
       id: int.parse(json["id"]),
       name: json["name"],
       sku: json["sku"],
-      productId: int.parse(json["productId"]),
+      fproductId: int.parse(json["productId"].toString()),
       unit: json["unit"],
       table: json["table"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       productName: json["productName"],
-      branchId: int.parse(json["branchId"]),
+      branchId: int.parse(json["branchId"].toString()),
       taxName: json["taxName"] ?? '',
       taxPercentage: json["taxPercentage"] ?? 0);
 
@@ -63,7 +65,7 @@ class Variation {
         "id": int.parse(id.toString()),
         "name": name,
         "sku": sku,
-        "productId": int.parse(productId.toString()),
+        "productId": int.parse(fproductId.toString()),
         "unit": unit,
         "table": table,
         "channels": List<dynamic>.from(channels!.map((x) => x)),

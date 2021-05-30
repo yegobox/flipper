@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/color.dart';
+import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product.dart';
@@ -184,7 +185,7 @@ class HttpApi<T> implements Api {
   // FIXME: fix the api to retun variants by productId
 
   @override
-  Future<List<Variation>> variants(
+  Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/variants/$productId"));
@@ -226,7 +227,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<int> addVariant(
-      {required List<Variation> data,
+      {required List<Variant> data,
       required double retailPrice,
       required double supplyPrice}) async {
     final http.Response response = await client.post(
@@ -272,7 +273,7 @@ class HttpApi<T> implements Api {
   @override
   Future<OrderF> createOrder(
       {required double customAmount,
-      required Variation variation,
+      required Variant variation,
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
@@ -304,16 +305,16 @@ class HttpApi<T> implements Api {
         paymentType: 'Cash',
         branchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
-        orderItems: [
-          OrderItem(
-            count: quantity,
-            name: useProductName ? variation.productName : variation.name,
-            variantId: variation.id,
-            id: orderItemId,
-            price: price,
-            orderId: id4,
-          )
-        ],
+        // orderItems: [
+        //   OrderItem(
+        //     count: quantity,
+        //     name: useProductName ? variation.productName : variation.name,
+        //     variantId: variation.id,
+        //     id: orderItemId,
+        //     price: price,
+        //     forderId: id4,
+        //   )
+        // ],
       );
 
       final http.Response response = await client.post(
@@ -329,7 +330,7 @@ class HttpApi<T> implements Api {
         variantId: variation.id,
         id: orderItemId,
         price: price,
-        orderId: existOrder.id,
+        forderId: existOrder.id,
       );
       existOrder.orderItems!.add(item);
       int orderId = existOrder.id;
@@ -339,7 +340,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Variation> getCustomProductVariant() async {
+  Future<Variant> getCustomProductVariant() async {
     final response =
         await client.get(Uri.parse("$apihub/api/variantCustomProduct"));
 
@@ -354,7 +355,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Variation> variant({required int variantId}) async {
+  Future<Variant> variant({required int variantId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/variant/$variantId"));
 

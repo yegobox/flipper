@@ -7,9 +7,9 @@ import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/sync.dart';
-
+import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/stock.dart';
-
+import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/variation.dart';
 
@@ -235,11 +235,11 @@ class LiteApi<T> implements Api {
     final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
     final Map productMap = json.decode(productDocument.json);
-    final variation = new Variation(
+    final variation = new Variant(
       id: id,
       name: 'Regular',
       sku: 'sku',
-      productId: productMap['id'],
+      fproductId: productMap['id'],
       unit: 'Per Item',
       table: AppTables.variation,
       channels: [userId!],
@@ -370,9 +370,9 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Variation>> variants(
+  Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
-    final List<Variation> variants = [];
+    final List<Variant> variants = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet _variants = Q1.execute();
     while (_variants.next()) {
@@ -424,10 +424,10 @@ class LiteApi<T> implements Api {
 
   @override
   Future<int> addVariant(
-      {required List<Variation> data,
+      {required List<Variant> data,
       required double retailPrice,
       required double supplyPrice}) async {
-    for (Variation variation in data) {
+    for (Variant variation in data) {
       Map d = variation.toJson();
 
       final doc = Document(d["id"], data: d);
@@ -502,7 +502,7 @@ class LiteApi<T> implements Api {
   @override
   Future<OrderF> createOrder(
       {required double customAmount,
-      required Variation variation,
+      required Variant variation,
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
@@ -536,16 +536,17 @@ class LiteApi<T> implements Api {
         paymentType: 'Cash',
         branchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
-        orderItems: [
-          OrderItem(
-            count: quantity,
-            name: useProductName ? variation.productName : variation.name,
-            variantId: variation.id,
-            id: orderItemId,
-            price: price,
-            orderId: id4,
-          )
-        ],
+        // FIXME:un comment
+        // orderItems: [
+        //   OrderItem(
+        //     count: quantity,
+        //     name: useProductName ? variation.productName : variation.name,
+        //     variantId: variation.id,
+        //     id: orderItemId,
+        //     price: price,
+        //     forderId: id4,
+        //   )
+        // ],
       );
       final Document _doc = Document(id4.toString(), data: order.toJson());
       Document d = db.saveDocument(_doc);
@@ -558,7 +559,7 @@ class LiteApi<T> implements Api {
         variantId: variation.id,
         id: orderItemId,
         price: price,
-        orderId: existOrder.id,
+        forderId: existOrder.id,
       );
       existOrder.orderItems!.add(item);
       update(data: existOrder.toJson(), endPoint: 'order');
@@ -567,7 +568,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Variation> getCustomProductVariant() async {
+  Future<Variant> getCustomProductVariant() async {
     Q20.parameters = {'T': AppTables.product, 'NAME': 'Custom Amount'};
     final ResultSet results = Q20.execute();
     final Map map = results.allResults[0];
@@ -616,7 +617,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Variation?> variant({required int variantId}) async {
+  Future<Variant?> variant({required int variantId}) async {
     Document doc = db.getDocument(variantId.toString());
     return svariationFromJson(doc.json);
   }

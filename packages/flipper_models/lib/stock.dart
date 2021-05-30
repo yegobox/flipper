@@ -29,7 +29,7 @@ class Stock {
     required this.retailPrice,
     required this.canTrackingStock,
     required this.showLowStockAlert,
-    required this.channels,
+    this.channels,
     required this.table,
     required this.productId,
     this.active,
@@ -45,7 +45,7 @@ class Stock {
   double retailPrice;
   bool canTrackingStock;
   bool showLowStockAlert;
-  List<String> channels;
+  List<dynamic>? channels;
   String table;
   int productId;
   bool? active;
@@ -54,7 +54,7 @@ class Stock {
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
       id: int.parse(json["id"]),
       branchId: json["branchId"],
-      variantId: int.parse(json["variantId"]),
+      variantId: int.parse(json["variantId"].toString()),
       lowStock: json["lowStock"],
       currentStock: json["currentStock"],
       supplyPrice: json["supplyPrice"],
@@ -63,7 +63,7 @@ class Stock {
       showLowStockAlert: json["showLowStockAlert"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       table: json["table"],
-      productId: int.parse(json["productId"]),
+      productId: int.parse(json["productId"].toString()),
       active: json["active"] == null ? false : json["active"],
       value: json["value"]);
 
@@ -77,7 +77,7 @@ class Stock {
         "retailPrice": retailPrice,
         "canTrackingStock": canTrackingStock,
         "showLowStockAlert": showLowStockAlert,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "table": table,
         "productId": productId,
         "active": active == null ? false : active,

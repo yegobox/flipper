@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:objectbox/objectbox.dart';
 
+import 'order_item.dart';
+
 OrderF sorderFromJson(String str) => OrderF.fromJson(json.decode(str));
 
 String sorderToJson(OrderF data) => json.encode(data.toJson());
@@ -16,7 +18,7 @@ List<OrderF> orderFromJson(String str) =>
 String orderToJson(List<OrderF> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-@Entity()
+@Entity(uid: 1)
 class OrderF {
   OrderF({
     this.id = 0,
@@ -33,9 +35,9 @@ class OrderF {
     required this.customerChangeDue,
     required this.createdAt,
     this.updatedAt,
-    this.orderItems,
+    // required this.orderItems,
     required this.table,
-    required this.channels,
+    this.channels,
   });
   @Id(assignable: true)
   int id;
@@ -52,9 +54,10 @@ class OrderF {
   double customerChangeDue;
   String createdAt;
   String? updatedAt;
-  List<OrderItem>? orderItems;
+  @Backlink()
+  final orderItems = ToMany<OrderItem>();
   String table;
-  List<String> channels;
+  List<dynamic>? channels;
 
   factory OrderF.fromJson(Map<String, dynamic> json) => OrderF(
         id: int.parse(json["id"]),
@@ -71,8 +74,8 @@ class OrderF {
         customerChangeDue: json["customerChangeDue"],
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
-        orderItems: List<OrderItem>.from(
-            json["orderItems"].map((x) => OrderItem.fromJson(x))),
+        // orderItems: List<OrderItem>.from(
+        //     json["orderItems"].map((x) => OrderItem.fromJson(x))),
         table: json["table"],
         channels: List<String>.from(json["channels"].map((x) => x)),
       );
@@ -92,44 +95,8 @@ class OrderF {
         "customerChangeDue": customerChangeDue,
         "createdAt": createdAt,
         "updatedAt": updatedAt,
-        "orderItems": List<dynamic>.from(orderItems!.map((x) => x.toJson())),
+        "orderItems": orderItems,
         "table": table,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
-      };
-}
-
-class OrderItem {
-  OrderItem({
-    this.id = 0,
-    required this.name,
-    required this.variantId,
-    required this.count,
-    required this.price,
-    required this.orderId,
-  });
-  @Id(assignable: true)
-  int id;
-  String name;
-  int variantId;
-  double count;
-  double price;
-  int orderId;
-
-  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
-        id: int.parse(json["id"]),
-        name: json["name"],
-        variantId: int.parse(json["variantId"]),
-        count: json["count"],
-        price: json["price"].toDouble(),
-        orderId: int.parse(json["orderId"]),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": int.parse(id.toString()),
-        "name": name,
-        "variantId": int.parse(variantId.toString()),
-        "count": count,
-        "price": price,
-        "orderId": int.parse(orderId.toString()),
+        "channels": channels,
       };
 }

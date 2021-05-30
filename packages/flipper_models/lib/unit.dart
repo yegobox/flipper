@@ -40,7 +40,7 @@ class Unit {
   factory Unit.fromJson(Map<String, dynamic> json) => Unit(
         id: int.parse(json["id"]),
         value: json["value"],
-        branchId: int.parse(json["branchId"]),
+        branchId: int.parse(json["branchId"].toString()),
         name: json["name"],
         table: json["table"],
         active: json["active"],

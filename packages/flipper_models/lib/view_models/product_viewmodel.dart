@@ -38,7 +38,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   get currentColor => _appService.currentColor;
 
-  List<Variation>? get variants => productService.variants;
+  List<Variant>? get variants => productService.variants;
 
   Future<void> loadProducts() async {
     await productService.loadProducts();
@@ -235,7 +235,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   Future<int> addVariant(
-      {List<Variation>? variations,
+      {List<Variant>? variations,
       required double retailPrice,
       required double supplyPrice}) async {
     int result = await ProxyService.api.addVariant(
@@ -257,7 +257,7 @@ class ProductViewModel extends ReactiveViewModel {
   /// of related stock
   void updateRegularVariant({double? supplyPrice, double? retailPrice}) async {
     if (supplyPrice != null) {
-      for (Variation variation in variants!) {
+      for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           Stock stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
@@ -270,7 +270,7 @@ class ProductViewModel extends ReactiveViewModel {
     }
 
     if (retailPrice != null) {
-      for (Variation variation in variants!) {
+      for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           Stock stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
@@ -302,9 +302,9 @@ class ProductViewModel extends ReactiveViewModel {
   void deleteProduct({required int productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<Variation> variations = await ProxyService.api
+    List<Variant> variations = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
-    for (Variation variation in variations) {
+    for (Variant variation in variations) {
       ProxyService.api.delete(id: variation.id, endPoint: 'variation');
       //get stock->delete
       Stock stock =

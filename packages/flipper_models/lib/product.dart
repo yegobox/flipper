@@ -4,6 +4,7 @@
 library flipper_models;
 
 import 'dart:convert';
+import 'package:flipper_models/variation.dart';
 import 'package:objectbox/objectbox.dart';
 
 Product sproductFromJson(String str) => Product.fromJson(json.decode(str));
@@ -22,7 +23,7 @@ class Product {
       {this.id = 0,
       required this.name,
       required this.description,
-      required this.channels,
+      this.channels,
       required this.active,
       this.taxId,
       required this.hasPicture,
@@ -34,8 +35,6 @@ class Product {
       required this.categoryId,
       this.createdAt,
       required this.unit,
-      this.allVariants,
-      this.variants,
       this.draft,
       this.imageLocal,
       this.currentUpdate,
@@ -44,7 +43,7 @@ class Product {
   int id;
   String name;
   String? description;
-  List<String> channels;
+  List<dynamic>? channels;
   bool active;
   dynamic taxId;
   bool hasPicture;
@@ -56,8 +55,8 @@ class Product {
   String categoryId;
   String? createdAt;
   String unit;
-  List<AllVariant>? allVariants;
-  List<AllVariant>? variants;
+  @Backlink()
+  final variants = ToMany<Variant>();
   bool? draft;
   bool? imageLocal;
   bool? currentUpdate;
@@ -73,20 +72,12 @@ class Product {
         hasPicture: json["hasPicture"],
         table: json["table"],
         color: json["color"],
-        businessId: int.parse(json["businessId"]),
-        branchId: int.parse(json["branchId"]),
+        businessId: int.parse(json["businessId"].toString()),
+        branchId: int.parse(json["branchId"].toString()),
         supplierId: json["supplierId"],
         categoryId: json["categoryId"],
         createdAt: json["createdAt"],
         unit: json["unit"],
-        allVariants: json["allVariants"] == null
-            ? []
-            : List<AllVariant>.from(
-                json["allVariants"].map((x) => AllVariant.fromJson(x))),
-        variants: json["variants"] == null
-            ? []
-            : List<AllVariant>.from(
-                json["variants"].map((x) => AllVariant.fromJson(x))),
         draft: json["draft"] == null ? false : json["draft"],
         imageLocal: json["imageLocal"] == null ? false : json["imageLocal"],
         currentUpdate:
@@ -98,7 +89,7 @@ class Product {
         "id": int.parse(id.toString()),
         "name": name,
         "description": description,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "active": active,
         "taxId": taxId,
         "hasPicture": hasPicture,
@@ -110,81 +101,10 @@ class Product {
         "categoryId": categoryId,
         "createdAt": createdAt == null ? '' : createdAt!,
         "unit": unit,
-        "allVariants": allVariants == null
-            ? []
-            : List<dynamic>.from(allVariants!.map((x) => x.toJson())),
-        "variants": variants == null
-            ? []
-            : List<dynamic>.from(variants!.map((x) => x.toJson())),
+        "variants": variants,
         "draft": draft == null ? false : draft,
         "imageLocal": imageLocal == null ? false : imageLocal,
         "currentUpdate": currentUpdate == null ? false : currentUpdate,
         "imageUrl": imageUrl,
-      };
-}
-
-class AllVariant {
-  AllVariant(
-      {this.id,
-      required this.name,
-      required this.sku,
-      this.productId,
-      required this.unit,
-      required this.table,
-      required this.channels,
-      this.productName,
-      required this.currentStock,
-      required this.supplyPrice,
-      required this.retailPrice,
-      required this.canTrackingStock,
-      this.stockId,
-      this.branchId});
-  int? branchId;
-  String? id;
-  String name;
-  String sku;
-  String? productId;
-  String unit;
-  String table;
-  List<String> channels;
-  String? productName;
-  dynamic currentStock;
-  dynamic supplyPrice;
-  dynamic retailPrice;
-  dynamic canTrackingStock;
-  String? stockId;
-
-  factory AllVariant.fromJson(Map<String, dynamic> json) => AllVariant(
-        id: json["id"] == null ? '' : json["id"],
-        name: json["name"],
-        sku: json["sku"],
-        productId: json["productId"] == null ? 0 : json["productId"],
-        unit: json["unit"],
-        table: json["table"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
-        productName: json["productName"] == null ? '' : json["productName"],
-        currentStock: json["currentStock"],
-        supplyPrice: json["supplyPrice"],
-        retailPrice: json["retailPrice"],
-        canTrackingStock: json["canTrackingStock"],
-        stockId: json["stockId"] == null ? '' : json["stockId"],
-        branchId: json["branchId"] == null ? 0 : int.parse(json["branchId"]),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": id == null ? '' : id,
-        "name": name,
-        "sku": sku,
-        "productId": productId == null ? 0 : int.parse(productId.toString()),
-        "unit": unit,
-        "table": table,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
-        "productName": productName == null ? '' : productName,
-        "currentStock": currentStock,
-        "supplyPrice": supplyPrice,
-        "retailPrice": retailPrice,
-        "canTrackingStock": canTrackingStock,
-        "stockId": stockId == null ? '' : stockId,
-        "branchId": branchId == null ? 0 : int.parse(branchId.toString())
       };
 }

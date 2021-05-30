@@ -44,7 +44,7 @@ class _FakeProduct extends _i1.Fake implements _i5.Product {}
 
 class _FakeOrderF extends _i1.Fake implements _i6.OrderF {}
 
-class _FakeVariation extends _i1.Fake implements _i7.Variation {}
+class _FakeVariation extends _i1.Fake implements _i7.Variant {}
 
 class _FakeSpenn extends _i1.Fake implements _i8.Spenn {}
 
@@ -147,24 +147,23 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
           returnValue: Future<List<_i17.VariantStock>>.value(
               <_i17.VariantStock>[])) as _i11.Future<List<_i17.VariantStock>>);
   @override
-  _i11.Future<List<_i7.Variation>> variants({int? branchId, int? productId}) =>
+  _i11.Future<List<_i7.Variant>> variants({int? branchId, int? productId}) =>
       (super.noSuchMethod(
               Invocation.method(
                   #variants, [], {#branchId: branchId, #productId: productId}),
-              returnValue: Future<List<_i7.Variation>>.value(<_i7.Variation>[]))
-          as _i11.Future<List<_i7.Variation>>);
+              returnValue: Future<List<_i7.Variant>>.value(<_i7.Variant>[]))
+          as _i11.Future<List<_i7.Variant>>);
   @override
-  _i11.Future<_i7.Variation?> variant({int? variantId}) => (super.noSuchMethod(
-          Invocation.method(#variant, [], {#variantId: variantId}),
-          returnValue: Future<_i7.Variation?>.value())
-      as _i11.Future<_i7.Variation?>);
+  _i11.Future<_i7.Variant?> variant({int? variantId}) => (super.noSuchMethod(
+      Invocation.method(#variant, [], {#variantId: variantId}),
+      returnValue: Future<_i7.Variant?>.value()) as _i11.Future<_i7.Variant?>);
   @override
   _i11.Future<int> addUnits({Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i11.Future<int>);
   @override
   _i11.Future<int> addVariant(
-          {List<_i7.Variation>? data,
+          {List<_i7.Variant>? data,
           double? retailPrice,
           double? supplyPrice}) =>
       (super.noSuchMethod(
@@ -196,7 +195,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
   @override
   _i11.Future<_i6.OrderF> createOrder(
           {double? customAmount,
-          _i7.Variation? variation,
+          _i7.Variant? variation,
           double? price,
           bool? useProductName = false,
           String? orderType = r'custom',
@@ -218,10 +217,10 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i11.Future<List<_i6.OrderF>>);
   @override
-  _i11.Future<_i7.Variation> getCustomProductVariant() =>
+  _i11.Future<_i7.Variant> getCustomProductVariant() =>
       (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),
-              returnValue: Future<_i7.Variation>.value(_FakeVariation()))
-          as _i11.Future<_i7.Variation>);
+              returnValue: Future<_i7.Variant>.value(_FakeVariation()))
+          as _i11.Future<_i7.Variant>);
   @override
   _i11.Future<_i8.Spenn> spennPayment({double? amount, dynamic phoneNumber}) =>
       (super.noSuchMethod(

@@ -45,7 +45,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       ProxyService.keypad.pop();
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
-        Variation variation = await ProxyService.api.getCustomProductVariant();
+        Variant variation = await ProxyService.api.getCustomProductVariant();
 
         double amount = double.parse(ProxyService.keypad.key);
 
@@ -131,7 +131,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<int> getVariant({required int productId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<Variation> variants = await ProxyService.api
+    List<Variant> variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
     return variants[0].id;
   }
@@ -141,7 +141,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future saveOrder({required int variationId, required double amount}) async {
-    Variation? variation = await ProxyService.api.variant(
+    Variant? variation = await ProxyService.api.variant(
       variantId: variationId,
     );
     await ProxyService.api.createOrder(

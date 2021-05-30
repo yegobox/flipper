@@ -75,10 +75,10 @@ void main() {
     );
     expect(product, isA<Product>());
 
-    List<Variation> variations =
+    List<Variant> variations =
         await api.variants(branchId: 11, productId: product.id);
 
-    expect(variations, isA<List<Variation>>());
+    expect(variations, isA<List<Variant>>());
 
     expect(variations[0].id, isA<String>());
 

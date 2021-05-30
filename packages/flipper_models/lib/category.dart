@@ -22,7 +22,7 @@ class Category {
     required this.active,
     required this.focused,
     required this.name,
-    required this.channels,
+    this.channels,
     required this.branchId,
     required this.table,
   });
@@ -31,7 +31,7 @@ class Category {
   bool active;
   bool focused;
   String name;
-  List<String> channels;
+  List<dynamic>? channels;
   int branchId;
   String table;
 
@@ -50,7 +50,7 @@ class Category {
         "active": active,
         "focused": focused,
         "name": name,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "branchId": int.parse(branchId.toString()),
         "table": table,
       };

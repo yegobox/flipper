@@ -31,15 +31,15 @@ abstract class Api<T> {
   Future<PColor?> getColor({required int id, String? endPoint});
   Future<List<VariantStock>> variantStock(
       {required int branchId, required int variantId});
-  Future<List<Variation>> variants({
+  Future<List<Variant>> variants({
     required int branchId,
     required int productId,
   });
-  Future<Variation?> variant({required int variantId});
+  Future<Variant?> variant({required int variantId});
   Future<int> addUnits({required Map data});
 
   Future<int> addVariant({
-    required List<Variation> data,
+    required List<Variant> data,
     required double retailPrice,
     required double supplyPrice,
   });
@@ -55,7 +55,7 @@ abstract class Api<T> {
   ///then if it exist should return the existing one!
   Future<OrderF> createOrder({
     required double customAmount,
-    required Variation variation,
+    required Variant variation,
     required double price,
     bool useProductName = false,
     String orderType = 'custom',
@@ -64,7 +64,7 @@ abstract class Api<T> {
 
   Future<List<OrderF>> orders();
 
-  Future<Variation> getCustomProductVariant();
+  Future<Variant> getCustomProductVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectCashPayment(
       {required double cashReceived, required OrderF order});

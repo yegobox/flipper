@@ -28,7 +28,7 @@ class ProductService with ReactiveServiceMixin {
   }
 
   final _variants = ReactiveValue<dynamic>(null);
-  List<Variation>? get variants => _variants.value;
+  List<Variant>? get variants => _variants.value;
 
   Future<void> variantsProduct({required int productId}) async {
     final int? branchId = ProxyService.box.read(key: 'branchId');

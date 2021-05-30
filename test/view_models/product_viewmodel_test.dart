@@ -30,11 +30,11 @@ void main() {
     test('test adding variant ...', () async {
       final model = _getModel();
 
-      List<Variation> ls = [];
-      Variation v = new Variation(
+      List<Variant> ls = [];
+      Variant v = new Variant(
         name: 'name',
         sku: 'N/A',
-        productId: 2,
+        fproductId: 2,
         unit: 'kg',
         channels: ['UID'],
         productName: 'temp',

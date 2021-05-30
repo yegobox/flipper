@@ -13,6 +13,6 @@ final stockMock = new Stock(
   showLowStockAlert: false,
   channels: ['300'],
   table: 'stocks',
-  productId: 'caa5cbf0-b3c3-11eb-85f9-4df3cd820e94',
+  productId: 2,
   active: false,
 );

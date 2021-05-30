@@ -14,10 +14,10 @@ class VariationList extends StatelessWidget {
     required this.deleteVariant,
     required this.model,
   }) : super(key: key);
-  final List<Variation> variations;
+  final List<Variant> variations;
   final ProductViewModel model;
   final Function deleteVariant;
-  Widget _buildVariationsList({required List<Variation> variations}) {
+  Widget _buildVariationsList({required List<Variant> variations}) {
     final List<Widget> list = <Widget>[];
 
     for (var i = 0; i < variations.length; i++) {

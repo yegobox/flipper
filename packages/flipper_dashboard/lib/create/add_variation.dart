@@ -43,11 +43,11 @@ class _AddVariationState extends State<AddVariation> {
               onPressedCallback: () async {
                 if (AddVariation._formKey.currentState!.validate()) {
                   final variantId = DateTime.now().millisecondsSinceEpoch;
-                  List<Variation> variations = [];
-                  Variation data = new Variation(
+                  List<Variant> variations = [];
+                  Variant data = new Variant(
                     name: nameController.text,
                     sku: sku,
-                    productId: model.product.id,
+                    fproductId: model.product.id,
                     unit: model.productService.currentUnit!,
                     channels: [model.productService.userId!],
                     productName: model.product.name,

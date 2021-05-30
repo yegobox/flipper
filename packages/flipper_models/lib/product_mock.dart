@@ -24,25 +24,24 @@ final customProductMock = new Product(
   unit: "kg",
   channels: [_appService.userid!],
   createdAt: DateTime.now().toIso8601String(),
-  variants: [
-    AllVariant(
-      name: "Regular",
-      sku: "sku",
-      retailPrice: 0,
-      canTrackingStock: false,
-      supplyPrice: 0,
-      branchId: _appService.branchId!,
-      currentStock: 0,
-      unit: "kg",
-      table: "variants",
-      channels: [_appService.userid!],
-      // updatedAt: DateTime.now().toIso8601String()
-    )
-  ],
+  // variants: [
+  //   AllVariant(
+  //     name: "Regular",
+  //     sku: "sku",
+  //     retailPrice: 0,
+  //     canTrackingStock: false,
+  //     supplyPrice: 0,
+  //     branchId: _appService.branchId!,
+  //     currentStock: 0,
+  //     unit: "kg",
+  //     table: "variants",
+  //     channels: [_appService.userid!],
+  //     // updatedAt: DateTime.now().toIso8601String()
+  //   )
+  // ],
 );
 
 final productMock = new Product(
-  id: DateTime.now().millisecondsSinceEpoch,
   branchId: _appService.branchId!,
   draft: true,
   currentUpdate: true,
@@ -60,19 +59,19 @@ final productMock = new Product(
   unit: "kg",
   channels: [_appService.userid!],
   createdAt: DateTime.now().toIso8601String(),
-  variants: [
-    AllVariant(
-      name: "Regular",
-      sku: "sku",
-      retailPrice: 0,
-      canTrackingStock: false,
-      supplyPrice: 0,
-      branchId: _appService.branchId!,
-      currentStock: 0,
-      unit: "kg",
-      table: "variants",
-      channels: [_appService.userid!],
-      // updatedAt: DateTime.now().toIso8601String()
-    )
-  ],
+  // variants: [
+  //   AllVariant(
+  //     name: "Regular",
+  //     sku: "sku",
+  //     retailPrice: 0,
+  //     canTrackingStock: false,
+  //     supplyPrice: 0,
+  //     branchId: _appService.branchId!,
+  //     currentStock: 0,
+  //     unit: "kg",
+  //     table: "variants",
+  //     channels: [_appService.userid!],
+  //     // updatedAt: DateTime.now().toIso8601String()
+  //   )
+  // ],
 );

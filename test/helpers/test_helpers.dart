@@ -30,7 +30,7 @@ Api getAndRegisterApi(
     List<Business>? businesses,
     Map? data,
     String? uri,
-    List<Variation>? variations}) {
+    List<Variant>? variations}) {
   _removeRegistrationIfExists<Api>();
   final service = MockApi();
   when(service.login()).thenAnswer(
@@ -119,8 +119,8 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.read(key: 'userId')).thenAnswer((_) => '300');
   //TODOrepace TOKEN   here
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
-  when(service.read(key: 'branchId')).thenAnswer((_) => 'NN');
-  when(service.read(key: 'businessId')).thenAnswer((_) => 'XXX');
+  when(service.read(key: 'branchId')).thenAnswer((_) => 11);
+  when(service.read(key: 'businessId')).thenAnswer((_) => 10);
   when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
   when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
 

@@ -21,7 +21,7 @@ class Branch {
   Branch({
     this.id = 0,
     required this.active,
-    required this.channels,
+    this.channels,
     required this.description,
     required this.name,
     required this.businessId,
@@ -33,7 +33,7 @@ class Branch {
   @Id(assignable: true)
   int id;
   bool? active;
-  List<String> channels;
+  List<dynamic>? channels;
   String? description;
   String name;
   int? businessId;
@@ -57,7 +57,7 @@ class Branch {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "active": active == null ? false : active,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "description": description == null ? '' : description,
         "name": name,
         "businessId": businessId == null ? 0 : int.parse(businessId.toString()),

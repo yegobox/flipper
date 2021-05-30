@@ -28,7 +28,7 @@ class Business {
     this.userId,
     this.typeId,
     this.timeZone,
-    required this.channels,
+    this.channels,
     required this.table,
     required this.country,
     this.businessUrl,
@@ -48,7 +48,7 @@ class Business {
   dynamic userId;
   dynamic typeId;
   dynamic timeZone;
-  List<String> channels;
+  List<dynamic>? channels;
   String table;
   String country;
   dynamic businessUrl;
@@ -87,7 +87,7 @@ class Business {
         "userId": userId,
         "typeId": typeId,
         "timeZone": timeZone,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "table": table,
         "country": country,
         "businessUrl": businessUrl,

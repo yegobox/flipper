@@ -5,6 +5,7 @@ import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/order_item.dart';
 
 import 'package:flipper_models/variant_stock.dart';
 
@@ -38,7 +39,7 @@ class ObjectBoxApi implements Api {
   late Store _store;
   ObjectBoxApi({required Directory dir}) {
     // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/db3');
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/db5');
   }
   @override
   Future<List<Unit>> units({required int branchId}) async {
@@ -146,15 +147,15 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Variation?> variant({required int variantId}) async {
-    return _store.box<Variation>().get(variantId);
+  Future<Variant?> variant({required int variantId}) async {
+    return _store.box<Variant>().get(variantId);
   }
 
   @override
-  Future<List<Variation>> variants(
+  Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
     return _store
-        .box<Variation>()
+        .box<Variant>()
         .getAll()
         .where((stock) => stock.productId == productId)
         .toList();
@@ -202,18 +203,18 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<int> addVariant(
-      {required List<Variation> data,
+      {required List<Variant> data,
       required double retailPrice,
       required double supplyPrice}) async {
-    for (Variation variation in data) {
+    for (Variant variation in data) {
       Map d = variation.toJson();
-      final box = _store.box<Variation>();
+      final box = _store.box<Variant>();
       final variantId = box.put(variation);
       final stockId = DateTime.now().millisecondsSinceEpoch;
       String? userId = ProxyService.box.read(key: 'userId');
       final stock = new Stock(
         id: stockId,
-        branchId: int.parse(d['branchId']),
+        branchId: int.parse(d['branchId'].toString()),
         variantId: variantId,
         lowStock: 0.0,
         currentStock: 0.0,
@@ -223,7 +224,7 @@ class ObjectBoxApi implements Api {
         showLowStockAlert: false,
         channels: [userId!],
         table: AppTables.stock,
-        productId: int.parse(d['productId']),
+        productId: int.parse(d['productId'].toString()),
         value: 0,
         active: false,
       );
@@ -263,21 +264,19 @@ class ObjectBoxApi implements Api {
   @override
   Future<OrderF> createOrder(
       {required double customAmount,
-      required Variation variation,
+      required Variant variation,
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
-    final id4 = DateTime.now().millisecondsSinceEpoch;
-    final orderItemId = DateTime.now().millisecondsSinceEpoch;
+    // final orderItemId = DateTime.now().millisecondsSinceEpoch;
     final ref = Uuid().v1();
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     int branchId = ProxyService.box.read(key: 'branchId');
     OrderF? existOrder = await pendingOrderExist();
     if (existOrder == null) {
-      OrderF order = new OrderF(
-        id: id4,
+      final order = new OrderF(
         reference: ref,
         orderNumber: orderNUmber,
         status: 'pending',
@@ -293,17 +292,15 @@ class ObjectBoxApi implements Api {
         paymentType: 'Cash',
         branchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
-        orderItems: [
-          OrderItem(
-            count: quantity,
-            name: useProductName ? variation.productName : variation.name,
-            variantId: variation.id,
-            id: orderItemId,
-            price: price,
-            orderId: id4,
-          )
-        ],
       );
+      OrderItem orderItems = OrderItem(
+        count: quantity,
+        name: useProductName ? variation.productName : variation.name,
+        variantId: variation.id,
+        price: price,
+        forderId: order.id,
+      );
+      order.orderItems.add(orderItems);
       final box = _store.box<OrderF>();
       final id = box.put(order);
       return _store.box<OrderF>().get(id)!;
@@ -312,18 +309,64 @@ class ObjectBoxApi implements Api {
         count: 1,
         name: useProductName ? variation.productName : variation.name,
         variantId: variation.id,
-        id: orderItemId,
         price: price,
-        orderId: existOrder.id,
+        forderId: existOrder.id,
       );
-      existOrder.orderItems!.add(item);
-      update(data: existOrder.toJson(), endPoint: 'order');
-      return existOrder;
+      existOrder.orderItems.add(item);
+      // final box = _store.box<OrderF>();
+      // final id = box.put(existOrder, mode: PutMode.update);
+      final id = _store.box<OrderF>().put(existOrder);
+      // update(data: existOrder.toJson(), endPoint: 'order');
+      return _store.box<OrderF>().get(id)!;
     }
   }
 
   @override
   Future<Product> createProduct({required Product product}) async {
+    final Map data = product.toJson();
+    final productid = Uuid().v1();
+    data['id'] = productid;
+    data['active'] = false;
+    data['description'] = 'description';
+    data['hasPicture'] = false;
+    data['businessId'] = ProxyService.box.read(key: 'businessId');
+    data['branchId'] = ProxyService.box.read(key: 'branchId');
+    data['taxId'] = 'XX';
+    Product products = Product(
+        active: data['active'],
+        branchId: data['branchId'],
+        businessId: data['businessId'],
+        categoryId: data['categoryId'],
+        color: data['color'],
+        description: data['description'],
+        hasPicture: data['hasPicture'],
+        name: data['name'],
+        table: data['table'],
+        unit: data['unit'],
+        channels: data['channels'],
+        createdAt: data['createdAt'],
+        currentUpdate: data['currentUpdate'],
+        draft: data['draft'],
+        imageLocal: data['imageLocal'],
+        imageUrl: data['imageUrl'],
+        supplierId: data['supplierId'],
+        taxId: data['taxId']);
+    final String? userId = ProxyService.box.read(key: 'userId');
+    final int? branchId = ProxyService.box.read(key: 'branchId');
+
+    Variant variant = Variant(
+      name: 'Regular',
+      sku: 'sku',
+      fproductId: 2, //TODO:replace soon
+      unit: 'Per Item',
+      table: AppTables.variation,
+      channels: [userId!],
+      productName: data['name'],
+      branchId: branchId!,
+      taxName: 'N/A', //TODO: get value from branch/business config
+      taxPercentage: 0.0,
+    );
+    // products.variants.add()
     throw UnimplementedError();
   }
 
@@ -333,9 +376,9 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Variation> getCustomProductVariant() async {
+  Future<Variant> getCustomProductVariant() async {
     return _store
-        .box<Variation>()
+        .box<Variant>()
         .getAll()
         .where((v) => v.name == 'Custom Amount')
         .toList()[0];
@@ -398,8 +441,15 @@ class ObjectBoxApi implements Api {
   Future<int> update<T>({required Map data, required String endPoint}) async {
     //clean the endPoint so we are able to use switch with no problem
     //the endPoint can be unit/1 so we want unit and 1 separately
-    final String point = endPoint.split('/')[0];
-    final int id = int.parse(endPoint.split('/')[1]);
+    final split = endPoint.split('/')[0];
+    String point = endPoint;
+
+    int id = 0;
+    if (split.length == 2) {
+      point = endPoint.split('/')[0];
+      id = int.parse(endPoint.split('/')[1]);
+    }
+
     final Map dn = data;
     switch (point) {
       case 'product':
@@ -421,7 +471,7 @@ class ObjectBoxApi implements Api {
           hasPicture: map['hasPicture'],
           name: map['name'],
           unit: map['unit'],
-          allVariants: map['allVariants'],
+          // allVariants: map['allVariants'],
           createdAt: map['createdAt'],
           currentUpdate: map['currentUpdate'],
           draft: map['draft'],
@@ -429,7 +479,7 @@ class ObjectBoxApi implements Api {
           imageUrl: map['imageUrl'],
           supplierId: map['supplierId'],
           taxId: map['taxId'],
-          variants: map['variants'],
+          // variants: map['variants'],
         );
         final box = _store.box<Product>();
         box.put(product, mode: PutMode.update);
@@ -513,6 +563,7 @@ class ObjectBoxApi implements Api {
         box.put(pcolor, mode: PutMode.update);
         break;
       case 'order':
+        print(dn['id']);
         OrderF? orders = _store.box<OrderF>().get(dn['id']);
         Map map = orders!.toJson();
         data.forEach((key, value) {
@@ -534,7 +585,6 @@ class ObjectBoxApi implements Api {
           reference: map['reference'],
           status: map['status'],
           subTotal: map['subTotal'],
-          orderItems: map['orderItems'],
           updatedAt: map['updatedAt'],
         );
         final box = _store.box<OrderF>();
