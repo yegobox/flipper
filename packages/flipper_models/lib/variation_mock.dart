@@ -1,4 +1,4 @@
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 
 final variationMock = new Variant(
   id: DateTime.now().millisecondsSinceEpoch,
@@ -9,7 +9,7 @@ final variationMock = new Variant(
   table: 'variants',
   channels: ['300'],
   productName: 'Custom Amount',
-  branchId: 11,
+  fbranchId: 11,
   taxName: 'N/A',
   taxPercentage: 0.0,
 );

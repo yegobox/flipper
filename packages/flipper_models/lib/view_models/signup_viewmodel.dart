@@ -90,7 +90,7 @@ class SignupViewModel extends FormViewModel {
         focused: true,
         name: 'NONE',
         channels: [userId!],
-        branchId: branches[0].id,
+        fbranchId: branches[0].id,
       );
       await ProxyService.api
           .create<Category>(data: category.toJson(), endPoint: 'category');
@@ -114,7 +114,7 @@ class SignupViewModel extends FormViewModel {
         table: AppTables.color,
         channels: [userId],
         active: false,
-        branchId: branches[0].id,
+        fbranchId: branches[0].id,
         name: 'sample',
       );
 
@@ -128,7 +128,7 @@ class SignupViewModel extends FormViewModel {
         id: DateTime.now().millisecondsSinceEpoch,
         table: AppTables.unit,
         units: mockUnits,
-        branchId: branches[0].id,
+        fbranchId: branches[0].id,
         channels: [userId],
       );
       await ProxyService.api.addUnits(data: units.toJson());

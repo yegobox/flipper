@@ -5,7 +5,7 @@ import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/variation_mock.dart';
 import 'package:flipper_models/stock_mock.dart';
 import 'package:flipper_models/order_mock.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';

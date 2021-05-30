@@ -21,8 +21,8 @@ String stockToJson(List<Stock> data) =>
 class Stock {
   Stock({
     this.id = 0,
-    required this.branchId,
-    required this.variantId,
+    required this.fbranchId,
+    required this.fvariantId,
     required this.lowStock,
     required this.currentStock,
     required this.supplyPrice,
@@ -31,30 +31,31 @@ class Stock {
     required this.showLowStockAlert,
     this.channels,
     required this.table,
-    required this.productId,
+    required this.fproductId,
     this.active,
     required this.value,
   });
   @Id(assignable: true)
   int id;
-  int branchId;
-  int variantId;
+  int fbranchId;
+  int fvariantId;
   double lowStock;
   double currentStock;
   double supplyPrice;
   double retailPrice;
   bool canTrackingStock;
   bool showLowStockAlert;
-  List<dynamic>? channels;
+  @Transient()
+  List<String>? channels;
   String table;
-  int productId;
+  int fproductId;
   bool? active;
   double value; // the value of stock items ie. count * retailPrice
 
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
       id: int.parse(json["id"]),
-      branchId: json["branchId"],
-      variantId: int.parse(json["variantId"].toString()),
+      fbranchId: json["fbranchId"],
+      fvariantId: int.parse(json["fvariantId"].toString()),
       lowStock: json["lowStock"],
       currentStock: json["currentStock"],
       supplyPrice: json["supplyPrice"],
@@ -63,14 +64,14 @@ class Stock {
       showLowStockAlert: json["showLowStockAlert"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       table: json["table"],
-      productId: int.parse(json["productId"].toString()),
+      fproductId: int.parse(json["fproductId"].toString()),
       active: json["active"] == null ? false : json["active"],
       value: json["value"]);
 
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
-        "branchId": branchId,
-        "variantId": int.parse(variantId.toString()),
+        "fbranchId": fbranchId,
+        "fvariantId": int.parse(fvariantId.toString()),
         "lowStock": lowStock,
         "currentStock": currentStock,
         "supplyPrice": supplyPrice,
@@ -79,7 +80,7 @@ class Stock {
         "showLowStockAlert": showLowStockAlert,
         "channels": List<dynamic>.from(channels!.map((x) => x)),
         "table": table,
-        "productId": productId,
+        "fproductId": fproductId,
         "active": active == null ? false : active,
         "value": value
       };

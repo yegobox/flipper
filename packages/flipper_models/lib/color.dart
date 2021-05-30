@@ -24,17 +24,19 @@ class PColor {
     this.channels,
     this.colors,
     required this.table,
-    required this.branchId,
+    required this.fbranchId,
     required this.active,
   });
 
   @Id(assignable: true)
   int id;
   String? name;
-  List<dynamic>? channels;
+  @Transient()
+  List<String>? channels;
+  @Transient()
   List<String>? colors;
   String table;
-  int branchId;
+  int fbranchId;
   bool active;
 
   factory PColor.fromJson(Map<String, dynamic> json) => PColor(
@@ -45,7 +47,7 @@ class PColor {
             ? []
             : List<String>.from(json["colors"].map((x) => x)),
         table: json["table"],
-        branchId: int.parse(json["branchId"]),
+        fbranchId: int.parse(json["fbranchId"]),
         active: json["active"],
       );
 
@@ -56,7 +58,7 @@ class PColor {
         "colors":
             colors == null ? [] : List<dynamic>.from(colors!.map((x) => x)),
         "table": table,
-        "branchId": int.parse(branchId.toString()),
+        "fbranchId": int.parse(fbranchId.toString()),
         "active": active,
       };
 }

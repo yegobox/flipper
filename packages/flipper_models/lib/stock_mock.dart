@@ -2,8 +2,8 @@ import 'package:flipper_models/stock.dart';
 
 final stockMock = new Stock(
   id: DateTime.now().millisecondsSinceEpoch,
-  branchId: 11,
-  variantId: 1,
+  fbranchId: 11,
+  fvariantId: 1,
   lowStock: 0.0,
   currentStock: 0.0,
   supplyPrice: 0.0,
@@ -13,6 +13,6 @@ final stockMock = new Stock(
   showLowStockAlert: false,
   channels: ['300'],
   table: 'stocks',
-  productId: 2,
+  fproductId: 2,
   active: false,
 );

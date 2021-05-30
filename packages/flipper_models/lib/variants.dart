@@ -18,7 +18,7 @@ List<Variant> variationFromJson(String str) =>
 String variationToJson(List<Variant> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-@Entity(uid: 1)
+@Entity()
 class Variant {
   Variant(
       {this.id = 0,
@@ -29,7 +29,7 @@ class Variant {
       required this.table,
       this.channels,
       required this.productName,
-      required this.branchId,
+      required this.fbranchId,
       this.taxName,
       this.taxPercentage});
 
@@ -40,9 +40,10 @@ class Variant {
   int fproductId;
   String unit;
   String table;
-  List<dynamic>? channels;
+  @Transient()
+  List<String>? channels;
   String productName;
-  int branchId;
+  int fbranchId;
   String? taxName;
   double? taxPercentage;
 
@@ -57,7 +58,7 @@ class Variant {
       table: json["table"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       productName: json["productName"],
-      branchId: int.parse(json["branchId"].toString()),
+      fbranchId: int.parse(json["fbranchId"].toString()),
       taxName: json["taxName"] ?? '',
       taxPercentage: json["taxPercentage"] ?? 0);
 
@@ -70,7 +71,7 @@ class Variant {
         "table": table,
         "channels": List<dynamic>.from(channels!.map((x) => x)),
         "productName": productName,
-        "branchId": int.parse(branchId.toString()),
+        "fbranchId": int.parse(fbranchId.toString()),
         "taxName": taxName ?? '',
         "taxPercentage": taxPercentage ?? 0
       };

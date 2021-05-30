@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/spenn.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/order_item.dart';
 
 import 'package:flipper_models/variant_stock.dart';
@@ -46,7 +46,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Unit>()
         .getAll()
-        .where((unit) => unit.branchId == branchId)
+        .where((unit) => unit.fbranchId == branchId)
         .toList();
   }
 
@@ -61,7 +61,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Category>()
         .getAll()
-        .where((category) => category.branchId == branchId)
+        .where((category) => category.fbranchId == branchId)
         .toList();
   }
 
@@ -70,7 +70,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<PColor>()
         .getAll()
-        .where((color) => color.branchId == branchId)
+        .where((color) => color.fbranchId == branchId)
         .toList();
   }
 
@@ -83,7 +83,7 @@ class ObjectBoxApi implements Api {
           name: co,
           channels: data['channels'],
           table: data['table'],
-          branchId: data['branchId'],
+          fbranchId: data['branchId'],
           active: data['active'],
         );
         final box = _store.box<PColor>();
@@ -142,7 +142,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Stock>()
         .getAll()
-        .where((stock) => stock.productId == productId)
+        .where((stock) => stock.fproductId == productId)
         .toList();
   }
 
@@ -157,7 +157,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Variant>()
         .getAll()
-        .where((stock) => stock.productId == productId)
+        .where((stock) => stock.fproductId == productId)
         .toList();
   }
 
@@ -168,7 +168,7 @@ class ObjectBoxApi implements Api {
 
       final unit = Unit(
         active: false,
-        branchId: data['branchId'],
+        fbranchId: data['branchId'],
         table: data['table'],
         channels: data['channels'],
         value: map['value'],
@@ -186,7 +186,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<VariantStock>()
         .getAll()
-        .where((v) => v.variantId == variantId)
+        .where((v) => v.fvariantId == variantId)
         .toList();
   }
 
@@ -214,8 +214,8 @@ class ObjectBoxApi implements Api {
       String? userId = ProxyService.box.read(key: 'userId');
       final stock = new Stock(
         id: stockId,
-        branchId: int.parse(d['branchId'].toString()),
-        variantId: variantId,
+        fbranchId: int.parse(d['branchId'].toString()),
+        fvariantId: variantId,
         lowStock: 0.0,
         currentStock: 0.0,
         supplyPrice: supplyPrice,
@@ -224,7 +224,7 @@ class ObjectBoxApi implements Api {
         showLowStockAlert: false,
         channels: [userId!],
         table: AppTables.stock,
-        productId: int.parse(d['productId'].toString()),
+        fproductId: int.parse(d['productId'].toString()),
         value: 0,
         active: false,
       );
@@ -239,7 +239,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Branch>()
         .getAll()
-        .where((v) => v.businessId == businessId)
+        .where((v) => v.fbusinessId == businessId)
         .toList();
   }
 
@@ -290,13 +290,13 @@ class ObjectBoxApi implements Api {
         updatedAt: DateTime.now().toIso8601String(),
         customerChangeDue: 0.0, //fix this
         paymentType: 'Cash',
-        branchId: branchId,
+        fbranchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
       );
       OrderItem orderItems = OrderItem(
         count: quantity,
         name: useProductName ? variation.productName : variation.name,
-        variantId: variation.id,
+        fvariantId: variation.id,
         price: price,
         forderId: order.id,
       );
@@ -308,7 +308,7 @@ class ObjectBoxApi implements Api {
       OrderItem item = OrderItem(
         count: 1,
         name: useProductName ? variation.productName : variation.name,
-        variantId: variation.id,
+        fvariantId: variation.id,
         price: price,
         forderId: existOrder.id,
       );
@@ -334,9 +334,9 @@ class ObjectBoxApi implements Api {
     data['taxId'] = 'XX';
     Product products = Product(
         active: data['active'],
-        branchId: data['branchId'],
-        businessId: data['businessId'],
-        categoryId: data['categoryId'],
+        fbranchId: data['branchId'],
+        fbusinessId: data['businessId'],
+        fcategoryId: data['categoryId'],
         color: data['color'],
         description: data['description'],
         hasPicture: data['hasPicture'],
@@ -349,8 +349,8 @@ class ObjectBoxApi implements Api {
         draft: data['draft'],
         imageLocal: data['imageLocal'],
         imageUrl: data['imageUrl'],
-        supplierId: data['supplierId'],
-        taxId: data['taxId']);
+        fsupplierId: data['supplierId'],
+        ftaxId: data['taxId']);
     final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
 
@@ -362,7 +362,7 @@ class ObjectBoxApi implements Api {
       table: AppTables.variation,
       channels: [userId!],
       productName: data['name'],
-      branchId: branchId!,
+      fbranchId: branchId!,
       taxName: 'N/A', //TODO: get value from branch/business config
       taxPercentage: 0.0,
     );
@@ -422,7 +422,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Stock>()
         .getAll()
-        .where((v) => v.variantId == variantId)
+        .where((v) => v.fvariantId == variantId)
         .toList()[0];
   }
 
@@ -430,7 +430,7 @@ class ObjectBoxApi implements Api {
   Stream<Stock> stockByVariantIdStream({required int variantId}) {
     return _store
         .box<Stock>()
-        .query(Stock_.variantId.equals(variantId))
+        .query(Stock_.fvariantId.equals(variantId))
         .watch(triggerImmediately: true)
         // Watching the query produces a Stream<Query<Stock>>
         // To get the actual data inside a List<Stock>, we need to call find() on the query
@@ -460,12 +460,12 @@ class ObjectBoxApi implements Api {
         });
         Product product = Product(
           active: map['active'],
-          branchId: map['branchId'],
+          fbranchId: map['branchId'],
           table: map['table'],
           channels: map['channels'],
           id: map['id'],
-          businessId: map['businessId'],
-          categoryId: map['categoryId'],
+          fbusinessId: map['businessId'],
+          fcategoryId: map['categoryId'],
           color: map['color'],
           description: map['description'],
           hasPicture: map['hasPicture'],
@@ -477,8 +477,8 @@ class ObjectBoxApi implements Api {
           draft: map['draft'],
           imageLocal: map['imageLocal'],
           imageUrl: map['imageUrl'],
-          supplierId: map['supplierId'],
-          taxId: map['taxId'],
+          fsupplierId: map['supplierId'],
+          ftaxId: map['taxId'],
           // variants: map['variants'],
         );
         final box = _store.box<Product>();
@@ -492,19 +492,19 @@ class ObjectBoxApi implements Api {
         });
         Stock stock = Stock(
           active: map['active'],
-          branchId: map['branchId'],
+          fbranchId: map['branchId'],
           table: map['table'],
           channels: map['channels'],
           id: map['id'],
           canTrackingStock: map['canTrackingStock'],
           currentStock: map['currentStock'],
           lowStock: map['lowStock'],
-          productId: map['productId'],
+          fproductId: map['productId'],
           retailPrice: map['retailPrice'],
           showLowStockAlert: map['showLowStockAlert'],
           supplyPrice: map['supplyPrice'],
           value: map['value'],
-          variantId: map['variantId'],
+          fvariantId: map['variantId'],
         );
         final box = _store.box<Stock>();
         box.put(stock, mode: PutMode.update);
@@ -517,7 +517,7 @@ class ObjectBoxApi implements Api {
         });
         Category category = Category(
           active: map['active'],
-          branchId: map['branchId'],
+          fbranchId: map['branchId'],
           name: map['name'],
           table: map['table'],
           channels: map['channels'],
@@ -535,7 +535,7 @@ class ObjectBoxApi implements Api {
         });
         Unit unit = Unit(
           active: map['active'],
-          branchId: map['branchId'],
+          fbranchId: map['branchId'],
           name: map['name'],
           table: map['table'],
           channels: map['channels'],
@@ -553,7 +553,7 @@ class ObjectBoxApi implements Api {
         });
         PColor pcolor = PColor(
           active: map['active'],
-          branchId: map['branchId'],
+          fbranchId: map['branchId'],
           table: map['table'],
           channels: map['channels'],
           id: map['id'],
@@ -571,7 +571,7 @@ class ObjectBoxApi implements Api {
         });
         OrderF order = OrderF(
           active: map['active'],
-          branchId: map['branchId'],
+          fbranchId: map['branchId'],
           table: map['table'],
           channels: map['channels'],
           id: map['id'],

@@ -18,13 +18,13 @@ List<OrderF> orderFromJson(String str) =>
 String orderToJson(List<OrderF> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-@Entity(uid: 1)
+@Entity()
 class OrderF {
   OrderF({
     this.id = 0,
     required this.reference,
     required this.orderNumber,
-    required this.branchId,
+    required this.fbranchId,
     required this.status,
     required this.orderType,
     required this.active,
@@ -43,7 +43,7 @@ class OrderF {
   int id;
   String reference;
   String orderNumber;
-  int branchId;
+  int fbranchId;
   String status;
   String orderType;
   bool active;
@@ -54,16 +54,19 @@ class OrderF {
   double customerChangeDue;
   String createdAt;
   String? updatedAt;
+
+  String table;
+  @Transient()
+  List<String>? channels;
+
   @Backlink()
   final orderItems = ToMany<OrderItem>();
-  String table;
-  List<dynamic>? channels;
 
   factory OrderF.fromJson(Map<String, dynamic> json) => OrderF(
         id: int.parse(json["id"]),
         reference: json["reference"],
         orderNumber: json["orderNumber"],
-        branchId: int.parse(json["branchId"]),
+        fbranchId: int.parse(json["fbranchId"]),
         status: json["status"],
         orderType: json["orderType"],
         active: json["active"],
@@ -84,7 +87,7 @@ class OrderF {
         "id": int.parse(id.toString()),
         "reference": reference,
         "orderNumber": orderNumber,
-        "branchId": int.parse(branchId.toString()),
+        "fbranchId": int.parse(fbranchId.toString()),
         "status": status,
         "orderType": orderType,
         "active": active,
@@ -95,7 +98,7 @@ class OrderF {
         "customerChangeDue": customerChangeDue,
         "createdAt": createdAt,
         "updatedAt": updatedAt,
-        "orderItems": orderItems,
+        // "orderItems": orderItems,
         "table": table,
         "channels": channels,
       };

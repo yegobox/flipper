@@ -7,7 +7,7 @@ import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/http_api.dart';
@@ -75,7 +75,7 @@ void main() {
         id: id,
         table: AppTables.unit,
         units: mockUnits,
-        branchId: 11,
+        fbranchId: 11,
         channels: ['300'],
       );
       final result = await api.addUnits(data: units.toJson());
@@ -104,7 +104,7 @@ void main() {
         table: AppTables.color,
         channels: ['300'],
         active: false,
-        branchId: 11,
+        fbranchId: 11,
         name: 'sample',
       );
 

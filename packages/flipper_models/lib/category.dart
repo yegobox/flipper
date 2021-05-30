@@ -23,7 +23,7 @@ class Category {
     required this.focused,
     required this.name,
     this.channels,
-    required this.branchId,
+    required this.fbranchId,
     required this.table,
   });
   @Id(assignable: true)
@@ -31,8 +31,9 @@ class Category {
   bool active;
   bool focused;
   String name;
-  List<dynamic>? channels;
-  int branchId;
+  @Transient()
+  List<String>? channels;
+  int fbranchId;
   String table;
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
@@ -41,7 +42,7 @@ class Category {
         focused: json["focused"],
         name: json["name"],
         channels: List<String>.from(json["channels"].map((x) => x)),
-        branchId: int.parse(json["branchId"]),
+        fbranchId: int.parse(json["fbranchId"]),
         table: json["table"],
       );
 
@@ -51,7 +52,7 @@ class Category {
         "focused": focused,
         "name": name,
         "channels": List<dynamic>.from(channels!.map((x) => x)),
-        "branchId": int.parse(branchId.toString()),
+        "fbranchId": int.parse(fbranchId.toString()),
         "table": table,
       };
 }

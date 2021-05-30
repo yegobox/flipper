@@ -1,6 +1,6 @@
 // import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/product.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
@@ -38,7 +38,7 @@ void main() {
         unit: 'kg',
         channels: ['UID'],
         productName: 'temp',
-        branchId: 11,
+        fbranchId: 11,
         id: 1,
         table: AppTables.variation,
         taxName: 'N/A',

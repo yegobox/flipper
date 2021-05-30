@@ -2,12 +2,12 @@ import 'package:objectbox/objectbox.dart';
 
 import 'order.dart';
 
-@Entity(uid: 2)
+@Entity()
 class OrderItem {
   OrderItem({
     this.id = 0,
     required this.name,
-    required this.variantId,
+    required this.fvariantId,
     required this.count,
     required this.price,
     required this.forderId,
@@ -16,7 +16,7 @@ class OrderItem {
   int id;
   String name;
   int forderId;
-  int variantId;
+  int fvariantId;
   double count;
   double price;
 
@@ -25,7 +25,7 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
         id: int.parse(json["id"]),
         name: json["name"],
-        variantId: int.parse(json["variantId"].toString()),
+        fvariantId: int.parse(json["variantId"].toString()),
         count: json["count"],
         price: json["price"].toDouble(),
         forderId: int.parse(json["orderId"]),
@@ -34,7 +34,7 @@ class OrderItem {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
-        "variantId": int.parse(variantId.toString()),
+        "variantId": int.parse(fvariantId.toString()),
         "count": count,
         "price": price,
         "orderId": int.parse(forderId.toString()),

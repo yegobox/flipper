@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/constants.dart';
@@ -51,7 +51,7 @@ class _AddVariationState extends State<AddVariation> {
                     unit: model.productService.currentUnit!,
                     channels: [model.productService.userId!],
                     productName: model.product.name,
-                    branchId: model.productService.branchId!,
+                    fbranchId: model.productService.branchId!,
                     id: variantId,
                     table: AppTables.variation,
                     taxName: 'N/A', //TODO: replace with branch/business config

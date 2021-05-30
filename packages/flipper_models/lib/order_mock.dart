@@ -5,7 +5,7 @@ final orderMock = new OrderF(
   id: DateTime.now().millisecondsSinceEpoch,
   reference: 'caa5cbf1-b3c3-11',
   orderNumber: 'caa5cbf1-b3c3-',
-  branchId: 11,
+  fbranchId: 11,
   status: 'pending',
   orderType: 'local',
   active: true,

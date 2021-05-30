@@ -5,7 +5,7 @@ import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/objectbox_api.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,7 +22,7 @@ void main() {
     unit: 'kg',
     channels: ["300"],
     productName: 'a',
-    branchId: 11,
+    fbranchId: 11,
     id: 1,
     table: AppTables.variation,
     taxName: 'N/A',
@@ -46,7 +46,7 @@ void main() {
       id: id,
       table: AppTables.unit,
       units: mockUnits,
-      branchId: 11,
+      fbranchId: 11,
       channels: ["300"],
     );
     final response = await api.addUnits(data: units.toJson());
@@ -72,7 +72,7 @@ void main() {
       table: AppTables.color,
       channels: ["300"],
       active: false,
-      branchId: 11,
+      fbranchId: 11,
       name: 'sample',
     );
     final response =

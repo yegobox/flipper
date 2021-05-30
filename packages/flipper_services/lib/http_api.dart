@@ -19,7 +19,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:uuid/uuid.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 
 import 'constants.dart';
 
@@ -303,7 +303,7 @@ class HttpApi<T> implements Api {
         updatedAt: DateTime.now().toIso8601String(),
         customerChangeDue: 0.0, //fix this
         paymentType: 'Cash',
-        branchId: branchId,
+        fbranchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
         // orderItems: [
         //   OrderItem(
@@ -327,12 +327,12 @@ class HttpApi<T> implements Api {
       OrderItem item = OrderItem(
         count: 1,
         name: useProductName ? variation.productName : variation.name,
-        variantId: variation.id,
+        fvariantId: variation.id,
         id: orderItemId,
         price: price,
         forderId: existOrder.id,
       );
-      existOrder.orderItems!.add(item);
+      existOrder.orderItems.add(item);
       int orderId = existOrder.id;
       await update(data: existOrder.toJson(), endPoint: 'order/$orderId');
       return existOrder;

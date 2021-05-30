@@ -5,7 +5,7 @@ import 'package:flipper_models/business.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/variant_stock.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/app_service.dart';

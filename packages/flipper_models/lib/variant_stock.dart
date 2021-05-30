@@ -27,10 +27,10 @@ class VariantStock {
     required this.variantName,
     required this.unit,
     required this.sku,
-    required this.branchId,
+    required this.fbranchId,
     required this.lowStock,
     required this.currentStock,
-    required this.variantId,
+    required this.fvariantId,
     this.taxName,
     this.taxPercentage,
     required this.value,
@@ -44,10 +44,10 @@ class VariantStock {
   String variantName;
   String unit;
   String sku;
-  String branchId;
+  String fbranchId;
   double? lowStock;
   double currentStock;
-  String variantId;
+  String fvariantId;
   String? taxName;
   double? taxPercentage;
   double value;
@@ -60,10 +60,10 @@ class VariantStock {
         variantName: json["variantName"],
         unit: json["unit"],
         sku: json["sku"],
-        branchId: json["branchId"],
+        fbranchId: json["fbranchId"],
         lowStock: json["lowStock"],
         currentStock: json["currentStock"],
-        variantId: json["variantId"],
+        fvariantId: json["fvariantId"],
         taxName: json["taxName"],
         taxPercentage: json["taxPercentage"],
         value: json["value"],
@@ -77,10 +77,10 @@ class VariantStock {
         "variantName": variantName,
         "unit": unit,
         "sku": sku,
-        "branchId": branchId,
+        "fbranchId": fbranchId,
         "lowStock": lowStock,
         "currentStock": currentStock,
-        "variantId": variantId,
+        "fvariantId": fvariantId,
         "taxName": taxName,
         "taxPercentage": taxPercentage,
         "value": value,

@@ -16,7 +16,7 @@ import 'package:flipper_models/stock.dart' as _i4;
 import 'package:flipper_models/sync.dart' as _i3;
 import 'package:flipper_models/unit.dart' as _i15;
 import 'package:flipper_models/variant_stock.dart' as _i16;
-import 'package:flipper_models/variation.dart' as _i7;
+import 'package:flipper_models/variants.dart' as _i7;
 import 'package:flipper_services/abstractions/api.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 

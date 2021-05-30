@@ -7,7 +7,7 @@ import 'package:flipper_models/color.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/product_mock.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
@@ -100,7 +100,7 @@ class ProductViewModel extends ReactiveViewModel {
       focused: false,
       name: name,
       channels: [userId.toString()],
-      branchId: branchId!,
+      fbranchId: branchId!,
     );
     await ProxyService.api
         .create(endPoint: 'category', data: category.toJson());

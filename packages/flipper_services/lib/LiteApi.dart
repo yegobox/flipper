@@ -11,7 +11,7 @@ import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/product.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 
 import 'package:flipper_models/login.dart';
 
@@ -244,7 +244,7 @@ class LiteApi<T> implements Api {
       table: AppTables.variation,
       channels: [userId!],
       productName: productMap['name'],
-      branchId: branchId!,
+      fbranchId: branchId!,
       taxName: 'N/A', //TODO: get value from branch/business config
       taxPercentage: 0.0,
     );
@@ -257,8 +257,8 @@ class LiteApi<T> implements Api {
 
     final stock = new Stock(
       id: stockId,
-      branchId: branchId,
-      variantId: variationMap['id'],
+      fbranchId: branchId,
+      fvariantId: variationMap['id'],
       lowStock: 0.0,
       currentStock: 0.0,
       supplyPrice: 0.0,
@@ -267,7 +267,7 @@ class LiteApi<T> implements Api {
       showLowStockAlert: false,
       channels: [userId],
       table: AppTables.stock,
-      productId: productMap['id'],
+      fproductId: productMap['id'],
       active: false,
       value: 0,
     );
@@ -438,8 +438,8 @@ class LiteApi<T> implements Api {
       String? userId = ProxyService.box.read(key: 'userId');
       final stock = new Stock(
         id: stockId,
-        branchId: d['branchId'],
-        variantId: int.parse(variant.ID),
+        fbranchId: d['branchId'],
+        fvariantId: int.parse(variant.ID),
         lowStock: 0.0,
         currentStock: 0.0,
         supplyPrice: supplyPrice,
@@ -448,7 +448,7 @@ class LiteApi<T> implements Api {
         showLowStockAlert: false,
         channels: [userId!],
         table: AppTables.stock,
-        productId: d['productId'],
+        fproductId: d['productId'],
         value: 0,
         active: false,
       );
@@ -534,7 +534,7 @@ class LiteApi<T> implements Api {
         updatedAt: DateTime.now().toIso8601String(),
         customerChangeDue: 0.0, //fix this
         paymentType: 'Cash',
-        branchId: branchId,
+        fbranchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
         // FIXME:un comment
         // orderItems: [
@@ -556,7 +556,7 @@ class LiteApi<T> implements Api {
       OrderItem item = OrderItem(
         count: 1,
         name: useProductName ? variation.productName : variation.name,
-        variantId: variation.id,
+        fvariantId: variation.id,
         id: orderItemId,
         price: price,
         forderId: existOrder.id,

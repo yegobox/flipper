@@ -24,7 +24,7 @@ class Branch {
     this.channels,
     required this.description,
     required this.name,
-    required this.businessId,
+    required this.fbusinessId,
     required this.longitude,
     required this.latitude,
     required this.table,
@@ -33,10 +33,11 @@ class Branch {
   @Id(assignable: true)
   int id;
   bool? active;
-  List<dynamic>? channels;
+  @Transient()
+  List<String>? channels;
   String? description;
   String name;
-  int? businessId;
+  int? fbusinessId;
   String? longitude;
   String? latitude;
   String table;
@@ -47,8 +48,8 @@ class Branch {
         channels: List<String>.from(json["channels"].map((x) => x)),
         description: json["description"] == null ? '' : json["description"],
         name: json["name"],
-        businessId:
-            json["businessId"] == null ? 0 : int.parse(json["businessId"]),
+        fbusinessId:
+            json["fbusinessId"] == null ? 0 : int.parse(json["fbusinessId"]),
         longitude: json["longitude"] == null ? '' : json["longitude"],
         latitude: json["latitude"],
         table: json["table"],
@@ -60,7 +61,8 @@ class Branch {
         "channels": List<dynamic>.from(channels!.map((x) => x)),
         "description": description == null ? '' : description,
         "name": name,
-        "businessId": businessId == null ? 0 : int.parse(businessId.toString()),
+        "fbusinessId":
+            fbusinessId == null ? 0 : int.parse(fbusinessId.toString()),
         "longitude": longitude == null ? '0' : longitude,
         "latitude": latitude == null ? '0' : latitude,
         "table": table,

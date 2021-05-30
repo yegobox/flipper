@@ -22,7 +22,7 @@ class Business {
     this.id = 0,
     required this.name,
     this.currency,
-    this.categoryId,
+    this.fcategoryId,
     required this.latitude,
     required this.longitude,
     this.userId,
@@ -41,19 +41,21 @@ class Business {
   @Id(assignable: true)
   int id;
   String name;
-  dynamic currency;
-  int? categoryId;
+  String? currency;
+  int? fcategoryId;
   String latitude;
   String longitude;
-  dynamic userId;
-  dynamic typeId;
-  dynamic timeZone;
-  List<dynamic>? channels;
+  String? userId;
+  String? typeId;
+  String? timeZone;
+
+  @Transient()
+  List<String>? channels;
   String table;
   String country;
-  dynamic businessUrl;
-  dynamic hexColor;
-  dynamic image;
+  String? businessUrl;
+  String? hexColor;
+  String? image;
   String type;
   bool? active;
 
@@ -61,7 +63,7 @@ class Business {
         id: int.parse(json["id"]),
         name: json["name"],
         currency: json["currency"],
-        categoryId: int.parse(json["categoryId"]),
+        fcategoryId: int.parse(json["fcategoryId"]),
         latitude: json["latitude"],
         longitude: json["longitude"],
         userId: json["userId"],
@@ -81,7 +83,7 @@ class Business {
         "id": int.parse(id.toString()),
         "name": name,
         "currency": currency,
-        "categoryId": int.parse(categoryId.toString()),
+        "fcategoryId": int.parse(fcategoryId.toString()),
         "latitude": latitude,
         "longitude": longitude,
         "userId": userId,

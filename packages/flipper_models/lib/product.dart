@@ -4,7 +4,7 @@
 library flipper_models;
 
 import 'dart:convert';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:objectbox/objectbox.dart';
 
 Product sproductFromJson(String str) => Product.fromJson(json.decode(str));
@@ -25,14 +25,14 @@ class Product {
       required this.description,
       this.channels,
       required this.active,
-      this.taxId,
+      this.ftaxId,
       required this.hasPicture,
       required this.table,
       required this.color,
-      required this.businessId,
-      required this.branchId,
-      this.supplierId,
-      required this.categoryId,
+      required this.fbusinessId,
+      required this.fbranchId,
+      this.fsupplierId,
+      required this.fcategoryId,
       this.createdAt,
       required this.unit,
       this.draft,
@@ -43,24 +43,26 @@ class Product {
   int id;
   String name;
   String? description;
-  List<dynamic>? channels;
+  @Transient()
+  List<String>? channels;
   bool active;
-  dynamic taxId;
+  String? ftaxId;
   bool hasPicture;
   String table;
   String color;
-  int businessId;
-  int branchId;
-  dynamic supplierId;
-  String categoryId;
+  int fbusinessId;
+  int fbranchId;
+  String? fsupplierId;
+  String fcategoryId;
   String? createdAt;
   String unit;
-  @Backlink()
-  final variants = ToMany<Variant>();
   bool? draft;
   bool? imageLocal;
   bool? currentUpdate;
   String? imageUrl;
+
+  @Backlink()
+  final variations = ToMany<Variant>();
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: int.parse(json["id"]),
@@ -68,14 +70,14 @@ class Product {
         description: json["description"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         active: json["active"],
-        taxId: json["taxId"],
+        ftaxId: json["ftaxId"],
         hasPicture: json["hasPicture"],
         table: json["table"],
         color: json["color"],
-        businessId: int.parse(json["businessId"].toString()),
-        branchId: int.parse(json["branchId"].toString()),
-        supplierId: json["supplierId"],
-        categoryId: json["categoryId"],
+        fbusinessId: int.parse(json["fbusinessId"].toString()),
+        fbranchId: int.parse(json["fbranchId"].toString()),
+        fsupplierId: json["fsupplierId"],
+        fcategoryId: json["fcategoryId"],
         createdAt: json["createdAt"],
         unit: json["unit"],
         draft: json["draft"] == null ? false : json["draft"],
@@ -91,17 +93,17 @@ class Product {
         "description": description,
         "channels": List<dynamic>.from(channels!.map((x) => x)),
         "active": active,
-        "taxId": taxId,
+        "ftaxId": ftaxId,
         "hasPicture": hasPicture,
         "table": table,
         "color": color,
-        "businessId": int.parse(businessId.toString()),
-        "branchId": int.parse(branchId.toString()),
-        "supplierId": supplierId,
-        "categoryId": categoryId,
+        "fbusinessId": int.parse(fbusinessId.toString()),
+        "fbranchId": int.parse(fbranchId.toString()),
+        "fsupplierId": fsupplierId,
+        "fcategoryId": fcategoryId,
         "createdAt": createdAt == null ? '' : createdAt!,
         "unit": unit,
-        "variants": variants,
+        // "variants": variants,
         "draft": draft == null ? false : draft,
         "imageLocal": imageLocal == null ? false : imageLocal,
         "currentUpdate": currentUpdate == null ? false : currentUpdate,

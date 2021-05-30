@@ -9,7 +9,7 @@ import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
 import 'package:flipper_models/variant_stock.dart';
-import 'package:flipper_models/variation.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/variation_mock.dart';
 import 'package:flipper_services/LiteApi.dart';
 import 'package:flipper_services/constants.dart';
@@ -108,7 +108,7 @@ void main() {
       table: AppTables.color,
       channels: ['300'],
       active: false,
-      branchId: 11,
+      fbranchId: 11,
       name: 'sample',
     );
     api.create<PColor>(data: color.toJson(), endPoint: 'color');
@@ -130,7 +130,7 @@ void main() {
       id: unitId,
       table: AppTables.unit,
       units: mockUnits,
-      branchId: 11, //stands where there was BID as branchId
+      fbranchId: 11, //stands where there was BID as branchId
       channels: ['300'],
     );
     api.addUnits(data: units.toJson());
@@ -149,7 +149,7 @@ void main() {
       focused: true,
       name: 'NONE',
       channels: ['300'],
-      branchId: 11,
+      fbranchId: 11,
     );
     api.create<Category>(data: category.toJson(), endPoint: 'category');
     List<Category> categories = await api.categories(branchId: 11);
