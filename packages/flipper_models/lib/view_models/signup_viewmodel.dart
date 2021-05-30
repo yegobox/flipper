@@ -82,9 +82,8 @@ class SignupViewModel extends FormViewModel {
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses[0].id);
       final String? userId = ProxyService.box.read(key: 'userId');
-      final categoryId = DateTime.now().millisecondsSinceEpoch;
-      final Category category = new Category(
-        id: categoryId,
+
+      final Category category = Category(
         active: true,
         table: AppTables.category,
         focused: true,

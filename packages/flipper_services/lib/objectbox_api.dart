@@ -89,6 +89,19 @@ class ObjectBoxApi implements Api {
       }
       return 200;
     }
+    if (endPoint == 'category') {
+      final category = Category(
+        id: DateTime.now().millisecondsSinceEpoch,
+        name: data['name'],
+        table: data['table'],
+        active: data['active'],
+        fbranchId: ProxyService.box.read(key: 'branchId'),
+        focused: false,
+      );
+      final box = _store.box<Category>();
+      box.put(category);
+      return 200;
+    }
     return 200;
   }
 
@@ -231,11 +244,9 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    return _store
-        .box<Branch>()
-        .getAll()
-        .where((v) => v.fbusinessId == businessId)
-        .toList();
+    final response =
+        await client.get(Uri.parse("$apihub/api/branches/$businessId"));
+    return branchFromJson(response.body);
   }
 
   @override

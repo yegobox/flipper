@@ -59,6 +59,7 @@ Api getAndRegisterApi(
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);
   }
+  when(service.branches(businessId: 10)).thenAnswer((_) async => [branchMock]);
   locator.registerSingleton<Api>(service);
   return service;
 }

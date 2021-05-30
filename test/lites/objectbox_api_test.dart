@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flipper_models/branch.dart';
+import 'package:flipper_models/category.dart';
 import 'package:flipper_models/color.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product.dart';
@@ -124,5 +126,32 @@ void main() {
     List<Variant> variants =
         await api.variants(branchId: 11, productId: product.id);
     expect(variants, isA<List<Variant>>());
+  });
+  test('test temporal product  exist', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    List<Product> products = await api.isTempProductExist();
+    expect(products, isA<List<Product>>());
+  });
+  test('test get branches', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    List<Branch> branches = await api.branches(businessId: 10);
+    expect(branches, isA<List<Branch>>());
+  });
+  test('test create categories', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+
+    Category category = Category(
+      active: true,
+      table: AppTables.category,
+      focused: true,
+      name: 'NONE',
+      fbranchId: 10,
+    );
+    final response =
+        await api.create(data: category.toJson(), endPoint: 'category');
+    expect(response, 200);
   });
 }

@@ -41,7 +41,6 @@ class Category {
         active: json["active"],
         focused: json["focused"],
         name: json["name"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
         fbranchId: int.parse(json["fbranchId"]),
         table: json["table"],
       );
@@ -51,7 +50,6 @@ class Category {
         "active": active,
         "focused": focused,
         "name": name,
-        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "fbranchId": int.parse(fbranchId.toString()),
         "table": table,
       };
