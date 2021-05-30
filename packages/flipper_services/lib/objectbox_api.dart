@@ -39,7 +39,7 @@ class ObjectBoxApi implements Api {
   late Store _store;
   ObjectBoxApi({required Directory dir}) {
     // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/db5');
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/db7');
   }
   @override
   Future<List<Unit>> units({required int branchId}) async {
@@ -81,9 +81,7 @@ class ObjectBoxApi implements Api {
         final color = PColor(
           id: DateTime.now().millisecondsSinceEpoch,
           name: co,
-          channels: data['channels'],
           table: data['table'],
-          fbranchId: data['branchId'],
           active: data['active'],
         );
         final box = _store.box<PColor>();
@@ -168,9 +166,7 @@ class ObjectBoxApi implements Api {
 
       final unit = Unit(
         active: false,
-        fbranchId: data['branchId'],
         table: data['table'],
-        channels: data['channels'],
         value: map['value'],
         name: map['name'],
       );
@@ -214,7 +210,6 @@ class ObjectBoxApi implements Api {
       String? userId = ProxyService.box.read(key: 'userId');
       final stock = new Stock(
         id: stockId,
-        fbranchId: int.parse(d['branchId'].toString()),
         fvariantId: variantId,
         lowStock: 0.0,
         currentStock: 0.0,

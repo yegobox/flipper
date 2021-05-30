@@ -21,7 +21,7 @@ String stockToJson(List<Stock> data) =>
 class Stock {
   Stock({
     this.id = 0,
-    required this.fbranchId,
+    this.fbranchId,
     required this.fvariantId,
     required this.lowStock,
     required this.currentStock,
@@ -37,7 +37,7 @@ class Stock {
   });
   @Id(assignable: true)
   int id;
-  int fbranchId;
+  int? fbranchId;
   int fvariantId;
   double lowStock;
   double currentStock;

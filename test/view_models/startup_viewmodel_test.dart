@@ -7,6 +7,16 @@ import '../helpers/test_helpers.dart';
 import 'api_test.dart';
 
 StartUpViewModel _getModel() => StartUpViewModel();
+final Business businessMockData = new Business(
+  id: 1,
+  name: 'name',
+  latitude: '1',
+  longitude: '2',
+  channels: [''],
+  table: '',
+  country: '',
+  type: '',
+);
 void main() {
   group('StartUpViewModel', () {
     setUp(() => registerServices());

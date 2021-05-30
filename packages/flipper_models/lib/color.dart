@@ -24,7 +24,7 @@ class PColor {
     this.channels,
     this.colors,
     required this.table,
-    required this.fbranchId,
+    this.fbranchId,
     required this.active,
   });
 
@@ -36,7 +36,7 @@ class PColor {
   @Transient()
   List<String>? colors;
   String table;
-  int fbranchId;
+  int? fbranchId;
   bool active;
 
   factory PColor.fromJson(Map<String, dynamic> json) => PColor(

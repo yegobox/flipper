@@ -16,9 +16,9 @@ class Unit {
   // Each "Entity" needs a unique integer ID property.
   @Id(assignable: true)
   int id;
-  int fbranchId;
+  int? fbranchId;
   String name;
-  double? value;
+  String value;
   String table;
   bool active;
   @Transient()
@@ -29,9 +29,9 @@ class Unit {
 
   Unit({
     this.id = 0,
-    required this.fbranchId,
+    this.fbranchId,
     required this.name,
-    this.value,
+    required this.value,
     required this.table,
     required this.active,
     this.channels,
@@ -39,6 +39,7 @@ class Unit {
   });
   factory Unit.fromJson(Map<String, dynamic> json) => Unit(
         id: json["id"],
+        value: json["value"],
         fbranchId: json["branchId"],
         name: json["name"],
         table: json["table"],
@@ -54,8 +55,8 @@ class Unit {
         "branchId": fbranchId,
         "name": name,
         "table": table,
+        "value": value,
         "active": active,
-        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "units": units == null ? [] : List<dynamic>.from(units!.map((x) => x)),
       };
 }

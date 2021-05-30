@@ -124,6 +124,7 @@ class SignupViewModel extends FormViewModel {
 
       final units = new Unit(
         name: 'sample',
+        value: 'kg',
         active: false,
         id: DateTime.now().millisecondsSinceEpoch,
         table: AppTables.unit,
