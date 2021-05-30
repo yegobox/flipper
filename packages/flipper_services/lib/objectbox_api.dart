@@ -319,50 +319,49 @@ class ObjectBoxApi implements Api {
   @override
   Future<Product> createProduct({required Product product}) async {
     final Map data = product.toJson();
-    final productid = Uuid().v1();
-    data['id'] = productid;
+
     data['active'] = false;
     data['description'] = 'description';
     data['hasPicture'] = false;
-    data['businessId'] = ProxyService.box.read(key: 'businessId');
-    data['branchId'] = ProxyService.box.read(key: 'branchId');
+    data['fbusinessId'] = ProxyService.box.read(key: 'businessId');
+    data['fbranchId'] = ProxyService.box.read(key: 'branchId');
     data['taxId'] = 'XX';
     Product products = Product(
         active: data['active'],
-        fbranchId: data['branchId'],
-        fbusinessId: data['businessId'],
-        fcategoryId: data['categoryId'],
+        fbranchId: data['fbranchId'],
+        fbusinessId: data['fbusinessId'],
         color: data['color'],
         description: data['description'],
         hasPicture: data['hasPicture'],
         name: data['name'],
         table: data['table'],
         unit: data['unit'],
-        channels: data['channels'],
         createdAt: data['createdAt'],
         currentUpdate: data['currentUpdate'],
         draft: data['draft'],
         imageLocal: data['imageLocal'],
         imageUrl: data['imageUrl'],
-        fsupplierId: data['supplierId'],
-        ftaxId: data['taxId']);
+        fsupplierId: data['fsupplierId'],
+        ftaxId: data['ftaxId']);
     final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
-
+    final box = _store.box<Product>();
+    final id = box.put(products);
     Variant variant = Variant(
       name: 'Regular',
       sku: 'sku',
-      fproductId: 2, //TODO:replace soon
+      fproductId: id,
       unit: 'Per Item',
       table: AppTables.variation,
       channels: [userId!],
       productName: data['name'],
       fbranchId: branchId!,
-      taxName: 'N/A', //TODO: get value from branch/business config
+      taxName: 'N/A',
       taxPercentage: 0.0,
     );
-    // products.variants.add()
-    throw UnimplementedError();
+    products.variations.add(variant);
+    final ids = _store.box<Product>().put(products);
+    return _store.box<Product>().get(ids)!;
   }
 
   @override

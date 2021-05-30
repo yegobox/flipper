@@ -50,6 +50,7 @@ final productMock = new Product(
   fbusinessId: _appService.businessId!,
   name: "temp",
   description: "L",
+
   active: true,
   hasPicture: false,
   table: "products",

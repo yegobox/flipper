@@ -32,7 +32,7 @@ class Product {
       required this.fbusinessId,
       required this.fbranchId,
       this.fsupplierId,
-      required this.fcategoryId,
+      this.fcategoryId,
       this.createdAt,
       required this.unit,
       this.draft,
@@ -53,7 +53,7 @@ class Product {
   int fbusinessId;
   int fbranchId;
   String? fsupplierId;
-  String fcategoryId;
+  String? fcategoryId;
   String? createdAt;
   String unit;
   bool? draft;

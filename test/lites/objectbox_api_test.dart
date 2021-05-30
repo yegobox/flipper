@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flipper_models/color.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_models/product.dart';
+import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
 import 'package:flipper_models/variants.dart';
@@ -113,8 +116,13 @@ void main() {
   test('create product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    // api.createProduct(product: productMock);
+    Product product = await api.createProduct(product: productMock);
 
-    expect(1, 1);
+    expect(product, isA<Product>());
+
+    //load variants too just!
+    List<Variant> variants =
+        await api.variants(branchId: 11, productId: product.id);
+    expect(variants, isA<List<Variant>>());
   });
 }

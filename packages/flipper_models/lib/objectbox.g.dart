@@ -1117,7 +1117,9 @@ ModelDefinition getObjectBoxModel() {
           final fsupplierIdOffset = object.fsupplierId == null
               ? null
               : fbb.writeString(object.fsupplierId!);
-          final fcategoryIdOffset = fbb.writeString(object.fcategoryId);
+          final fcategoryIdOffset = object.fcategoryId == null
+              ? null
+              : fbb.writeString(object.fcategoryId!);
           final createdAtOffset = object.createdAt == null
               ? null
               : fbb.writeString(object.createdAt!);
@@ -1173,16 +1175,16 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
               fsupplierId: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 24),
-              fcategoryId:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 26, ''),
+              fcategoryId: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 26),
               createdAt: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 28),
               unit:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 30, ''),
               draft: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 32),
-              imageLocal: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 34),
+              imageLocal:
+                  const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
               currentUpdate: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 36),
               imageUrl: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38));
           InternalToManyAccess.setRelInfo(
