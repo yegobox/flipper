@@ -19,7 +19,7 @@ String pColorToJson(List<PColor> data) =>
 @Entity()
 class PColor {
   PColor({
-    required this.id,
+    this.id = 0,
     this.name,
     this.channels,
     this.colors,
@@ -29,35 +29,34 @@ class PColor {
   });
 
   @Id(assignable: true)
-  int? tracker;
-  String id;
+  int id;
   String? name;
   List<dynamic>? channels;
   List<String>? colors;
   String table;
-  String branchId;
+  int branchId;
   bool active;
 
   factory PColor.fromJson(Map<String, dynamic> json) => PColor(
-        id: json["id"],
+        id: int.parse(json["id"]),
         name: json["name"] == null ? '#ee5253' : json["name"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         colors: json["colors"] == null
             ? []
             : List<String>.from(json["colors"].map((x) => x)),
         table: json["table"],
-        branchId: json["branchId"],
+        branchId: int.parse(json["branchId"]),
         active: json["active"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "name": name == null ? '#ee5253' : name,
         "channels": List<dynamic>.from(channels!.map((x) => x)),
         "colors":
             colors == null ? [] : List<dynamic>.from(colors!.map((x) => x)),
         "table": table,
-        "branchId": branchId,
+        "branchId": int.parse(branchId.toString()),
         "active": active,
       };
 }

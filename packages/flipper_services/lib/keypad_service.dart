@@ -30,9 +30,9 @@ class KeyPadService with ReactiveServiceMixin {
 
   double get amountTotal => _amountTotal.value;
 
-  final _check = ReactiveValue<String>("");
+  final _check = ReactiveValue<int>(0);
 
-  String get check => _check.value;
+  int get check => _check.value;
 
   final _cashReceived = ReactiveValue<double>(0.0);
 
@@ -51,7 +51,7 @@ class KeyPadService with ReactiveServiceMixin {
     _cashReceived.value = amount;
   }
 
-  void toggleCheckbox({required String variantId}) {
+  void toggleCheckbox({required int variantId}) {
     _check.value = variantId;
   }
 

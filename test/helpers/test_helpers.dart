@@ -59,16 +59,15 @@ Api getAndRegisterApi(
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);
   }
-
   locator.registerSingleton<Api>(service);
   return service;
 }
 
 AppService getAndRegisterAppService(
     {bool hasLoggedInUser = false,
-    String branchId = 'BID',
-    String userid = 'BID',
-    String businessId = "BID"}) {
+    int branchId = 11,
+    String userid = 'UID',
+    int businessId = 10}) {
   _removeRegistrationIfExists<AppService>();
   final service = MockAppService();
   when(service.hasLoggedInUser).thenReturn(hasLoggedInUser);
@@ -96,9 +95,7 @@ KeyPadService getAndRegisterKeyPadService() {
 }
 
 ProductService getAndRegisterProductService(
-    {String currentUnit = 'kg',
-    String branchId = 'BID',
-    String userId = 'UID'}) {
+    {String currentUnit = 'kg', int branchId = 11, String userId = 'UID'}) {
   _removeRegistrationIfExists<ProductService>();
   final service = MockProductService();
   when(service.currentUnit).thenReturn(currentUnit);

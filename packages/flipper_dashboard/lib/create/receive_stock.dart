@@ -8,7 +8,7 @@ import 'package:flipper_services/proxy.dart';
 
 class ReceiveStock extends StatelessWidget {
   ReceiveStock({Key? key, required this.variantId}) : super(key: key);
-  final String variantId;
+  final int variantId;
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {

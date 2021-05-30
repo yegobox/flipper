@@ -19,19 +19,17 @@ String unitToJson(List<Unit> data) =>
 @Entity()
 class Unit {
   Unit(
-      {this.id,
+      {this.id = 0,
       required this.branchId,
       required this.name,
       this.value,
       required this.table,
       required this.active,
       this.channels,
-      this.units,
-      this.tracker = 0});
+      this.units});
   @Id(assignable: true)
-  int tracker;
-  String? id;
-  String branchId;
+  int id;
+  int branchId;
   String name;
   String? value;
   String table;
@@ -40,9 +38,9 @@ class Unit {
   List<Map<String, dynamic>>? units;
 
   factory Unit.fromJson(Map<String, dynamic> json) => Unit(
-        id: json["id"],
+        id: int.parse(json["id"]),
         value: json["value"],
-        branchId: json["branchId"],
+        branchId: int.parse(json["branchId"]),
         name: json["name"],
         table: json["table"],
         active: json["active"],
@@ -55,7 +53,7 @@ class Unit {
   Map<String, dynamic> toJson() => {
         "id": id,
         "value": value,
-        "branchId": branchId,
+        "branchId": int.parse(branchId.toString()),
         "name": name,
         "table": table,
         "active": active,

@@ -42,7 +42,7 @@ class _AddVariationState extends State<AddVariation> {
               rightActionButtonName: 'Save',
               onPressedCallback: () async {
                 if (AddVariation._formKey.currentState!.validate()) {
-                  final variantId = Uuid().v1();
+                  final variantId = DateTime.now().millisecondsSinceEpoch;
                   List<Variation> variations = [];
                   Variation data = new Variation(
                     name: nameController.text,

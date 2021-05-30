@@ -1,15 +1,15 @@
 import 'package:flipper_models/variation.dart';
 
 final variationMock = new Variation(
-  id: 'caa5cbf1-b3c3-11eb-85f9-4df3cd820e94',
+  id: DateTime.now().millisecondsSinceEpoch,
   name: 'Regular',
   sku: 'sku',
-  productId: 'caa5cbf0-b3c3-11eb-85f9-4df3cd820e94',
+  productId: 2,
   unit: 'Per Item',
   table: 'variants',
   channels: ['300'],
   productName: 'Custom Amount',
-  branchId: 'b9c0ad93-3f43-49f9-9f52-98538f8c1e42',
+  branchId: 11,
   taxName: 'N/A',
   taxPercentage: 0.0,
 );

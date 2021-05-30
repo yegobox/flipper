@@ -18,24 +18,24 @@ abstract class Api<T> {
   Future<int> signup({required Map business});
   Future<SyncF> authenticateWithOfflineDb({required String userId});
   Future<List<Business>> businesses();
-  Future<List<Branch>> branches({required String businessId});
-  Future<List<Stock>> stocks({required String productId});
-  Stream<Stock> stockByVariantIdStream({required String variantId});
-  Future<Stock> stockByVariantId({required String variantId});
-  Future<List<PColor>> colors({required String branchId});
-  Future<List<Category>> categories({required String branchId});
-  Future<List<Unit>> units({required String branchId});
+  Future<List<Branch>> branches({required int businessId});
+  Future<List<Stock>> stocks({required int productId});
+  Stream<Stock> stockByVariantIdStream({required int variantId});
+  Future<Stock> stockByVariantId({required int variantId});
+  Future<List<PColor>> colors({required int branchId});
+  Future<List<Category>> categories({required int branchId});
+  Future<List<Unit>> units({required int branchId});
   Future<int> create<T>({required Map data, required String endPoint});
   Future<int> update<T>({required Map data, required String endPoint});
-  Future<bool> delete({required String id, String? endPoint});
-  Future<PColor> getColor({required String id, String? endPoint});
+  Future<bool> delete({required dynamic id, String? endPoint});
+  Future<PColor> getColor({required int id, String? endPoint});
   Future<List<VariantStock>> variantStock(
-      {required String branchId, required String variantId});
+      {required int branchId, required int variantId});
   Future<List<Variation>> variants({
-    required String branchId,
-    required String productId,
+    required int branchId,
+    required int productId,
   });
-  Future<Variation> variant({required String variantId});
+  Future<Variation> variant({required int variantId});
   Future<int> addUnits({required Map data});
 
   Future<int> addVariant({

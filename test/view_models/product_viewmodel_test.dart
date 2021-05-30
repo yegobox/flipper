@@ -19,7 +19,7 @@ void main() {
       registerServices();
       productService = getAndRegisterProductService(
         currentUnit: 'kg',
-        branchId: 'BID',
+        branchId: 11,
         userId: 'UID',
       );
       data = productService.product!.toJson();
@@ -34,12 +34,12 @@ void main() {
       Variation v = new Variation(
         name: 'name',
         sku: 'N/A',
-        productId: "",
+        productId: 2,
         unit: 'kg',
         channels: ['UID'],
         productName: 'temp',
-        branchId: 'BID',
-        id: 'ID',
+        branchId: 11,
+        id: 1,
         table: AppTables.variation,
         taxName: 'N/A',
         taxPercentage: 0.0,

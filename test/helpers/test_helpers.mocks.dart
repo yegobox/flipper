@@ -36,7 +36,7 @@ import 'package:stacked_services/src/navigation_service.dart' as _i22;
 
 class _FakeLogin extends _i1.Fake implements _i2.Login {}
 
-class _FakeSync extends _i1.Fake implements _i3.SyncF {}
+class _FakeSyncF extends _i1.Fake implements _i3.SyncF {}
 
 class _FakeStock extends _i1.Fake implements _i4.Stock {}
 
@@ -46,7 +46,7 @@ class _FakeVariation extends _i1.Fake implements _i6.Variation {}
 
 class _FakeProduct extends _i1.Fake implements _i7.Product {}
 
-class _FakeOrder extends _i1.Fake implements _i8.OrderF {}
+class _FakeOrderF extends _i1.Fake implements _i8.OrderF {}
 
 class _FakeSpenn extends _i1.Fake implements _i9.Spenn {}
 
@@ -75,48 +75,47 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
       (super.noSuchMethod(
           Invocation.method(#authenticateWithOfflineDb, [], {#userId: userId}),
           returnValue:
-              Future<_i3.SyncF>.value(_FakeSync())) as _i12.Future<_i3.SyncF>);
+              Future<_i3.SyncF>.value(_FakeSyncF())) as _i12.Future<_i3.SyncF>);
   @override
   _i12.Future<List<_i13.Business>> businesses() =>
       (super.noSuchMethod(Invocation.method(#businesses, []),
               returnValue: Future<List<_i13.Business>>.value(<_i13.Business>[]))
           as _i12.Future<List<_i13.Business>>);
   @override
-  _i12.Future<List<_i14.Branch>> branches({String? businessId}) =>
-      (super.noSuchMethod(
-              Invocation.method(#branches, [], {#businessId: businessId}),
-              returnValue: Future<List<_i14.Branch>>.value(<_i14.Branch>[]))
-          as _i12.Future<List<_i14.Branch>>);
+  _i12.Future<List<_i14.Branch>> branches({int? businessId}) => (super
+      .noSuchMethod(Invocation.method(#branches, [], {#businessId: businessId}),
+          returnValue: Future<List<_i14.Branch>>.value(<_i14.Branch>[])) as _i12
+      .Future<List<_i14.Branch>>);
   @override
-  _i12.Future<List<_i4.Stock>> stocks({String? productId}) => (super
-          .noSuchMethod(Invocation.method(#stocks, [], {#productId: productId}),
-              returnValue: Future<List<_i4.Stock>>.value(<_i4.Stock>[]))
+  _i12.Future<List<_i4.Stock>> stocks({int? productId}) => (super.noSuchMethod(
+          Invocation.method(#stocks, [], {#productId: productId}),
+          returnValue: Future<List<_i4.Stock>>.value(<_i4.Stock>[]))
       as _i12.Future<List<_i4.Stock>>);
   @override
-  _i12.Stream<_i4.Stock> stockByVariantIdStream({String? variantId}) =>
+  _i12.Stream<_i4.Stock> stockByVariantIdStream({int? variantId}) =>
       (super.noSuchMethod(
           Invocation.method(
               #stockByVariantIdStream, [], {#variantId: variantId}),
           returnValue: Stream<_i4.Stock>.empty()) as _i12.Stream<_i4.Stock>);
   @override
-  _i12.Future<_i4.Stock> stockByVariantId({String? variantId}) =>
+  _i12.Future<_i4.Stock> stockByVariantId({int? variantId}) =>
       (super.noSuchMethod(
               Invocation.method(#stockByVariantId, [], {#variantId: variantId}),
               returnValue: Future<_i4.Stock>.value(_FakeStock()))
           as _i12.Future<_i4.Stock>);
   @override
-  _i12.Future<List<_i5.PColor>> colors({String? branchId}) =>
+  _i12.Future<List<_i5.PColor>> colors({int? branchId}) =>
       (super.noSuchMethod(Invocation.method(#colors, [], {#branchId: branchId}),
               returnValue: Future<List<_i5.PColor>>.value(<_i5.PColor>[]))
           as _i12.Future<List<_i5.PColor>>);
   @override
-  _i12.Future<List<_i15.Category>> categories({String? branchId}) =>
+  _i12.Future<List<_i15.Category>> categories({int? branchId}) =>
       (super.noSuchMethod(
               Invocation.method(#categories, [], {#branchId: branchId}),
               returnValue: Future<List<_i15.Category>>.value(<_i15.Category>[]))
           as _i12.Future<List<_i15.Category>>);
   @override
-  _i12.Future<List<_i16.Unit>> units({String? branchId}) =>
+  _i12.Future<List<_i16.Unit>> units({int? branchId}) =>
       (super.noSuchMethod(Invocation.method(#units, [], {#branchId: branchId}),
               returnValue: Future<List<_i16.Unit>>.value(<_i16.Unit>[]))
           as _i12.Future<List<_i16.Unit>>);
@@ -131,38 +130,36 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
           Invocation.method(#update, [], {#data: data, #endPoint: endPoint}),
           returnValue: Future<int>.value(0)) as _i12.Future<int>);
   @override
-  _i12.Future<bool> delete({String? id, String? endPoint}) =>
+  _i12.Future<bool> delete({dynamic id, String? endPoint}) =>
       (super.noSuchMethod(
           Invocation.method(#delete, [], {#id: id, #endPoint: endPoint}),
           returnValue: Future<bool>.value(false)) as _i12.Future<bool>);
   @override
-  _i12.Future<_i5.PColor> getColor({String? id, String? endPoint}) =>
+  _i12.Future<_i5.PColor> getColor({int? id, String? endPoint}) =>
       (super.noSuchMethod(
               Invocation.method(#getColor, [], {#id: id, #endPoint: endPoint}),
               returnValue: Future<_i5.PColor>.value(_FakePColor()))
           as _i12.Future<_i5.PColor>);
   @override
   _i12.Future<List<_i17.VariantStock>> variantStock(
-          {String? branchId, String? variantId}) =>
+          {int? branchId, int? variantId}) =>
       (super.noSuchMethod(
           Invocation.method(
               #variantStock, [], {#branchId: branchId, #variantId: variantId}),
           returnValue: Future<List<_i17.VariantStock>>.value(
               <_i17.VariantStock>[])) as _i12.Future<List<_i17.VariantStock>>);
   @override
-  _i12.Future<List<_i6.Variation>> variants(
-          {String? branchId, String? productId}) =>
+  _i12.Future<List<_i6.Variation>> variants({int? branchId, int? productId}) =>
       (super.noSuchMethod(
               Invocation.method(
                   #variants, [], {#branchId: branchId, #productId: productId}),
               returnValue: Future<List<_i6.Variation>>.value(<_i6.Variation>[]))
           as _i12.Future<List<_i6.Variation>>);
   @override
-  _i12.Future<_i6.Variation> variant({String? variantId}) =>
-      (super.noSuchMethod(
-              Invocation.method(#variant, [], {#variantId: variantId}),
-              returnValue: Future<_i6.Variation>.value(_FakeVariation()))
-          as _i12.Future<_i6.Variation>);
+  _i12.Future<_i6.Variation> variant({int? variantId}) => (super.noSuchMethod(
+          Invocation.method(#variant, [], {#variantId: variantId}),
+          returnValue: Future<_i6.Variation>.value(_FakeVariation()))
+      as _i12.Future<_i6.Variation>);
   @override
   _i12.Future<int> addUnits({Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
@@ -216,7 +213,7 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
                 #orderType: orderType,
                 #quantity: quantity
               }),
-              returnValue: Future<_i8.OrderF>.value(_FakeOrder()))
+              returnValue: Future<_i8.OrderF>.value(_FakeOrderF()))
           as _i12.Future<_i8.OrderF>);
   @override
   _i12.Future<List<_i8.OrderF>> orders() =>
@@ -260,7 +257,7 @@ class MockProductService extends _i1.Mock implements _i18.ProductService {
   dynamic setCurrentProduct({_i7.Product? product}) => super.noSuchMethod(
       Invocation.method(#setCurrentProduct, [], {#product: product}));
   @override
-  _i12.Future<void> variantsProduct({String? productId}) => (super.noSuchMethod(
+  _i12.Future<void> variantsProduct({int? productId}) => (super.noSuchMethod(
       Invocation.method(#variantsProduct, [], {#productId: productId}),
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future.value()) as _i12.Future<void>);
@@ -315,9 +312,8 @@ class MockKeyPadService extends _i1.Mock implements _i19.KeyPadService {
       (super.noSuchMethod(Invocation.getter(#amountTotal), returnValue: 0.0)
           as double);
   @override
-  String get check =>
-      (super.noSuchMethod(Invocation.getter(#check), returnValue: '')
-          as String);
+  int get check =>
+      (super.noSuchMethod(Invocation.getter(#check), returnValue: 0) as int);
   @override
   void addKey(String? key) =>
       super.noSuchMethod(Invocation.method(#addKey, [key]),
@@ -329,7 +325,7 @@ class MockKeyPadService extends _i1.Mock implements _i19.KeyPadService {
   dynamic setCashReceived({double? amount}) => super
       .noSuchMethod(Invocation.method(#setCashReceived, [], {#amount: amount}));
   @override
-  void toggleCheckbox({String? variantId}) => super.noSuchMethod(
+  void toggleCheckbox({int? variantId}) => super.noSuchMethod(
       Invocation.method(#toggleCheckbox, [], {#variantId: variantId}),
       returnValueForMissingStub: null);
   @override
@@ -382,7 +378,7 @@ class MockLocalStorage extends _i1.Mock implements _i20.LocalStorage {
   dynamic remove({String? key}) =>
       super.noSuchMethod(Invocation.method(#remove, [], {#key: key}));
   @override
-  bool write({String? key, String? value}) => (super.noSuchMethod(
+  bool write({String? key, dynamic value}) => (super.noSuchMethod(
       Invocation.method(#write, [], {#key: key, #value: value}),
       returnValue: false) as bool);
 }

@@ -9,7 +9,7 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  bool write({required String key, required String value}) {
+  bool write({required dynamic key, required dynamic value}) {
     box.write(key, value);
     return true;
   }

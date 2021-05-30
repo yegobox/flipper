@@ -21,55 +21,54 @@ String variationToJson(List<Variation> data) =>
 @Entity()
 class Variation {
   Variation(
-      {required this.id,
+      {this.id = 0,
       required this.name,
       required this.sku,
       required this.productId,
       required this.unit,
       required this.table,
-      required this.channels,
+      this.channels,
       required this.productName,
       required this.branchId,
       this.taxName,
       this.taxPercentage});
 
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   String name;
   String sku;
-  String productId;
+  int productId;
   String unit;
   String table;
-  List<String> channels;
+  List<dynamic>? channels;
   String productName;
-  String branchId;
+  int branchId;
   String? taxName;
   double? taxPercentage;
 
   factory Variation.fromJson(Map<String, dynamic> json) => Variation(
-      id: json["id"],
+      id: int.parse(json["id"]),
       name: json["name"],
       sku: json["sku"],
-      productId: json["productId"],
+      productId: int.parse(json["productId"]),
       unit: json["unit"],
       table: json["table"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       productName: json["productName"],
-      branchId: json["branchId"],
+      branchId: int.parse(json["branchId"]),
       taxName: json["taxName"] ?? '',
       taxPercentage: json["taxPercentage"] ?? 0);
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "name": name,
         "sku": sku,
-        "productId": productId,
+        "productId": int.parse(productId.toString()),
         "unit": unit,
         "table": table,
-        "channels": List<dynamic>.from(channels.map((x) => x)),
+        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "productName": productName,
-        "branchId": branchId,
+        "branchId": int.parse(branchId.toString()),
         "taxName": taxName ?? '',
         "taxPercentage": taxPercentage ?? 0
       };

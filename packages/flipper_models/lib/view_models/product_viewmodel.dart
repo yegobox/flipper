@@ -47,7 +47,7 @@ class ProductViewModel extends ReactiveViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   ///
-  Future<String> createTemporalProduct() async {
+  Future<int> createTemporalProduct() async {
     final List<Product> isTemp = await ProxyService.api.isTempProductExist();
     if (isTemp.isEmpty) {
       Product product =
@@ -90,16 +90,16 @@ class ProductViewModel extends ReactiveViewModel {
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final String? userId = ProxyService.box.read(key: 'userId');
-    final String? branchId = ProxyService.box.read(key: 'branchId');
-    final categoryId = Uuid().v1();
+    final int? userId = ProxyService.box.read(key: 'userId');
+    final int? branchId = ProxyService.box.read(key: 'branchId');
+    final categoryId = DateTime.now().millisecondsSinceEpoch;
     final Category category = new Category(
       id: categoryId,
       active: true,
       table: AppTables.category,
       focused: false,
       name: name,
-      channels: [userId!],
+      channels: [userId.toString()],
       branchId: branchId!,
     );
     await ProxyService.api
@@ -113,7 +113,7 @@ class ProductViewModel extends ReactiveViewModel {
         Category cat = category;
         cat.focused = !cat.focused;
         cat.active = !cat.active;
-        String categoryId = category.id;
+        int categoryId = category.id;
         await ProxyService.api.update(
           endPoint: 'category/$categoryId',
           data: cat.toJson(),
@@ -125,7 +125,7 @@ class ProductViewModel extends ReactiveViewModel {
     cat.focused = !cat.focused;
     cat.active = !cat.active;
 
-    String categoryId = category.id;
+    int categoryId = category.id;
     await ProxyService.api.update(
       endPoint: 'category/$categoryId',
       data: cat.toJson(),
@@ -140,7 +140,7 @@ class ProductViewModel extends ReactiveViewModel {
     for (Unit unit in units) {
       if (unit.active) {
         unit.active = !unit.active;
-        String id = unit.id!;
+        int id = unit.id;
         await ProxyService.api.update(
           endPoint: 'unit/$id',
           data: unit.toJson(),
@@ -149,7 +149,7 @@ class ProductViewModel extends ReactiveViewModel {
     }
     Unit unit = newUnit;
     unit.active = !unit.active;
-    String id = unit.id!;
+    int id = unit.id;
     await ProxyService.api.update(
       endPoint: 'unit/$id',
       data: unit.toJson(),
@@ -170,7 +170,7 @@ class ProductViewModel extends ReactiveViewModel {
     _appService.loadUnits();
   }
 
-  void updateStock({required String variantId}) async {
+  void updateStock({required int variantId}) async {
     if (_stockValue != null) {
       Stock stock =
           await ProxyService.api.stockByVariantId(variantId: variantId);
@@ -299,9 +299,9 @@ class ProductViewModel extends ReactiveViewModel {
     }
   }
 
-  void deleteProduct({required String productId}) async {
+  void deleteProduct({required int productId}) async {
     //get variants->delete
-    String branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.read(key: 'branchId');
     List<Variation> variations = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
     for (Variation variation in variations) {

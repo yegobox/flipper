@@ -9,7 +9,6 @@ import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
 import 'package:flipper_models/variation.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
-import 'package:flipper_services/LiteApi.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/http_api.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,7 +24,7 @@ const TESTDIR = '_tmp2';
 // Generate a MockClient using the Mockito package.
 // Create new instances of this class in each test.
 final Business businessMockData = new Business(
-  id: '1',
+  id: 1,
   name: 'name',
   latitude: '1',
   longitude: '2',
@@ -69,18 +68,19 @@ void main() {
     });
     test('create units', () async {
       HttpApi api = new HttpApi();
+      int id = DateTime.now().millisecondsSinceEpoch;
       final units = new Unit(
         name: 'sample',
         active: false,
-        id: 'XX',
+        id: id,
         table: AppTables.unit,
         units: mockUnits,
-        branchId: 'XX',
+        branchId: 11,
         channels: ['300'],
       );
       final result = await api.addUnits(data: units.toJson());
       expect(result, 201);
-      List<Unit> unitss = await api.units(branchId: 'XX');
+      List<Unit> unitss = await api.units(branchId: 11);
       expect(unitss, isA<List<Unit>>());
     });
     test('test create color', () async {
@@ -97,20 +97,21 @@ void main() {
         '#ff7675',
         '#a29bfe'
       ];
+      int id = DateTime.now().millisecondsSinceEpoch;
       final PColor color = new PColor(
-        id: 'XX',
+        id: id,
         colors: colors,
         table: AppTables.color,
         channels: ['300'],
         active: false,
-        branchId: 'XX',
+        branchId: 11,
         name: 'sample',
       );
 
       final result =
           await api.create<PColor>(data: color.toJson(), endPoint: 'color');
       expect(result, 201);
-      List<PColor> colorsi = await api.colors(branchId: 'XX');
+      List<PColor> colorsi = await api.colors(branchId: 11);
       expect(colorsi, isA<List<PColor>>());
 
       // await api.delete(id: 'id', endPoint: 'colors');
@@ -125,7 +126,7 @@ void main() {
       expect(product, isA<Product>());
 
       List<Variation> variants =
-          await api.variants(branchId: '', productId: product.id);
+          await api.variants(branchId: 11, productId: product.id);
       expect(variants, isA<List<Variation>>());
 
       Stock stock = await api.stockByVariantId(variantId: variants[0].id);

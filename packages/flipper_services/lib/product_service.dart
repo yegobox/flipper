@@ -17,7 +17,7 @@ class ProductService with ReactiveServiceMixin {
       .toList();
 
   String? get userId => ProxyService.box.read(key: 'userId');
-  String? get branchId => ProxyService.box.read(key: 'branchId');
+  int? get branchId => ProxyService.box.read(key: 'branchId');
 
   setProductUnit({required String unit}) {
     _currentUnit = unit;
@@ -30,8 +30,8 @@ class ProductService with ReactiveServiceMixin {
   final _variants = ReactiveValue<dynamic>(null);
   List<Variation>? get variants => _variants.value;
 
-  Future<void> variantsProduct({required String productId}) async {
-    final String? branchId = ProxyService.box.read(key: 'branchId');
+  Future<void> variantsProduct({required int productId}) async {
+    final int? branchId = ProxyService.box.read(key: 'branchId');
 
     _variants.value = await ProxyService.api
         .variants(branchId: branchId!, productId: productId);

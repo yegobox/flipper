@@ -1,10 +1,10 @@
 import 'order.dart';
 
 final orderMock = new OrderF(
-  id: 'caa5cbf1-b3c3-11eb-85f9-4df3cd820e94',
+  id: DateTime.now().millisecondsSinceEpoch,
   reference: 'caa5cbf1-b3c3-11',
   orderNumber: 'caa5cbf1-b3c3-',
-  branchId: 'caa5cbf1-b3c3-',
+  branchId: 11,
   status: 'pending',
   orderType: 'local',
   active: true,
@@ -19,10 +19,10 @@ final orderMock = new OrderF(
     OrderItem(
       count: 1,
       name: 'regular',
-      orderId: 'caa5cbf1-b3c3-11eb-85f9-4df3cd820e94',
-      id: 'id',
+      orderId: 10,
+      id: 11,
       price: 300,
-      variantId: 'vid',
+      variantId: 1,
     )
   ],
   paymentType: 'Cash',

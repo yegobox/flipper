@@ -20,7 +20,7 @@ String variantStockToJson(List<VariantStock> data) =>
 @Entity()
 class VariantStock {
   VariantStock({
-    required this.id,
+    this.id = 0,
     required this.canTrackingStock,
     required this.retailPrice,
     required this.productName,
@@ -36,9 +36,8 @@ class VariantStock {
     required this.value,
   });
 
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   bool canTrackingStock;
   double retailPrice;
   String productName;
@@ -54,7 +53,7 @@ class VariantStock {
   double value;
 
   factory VariantStock.fromJson(Map<String, dynamic> json) => VariantStock(
-        id: json["id"],
+        id: int.parse(json["id"]),
         canTrackingStock: json["canTrackingStock"],
         retailPrice: json["retailPrice"],
         productName: json["productName"],
@@ -71,7 +70,7 @@ class VariantStock {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "canTrackingStock": canTrackingStock,
         "retailPrice": retailPrice,
         "productName": productName,

@@ -19,7 +19,7 @@ String productToJson(List<Product> data) =>
 @Entity()
 class Product {
   Product(
-      {required this.id,
+      {this.id = 0,
       required this.name,
       required this.description,
       required this.channels,
@@ -40,9 +40,8 @@ class Product {
       this.imageLocal,
       this.currentUpdate,
       this.imageUrl});
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   String name;
   String? description;
   List<String> channels;
@@ -51,8 +50,8 @@ class Product {
   bool hasPicture;
   String table;
   String color;
-  String businessId;
-  String branchId;
+  int businessId;
+  int branchId;
   dynamic supplierId;
   String categoryId;
   String? createdAt;
@@ -65,7 +64,7 @@ class Product {
   String? imageUrl;
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
-        id: json["id"],
+        id: int.parse(json["id"]),
         name: json["name"],
         description: json["description"],
         channels: List<String>.from(json["channels"].map((x) => x)),
@@ -74,8 +73,8 @@ class Product {
         hasPicture: json["hasPicture"],
         table: json["table"],
         color: json["color"],
-        businessId: json["businessId"],
-        branchId: json["branchId"],
+        businessId: int.parse(json["businessId"]),
+        branchId: int.parse(json["branchId"]),
         supplierId: json["supplierId"],
         categoryId: json["categoryId"],
         createdAt: json["createdAt"],
@@ -96,7 +95,7 @@ class Product {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "name": name,
         "description": description,
         "channels": List<dynamic>.from(channels.map((x) => x)),
@@ -105,8 +104,8 @@ class Product {
         "hasPicture": hasPicture,
         "table": table,
         "color": color,
-        "businessId": businessId,
-        "branchId": branchId,
+        "businessId": int.parse(businessId.toString()),
+        "branchId": int.parse(branchId.toString()),
         "supplierId": supplierId,
         "categoryId": categoryId,
         "createdAt": createdAt == null ? '' : createdAt!,
@@ -140,7 +139,7 @@ class AllVariant {
       required this.canTrackingStock,
       this.stockId,
       this.branchId});
-  String? branchId;
+  int? branchId;
   String? id;
   String name;
   String sku;
@@ -159,7 +158,7 @@ class AllVariant {
         id: json["id"] == null ? '' : json["id"],
         name: json["name"],
         sku: json["sku"],
-        productId: json["productId"] == null ? '' : json["productId"],
+        productId: json["productId"] == null ? 0 : json["productId"],
         unit: json["unit"],
         table: json["table"],
         channels: List<String>.from(json["channels"].map((x) => x)),
@@ -169,14 +168,14 @@ class AllVariant {
         retailPrice: json["retailPrice"],
         canTrackingStock: json["canTrackingStock"],
         stockId: json["stockId"] == null ? '' : json["stockId"],
-        branchId: json["branchId"] == null ? '' : json["branchId"],
+        branchId: json["branchId"] == null ? 0 : int.parse(json["branchId"]),
       );
 
   Map<String, dynamic> toJson() => {
         "id": id == null ? '' : id,
         "name": name,
         "sku": sku,
-        "productId": productId == null ? '' : productId,
+        "productId": productId == null ? 0 : int.parse(productId.toString()),
         "unit": unit,
         "table": table,
         "channels": List<dynamic>.from(channels.map((x) => x)),
@@ -186,6 +185,6 @@ class AllVariant {
         "retailPrice": retailPrice,
         "canTrackingStock": canTrackingStock,
         "stockId": stockId == null ? '' : stockId,
-        "branchId": branchId == null ? '' : branchId
+        "branchId": branchId == null ? 0 : int.parse(branchId.toString())
       };
 }

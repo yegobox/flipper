@@ -6,7 +6,7 @@ import 'package:flipper_services/app_service.dart';
 
 final AppService _appService = locator<AppService>();
 final customProductMock = new Product(
-  id: '',
+  id: DateTime.now().millisecondsSinceEpoch,
   draft: true,
   currentUpdate: true,
   taxId: "XX",
@@ -42,7 +42,7 @@ final customProductMock = new Product(
 );
 
 final productMock = new Product(
-  id: '',
+  id: DateTime.now().millisecondsSinceEpoch,
   branchId: _appService.branchId!,
   draft: true,
   currentUpdate: true,

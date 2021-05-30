@@ -266,7 +266,7 @@ class ColorTileArguments {
 /// ReceiveStock arguments holder class
 class ReceiveStockArguments {
   final Key? key;
-  final String variantId;
+  final int variantId;
   ReceiveStockArguments({this.key, required this.variantId});
 }
 

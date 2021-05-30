@@ -20,7 +20,7 @@ String stockToJson(List<Stock> data) =>
 @Entity()
 class Stock {
   Stock({
-    required this.id,
+    this.id = 0,
     required this.branchId,
     required this.variantId,
     required this.lowStock,
@@ -35,11 +35,10 @@ class Stock {
     this.active,
     required this.value,
   });
-  @Id()
-  int? tracker;
-  String id;
-  String branchId;
-  String variantId;
+  @Id(assignable: true)
+  int id;
+  int branchId;
+  int variantId;
   double lowStock;
   double currentStock;
   double supplyPrice;
@@ -53,9 +52,9 @@ class Stock {
   double value; // the value of stock items ie. count * retailPrice
 
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
-      id: json["id"],
+      id: int.parse(json["id"]),
       branchId: json["branchId"],
-      variantId: json["variantId"],
+      variantId: int.parse(json["variantId"]),
       lowStock: json["lowStock"],
       currentStock: json["currentStock"],
       supplyPrice: json["supplyPrice"],
@@ -69,9 +68,9 @@ class Stock {
       value: json["value"]);
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "branchId": branchId,
-        "variantId": variantId,
+        "variantId": int.parse(variantId.toString()),
         "lowStock": lowStock,
         "currentStock": currentStock,
         "supplyPrice": supplyPrice,

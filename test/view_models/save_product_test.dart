@@ -14,7 +14,7 @@ void main() {
       registerServices();
       productService = getAndRegisterProductService(
         currentUnit: 'kg',
-        branchId: 'BID',
+        branchId: 11,
         userId: 'UID',
       );
       data = productService.product!.toJson();

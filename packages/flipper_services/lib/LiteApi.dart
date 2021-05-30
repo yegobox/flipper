@@ -131,7 +131,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Branch>> branches({required String businessId}) async {
+  Future<List<Branch>> branches({required int businessId}) async {
     // Q15.parameters = {'T': AppTables.branch, 'BUSINESSID': businessId};
     // final ResultSet result = Q15.execute();
     // final List<Branch> branches = [];
@@ -158,8 +158,11 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Category>> categories({required String branchId}) async {
-    Q9.parameters = {'VALUE': AppTables.category, 'BRANCHID': branchId};
+  Future<List<Category>> categories({required int branchId}) async {
+    Q9.parameters = {
+      'VALUE': AppTables.category,
+      'BRANCHID': branchId.toString()
+    };
     final ResultSet business = Q9.execute();
     final List<Category> categories = [];
     // for (Map map in business.allResults) {
@@ -173,8 +176,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<PColor>> colors({required String branchId}) async {
-    Q12.parameters = {'T': AppTables.color, 'BRANCHID': branchId};
+  Future<List<PColor>> colors({required int branchId}) async {
+    Q12.parameters = {'T': AppTables.color, 'BRANCHID': branchId.toString()};
     final ResultSet colors = Q12.execute();
 
     final List<PColor> _colors = [];
@@ -228,9 +231,9 @@ class LiteApi<T> implements Api {
 
     final Document productDocument = db.saveDocument(doc);
     //create  variation
-    final id = Uuid().v1();
+    final id = DateTime.now().millisecondsSinceEpoch;
     final String? userId = ProxyService.box.read(key: 'userId');
-    final String? branchId = ProxyService.box.read(key: 'branchId');
+    final int? branchId = ProxyService.box.read(key: 'branchId');
     final Map productMap = json.decode(productDocument.json);
     final variation = new Variation(
       id: id,
@@ -245,9 +248,10 @@ class LiteApi<T> implements Api {
       taxName: 'N/A', //TODO: get value from branch/business config
       taxPercentage: 0.0,
     );
-    final variationDoc = Document(variation.id, data: variation.toJson());
+    final variationDoc =
+        Document(variation.id.toString(), data: variation.toJson());
     final Document variationDocument = db.saveDocument(variationDoc);
-    final stockId = Uuid().v1() + '-stock';
+    final stockId = DateTime.now().millisecondsSinceEpoch;
     final Map variationMap = json.decode(variationDocument.json);
     //create stock now.
 
@@ -267,7 +271,8 @@ class LiteApi<T> implements Api {
       active: false,
       value: 0,
     );
-    final Document stockDoc = Document(stock.id, data: stock.toJson());
+    final Document stockDoc =
+        Document(stock.id.toString(), data: stock.toJson());
     db.saveDocument(stockDoc);
 
     return sproductFromJson(productDocument.json);
@@ -329,7 +334,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Stock>> stocks({required String productId}) async {
+  Future<List<Stock>> stocks({required int productId}) async {
     final List<Stock> stocks = [];
 
     Q19.parameters = {'T': AppTables.stock, 'PRODUCTID': productId};
@@ -342,8 +347,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Unit>> units({required String branchId}) async {
-    Q10.parameters = {'T': AppTables.unit, 'BRANCHID': branchId};
+  Future<List<Unit>> units({required int branchId}) async {
+    Q10.parameters = {'T': AppTables.unit, 'BRANCHID': branchId.toString()};
     final ResultSet unit = Q10.execute();
     final List<Unit> _units = [];
     while (unit.next()) {
@@ -366,7 +371,7 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Variation>> variants(
-      {required String branchId, required String productId}) async {
+      {required int branchId, required int productId}) async {
     final List<Variation> variants = [];
     Q1.parameters = {'T': AppTables.variation, 'PRODUCTID': productId};
     final ResultSet _variants = Q1.execute();
@@ -379,7 +384,7 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<VariantStock>> variantStock(
-      {required String branchId, required String variantId}) async {
+      {required int branchId, required int variantId}) async {
     Q18.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
     final ResultSet business = Q18.execute();
     final List<VariantStock> variantStocks = [];
@@ -391,7 +396,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<bool> delete({required String id, String? endPoint}) async {
+  Future<bool> delete({required dynamic id, String? endPoint}) async {
     return db.purgeDocument(id);
   }
 
@@ -412,8 +417,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<PColor> getColor({required String id, String? endPoint}) async {
-    Document doc = db.getDocument(id);
+  Future<PColor> getColor({required int id, String? endPoint}) async {
+    Document doc = db.getDocument(id.toString());
     return spColorFromJson(doc.json);
   }
 
@@ -429,12 +434,12 @@ class LiteApi<T> implements Api {
       Document variant = db.saveDocument(doc);
 
       //create related stock
-      final stockId = Uuid().v1() + '-stock';
+      final stockId = DateTime.now().millisecondsSinceEpoch;
       String? userId = ProxyService.box.read(key: 'userId');
       final stock = new Stock(
         id: stockId,
         branchId: d['branchId'],
-        variantId: variant.ID,
+        variantId: int.parse(variant.ID),
         lowStock: 0.0,
         currentStock: 0.0,
         supplyPrice: supplyPrice,
@@ -447,7 +452,8 @@ class LiteApi<T> implements Api {
         value: 0,
         active: false,
       );
-      final Document stockDoc = Document(stock.id, data: stock.toJson());
+      final Document stockDoc =
+          Document(stock.id.toString(), data: stock.toJson());
       db.saveDocument(stockDoc);
     }
     return 200;
@@ -461,8 +467,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
-    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
+  Stream<Stock> stockByVariantIdStream({required int variantId}) async* {
+    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId.toString()};
     final ResultSet stock = Q2.execute();
     final List<Stock> stocks = [];
     for (Map map in stock.allResults) {
@@ -472,8 +478,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Stock> stockByVariantId({required String variantId}) async {
-    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId};
+  Future<Stock> stockByVariantId({required int variantId}) async {
+    Q2.parameters = {'T': AppTables.stock, 'VARIANTID': variantId.toString()};
     final ResultSet stock = Q2.execute();
     final List<Stock> stocks = [];
     for (Map map in stock.allResults) {
@@ -501,12 +507,12 @@ class LiteApi<T> implements Api {
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
-    final id4 = Uuid().v1();
-    final orderItemId = Uuid().v1();
+    final id4 = DateTime.now().millisecondsSinceEpoch;
+    final orderItemId = DateTime.now().millisecondsSinceEpoch;
     final ref = Uuid().v1();
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
-    String branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.read(key: 'branchId');
     OrderF? existOrder = await pendingOrderExist();
 
     // Document docStock = db.getDocument(stockId);
@@ -541,7 +547,7 @@ class LiteApi<T> implements Api {
           )
         ],
       );
-      final Document _doc = Document(id4, data: order.toJson());
+      final Document _doc = Document(id4.toString(), data: order.toJson());
       Document d = db.saveDocument(_doc);
 
       return sorderFromJson(d.json);
@@ -610,8 +616,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Variation> variant({required String variantId}) async {
-    Document doc = db.getDocument(variantId);
+  Future<Variation> variant({required int variantId}) async {
+    Document doc = db.getDocument(variantId.toString());
     return svariationFromJson(doc.json);
   }
 

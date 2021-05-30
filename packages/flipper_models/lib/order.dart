@@ -19,7 +19,7 @@ String orderToJson(List<OrderF> data) =>
 @Entity()
 class OrderF {
   OrderF({
-    required this.id,
+    this.id = 0,
     required this.reference,
     required this.orderNumber,
     required this.branchId,
@@ -37,12 +37,11 @@ class OrderF {
     required this.table,
     required this.channels,
   });
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   String reference;
   String orderNumber;
-  String branchId;
+  int branchId;
   String status;
   String orderType;
   bool active;
@@ -58,10 +57,10 @@ class OrderF {
   List<String> channels;
 
   factory OrderF.fromJson(Map<String, dynamic> json) => OrderF(
-        id: json["id"],
+        id: int.parse(json["id"]),
         reference: json["reference"],
         orderNumber: json["orderNumber"],
-        branchId: json["branchId"],
+        branchId: int.parse(json["branchId"]),
         status: json["status"],
         orderType: json["orderType"],
         active: json["active"],
@@ -79,10 +78,10 @@ class OrderF {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "reference": reference,
         "orderNumber": orderNumber,
-        "branchId": branchId,
+        "branchId": int.parse(branchId.toString()),
         "status": status,
         "orderType": orderType,
         "active": active,
@@ -101,37 +100,36 @@ class OrderF {
 
 class OrderItem {
   OrderItem({
-    required this.id,
+    this.id = 0,
     required this.name,
     required this.variantId,
     required this.count,
     required this.price,
     required this.orderId,
   });
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   String name;
-  String variantId;
+  int variantId;
   double count;
   double price;
-  String orderId;
+  int orderId;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
-        id: json["id"],
+        id: int.parse(json["id"]),
         name: json["name"],
-        variantId: json["variantId"],
+        variantId: int.parse(json["variantId"]),
         count: json["count"],
         price: json["price"].toDouble(),
-        orderId: json["orderId"],
+        orderId: int.parse(json["orderId"]),
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "name": name,
-        "variantId": variantId,
+        "variantId": int.parse(variantId.toString()),
         "count": count,
         "price": price,
-        "orderId": orderId,
+        "orderId": int.parse(orderId.toString()),
       };
 }

@@ -76,14 +76,14 @@ void main() {
     expect(product, isA<Product>());
 
     List<Variation> variations =
-        await api.variants(branchId: 'BID', productId: product.id);
+        await api.variants(branchId: 11, productId: product.id);
 
     expect(variations, isA<List<Variation>>());
 
     expect(variations[0].id, isA<String>());
 
     List<VariantStock> variantsStocks =
-        await api.variantStock(branchId: 'BID', variantId: variations[0].id);
+        await api.variantStock(branchId: 11, variantId: variations[0].id);
 
     expect(variantsStocks, isA<List<VariantStock>>());
   });
@@ -101,20 +101,20 @@ void main() {
       '#ff7675',
       '#a29bfe'
     ];
-    final colorId = Uuid().v1();
+
     final PColor color = new PColor(
-      id: colorId,
+      id: DateTime.now().millisecondsSinceEpoch,
       colors: colors,
       table: AppTables.color,
       channels: ['300'],
       active: false,
-      branchId: 'BID',
+      branchId: 11,
       name: 'sample',
     );
     api.create<PColor>(data: color.toJson(), endPoint: 'color');
 
     //now Querying should return list of colors
-    List<PColor> _colors = await api.colors(branchId: 'BID');
+    List<PColor> _colors = await api.colors(branchId: 11);
     expect(_colors, isA<List<PColor>>());
     expect(_colors.length, 8);
   });
@@ -122,24 +122,25 @@ void main() {
     //
     var db = Database('document1', directory: TESTDIR);
     LiteApi api = new LiteApi(database: db);
-    final unitId = Uuid().v1();
+    final unitId = DateTime.now().millisecondsSinceEpoch;
+
     final units = new Unit(
       name: 'sample',
       active: false,
       id: unitId,
       table: AppTables.unit,
       units: mockUnits,
-      branchId: 'BID',
+      branchId: 11, //stands where there was BID as branchId
       channels: ['300'],
     );
     api.addUnits(data: units.toJson());
-    List<Unit> _units = await api.units(branchId: 'BID');
+    List<Unit> _units = await api.units(branchId: 11);
     expect(_units, isA<List<Unit>>());
   });
   test('can create category and Query them', () async {
     //
     var db = Database('document1', directory: TESTDIR);
-    final categoryId = Uuid().v1();
+    final categoryId = DateTime.now().millisecondsSinceEpoch;
     LiteApi api = new LiteApi(database: db);
     final Category category = new Category(
       id: categoryId,
@@ -148,10 +149,10 @@ void main() {
       focused: true,
       name: 'NONE',
       channels: ['300'],
-      branchId: 'BID',
+      branchId: 11,
     );
     api.create<Category>(data: category.toJson(), endPoint: 'category');
-    List<Category> categories = await api.categories(branchId: 'BID');
+    List<Category> categories = await api.categories(branchId: 11);
     expect(categories, isA<List<Category>>());
   });
   test('Can delete a product and related variant(s) and Query should return []',

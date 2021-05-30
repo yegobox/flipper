@@ -1,6 +1,6 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'dart:io';
-import 'dart:typed_data';
+// import 'dart:typed_data';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -12,7 +12,7 @@ import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper/routes.router.dart';
-import 'LiteApi.dart';
+// import 'LiteApi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
@@ -31,9 +31,11 @@ import 'keypad_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
+// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
-final Database db = Database("db");
+import 'objectbox_api.dart';
+
+// final Database db = Database("db");
 // final dynamic db = {}; //fake db it is not going to be used on web anyway!
 final isWindows = UniversalPlatform.isWindows;
 // UniversalPlatform.platform;
@@ -80,13 +82,15 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  Api get apiService {
+  Future<Api> get apiService async {
     Api apiService;
     if (UniversalPlatform.isWindows ||
-        // UniversalPlatform.isAndroid ||
+        UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
-      apiService = LiteApi(database: db);
-      // apiService = HttpApi();
+      // apiService = LiteApi(database: db); //lite app
+      Directory dir = await getApplicationDocumentsDirectory(); //pro app
+      apiService = ObjectBoxApi(dir: dir);
+      // apiService = HttpApi(); //lite app
     } else {
       apiService = HttpApi();
     }

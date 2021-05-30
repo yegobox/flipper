@@ -25,7 +25,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   double get amountTotal => keypad.amountTotal;
 
-  String get checked => keypad.check;
+  int get checked => keypad.check;
 
   bool get groupValue => true;
 
@@ -92,11 +92,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.keypad.reset();
   }
 
-  Future<bool> deleteOrderItem({required String id}) async {
+  Future<bool> deleteOrderItem({required int id}) async {
     OrderF order = orders[0];
     if (order.orderItems!.isNotEmpty) {
       order.orderItems!.removeWhere((element) => element.id == id);
-      String orderId = order.id;
+      int orderId = order.id;
       ProxyService.api.update(data: order.toJson(), endPoint: 'order/$orderId');
     }
     getOrders();
@@ -122,26 +122,25 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.keypad.setAmount(amount: amount);
   }
 
-  void loadVariantStock({required String variantId}) async {
-    String branchId = ProxyService.box.read(key: 'branchId');
+  void loadVariantStock({required int variantId}) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
     _variantsStocks = await ProxyService.api
         .variantStock(branchId: branchId, variantId: variantId);
     notifyListeners();
   }
 
-  Future<String> getVariant({required String productId}) async {
-    String branchId = ProxyService.box.read(key: 'branchId');
+  Future<int> getVariant({required int productId}) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
     List<Variation> variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
     return variants[0].id;
   }
 
-  void toggleCheckbox({required String variantId}) {
+  void toggleCheckbox({required int variantId}) {
     keypad.toggleCheckbox(variantId: variantId);
   }
 
-  Future saveOrder(
-      {required String variationId, required double amount}) async {
+  Future saveOrder({required int variationId, required double amount}) async {
     Variation variation = await ProxyService.api.variant(
       variantId: variationId,
     );

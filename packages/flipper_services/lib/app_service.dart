@@ -9,8 +9,8 @@ import 'proxy.dart';
 class AppService with ReactiveServiceMixin {
   // required constants
   String? get userid => ProxyService.box.read(key: 'userId');
-  String? get businessId => ProxyService.box.read(key: 'businessId');
-  String? get branchId => ProxyService.box.read(key: 'branchId');
+  int? get businessId => ProxyService.box.read(key: 'businessId');
+  int? get branchId => ProxyService.box.read(key: 'branchId');
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
@@ -36,7 +36,7 @@ class AppService with ReactiveServiceMixin {
   }
 
   void loadCategories() async {
-    String? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.read(key: 'branchId');
 
     final List<Category> result =
         await ProxyService.api.categories(branchId: branchId!);
@@ -46,14 +46,14 @@ class AppService with ReactiveServiceMixin {
   }
 
   Future<void> loadUnits() async {
-    String? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.read(key: 'branchId');
     final List<Unit> result = await ProxyService.api.units(branchId: branchId!);
 
     _units.value = result;
   }
 
   Future<void> loadColors() async {
-    String? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.read(key: 'branchId');
 
     List<PColor> result = await ProxyService.api.colors(branchId: branchId!);
     _colors.value = result;

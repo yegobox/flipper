@@ -19,7 +19,7 @@ String branchToJson(List<Branch> data) =>
 @Entity()
 class Branch {
   Branch({
-    required this.id,
+    this.id = 0,
     required this.active,
     required this.channels,
     required this.description,
@@ -30,37 +30,37 @@ class Branch {
     required this.table,
   });
 
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   bool? active;
   List<String> channels;
   String? description;
   String name;
-  String? businessId;
+  int? businessId;
   String? longitude;
   String? latitude;
   String table;
 
   factory Branch.fromJson(Map<String, dynamic> json) => Branch(
-        id: json["id"],
+        id: int.parse(json["id"]),
         active: json["active"] == null ? false : json["active"],
         channels: List<String>.from(json["channels"].map((x) => x)),
         description: json["description"] == null ? '' : json["description"],
         name: json["name"],
-        businessId: json["businessId"] == null ? '' : json["businessId"],
+        businessId:
+            json["businessId"] == null ? 0 : int.parse(json["businessId"]),
         longitude: json["longitude"] == null ? '' : json["longitude"],
         latitude: json["latitude"],
         table: json["table"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "active": active == null ? false : active,
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "description": description == null ? '' : description,
         "name": name,
-        "businessId": businessId == null ? '' : businessId,
+        "businessId": businessId == null ? 0 : int.parse(businessId.toString()),
         "longitude": longitude == null ? '0' : longitude,
         "latitude": latitude == null ? '0' : latitude,
         "table": table,

@@ -19,7 +19,7 @@ String businessToJson(List<Business> data) =>
 @Entity()
 class Business {
   Business({
-    required this.id,
+    this.id = 0,
     required this.name,
     this.currency,
     this.categoryId,
@@ -38,12 +38,11 @@ class Business {
     this.active = false,
   });
 // TODO:add active propety in the API
-  @Id()
-  int? tracker;
-  String id;
+  @Id(assignable: true)
+  int id;
   String name;
   dynamic currency;
-  dynamic categoryId;
+  int? categoryId;
   String latitude;
   String longitude;
   dynamic userId;
@@ -59,10 +58,10 @@ class Business {
   bool? active;
 
   factory Business.fromJson(Map<String, dynamic> json) => Business(
-        id: json["id"],
+        id: int.parse(json["id"]),
         name: json["name"],
         currency: json["currency"],
-        categoryId: json["categoryId"],
+        categoryId: int.parse(json["categoryId"]),
         latitude: json["latitude"],
         longitude: json["longitude"],
         userId: json["userId"],
@@ -79,10 +78,10 @@ class Business {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        "id": int.parse(id.toString()),
         "name": name,
         "currency": currency,
-        "categoryId": categoryId,
+        "categoryId": int.parse(categoryId.toString()),
         "latitude": latitude,
         "longitude": longitude,
         "userId": userId,

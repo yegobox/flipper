@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flipper_models/objectbox.g.dart';
@@ -20,12 +21,12 @@ import 'package:flipper_models/login.dart';
 import 'package:flipper_models/color.dart';
 
 import 'package:flipper_models/category.dart';
-import 'package:uuid/uuid.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/business.dart';
 
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_services/http_api.dart';
-import 'package:path_provider/path_provider.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
 
@@ -39,7 +40,7 @@ class ObjectBoxApi implements Api {
     _store = Store(getObjectBoxModel(), directory: dir.path + '/db2');
   }
   @override
-  Future<List<Unit>> units({required String branchId}) async {
+  Future<List<Unit>> units({required int branchId}) async {
     return _store
         .box<Unit>()
         .getAll()
@@ -54,7 +55,7 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Category>> categories({required String branchId}) async {
+  Future<List<Category>> categories({required int branchId}) async {
     return _store
         .box<Category>()
         .getAll()
@@ -63,7 +64,7 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<PColor>> colors({required String branchId}) async {
+  Future<List<PColor>> colors({required int branchId}) async {
     return _store
         .box<PColor>()
         .getAll()
@@ -76,9 +77,8 @@ class ObjectBoxApi implements Api {
     if (endPoint == 'color') {
       for (String co in data['colors']) {
         final box = _store.box<PColor>();
-        final colorId = Uuid().v1();
         final color = PColor(
-          id: colorId,
+          id: DateTime.now().millisecondsSinceEpoch,
           name: co,
           channels: data['channels'],
           table: data['table'],
@@ -90,6 +90,74 @@ class ObjectBoxApi implements Api {
       return 200;
     }
     return 200;
+  }
+
+  @override
+  Future<List<Product>> isTempProductExist() async {
+    return _store
+        .box<Product>()
+        .getAll()
+        .where((product) => product.name == 'temp')
+        .toList();
+  }
+
+  @override
+  Future<List<Product>> products() async {
+    return _store.box<Product>().getAll();
+  }
+
+  @override
+  Future<bool> logOut() async {
+    ProxyService.box.remove(key: 'userId');
+    ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'UToken');
+    ProxyService.box.remove(key: 'businessId');
+    ProxyService.box.remove(key: 'branchId');
+    return true;
+  }
+
+  @override
+  Future<Login> login({required String phone}) async {
+    final response = await client
+        .post(Uri.parse("$flipperApi/open-login"), body: {'phone': phone});
+    final Login resp = loginFromJson(response.body);
+    ProxyService.box.write(key: 'UToken', value: resp.token);
+    return resp;
+  }
+
+  @override
+  Future<int> signup({required Map business}) async {
+    final http.Response response = await client.post(
+        Uri.parse("$apihub/api/business"),
+        body: jsonEncode(business),
+        headers: {'Content-Type': 'application/json'});
+    return response.statusCode;
+  }
+
+  @override
+  Future<List<Stock>> stocks({required int productId}) async {
+    return _store
+        .box<Stock>()
+        .getAll()
+        .where((stock) => stock.productId == productId)
+        .toList();
+  }
+
+  @override
+  Future<Variation> variant({required int variantId}) {
+    // TODO: implement variant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Variation>> variants(
+      {required int branchId, required int productId}) async {
+    return _store
+        .box<Variation>()
+        .getAll()
+        .where((stock) => stock.productId == productId)
+        .toList();
   }
 
   @override
@@ -112,16 +180,61 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<int> addVariant(
-      {required List<Variation> data,
-      required double retailPrice,
-      required double supplyPrice}) {
-    // TODO: implement addVariant
-    throw UnimplementedError();
+  Future<List<VariantStock>> variantStock(
+      {required int branchId, required int variantId}) async {
+    return _store
+        .box<VariantStock>()
+        .getAll()
+        .where((v) => v.variantId == variantId)
+        .toList();
   }
 
   @override
-  Future<List<Branch>> branches({required String businessId}) {
+  Future<bool> delete({required dynamic id, String? endPoint}) async {
+    switch (endPoint) {
+      case 'color':
+        _store.box<PColor>().remove(id);
+        break;
+      default:
+    }
+    return true;
+  }
+
+  @override
+  Future<int> addVariant(
+      {required List<Variation> data,
+      required double retailPrice,
+      required double supplyPrice}) async {
+    for (Variation variation in data) {
+      Map d = variation.toJson();
+      final box = _store.box<Variation>();
+      final variantId = box.put(variation);
+      final stockId = DateTime.now().millisecondsSinceEpoch;
+      String? userId = ProxyService.box.read(key: 'userId');
+      final stock = new Stock(
+        id: stockId,
+        branchId: d['branchId'],
+        variantId: variantId,
+        lowStock: 0.0,
+        currentStock: 0.0,
+        supplyPrice: supplyPrice,
+        retailPrice: retailPrice,
+        canTrackingStock: false,
+        showLowStockAlert: false,
+        channels: [userId!],
+        table: AppTables.stock,
+        productId: d['productId'],
+        value: 0,
+        active: false,
+      );
+      final stockBox = _store.box<Stock>();
+      stockBox.put(stock);
+    }
+    return 200;
+  }
+
+  @override
+  Future<List<Branch>> branches({required int businessId}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -152,13 +265,7 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<bool> delete({required String id, String? endPoint}) {
-    // TODO: implement delete
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<PColor> getColor({required String id, String? endPoint}) {
+  Future<PColor> getColor({required int id, String? endPoint}) {
     // TODO: implement getColor
     throw UnimplementedError();
   }
@@ -176,38 +283,8 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Product>> isTempProductExist() {
-    // TODO: implement isTempProductExist
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> logOut() {
-    // TODO: implement logOut
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Login> login({required String phone}) {
-    // TODO: implement login
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<OrderF>> orders() {
     // TODO: implement orders
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Product>> products() {
-    // TODO: implement products
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<int> signup({required Map business}) {
-    // TODO: implement signup
     throw UnimplementedError();
   }
 
@@ -218,46 +295,20 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Stock> stockByVariantId({required String variantId}) {
+  Future<Stock> stockByVariantId({required int variantId}) {
     // TODO: implement stockByVariantId
     throw UnimplementedError();
   }
 
   @override
-  Stream<Stock> stockByVariantIdStream({required String variantId}) {
+  Stream<Stock> stockByVariantIdStream({required int variantId}) {
     // TODO: implement stockByVariantIdStream
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Stock>> stocks({required String productId}) {
-    // TODO: implement stocks
     throw UnimplementedError();
   }
 
   @override
   Future<int> update<T>({required Map data, required String endPoint}) {
     // TODO: implement update
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Variation> variant({required String variantId}) {
-    // TODO: implement variant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<VariantStock>> variantStock(
-      {required String branchId, required String variantId}) {
-    // TODO: implement variantStock
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Variation>> variants(
-      {required String branchId, required String productId}) {
-    // TODO: implement variants
     throw UnimplementedError();
   }
 

@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/objectbox_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
@@ -13,8 +11,7 @@ import 'package:get_storage/get_storage.dart';
 // import 'package:hive_flutter/hive_flutter.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-// import 'package:objectbox/objectbox.dart';
+// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -24,11 +21,7 @@ final isAndroid = UniversalPlatform.isAndroid;
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
-  (isWindows) ? Cbl.init() : '';
-  Directory dir = await getApplicationDocumentsDirectory();
-  (isWindows || isAndroid || isMacOs) ? ObjectBoxApi(dir: dir) : '';
-  // await Hive.initFlutter();
-  // await Hive.openBox<String>('box');
+  // (isWindows) ? Cbl.init() : ''; //paused for now as couchbase is not supported on some platforms
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();

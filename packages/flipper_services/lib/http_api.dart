@@ -89,7 +89,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Stock>> stocks({required String productId}) async {
+  Future<List<Stock>> stocks({required int productId}) async {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byProductId/$productId"));
 
@@ -97,7 +97,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Branch>> branches({required String businessId}) async {
+  Future<List<Branch>> branches({required int businessId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/branches/$businessId"));
 
@@ -125,7 +125,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<PColor>> colors({required String branchId}) async {
+  Future<List<PColor>> colors({required int branchId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/colors/$branchId"));
 
@@ -133,7 +133,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Category>> categories({required String branchId}) async {
+  Future<List<Category>> categories({required int branchId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/categories/$branchId"));
 
@@ -141,7 +141,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Unit>> units({required String branchId}) async {
+  Future<List<Unit>> units({required int branchId}) async {
     final response = await client.get(Uri.parse("$apihub/api/units/$branchId"));
 
     return unitFromJson(response.body);
@@ -149,7 +149,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<List<VariantStock>> variantStock(
-      {required String branchId, required String variantId}) async {
+      {required int branchId, required int variantId}) async {
     final response = await client
         .get(Uri.parse("$apihub/api/stock-variant/$branchId/$variantId"));
 
@@ -185,7 +185,7 @@ class HttpApi<T> implements Api {
 
   @override
   Future<List<Variation>> variants(
-      {required String branchId, required String productId}) async {
+      {required int branchId, required int productId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/variants/$productId"));
 
@@ -200,7 +200,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<bool> delete({required String id, String? endPoint}) async {
+  Future<bool> delete({required dynamic id, String? endPoint}) async {
     final response =
         await client.delete(Uri.parse("$apihub/api/$endPoint/$id"));
     return response.statusCode == 200;
@@ -219,7 +219,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<PColor> getColor({required String id, String? endPoint}) async {
+  Future<PColor> getColor({required int id, String? endPoint}) async {
     final response = await client.get(Uri.parse("$apihub/api/$endPoint/$id"));
     return spColorFromJson(response.body);
   }
@@ -244,7 +244,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Stock> stockByVariantId({required String variantId}) async {
+  Future<Stock> stockByVariantId({required int variantId}) async {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
 
@@ -252,7 +252,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Stream<Stock> stockByVariantIdStream({required String variantId}) async* {
+  Stream<Stock> stockByVariantIdStream({required int variantId}) async* {
     final response = await client
         .get(Uri.parse("$apihub/api/stocks-byVariantId/$variantId"));
 
@@ -277,12 +277,12 @@ class HttpApi<T> implements Api {
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
-    final id4 = Uuid().v1();
-    final orderItemId = Uuid().v1();
+    final id4 = DateTime.now().millisecondsSinceEpoch;
+    final orderItemId = DateTime.now().millisecondsSinceEpoch;
     final ref = Uuid().v1();
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
-    String branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.read(key: 'branchId');
 
     OrderF? existOrder = await pendingOrderExist();
 
@@ -332,7 +332,7 @@ class HttpApi<T> implements Api {
         orderId: existOrder.id,
       );
       existOrder.orderItems!.add(item);
-      String orderId = existOrder.id;
+      int orderId = existOrder.id;
       await update(data: existOrder.toJson(), endPoint: 'order/$orderId');
       return existOrder;
     }
@@ -354,7 +354,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Variation> variant({required String variantId}) async {
+  Future<Variation> variant({required int variantId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/variant/$variantId"));
 

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flipper/routes.router.dart';
@@ -81,7 +82,7 @@ class SignupViewModel extends FormViewModel {
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses[0].id);
       final String? userId = ProxyService.box.read(key: 'userId');
-      final categoryId = Uuid().v1();
+      final categoryId = DateTime.now().millisecondsSinceEpoch;
       final Category category = new Category(
         id: categoryId,
         active: true,
@@ -107,9 +108,8 @@ class SignupViewModel extends FormViewModel {
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
-      final colorId = Uuid().v1();
       final PColor color = new PColor(
-        id: colorId,
+        id: DateTime.now().millisecondsSinceEpoch,
         colors: colors,
         table: AppTables.color,
         channels: [userId],
@@ -121,11 +121,11 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.api
           .create<PColor>(data: color.toJson(), endPoint: 'color');
       //now create default units for this branch
-      final unitId = Uuid().v1();
+
       final units = new Unit(
         name: 'sample',
         active: false,
-        id: unitId,
+        id: DateTime.now().millisecondsSinceEpoch,
         table: AppTables.unit,
         units: mockUnits,
         branchId: branches[0].id,
