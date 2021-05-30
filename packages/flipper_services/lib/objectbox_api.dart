@@ -79,11 +79,10 @@ class ObjectBoxApi implements Api {
     if (endPoint == 'color') {
       for (String co in data['colors']) {
         final color = PColor(
-          id: DateTime.now().millisecondsSinceEpoch,
-          name: co,
-          table: data['table'],
-          active: data['active'],
-        );
+            name: co,
+            table: data['table'],
+            active: data['active'],
+            fbranchId: ProxyService.box.read(key: 'branchId'));
         final box = _store.box<PColor>();
         box.put(color);
       }
@@ -150,11 +149,12 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Stock>> stocks({required int productId}) async {
-    return _store
+    List<Stock> stocks = _store
         .box<Stock>()
         .getAll()
         .where((stock) => stock.fproductId == productId)
         .toList();
+    return stocks;
   }
 
   @override

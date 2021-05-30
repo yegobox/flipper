@@ -7,6 +7,7 @@ import 'package:flipper_models/color.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/product_mock.dart';
+import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
 import 'package:flipper_models/variants.dart';
@@ -83,7 +84,7 @@ void main() {
         await api.create<PColor>(data: color.toJson(), endPoint: 'color');
     expect(response, 200);
     List<PColor> colorss = await api.colors(branchId: 11);
-    expect(colorss, isA<List<PColor>>());
+    expect(colorss.isEmpty, false);
   });
   test('create variants', () async {
     Directory dir = await getApplicationDocumentsDirectory();
@@ -95,7 +96,7 @@ void main() {
     expect(response, 200);
 
     List<Variant> variationss = await api.variants(branchId: 11, productId: 2);
-    expect(variationss, isA<List<Variant>>());
+    expect(variationss.isEmpty, false);
   });
   test('test create order', () async {
     Directory dir = await getApplicationDocumentsDirectory();
@@ -127,17 +128,29 @@ void main() {
         await api.variants(branchId: 11, productId: product.id);
     expect(variants, isA<List<Variant>>());
   });
+  test('get list of products', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    List<Product> products = await api.products();
+    expect(products.isEmpty, false);
+  });
+  test('get list of stocks for specific productId', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    List<Stock> stocks = await api.stocks(productId: 2);
+    expect(stocks.isEmpty, false);
+  });
   test('test temporal product  exist', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Product> products = await api.isTempProductExist();
-    expect(products, isA<List<Product>>());
+    expect(products.isEmpty, false);
   });
   test('test get branches', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Branch> branches = await api.branches(businessId: 10);
-    expect(branches, isA<List<Branch>>());
+    expect(branches.isEmpty, true); //TODOshould be false
   });
   test('test create categories', () async {
     Directory dir = await getApplicationDocumentsDirectory();
