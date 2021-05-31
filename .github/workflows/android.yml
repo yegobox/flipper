@@ -7,7 +7,7 @@ on:
 jobs:      
   version:
     name: Create version number
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
     - name: Fetch all history for all tags and branches
@@ -32,7 +32,7 @@ jobs:
   build:
     name: Build APK and Create release
     needs: [ version ]
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
     - name: Decode google-services.json
@@ -89,7 +89,7 @@ jobs:
   release:
     name: Release app to internal track
     needs: [ build ]
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
     - name: Get appbundle from artifacts
