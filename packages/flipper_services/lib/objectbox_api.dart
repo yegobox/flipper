@@ -178,11 +178,11 @@ class ObjectBoxApi implements Api {
       final box = _store.box<Unit>();
 
       final unit = Unit(
-        active: false,
-        table: data['table'],
-        value: map['value'],
-        name: map['name'],
-      );
+          active: false,
+          table: data['table'],
+          value: map['value'],
+          name: map['name'],
+          fbranchId: ProxyService.box.read(key: 'branchId'));
 
       box.put(unit);
     }
@@ -476,7 +476,6 @@ class ObjectBoxApi implements Api {
           hasPicture: map['hasPicture'],
           name: map['name'],
           unit: map['unit'],
-          // allVariants: map['allVariants'],
           createdAt: map['createdAt'],
           currentUpdate: map['currentUpdate'],
           draft: map['draft'],
@@ -484,7 +483,6 @@ class ObjectBoxApi implements Api {
           imageUrl: map['imageUrl'],
           fsupplierId: map['supplierId'],
           ftaxId: map['taxId'],
-          // variants: map['variants'],
         );
         final box = _store.box<Product>();
         box.put(product, mode: PutMode.update);

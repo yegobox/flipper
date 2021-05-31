@@ -98,7 +98,7 @@ class OrderF {
         "customerChangeDue": customerChangeDue,
         "createdAt": createdAt,
         "updatedAt": updatedAt,
-        // "orderItems": orderItems,
+        "orderItems": orderItems,
         "table": table,
         "channels": channels,
       };
