@@ -124,7 +124,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           tickets: 0,
                           orders: model.orders.length,
                           duePay: model.orders.isNotEmpty
-                              ? model.orders[0].orderItems!
+                              ? model.orders[0].orderItems
                                   .fold(0, (a, b) => a + b.price)
                               : 0.0,
                         ),

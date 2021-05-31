@@ -64,7 +64,7 @@ class KeyPadService with ReactiveServiceMixin {
     List<OrderF> od = await ProxyService.api.orders();
     //NOTE: we assume index[0] as pending order can not be more than one at the moment
     if (od.isNotEmpty) {
-      _countOrderItems.value = od[0].orderItems!.length;
+      _countOrderItems.value = od[0].orderItems.length;
     }
     _orders.value = od;
     return _orders.value;

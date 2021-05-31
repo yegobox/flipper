@@ -143,7 +143,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                       return 'Please enter Cash Received';
                                     }
                                     double totalOrderAmount = model
-                                        .orders[0].orderItems!
+                                        .orders[0].orderItems
                                         .fold(0, (a, b) => a + b.price);
                                     if (double.parse(value) <
                                         totalOrderAmount) {
@@ -185,7 +185,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     model.collectCashPayment();
                                     _btnController.success();
                                     double totalOrderAmount = model
-                                        .orders[0].orderItems!
+                                        .orders[0].orderItems
                                         .fold(0, (a, b) => a + b.price);
                                     ProxyService.nav.navigateTo(
                                       Routes.afterSale,
@@ -222,7 +222,7 @@ class _CollectCashViewState extends State<CollectCashView> {
             if (event == userId) {
               _btnController.success();
               double totalOrderAmount =
-                  model.orders[0].orderItems!.fold(0, (a, b) => a + b.price);
+                  model.orders[0].orderItems.fold(0, (a, b) => a + b.price);
               ProxyService.nav.navigateTo(Routes.afterSale,
                   arguments:
                       AfterSaleArguments(totalOrderAmount: totalOrderAmount));

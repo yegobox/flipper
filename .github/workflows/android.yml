@@ -2,7 +2,7 @@ name: App PlayStore Release
 
 on:
   push:
-    branches: [ mobile ]
+    branches: [ mobile, objectbox ]
 
 jobs:      
   version:
