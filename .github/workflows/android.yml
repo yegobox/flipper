@@ -7,7 +7,7 @@ on:
 jobs:      
   version:
     name: Create version number
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: Fetch all history for all tags and branches
@@ -32,7 +32,7 @@ jobs:
   build:
     name: Build APK and Create release
     needs: [ version ]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: Decode google-services.json
@@ -71,6 +71,7 @@ jobs:
         channel: 'master'
     # pause test on server for now
     - run: flutter pub get
+    - run: ./install.sh
     - run: flutter test
     - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
     - run: flutter build appbundle --no-tree-shake-icons
@@ -89,7 +90,7 @@ jobs:
   release:
     name: Release app to internal track
     needs: [ build ]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: Get appbundle from artifacts
