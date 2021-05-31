@@ -45,7 +45,7 @@ jobs:
     - run: flutter test
   build:
     name: Build APK and Create release
-    needs: [ version ]
+    needs: [ testing, version ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
