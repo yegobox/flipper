@@ -95,7 +95,7 @@ class OrderSummary extends StatelessWidget {
               ProxyService.nav.back();
             },
             title: 'Total: Frw' +
-                display(model.orders[0].orderItems!
+                display(model.orders[0].orderItems
                     .fold(0, (a, b) => a! + b.price)).toString(),
             icon: Icons.close,
             multi: 3,
