@@ -30,6 +30,8 @@ jobs:
         path: version.txt
   testing: 
     name: Unit Testing
+    runs-on: ubuntu-latest
+    steps:
     - uses: actions/setup-java@v1
       with:
         java-version: '8.x'
