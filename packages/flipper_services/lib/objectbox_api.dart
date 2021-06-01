@@ -52,7 +52,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
-    final response = await client.get(Uri.parse("$apihub/api/businesses"));
+    final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
     return businessFromJson(response.body);
   }
 
@@ -141,7 +141,7 @@ class ObjectBoxApi implements Api {
   @override
   Future<int> signup({required Map business}) async {
     final http.Response response = await client.post(
-        Uri.parse("$apihub/api/business"),
+        Uri.parse("$apihub/v2/api/business"),
         body: jsonEncode(business),
         headers: {'Content-Type': 'application/json'});
     return response.statusCode;
@@ -245,7 +245,7 @@ class ObjectBoxApi implements Api {
   @override
   Future<List<Branch>> branches({required int businessId}) async {
     final response =
-        await client.get(Uri.parse("$apihub/api/branches/$businessId"));
+        await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
     return branchFromJson(response.body);
   }
 
