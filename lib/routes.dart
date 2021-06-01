@@ -76,3 +76,4 @@ class AppSetup {
 
 // TODO:changed data type of id from string to int, if go back to couchbase need to change that too where I am using uid;
 //carefully look for where the ID is used while building object eg unit and turn back to Int when accessing data as when saved it was changed to int on couchbaseside.
+// https://dev.to/ashishrawat2911/handling-network-calls-and-exceptions-in-flutter-54me

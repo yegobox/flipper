@@ -821,7 +821,8 @@ ModelDefinition getObjectBoxModel() {
           final timeZoneOffset = object.timeZone == null
               ? null
               : fbb.writeString(object.timeZone!);
-          final tableOffset = fbb.writeString(object.table);
+          final tableOffset =
+              object.table == null ? null : fbb.writeString(object.table!);
           final countryOffset = fbb.writeString(object.country);
           final businessUrlOffset = object.businessUrl == null
               ? null
@@ -874,8 +875,8 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 18),
               timeZone: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 20),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
+              table: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 22),
               country:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
               businessUrl: const fb.StringReader()

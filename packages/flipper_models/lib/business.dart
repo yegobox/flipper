@@ -22,14 +22,14 @@ class Business {
     this.id = 0,
     required this.name,
     this.currency,
-    this.fcategoryId,
+    this.fcategoryId = 1,
     required this.latitude,
     required this.longitude,
     this.userId,
     this.typeId,
     this.timeZone,
     this.channels,
-    required this.table,
+    this.table = "businesses",
     required this.country,
     this.businessUrl,
     this.hexColor,
@@ -51,7 +51,7 @@ class Business {
 
   @Transient()
   List<String>? channels;
-  String table;
+  String? table;
   String country;
   String? businessUrl;
   String? hexColor;
@@ -60,16 +60,16 @@ class Business {
   bool? active;
 
   factory Business.fromJson(Map<String, dynamic> json) => Business(
-        id: int.parse(json["id"]),
+        id: json["id"],
         name: json["name"],
         currency: json["currency"],
-        fcategoryId: int.parse(json["fcategoryId"]),
+        fcategoryId: json["fcategoryId"],
         latitude: json["latitude"],
         longitude: json["longitude"],
         userId: json["userId"],
         typeId: json["typeId"],
         timeZone: json["timeZone"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
+        // channels: List<String>.from(json["channels"].map((x) => x)),
         table: json["table"],
         country: json["country"],
         businessUrl: json["businessUrl"],
@@ -83,13 +83,13 @@ class Business {
         "id": int.parse(id.toString()),
         "name": name,
         "currency": currency,
-        "fcategoryId": int.parse(fcategoryId.toString()),
+        "fcategoryId": fcategoryId.toString(),
         "latitude": latitude,
         "longitude": longitude,
         "userId": userId,
         "typeId": typeId,
         "timeZone": timeZone,
-        "channels": List<dynamic>.from(channels!.map((x) => x)),
+        // "channels": List<dynamic>.from(channels!.map((x) => x)),
         "table": table,
         "country": country,
         "businessUrl": businessUrl,

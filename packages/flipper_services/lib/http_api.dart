@@ -35,8 +35,7 @@ class ExtendedClient extends http.BaseClient {
     String? userId = ProxyService.box.read(key: 'userId');
     // you may want to pickup the value from tshared preferences, like:
     // customValue = await LocalStorage.getStringItem('token');
-    print('hhhh');
-    print(userId);
+
     request.headers['Authorization'] = token == null ? '' : token;
     request.headers['userId'] = userId!;
     // request.finalize();

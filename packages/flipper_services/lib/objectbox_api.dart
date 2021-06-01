@@ -46,7 +46,7 @@ class ObjectBoxApi implements Api {
   late Store _store;
   getDir() async {
     Directory dir = await getApplicationDocumentsDirectory();
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/db7');
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/db8');
   }
 
   ObjectBoxApi({Directory? dir}) {
@@ -54,7 +54,7 @@ class ObjectBoxApi implements Api {
 
     dioClient = DioClient(apihub, dio, interceptors: []);
     if (dir != null) {
-      _store = Store(getObjectBoxModel(), directory: dir.path + '/db7');
+      _store = Store(getObjectBoxModel(), directory: dir.path + '/db8');
     } else {
       getDir();
     }
@@ -70,17 +70,19 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
-    // final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
-    // print(response.body);
-    // return businessFromJson(response.body);
-    final response = await dioClient.get(
-      "$apihub/v2/api/businesses",
-    );
-    List<Business> businesses = [];
-    try {
-      businesses = businessFromJson(response);
-    } catch (e) {}
-    return businesses;
+    final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
+
+    return businessFromJson(response.body);
+    // final response = await dioClient.get(
+    //   "$apihub/v2/api/businesses",
+    // );
+    // List<Business> businesses = [];
+    // try {
+    //   return businessFromJson(response);
+    // } catch (e) {
+    //   print(e);
+    // }
+    // return businesses;
   }
 
   @override
