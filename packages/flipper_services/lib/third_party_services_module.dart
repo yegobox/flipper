@@ -38,6 +38,7 @@ import 'objectbox_api.dart';
 // final Database db = Database("db");
 // final dynamic db = {}; //fake db it is not going to be used on web anyway!
 final isWindows = UniversalPlatform.isWindows;
+
 // UniversalPlatform.platform;
 
 enum ApiProvider {
@@ -89,9 +90,8 @@ abstract class ThirdPartyServicesModule {
         UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       // apiService = LiteApi(database: db); //lite app
-      getApplicationDocumentsDirectory().then((dir) {
-        apiService = ObjectBoxApi(dir: dir);
-      }); //pro app
+
+      apiService = ObjectBoxApi(); //pro app
       // apiService = HttpApi(); //lite app
     } else {
       apiService = HttpApi();

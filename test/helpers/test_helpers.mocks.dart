@@ -44,7 +44,7 @@ class _FakeProduct extends _i1.Fake implements _i5.Product {}
 
 class _FakeOrderF extends _i1.Fake implements _i6.OrderF {}
 
-class _FakeVariation extends _i1.Fake implements _i7.Variant {}
+class _FakeVariant extends _i1.Fake implements _i7.Variant {}
 
 class _FakeSpenn extends _i1.Fake implements _i8.Spenn {}
 
@@ -219,7 +219,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
   @override
   _i11.Future<_i7.Variant> getCustomProductVariant() =>
       (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),
-              returnValue: Future<_i7.Variant>.value(_FakeVariation()))
+              returnValue: Future<_i7.Variant>.value(_FakeVariant()))
           as _i11.Future<_i7.Variant>);
   @override
   _i11.Future<_i8.Spenn> spennPayment({double? amount, dynamic phoneNumber}) =>

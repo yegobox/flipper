@@ -8,7 +8,7 @@ import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/order_item.dart';
 
 import 'package:flipper_models/variant_stock.dart';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/unit.dart';
 
 import 'package:flipper_models/sync.dart';
@@ -37,9 +37,18 @@ class ObjectBoxApi implements Api {
   String flipperApi = "https://flipper.yegobox.com";
   String apihub = "https://apihub.yegobox.com";
   late Store _store;
-  ObjectBoxApi({required Directory dir}) {
-    // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+  getDir() async {
+    Directory dir = await getApplicationDocumentsDirectory();
     _store = Store(getObjectBoxModel(), directory: dir.path + '/db7');
+  }
+
+  ObjectBoxApi({Directory? dir}) {
+    // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+    if (dir != null) {
+      _store = Store(getObjectBoxModel(), directory: dir.path + '/db7');
+    } else {
+      getDir();
+    }
   }
   @override
   Future<List<Unit>> units({required int branchId}) async {
@@ -53,6 +62,7 @@ class ObjectBoxApi implements Api {
   @override
   Future<List<Business>> businesses() async {
     final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
+    print(response.body);
     return businessFromJson(response.body);
   }
 
@@ -566,7 +576,6 @@ class ObjectBoxApi implements Api {
         box.put(pcolor, mode: PutMode.update);
         break;
       case 'order':
-        print(dn['id']);
         OrderF? orders = _store.box<OrderF>().get(dn['id']);
         Map map = orders!.toJson();
         data.forEach((key, value) {
