@@ -8,6 +8,8 @@ import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/order_item.dart';
 
 import 'package:flipper_models/variant_stock.dart';
+import 'package:flipper_services/api_result.dart';
+import 'package:flipper_services/network_exceptions.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/unit.dart';
 
@@ -31,10 +33,15 @@ import 'package:flipper_services/http_api.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+import 'package:dio/dio.dart';
+// import 'api_result.dart';
+import 'dio_client.dart';
+// import 'network_exceptions.dart';
 
 class ObjectBoxApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
   String flipperApi = "https://flipper.yegobox.com";
+  late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
   late Store _store;
   getDir() async {
@@ -43,7 +50,9 @@ class ObjectBoxApi implements Api {
   }
 
   ObjectBoxApi({Directory? dir}) {
-    // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+    var dio = Dio();
+
+    dioClient = DioClient(apihub, dio, interceptors: []);
     if (dir != null) {
       _store = Store(getObjectBoxModel(), directory: dir.path + '/db7');
     } else {
@@ -61,9 +70,17 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
-    final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
-    print(response.body);
-    return businessFromJson(response.body);
+    // final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
+    // print(response.body);
+    // return businessFromJson(response.body);
+    final response = await dioClient.get(
+      "$apihub/v2/api/businesses",
+    );
+    List<Business> businesses = [];
+    try {
+      businesses = businessFromJson(response);
+    } catch (e) {}
+    return businesses;
   }
 
   @override
@@ -254,9 +271,16 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    final response =
-        await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
-    return branchFromJson(response.body);
+    final response = await dioClient.get(
+      "$apihub/v2/api/branches/$businessId",
+    );
+    print(response);
+    List<Branch> branches = branchFromJson(response);
+    return branches;
+
+    // final response =
+    //     await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
+    // return branchFromJson(response.body);
   }
 
   @override

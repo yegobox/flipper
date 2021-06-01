@@ -2,7 +2,6 @@ import 'package:flipper/constants.dart';
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/business.dart';
-import 'package:flipper_models/branch.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -50,14 +49,3 @@ class StartUpViewModel extends BaseViewModel {
 //     }
 //   }
 }
-// ProxyPreserveHost On
-// ProxyRequests Off
-
-// RewriteCond %{HTTP:UPGRADE} ^WebSocket$ [NC,OR]
-// RewriteCond %{HTTP:CONNECTION} ^Upgrade$ [NC]
-// RewriteRule .* ws://127.0.0.1:8065%{REQUEST_URI} [P,QSA,L]
-// RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-// RewriteRule .* http://127.0.0.1:8082%{REQUEST_URI} [P,QSA,L]
-// RequestHeader set X-Forwarded-Proto "https"
-
-// confirmation of git reset

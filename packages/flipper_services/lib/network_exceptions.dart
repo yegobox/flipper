@@ -47,20 +47,20 @@ abstract class NetworkExceptions with _$NetworkExceptions {
         NetworkExceptions networkExceptions;
         if (error is DioError) {
           switch (error.type) {
-            case DioErrorType.CANCEL:
+            case DioErrorType.cancel:
               networkExceptions = NetworkExceptions.requestCancelled();
               break;
-            case DioErrorType.CONNECT_TIMEOUT:
+            case DioErrorType.connectTimeout:
               networkExceptions = NetworkExceptions.requestTimeout();
               break;
-            case DioErrorType.DEFAULT:
+            case DioErrorType.other:
               networkExceptions = NetworkExceptions.noInternetConnection();
               break;
-            case DioErrorType.RECEIVE_TIMEOUT:
+            case DioErrorType.receiveTimeout:
               networkExceptions = NetworkExceptions.sendTimeout();
               break;
-            case DioErrorType.RESPONSE:
-              switch (error.response.statusCode) {
+            case DioErrorType.response:
+              switch (error.response!.statusCode) {
                 case 400:
                   networkExceptions = NetworkExceptions.unauthorisedRequest();
                   break;
@@ -86,13 +86,13 @@ abstract class NetworkExceptions with _$NetworkExceptions {
                   networkExceptions = NetworkExceptions.serviceUnavailable();
                   break;
                 default:
-                  var responseCode = error.response.statusCode;
+                  var responseCode = error.response!.statusCode;
                   networkExceptions = NetworkExceptions.defaultError(
                     "Received invalid status code: $responseCode",
                   );
               }
               break;
-            case DioErrorType.SEND_TIMEOUT:
+            case DioErrorType.sendTimeout:
               networkExceptions = NetworkExceptions.sendTimeout();
               break;
           }

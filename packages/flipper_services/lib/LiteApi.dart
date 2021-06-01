@@ -20,6 +20,7 @@ import 'package:flipper_models/color.dart';
 import 'package:flipper_models/category.dart';
 
 import 'package:flipper_models/branch.dart';
+import 'package:flipper_services/api_result.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/business.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
@@ -146,16 +147,21 @@ class LiteApi<T> implements Api {
 
   @override
   Future<List<Business>> businesses() async {
-    // Q14.parameters = {'T': AppTables.business};
-    // final ResultSet business = Q14.execute();
-    // final List<Business> businesses = [];
-    // for (Map map in business.allResults) {
-    //   businesses.add(sbusinessFromJson(jsonEncode(map)));
-    // }
-    // return businesses;
     final response = await client.get(Uri.parse("$apihub/api/businesses"));
     return businessFromJson(response.body);
   }
+  // @override
+  // Future<List<Business>> businesses() async {
+  //   // Q14.parameters = {'T': AppTables.business};
+  //   // final ResultSet business = Q14.execute();
+  //   // final List<Business> businesses = [];
+  //   // for (Map map in business.allResults) {
+  //   //   businesses.add(sbusinessFromJson(jsonEncode(map)));
+  //   // }
+  //   // return businesses;
+  //   final response = await client.get(Uri.parse("$apihub/api/businesses"));
+  //   return businessFromJson(response.body);
+  // }
 
   @override
   Future<List<Category>> categories({required int branchId}) async {
@@ -561,7 +567,7 @@ class LiteApi<T> implements Api {
         price: price,
         forderId: existOrder.id,
       );
-      existOrder.orderItems!.add(item);
+      existOrder.orderItems.add(item);
       update(data: existOrder.toJson(), endPoint: 'order');
       return existOrder;
     }

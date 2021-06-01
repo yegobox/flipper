@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 
 const _defaultConnectTimeout = Duration.millisecondsPerMinute;
@@ -18,13 +19,19 @@ class DioClient {
     Dio dio, {
     required this.interceptors,
   }) {
+    String userId = ProxyService.box.read(key: 'userId');
+    String? token = ProxyService.box.read(key: 'bearerToken');
     _dio = dio;
     _dio
       ..options.baseUrl = baseUrl
       ..options.connectTimeout = _defaultConnectTimeout
       ..options.receiveTimeout = _defaultReceiveTimeout
       ..httpClientAdapter
-      ..options.headers = {'Content-Type': 'application/json; charset=UTF-8'};
+      ..options.headers = {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'userId': userId,
+        'Authorization': token
+      };
     if (interceptors.isNotEmpty) {
       _dio.interceptors.addAll(interceptors);
     }
@@ -32,10 +39,10 @@ class DioClient {
       _dio.interceptors.add(LogInterceptor(
           responseBody: true,
           error: true,
-          requestHeader: false,
+          requestHeader: true,
           responseHeader: false,
           request: false,
-          requestBody: false));
+          requestBody: true));
     }
   }
 

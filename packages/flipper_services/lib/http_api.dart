@@ -12,6 +12,7 @@ import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/variant_stock.dart';
+import 'package:flipper_services/api_result.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:injectable/injectable.dart';
@@ -73,7 +74,6 @@ class HttpApi<T> implements Api {
   @override
   Future<List<Business>> businesses() async {
     final response = await client.get(Uri.parse("$apihub/api/businesses"));
-
     return businessFromJson(response.body);
   }
 
