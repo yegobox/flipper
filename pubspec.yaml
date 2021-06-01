@@ -143,6 +143,9 @@ dependencies:
   path_provider: ^2.0.2
   objectbox: ^1.0.0
   objectbox_flutter_libs: any
+  dio: ^4.0.0
+  freezed: ^0.14.2
+  freezed_annotation:
   # objectbox: ^1.0.0
   # objectbox_flutter_libs: any
   # adaptive_icon_background: "assets/images/christmas-background.png" # only available for Android 8.0 devices and above

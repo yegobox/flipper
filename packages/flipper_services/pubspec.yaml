@@ -20,4 +20,5 @@ dev_dependencies:
   auto_route_generator:
   injectable_generator:
   objectbox_generator: any
+  freezed:
   
