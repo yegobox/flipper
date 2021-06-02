@@ -42,19 +42,19 @@ class ObjectBoxApi implements Api {
   late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
   late Store _store;
-  getDir() async {
+  getDir({required String dbName}) async {
     Directory dir = await getApplicationDocumentsDirectory();
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/db8');
+    _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
   }
 
-  ObjectBoxApi({Directory? dir}) {
+  ObjectBoxApi({required String dbName, Directory? dir}) {
     var dio = Dio();
 
     dioClient = DioClient(apihub, dio, interceptors: []);
     if (dir != null) {
-      _store = Store(getObjectBoxModel(), directory: dir.path + '/db8');
+      _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
     } else {
-      getDir();
+      getDir(dbName: dbName);
     }
   }
   @override
@@ -389,8 +389,8 @@ class ObjectBoxApi implements Api {
         ftaxId: data['ftaxId']);
     final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
-    final box = _store.box<Product>();
-    final id = box.put(products);
+    final productBox = _store.box<Product>();
+    final id = productBox.put(products);
     Variant variant = Variant(
       name: 'Regular',
       sku: 'sku',
@@ -403,9 +403,29 @@ class ObjectBoxApi implements Api {
       taxName: 'N/A',
       taxPercentage: 0.0,
     );
+
     products.variations.add(variant);
-    final ids = _store.box<Product>().put(products);
-    return _store.box<Product>().get(ids)!;
+    final productId = _store.box<Product>().put(products);
+    List<Variant> v = await variants(branchId: branchId, productId: productId);
+
+    final stock = new Stock(
+      fbranchId: branchId,
+      fvariantId: v[0].id,
+      lowStock: 0.0,
+      currentStock: 0.0,
+      supplyPrice: 0.0,
+      retailPrice: 0.0,
+      canTrackingStock: false,
+      showLowStockAlert: false,
+      channels: [userId],
+      table: AppTables.stock,
+      fproductId: productId,
+      active: false,
+      value: 0,
+    );
+    final stockBox = _store.box<Stock>();
+    stockBox.put(stock);
+    return _store.box<Product>().get(productId)!;
   }
 
   @override

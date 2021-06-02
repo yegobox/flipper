@@ -18,8 +18,9 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   List<Variant> variations = [];
+  String dbName = 'test02';
   Variant data = new Variant(
-    name: 'a',
+    name: 'Regular',
     sku: 'a',
     fproductId: 2,
     unit: 'kg',
@@ -41,7 +42,7 @@ void main() {
   test('test create unit', () async {
     //
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     int id = DateTime.now().millisecondsSinceEpoch;
     final units = new Unit(
       name: 'sample',
@@ -57,13 +58,13 @@ void main() {
   });
   test('test load units', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     List<Unit> units = await api.units(branchId: 11);
     expect(units.isEmpty, false);
   });
   test('test create colors', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -92,7 +93,7 @@ void main() {
   });
   test('create variants', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
 
     variations.add(data);
     final response = await api.addVariant(
@@ -104,7 +105,7 @@ void main() {
   });
   test('test create order', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     variations.add(data);
     final response = await api.addVariant(
         data: variations, retailPrice: 0.0, supplyPrice: 0.0);
@@ -124,7 +125,7 @@ void main() {
   });
   test('create product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     Product product = await api.createProduct(product: productMock);
 
     expect(product.name, 'temp');
@@ -136,7 +137,7 @@ void main() {
   });
   test('create a custom product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     Product product = await api.createProduct(product: customProductMock);
     Product? getProduct = await api.getProduct(id: product.id);
     expect(getProduct!.name, 'Custom Amount');
@@ -144,37 +145,37 @@ void main() {
   });
   test('get custom amount product variant', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     Variant variant = await api.getCustomProductVariant();
     expect(variant.name, 'Regular');
   });
   test('get list of products', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     List<Product> products = await api.products();
     expect(products.isEmpty, false);
   });
   test('get list of stocks for specific productId', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     List<Stock> stocks = await api.stocks(productId: 2);
     expect(stocks.isEmpty, false);
   });
   test('test temporal product  exist', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     List<Product> products = await api.isTempProductExist();
     expect(products.isEmpty, false);
   });
   test('test get branches', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
     // List<Branch> branches = await api.branches(businessId: 10);
     expect(1, 1); //TODOshould be false
   });
   test('test create categories', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
 
     Category category = Category(
       active: true,
