@@ -42,7 +42,6 @@ class PColor {
   factory PColor.fromJson(Map<String, dynamic> json) => PColor(
         id: int.parse(json["id"]),
         name: json["name"] == null ? '#ee5253' : json["name"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
         colors: json["colors"] == null
             ? []
             : List<String>.from(json["colors"].map((x) => x)),
@@ -54,7 +53,6 @@ class PColor {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name == null ? '#ee5253' : name,
-        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "colors":
             colors == null ? [] : List<dynamic>.from(colors!.map((x) => x)),
         "table": table,
