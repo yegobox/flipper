@@ -8,8 +8,6 @@ import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/order_item.dart';
 
 import 'package:flipper_models/variant_stock.dart';
-import 'package:flipper_services/api_result.dart';
-import 'package:flipper_services/network_exceptions.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/unit.dart';
 
@@ -273,16 +271,15 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    final response = await dioClient.get(
-      "$apihub/v2/api/branches/$businessId",
-    );
-    print(response);
-    List<Branch> branches = branchFromJson(response);
-    return branches;
-
-    // final response =
-    //     await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
-    // return branchFromJson(response.body);
+    // final response = await dioClient.get(
+    //   "$apihub/v2/api/branches/$businessId",
+    // );
+    // print(response);
+    // List<Branch> branches = branchFromJson(response);
+    // return branches;
+    final response =
+        await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
+    return branchFromJson(response.body);
   }
 
   @override
@@ -418,10 +415,17 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<Variant> getCustomProductVariant() async {
+    // TODOthis is errorring.
+    Product product = _store
+        .box<Product>()
+        .getAll()
+        .where((v) => v.name == 'Custom Amount')
+        .toList()[0];
+    //once we have the product with the name then get related variants
     return _store
         .box<Variant>()
         .getAll()
-        .where((v) => v.name == 'Custom Amount')
+        .where((v) => v.fproductId == product.id)
         .toList()[0];
   }
 

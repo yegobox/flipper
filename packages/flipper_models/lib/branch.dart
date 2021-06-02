@@ -43,9 +43,8 @@ class Branch {
   String table;
 
   factory Branch.fromJson(Map<String, dynamic> json) => Branch(
-        id: int.parse(json["id"]),
+        id: json["id"],
         active: json["active"] == null ? false : json["active"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
         description: json["description"] == null ? '' : json["description"],
         name: json["name"],
         fbusinessId:
@@ -56,9 +55,8 @@ class Branch {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": int.parse(id.toString()),
+        "id": id.toString(),
         "active": active == null ? false : active,
-        "channels": List<dynamic>.from(channels!.map((x) => x)),
         "description": description == null ? '' : description,
         "name": name,
         "fbusinessId":
