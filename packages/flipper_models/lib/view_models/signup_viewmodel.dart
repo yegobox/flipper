@@ -83,6 +83,7 @@ class SignupViewModel extends FormViewModel {
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses[0].id);
       final String? userId = ProxyService.box.read(key: 'userId');
+      ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
       final Category category = Category(
         active: true,
@@ -105,8 +106,6 @@ class SignupViewModel extends FormViewModel {
         '#ff7675',
         '#a29bfe'
       ];
-
-      ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
       final PColor color = new PColor(
         id: DateTime.now().millisecondsSinceEpoch,

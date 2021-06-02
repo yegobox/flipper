@@ -39,7 +39,7 @@ import 'dio_client.dart';
 class ObjectBoxApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
   String flipperApi = "https://flipper.yegobox.com";
-  late DioClient dioClient;
+  // late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
   late Store _store;
   getDir({required String dbName}) async {
@@ -48,9 +48,8 @@ class ObjectBoxApi implements Api {
   }
 
   ObjectBoxApi({required String dbName, Directory? dir}) {
-    var dio = Dio();
-
-    dioClient = DioClient(apihub, dio, interceptors: []);
+    // var dio = Dio();
+    // dioClient = DioClient(apihub, dio, interceptors: []);
     if (dir != null) {
       _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
     } else {

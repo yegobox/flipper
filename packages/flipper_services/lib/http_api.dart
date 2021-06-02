@@ -37,8 +37,8 @@ class ExtendedClient extends http.BaseClient {
     // customValue = await LocalStorage.getStringItem('token');
 
     request.headers['Authorization'] = token == null ? '' : token;
-    request.headers['userId'] = userId!;
-    // request.finalize();
+    request.headers['userId'] = userId == null ? '' : userId;
+
     return _inner.send(request);
   }
 }
