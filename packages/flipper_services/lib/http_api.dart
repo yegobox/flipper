@@ -398,4 +398,10 @@ class HttpApi<T> implements Api {
     await client.patch(Uri.parse("$apihub/api/$endPoint/$id"),
         body: jsonEncode(data), headers: {'Content-Type': 'application/json'});
   }
+
+  @override
+  Future<OrderItem?> getOrderItem({required int id}) {
+    // TODO: implement getOrderItem
+    throw UnimplementedError();
+  }
 }

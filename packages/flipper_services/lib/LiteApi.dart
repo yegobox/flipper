@@ -660,4 +660,10 @@ class LiteApi<T> implements Api {
     data['draft'] = false;
     update(data: data, endPoint: 'order');
   }
+
+  @override
+  Future<OrderItem?> getOrderItem({required int id}) {
+    // TODO: implement getOrderItem
+    throw UnimplementedError();
+  }
 }

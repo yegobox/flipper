@@ -231,6 +231,9 @@ class ObjectBoxApi implements Api {
       case 'color':
         _store.box<PColor>().remove(id);
         break;
+      case 'orderItem':
+        _store.box<OrderItem>().remove(id);
+        break;
       default:
     }
     return true;
@@ -631,7 +634,7 @@ class ObjectBoxApi implements Api {
         });
         OrderF order = OrderF(
           active: map['active'],
-          fbranchId: map['branchId'],
+          fbranchId: map['fbranchId'],
           table: map['table'],
           channels: map['channels'],
           id: map['id'],
@@ -668,5 +671,10 @@ class ObjectBoxApi implements Api {
     ProxyService.box
         .write(key: 'userId', value: syncFromJson(response.body).userId);
     return syncFromJson(response.body);
+  }
+
+  @override
+  Future<OrderItem?> getOrderItem({required int id}) async {
+    return _store.box<OrderItem>().get(id);
   }
 }

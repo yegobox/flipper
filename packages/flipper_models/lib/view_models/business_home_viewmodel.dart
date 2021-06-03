@@ -3,6 +3,7 @@ library flipper_models;
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/variants.dart';
@@ -95,7 +96,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<bool> deleteOrderItem({required int id}) async {
     OrderF order = orders[0];
     if (order.orderItems.isNotEmpty) {
-      order.orderItems.removeWhere((element) => element.id == id);
+      OrderItem? orderItem = await ProxyService.api.getOrderItem(id: id);
+      ProxyService.api.delete(id: orderItem!.id, endPoint: 'orderItem');
       int orderId = order.id;
       ProxyService.api.update(data: order.toJson(), endPoint: 'order/$orderId');
     }

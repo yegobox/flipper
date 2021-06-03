@@ -2,6 +2,7 @@ import 'package:flipper_models/business.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/unit.dart';
+import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/branch.dart';
@@ -63,6 +64,7 @@ abstract class Api<T> {
   });
 
   Future<List<OrderF>> orders();
+  Future<OrderItem?> getOrderItem({required int id});
 
   Future<Variant> getCustomProductVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
