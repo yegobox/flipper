@@ -505,7 +505,7 @@ class ObjectBoxApi implements Api {
   Future<int> update<T>({required Map data, required String endPoint}) async {
     //clean the endPoint so we are able to use switch with no problem
     //the endPoint can be unit/1 so we want unit and 1 separately
-    final split = endPoint.split('/')[0];
+    final split = endPoint.split('/');
     String point = endPoint;
 
     int id = 0;
@@ -513,7 +513,6 @@ class ObjectBoxApi implements Api {
       point = endPoint.split('/')[0];
       id = int.parse(endPoint.split('/')[1]);
     }
-
     final Map dn = data;
     switch (point) {
       case 'product':
@@ -561,12 +560,12 @@ class ObjectBoxApi implements Api {
           canTrackingStock: map['canTrackingStock'],
           currentStock: map['currentStock'],
           lowStock: map['lowStock'],
-          fproductId: map['productId'],
+          fproductId: map['fproductId'],
           retailPrice: map['retailPrice'],
           showLowStockAlert: map['showLowStockAlert'],
           supplyPrice: map['supplyPrice'],
           value: map['value'],
-          fvariantId: map['variantId'],
+          fvariantId: map['fvariantId'],
         );
         final box = _store.box<Stock>();
         box.put(stock, mode: PutMode.update);

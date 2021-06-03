@@ -161,6 +161,19 @@ void main() {
     List<Stock> stocks = await api.stocks(productId: 2);
     expect(stocks.isEmpty, false);
   });
+  test('update a stock', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    Variant variant = await api.getCustomProductVariant();
+    Stock stock = await api.stockByVariantId(variantId: variant.id);
+    Map data = stock.toJson();
+    data['retailPrice'] = 300.0;
+    int id = data['id'];
+    await api.update(data: data, endPoint: 'stock/$id');
+
+    Stock stokUpdated = await api.stockByVariantId(variantId: variant.id);
+    expect(stokUpdated.retailPrice, 300.0);
+  });
   test('test temporal product  exist', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);

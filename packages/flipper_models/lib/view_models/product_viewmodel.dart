@@ -13,7 +13,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:flipper_services/constants.dart';
 
@@ -263,7 +262,7 @@ class ProductViewModel extends ReactiveViewModel {
               await ProxyService.api.stockByVariantId(variantId: variation.id);
           Map data = stock.toJson();
           data['supplyPrice'] = supplyPrice;
-          String id = data['id'];
+          int id = data['id'];
           ProxyService.api.update(data: data, endPoint: 'stock/$id');
         }
       }
@@ -274,14 +273,11 @@ class ProductViewModel extends ReactiveViewModel {
         if (variation.name == "Regular") {
           Stock stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
+
           Map data = stock.toJson();
           data['retailPrice'] = retailPrice;
           int id = data['id'];
           ProxyService.api.update(data: data, endPoint: 'stock/$id');
-
-          // Stock ustock =
-          //     await ProxyService.api.stockByVariantId(variantId: variation.id);
-
         }
       }
     }
