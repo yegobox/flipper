@@ -135,7 +135,7 @@ class ProductViewModel extends ReactiveViewModel {
   /// Should save a focused unit given the id to persist to
   /// the Id can be ID of product or variant
   void saveFocusedUnit(
-      {required Unit newUnit, String? id, required String type}) async {
+      {required Unit newUnit, int? id, required String type}) async {
     for (Unit unit in units) {
       if (unit.active) {
         unit.active = !unit.active;

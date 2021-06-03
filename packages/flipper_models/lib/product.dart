@@ -68,7 +68,6 @@ class Product {
         id: int.parse(json["id"]),
         name: json["name"],
         description: json["description"],
-        channels: List<String>.from(json["channels"].map((x) => x)),
         active: json["active"],
         ftaxId: json["ftaxId"],
         hasPicture: json["hasPicture"],
@@ -91,7 +90,7 @@ class Product {
         "id": int.parse(id.toString()),
         "name": name,
         "description": description,
-        "channels": List<dynamic>.from(channels!.map((x) => x)),
+
         "active": active,
         "ftaxId": ftaxId,
         "hasPicture": hasPicture,

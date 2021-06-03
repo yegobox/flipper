@@ -516,19 +516,19 @@ class ObjectBoxApi implements Api {
     final Map dn = data;
     switch (point) {
       case 'product':
-        Product? color = _store.box<Product>().get(id);
-        Map map = color!.toJson();
+        Product? kProduct = _store.box<Product>().get(data['id']);
+        Map map = kProduct!.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
         Product product = Product(
           active: map['active'],
-          fbranchId: map['branchId'],
+          fbranchId: map['fbranchId'],
           table: map['table'],
           channels: map['channels'],
           id: map['id'],
-          fbusinessId: map['businessId'],
-          fcategoryId: map['categoryId'],
+          fbusinessId: map['fbusinessId'],
+          fcategoryId: map['fcategoryId'],
           color: map['color'],
           description: map['description'],
           hasPicture: map['hasPicture'],
@@ -539,8 +539,8 @@ class ObjectBoxApi implements Api {
           draft: map['draft'],
           imageLocal: map['imageLocal'],
           imageUrl: map['imageUrl'],
-          fsupplierId: map['supplierId'],
-          ftaxId: map['taxId'],
+          fsupplierId: map['fsupplierId'],
+          ftaxId: map['ftaxId'],
         );
         final box = _store.box<Product>();
         box.put(product, mode: PutMode.update);
@@ -578,7 +578,7 @@ class ObjectBoxApi implements Api {
         });
         Category category = Category(
           active: map['active'],
-          fbranchId: map['branchId'],
+          fbranchId: map['fbranchId'],
           name: map['name'],
           table: map['table'],
           channels: map['channels'],
