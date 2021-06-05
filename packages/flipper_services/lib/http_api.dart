@@ -151,12 +151,12 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Stock>> getStock(
+  Future<Stock> getStock(
       {required int branchId, required int variantId}) async {
     final response =
         await client.get(Uri.parse("$apihub/api/stock/$branchId/$variantId"));
 
-    return stockFromJson(response.body);
+    return sstockFromJson(response.body);
   }
 
   @override

@@ -389,7 +389,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Stock>> getStock(
+  Future<Stock> getStock(
       {required int branchId, required int variantId}) async {
     Q18.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
     final ResultSet business = Q18.execute();
@@ -399,7 +399,7 @@ class LiteApi<T> implements Api {
       final row = business.rowDict;
       variantStocks.add(sstockFromJson(row.json));
     }
-    return variantStocks;
+    return variantStocks[0];
   }
 
   @override

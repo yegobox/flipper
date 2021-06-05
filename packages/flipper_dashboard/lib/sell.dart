@@ -479,7 +479,8 @@ class Sell extends StatelessWidget {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
-            print(variant.retailPrice);
+            //load stock of this variant
+            model.loadVariantStock(variantId: variant.id);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
             model.toggleCheckbox(variantId: variant.id);

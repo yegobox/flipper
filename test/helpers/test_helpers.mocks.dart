@@ -139,12 +139,11 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               returnValue: Future<_i14.PColor?>.value())
           as _i11.Future<_i14.PColor?>);
   @override
-  _i11.Future<List<_i4.Stock>> getStock({int? branchId, int? variantId}) =>
+  _i11.Future<_i4.Stock?> getStock({int? branchId, int? variantId}) =>
       (super.noSuchMethod(
-              Invocation.method(
-                  #getStock, [], {#branchId: branchId, #variantId: variantId}),
-              returnValue: Future<List<_i4.Stock>>.value(<_i4.Stock>[]))
-          as _i11.Future<List<_i4.Stock>>);
+          Invocation.method(
+              #getStock, [], {#branchId: branchId, #variantId: variantId}),
+          returnValue: Future<_i4.Stock?>.value()) as _i11.Future<_i4.Stock?>);
   @override
   _i11.Future<List<_i7.Variant>> variants({int? branchId, int? productId}) =>
       (super.noSuchMethod(

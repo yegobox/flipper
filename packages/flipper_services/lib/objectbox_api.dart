@@ -216,13 +216,17 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Stock>> getStock(
+  Future<Stock?> getStock(
       {required int branchId, required int variantId}) async {
-    return _store
+    List<Stock> stocks = _store
         .box<Stock>()
         .getAll()
         .where((v) => v.fvariantId == variantId)
         .toList();
+    if (stocks.length > 0) {
+      return stocks[0];
+    }
+    return null;
   }
 
   @override

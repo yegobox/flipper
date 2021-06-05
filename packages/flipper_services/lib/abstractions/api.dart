@@ -30,7 +30,7 @@ abstract class Api<T> {
   Future<int> update<T>({required Map data, required String endPoint});
   Future<bool> delete({required dynamic id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
-  Future<List<Stock>> getStock({required int branchId, required int variantId});
+  Future<Stock?> getStock({required int branchId, required int variantId});
   Future<List<Variant>> variants({
     required int branchId,
     required int productId,
