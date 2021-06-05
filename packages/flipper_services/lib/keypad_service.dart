@@ -12,7 +12,7 @@ class KeyPadService with ReactiveServiceMixin {
 
   get count => _count.value;
 
-  final _quantity = ReactiveValue<int>(0);
+  final _quantity = ReactiveValue<int>(1);
 
   get quantity => _quantity.value;
 

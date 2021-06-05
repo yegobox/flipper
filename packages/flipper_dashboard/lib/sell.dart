@@ -25,6 +25,9 @@ class Sell extends StatelessWidget {
     if (model.amountTotal.toString() == 'null') {
       return product.name;
     }
+    if (model.amountTotal == 0) {
+      return '';
+    }
     return product.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
@@ -472,12 +475,14 @@ class Sell extends StatelessWidget {
   List<Widget> Variants({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
-    for (Variant stock in model.variants) {
+    for (Variant variant in model.variants) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
-            model.keypad.setAmount(amount: stock.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: stock.id);
+            print(variant.retailPrice);
+            model.keypad
+                .setAmount(amount: variant.retailPrice * model.quantity);
+            model.toggleCheckbox(variantId: variant.id);
           },
           child: Container(
             child: Padding(
@@ -491,7 +496,7 @@ class Sell extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: stock.id),
+                          future: model.getVariant(variantId: variant.id),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -511,7 +516,7 @@ class Sell extends StatelessWidget {
                         child: Row(children: [
                           Container(
                             child: Text(
-                              'Frw${stock.retailPrice.toInt()}',
+                              'Frw${variant.retailPrice.toInt()}',
                               style: GoogleFonts.lato(
                                 textStyle: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -523,7 +528,7 @@ class Sell extends StatelessWidget {
                           Container(
                             child: Radio(
                               // toggleable: true,
-                              value: stock.id,
+                              value: variant.id,
                               groupValue: model.checked,
                               onChanged: (value) {},
                             ),
