@@ -472,7 +472,7 @@ class Sell extends StatelessWidget {
   List<Widget> Variants({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
-    for (Stock stock in model.variants) {
+    for (Variant stock in model.variants) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
@@ -491,7 +491,7 @@ class Sell extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: stock.fvariantId),
+                          future: model.getVariant(variantId: stock.id),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -547,7 +547,6 @@ class Sell extends StatelessWidget {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         onModelReady: (model) async {
           await model.getVariants(productId: product.id);
-          // model.loadVariantStock(variantId: variantId);
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
         builder: (context, model, child) {

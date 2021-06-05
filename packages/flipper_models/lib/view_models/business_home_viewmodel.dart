@@ -131,15 +131,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.read(key: 'branchId');
     _getStock = await ProxyService.api
         .getStock(branchId: branchId, variantId: variantId);
-    print(_getStock);
+
     notifyListeners();
   }
 
   Future<List<Variant>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<Variant> _variants = await ProxyService.api
+    _variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
-
+    notifyListeners();
     return _variants;
   }
 
