@@ -36,9 +36,9 @@ class _KAboutpageState extends State<KAboutpage> {
             onPressed: () {
               Navigator.pushNamed(context, KHomepage.id);
             },
-            prefixIcon: Icons.arrow_back,
+            prefixIcon: Icons.arrow_forward,
             textAlign: TextAlign.right,
-            text: "Back to Flipper Social",
+            text: "Continue to Flipper Social",
           ),
         ),
       ),

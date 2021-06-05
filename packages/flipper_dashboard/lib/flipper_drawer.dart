@@ -89,7 +89,6 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                       ProxyService.box.write(key: pageKey, value: 'social');
                       ProxyService.nav.navigateTo(Routes.startUpView);
                     }
-                    print(isSwitched);
                   });
                 },
                 activeTrackColor: Colors.yellow,

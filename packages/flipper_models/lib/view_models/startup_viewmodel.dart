@@ -22,6 +22,7 @@ class StartUpViewModel extends BaseViewModel {
 
       if (didSync) {
         ProxyService.appService.setBusiness(businesses: businesses);
+        //for quick go back to business app only for debugging.
         // ProxyService.box.remove(key: pageKey);
         if (ProxyService.box.read(key: pageKey) == null) {
           ProxyService.box.write(key: pageKey, value: businesses[0].type);

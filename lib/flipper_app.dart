@@ -5,6 +5,7 @@ import 'package:flipper/routes.router.dart';
 import 'package:flipper_login/flipper_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localized_locales/flutter_localized_locales.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
@@ -30,8 +31,21 @@ class _FlipperAppState extends State<FlipperApp> {
 
       return MaterialApp(
         themeMode: ThemeMode.system,
-        theme: FlipperThemeData.lightThemeData
-            .copyWith(platform: TargetPlatform.android),
+        // theme: FlipperThemeData.lightThemeData
+        //     .copyWith(platform: TargetPlatform.android),
+        theme: ThemeData(
+          // This changes font for the entire app using the Google Fonts package
+          // from pub.dev : https://pub.dev/packages/google_fonts
+          textTheme: GoogleFonts.nunitoSansTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          // You can change theme colors to directly change colors for the whole
+          // app.
+          primaryColor: Color(0xff5B428F),
+          accentColor: Color(0xffF56D58),
+          primaryColorDark: Color(0xff262833),
+          primaryColorLight: Color(0xffFCF9F5),
+        ),
         darkTheme: FlipperThemeData.darkThemeData
             .copyWith(platform: TargetPlatform.android),
         debugShowCheckedModeBanner: false,
@@ -54,8 +68,20 @@ class _FlipperAppState extends State<FlipperApp> {
     } else {
       return MaterialApp(
         themeMode: ThemeMode.system,
-        theme: FlipperThemeData.lightThemeData
-            .copyWith(platform: TargetPlatform.android),
+        theme: ThemeData(
+          // This changes font for the entire app using the Google Fonts package
+          // from pub.dev : https://pub.dev/packages/google_fonts
+          textTheme: GoogleFonts.nunitoSansTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          // You can change theme colors to directly change colors for the whole
+          // app.
+          primaryColor: Color(0xff5B428F),
+          primaryColorDark: Color(0xff262833),
+          primaryColorLight: Color(0xffFCF9F5),
+        ),
+        // theme: FlipperThemeData.lightThemeData
+        //     .copyWith(platform: TargetPlatform.android),
         darkTheme: FlipperThemeData.darkThemeData
             .copyWith(platform: TargetPlatform.android),
         debugShowCheckedModeBanner: false,
