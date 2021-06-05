@@ -304,6 +304,7 @@ class ObjectBoxApi implements Api {
     data['cashReceived'] = cashReceived;
     data['status'] = 'completed';
     data['draft'] = false;
+
     update(data: data, endPoint: 'order');
   }
 
@@ -473,7 +474,11 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<OrderF>> orders() async {
-    return _store.box<OrderF>().getAll();
+    return _store
+        .box<OrderF>()
+        .getAll()
+        .where((v) => v.status != 'completed')
+        .toList();
   }
 
   @override

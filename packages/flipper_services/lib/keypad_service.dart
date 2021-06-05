@@ -36,7 +36,7 @@ class KeyPadService with ReactiveServiceMixin {
 
   final _cashReceived = ReactiveValue<double>(0.0);
 
-  get cashReceived => _cashReceived;
+  get cashReceived => _cashReceived.value;
 
   void addKey(String key) {
     stack.push(key);

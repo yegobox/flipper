@@ -138,6 +138,9 @@ class _AfterSaleState extends State<AfterSale> {
             ),
           );
         },
+        onModelReady: (model) {
+          print(model.keypad.cashReceived);
+        },
         viewModelBuilder: () => BusinessHomeViewModel());
   }
 }
