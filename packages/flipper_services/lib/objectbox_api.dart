@@ -194,7 +194,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<Variant>()
         .getAll()
-        .where((stock) => stock.fproductId == productId)
+        .where((v) => v.fproductId == productId)
         .toList();
   }
 
@@ -233,6 +233,15 @@ class ObjectBoxApi implements Api {
         break;
       case 'orderItem':
         _store.box<OrderItem>().remove(id);
+        break;
+      case 'product':
+        _store.box<Product>().remove(id);
+        break;
+      case 'stock':
+        _store.box<Stock>().remove(id);
+        break;
+      case 'variation':
+        _store.box<Variant>().remove(id);
         break;
       default:
     }
