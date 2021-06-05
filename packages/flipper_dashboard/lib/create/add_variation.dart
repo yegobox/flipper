@@ -47,6 +47,8 @@ class _AddVariationState extends State<AddVariation> {
                   Variant data = new Variant(
                     name: nameController.text,
                     sku: sku,
+                    retailPrice: double.parse(retailController.text),
+                    supplyPrice: double.parse(costController.text),
                     fproductId: model.product.id,
                     unit: model.productService.currentUnit!,
                     channels: [model.productService.userId!],

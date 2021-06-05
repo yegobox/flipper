@@ -559,7 +559,7 @@
     },
     {
       "id": "10:4933657307635535076",
-      "lastPropertyId": "11:7423269862003968090",
+      "lastPropertyId": "13:1043896475241337197",
       "name": "Variant",
       "properties": [
         {
@@ -620,6 +620,16 @@
           "flags": 520,
           "indexId": "2:6401461376584828673",
           "relationTarget": "Product"
+        },
+        {
+          "id": "12:5142256970933196722",
+          "name": "supplyPrice",
+          "type": 8
+        },
+        {
+          "id": "13:1043896475241337197",
+          "name": "retailPrice",
+          "type": 8
         }
       ],
       "relations": []

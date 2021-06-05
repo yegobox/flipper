@@ -252,7 +252,7 @@ class LiteApi<T> implements Api {
       productName: productMap['name'],
       fbranchId: branchId!,
       taxName: 'N/A', //TODO: get value from branch/business config
-      taxPercentage: 0.0,
+      taxPercentage: 0.0, retailPrice: 0.0, supplyPrice: 0.0,
     );
     final variationDoc =
         Document(variation.id.toString(), data: variation.toJson());

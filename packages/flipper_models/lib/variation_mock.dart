@@ -12,4 +12,6 @@ final variationMock = new Variant(
   fbranchId: 11,
   taxName: 'N/A',
   taxPercentage: 0.0,
+  retailPrice: 0.0,
+  supplyPrice: 0.0,
 );

@@ -33,7 +33,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   get quantity => keypad.quantity;
 
   List<Stock> _getStock = [];
-  get variantsStocks => _getStock;
+  get stocks => _getStock;
+
+  List<Variant> _variants = [];
+  get variants => _variants;
 
   int _tab = 0;
   int get tab => _tab;
@@ -134,10 +137,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<List<Variant>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<Variant> variants = await ProxyService.api
+    List<Variant> _variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
 
-    return variants;
+    return _variants;
   }
 
   Future<Variant?> getVariant({required int variantId}) async {

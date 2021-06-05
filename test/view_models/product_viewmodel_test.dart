@@ -43,6 +43,8 @@ void main() {
         table: AppTables.variation,
         taxName: 'N/A',
         taxPercentage: 0.0,
+        retailPrice: 0.0,
+        supplyPrice: 0.0,
       );
       ls.add(v);
       getAndRegisterApi(
@@ -50,7 +52,7 @@ void main() {
         data: data,
       );
 
-      model.navigateAddVariation(productId: 'ID');
+      model.navigateAddVariation(productId: 2);
 
       model.setUnit(unit: 'kg');
 

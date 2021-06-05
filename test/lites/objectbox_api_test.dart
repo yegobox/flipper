@@ -31,6 +31,8 @@ void main() {
     table: AppTables.variation,
     taxName: 'N/A',
     taxPercentage: 0.0,
+    retailPrice: 0.0,
+    supplyPrice: 0.0,
   );
   setUpAll(() {
     registerServices();

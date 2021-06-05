@@ -583,7 +583,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(10, 4933657307635535076),
       name: 'Variant',
-      lastPropertyId: const IdUid(11, 7423269862003968090),
+      lastPropertyId: const IdUid(13, 1043896475241337197),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -642,7 +642,17 @@ final _entities = <ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const IdUid(2, 6401461376584828673),
-            relationTarget: 'Product')
+            relationTarget: 'Product'),
+        ModelProperty(
+            id: const IdUid(12, 5142256970933196722),
+            name: 'supplyPrice',
+            type: 8,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(13, 1043896475241337197),
+            name: 'retailPrice',
+            type: 8,
+            flags: 0)
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[]),
@@ -1313,7 +1323,7 @@ ModelDefinition getObjectBoxModel() {
           final productNameOffset = fbb.writeString(object.productName);
           final taxNameOffset =
               object.taxName == null ? null : fbb.writeString(object.taxName!);
-          fbb.startTable(12);
+          fbb.startTable(14);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, skuOffset);
@@ -1325,6 +1335,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(8, taxNameOffset);
           fbb.addFloat64(9, object.taxPercentage);
           fbb.addInt64(10, object.product.targetId);
+          fbb.addFloat64(11, object.supplyPrice);
+          fbb.addFloat64(12, object.retailPrice);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1343,6 +1355,10 @@ ModelDefinition getObjectBoxModel() {
                   const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
               table:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
+              supplyPrice:
+                  const fb.Float64Reader().vTableGet(buffer, rootOffset, 26, 0),
+              retailPrice:
+                  const fb.Float64Reader().vTableGet(buffer, rootOffset, 28, 0),
               productName:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
               fbranchId:
@@ -1846,6 +1862,14 @@ class Variant_ {
   /// see [Variant.product]
   static final product =
       QueryRelationProperty<Variant, Product>(_entities[9].properties[10]);
+
+  /// see [Variant.supplyPrice]
+  static final supplyPrice =
+      QueryDoubleProperty<Variant>(_entities[9].properties[11]);
+
+  /// see [Variant.retailPrice]
+  static final retailPrice =
+      QueryDoubleProperty<Variant>(_entities[9].properties[12]);
 }
 
 /// [VariantStock] entity fields to define ObjectBox queries.

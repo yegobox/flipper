@@ -86,3 +86,6 @@ class AppSetup {
 
 // share one tab of google sheets
 // https://www.youtube.com/watch?v=Sj_uGLZqBmc
+
+// dataModels update
+// https://docs.objectbox.io/advanced/data-model-updates

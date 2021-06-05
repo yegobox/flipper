@@ -28,6 +28,8 @@ class Variant {
       required this.unit,
       required this.table,
       this.channels,
+      required this.supplyPrice,
+      required this.retailPrice,
       required this.productName,
       required this.fbranchId,
       this.taxName,
@@ -46,6 +48,8 @@ class Variant {
   int fbranchId;
   String? taxName;
   double? taxPercentage;
+  double supplyPrice;
+  double retailPrice;
 
   final product = ToOne<Product>();
 
@@ -55,6 +59,8 @@ class Variant {
       sku: json["sku"],
       fproductId: int.parse(json["productId"].toString()),
       unit: json["unit"],
+      supplyPrice: json["supplyPrice"],
+      retailPrice: json["retailPrice"],
       table: json["table"],
       channels: List<String>.from(json["channels"].map((x) => x)),
       productName: json["productName"],
@@ -69,6 +75,8 @@ class Variant {
         "productId": int.parse(fproductId.toString()),
         "unit": unit,
         "table": table,
+        "supplyPrice": supplyPrice,
+        "retailPrice": retailPrice,
         "channels": List<dynamic>.from(channels!.map((x) => x)),
         "productName": productName,
         "fbranchId": int.parse(fbranchId.toString()),
