@@ -43,11 +43,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         Loginpage.id: (context) => Loginpage(),
-        Aboutpage.id: (context) => Aboutpage(),
-        ChatPage.id: (context) => ChatPage(),
-        Homepage.id: (context) => Homepage(),
+        KAboutpage.id: (context) => KAboutpage(),
+        KChatPage.id: (context) => KChatPage(),
+        KHomepage.id: (context) => KHomepage(),
       },
-      initialRoute: Aboutpage.id,
+      initialRoute: KAboutpage.id,
     );
   }
 }

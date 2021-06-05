@@ -3,14 +3,14 @@ import 'package:chat/flat_widgets/flat_primary_button.dart';
 import 'package:chat/screens/homepage.dart';
 import 'package:flutter/material.dart';
 
-class Aboutpage extends StatefulWidget {
+class KAboutpage extends StatefulWidget {
   static final String id = "Aboutpage";
 
   @override
-  _AboutpageState createState() => _AboutpageState();
+  _KAboutpageState createState() => _KAboutpageState();
 }
 
-class _AboutpageState extends State<Aboutpage> {
+class _KAboutpageState extends State<KAboutpage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +34,7 @@ class _AboutpageState extends State<Aboutpage> {
           ),
           child: FlatPrimaryButton(
             onPressed: () {
-              Navigator.pushNamed(context, Homepage.id);
+              Navigator.pushNamed(context, KHomepage.id);
             },
             prefixIcon: Icons.arrow_back,
             textAlign: TextAlign.right,

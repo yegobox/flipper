@@ -38,9 +38,7 @@ dependencies:
   injectable: ^1.2.0
   http: ^0.13.0
   get_it: ^6.0.0
-  flipper_chat:
-    path:
-      'packages/flipper_chat'
+ 
   flipper_dashboard:
     path: 'packages/flipper_dashboard'
   firebase_messaging: ^10.0.0

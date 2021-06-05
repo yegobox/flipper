@@ -42,9 +42,9 @@ import 'package:chat/screens/homepage.dart';
     MaterialRoute(page: AfterSale, name: 'afterSale'),
 
     // chat routes
-    MaterialRoute(page: Aboutpage, name: 'about'),
-    MaterialRoute(page: Homepage, name: 'chatHome'),
-    MaterialRoute(page: ChatPage, name: 'chatPage'),
+    MaterialRoute(page: KAboutpage, name: 'about'),
+    MaterialRoute(page: KHomepage, name: 'chatHome'),
+    MaterialRoute(page: KChatPage, name: 'chatPage'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

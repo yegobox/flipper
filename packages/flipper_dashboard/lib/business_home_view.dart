@@ -19,6 +19,7 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
+import 'package:chat/screens/homepage.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class Home extends StatefulWidget {
@@ -73,7 +74,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           case 'business':
             return BusinessWidget(model);
           case 'social':
-            return Text('social');
+            return KHomepage();
           case 'openBusiness':
             return Text('open business');
           case 'closedBusiness':

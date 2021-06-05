@@ -9,14 +9,14 @@ import 'package:chat/flat_widgets/flat_section_header.dart';
 import 'package:chat/screens/chatpage.dart';
 import 'package:flutter/material.dart';
 
-class Homepage extends StatefulWidget {
+class KHomepage extends StatefulWidget {
   static final String id = "Homepage";
 
   @override
-  _HomepageState createState() => _HomepageState();
+  _KHomepageState createState() => _KHomepageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _KHomepageState extends State<KHomepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +89,7 @@ class _HomepageState extends State<Homepage> {
           ),
           chatItem(
             onPressed: () {
-              Navigator.pushNamed(context, ChatPage.id);
+              Navigator.pushNamed(context, KChatPage.id);
             },
             name: "Akshaye JH",
             profileImage: FlatProfileImage(

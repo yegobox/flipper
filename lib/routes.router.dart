@@ -6,6 +6,9 @@
 
 // ignore_for_file: public_member_api_docs
 
+import 'package:chat/screens/aboutpage.dart';
+import 'package:chat/screens/chatpage.dart';
+import 'package:chat/screens/homepage.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
@@ -46,6 +49,9 @@ class Routes {
   static const String pay = '/Payments';
   static const String collect = '/collect-cash-view';
   static const String afterSale = '/after-sale';
+  static const String about = '/k-aboutpage';
+  static const String chatHome = '/k-homepage';
+  static const String chatPage = '/k-chat-page';
   static const all = <String>{
     startUpView,
     dashboard,
@@ -64,6 +70,9 @@ class Routes {
     pay,
     collect,
     afterSale,
+    about,
+    chatHome,
+    chatPage,
   };
 }
 
@@ -88,6 +97,9 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.pay, page: Payments),
     RouteDef(Routes.collect, page: CollectCashView),
     RouteDef(Routes.afterSale, page: AfterSale),
+    RouteDef(Routes.about, page: KAboutpage),
+    RouteDef(Routes.chatHome, page: KHomepage),
+    RouteDef(Routes.chatPage, page: KChatPage),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -234,6 +246,24 @@ class StackedRouter extends RouterBase {
           key: args.key,
           totalOrderAmount: args.totalOrderAmount,
         ),
+        settings: data,
+      );
+    },
+    KAboutpage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => KAboutpage(),
+        settings: data,
+      );
+    },
+    KHomepage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => KHomepage(),
+        settings: data,
+      );
+    },
+    KChatPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => KChatPage(),
         settings: data,
       );
     },

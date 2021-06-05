@@ -6,14 +6,14 @@ import 'package:chat/flat_widgets/flat_page_wrapper.dart';
 import 'package:chat/flat_widgets/flat_profile_image.dart';
 import 'package:flutter/material.dart';
 
-class ChatPage extends StatefulWidget {
+class KChatPage extends StatefulWidget {
   static final String id = "ChatPage";
 
   @override
-  _ChatPageState createState() => _ChatPageState();
+  _KChatPageState createState() => _KChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _KChatPageState extends State<KChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

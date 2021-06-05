@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class FlatProfileImage extends StatelessWidget {
-
   final bool? outlineIndicator;
   final Color? outlineColor;
   final bool? onlineIndicator;
@@ -11,18 +10,16 @@ class FlatProfileImage extends StatelessWidget {
   final Function? onPressed;
   final Color? backgroundColor;
 
-  FlatProfileImage(
-    {
-      this.outlineIndicator,
-      this.onlineColor,
-      this.outlineColor,
-      this.imageUrl,
-      this.size,
-      this.onlineIndicator,
-      this.onPressed,
-      this.backgroundColor,
-    }
-  );
+  FlatProfileImage({
+    this.outlineIndicator,
+    this.onlineColor,
+    this.outlineColor,
+    this.imageUrl,
+    this.size,
+    this.onlineIndicator,
+    this.onPressed,
+    this.backgroundColor,
+  });
 
   Border? flatIndicatorBorder(Color color) {
     if (outlineIndicator == null) {
@@ -36,7 +33,7 @@ class FlatProfileImage extends StatelessWidget {
   }
 
   double imageSize() {
-    if(size != null) {
+    if (size != null) {
       return size! - 4.0;
     } else {
       return 8.0;
@@ -44,7 +41,7 @@ class FlatProfileImage extends StatelessWidget {
   }
 
   bool showOnlineIndicator() {
-    if(onlineIndicator != null && onlineIndicator == true) {
+    if (onlineIndicator != null && onlineIndicator == true) {
       return true;
     } else {
       return false;
@@ -53,7 +50,7 @@ class FlatProfileImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if(outlineIndicator != null && outlineIndicator == true) {
+    if (outlineIndicator != null && outlineIndicator == true) {
       return InkResponse(
         onTap: onPressed as void Function()?,
         child: Stack(
@@ -63,8 +60,9 @@ class FlatProfileImage extends StatelessWidget {
               width: size ?? 60.0,
               height: size ?? 60.0,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: flatIndicatorBorder(outlineColor ?? Theme.of(context).primaryColor)),
+                  shape: BoxShape.circle,
+                  border: flatIndicatorBorder(
+                      outlineColor ?? Theme.of(context).primaryColor)),
               child: FlatIndicatorImage(
                 width: imageSize(),
                 height: imageSize(),
@@ -114,22 +112,21 @@ class OnlineIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double position = (size!/100) * 15.0;
+    double position = (size! / 100) * 15.0;
     print("Size: $size, Position: $position");
     return Positioned(
-      bottom: position ?? 0.0,
-      right: position ?? 0.0,
+      bottom: position,
+      right: position,
       child: Container(
         width: isEnabled! ? 15.0 : 0.0,
         height: isEnabled! ? 15.0 : 0.0,
         decoration: BoxDecoration(
-          color: color ?? Theme.of(context).primaryColor,
-          border: Border.all(
-            color: borderColor ?? Theme.of(context).primaryColorLight,
-            width: 2.5,
-          ),
-          borderRadius: BorderRadius.circular(15.0)
-        ),
+            color: color ?? Theme.of(context).primaryColor,
+            border: Border.all(
+              color: borderColor ?? Theme.of(context).primaryColorLight,
+              width: 2.5,
+            ),
+            borderRadius: BorderRadius.circular(15.0)),
       ),
     );
   }
@@ -149,10 +146,7 @@ class FlatIndicatorImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey,
-        shape: BoxShape.circle
-      ),
+      decoration: BoxDecoration(color: Colors.grey, shape: BoxShape.circle),
       margin: EdgeInsets.all(imageMargin()),
       width: width,
       height: height,
@@ -163,7 +157,7 @@ class FlatIndicatorImage extends StatelessWidget {
   }
 
   Widget profileImage() {
-    if(image == null || image!.isEmpty){
+    if (image == null || image!.isEmpty) {
       return Image.asset(
         'assets/images/default_profile_image.png',
         fit: BoxFit.cover,

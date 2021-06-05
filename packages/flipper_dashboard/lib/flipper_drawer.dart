@@ -1,3 +1,4 @@
+import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:stacked/stacked.dart';
@@ -8,11 +9,19 @@ import 'package:flipper_services/locator.dart';
 import 'business_list.dart';
 import 'custom_widgets.dart';
 import 'package:flipper_models/business.dart';
+import 'package:flipper/constants.dart';
 
-class FlipperDrawer extends StatelessWidget {
+class FlipperDrawer extends StatefulWidget {
   FlipperDrawer({Key? key, required this.businesses}) : super(key: key);
   final List<Business> businesses;
+
+  @override
+  State<FlipperDrawer> createState() => _FlipperDrawerState();
+}
+
+class _FlipperDrawerState extends State<FlipperDrawer> {
   final DynamicLink _link = locator<DynamicLink>();
+  bool isSwitched = false;
 
   ListTile _menuListRowButton(String title,
       {Function? onPressed,
@@ -25,22 +34,23 @@ class FlipperDrawer extends StatelessWidget {
           onPressed();
         }
       },
-      leading: icon == null
-          ? null
-          : Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: customIcon(
-                context,
-                icon: icon,
-                size: 25,
-                iconColor: isEnable
-                    ? Theme.of(context).iconTheme.color
-                    : Theme.of(context)
-                        .copyWith(canvasColor: Colors.grey)
-                        .canvasColor,
-              ),
-            ),
-      title: customText(
+      // leading: icon == null
+      //     ? null
+      //     : Padding(
+      //         padding: const EdgeInsets.only(top: 5),
+      //         child: customIcon(
+      //           context,
+      //           icon: icon,
+      //           size: 25,
+      //           iconColor: isEnable
+      //               ? Theme.of(context).iconTheme.color
+      //               : Theme.of(context)
+      //                   .copyWith(canvasColor: Colors.grey)
+      //                   .canvasColor,
+      //         ),
+      //       ),
+      leading: customText(
+        //was title when leading was not commented out.
         title,
         style: TextStyle(
           fontSize: 20,
@@ -67,29 +77,38 @@ class FlipperDrawer extends StatelessWidget {
       child: Column(
         children: <Widget>[
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Swith to Social?'),
+              Text('Social'),
               Switch.adaptive(
-                value: drawerViewmodel.isSwitched,
-                activeTrackColor: Colors.lightGreenAccent,
-                activeColor: Colors.green,
-                onChanged: (newValue) {
-                  drawerViewmodel.setisSwitched();
+                value: isSwitched,
+                onChanged: (value) {
+                  setState(() {
+                    isSwitched = value;
+                    if (isSwitched) {
+                      ProxyService.box.write(key: pageKey, value: 'social');
+                      ProxyService.nav.navigateTo(Routes.startUpView);
+                    }
+                    print(isSwitched);
+                  });
                 },
+                activeTrackColor: Colors.yellow,
+                activeColor: Colors.orangeAccent,
               ),
             ],
           ),
-          _menuListRowButton('Close a day',
-              isEnable: true, context: context, icon: 0xf155, onPressed: () {
-            //TODOfinish the feature soon.
-            // ProxyService.nav.navigateTo(
-            //   Routing.openCloseDrawerview,
-            //   arguments: OpenCloseDrawerViewArguments(
-            //     wording: 'Closing Float',
-            //     businessState: BusinessState.CLOSE,
-            //   ),
-            // );
-          }),
+          // TODOthis feature broke need to re-work
+          // _menuListRowButton('Close a day',
+          //     isEnable: true, context: context, icon: 0xf155, onPressed: () {
+          //   //TODOfinish the feature soon.
+          //   // ProxyService.nav.navigateTo(
+          //   //   Routing.openCloseDrawerview,
+          //   //   arguments: OpenCloseDrawerViewArguments(
+          //   //     wording: 'Closing Float',
+          //   //     businessState: BusinessState.CLOSE,
+          //   //   ),
+          //   // );
+          // }),
           const Divider(height: 0),
           Row(
             children: <Widget>[
@@ -165,7 +184,7 @@ class FlipperDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 BusinessList(
-                  businesses: businesses,
+                  businesses: widget.businesses,
                 ),
                 Expanded(
                   child: Stack(

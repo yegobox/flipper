@@ -1,7 +1,6 @@
 import 'package:flipper/constants.dart';
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -23,6 +22,7 @@ class StartUpViewModel extends BaseViewModel {
 
       if (didSync) {
         ProxyService.appService.setBusiness(businesses: businesses);
+        // ProxyService.box.remove(key: pageKey);
         if (ProxyService.box.read(key: pageKey) == null) {
           ProxyService.box.write(key: pageKey, value: businesses[0].type);
         }

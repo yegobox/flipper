@@ -94,7 +94,7 @@ class _AppPageState extends State<AppPage> {
               message: "Something new here, wasup chan",
               multiLineMessage: true,
               onPressed: () {
-                Navigator.pushNamed(context, ChatPage.id);
+                Navigator.pushNamed(context, KChatPage.id);
               },
             ),
             FlatSectionHeader(
