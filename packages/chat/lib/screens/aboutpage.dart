@@ -1,7 +1,9 @@
 import 'package:chat/flat_widgets/flat_info_page_wrapper.dart';
 import 'package:chat/flat_widgets/flat_primary_button.dart';
 import 'package:chat/screens/homepage.dart';
+import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_services/proxy.dart';
 
 class KAboutpage extends StatefulWidget {
   static final String id = "Aboutpage";
@@ -34,7 +36,7 @@ class _KAboutpageState extends State<KAboutpage> {
           ),
           child: FlatPrimaryButton(
             onPressed: () {
-              Navigator.pushNamed(context, KHomepage.id);
+              ProxyService.nav.navigateTo(Routes.chatHome);
             },
             prefixIcon: Icons.arrow_forward,
             textAlign: TextAlign.right,
