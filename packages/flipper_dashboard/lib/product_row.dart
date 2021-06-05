@@ -34,7 +34,8 @@ class ProductRow extends StatelessWidget {
               arguments: SellArguments(product: product));
         },
         onLongPress: () {
-          ProxyService.nav.navigateTo(Routes.sell);
+          ProxyService.nav.navigateTo(Routes.sell,
+              arguments: SellArguments(product: product));
         },
         child: Column(children: <Widget>[
           ListTile(
