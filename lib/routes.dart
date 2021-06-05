@@ -17,6 +17,9 @@ import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:chat/screens/aboutpage.dart';
+import 'package:chat/screens/chatpage.dart';
+import 'package:chat/screens/homepage.dart';
 
 @StackedApp(
   routes: [
@@ -37,6 +40,11 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: Payments, name: 'pay'),
     MaterialRoute(page: CollectCashView, name: 'collect'),
     MaterialRoute(page: AfterSale, name: 'afterSale'),
+
+    // chat routes
+    MaterialRoute(page: Aboutpage, name: 'about'),
+    MaterialRoute(page: Homepage, name: 'chatHome'),
+    MaterialRoute(page: ChatPage, name: 'chatPage'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

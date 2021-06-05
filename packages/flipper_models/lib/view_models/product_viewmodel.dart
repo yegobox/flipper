@@ -257,6 +257,11 @@ class ProductViewModel extends ReactiveViewModel {
     if (supplyPrice != null) {
       for (Variant variation in variants!) {
         if (variation.name == "Regular") {
+          Map map = variation.toJson();
+          map["retailPrice"] = retailPrice;
+          map["fproductId"] = variation.fproductId;
+          int ids = map['id'];
+          ProxyService.api.update(data: map, endPoint: 'variant/$ids');
           Stock stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
           Map data = stock.toJson();
@@ -270,6 +275,11 @@ class ProductViewModel extends ReactiveViewModel {
     if (retailPrice != null) {
       for (Variant variation in variants!) {
         if (variation.name == "Regular") {
+          Map map = variation.toJson();
+          map["retailPrice"] = retailPrice;
+          map["fproductId"] = variation.fproductId;
+          int ids = map['id'];
+          ProxyService.api.update(data: map, endPoint: 'variant/$ids');
           Stock stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
 

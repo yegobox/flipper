@@ -606,6 +606,28 @@ class ObjectBoxApi implements Api {
         final box = _store.box<Category>();
         box.put(category, mode: PutMode.update);
         break;
+      case 'variant':
+        Variant? variation = _store.box<Variant>().get(id);
+        Map map = variation!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Variant variant = Variant(
+          fbranchId: map['fbranchId'],
+          name: map['name'],
+          table: map['table'],
+          channels: map['channels'],
+          id: map['id'],
+          fproductId: map['fproductId'],
+          productName: map['productName'],
+          retailPrice: map['retailPrice'],
+          sku: map['sku'],
+          supplyPrice: map['supplyPrice'],
+          unit: map['unit'],
+        );
+        final box = _store.box<Variant>();
+        box.put(variant, mode: PutMode.update);
+        break;
       case 'unit':
         Unit? color = _store.box<Unit>().get(id);
         Map map = color!.toJson();
