@@ -575,13 +575,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  flipper_chat:
-    dependency: "direct main"
-    description:
-      path: "packages/flipper_chat"
-      relative: true
-    source: path
-    version: "0.0.1"
   flipper_dashboard:
     dependency: "direct main"
     description:
