@@ -5,7 +5,7 @@ import 'package:flipper_models/business.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/product.dart';
-import 'package:flipper_models/variant_stock.dart';
+import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -32,8 +32,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   get quantity => keypad.quantity;
 
-  List<VariantStock> _variantsStocks = [];
-  get variantsStocks => _variantsStocks;
+  List<Stock> _getStock = [];
+  get variantsStocks => _getStock;
 
   int _tab = 0;
   int get tab => _tab;
@@ -108,15 +108,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// We take _variantsStocks[0] because we know
   void decreaseQty() {
     ProxyService.keypad.decreaseQty();
-    if (_variantsStocks.isNotEmpty) {
-      keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    if (_getStock.isNotEmpty) {
+      keypad.setAmount(amount: _getStock[0].retailPrice * quantity);
     }
   }
 
   void increaseQty() {
     ProxyService.keypad.increaseQty();
-    if (_variantsStocks.isNotEmpty) {
-      keypad.setAmount(amount: _variantsStocks[0].retailPrice * quantity);
+    if (_getStock.isNotEmpty) {
+      keypad.setAmount(amount: _getStock[0].retailPrice * quantity);
     }
   }
 
@@ -126,16 +126,22 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void loadVariantStock({required int variantId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    _variantsStocks = await ProxyService.api
-        .variantStock(branchId: branchId, variantId: variantId);
+    _getStock = await ProxyService.api
+        .getStock(branchId: branchId, variantId: variantId);
+    print(_getStock);
     notifyListeners();
   }
 
-  Future<int> getVariant({required int productId}) async {
+  Future<List<Variant>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
     List<Variant> variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
-    return variants[0].id;
+
+    return variants;
+  }
+
+  Future<Variant?> getVariant({required int variantId}) async {
+    return await ProxyService.api.variant(variantId: variantId);
   }
 
   void toggleCheckbox({required int variantId}) {

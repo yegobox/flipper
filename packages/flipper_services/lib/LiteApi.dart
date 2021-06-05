@@ -389,14 +389,15 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<VariantStock>> variantStock(
+  Future<List<Stock>> getStock(
       {required int branchId, required int variantId}) async {
     Q18.parameters = {'T': AppTables.variation, 'VARIANTID': variantId};
     final ResultSet business = Q18.execute();
-    final List<VariantStock> variantStocks = [];
+    final List<Stock> variantStocks = [];
+    // FIXME: this query should be fixed as we are no longer returning variantStock it is just stock
     while (business.next()) {
       final row = business.rowDict;
-      variantStocks.add(svariantStockFromJson(row.json));
+      variantStocks.add(sstockFromJson(row.json));
     }
     return variantStocks;
   }

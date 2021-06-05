@@ -83,3 +83,6 @@ class AppSetup {
 // cameras to buy
 // 1) go pro 9 black
 // 2) https://snapmounts.com/
+
+// share one tab of google sheets
+// https://www.youtube.com/watch?v=Sj_uGLZqBmc

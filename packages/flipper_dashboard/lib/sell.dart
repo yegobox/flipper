@@ -5,7 +5,8 @@ import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flipper_models/variant_stock.dart';
+import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/variants.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 enum ForHere { lafayette, jefferson }
@@ -471,13 +472,12 @@ class Sell extends StatelessWidget {
   List<Widget> Variants({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
-    for (VariantStock variation in model.variantsStocks) {
+    for (Stock stock in model.variantsStocks) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
-            model.keypad
-                .setAmount(amount: variation.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variation.id);
+            model.keypad.setAmount(amount: stock.retailPrice * model.quantity);
+            model.toggleCheckbox(variantId: stock.id);
           },
           child: Container(
             child: Padding(
@@ -490,22 +490,28 @@ class Sell extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Text(
-                          variation.variantName,
-                          style: GoogleFonts.lato(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13.0,
-                                color: Colors.grey[900]),
-                          ),
-                        ),
-                      ),
+                      FutureBuilder<Variant?>(
+                          future: model.getVariant(variantId: stock.fvariantId),
+                          builder: (context, snapshot) {
+                            return snapshot.hasData
+                                ? Expanded(
+                                    child: Text(
+                                      snapshot.data!.name,
+                                      style: GoogleFonts.lato(
+                                        textStyle: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 13.0,
+                                            color: Colors.grey[900]),
+                                      ),
+                                    ),
+                                  )
+                                : SizedBox.shrink();
+                          }),
                       Container(
                         child: Row(children: [
                           Container(
                             child: Text(
-                              'Frw${variation.retailPrice.toInt()}',
+                              'Frw${stock.retailPrice.toInt()}',
                               style: GoogleFonts.lato(
                                 textStyle: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -517,7 +523,7 @@ class Sell extends StatelessWidget {
                           Container(
                             child: Radio(
                               // toggleable: true,
-                              value: variation.id,
+                              value: stock.id,
                               groupValue: model.checked,
                               onChanged: (value) {},
                             ),
@@ -540,8 +546,8 @@ class Sell extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         onModelReady: (model) async {
-          int variantId = await model.getVariant(productId: product.id);
-          model.loadVariantStock(variantId: variantId);
+          // int variantId = await model.getVariants(productId: product.id);
+          // model.loadVariantStock(variantId: variantId);
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
         builder: (context, model, child) {
