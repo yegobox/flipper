@@ -111,6 +111,8 @@ dependencies:
     path: 'packages/loading'
   flipper_ui:
     path: 'packages/flipper_ui'
+  chat:
+    path: 'packages/chat'
       
   google_fonts:
   font_awesome_flutter: ^9.0.0
