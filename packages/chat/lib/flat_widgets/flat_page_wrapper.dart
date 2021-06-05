@@ -80,7 +80,7 @@ class _PageBodyWidget extends StatelessWidget {
               child: ListView(
                 reverse: reverseBodyList ?? false,
                 padding: EdgeInsets.only(
-                  top: 122.0,
+                  top: 0.0,
                   bottom: bottomPadding(),
                 ),
                 children: children!,
@@ -88,6 +88,7 @@ class _PageBodyWidget extends StatelessWidget {
             ),
           ),
           Positioned(
+            top: 0,
             child: header ?? Container(),
           ),
           Positioned(

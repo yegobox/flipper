@@ -7,7 +7,9 @@ import 'package:chat/flat_widgets/flat_page_wrapper.dart';
 import 'package:chat/flat_widgets/flat_profile_image.dart';
 import 'package:chat/flat_widgets/flat_section_header.dart';
 import 'package:chat/screens/chatpage.dart';
+import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'conversation_list.dart';
 
@@ -88,9 +90,6 @@ class _KHomepageState extends State<KHomepage> {
                 ),
               ),
             ),
-            FlatSectionHeader(
-              title: "Marked Important",
-            ),
             ConversationList(
               name: "Richard",
               messageText: "Hello world",
@@ -98,6 +97,9 @@ class _KHomepageState extends State<KHomepage> {
                   "https://cdn.dribbble.com/users/1281912/avatars/normal/febecc326c76154551f9d4bbab73f97b.jpg?1468927304",
               time: "Yesterday",
               isMessageRead: (0 == 0 || 0 == 3) ? true : false,
+              onPressed: () {
+                ProxyService.nav.navigateTo(Routes.chatPage);
+              },
             )
           ],
         ),
