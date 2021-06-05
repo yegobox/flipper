@@ -242,8 +242,7 @@ class ProductViewModel extends ReactiveViewModel {
     return result;
   }
 
-  void navigateAddVariation({required String productId}) {
-    // print(productId);
+  void navigateAddVariation({required int productId}) {
     ProxyService.nav.navigateTo(
       Routes.variation,
       arguments: AddVariationArguments(

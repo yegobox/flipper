@@ -12,7 +12,7 @@ import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
   AddVariation({Key? key, required this.productId}) : super(key: key);
-  final String productId;
+  final int productId;
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -135,8 +135,7 @@ class _AddVariationState extends State<AddVariation> {
                                     sku = DateTime.now().year.toString() +
                                         Uuid().v1().substring(0, 4);
                                   } else {
-                                    sku = DateTime.now().year.toString() +
-                                        sku.substring(0, 4);
+                                    sku = DateTime.now().year.toString() + sku;
                                   }
                                 },
                                 decoration: InputDecoration(

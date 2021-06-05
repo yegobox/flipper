@@ -279,7 +279,7 @@ class AddCategoryArguments {
 /// AddVariation arguments holder class
 class AddVariationArguments {
   final Key? key;
-  final String productId;
+  final int productId;
   AddVariationArguments({this.key, required this.productId});
 }
 
