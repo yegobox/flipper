@@ -64,6 +64,8 @@ class _AddVariationState extends State<AddVariation> {
                       variations: variations,
                       retailPrice: double.parse(retailController.text),
                       supplyPrice: double.parse(costController.text));
+                  model.productService
+                      .variantsProduct(productId: model.product.id);
                   ProxyService.nav.back();
                 }
               },

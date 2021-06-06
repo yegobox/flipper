@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-
+import 'package:flipper/constants.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/branch.dart';
@@ -63,6 +63,9 @@ class SignupViewModel extends FormViewModel {
   }
 
   void signup({Locale? locale}) async {
+    //set the startup app.
+    // TODO uncomment this when the social feature is out!
+    // ProxyService.box.write(key: pageKey, value: businessType);
     int okStatus = await ProxyService.api.signup(business: {
       'name': _name,
       'latitude': latitude,
@@ -77,7 +80,7 @@ class SignupViewModel extends FormViewModel {
     if (okStatus == 200) {
       //get businesses's id then look for related branch [0] create the default category
       List<Business> businesses = await ProxyService.api.businesses();
-      print(businesses);
+
       ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       ProxyService.appService.setBusiness(businesses: businesses);
       List<Branch> branches =

@@ -190,9 +190,14 @@ class ProductViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  void deleteVariant({required String id}) {
-    ProxyService.api.delete(id: id, endPoint: 'variant');
-    createTemporalProduct(); //this will reload the variations remain
+  void deleteVariant({required int id}) async {
+    Variant? variant = await ProxyService.api.variant(variantId: id);
+    // can not delete regular variant every product should have a regular variant.
+    if (variant!.name != 'Regular') {
+      ProxyService.api.delete(id: id, endPoint: 'variation');
+      //this will reload the variations remain
+      createTemporalProduct();
+    }
   }
 
   void browsePictureFromGallery({productId}) {
