@@ -250,10 +250,12 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                           ],
                         ),
                       ),
-                      _footer(
-                        drawerViewmodel: model,
-                        context: context,
-                      )
+                      ProxyService.remoteConfig.isChatAvailable()
+                          ? _footer(
+                              drawerViewmodel: model,
+                              context: context,
+                            )
+                          : SizedBox.shrink()
                     ],
                   ),
                 )
