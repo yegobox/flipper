@@ -20,106 +20,110 @@ class _OtpViewState extends State<OtpView> {
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
-        return Form(
-          key: OtpView._formKey,
-          child: Container(
-            color: Colors.transparent,
+        return SingleChildScrollView(
+          child: Form(
+            key: OtpView._formKey,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  topRight: Radius.circular(20.0),
-                ),
-              ),
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
-                            child: const Text(
-                              'Enter',
-                              style: TextStyle(fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
-                            child: const Text(
-                              'Otp Received',
-                              style: TextStyle(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
-                            child: const Text(
-                              '',
-                              style: TextStyle(fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                        ]),
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.0),
+                    topRight: Radius.circular(20.0),
                   ),
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
-                    child: Form(
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.grey,
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: Row(
+                ),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            Expanded(
-                                child: BoxInputField(
-                              controller: otpController,
-                              leading: Icon(Icons.password),
-                              placeholder: 'Enter OTP Code',
-                              validatorFunc: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Otp is required';
-                                }
-                                return null;
-                              },
-                            )),
-                          ],
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
+                              child: const Text(
+                                'Enter',
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
+                              child: const Text(
+                                'Otp Received',
+                                style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
+                              child: const Text(
+                                '',
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                          ]),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
+                      child: Form(
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.grey,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                  child: BoxInputField(
+                                textInputType: TextInputType.phone,
+                                controller: otpController,
+                                leading: Icon(Icons.password),
+                                placeholder: 'Enter OTP Code',
+                                validatorFunc: (value) {
+                                  if (value!.isEmpty) {
+                                    return 'Otp is required';
+                                  }
+                                  return null;
+                                },
+                              )),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  !model.otpStart
-                      ? Container(
-                          child: BoxButton(
-                            onTap: () {
-                              if (OtpView._formKey.currentState!.validate()) {
-                                model.setOtp(ot: otpController.value.text);
-                                model.fb.verifyWithOtp();
-                              }
-                            },
-                            title: 'Verify',
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 60,
+                    !model.otpStart
+                        ? Container(
                             child: BoxButton(
-                              title: 'Otp',
-                              busy: true,
+                              onTap: () {
+                                if (OtpView._formKey.currentState!.validate()) {
+                                  model.setOtp(ot: otpController.value.text);
+                                  model.fb.verifyWithOtp();
+                                }
+                              },
+                              title: 'Verify',
+                            ),
+                          )
+                        : Padding(
+                            padding:
+                                const EdgeInsets.only(left: 8.0, right: 8.0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 60,
+                              child: BoxButton(
+                                title: 'Otp',
+                                busy: true,
+                              ),
                             ),
                           ),
-                        ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -8,6 +8,7 @@ class BoxInputField extends StatelessWidget {
   final Widget? trailing;
   final bool password;
   final Function? validatorFunc;
+  final TextInputType textInputType;
   final void Function()? trailingTapped;
 
   final circularBorder = OutlineInputBorder(
@@ -23,6 +24,7 @@ class BoxInputField extends StatelessWidget {
     this.trailingTapped,
     this.password = false,
     this.validatorFunc,
+    this.textInputType = TextInputType.text,
   }) : super(key: key);
 
   @override
@@ -32,6 +34,7 @@ class BoxInputField extends StatelessWidget {
       validator: (value) {
         validatorFunc!();
       },
+      keyboardType: textInputType,
       style: TextStyle(height: 1),
       obscureText: password,
       decoration: InputDecoration(
