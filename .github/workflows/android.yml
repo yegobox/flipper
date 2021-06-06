@@ -2,7 +2,7 @@ name: App PlayStore Release
 
 on:
   push:
-    branches: [main]
+    branches: [main,aurore]
 jobs:      
   version:
     name: Create version number
