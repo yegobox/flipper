@@ -88,8 +88,7 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Remote get remote {
     late Remote remote;
-    if (UniversalPlatform.isWindows ||
-        UniversalPlatform.isAndroid ||
+    if (UniversalPlatform.isAndroid ||
         UniversalPlatform.isWeb ||
         UniversalPlatform.isMacOS) {
       remote = RemoteConfigService();

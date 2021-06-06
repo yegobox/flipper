@@ -69,6 +69,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       onModelReady: (model) {
         model.getOrders();
         model.registerLocation();
+        //register remote config
+        ProxyService.remoteConfig.setDefault();
+        ProxyService.remoteConfig.config();
+        ProxyService.remoteConfig.fetch();
       },
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {
