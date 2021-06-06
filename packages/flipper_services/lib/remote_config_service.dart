@@ -1,4 +1,5 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 
 import 'abstractions/remote.dart';
 
@@ -23,7 +24,8 @@ class RemoteConfigService implements Remote {
   void config() async {
     await remoteConfig.setConfigSettings(RemoteConfigSettings(
       fetchTimeout: Duration(seconds: 10),
-      minimumFetchInterval: Duration(hours: 1),
+      minimumFetchInterval:
+          kDebugMode ? Duration(hours: 0) : Duration(hours: 4),
     ));
   }
 }
