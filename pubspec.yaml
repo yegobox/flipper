@@ -43,7 +43,7 @@ dependencies:
     path: 'packages/flipper_dashboard'
   firebase_messaging: ^10.0.0
   firebase_auth: ^1.0.1
-  firebase_core: ^1.0.2
+  firebase_core: ^1.2.1
   stacked_firebase_auth: ^0.2.2+1
   cloud_firestore: ^1.0.1
   camera: ^0.8.0
@@ -79,8 +79,7 @@ dependencies:
   timeago:
   cron:
   number_display: ^3.0.0
-  # firebase_dynamic_links: not available
-  # firebase_remote_config: not available
+  
   # esc_pos_utils: not available
   # pusher: not available
   # pusher: 
@@ -145,6 +144,8 @@ dependencies:
   objectbox_flutter_libs: any
   dio: ^4.0.0
   freezed: ^0.14.2
+  firebase_remote_config: ^0.10.0+1
+  
   
   # objectbox: ^1.0.0
   # objectbox_flutter_libs: any

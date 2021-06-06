@@ -14,11 +14,13 @@ import 'package:universal_platform/universal_platform.dart';
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
 final isAndroid = UniversalPlatform.isAndroid;
+final isWeb = UniversalPlatform.isWeb;
 
 // cd android && ./gradlew signingReport
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
+  // (isAndroid|| isWeb||isMacOs)
   // (isWindows) ? Cbl.init() : ''; //paused for now as couchbase is not supported on some platforms
   await GetStorage.init();
   // done init in mobile.//done separation.

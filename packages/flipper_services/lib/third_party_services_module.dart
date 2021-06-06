@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -18,6 +19,7 @@ import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
 import 'abstractions/platform.dart';
+import 'abstractions/remote.dart';
 import 'abstractions/share.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
@@ -81,6 +83,20 @@ abstract class ThirdPartyServicesModule {
       dynamicLink = UnSupportedDynamicLink();
     }
     return dynamicLink;
+  }
+
+  @lazySingleton
+  Remote get remote {
+    late Remote remote;
+    if (UniversalPlatform.isWindows ||
+        UniversalPlatform.isAndroid ||
+        UniversalPlatform.isWeb ||
+        UniversalPlatform.isMacOS) {
+      remote = RemoteConfigService();
+    } else {
+      remote = RemoteConfigWindows();
+    }
+    return remote;
   }
 
   @lazySingleton
