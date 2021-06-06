@@ -42,7 +42,7 @@ class _FlipperAppState extends State<FlipperApp> {
           // You can change theme colors to directly change colors for the whole
           // app.
           primaryColor: Color(0xff5B428F),
-          accentColor: Color(0xffF56D58),
+          // accentColor: Color(0xffF56D58),
           primaryColorDark: Color(0xff262833),
           primaryColorLight: Color(0xffFCF9F5),
         ),
