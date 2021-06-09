@@ -1,4 +1,5 @@
 import 'package:flipper/routes.router.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:stacked/stacked.dart';
@@ -242,7 +243,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                           ],
                         ),
                       ),
-                      ProxyService.remoteConfig.isChatAvailable()
+                      ProxyService.remoteConfig.isChatAvailable() || kDebugMode
                           ? _footer(
                               drawerViewmodel: model,
                               context: context,
