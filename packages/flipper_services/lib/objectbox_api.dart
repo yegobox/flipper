@@ -7,7 +7,7 @@ import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/order_item.dart';
-
+import 'package:flipper_models/product_mock.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/unit.dart';
 
@@ -449,20 +449,27 @@ class ObjectBoxApi implements Api {
     return _store.box<PColor>().get(id);
   }
 
-  @override
-  Future<Variant> getCustomProductVariant() async {
-    // TODOthis is errorring.
+  Variant getV() {
     Product product = _store
         .box<Product>()
         .getAll()
         .where((v) => v.name == 'Custom Amount')
         .toList()[0];
-    //once we have the product with the name then get related variants
     return _store
         .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == product.id)
         .toList()[0];
+  }
+
+  @override
+  Future<Variant> getCustomProductVariant() async {
+    try {
+      return getV();
+    } catch (e) {
+      createProduct(product: customProductMock);
+      return getV();
+    }
   }
 
   @override

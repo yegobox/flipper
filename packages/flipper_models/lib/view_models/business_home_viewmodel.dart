@@ -49,6 +49,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       ProxyService.keypad.pop();
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
+        //   await ProxyService.api.createProduct(product: customProductMock);
         Variant variation = await ProxyService.api.getCustomProductVariant();
 
         double amount = double.parse(ProxyService.keypad.key);

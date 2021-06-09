@@ -1,19 +1,15 @@
-import 'dart:math';
 import 'dart:ui';
-import 'package:flipper/constants.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/color.dart';
-// import 'package:flipper_models/product.dart';
 import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flipper_services/constants.dart';
 
 final isWindows = UniversalPlatform.isWindows;

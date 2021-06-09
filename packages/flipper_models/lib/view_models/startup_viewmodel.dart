@@ -14,8 +14,8 @@ class StartUpViewModel extends BaseViewModel {
   bool didSync = false;
 
   Future<void> runStartupLogic() async {
-    appInit();
     appService.isLoggedIn();
+    appInit();
 
     if (appService.hasLoggedInUser) {
       List<Business>? businesses = await ProxyService.api.businesses();
