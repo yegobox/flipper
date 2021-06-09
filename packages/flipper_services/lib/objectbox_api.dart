@@ -727,15 +727,9 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Setting> getSetting({required int userId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Setting> updateSetting(
-      {required int userId, required Map<String, dynamic> setting}) {
-    // TODO: implement updateSetting
-    throw UnimplementedError();
+  Future<Setting?> getSetting({required int userId}) async {
+    final box = _store.box<Setting>();
+    Query<Setting> query = box.query(Setting_.userId.equals(userId)).build();
+    return query.findFirst();
   }
 }

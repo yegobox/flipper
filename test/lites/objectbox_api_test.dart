@@ -222,5 +222,8 @@ void main() {
         new Setting(email: 'b@gmail.com', userId: 300, hasPin: '3123');
     Setting? Ksetting = await api.createSetting(userId: 300, setting: setting);
     expect(Ksetting!.email, "b@gmail.com");
+    //test setting should exist as object now
+    Setting? _KSettings = await api.getSetting(userId: 300);
+    expect(_KSettings!.userId, 300);
   });
 }

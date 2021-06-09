@@ -413,13 +413,6 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Setting> updateSetting(
-      {required int userId, required Map<String, dynamic> setting}) {
-    // TODO: implement updateSetting
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Setting?> createSetting(
       {required int userId, required Setting setting}) {
     // TODO: implement createSetting

@@ -72,9 +72,8 @@ abstract class Api<T> {
       {required double cashReceived, required OrderF order});
 
 // app settings and users settings
-  Future<Setting> getSetting({required int userId});
-  Future<Setting> updateSetting(
-      {required int userId, required Map<String, dynamic> setting});
+  Future<Setting?> getSetting({required int userId});
+
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
 }
