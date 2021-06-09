@@ -50,7 +50,7 @@ class AddProductView extends StatelessWidget {
               rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 42,
+              bottomSpacer: 50,
             ),
             body: ListView(
               children: <Widget>[
