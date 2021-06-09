@@ -7,6 +7,7 @@ import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/category.dart';
@@ -402,6 +403,26 @@ class HttpApi<T> implements Api {
   @override
   Future<OrderItem?> getOrderItem({required int id}) {
     // TODO: implement getOrderItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting> getSetting({required int userId}) {
+    // TODO: implement getSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting> updateSetting(
+      {required int userId, required Map<String, dynamic> setting}) {
+    // TODO: implement updateSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting?> createSetting(
+      {required int userId, required Setting setting}) {
+    // TODO: implement createSetting
     throw UnimplementedError();
   }
 }

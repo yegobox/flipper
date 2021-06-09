@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:flipper_models/order_item.dart';
 
-import 'package:flipper_models/variant_stock.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/unit.dart';
 
@@ -31,9 +31,7 @@ import 'package:flipper_services/http_api.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
-import 'package:dio/dio.dart';
 // import 'api_result.dart';
-import 'dio_client.dart';
 // import 'network_exceptions.dart';
 
 class ObjectBoxApi implements Api {
@@ -718,5 +716,26 @@ class ObjectBoxApi implements Api {
   @override
   Future<OrderItem?> getOrderItem({required int id}) async {
     return _store.box<OrderItem>().get(id);
+  }
+
+  @override
+  Future<Setting?> createSetting(
+      {required int userId, required Setting setting}) async {
+    final box = _store.box<Setting>();
+    final id = box.put(setting);
+    return _store.box<Setting>().get(id);
+  }
+
+  @override
+  Future<Setting> getSetting({required int userId}) {
+    // TODO: implement getSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting> updateSetting(
+      {required int userId, required Map<String, dynamic> setting}) {
+    // TODO: implement updateSetting
+    throw UnimplementedError();
   }
 }

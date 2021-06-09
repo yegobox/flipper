@@ -1,6 +1,7 @@
 import 'package:flipper/constants.dart';
 import 'package:flipper/routes.locator.dart';
 import 'package:flipper/routes.router.dart';
+import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -13,6 +14,7 @@ class StartUpViewModel extends BaseViewModel {
   bool didSync = false;
 
   Future<void> runStartupLogic() async {
+    appInit();
     appService.isLoggedIn();
 
     if (appService.hasLoggedInUser) {
@@ -37,17 +39,16 @@ class StartUpViewModel extends BaseViewModel {
   }
 
   /// get IDS to use along the way in the app
-//   appInit() async {
-//     // ProxyService.api.logOut();
-//     if (appService.hasLoggedInUser) {
-//       List<Business>? businesses = await ProxyService.api.businesses();
-//       try {
-//         List<Branch> branches =
-//             await ProxyService.api.branches(businessId: businesses[0].id);
+  appInit() async {
+    if (appService.hasLoggedInUser) {
+      List<Business>? businesses = await ProxyService.api.businesses();
+      try {
+        List<Branch> branches =
+            await ProxyService.api.branches(businessId: businesses[0].id);
 
-//         ProxyService.box.write(key: 'branchId', value: branches[0].id);
-//         ProxyService.box.write(key: 'businessId', value: businesses[0].id);
-//       } catch (e) {}
-//     }
-//   }
+        ProxyService.box.write(key: 'branchId', value: branches[0].id);
+        ProxyService.box.write(key: 'businessId', value: businesses[0].id);
+      } catch (e) {}
+    }
+  }
 }

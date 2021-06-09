@@ -23,6 +23,7 @@ import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
+import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
@@ -49,6 +50,7 @@ class Routes {
   static const String pay = '/Payments';
   static const String collect = '/collect-cash-view';
   static const String afterSale = '/after-sale';
+  static const String settings = '/settings-screen';
   static const String about = '/k-aboutpage';
   static const String chatHome = '/k-homepage';
   static const String chatPage = '/k-chat-page';
@@ -70,6 +72,7 @@ class Routes {
     pay,
     collect,
     afterSale,
+    settings,
     about,
     chatHome,
     chatPage,
@@ -97,6 +100,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.pay, page: Payments),
     RouteDef(Routes.collect, page: CollectCashView),
     RouteDef(Routes.afterSale, page: AfterSale),
+    RouteDef(Routes.settings, page: SettingsScreen),
     RouteDef(Routes.about, page: KAboutpage),
     RouteDef(Routes.chatHome, page: KHomepage),
     RouteDef(Routes.chatPage, page: KChatPage),
@@ -246,6 +250,12 @@ class StackedRouter extends RouterBase {
           key: args.key,
           totalOrderAmount: args.totalOrderAmount,
         ),
+        settings: data,
+      );
+    },
+    SettingsScreen: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => SettingsScreen(),
         settings: data,
       );
     },

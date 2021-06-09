@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
+import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
@@ -40,6 +41,7 @@ import 'package:chat/screens/homepage.dart';
     MaterialRoute(page: Payments, name: 'pay'),
     MaterialRoute(page: CollectCashView, name: 'collect'),
     MaterialRoute(page: AfterSale, name: 'afterSale'),
+    MaterialRoute(page: SettingsScreen, name: 'settings'),
 
     // chat routes
     MaterialRoute(page: KAboutpage, name: 'about'),

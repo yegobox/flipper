@@ -131,7 +131,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.read(key: 'branchId');
     _getStock = await ProxyService.api
         .getStock(branchId: branchId, variantId: variantId);
-    print(_getStock);
+
     notifyListeners();
   }
 

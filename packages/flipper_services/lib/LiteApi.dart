@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/b.dart';
+import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/spenn.dart';
@@ -665,6 +666,26 @@ class LiteApi<T> implements Api {
   @override
   Future<OrderItem?> getOrderItem({required int id}) {
     // TODO: implement getOrderItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting> getSetting({required int userId}) {
+    // TODO: implement getSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting> updateSetting(
+      {required int userId, required Map<String, dynamic> setting}) {
+    // TODO: implement updateSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Setting?> createSetting(
+      {required int userId, required Setting setting}) {
+    // TODO: implement createSetting
     throw UnimplementedError();
   }
 }

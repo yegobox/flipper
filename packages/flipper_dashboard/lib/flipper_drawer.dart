@@ -26,7 +26,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
   ListTile _menuListRowButton(String title,
       {Function? onPressed,
       int? icon,
-      bool isEnable = false,
+      bool isEnable = true,
       required BuildContext context}) {
     return ListTile(
       onTap: () {
@@ -34,21 +34,13 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
           onPressed();
         }
       },
-      // leading: icon == null
-      //     ? null
-      //     : Padding(
-      //         padding: const EdgeInsets.only(top: 5),
-      //         child: customIcon(
-      //           context,
-      //           icon: icon,
-      //           size: 25,
-      //           iconColor: isEnable
-      //               ? Theme.of(context).iconTheme.color
-      //               : Theme.of(context)
-      //                   .copyWith(canvasColor: Colors.grey)
-      //                   .canvasColor,
-      //         ),
-      //       ),
+      title: IconButton(
+        icon: const Icon(Icons.settings),
+        tooltip: 'Settings',
+        onPressed: () {
+          ProxyService.nav.navigateTo(Routes.settings);
+        },
+      ),
       leading: customText(
         //was title when leading was not commented out.
         title,
@@ -238,7 +230,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
 
                             const Divider(),
                             _menuListRowButton(
-                              'Help Center',
+                              'Flipper Settings',
                               context: context,
                             ),
                             const Divider(),

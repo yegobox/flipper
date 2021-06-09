@@ -145,6 +145,7 @@ dependencies:
   dio: ^4.0.0
   freezed: ^0.14.2
   firebase_remote_config: ^0.10.0+1
+  settings_ui: ^1.0.0
   
   
   # objectbox: ^1.0.0

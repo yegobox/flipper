@@ -12,9 +12,11 @@ import 'branch.dart';
 import 'business.dart';
 import 'category.dart';
 import 'color.dart';
+import 'message.dart';
 import 'order.dart';
 import 'order_item.dart';
 import 'product.dart';
+import 'setting.dart';
 import 'stock.dart';
 import 'unit.dart';
 import 'variant_stock.dart';
@@ -734,6 +736,69 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(12, 917808743332577379),
+      name: 'Message',
+      lastPropertyId: const IdUid(5, 6932238253732696423),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 1947394661997474338),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        ModelProperty(
+            id: const IdUid(2, 1718505003743814710),
+            name: 'messageBody',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 938205566050096652),
+            name: 'time',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 6311916302122232138),
+            name: 'sender',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 6932238253732696423),
+            name: 'receiver',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(13, 8608507958994323678),
+      name: 'Setting',
+      lastPropertyId: const IdUid(4, 1351698244747760704),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 5526558824753817191),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        ModelProperty(
+            id: const IdUid(2, 4338414048430854855),
+            name: 'email',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 4812804212630200889),
+            name: 'hasPin',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 1351698244747760704),
+            name: 'userId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -741,7 +806,7 @@ final _entities = <ModelEntity>[
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(11, 2850625522985710545),
+      lastEntityId: const IdUid(13, 8608507958994323678),
       lastIndexId: const IdUid(2, 6401461376584828673),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
@@ -1441,6 +1506,77 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGet(buffer, rootOffset, 30, 0));
 
           return object;
+        }),
+    Message: EntityDefinition<Message>(
+        model: _entities[11],
+        toOneRelations: (Message object) => [],
+        toManyRelations: (Message object) => {},
+        getId: (Message object) => object.id,
+        setId: (Message object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Message object, fb.Builder fbb) {
+          final messageBodyOffset = fbb.writeString(object.messageBody);
+          final timeOffset = fbb.writeString(object.time);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, messageBodyOffset);
+          fbb.addOffset(2, timeOffset);
+          fbb.addInt64(3, object.sender);
+          fbb.addInt64(4, object.receiver);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Message(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              messageBody:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              time:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              sender:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+              receiver:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
+
+          return object;
+        }),
+    Setting: EntityDefinition<Setting>(
+        model: _entities[12],
+        toOneRelations: (Setting object) => [],
+        toManyRelations: (Setting object) => {},
+        getId: (Setting object) => object.id,
+        setId: (Setting object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Setting object, fb.Builder fbb) {
+          final emailOffset = fbb.writeString(object.email);
+          final hasPinOffset = fbb.writeString(object.hasPin);
+          fbb.startTable(5);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, emailOffset);
+          fbb.addOffset(2, hasPinOffset);
+          fbb.addInt64(3, object.userId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Setting(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              email:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              hasPin:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              userId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
+
+          return object;
         })
   };
 
@@ -1929,4 +2065,43 @@ class VariantStock_ {
   /// see [VariantStock.value]
   static final value =
       QueryDoubleProperty<VariantStock>(_entities[10].properties[13]);
+}
+
+/// [Message] entity fields to define ObjectBox queries.
+class Message_ {
+  /// see [Message.id]
+  static final id = QueryIntegerProperty<Message>(_entities[11].properties[0]);
+
+  /// see [Message.messageBody]
+  static final messageBody =
+      QueryStringProperty<Message>(_entities[11].properties[1]);
+
+  /// see [Message.time]
+  static final time = QueryStringProperty<Message>(_entities[11].properties[2]);
+
+  /// see [Message.sender]
+  static final sender =
+      QueryIntegerProperty<Message>(_entities[11].properties[3]);
+
+  /// see [Message.receiver]
+  static final receiver =
+      QueryIntegerProperty<Message>(_entities[11].properties[4]);
+}
+
+/// [Setting] entity fields to define ObjectBox queries.
+class Setting_ {
+  /// see [Setting.id]
+  static final id = QueryIntegerProperty<Setting>(_entities[12].properties[0]);
+
+  /// see [Setting.email]
+  static final email =
+      QueryStringProperty<Setting>(_entities[12].properties[1]);
+
+  /// see [Setting.hasPin]
+  static final hasPin =
+      QueryStringProperty<Setting>(_entities[12].properties[2]);
+
+  /// see [Setting.userId]
+  static final userId =
+      QueryIntegerProperty<Setting>(_entities[12].properties[3]);
 }

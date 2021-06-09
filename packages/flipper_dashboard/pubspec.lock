@@ -561,6 +561,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  firebase_remote_config:
+    dependency: transitive
+    description:
+      name: firebase_remote_config
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.0+1"
+  firebase_remote_config_platform_interface:
+    dependency: transitive
+    description:
+      name: firebase_remote_config_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0+1"
   fixnum:
     dependency: transitive
     description:
@@ -575,13 +589,6 @@ packages:
       relative: true
     source: path
     version: "99.99.99+99"
-  flipper_chat:
-    dependency: transitive
-    description:
-      path: "../flipper_chat"
-      relative: true
-    source: path
-    version: "0.0.1"
   flipper_login:
     dependency: transitive
     description:
@@ -1283,6 +1290,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.26.0"
+  settings_ui:
+    dependency: transitive
+    description:
+      name: settings_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   share:
     dependency: transitive
     description:

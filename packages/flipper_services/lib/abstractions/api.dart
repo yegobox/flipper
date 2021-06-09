@@ -4,6 +4,7 @@ import 'package:flipper_models/product.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/spenn.dart';
+import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/stock.dart';
@@ -69,4 +70,11 @@ abstract class Api<T> {
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectCashPayment(
       {required double cashReceived, required OrderF order});
+
+// app settings and users settings
+  Future<Setting> getSetting({required int userId});
+  Future<Setting> updateSetting(
+      {required int userId, required Map<String, dynamic> setting});
+  Future<Setting?> createSetting(
+      {required int userId, required Setting setting});
 }

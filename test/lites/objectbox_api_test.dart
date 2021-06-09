@@ -6,6 +6,7 @@ import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
 import 'package:flipper_models/variants.dart';
@@ -213,5 +214,13 @@ void main() {
     final response =
         await api.create(data: category.toJson(), endPoint: 'category');
     expect(response, 200);
+  });
+  test('test add settings', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    Setting setting =
+        new Setting(email: 'b@gmail.com', userId: 300, hasPin: '3123');
+    Setting? Ksetting = await api.createSetting(userId: 300, setting: setting);
+    expect(Ksetting!.email, "b@gmail.com");
   });
 }

@@ -11,6 +11,7 @@ import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/product_service.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -21,6 +22,7 @@ import 'package:flipper_services/locator.dart';
   MockSpec<Api>(returnNullOnMissingStub: true),
   MockSpec<ProductService>(returnNullOnMissingStub: true),
   MockSpec<KeyPadService>(returnNullOnMissingStub: true),
+  MockSpec<SettingsService>(returnNullOnMissingStub: true),
   MockSpec<LocalStorage>(returnNullOnMissingStub: true),
   MockSpec<AppService>(returnNullOnMissingStub: true),
   MockSpec<NavigationService>(returnNullOnMissingStub: true),
@@ -114,6 +116,16 @@ NavigationService getAndRegisterNavigationService() {
   return service;
 }
 
+MockSettingsService getAndRegisterSettingsService() {
+  _removeRegistrationIfExists<SettingsService>();
+  final service = MockSettingsService();
+  //some mocking here
+  when(service.updateEmail(email: anyNamed("email")))
+      .thenAnswer((realInvocation) => Future<bool>.value(true));
+  locator.registerSingleton<SettingsService>(service);
+  return service;
+}
+
 MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
@@ -132,6 +144,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
 void registerServices() {
   getAndRegisterApi();
   getAndRegisterNavigationService();
+  getAndRegisterSettingsService();
   getAndRegisterLocalStorage();
   getAndRegisterAppService();
   getAndRegisterProductService();
@@ -142,6 +155,7 @@ void registerServices() {
 void unregisterServices() {
   locator.unregister<Api>();
   locator.unregister<NavigationService>();
+  locator.unregister<SettingsService>();
   locator.unregister<LocalStorage>();
 }
 

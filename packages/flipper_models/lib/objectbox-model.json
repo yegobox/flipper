@@ -712,9 +712,72 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "12:917808743332577379",
+      "lastPropertyId": "5:6932238253732696423",
+      "name": "Message",
+      "properties": [
+        {
+          "id": "1:1947394661997474338",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1718505003743814710",
+          "name": "messageBody",
+          "type": 9
+        },
+        {
+          "id": "3:938205566050096652",
+          "name": "time",
+          "type": 9
+        },
+        {
+          "id": "4:6311916302122232138",
+          "name": "sender",
+          "type": 6
+        },
+        {
+          "id": "5:6932238253732696423",
+          "name": "receiver",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "13:8608507958994323678",
+      "lastPropertyId": "4:1351698244747760704",
+      "name": "Setting",
+      "properties": [
+        {
+          "id": "1:5526558824753817191",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4338414048430854855",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "3:4812804212630200889",
+          "name": "hasPin",
+          "type": 9
+        },
+        {
+          "id": "4:1351698244747760704",
+          "name": "userId",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "11:2850625522985710545",
+  "lastEntityId": "13:8608507958994323678",
   "lastIndexId": "2:6401461376584828673",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
