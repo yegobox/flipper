@@ -1,5 +1,7 @@
 import 'dart:async';
 
+// import 'package:cbl/cbl.dart';
+// import 'package:cbl_flutter/cbl_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
@@ -18,6 +20,8 @@ final isWeb = UniversalPlatform.isWeb;
 
 // cd android && ./gradlew signingReport
 main() async {
+  // CouchbaseLite.initialize(libraries: flutterLibraries());
+
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
   // (isAndroid|| isWeb||isMacOs)

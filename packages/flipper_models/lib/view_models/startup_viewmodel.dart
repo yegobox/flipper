@@ -21,11 +21,16 @@ class StartUpViewModel extends BaseViewModel {
       List<Business>? businesses = await ProxyService.api.businesses();
 
       didSync = (businesses.isNotEmpty) ? true : false;
+      int? businessId = ProxyService.box.read(key: 'businessId');
 
       if (didSync) {
         ProxyService.appService.setBusiness(businesses: businesses);
-        //for quick go back to business app only for debugging.
-        // ProxyService.box.remove(key: pageKey);
+        if (ProxyService.box.read(key: pageKey) == null) {
+          ProxyService.box.write(key: pageKey, value: businesses[0].type);
+        }
+        _navigationService.replaceWith(Routes.home);
+      } else if (businessId != null) {
+        ProxyService.appService.setBusiness(businesses: businesses);
         if (ProxyService.box.read(key: pageKey) == null) {
           ProxyService.box.write(key: pageKey, value: businesses[0].type);
         }

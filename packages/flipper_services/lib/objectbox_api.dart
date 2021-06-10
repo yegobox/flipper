@@ -65,9 +65,13 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
-    final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
-
-    return businessFromJson(response.body);
+    List<Business> businesses = [];
+    try {
+      final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
+      return businessFromJson(response.body);
+    } catch (e) {
+      return businesses;
+    }
     // final response = await dioClient.get(
     //   "$apihub/v2/api/businesses",
     // );

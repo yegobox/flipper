@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
+import 'package:flipper_dashboard/customappbar.dart';
 
 @FormView(fields: [
   FormTextField(name: 'name'),
@@ -21,7 +22,16 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
       viewModelBuilder: () => SignupViewModel(),
       builder: (context, model, child) {
         return Scaffold(
-          appBar: AppBar(),
+          appBar: CustomAppBar(
+            onPop: () {
+              // ProxyService.nav.back();
+            },
+            title: '',
+            showActionButton: false,
+            onPressedCallback: () async {},
+            multi: 3,
+            bottomSpacer: 50,
+          ),
           body: Form(
             key: _formKey,
             child: Column(
