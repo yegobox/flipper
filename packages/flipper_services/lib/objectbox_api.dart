@@ -796,13 +796,12 @@ class ObjectBoxApi implements Api {
     //first I have to listen to a socket
     Stream<Message> stream = streamController.stream;
     subscription = stream.listen((message) {
-      Message? kMessage = _store.box<Message>().get(message.id)!;
+      Message? kMessage = _store.box<Message>().get(message.id);
       // ignore: unnecessary_null_comparison
-      if (kMessage != null) {
+      if (kMessage == null) {
         final box = _store.box<Message>();
-        box.put(kMessage);
+        box.put(message);
       }
-      print(message.createdAt);
     });
     return _store
         .box<Message>()
