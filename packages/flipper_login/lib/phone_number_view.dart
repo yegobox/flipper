@@ -116,7 +116,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
               const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Text(
-                  'After entering your phone number, click on verify to authenticate yourself! Then wait up to 20 seconds to get th OTP and procede',
+                  'After entering your phone number, click on verify to authenticate yourself! Then wait up to 20 seconds to get the OTP and proceed',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),

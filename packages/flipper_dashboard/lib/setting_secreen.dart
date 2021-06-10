@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
-
+import 'package:flipper_login/update_email.dart';
 import 'languages_screen.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             icon: Icons.close,
             multi: 3,
-            bottomSpacer: 42,
+            bottomSpacer: 50,
           ),
           body: buildSettingsList(),
         );
@@ -69,7 +69,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: 'Account',
           tiles: [
             SettingsTile(title: 'Phone number', leading: Icon(Icons.phone)),
-            SettingsTile(title: 'Email', leading: Icon(Icons.email)),
+            SettingsTile(
+              title: 'Email',
+              leading: Icon(Icons.email),
+              onPressed: (context) {
+                showEmailModal();
+              },
+            ),
             SettingsTile(title: 'Sign out', leading: Icon(Icons.exit_to_app)),
           ],
         ),
@@ -119,6 +125,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  void showEmailModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Container(
+            child: UpdateEmailSetting(),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
