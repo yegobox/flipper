@@ -12,7 +12,8 @@ class SettingsService {
     if (setting != null) {
       //updat with given setting
       Map map = {'email': email};
-      ProxyService.api.update(data: map, endPoint: 'setting');
+      int id = setting.id;
+      ProxyService.api.update(data: map, endPoint: 'settings/$id');
       return true;
     } else {
       Setting setting =

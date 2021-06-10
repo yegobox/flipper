@@ -226,4 +226,15 @@ void main() {
     Setting? _KSettings = await api.getSetting(userId: 300);
     expect(_KSettings!.userId, 300);
   });
+  test('can update a settings', () async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    Map map = {'email': 'updated@gmail.com'};
+    Setting? s = await api.getSetting(userId: 300);
+    int id = s!.id;
+
+    await api.update(data: map, endPoint: 'settings/${id}');
+    Setting? _KSettings = await api.getSetting(userId: 300);
+    expect(_KSettings!.email, 'updated@gmail.com');
+  });
 }

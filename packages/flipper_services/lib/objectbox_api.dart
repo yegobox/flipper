@@ -704,6 +704,20 @@ class ObjectBoxApi implements Api {
         final box = _store.box<OrderF>();
         box.put(order, mode: PutMode.update);
         break;
+      case 'settings':
+        Setting? setting = _store.box<Setting>().get(id);
+        Map map = setting!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Setting Ksetting = Setting(
+            email: map['email'],
+            hasPin: map['hasPin'],
+            userId: map['userId'],
+            id: map['id']);
+        final box = _store.box<Setting>();
+        box.put(Ksetting, mode: PutMode.update);
+        break;
       // case 'category'
       default:
         return 200;
