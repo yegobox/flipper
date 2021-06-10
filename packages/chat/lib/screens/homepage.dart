@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper/constants.dart';
 import 'conversation_list.dart';
+import 'package:flipper_ui/src/shared/app_colors.dart';
 
 class KHomepage extends StatefulWidget {
   static final String id = "Homepage";
@@ -31,10 +32,13 @@ class _KHomepageState extends State<KHomepage> {
           child: Container(
             padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.symmetric(horizontal: 10.0),
-            decoration: const BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.all(Radius.circular(50)),
-            ),
+            decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: kcPrimaryColor,
+                  width: 1,
+                )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -44,7 +48,7 @@ class _KHomepageState extends State<KHomepage> {
                   child: const Icon(
                     Icons.sync_alt,
                     size: 20,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
                 Flexible(
@@ -53,7 +57,7 @@ class _KHomepageState extends State<KHomepage> {
                     'Switch back to business',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                   ),
                 )

@@ -4,6 +4,7 @@ import 'package:chat/screens/homepage.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 class KAboutpage extends StatefulWidget {
   static final String id = "Aboutpage";
@@ -31,18 +32,15 @@ class _KAboutpageState extends State<KAboutpage> {
           ),
         ),
         footer: Container(
-          margin: EdgeInsets.symmetric(
-            vertical: 16.0,
-          ),
-          child: FlatPrimaryButton(
-            onPressed: () {
-              ProxyService.nav.navigateTo(Routes.chatHome);
-            },
-            prefixIcon: Icons.arrow_forward,
-            textAlign: TextAlign.right,
-            text: "Continue to Flipper Social",
-          ),
-        ),
+            margin: EdgeInsets.symmetric(
+              vertical: 16.0,
+            ),
+            child: BoxButton.outline(
+              title: 'Continue to Flipper Social',
+              onTap: () {
+                ProxyService.nav.navigateTo(Routes.chatHome);
+              },
+            )),
       ),
     );
   }
