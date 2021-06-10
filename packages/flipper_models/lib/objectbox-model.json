@@ -715,7 +715,7 @@
     },
     {
       "id": "12:917808743332577379",
-      "lastPropertyId": "10:1",
+      "lastPropertyId": "11:412268228015472147",
       "name": "Message",
       "properties": [
         {
@@ -747,6 +747,11 @@
         {
           "id": "10:1",
           "name": "message",
+          "type": 9
+        },
+        {
+          "id": "11:412268228015472147",
+          "name": "senderName",
           "type": 9
         }
       ],

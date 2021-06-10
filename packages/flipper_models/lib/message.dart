@@ -12,6 +12,7 @@ class Message {
       required this.createdAt,
       required this.receiverId,
       required this.senderId,
+      required this.senderName,
       required this.lastActiveId});
   @Id(assignable: true)
   int id;
@@ -24,6 +25,7 @@ class Message {
   int lastActiveId;
   @Property(uid: 2)
   int senderId;
+  String senderName;
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
       id: json["id"],
@@ -31,10 +33,12 @@ class Message {
       createdAt: json["createdAt"],
       receiverId: json["receiverId"],
       lastActiveId: json["lastActiveId"],
+      senderName: json["senderName"],
       senderId: json["senderId"]);
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "message": message,
+        "senderName": senderName,
         "createdAt": createdAt,
         "receiverId": receiverId,
         "lastActiveId": lastActiveId,

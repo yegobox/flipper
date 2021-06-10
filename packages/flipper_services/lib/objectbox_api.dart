@@ -283,6 +283,9 @@ class ObjectBoxApi implements Api {
       case 'variation':
         _store.box<Variant>().remove(id);
         break;
+      case 'message':
+        _store.box<Message>().remove(id);
+        break;
       default:
     }
     return true;

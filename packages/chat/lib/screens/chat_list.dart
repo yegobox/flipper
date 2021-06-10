@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper/constants.dart';
 import 'conversation_list.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_ui/src/shared/app_colors.dart';
 import 'package:stacked/stacked.dart';
@@ -151,19 +152,35 @@ class _ChatListState extends State<ChatList> {
                         return (messages != null && messages.length != 0)
                             ? Column(
                                 children: messages
-                                    .map((message) => ConversationList(
-                                          name: "Richard",
-                                          messageText: message.message,
-                                          imageUrl:
-                                              "https://cdn.dribbble.com/users/1281912/avatars/normal/febecc326c76154551f9d4bbab73f97b.jpg?1468927304",
-                                          time: timeago.format(DateTime.parse(
-                                              message.createdAt)),
-                                          isMessageRead:
-                                              (0 == 0 || 0 == 3) ? true : false,
-                                          onPressed: () {
-                                            ProxyService.nav
-                                                .navigateTo(Routes.chatPage);
-                                          },
+                                    .map((message) => Slidable(
+                                          secondaryActions: <Widget>[
+                                            IconSlideAction(
+                                              caption: 'Delete',
+                                              color: Colors.red,
+                                              icon: Icons.delete,
+                                              onTap: () {
+                                                // model.deleteProduct(productId: product.id);
+                                                model.delete(message.id);
+                                              },
+                                            ),
+                                          ],
+                                          actionPane:
+                                              SlidableDrawerActionPane(),
+                                          child: ConversationList(
+                                            name: message.senderName,
+                                            messageText: message.message,
+                                            imageUrl:
+                                                "https://cdn.dribbble.com/users/1281912/avatars/normal/febecc326c76154551f9d4bbab73f97b.jpg?1468927304",
+                                            time: timeago.format(DateTime.parse(
+                                                message.createdAt)),
+                                            isMessageRead: (0 == 0 || 0 == 3)
+                                                ? true
+                                                : false,
+                                            onPressed: () {
+                                              ProxyService.nav
+                                                  .navigateTo(Routes.chatPage);
+                                            },
+                                          ),
                                         ))
                                     .toList(),
                               )

@@ -740,7 +740,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(10, 1),
+      lastPropertyId: const IdUid(11, 412268228015472147),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -766,7 +766,12 @@ final _entities = <ModelEntity>[
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(10, 1), name: 'message', type: 9, flags: 0)
+            id: const IdUid(10, 1), name: 'message', type: 9, flags: 0),
+        ModelProperty(
+            id: const IdUid(11, 412268228015472147),
+            name: 'senderName',
+            type: 9,
+            flags: 0)
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[]),
@@ -1522,13 +1527,15 @@ ModelDefinition getObjectBoxModel() {
         objectToFB: (Message object, fb.Builder fbb) {
           final createdAtOffset = fbb.writeString(object.createdAt);
           final messageOffset = fbb.writeString(object.message);
-          fbb.startTable(11);
+          final senderNameOffset = fbb.writeString(object.senderName);
+          fbb.startTable(12);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
           fbb.addOffset(7, createdAtOffset);
           fbb.addInt64(8, object.receiverId);
           fbb.addOffset(9, messageOffset);
+          fbb.addOffset(10, senderNameOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1546,6 +1553,8 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
               senderId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+              senderName:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
               lastActiveId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0));
 
@@ -2098,6 +2107,10 @@ class Message_ {
   /// see [Message.message]
   static final message =
       QueryStringProperty<Message>(_entities[11].properties[5]);
+
+  /// see [Message.senderName]
+  static final senderName =
+      QueryStringProperty<Message>(_entities[11].properties[6]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.
