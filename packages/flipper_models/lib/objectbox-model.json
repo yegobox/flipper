@@ -715,7 +715,7 @@
     },
     {
       "id": "12:917808743332577379",
-      "lastPropertyId": "5:6932238253732696423",
+      "lastPropertyId": "7:1419114602383354089",
       "name": "Message",
       "properties": [
         {
@@ -725,23 +725,13 @@
           "flags": 1
         },
         {
-          "id": "2:1718505003743814710",
-          "name": "messageBody",
-          "type": 9
-        },
-        {
-          "id": "3:938205566050096652",
-          "name": "time",
-          "type": 9
-        },
-        {
-          "id": "4:6311916302122232138",
-          "name": "sender",
+          "id": "6:2",
+          "name": "senderId",
           "type": 6
         },
         {
-          "id": "5:6932238253732696423",
-          "name": "receiver",
+          "id": "7:1419114602383354089",
+          "name": "lastActiveId",
           "type": 6
         }
       ],
@@ -785,7 +775,12 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    1718505003743814710,
+    938205566050096652,
+    6311916302122232138,
+    6932238253732696423
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

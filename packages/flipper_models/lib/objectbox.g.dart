@@ -740,7 +740,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(5, 6932238253732696423),
+      lastPropertyId: const IdUid(7, 1419114602383354089),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -749,23 +749,10 @@ final _entities = <ModelEntity>[
             type: 6,
             flags: 1),
         ModelProperty(
-            id: const IdUid(2, 1718505003743814710),
-            name: 'messageBody',
-            type: 9,
-            flags: 0),
+            id: const IdUid(6, 2), name: 'senderId', type: 6, flags: 0),
         ModelProperty(
-            id: const IdUid(3, 938205566050096652),
-            name: 'time',
-            type: 9,
-            flags: 0),
-        ModelProperty(
-            id: const IdUid(4, 6311916302122232138),
-            name: 'sender',
-            type: 6,
-            flags: 0),
-        ModelProperty(
-            id: const IdUid(5, 6932238253732696423),
-            name: 'receiver',
+            id: const IdUid(7, 1419114602383354089),
+            name: 'lastActiveId',
             type: 6,
             flags: 0)
       ],
@@ -812,7 +799,12 @@ ModelDefinition getObjectBoxModel() {
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredPropertyUids: const [
+        1718505003743814710,
+        938205566050096652,
+        6311916302122232138,
+        6932238253732696423
+      ],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -1516,14 +1508,10 @@ ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (Message object, fb.Builder fbb) {
-          final messageBodyOffset = fbb.writeString(object.messageBody);
-          final timeOffset = fbb.writeString(object.time);
-          fbb.startTable(6);
+          fbb.startTable(8);
           fbb.addInt64(0, object.id);
-          fbb.addOffset(1, messageBodyOffset);
-          fbb.addOffset(2, timeOffset);
-          fbb.addInt64(3, object.sender);
-          fbb.addInt64(4, object.receiver);
+          fbb.addInt64(5, object.senderId);
+          fbb.addInt64(6, object.lastActiveId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1533,14 +1521,10 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Message(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              messageBody:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              time:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
-              sender:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
-              receiver:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
+              senderId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+              lastActiveId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0));
 
           return object;
         }),
@@ -2072,20 +2056,13 @@ class Message_ {
   /// see [Message.id]
   static final id = QueryIntegerProperty<Message>(_entities[11].properties[0]);
 
-  /// see [Message.messageBody]
-  static final messageBody =
-      QueryStringProperty<Message>(_entities[11].properties[1]);
+  /// see [Message.senderId]
+  static final senderId =
+      QueryIntegerProperty<Message>(_entities[11].properties[1]);
 
-  /// see [Message.time]
-  static final time = QueryStringProperty<Message>(_entities[11].properties[2]);
-
-  /// see [Message.sender]
-  static final sender =
-      QueryIntegerProperty<Message>(_entities[11].properties[3]);
-
-  /// see [Message.receiver]
-  static final receiver =
-      QueryIntegerProperty<Message>(_entities[11].properties[4]);
+  /// see [Message.lastActiveId]
+  static final lastActiveId =
+      QueryIntegerProperty<Message>(_entities[11].properties[2]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.
