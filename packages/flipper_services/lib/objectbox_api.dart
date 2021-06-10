@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
@@ -45,6 +46,7 @@ class ObjectBoxApi implements Api {
   String flipperApi = "https://flipper.yegobox.com";
   // late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
+  final log = getLogger('ObjectBoxAPi');
   late Store _store;
   getDir({required String dbName}) async {
     Directory dir = await getApplicationDocumentsDirectory();
@@ -793,19 +795,24 @@ class ObjectBoxApi implements Api {
   late StreamSubscription<Message> subscription;
   @override
   Stream<List<Message>> messages() {
+    int? businessId = ProxyService.box.read(key: 'businessId');
     //first I have to listen to a socket
     Stream<Message> stream = streamController.stream;
     subscription = stream.listen((message) {
       Message? kMessage = _store.box<Message>().get(message.id);
+
+      log.i(message.receiverId == businessId);
+      log.i(kMessage);
       // ignore: unnecessary_null_comparison
-      if (kMessage == null) {
+      if (kMessage == null && message.receiverId == businessId) {
+        log.i("now inserting new object");
         final box = _store.box<Message>();
         box.put(message);
       }
     });
     return _store
         .box<Message>()
-        .query(Message_.senderId.equals(1))
+        .query(Message_.receiverId.equals(businessId!))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
   }
