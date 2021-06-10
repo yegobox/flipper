@@ -1,7 +1,7 @@
-import 'package:chat/screens/aboutpage.dart';
+import 'package:chat/screens/about_chat.dart';
 import 'package:chat/screens/loginpage.dart';
 import 'package:chat/screens/chatpage.dart';
-import 'package:chat/screens/homepage.dart';
+import 'package:chat/screens/chat_list.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -43,11 +43,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         Loginpage.id: (context) => Loginpage(),
-        KAboutpage.id: (context) => KAboutpage(),
+        AboutChatMiniApp.id: (context) => AboutChatMiniApp(),
         KChatPage.id: (context) => KChatPage(),
-        KHomepage.id: (context) => KHomepage(),
+        ChatList.id: (context) => ChatList(),
       },
-      initialRoute: KAboutpage.id,
+      initialRoute: AboutChatMiniApp.id,
     );
   }
 }

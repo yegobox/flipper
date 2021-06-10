@@ -20,7 +20,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
 // import 'package:chat/screens/homepage.dart';
-import 'package:chat/screens/aboutpage.dart';
+import 'package:chat/screens/about_chat.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class Home extends StatefulWidget {
@@ -79,7 +79,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           case 'business':
             return BusinessWidget(model);
           case 'social':
-            return KAboutpage();
+            return AboutChatMiniApp();
           case 'openBusiness':
             return Text('open business');
           case 'closedBusiness':

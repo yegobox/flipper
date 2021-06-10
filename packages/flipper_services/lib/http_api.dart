@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/color.dart';
+import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper_models/order.dart';
@@ -416,6 +417,12 @@ class HttpApi<T> implements Api {
   Future<Setting?> createSetting(
       {required int userId, required Setting setting}) {
     // TODO: implement createSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Message>> messages() {
+    // TODO: implement messages
     throw UnimplementedError();
   }
 }

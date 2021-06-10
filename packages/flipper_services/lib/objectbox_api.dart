@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flipper_models/message.dart';
 import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/setting.dart';
@@ -10,7 +12,9 @@ import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/product_mock.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/unit.dart';
-
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
 import 'package:flipper_models/sync.dart';
 
 import 'package:flipper_models/stock.dart';
@@ -31,8 +35,10 @@ import 'package:flipper_services/http_api.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+
 // import 'api_result.dart';
 // import 'network_exceptions.dart';
+final socketUrl = 'https://apihub.yegobox.com/ws-message';
 
 class ObjectBoxApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
@@ -45,9 +51,35 @@ class ObjectBoxApi implements Api {
     _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
   }
 
+  StompClient? stompClient;
+  StreamController<Message> streamController =
+      StreamController<Message>.broadcast();
+  void onConnect(StompFrame frame) {
+    stompClient?.subscribe(
+        destination: '/topic/messages',
+        callback: (StompFrame frame) {
+          if (frame.body != null) {
+            Message result = sMessageJson(frame.body!);
+            streamController.add(result);
+          }
+        });
+  }
+
   ObjectBoxApi({required String dbName, Directory? dir}) {
     // var dio = Dio();
     // dioClient = DioClient(apihub, dio, interceptors: []);
+    //connect socket
+    if (stompClient == null) {
+      stompClient = StompClient(
+          config: StompConfig.SockJS(
+        url: socketUrl,
+        onConnect: onConnect,
+        onWebSocketError: (dynamic error) => print(error.toString()),
+      ));
+
+      stompClient?.activate();
+    }
+    // end of socket connection
     if (dir != null) {
       _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
     } else {
@@ -756,5 +788,26 @@ class ObjectBoxApi implements Api {
     final box = _store.box<Setting>();
     Query<Setting> query = box.query(Setting_.userId.equals(userId)).build();
     return query.findFirst();
+  }
+
+  late StreamSubscription<Message> subscription;
+  @override
+  Stream<List<Message>> messages() {
+    //first I have to listen to a socket
+    Stream<Message> stream = streamController.stream;
+    subscription = stream.listen((message) {
+      Message? kMessage = _store.box<Message>().get(message.id)!;
+      // ignore: unnecessary_null_comparison
+      if (kMessage != null) {
+        final box = _store.box<Message>();
+        box.put(kMessage);
+      }
+      print(message.createdAt);
+    });
+    return _store
+        .box<Message>()
+        .query(Message_.senderId.equals(1))
+        .watch(triggerImmediately: true)
+        .map((query) => query.find());
   }
 }

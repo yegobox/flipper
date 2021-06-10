@@ -18,9 +18,9 @@ import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:chat/screens/aboutpage.dart';
+import 'package:chat/screens/about_chat.dart';
 import 'package:chat/screens/chatpage.dart';
-import 'package:chat/screens/homepage.dart';
+import 'package:chat/screens/chat_list.dart';
 
 @StackedApp(
   routes: [
@@ -44,8 +44,8 @@ import 'package:chat/screens/homepage.dart';
     MaterialRoute(page: SettingsScreen, name: 'settings'),
 
     // chat routes
-    MaterialRoute(page: KAboutpage, name: 'about'),
-    MaterialRoute(page: KHomepage, name: 'chatHome'),
+    MaterialRoute(page: AboutChatMiniApp, name: 'about'),
+    MaterialRoute(page: ChatList, name: 'chatHome'),
     MaterialRoute(page: KChatPage, name: 'chatPage'),
   ],
   dependencies: [

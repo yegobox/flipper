@@ -715,14 +715,14 @@
     },
     {
       "id": "12:917808743332577379",
-      "lastPropertyId": "7:1419114602383354089",
+      "lastPropertyId": "10:1",
       "name": "Message",
       "properties": [
         {
           "id": "1:1947394661997474338",
           "name": "id",
           "type": 6,
-          "flags": 1
+          "flags": 129
         },
         {
           "id": "6:2",
@@ -733,6 +733,21 @@
           "id": "7:1419114602383354089",
           "name": "lastActiveId",
           "type": 6
+        },
+        {
+          "id": "8:1098149876836892244",
+          "name": "createdAt",
+          "type": 9
+        },
+        {
+          "id": "9:8074429391081551579",
+          "name": "receiverId",
+          "type": 6
+        },
+        {
+          "id": "10:1",
+          "name": "message",
+          "type": 9
         }
       ],
       "relations": []

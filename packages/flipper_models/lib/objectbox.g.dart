@@ -740,21 +740,33 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(7, 1419114602383354089),
+      lastPropertyId: const IdUid(10, 1),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
             id: const IdUid(1, 1947394661997474338),
             name: 'id',
             type: 6,
-            flags: 1),
+            flags: 129),
         ModelProperty(
             id: const IdUid(6, 2), name: 'senderId', type: 6, flags: 0),
         ModelProperty(
             id: const IdUid(7, 1419114602383354089),
             name: 'lastActiveId',
             type: 6,
-            flags: 0)
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 1098149876836892244),
+            name: 'createdAt',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 8074429391081551579),
+            name: 'receiverId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(10, 1), name: 'message', type: 9, flags: 0)
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[]),
@@ -1508,10 +1520,15 @@ ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (Message object, fb.Builder fbb) {
-          fbb.startTable(8);
+          final createdAtOffset = fbb.writeString(object.createdAt);
+          final messageOffset = fbb.writeString(object.message);
+          fbb.startTable(11);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
+          fbb.addOffset(7, createdAtOffset);
+          fbb.addInt64(8, object.receiverId);
+          fbb.addOffset(9, messageOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1521,6 +1538,12 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Message(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              message:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
+              createdAt:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
+              receiverId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
               senderId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
               lastActiveId:
@@ -2063,6 +2086,18 @@ class Message_ {
   /// see [Message.lastActiveId]
   static final lastActiveId =
       QueryIntegerProperty<Message>(_entities[11].properties[2]);
+
+  /// see [Message.createdAt]
+  static final createdAt =
+      QueryStringProperty<Message>(_entities[11].properties[3]);
+
+  /// see [Message.receiverId]
+  static final receiverId =
+      QueryIntegerProperty<Message>(_entities[11].properties[4]);
+
+  /// see [Message.message]
+  static final message =
+      QueryStringProperty<Message>(_entities[11].properties[5]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.

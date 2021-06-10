@@ -6,9 +6,9 @@
 
 // ignore_for_file: public_member_api_docs
 
-import 'package:chat/screens/aboutpage.dart';
+import 'package:chat/screens/about_chat.dart';
 import 'package:chat/screens/chatpage.dart';
-import 'package:chat/screens/homepage.dart';
+import 'package:chat/screens/chat_list.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
@@ -101,8 +101,8 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.collect, page: CollectCashView),
     RouteDef(Routes.afterSale, page: AfterSale),
     RouteDef(Routes.settings, page: SettingsScreen),
-    RouteDef(Routes.about, page: KAboutpage),
-    RouteDef(Routes.chatHome, page: KHomepage),
+    RouteDef(Routes.about, page: AboutChatMiniApp),
+    RouteDef(Routes.chatHome, page: ChatList),
     RouteDef(Routes.chatPage, page: KChatPage),
   ];
   @override
@@ -259,15 +259,15 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
-    KAboutpage: (data) {
+    AboutChatMiniApp: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => KAboutpage(),
+        builder: (context) => AboutChatMiniApp(),
         settings: data,
       );
     },
-    KHomepage: (data) {
+    ChatList: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => KHomepage(),
+        builder: (context) => ChatList(),
         settings: data,
       );
     },

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/b.dart';
 import 'package:flipper_models/setting.dart';
@@ -686,6 +687,12 @@ class LiteApi<T> implements Api {
   Future<Setting?> createSetting(
       {required int userId, required Setting setting}) {
     // TODO: implement createSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Message>> messages() {
+    // TODO: implement messages
     throw UnimplementedError();
   }
 }

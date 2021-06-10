@@ -5,6 +5,7 @@ import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/setting.dart';
+import 'package:flipper_models/message.dart';
 import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/stock.dart';
@@ -76,4 +77,5 @@ abstract class Api<T> {
 
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
+  Stream<List<Message>> messages();
 }
