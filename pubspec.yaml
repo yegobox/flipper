@@ -146,6 +146,7 @@ dependencies:
   freezed: ^0.14.2
   firebase_remote_config: ^0.10.0+1
   settings_ui: ^1.0.0
+  flutter_datetime_picker: ^1.5.1
   # cbl: ^0.6.0
   # cbl_flutter: 
   

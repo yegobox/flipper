@@ -12,6 +12,8 @@ import 'create/section_select_unit.dart';
 import 'create/supply_price_widget.dart';
 import 'create/variation_list.dart';
 import 'customappbar.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 class AddProductView extends StatelessWidget {
   const AddProductView({Key? key}) : super(key: key);
@@ -133,6 +135,28 @@ class AddProductView extends StatelessWidget {
                     model.updateRegularVariant(
                         supplyPrice: double.parse(value));
                   }),
+                  const CenterDivider(
+                    width: double.infinity,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18, right: 18),
+                    child: BoxButton.outline(
+                      onTap: () {
+                        DatePicker.showDateTimePicker(context,
+                            showTitleActions: true,
+                            minTime: DateTime(2021, 5, 5, 20, 50),
+                            maxTime: DateTime(2030, 6, 7, 05, 09),
+                            onChanged: (date) {
+                          print('change $date in time zone ' +
+                              date.timeZoneOffset.inHours.toString());
+                        }, onConfirm: (date) {
+                          // print('confirm $date');
+                          model.updateExpiryDate(date);
+                        }, locale: LocaleType.en);
+                      },
+                      title: 'Add Expiry Date (optional)',
+                    ),
+                  ),
                   const ListDivider(
                     height: 10,
                   ),

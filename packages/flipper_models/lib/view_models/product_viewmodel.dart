@@ -326,6 +326,12 @@ class ProductViewModel extends ReactiveViewModel {
     loadProducts(); //refresh list of products
   }
 
+  void updateExpiryDate(DateTime date) {
+    Map kProduct = product.toJson();
+    kProduct['expiryDate'] = date.toIso8601String();
+    ProxyService.api.update(data: kProduct, endPoint: 'product');
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [_appService, productService];

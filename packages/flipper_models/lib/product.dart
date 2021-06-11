@@ -38,6 +38,7 @@ class Product {
       this.draft,
       this.imageLocal,
       this.currentUpdate,
+      this.expiryDate,
       this.imageUrl});
   @Id(assignable: true)
   int id;
@@ -60,6 +61,7 @@ class Product {
   bool? imageLocal;
   bool? currentUpdate;
   String? imageUrl;
+  String? expiryDate;
 
   @Backlink()
   final variations = ToMany<Variant>();
@@ -79,6 +81,7 @@ class Product {
         fcategoryId: json["fcategoryId"],
         createdAt: json["createdAt"],
         unit: json["unit"],
+        expiryDate: json["expiryDate"],
         draft: json["draft"] == null ? false : json["draft"],
         imageLocal: json["imageLocal"] == null ? false : json["imageLocal"],
         currentUpdate:
@@ -90,7 +93,7 @@ class Product {
         "id": int.parse(id.toString()),
         "name": name,
         "description": description,
-
+        "expiryDate": expiryDate,
         "active": active,
         "ftaxId": ftaxId,
         "hasPicture": hasPicture,

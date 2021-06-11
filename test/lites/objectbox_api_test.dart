@@ -133,6 +133,13 @@ void main() {
 
     expect(product.name, 'temp');
 
+    //can add a expiry date
+    Map kProduct = product.toJson();
+    final date = DateTime.now().toIso8601String();
+    kProduct['expiryDate'] = date;
+    api.update(data: kProduct, endPoint: 'product');
+    Product? fProduct = await api.getProduct(id: product.id);
+    expect(fProduct!.expiryDate, date);
     //load variants too just!
     List<Variant> variants =
         await api.variants(branchId: 11, productId: product.id);

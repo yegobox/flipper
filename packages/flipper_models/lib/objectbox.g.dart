@@ -371,7 +371,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(7, 5845890317736708113),
       name: 'Product',
-      lastPropertyId: const IdUid(18, 2874519832511923203),
+      lastPropertyId: const IdUid(19, 2367454108669958312),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -462,6 +462,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(18, 2874519832511923203),
             name: 'imageUrl',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(19, 2367454108669958312),
+            name: 'expiryDate',
             type: 9,
             flags: 0)
       ],
@@ -1212,7 +1217,10 @@ ModelDefinition getObjectBoxModel() {
           final imageUrlOffset = object.imageUrl == null
               ? null
               : fbb.writeString(object.imageUrl!);
-          fbb.startTable(19);
+          final expiryDateOffset = object.expiryDate == null
+              ? null
+              : fbb.writeString(object.expiryDate!);
+          fbb.startTable(20);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, descriptionOffset);
@@ -1231,6 +1239,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addBool(15, object.imageLocal);
           fbb.addBool(16, object.currentUpdate);
           fbb.addOffset(17, imageUrlOffset);
+          fbb.addOffset(18, expiryDateOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1271,6 +1280,7 @@ ModelDefinition getObjectBoxModel() {
               imageLocal:
                   const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
               currentUpdate: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 36),
+              expiryDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40),
               imageUrl: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38));
           InternalToManyAccess.setRelInfo(
               object.variations,
@@ -1898,6 +1908,10 @@ class Product_ {
   /// see [Product.imageUrl]
   static final imageUrl =
       QueryStringProperty<Product>(_entities[6].properties[17]);
+
+  /// see [Product.expiryDate]
+  static final expiryDate =
+      QueryStringProperty<Product>(_entities[6].properties[18]);
 }
 
 /// [Stock] entity fields to define ObjectBox queries.
