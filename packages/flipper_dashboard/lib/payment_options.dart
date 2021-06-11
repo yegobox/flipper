@@ -51,7 +51,7 @@ class Payments extends StatelessWidget {
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),
                                 )
-                              : Text('0'),
+                              : Text('0.00'),
                           const SizedBox(height: 40),
                           const Text(
                             'Select Payment type Bellow',
