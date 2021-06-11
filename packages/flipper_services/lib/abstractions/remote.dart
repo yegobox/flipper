@@ -3,5 +3,7 @@ abstract class Remote {
   void fetch();
   bool isChatAvailable();
   bool isSpennPaymentAvailable();
+  bool isEmailReceiptAvailable();
+  bool isAddCustomerToSaleAvailable();
   void config();
 }

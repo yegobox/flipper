@@ -88,7 +88,7 @@ class Payments extends StatelessWidget {
                               ),
                             ),
                           ),
-                          ProxyService.remoteConfig.isChatAvailable() ||
+                          ProxyService.remoteConfig.isSpennPaymentAvailable() ||
                                   kDebugMode
                               ? GestureDetector(
                                   onTap: () {

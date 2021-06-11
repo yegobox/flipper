@@ -1,5 +1,6 @@
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:number_display/number_display.dart';
@@ -48,7 +49,7 @@ class _AfterSaleState extends State<AfterSale> {
                   //show coming soon snackbar
                 },
                 leftActionButtonName: 'New Sale',
-                rightActionButtonName: 'Add Customer',
+                // rightActionButtonName: 'Add Customer',
                 // icon: Icons.close,
                 multi: 3,
                 bottomSpacer: 52,
@@ -56,6 +57,7 @@ class _AfterSaleState extends State<AfterSale> {
               body: Container(
                 width: double.infinity,
                 child: Stack(
+                  alignment: Alignment.center,
                   children: [
                     Center(
                       child: Column(
@@ -91,18 +93,21 @@ class _AfterSaleState extends State<AfterSale> {
                         children: [
                           const Text('How would you like your receipt?'),
                           const SizedBox(height: 10),
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(left: 18.0, right: 18.0),
-                            child: Container(
-                              width: double.infinity,
-                              child: FLipperButton(
-                                disableButton: false,
-                                buttonName: 'Email',
-                                onPressedCallback: () {},
-                              ),
-                            ),
-                          ),
+                          ProxyService.remoteConfig.isEmailReceiptAvailable() ||
+                                  kDebugMode
+                              ? Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 18.0, right: 18.0),
+                                  child: Container(
+                                    width: double.infinity,
+                                    child: FLipperButton(
+                                      disableButton: false,
+                                      buttonName: 'Email',
+                                      onPressedCallback: () {},
+                                    ),
+                                  ),
+                                )
+                              : SizedBox.shrink(),
                           const SizedBox(height: 20),
                           Padding(
                             padding:
@@ -112,7 +117,10 @@ class _AfterSaleState extends State<AfterSale> {
                               child: FLipperButton(
                                 disableButton: false,
                                 buttonName: 'No Receipt',
-                                onPressedCallback: () {},
+                                onPressedCallback: () {
+                                  ProxyService.nav.popUntil(
+                                      ModalRoute.withName(Routes.home));
+                                },
                               ),
                             ),
                           ),
@@ -121,8 +129,7 @@ class _AfterSaleState extends State<AfterSale> {
                     ),
                     Positioned(
                         bottom: 0,
-                        // right: ,
-                        left: MediaQuery.of(context).size.width / 2.5,
+                        // center:
                         child: Row(
                           children: [
                             const IconButton(

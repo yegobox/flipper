@@ -10,7 +10,9 @@ class RemoteConfigService implements Remote {
     remoteConfig.setDefaults(<String, dynamic>{
       'welcome_message': 'this is the default welcome message',
       'chat_feature': false,
-      'spenn_payment': false
+      'spenn_payment': false,
+      'email_receipt': false,
+      'add_customer_to_sale': false
     });
   }
 
@@ -33,6 +35,16 @@ class RemoteConfigService implements Remote {
   @override
   bool isSpennPaymentAvailable() {
     return remoteConfig.getBool('spenn_payment');
+  }
+
+  @override
+  bool isEmailReceiptAvailable() {
+    return remoteConfig.getBool('email_receipt');
+  }
+
+  @override
+  bool isAddCustomerToSaleAvailable() {
+    return remoteConfig.getBool('add_customer_to_sale');
   }
 }
 
@@ -59,6 +71,16 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isSpennPaymentAvailable() {
+    return false;
+  }
+
+  @override
+  bool isEmailReceiptAvailable() {
+    return false;
+  }
+
+  @override
+  bool isAddCustomerToSaleAvailable() {
     return false;
   }
 }
