@@ -25,6 +25,7 @@ class StartUpViewModel extends BaseViewModel {
 
       if (didSync) {
         ProxyService.appService.setBusiness(businesses: businesses);
+
         if (ProxyService.box.read(key: pageKey) == null) {
           ProxyService.box.write(key: pageKey, value: businesses[0].type);
         }
@@ -32,7 +33,9 @@ class StartUpViewModel extends BaseViewModel {
       } else if (businessId != null) {
         ProxyService.appService.setBusiness(businesses: businesses);
         if (ProxyService.box.read(key: pageKey) == null) {
-          ProxyService.box.write(key: pageKey, value: businesses[0].type);
+          //can not access businesses[0].type here as it failed to load them
+          //this does not happne mos of the time but internet might be unreliable
+          ProxyService.box.write(key: pageKey, value: 'business');
         }
         _navigationService.replaceWith(Routes.home);
       } else {

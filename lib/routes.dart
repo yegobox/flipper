@@ -1,3 +1,4 @@
+import 'package:chat/screens/add_conversation.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
@@ -47,6 +48,7 @@ import 'package:chat/screens/chat_list.dart';
     MaterialRoute(page: AboutChatMiniApp, name: 'about'),
     MaterialRoute(page: ChatList, name: 'chatHome'),
     MaterialRoute(page: KChatPage, name: 'chatPage'),
+    MaterialRoute(page: AddConversation, name: 'addConvo'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

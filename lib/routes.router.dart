@@ -7,8 +7,9 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:chat/screens/about_chat.dart';
-import 'package:chat/screens/chatpage.dart';
+import 'package:chat/screens/add_conversation.dart';
 import 'package:chat/screens/chat_list.dart';
+import 'package:chat/screens/chatpage.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
@@ -51,9 +52,10 @@ class Routes {
   static const String collect = '/collect-cash-view';
   static const String afterSale = '/after-sale';
   static const String settings = '/settings-screen';
-  static const String about = '/k-aboutpage';
-  static const String chatHome = '/k-homepage';
+  static const String about = '/about-chat-mini-app';
+  static const String chatHome = '/chat-list';
   static const String chatPage = '/k-chat-page';
+  static const String addConvo = '/add-conversation';
   static const all = <String>{
     startUpView,
     dashboard,
@@ -76,6 +78,7 @@ class Routes {
     about,
     chatHome,
     chatPage,
+    addConvo,
   };
 }
 
@@ -104,6 +107,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.about, page: AboutChatMiniApp),
     RouteDef(Routes.chatHome, page: ChatList),
     RouteDef(Routes.chatPage, page: KChatPage),
+    RouteDef(Routes.addConvo, page: AddConversation),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -274,6 +278,12 @@ class StackedRouter extends RouterBase {
     KChatPage: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => KChatPage(),
+        settings: data,
+      );
+    },
+    AddConversation: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const AddConversation(),
         settings: data,
       );
     },
