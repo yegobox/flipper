@@ -263,7 +263,7 @@ class ProductViewModel extends ReactiveViewModel {
       for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           Map map = variation.toJson();
-          map["retailPrice"] = retailPrice;
+          map["supplyPrice"] = supplyPrice;
           map["fproductId"] = variation.fproductId;
           int ids = map['id'];
           ProxyService.api.update(data: map, endPoint: 'variant/$ids');
