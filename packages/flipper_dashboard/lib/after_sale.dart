@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
-
+import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
 import 'flipper_ui.dart';
 
@@ -38,6 +38,8 @@ class _AfterSaleState extends State<AfterSale> {
               appBar: CustomAppBar(
                 useTransparentButton: true,
                 onPop: () {
+                  // refresh orders
+                  model.getOrders();
                   ProxyService.nav.popUntil(ModalRoute.withName(Routes.home));
                 },
                 title: '',
@@ -100,10 +102,9 @@ class _AfterSaleState extends State<AfterSale> {
                                       left: 18.0, right: 18.0),
                                   child: Container(
                                     width: double.infinity,
-                                    child: FLipperButton(
-                                      disableButton: false,
-                                      buttonName: 'Email',
-                                      onPressedCallback: () {},
+                                    child: BoxButton.outline(
+                                      title: 'Email',
+                                      onTap: () {},
                                     ),
                                   ),
                                 )
@@ -114,10 +115,11 @@ class _AfterSaleState extends State<AfterSale> {
                                 const EdgeInsets.only(left: 18.0, right: 18.0),
                             child: Container(
                               width: double.infinity,
-                              child: FLipperButton(
-                                disableButton: false,
-                                buttonName: 'No Receipt',
-                                onPressedCallback: () {
+                              child: BoxButton.outline(
+                                title: 'No Receipt',
+                                onTap: () {
+                                  // refresh orders
+                                  model.getOrders();
                                   ProxyService.nav.popUntil(
                                       ModalRoute.withName(Routes.home));
                                 },

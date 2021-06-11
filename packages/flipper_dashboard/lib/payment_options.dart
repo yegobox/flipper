@@ -41,13 +41,17 @@ class Payments extends StatelessWidget {
                       child: Column(
                         children: [
                           const SizedBox(height: 40),
-                          Text(
-                            'FRw ' +
-                                display(model.orders[0].orderItems.fold(
-                                    0, (a, b) => a! + b.price)).toString(),
-                            style: const TextStyle(
-                                fontSize: 20.0, fontWeight: FontWeight.bold),
-                          ),
+                          model.orders.length > 0
+                              ? Text(
+                                  'FRw ' +
+                                      display(model.orders[0].orderItems
+                                              .fold(0, (a, b) => a! + b.price))
+                                          .toString(),
+                                  style: const TextStyle(
+                                      fontSize: 20.0,
+                                      fontWeight: FontWeight.bold),
+                                )
+                              : Text('0'),
                           const SizedBox(height: 40),
                           const Text(
                             'Select Payment type Bellow',
