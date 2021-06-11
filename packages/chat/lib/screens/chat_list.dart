@@ -173,8 +173,7 @@ class _ChatListState extends State<ChatList> {
                                           child: ConversationList(
                                             name: message.senderName,
                                             messageText: message.message,
-                                            imageUrl:
-                                                "https://cdn.dribbble.com/users/1281912/avatars/normal/febecc326c76154551f9d4bbab73f97b.jpg?1468927304",
+                                            imageUrl: null,
                                             time: timeago.format(DateTime.parse(
                                                 message.createdAt)),
                                             isMessageRead: (0 == 0 || 0 == 3)

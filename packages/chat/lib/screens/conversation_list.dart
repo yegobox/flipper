@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 class ConversationList extends StatefulWidget {
   String name;
   String messageText;
-  String imageUrl;
+  String? imageUrl;
   String time;
   bool isMessageRead;
   final Function? onPressed;
   ConversationList(
       {required this.name,
       required this.messageText,
-      required this.imageUrl,
+      this.imageUrl,
       required this.time,
       required this.isMessageRead,
       required this.onPressed});
@@ -30,10 +30,17 @@ class _ConversationListState extends State<ConversationList> {
             Expanded(
               child: Row(
                 children: <Widget>[
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(widget.imageUrl),
-                    maxRadius: 30,
-                  ),
+                  widget.imageUrl == 'null'
+                      ? CircleAvatar(
+                          backgroundImage: NetworkImage(widget.imageUrl!),
+                          maxRadius: 30,
+                          backgroundColor: Colors.white,
+                        )
+                      : CircleAvatar(
+                          backgroundImage: AssetImage("assets/images/user.png"),
+                          maxRadius: 30,
+                          backgroundColor: Colors.white,
+                        ),
                   SizedBox(
                     width: 16,
                   ),
