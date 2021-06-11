@@ -1,5 +1,6 @@
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -87,31 +88,34 @@ class Payments extends StatelessWidget {
                               ),
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              ProxyService.nav.navigateTo(
-                                Routes.collect,
-                                arguments: CollectCashViewArguments(
-                                  paymentType: 'spenn',
-                                ),
-                              );
-                            },
-                            child: const ListTile(
-                              leading: Text(
-                                'SPENN',
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.pink,
-                                size: 24.0,
-                                semanticLabel: 'SPENN',
-                              ),
-                            ),
-                          ),
+                          ProxyService.remoteConfig.isChatAvailable() ||
+                                  kDebugMode
+                              ? GestureDetector(
+                                  onTap: () {
+                                    ProxyService.nav.navigateTo(
+                                      Routes.collect,
+                                      arguments: CollectCashViewArguments(
+                                        paymentType: 'spenn',
+                                      ),
+                                    );
+                                  },
+                                  child: const ListTile(
+                                    leading: Text(
+                                      'SPENN',
+                                      style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    trailing: Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: Colors.pink,
+                                      size: 24.0,
+                                      semanticLabel: 'SPENN',
+                                    ),
+                                  ),
+                                )
+                              : SizedBox.shrink(),
                         ],
                       ),
                     )

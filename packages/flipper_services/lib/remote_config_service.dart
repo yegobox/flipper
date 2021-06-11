@@ -10,6 +10,7 @@ class RemoteConfigService implements Remote {
     remoteConfig.setDefaults(<String, dynamic>{
       'welcome_message': 'this is the default welcome message',
       'chat_feature': false,
+      'spenn_payment': false
     });
   }
 
@@ -27,6 +28,11 @@ class RemoteConfigService implements Remote {
       minimumFetchInterval:
           kDebugMode ? Duration(hours: 0) : Duration(hours: 4),
     ));
+  }
+
+  @override
+  bool isSpennPaymentAvailable() {
+    return remoteConfig.getBool('spenn_payment');
   }
 }
 
@@ -49,5 +55,10 @@ class RemoteConfigWindows implements Remote {
   @override
   void setDefault() {
     // TODO: implement setDefault
+  }
+
+  @override
+  bool isSpennPaymentAvailable() {
+    return false;
   }
 }
