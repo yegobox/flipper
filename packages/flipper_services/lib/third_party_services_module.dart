@@ -2,6 +2,8 @@
 import 'dart:io';
 // import 'dart:typed_data';
 import 'package:flipper_services/mobile_upload.dart';
+import 'package:flipper_services/pdf_api.dart';
+import 'package:flipper_services/pdf_invoice_api.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
@@ -174,6 +176,12 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   ReportService get report;
+
+  @lazySingleton
+  PdfInvoiceApi get pdfInvoice;
+
+  @lazySingleton
+  PdfApi get pdfApi;
 }
 
 class HttpUpload implements UploadT {

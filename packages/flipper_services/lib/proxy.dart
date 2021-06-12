@@ -2,6 +2,8 @@ import 'package:flipper_services/abstractions/platform.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/keypad_service.dart';
+import 'package:flipper_services/pdf_api.dart';
+import 'package:flipper_services/pdf_invoice_api.dart';
 import 'package:flipper_services/report_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -32,6 +34,8 @@ final KeyPadService _keypad = locator<KeyPadService>();
 final Remote _remoteConfig = locator<Remote>();
 final SettingsService _settings = locator<SettingsService>();
 final ReportService _reportService = locator<ReportService>();
+final PdfInvoiceApi _pdfInvoiceApi = locator<PdfInvoiceApi>();
+final PdfApi _pdfApi = locator<PdfApi>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -48,4 +52,6 @@ abstract class ProxyService {
   static Remote get remoteConfig => _remoteConfig;
   static SettingsService get settings => _settings;
   static ReportService get report => _reportService;
+  static PdfInvoiceApi get pdfInvoice => _pdfInvoiceApi;
+  static PdfApi get pdfApi => _pdfApi;
 }

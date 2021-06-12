@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:flipper_services/pdf_api.dart';
+import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/invoice.dart';
+import 'package:flipper_models/supplier.dart';
 import 'package:flipper/routes.logger.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/objectbox.g.dart';
@@ -352,8 +355,83 @@ class ObjectBoxApi implements Api {
     data['cashReceived'] = cashReceived;
     data['status'] = 'completed';
     data['draft'] = false;
+    final date = DateTime.now();
+    final dueDate = date.add(Duration(days: 7));
+
+    final invoice = Invoice(
+      supplier: Supplier(
+        name: 'Sarah Field',
+        address: 'Sarah Street 9, Beijing, China',
+        paymentInfo: 'https://paypal.me/sarahfieldzz',
+      ),
+      customer: Customer(
+        name: 'Apple Inc.',
+        address: 'Apple Street, Cupertino, CA 95014',
+      ),
+      info: InvoiceInfo(
+        date: date,
+        dueDate: dueDate,
+        description: 'My description...',
+        number: '${DateTime.now().year}-9999',
+      ),
+      items: [
+        InvoiceItem(
+          description: 'Coffee',
+          date: DateTime.now(),
+          quantity: 3,
+          vat: 0.19,
+          unitPrice: 5.99,
+        ),
+        InvoiceItem(
+          description: 'Water',
+          date: DateTime.now(),
+          quantity: 8,
+          vat: 0.19,
+          unitPrice: 0.99,
+        ),
+        InvoiceItem(
+          description: 'Orange',
+          date: DateTime.now(),
+          quantity: 3,
+          vat: 0.19,
+          unitPrice: 2.99,
+        ),
+        InvoiceItem(
+          description: 'Apple',
+          date: DateTime.now(),
+          quantity: 8,
+          vat: 0.19,
+          unitPrice: 3.99,
+        ),
+        InvoiceItem(
+          description: 'Mango',
+          date: DateTime.now(),
+          quantity: 1,
+          vat: 0.19,
+          unitPrice: 1.59,
+        ),
+        InvoiceItem(
+          description: 'Blue Berries',
+          date: DateTime.now(),
+          quantity: 5,
+          vat: 0.19,
+          unitPrice: 0.99,
+        ),
+        InvoiceItem(
+          description: 'Lemon',
+          date: DateTime.now(),
+          quantity: 4,
+          vat: 0.19,
+          unitPrice: 1.29,
+        ),
+      ],
+    );
 
     update(data: data, endPoint: 'order');
+
+    final pdfFile =
+        await ProxyService.pdfInvoice.generate(invoice, order.id.toString());
+    ProxyService.pdfApi.openFile(pdfFile);
   }
 
   Future<OrderF?> pendingOrderExist() async {

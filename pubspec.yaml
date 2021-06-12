@@ -147,6 +147,7 @@ dependencies:
   firebase_remote_config: ^0.10.0+1
   settings_ui: ^1.0.0
   flutter_datetime_picker: ^1.5.1
+  open_file: ^3.2.1
   # cbl: ^0.6.0
   # cbl_flutter: 
   # TODO: implement feedback flow later created aount in wiredash using yegobox@gmail.com google login
