@@ -99,6 +99,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
+    await Future.delayed(Duration(microseconds: 2000));
     List<Business> businessList = _store.box<Business>().getAll().toList();
     if (businessList.isNotEmpty) {
       return businessList;
@@ -543,6 +544,7 @@ class ObjectBoxApi implements Api {
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
     String businessName = getBusiness().name;
+    log.i(businessName);
     // TODOpass in the item being sold and note if available
     log.i({
       'amount': amount.toString(),
@@ -554,7 +556,7 @@ class ObjectBoxApi implements Api {
     final response = await client.post(Uri.parse("$flipperApi/pay"),
         body: {
           'amount': amount.toString(),
-          'message': '-' + transactionNumber.substring(0, 4),
+          'message': 'Pay ' + businessName,
           'phoneNumber': '+25' + phoneNumber,
           'uid': userId,
           'userId': userId
