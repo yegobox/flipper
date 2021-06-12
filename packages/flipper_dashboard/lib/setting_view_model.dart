@@ -6,9 +6,10 @@ class SettingViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
   bool _updateStarted = false;
   bool get updateStart => _updateStarted;
-  Future<bool> updateSettings({String? email}) async {
+  Future<bool> updateSettings(
+      {required Map map, required String endPoint}) async {
     _updateStarted = true;
-    return await settingService.updateEmail(email: email!);
+    return await settingService.updateSettings(map: map, endPoint: endPoint);
   }
 
   @override

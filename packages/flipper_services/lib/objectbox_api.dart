@@ -110,10 +110,13 @@ class ObjectBoxApi implements Api {
     List<Business> businesses = [];
     try {
       final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
-      for (Business business in businessFromJson(response.body)) {
-        final box = _store.box<Business>();
-        box.put(business);
+      if (businessList.isEmpty) {
+        for (Business business in businessFromJson(response.body)) {
+          final box = _store.box<Business>();
+          box.put(business);
+        }
       }
+
       return businessFromJson(response.body);
     } catch (e) {
       return businesses;
@@ -431,6 +434,10 @@ class ObjectBoxApi implements Api {
 
     final pdfFile =
         await ProxyService.pdfInvoice.generate(invoice, order.id.toString());
+
+    /// read user setting and see if he choose to open a receipt file on complete of a sale.
+    /// this is handy in case a client want to print on his machine directly
+
     ProxyService.pdfApi.openFile(pdfFile);
   }
 

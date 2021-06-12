@@ -764,7 +764,7 @@
     },
     {
       "id": "13:8608507958994323678",
-      "lastPropertyId": "4:1351698244747760704",
+      "lastPropertyId": "6:5349255448948390085",
       "name": "Setting",
       "properties": [
         {
@@ -787,6 +787,16 @@
           "id": "4:1351698244747760704",
           "name": "userId",
           "type": 6
+        },
+        {
+          "id": "5:7806383220631470553",
+          "name": "openReceiptFileOSaleComplete",
+          "type": 1
+        },
+        {
+          "id": "6:5349255448948390085",
+          "name": "autoPrint",
+          "type": 1
         }
       ],
       "relations": []

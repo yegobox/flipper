@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
+import 'package:flipper_login/update_printer_settings.dart';
 import 'languages_screen.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -60,8 +61,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsTile(
               title: 'Environment',
-              subtitle: 'Production',
+              subtitle: 'Local',
               leading: Icon(Icons.cloud_queue),
+            ),
+            SettingsTile(
+              title: 'Printing',
+              subtitle: 'Auto',
+              leading: Icon(Icons.print),
+              onPressed: (context) {
+                //open printing configuration.
+                showPrinterSetupModal();
+              },
             ),
           ],
         ),
@@ -125,6 +135,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  void showPrinterSetupModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Container(
+            child: UpdatePrinterSetting(),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

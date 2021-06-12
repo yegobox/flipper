@@ -8,7 +8,11 @@ void main() {
   test('setting view mode ...', () async {
     getAndRegisterSettingsService();
     final model = _getModel();
-    bool result = await model.updateSettings(email: 'richie@gmail.com');
+    //
+    bool result = await model.updateSettings(
+      map: {'email': 'richie@gmail.com'},
+      endPoint: 'email',
+    );
     expect(result, true);
   });
 }

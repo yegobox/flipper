@@ -783,7 +783,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(13, 8608507958994323678),
       name: 'Setting',
-      lastPropertyId: const IdUid(4, 1351698244747760704),
+      lastPropertyId: const IdUid(6, 5349255448948390085),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -805,6 +805,16 @@ final _entities = <ModelEntity>[
             id: const IdUid(4, 1351698244747760704),
             name: 'userId',
             type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 7806383220631470553),
+            name: 'openReceiptFileOSaleComplete',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(6, 5349255448948390085),
+            name: 'autoPrint',
+            type: 1,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1581,11 +1591,13 @@ ModelDefinition getObjectBoxModel() {
         objectToFB: (Setting object, fb.Builder fbb) {
           final emailOffset = fbb.writeString(object.email);
           final hasPinOffset = fbb.writeString(object.hasPin);
-          fbb.startTable(5);
+          fbb.startTable(7);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, emailOffset);
           fbb.addOffset(2, hasPinOffset);
           fbb.addInt64(3, object.userId);
+          fbb.addBool(4, object.openReceiptFileOSaleComplete);
+          fbb.addBool(5, object.autoPrint);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1599,6 +1611,10 @@ ModelDefinition getObjectBoxModel() {
                   const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
               hasPin:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              autoPrint: const fb.BoolReader()
+                  .vTableGetNullable(buffer, rootOffset, 14),
+              openReceiptFileOSaleComplete: const fb.BoolReader()
+                  .vTableGetNullable(buffer, rootOffset, 12),
               userId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
 
@@ -2143,4 +2159,12 @@ class Setting_ {
   /// see [Setting.userId]
   static final userId =
       QueryIntegerProperty<Setting>(_entities[12].properties[3]);
+
+  /// see [Setting.openReceiptFileOSaleComplete]
+  static final openReceiptFileOSaleComplete =
+      QueryBooleanProperty<Setting>(_entities[12].properties[4]);
+
+  /// see [Setting.autoPrint]
+  static final autoPrint =
+      QueryBooleanProperty<Setting>(_entities[12].properties[5]);
 }

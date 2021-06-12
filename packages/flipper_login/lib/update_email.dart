@@ -71,7 +71,10 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                 if (UpdateEmailSetting._formKey.currentState!
                                     .validate()) {
                                   bool updated = await model.updateSettings(
-                                      email: emailController.value.text);
+                                      map: {
+                                        'email': emailController.value.text
+                                      },
+                                      endPoint: 'email');
                                   if (updated) {
                                     ProxyService.nav.back();
                                   }
