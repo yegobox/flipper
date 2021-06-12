@@ -47,8 +47,15 @@ class _UpdatePrinterSettingState extends State<UpdatePrinterSetting> {
                           ? false
                           : model.setting!.autoPrint,
                   onToggle: (bool value) {
-                    model.updateSettings(map: {'autoPrint': true});
-                    model.loadUserSettings();
+                    if (model.setting != null &&
+                        model.setting!.autoPrint != null) {
+                      model.updateSettings(
+                          map: {'autoPrint': !model.setting!.autoPrint!});
+                      model.loadUserSettings();
+                    } else {
+                      model.updateSettings(map: {'autoPrint': true});
+                      model.loadUserSettings();
+                    }
                   },
                 ),
                 SettingsTile.switchTile(
@@ -61,9 +68,18 @@ class _UpdatePrinterSettingState extends State<UpdatePrinterSetting> {
                           ? false
                           : model.setting!.openReceiptFileOSaleComplete,
                   onToggle: (value) {
-                    model.updateSettings(
-                        map: {'openReceiptFileOSaleComplete': true});
-                    model.loadUserSettings();
+                    if (model.setting != null &&
+                        model.setting!.openReceiptFileOSaleComplete != null) {
+                      model.updateSettings(map: {
+                        'openReceiptFileOSaleComplete':
+                            !model.setting!.openReceiptFileOSaleComplete!
+                      });
+                      model.loadUserSettings();
+                    } else {
+                      model.updateSettings(
+                          map: {'openReceiptFileOSaleComplete': true});
+                      model.loadUserSettings();
+                    }
                   },
                 ),
               ],

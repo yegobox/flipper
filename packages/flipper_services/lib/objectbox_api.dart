@@ -437,8 +437,19 @@ class ObjectBoxApi implements Api {
 
     /// read user setting and see if he choose to open a receipt file on complete of a sale.
     /// this is handy in case a client want to print on his machine directly
-
-    ProxyService.pdfApi.openFile(pdfFile);
+    String userId = ProxyService.box.read(key: 'userId');
+    Setting? setting = await getSetting(userId: int.parse(userId));
+    if (setting != null &&
+        setting.openReceiptFileOSaleComplete != null &&
+        setting.openReceiptFileOSaleComplete == true) {
+      ProxyService.pdfApi.openFile(pdfFile);
+    }
+    if (setting != null &&
+        setting.autoPrint != null &&
+        setting.autoPrint == true) {
+      // ProxyService.pdfApi.openFile(pdfFile);
+      // TODOnow call the printing service
+    }
   }
 
   Future<OrderF?> pendingOrderExist() async {
@@ -849,15 +860,13 @@ class ObjectBoxApi implements Api {
         data.forEach((key, value) {
           map[key] = value;
         });
+        log.i(map['autoPrint']);
         Setting Ksetting = Setting(
             email: map['email'],
             hasPin: map['hasPin'],
             userId: map['userId'],
-            openReceiptFileOSaleComplete:
-                map['openReceiptFileOSaleComplete'] != null
-                    ? !map['openReceiptFileOSaleComplete']
-                    : false,
-            autoPrint: map['autoPrint'] != null ? !map['autoPrint'] : false,
+            openReceiptFileOSaleComplete: map['openReceiptFileOSaleComplete'],
+            autoPrint: map['autoPrint'],
             id: map['id']);
         final box = _store.box<Setting>();
         box.put(Ksetting, mode: PutMode.update);
