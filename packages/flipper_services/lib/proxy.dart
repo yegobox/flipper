@@ -2,7 +2,7 @@ import 'package:flipper_services/abstractions/platform.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/keypad_service.dart';
-import 'package:flipper_services/remote_config_service.dart';
+import 'package:flipper_services/report_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -31,6 +31,7 @@ final ProductService _productService = locator<ProductService>();
 final KeyPadService _keypad = locator<KeyPadService>();
 final Remote _remoteConfig = locator<Remote>();
 final SettingsService _settings = locator<SettingsService>();
+final ReportService _reportService = locator<ReportService>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -46,4 +47,5 @@ abstract class ProxyService {
   static KeyPadService get keypad => _keypad;
   static Remote get remoteConfig => _remoteConfig;
   static SettingsService get settings => _settings;
+  static ReportService get report => _reportService;
 }

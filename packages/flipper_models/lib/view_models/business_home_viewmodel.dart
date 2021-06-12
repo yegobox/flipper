@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'package:flipper/routes.locator.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/order_item.dart';
@@ -13,6 +14,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
+  final log = getLogger('BusinessHomeViewModel');
   final KeyPadService keypad = locator<KeyPadService>();
   final AppService _app = locator<AppService>();
   String get key => keypad.key;
@@ -168,24 +170,27 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
-  Future collectSPENNPayment({required String phoneNumber}) async {
+  Future collectSPENNPayment(
+      {required String phoneNumber, required double payableAmount}) async {
     if (orders.isEmpty && amountTotal != 0.0) {
       //should show a global snack bar
       return;
     }
+    log.i(payableAmount);
     await ProxyService.api
-        .spennPayment(amount: amountTotal, phoneNumber: phoneNumber);
+        .spennPayment(amount: payableAmount, phoneNumber: phoneNumber);
     await ProxyService.api
-        .collectCashPayment(cashReceived: amountTotal, order: orders[0]);
+        .collectCashPayment(cashReceived: payableAmount, order: orders[0]);
   }
 
-  void collectCashPayment() {
+  void collectCashPayment({required double payableAmount}) {
     if (orders.isEmpty && amountTotal != 0.0) {
       //should show a global snack bar
       return;
     }
+    log.i(payableAmount);
     ProxyService.api
-        .collectCashPayment(cashReceived: amountTotal, order: orders[0]);
+        .collectCashPayment(cashReceived: payableAmount, order: orders[0]);
   }
 
   @override

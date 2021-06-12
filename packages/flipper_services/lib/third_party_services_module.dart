@@ -5,6 +5,7 @@ import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
+import 'package:flipper_services/report_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
@@ -170,6 +171,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   SettingsService get settings;
+
+  @lazySingleton
+  ReportService get report;
 }
 
 class HttpUpload implements UploadT {

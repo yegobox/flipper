@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_services/proxy.dart';
@@ -34,14 +35,17 @@ class _CollectCashViewState extends State<CollectCashView> {
   StreamController<String> streamController =
       StreamController<String>.broadcast();
   late StreamSubscription<String> subscription;
+  final log = getLogger('CollectCashView');
   StompClient? stompClient;
   void onConnect(StompFrame frame) {
     stompClient?.subscribe(
-        destination: '/topic/message',
+        destination: '/topic/payment',
         callback: (StompFrame frame) {
           if (frame.body != null) {
             Map<String, dynamic> result = json.decode(frame.body!);
-            streamController.add(result['message']);
+            log.i(result);
+            log.i(result['userId']);
+            streamController.add(result['userId']);
           }
         });
   }
@@ -174,19 +178,23 @@ class _CollectCashViewState extends State<CollectCashView> {
                               borderRadius: 20.0,
                               controller: _btnController,
                               onPressed: () async {
+                                double totalOrderAmount = model
+                                    .orders[0].orderItems
+                                    .fold(0, (a, b) => a + b.price);
+
                                 if (_formKey.currentState!.validate()) {
                                   model.keypad.setCashReceived(
                                       amount: double.parse(
                                           cashReceivedController.text));
                                   if (widget.paymentType == 'spenn') {
                                     await model.collectSPENNPayment(
-                                        phoneNumber: phoneController.text);
+                                        phoneNumber: phoneController.text,
+                                        payableAmount: totalOrderAmount);
                                   } else {
-                                    model.collectCashPayment();
+                                    model.collectCashPayment(
+                                        payableAmount: totalOrderAmount);
                                     _btnController.success();
-                                    double totalOrderAmount = model
-                                        .orders[0].orderItems
-                                        .fold(0, (a, b) => a + b.price);
+
                                     ProxyService.nav.navigateTo(
                                       Routes.afterSale,
                                       arguments: AfterSaleArguments(

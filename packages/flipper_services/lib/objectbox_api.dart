@@ -530,24 +530,28 @@ class ObjectBoxApi implements Api {
   @override
   Future<Spenn> spennPayment(
       {required double amount, required phoneNumber}) async {
-    final int transactionNumber = DateTime.now().millisecondsSinceEpoch;
+    final String transactionNumber =
+        DateTime.now().millisecondsSinceEpoch.toString();
     String userId = ProxyService.box.read(key: 'userId');
-    // final response = await client.post(Uri.parse("$flipperApi/pay"),
-    //     body: jsonEncode({
-    //       'amount': amount,
-    //       'message': '-' + transactionNumber.substring(0, 4),
-    //       'phoneNumber': '+25' + phoneNumber,
-    //       'uid': userId
-    //     }),
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'Accept': 'application/json'
-    //     });
-    // return spennFromJson(response.body);
-    print('+25' + phoneNumber);
-    Spenn spenn = new Spenn(id: '1', requestId: 'uid', status: 'complented');
-    return spenn;
-    //
+    var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+    log.i({
+      'amount': amount.toString(),
+      'message': '-' + transactionNumber.substring(0, 4),
+      'phoneNumber': '+25' + phoneNumber,
+      'uid': userId,
+      'userId': userId
+    });
+    final response = await client.post(Uri.parse("$flipperApi/pay"),
+        body: {
+          'amount': amount.toString(),
+          'message': '-' + transactionNumber.substring(0, 4),
+          'phoneNumber': '+25' + phoneNumber,
+          'uid': userId,
+          'userId': userId
+        },
+        headers: headers);
+    log.i(response.body);
+    return spennFromJson(response.body);
   }
 
   @override

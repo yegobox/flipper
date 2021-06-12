@@ -38,6 +38,7 @@ class _ChatListState extends State<ChatList> {
                 FloatingActionButtonLocation.miniCenterDocked,
             floatingActionButton: GestureDetector(
               onTap: () {
+                // TODOupdate the business online too for next login.
                 ProxyService.box.remove(key: pageKey);
                 ProxyService.nav.navigateTo(Routes.startUpView);
               },
