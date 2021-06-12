@@ -398,10 +398,8 @@ class MockKeyPadService extends _i1.Mock implements _i21.KeyPadService {
 /// See the documentation for Mockito's code generation for more information.
 class MockSettingsService extends _i1.Mock implements _i22.SettingsService {
   @override
-  _i12.Future<bool> updateSettings(
-          {Map<dynamic, dynamic>? map, dynamic endPoint}) =>
-      (super.noSuchMethod(
-          Invocation.method(#updateEmail, [], {#map: map, #endPoint: endPoint}),
+  _i12.Future<bool> updateSettings({Map<dynamic, dynamic>? map}) =>
+      (super.noSuchMethod(Invocation.method(#updateSettings, [], {#map: map}),
           returnValue: Future<bool>.value(false)) as _i12.Future<bool>);
 }
 

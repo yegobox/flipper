@@ -853,6 +853,11 @@ class ObjectBoxApi implements Api {
             email: map['email'],
             hasPin: map['hasPin'],
             userId: map['userId'],
+            openReceiptFileOSaleComplete:
+                map['openReceiptFileOSaleComplete'] != null
+                    ? !map['openReceiptFileOSaleComplete']
+                    : false,
+            autoPrint: map['autoPrint'] != null ? !map['autoPrint'] : false,
             id: map['id']);
         final box = _store.box<Setting>();
         box.put(Ksetting, mode: PutMode.update);

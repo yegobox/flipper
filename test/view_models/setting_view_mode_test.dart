@@ -9,10 +9,8 @@ void main() {
     getAndRegisterSettingsService();
     final model = _getModel();
     //
-    bool result = await model.updateSettings(
-      map: {'email': 'richie@gmail.com'},
-      endPoint: 'email',
-    );
+    bool result =
+        await model.updateSettings(map: {'email': 'richie@gmail.com'});
     expect(result, true);
   });
 }

@@ -120,8 +120,7 @@ MockSettingsService getAndRegisterSettingsService() {
   _removeRegistrationIfExists<SettingsService>();
   final service = MockSettingsService();
   //some mocking here
-  when(service.updateSettings(
-          map: anyNamed("map"), endPoint: anyNamed("endPoint")))
+  when(service.updateSettings(map: anyNamed("map")))
       .thenAnswer((realInvocation) => Future<bool>.value(true));
   locator.registerSingleton<SettingsService>(service);
   return service;
