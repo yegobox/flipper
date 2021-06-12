@@ -99,9 +99,17 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
+    List<Business> businessList = _store.box<Business>().getAll().toList();
+    if (businessList.isNotEmpty) {
+      return businessList;
+    }
     List<Business> businesses = [];
     try {
       final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
+      for (Business business in businessFromJson(response.body)) {
+        final box = _store.box<Business>();
+        box.put(business);
+      }
       return businessFromJson(response.body);
     } catch (e) {
       return businesses;
@@ -534,9 +542,11 @@ class ObjectBoxApi implements Api {
         DateTime.now().millisecondsSinceEpoch.toString();
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+    String businessName = getBusiness().name;
+    // TODOpass in the item being sold and note if available
     log.i({
       'amount': amount.toString(),
-      'message': '-' + transactionNumber.substring(0, 4),
+      'message': 'Pay ' + businessName,
       'phoneNumber': '+25' + phoneNumber,
       'uid': userId,
       'userId': userId
@@ -823,5 +833,14 @@ class ObjectBoxApi implements Api {
         .query(Message_.receiverId.equals(businessId!))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
+  }
+
+  @override
+  Business getBusiness() {
+    String? userId = ProxyService.box.read(key: 'userId');
+    return _store
+        .box<Business>()
+        .getAll()
+        .firstWhere((unit) => unit.userId == userId);
   }
 }

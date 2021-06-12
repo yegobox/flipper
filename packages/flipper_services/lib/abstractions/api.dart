@@ -78,4 +78,6 @@ abstract class Api<T> {
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
   Stream<List<Message>> messages();
+
+  Business getBusiness();
 }

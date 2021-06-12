@@ -425,4 +425,10 @@ class HttpApi<T> implements Api {
     // TODO: implement messages
     throw UnimplementedError();
   }
+
+  @override
+  Business getBusiness() {
+    // TODO: implement getBusiness
+    throw UnimplementedError();
+  }
 }
