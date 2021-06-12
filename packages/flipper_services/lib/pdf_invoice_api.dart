@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/invoice.dart';
 import 'package:flipper_models/supplier.dart';
@@ -11,9 +10,10 @@ import 'package:pdf/widgets.dart';
 
 class PdfInvoiceApi {
   Future<File> generate(Invoice invoice, String invoiceNumber) async {
-    final pdf = Document();
+    final pdf = pw.Document();
 
-    pdf.addPage(MultiPage(
+    pdf.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
       build: (context) => [
         buildHeader(invoice),
         SizedBox(height: 3 * PdfPageFormat.cm),

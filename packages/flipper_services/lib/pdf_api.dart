@@ -5,6 +5,12 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart';
 import 'package:path/path.dart' as path;
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isIos = UniversalPlatform.isIOS;
+final isAndroid = UniversalPlatform.isAndroid;
 
 class PdfApi {
   final log = getLogger("PDFAPI");
@@ -28,7 +34,11 @@ class PdfApi {
     final file = File(normaliedPath);
 
     await file.writeAsBytes(bytes);
-
+    // print on ios and android compatible devices
+    if (isIos || isAndroid) {
+      await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdf.save());
+    }
     return file;
   }
 
