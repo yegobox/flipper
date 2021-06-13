@@ -432,23 +432,25 @@ class ObjectBoxApi implements Api {
 
     update(data: data, endPoint: 'order');
 
-    final pdfFile =
-        await ProxyService.pdfInvoice.generate(invoice, order.id.toString());
+    if (ProxyService.remoteConfig.isPrinterAvailable()) {
+      final pdfFile =
+          await ProxyService.pdfInvoice.generate(invoice, order.id.toString());
 
-    /// read user setting and see if he choose to open a receipt file on complete of a sale.
-    /// this is handy in case a client want to print on his machine directly
-    String userId = ProxyService.box.read(key: 'userId');
-    Setting? setting = await getSetting(userId: int.parse(userId));
-    if (setting != null &&
-        setting.openReceiptFileOSaleComplete != null &&
-        setting.openReceiptFileOSaleComplete == true) {
-      ProxyService.pdfApi.openFile(pdfFile);
-    }
-    if (setting != null &&
-        setting.autoPrint != null &&
-        setting.autoPrint == true) {
-      // ProxyService.pdfApi.openFile(pdfFile);
-      // TODOnow call the printing service
+      /// read user setting and see if he choose to open a receipt file on complete of a sale.
+      /// this is handy in case a client want to print on his machine directly
+      String userId = ProxyService.box.read(key: 'userId');
+      Setting? setting = await getSetting(userId: int.parse(userId));
+      if (setting != null &&
+          setting.openReceiptFileOSaleComplete != null &&
+          setting.openReceiptFileOSaleComplete == true) {
+        ProxyService.pdfApi.openFile(pdfFile);
+      }
+      if (setting != null &&
+          setting.autoPrint != null &&
+          setting.autoPrint == true) {
+        // ProxyService.pdfApi.openFile(pdfFile);
+        // TODOnow call the printing service
+      }
     }
   }
 

@@ -5,5 +5,6 @@ abstract class Remote {
   bool isSpennPaymentAvailable();
   bool isEmailReceiptAvailable();
   bool isAddCustomerToSaleAvailable();
+  bool isPrinterAvailable();
   void config();
 }

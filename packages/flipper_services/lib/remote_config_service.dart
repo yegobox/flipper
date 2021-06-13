@@ -8,11 +8,12 @@ class RemoteConfigService implements Remote {
 
   void setDefault() {
     remoteConfig.setDefaults(<String, dynamic>{
-      'welcome_message': 'this is the default welcome message',
+      'welcome_message': 'Welcome to flipper',
       'chat_feature': false,
       'spenn_payment': false,
       'email_receipt': false,
-      'add_customer_to_sale': false
+      'add_customer_to_sale': false,
+      'printer_receipt': false
     });
   }
 
@@ -45,6 +46,11 @@ class RemoteConfigService implements Remote {
   @override
   bool isAddCustomerToSaleAvailable() {
     return remoteConfig.getBool('add_customer_to_sale');
+  }
+
+  @override
+  bool isPrinterAvailable() {
+    return remoteConfig.getBool('printer_receipt');
   }
 }
 
@@ -81,6 +87,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isAddCustomerToSaleAvailable() {
+    return false;
+  }
+
+  @override
+  bool isPrinterAvailable() {
     return false;
   }
 }

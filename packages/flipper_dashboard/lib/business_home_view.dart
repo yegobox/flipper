@@ -73,6 +73,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.remoteConfig.setDefault();
         ProxyService.remoteConfig.config();
         ProxyService.remoteConfig.fetch();
+        //connect to anyy available printer
+        ProxyService.printer.getBluetooths();
       },
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {

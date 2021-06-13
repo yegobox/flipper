@@ -21,7 +21,10 @@ final isWeb = UniversalPlatform.isWeb;
 // cd android && ./gradlew signingReport
 main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries());
-
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   WidgetsFlutterBinding.ensureInitialized();
   (!isWindows) ? await Firebase.initializeApp() : '';
   // (isAndroid|| isWeb||isMacOs)

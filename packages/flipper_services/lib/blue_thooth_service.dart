@@ -16,10 +16,7 @@ class BlueToothPrinterService implements Printer {
     final generator = Generator(PaperSize.mm80, profile);
     // TODO: implements the load bytes from any path.so this can be flexible.
     // use the printing package to generate PDF and save them in known place
-    // on click of print we check the device, if is windows,macos then use default printing
-    // which deal with device connected printer
-    // if it is android and or ios we check bluetooth device printer and print on in.
-    // https://flutteragency.com/how-to-read-bytes-of-a-local-image-file-in-flutter/
+
     final ByteData data = await rootBundle.load('assets/flipper-logo.png');
     final Uint8List imgBytes = data.buffer.asUint8List();
     final Image? image = decodeImage(imgBytes);
@@ -39,6 +36,7 @@ class BlueToothPrinterService implements Printer {
   @override
   Future<List?> getBluetooths() async {
     final List? bluetooth = await BluetoothThermalPrinter.getBluetooths;
+    // print(bluetooth![0].mac);
     return bluetooth;
   }
 

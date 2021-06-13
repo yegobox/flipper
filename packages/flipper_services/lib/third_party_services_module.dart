@@ -1,6 +1,8 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'dart:io';
 // import 'dart:typed_data';
+import 'package:flipper_services/abstractions/printer.dart';
+import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
@@ -103,6 +105,19 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
+  Printer get printService {
+    late Printer printService;
+    if (UniversalPlatform.isWindows ||
+        UniversalPlatform.isAndroid ||
+        UniversalPlatform.isMacOS) {
+      printService = BlueToothPrinterService();
+    } else {
+      printService = WindowsBlueToothPrinterService();
+    }
+    return printService;
+  }
+
+  @lazySingleton
   Api get apiService {
     late Api apiService;
     if (UniversalPlatform.isWindows ||
@@ -182,6 +197,26 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   PdfApi get pdfApi;
+}
+
+class WindowsBlueToothPrinterService implements Printer {
+  @override
+  Future<bool> connect({required String mac}) {
+    // TODO: implement connect
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List?> getBluetooths() {
+    // TODO: implement getBluetooths
+    throw UnimplementedError();
+  }
+
+  @override
+  Future sendToPrinter() {
+    // TODO: implement sendToPrinter
+    throw UnimplementedError();
+  }
 }
 
 class HttpUpload implements UploadT {
