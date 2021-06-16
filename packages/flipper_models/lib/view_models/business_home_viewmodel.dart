@@ -34,8 +34,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   get quantity => keypad.quantity;
 
-  Stock? _getStock = null;
-  get stocks => _getStock;
+  Stock? _currentItemStock = null;
+  get currentItemStock => _currentItemStock;
 
   List<Variant> _variants = [];
   get variants => _variants;
@@ -112,18 +112,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   /// We take _variantsStocks[0] because we know
-  void decreaseQty() {
+  void decreaseQty(Function callback) {
     ProxyService.keypad.decreaseQty();
-    if (_getStock != null) {
-      keypad.setAmount(amount: _getStock!.retailPrice * quantity);
+    if (_currentItemStock != null) {
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
     }
+    callback(quantity);
   }
 
-  void increaseQty() {
+  void increaseQty(Function callback) {
     ProxyService.keypad.increaseQty();
-    if (_getStock != null) {
-      keypad.setAmount(amount: _getStock!.retailPrice * quantity);
+    if (_currentItemStock != null) {
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
     }
+    callback(quantity);
   }
 
   void setAmount({required double amount}) {
@@ -132,7 +134,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void loadVariantStock({required int variantId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    _getStock = await ProxyService.api
+    _currentItemStock = await ProxyService.api
         .getStock(branchId: branchId, variantId: variantId);
 
     notifyListeners();

@@ -39,7 +39,8 @@ class AddProductView extends StatelessWidget {
           onWillPop: _onWillPop,
           child: Scaffold(
             appBar: CustomAppBar(
-              onPop: () {
+              onPop: () async {
+                await model.loadProducts();
                 ProxyService.nav.back();
               },
               title: 'Create Product',
@@ -47,6 +48,7 @@ class AddProductView extends StatelessWidget {
               showActionButton: true,
               onPressedCallback: () async {
                 await model.addProduct(mproduct: model.product.toJson());
+                await model.loadProducts();
                 ProxyService.nav.back();
               },
               rightActionButtonName: 'Save',

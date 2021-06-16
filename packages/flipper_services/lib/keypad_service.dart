@@ -1,3 +1,4 @@
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper/stack.dart';
@@ -5,7 +6,7 @@ import 'package:flipper_models/order.dart';
 
 class KeyPadService with ReactiveServiceMixin {
   final _key = ReactiveValue<String>("0.0");
-
+  final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();
 
   final _count = ReactiveValue<int>(0);
@@ -77,12 +78,24 @@ class KeyPadService with ReactiveServiceMixin {
     }
   }
 
+  void customQtyIncrease({int? qty}) {
+    _quantity.value = 0;
+    _quantity.value = qty!;
+    log.i(_quantity.value);
+  }
+
   void increaseQty() {
     _quantity.value++;
   }
 
+  /// can not set -1 quantity
   void decreaseQty() {
-    _quantity.value--;
+    if (_quantity.value > 0) {
+      _quantity.value--;
+    }
+    if (_quantity.value == 0) {
+      _quantity.value = 1;
+    }
   }
 
   void pop() {

@@ -211,34 +211,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  cbl:
-    dependency: transitive
-    description:
-      name: cbl
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.0"
-  cbl_ffi:
-    dependency: transitive
-    description:
-      name: cbl_ffi
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.0"
-  cbl_flutter:
-    dependency: transitive
-    description:
-      name: cbl_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0+1"
-  cbl_native:
-    dependency: transitive
-    description:
-      name: cbl_native
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.2.1"
   characters:
     dependency: transitive
     description:
@@ -421,6 +393,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
+  easy_debounce:
+    dependency: transitive
+    description:
+      name: easy_debounce
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   equatable:
     dependency: transitive
     description:
@@ -525,7 +504,7 @@ packages:
       name: firebase_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.1"
+    version: "1.3.0"
   firebase_core_platform_interface:
     dependency: transitive
     description:
@@ -582,6 +561,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  firebase_performance:
+    dependency: transitive
+    description:
+      name: firebase_performance
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.7.0+5"
   firebase_remote_config:
     dependency: transitive
     description:
@@ -671,6 +657,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.6"
+  flutter_datetime_picker:
+    dependency: transitive
+    description:
+      name: flutter_datetime_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.5.1"
   flutter_dotenv:
     dependency: transitive
     description:
@@ -1143,6 +1136,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0+1"
+  open_file:
+    dependency: transitive
+    description:
+      name: open_file
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.1"
   package_config:
     dependency: transitive
     description:

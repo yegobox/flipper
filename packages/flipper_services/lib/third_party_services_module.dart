@@ -107,9 +107,9 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Printer get printService {
     late Printer printService;
-    if (UniversalPlatform.isWindows ||
-        UniversalPlatform.isAndroid ||
-        UniversalPlatform.isMacOS) {
+    if (
+        // UniversalPlatform.isWindows ||
+        UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
       printService = BlueToothPrinterService();
     } else {
       printService = WindowsBlueToothPrinterService();

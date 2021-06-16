@@ -21,13 +21,13 @@ void main() {
     //   expect(keypadService.amountTotal, 300.0);
     // });
     test('should increase quantity', () async {
-      model.increaseQty();
+      model.increaseQty((quantity) {});
       // TODOfix this breaking test
       // expect(keypadService.quantity, 1);
       expect(1, 1);
     });
     test('should decrease quantity', () async {
-      model.decreaseQty();
+      model.decreaseQty((quantity) {});
       // TODOfix this breaking test
       // expect(keypadService.quantity, 0);
       expect(1, 1);

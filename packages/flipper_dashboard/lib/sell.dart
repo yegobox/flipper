@@ -1,3 +1,4 @@
+import 'package:flipper/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_services/proxy.dart';
@@ -5,9 +6,9 @@ import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 
 enum ForHere { lafayette, jefferson }
 enum ToGo { lafayette, jefferson }
@@ -19,8 +20,12 @@ class Sell extends StatelessWidget {
   final Product product;
   final ForHere forHere = ForHere.lafayette;
   final ToGo toGo = ToGo.lafayette;
+  final log = getLogger('Sell');
+
   final Delivery delivery = Delivery.lafayette;
   final Pickup pick = Pickup.lafayette;
+  final TextEditingController quantityController =
+      TextEditingController(text: "1");
   String buildTitle(BusinessHomeViewModel model) {
     if (model.amountTotal.toString() == 'null') {
       return product.name;
@@ -79,7 +84,12 @@ class Sell extends StatelessWidget {
                               color: Colors.grey,
                               size: 25,
                             ),
-                            onPressed: model.decreaseQty,
+                            onPressed: () {
+                              model.decreaseQty((quantity) {
+                                quantityController.text =
+                                    model.quantity!.toInt().toString();
+                              });
+                            },
                           )
                         : IconButton(
                             icon: const Icon(
@@ -87,7 +97,12 @@ class Sell extends StatelessWidget {
                               color: Color(0xC9000000),
                               size: 25,
                             ),
-                            onPressed: model.decreaseQty,
+                            onPressed: () {
+                              model.decreaseQty((quantity) {
+                                quantityController.text =
+                                    model.quantity!.toInt().toString();
+                              });
+                            },
                           ),
                   ),
                   Container(
@@ -100,13 +115,34 @@ class Sell extends StatelessWidget {
                       child: Container(
                         margin: const EdgeInsets.only(left: 50, right: 50),
                         child: TextFormField(
+                          controller: quantityController,
+                          onChanged: (quantity) {
+                            EasyDebounce.debounce(
+                              'model.debounceId',
+                              Duration(milliseconds: 500),
+                              () {
+                                if (quantity != '0') {
+                                  quantityController.text = '1';
+                                }
+                                if (!quantity.isEmpty && quantity != '0') {
+                                  model.keypad.customQtyIncrease(
+                                      qty: int.parse(quantity));
+                                  model.keypad.setAmount(
+                                    amount:
+                                        model.currentItemStock!.retailPrice *
+                                            int.parse(quantity),
+                                  );
+                                }
+                              },
+                            );
+                          },
                           style: TextStyle(
                             color: Theme.of(context)
                                 .copyWith(canvasColor: Colors.grey[600])
                                 .canvasColor,
                           ),
                           key: Key(model.quantity.toInt().toString()),
-                          initialValue: model.quantity?.toInt().toString(),
+                          // initialValue: model.quantity?.toInt().toString(),
                           textAlign: TextAlign.center,
                           cursorColor: Theme.of(context)
                               .copyWith(canvasColor: const Color(0x3B000000))
@@ -126,7 +162,12 @@ class Sell extends StatelessWidget {
                           color: Color(0xC9000000),
                           size: 25,
                         ),
-                        onPressed: model.increaseQty,
+                        onPressed: () {
+                          model.increaseQty((quantity) {
+                            quantityController.text =
+                                model.quantity!.toInt().toString();
+                          });
+                        },
                       ),
                     ),
                   ),
