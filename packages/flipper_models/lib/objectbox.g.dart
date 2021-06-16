@@ -783,7 +783,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(13, 8608507958994323678),
       name: 'Setting',
-      lastPropertyId: const IdUid(6, 5349255448948390085),
+      lastPropertyId: const IdUid(7, 2340950397470773920),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -815,6 +815,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(6, 5349255448948390085),
             name: 'autoPrint',
             type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(7, 2340950397470773920),
+            name: 'defaultLanguage',
+            type: 9,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1591,13 +1596,17 @@ ModelDefinition getObjectBoxModel() {
         objectToFB: (Setting object, fb.Builder fbb) {
           final emailOffset = fbb.writeString(object.email);
           final hasPinOffset = fbb.writeString(object.hasPin);
-          fbb.startTable(7);
+          final defaultLanguageOffset = object.defaultLanguage == null
+              ? null
+              : fbb.writeString(object.defaultLanguage!);
+          fbb.startTable(8);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, emailOffset);
           fbb.addOffset(2, hasPinOffset);
           fbb.addInt64(3, object.userId);
           fbb.addBool(4, object.openReceiptFileOSaleComplete);
           fbb.addBool(5, object.autoPrint);
+          fbb.addOffset(6, defaultLanguageOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1615,6 +1624,8 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 14),
               openReceiptFileOSaleComplete: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 12),
+              defaultLanguage: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 16),
               userId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
 
@@ -2167,4 +2178,8 @@ class Setting_ {
   /// see [Setting.autoPrint]
   static final autoPrint =
       QueryBooleanProperty<Setting>(_entities[12].properties[5]);
+
+  /// see [Setting.defaultLanguage]
+  static final defaultLanguage =
+      QueryStringProperty<Setting>(_entities[12].properties[6]);
 }

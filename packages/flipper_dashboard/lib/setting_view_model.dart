@@ -10,6 +10,12 @@ class SettingViewModel extends ReactiveViewModel {
   Setting? _setting = null;
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
+
+  Future<Setting?> getSetting() async {
+    String userId = ProxyService.box.read(key: 'userId');
+    await ProxyService.api.getSetting(userId: int.parse(userId));
+  }
+
   Future<bool> updateSettings({required Map map}) async {
     _updateStarted = true;
     return await settingService.updateSettings(map: map);

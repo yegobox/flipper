@@ -866,6 +866,7 @@ class ObjectBoxApi implements Api {
         Setting Ksetting = Setting(
             email: map['email'],
             hasPin: map['hasPin'],
+            defaultLanguage: map['defaultLanguage'],
             userId: map['userId'],
             openReceiptFileOSaleComplete: map['openReceiptFileOSaleComplete'],
             autoPrint: map['autoPrint'],

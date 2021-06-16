@@ -2,6 +2,8 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:stacked/stacked.dart';
+import 'package:flipper_dashboard/setting_view_model.dart';
 
 class LanguagesScreen extends StatefulWidget {
   @override
@@ -13,64 +15,54 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(title: Text('Languages')),
-      appBar: CustomAppBar(
-        onPop: () {
-          ProxyService.nav.back();
-        },
-        title: 'Languages',
-        showActionButton: true,
-        onPressedCallback: () async {
-          ProxyService.nav.back();
-        },
-        // rightActionButtonName: 'Save',
-        icon: Icons.close,
-        multi: 3,
-        bottomSpacer: 42,
-      ),
-      body: SettingsList(
-        sections: [
-          SettingsSection(tiles: [
-            SettingsTile(
-              title: "English",
-              trailing: trailingWidget(0),
-              onPressed: (BuildContext context) {
-                changeLanguage(0);
+    return ViewModelBuilder<SettingViewModel>.reactive(
+        viewModelBuilder: () => SettingViewModel(),
+        builder: (context, model, child) {
+          return Scaffold(
+            // appBar: AppBar(title: Text('Languages')),
+            appBar: CustomAppBar(
+              onPop: () {
+                ProxyService.nav.back();
               },
-            ),
-            SettingsTile(
-              title: "Spanish",
-              trailing: trailingWidget(1),
-              onPressed: (BuildContext context) {
-                changeLanguage(1);
+              title: 'Languages',
+              showActionButton: false,
+              onPressedCallback: () async {
+                ProxyService.nav.back();
               },
+              // rightActionButtonName: 'Save',
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 42,
             ),
-            SettingsTile(
-              title: "Ikinyarwanda",
-              trailing: trailingWidget(1),
-              onPressed: (BuildContext context) {
-                changeLanguage(1);
-              },
+            body: SettingsList(
+              sections: [
+                SettingsSection(tiles: [
+                  SettingsTile(
+                    title: "English",
+                    trailing: trailingWidget(0),
+                    onPressed: (BuildContext context) {
+                      changeLanguage(0, model);
+                    },
+                  ),
+                  SettingsTile(
+                    title: "Ikinyarwanda",
+                    trailing: trailingWidget(1),
+                    onPressed: (BuildContext context) {
+                      changeLanguage(1, model);
+                    },
+                  ),
+                  SettingsTile(
+                    title: "Swahili",
+                    trailing: trailingWidget(3),
+                    onPressed: (BuildContext context) {
+                      changeLanguage(3, model);
+                    },
+                  ),
+                ]),
+              ],
             ),
-            SettingsTile(
-              title: "Chinese",
-              trailing: trailingWidget(2),
-              onPressed: (BuildContext context) {
-                changeLanguage(2);
-              },
-            ),
-            SettingsTile(
-              title: "German",
-              trailing: trailingWidget(3),
-              onPressed: (BuildContext context) {
-                changeLanguage(3);
-              },
-            ),
-          ]),
-        ],
-      ),
-    );
+          );
+        });
   }
 
   Widget trailingWidget(int index) {
@@ -79,9 +71,22 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         : Icon(null);
   }
 
-  void changeLanguage(int index) {
+  void changeLanguage(int index, SettingViewModel model) {
     setState(() {
       languageIndex = index;
+      switch (index) {
+        case 0:
+          // this is english save it as we know it!
+          model.updateSettings(map: {'lenguage': 'en'});
+          break;
+        case 1:
+          // this is english save it as we know it!
+          model.updateSettings(map: {'lenguage': 'be'}); // for kinyarwanda
+          break;
+        case 3:
+          // this is english save it as we know it!
+          model.updateSettings(map: {'lenguage': 'sw'});
+      }
     });
   }
 }

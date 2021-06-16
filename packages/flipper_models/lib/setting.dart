@@ -8,6 +8,7 @@ class Setting {
       required this.hasPin,
       this.autoPrint,
       this.openReceiptFileOSaleComplete,
+      this.defaultLanguage,
       required this.userId});
   int id;
   String email;
@@ -15,11 +16,13 @@ class Setting {
   int userId;
   bool? openReceiptFileOSaleComplete;
   bool? autoPrint;
+  String? defaultLanguage;
 
   factory Setting.fromJson(Map<String, dynamic> json) => Setting(
       id: json["id"],
       openReceiptFileOSaleComplete: json["openReceiptFileOSaleComplete"],
       autoPrint: json["autoPrint"],
+      defaultLanguage: json["defaultLanguage"],
       email: json["email"],
       hasPin: json["hasPin"],
       userId: json["userId"]);
@@ -27,6 +30,7 @@ class Setting {
         "id": id,
         "openReceiptFileOSaleComplete": openReceiptFileOSaleComplete,
         "autoPrint": autoPrint,
+        "defaultLanguage": defaultLanguage,
         "email": email,
         "hasPin": hasPin,
         "userId": userId,

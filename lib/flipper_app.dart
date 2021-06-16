@@ -2,6 +2,7 @@ import 'package:flipper/app_view_model.dart';
 import 'package:flipper/flipper_options.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_login/flipper_theme_data.dart';
+import 'package:flipper_models/setting.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -30,8 +31,11 @@ class _FlipperAppState extends State<FlipperApp> {
 
       return ViewModelBuilder<AppViewModel>.reactive(
           viewModelBuilder: () => AppViewModel(),
-          onModelReady: (model) {
-            final locale = model.locale ?? Locale('en');
+          onModelReady: (model) async {
+            Setting? setting = await model.getSetting();
+            final locale = setting == null
+                ? Locale('en')
+                : Locale(setting.defaultLanguage!);
             model.setLocale(locale);
           },
           builder: (context, model, child) {
@@ -76,6 +80,12 @@ class _FlipperAppState extends State<FlipperApp> {
     } else {
       return ViewModelBuilder<AppViewModel>.reactive(
         viewModelBuilder: () => AppViewModel(),
+        onModelReady: (model) async {
+          Setting? setting = await model.getSetting();
+          final locale =
+              setting == null ? Locale('en') : Locale(setting.defaultLanguage!);
+          model.setLocale(locale);
+        },
         builder: (context, model, child) {
           return MaterialApp(
             themeMode: ThemeMode.system,

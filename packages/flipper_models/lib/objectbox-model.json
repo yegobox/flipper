@@ -764,7 +764,7 @@
     },
     {
       "id": "13:8608507958994323678",
-      "lastPropertyId": "6:5349255448948390085",
+      "lastPropertyId": "7:2340950397470773920",
       "name": "Setting",
       "properties": [
         {
@@ -797,6 +797,11 @@
           "id": "6:5349255448948390085",
           "name": "autoPrint",
           "type": 1
+        },
+        {
+          "id": "7:2340950397470773920",
+          "name": "defaultLanguage",
+          "type": 9
         }
       ],
       "relations": []
