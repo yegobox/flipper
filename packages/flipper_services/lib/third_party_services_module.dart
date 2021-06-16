@@ -201,21 +201,22 @@ abstract class ThirdPartyServicesModule {
 
 class WindowsBlueToothPrinterService implements Printer {
   @override
-  Future<bool> connect({required String mac}) {
+  Future<bool> connect({required String mac}) async {
     // TODO: implement connect
-    throw UnimplementedError();
+    // throw UnimplementedError();
+    return false;
   }
 
   @override
-  Future<List?> getBluetooths() {
+  Future<List?> getBluetooths() async {
     // TODO: implement getBluetooths
-    throw UnimplementedError();
+    // throw UnimplementedError();
   }
 
   @override
-  Future sendToPrinter() {
+  Future sendToPrinter() async {
     // TODO: implement sendToPrinter
-    throw UnimplementedError();
+    // throw UnimplementedError();
   }
 }
 

@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
+import 'package:flipper/localization.dart';
 
 class SupplyPrice extends StatelessWidget {
   const SupplyPrice({Key? key, required this.onModelUpdate}) : super(key: key);
@@ -21,7 +23,7 @@ class SupplyPrice extends StatelessWidget {
               .copyWith(color: Colors.black),
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            hintText: 'Supplier Price',
+            hintText: Localization.of(context)!.supplyPrice,
             fillColor: Theme.of(context)
                 .copyWith(canvasColor: Colors.white)
                 .canvasColor,
