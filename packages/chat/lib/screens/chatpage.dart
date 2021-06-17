@@ -26,7 +26,7 @@ class _KChatPageState extends State<KChatPage> {
               Navigator.pop(context);
             },
           ),
-          title: "Alix Cage",
+          title: "Mr Peace ",
           suffixWidget: FlatProfileImage(
             size: 35.0,
             onlineIndicator: true,

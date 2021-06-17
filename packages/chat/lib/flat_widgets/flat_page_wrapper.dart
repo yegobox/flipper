@@ -26,7 +26,7 @@ class FlatPageWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(
-        top: 24.0,
+        top: 0.0,
       ),
       color: backgroundColor ?? Theme.of(context).primaryColorLight,
       child: _PageBodyWidget(

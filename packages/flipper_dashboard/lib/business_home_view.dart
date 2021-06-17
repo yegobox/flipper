@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/sale_indicator.dart';
 import 'package:flipper_dashboard/slide_out_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'add_product_buttons.dart';
@@ -87,7 +88,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             } else {
               return BusinessWidget(model);
             }
-
           case 'openBusiness':
             return Text('open business');
           case 'closedBusiness':

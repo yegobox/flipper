@@ -8,13 +8,19 @@ class FlatPageHeader extends StatelessWidget {
   final Color? textColor;
   final Widget? suffixWidget;
   final Widget? prefixWidget;
-  FlatPageHeader({this.title, this.textSize, this.fontWeight, this.backgroundColor, this.textColor, this.suffixWidget, this.prefixWidget});
+  FlatPageHeader(
+      {this.title,
+      this.textSize,
+      this.fontWeight,
+      this.backgroundColor,
+      this.textColor,
+      this.suffixWidget,
+      this.prefixWidget});
 
   @override
   Widget build(BuildContext context) {
-
     double paddingRight() {
-      if(suffixWidget == null){
+      if (suffixWidget == null) {
         return 24.0;
       } else {
         return 16.0;
@@ -22,15 +28,15 @@ class FlatPageHeader extends StatelessWidget {
     }
 
     double paddingLeft() {
-      if(prefixWidget == null) {
-        return 24.0;
+      if (prefixWidget == null) {
+        return 44.0;
       } else {
-        return 16.0;
+        return 30.0;
       }
     }
 
     double headerPadding() {
-      if(prefixWidget == null) {
+      if (prefixWidget == null) {
         return 0.0;
       } else {
         return 8.0;
@@ -38,7 +44,7 @@ class FlatPageHeader extends StatelessWidget {
     }
 
     Color? _backgroundColor() {
-      if(backgroundColor != null){
+      if (backgroundColor != null) {
         return backgroundColor;
       } else {
         return Theme.of(context).primaryColorLight;
@@ -47,21 +53,19 @@ class FlatPageHeader extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: FractionalOffset.topCenter,
-          end: FractionalOffset.bottomCenter,
-          stops: [
+          gradient: LinearGradient(
+              begin: FractionalOffset.topCenter,
+              end: FractionalOffset.bottomCenter,
+              stops: [
             0.0,
             0.7,
             1,
           ],
-          colors: [
+              colors: [
             _backgroundColor()!,
             _backgroundColor()!.withOpacity(0.9),
             _backgroundColor()!.withOpacity(0.0),
-          ]
-        )
-      ),
+          ])),
       padding: EdgeInsets.only(
         top: 50.0,
         left: paddingLeft(),
@@ -82,10 +86,9 @@ class FlatPageHeader extends StatelessWidget {
                   child: Text(
                     title ?? "Header",
                     style: TextStyle(
-                      color: textColor ?? Theme.of(context).primaryColorDark,
-                      fontSize: textSize ?? 30.0,
-                      fontWeight: fontWeight ?? FontWeight.w700
-                    ),
+                        color: textColor ?? Theme.of(context).primaryColorDark,
+                        fontSize: textSize ?? 30.0,
+                        fontWeight: fontWeight ?? FontWeight.w700),
                   ),
                 ),
               ],

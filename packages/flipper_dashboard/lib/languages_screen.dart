@@ -32,7 +32,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               // rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 42,
+              bottomSpacer: 55,
             ),
             body: SettingsList(
               sections: [

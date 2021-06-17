@@ -18,14 +18,13 @@ class SettingViewModel extends ReactiveViewModel {
 
   Locale? get locale => klocale;
 
-  Future<Setting?> getSetting() async {
-    await Future.delayed(Duration(microseconds: 2000));
-    String userId = ProxyService.box.read(key: 'userId');
-    return await ProxyService.api.getSetting(userId: int.parse(userId));
+  Future<String?> getSetting() async {
+    return await ProxyService.box.read(key: 'defaultLanguage');
   }
 
   void setLanguage(String lang) {
     klocale = Locale(lang);
+    ProxyService.box.write(key: 'defaultLanguage', value: lang);
     notifyListeners();
   }
 

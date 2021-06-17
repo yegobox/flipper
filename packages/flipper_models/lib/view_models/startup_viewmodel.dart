@@ -18,6 +18,7 @@ class StartUpViewModel extends BaseViewModel {
     appInit();
 
     if (appService.hasLoggedInUser) {
+      await Future.delayed(Duration(microseconds: 2000));
       List<Business>? businesses = await ProxyService.api.businesses();
 
       didSync = (businesses.isNotEmpty) ? true : false;

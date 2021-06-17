@@ -150,6 +150,8 @@ dependencies:
   open_file: ^3.2.1
   firebase_performance: "^0.7.0+5"
   easy_debounce: ^2.0.0
+  # flutter_chat_ui: ^1.1.3
+  # flutter_chat_ui: 
   # cbl: ^0.6.0
   # cbl_flutter: 
   # TODO: implement feedback flow later created aount in wiredash using yegobox@gmail.com google login

@@ -34,10 +34,10 @@ class _FlipperAppState extends State<FlipperApp> {
       return ViewModelBuilder<AppViewModel>.reactive(
           viewModelBuilder: () => AppViewModel(),
           onModelReady: (model) async {
-            Setting? setting = await model.getSetting();
-            final locale = setting == null
-                ? Locale('en')
-                : Locale(setting.defaultLanguage!);
+            String? defaultLanguage = await model.getSetting();
+            final locale = defaultLanguage == null
+                ? Locale('be')
+                : Locale(defaultLanguage);
             model.setLocale(locale);
           },
           builder: (context, model, child) {
@@ -83,10 +83,9 @@ class _FlipperAppState extends State<FlipperApp> {
       return ViewModelBuilder<AppViewModel>.reactive(
         viewModelBuilder: () => AppViewModel(),
         onModelReady: (model) async {
-          Setting? setting = await model.getSetting();
-
+          String? defaultLanguage = await model.getSetting();
           final locale =
-              setting == null ? Locale('en') : Locale(setting.defaultLanguage!);
+              defaultLanguage == null ? Locale('be') : Locale(defaultLanguage);
           model.setLocale(locale);
         },
         builder: (context, model, child) {
