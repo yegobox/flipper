@@ -28,14 +28,15 @@ void main() {
       final appService = getAndRegisterAppService(hasLoggedInUser: true);
       final navigationService = getAndRegisterNavigationService();
       final model = _getModel();
-      // when()
+
       appService.isLoggedIn();
       model.runStartupLogic();
+      await Future.delayed(Duration(microseconds: 2000));
       await api.businesses();
-      // TODOadded await Future.delayed(Duration(microseconds: 2000)); in startupviewmodel and caused the bug need to write unit to adapt to it.!
-      // expect(model.didSync, true);
-      expect(true, true);
-      // verify(navigationService.replaceWith(Routes.home));
+
+      expect(model.didSync, true);
+
+      verify(navigationService.replaceWith(Routes.home));
     });
     test('When user not logged in should take user to login', () async {
       final appService = getAndRegisterAppService(hasLoggedInUser: false);
