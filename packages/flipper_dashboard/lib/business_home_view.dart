@@ -1,5 +1,6 @@
 library flipper_dashboard;
 
+import 'package:flipper/localization.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -195,7 +196,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   Flexible(
                     flex: 1,
                     child: Text(
-                      ' Add Product',
+                      Localization.of(context)!.addProduct,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,

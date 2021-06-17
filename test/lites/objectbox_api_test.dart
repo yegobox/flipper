@@ -225,10 +225,15 @@ void main() {
   test('test add settings', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
-    Setting setting =
-        new Setting(email: 'b@gmail.com', userId: 300, hasPin: '3123');
+    Setting setting = new Setting(
+        email: 'b@gmail.com',
+        userId: 300,
+        hasPin: '3123',
+        defaultLanguage: 'en');
+
     Setting? Ksetting = await api.createSetting(userId: 300, setting: setting);
     expect(Ksetting!.email, "b@gmail.com");
+    expect(Ksetting.defaultLanguage, "en");
     //test setting should exist as object now
     Setting? _KSettings = await api.getSetting(userId: 300);
     expect(_KSettings!.userId, 300);

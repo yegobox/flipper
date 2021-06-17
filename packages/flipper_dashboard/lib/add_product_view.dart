@@ -1,3 +1,4 @@
+import 'package:flipper/localization.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
@@ -83,7 +84,7 @@ class AddProductView extends StatelessWidget {
                           model.setName(name: name);
                         },
                         decoration: InputDecoration(
-                          hintText: 'Product name',
+                          hintText: Localization.of(context)!.productName,
                           fillColor: Theme.of(context)
                               .copyWith(canvasColor: Colors.white)
                               .canvasColor,

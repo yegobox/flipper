@@ -1,4 +1,5 @@
 // import 'package:flipper_models/view_models/pos_viewmodel.dart';
+import 'package:flipper/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
 
@@ -52,7 +53,7 @@ class PayableView extends StatelessWidget {
                       canvasColor: HexColor('#2996CC'),
                     )
                     .canvasColor,
-                child: ticketText(orders: orders),
+                child: ticketText(orders: orders, context: context),
               ),
             ),
           ),
@@ -79,7 +80,7 @@ class PayableView extends StatelessWidget {
                     onTap: () {
                       onClick();
                     },
-                    child: callCharge(payable: duePay)),
+                    child: callCharge(payable: duePay, context: context)),
               ),
             ),
           ),
@@ -88,10 +89,10 @@ class PayableView extends StatelessWidget {
     );
   }
 
-  Widget ticketText({required int orders}) {
+  Widget ticketText({required int orders, required BuildContext context}) {
     if (orders == 0) {
-      return const Text(
-        'Tickets',
+      return Text(
+        Localization.of(context)!.tickets,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 20.0,
@@ -105,8 +106,8 @@ class PayableView extends StatelessWidget {
           children: <Widget>[
             Container(
               child: Container(
-                child: const Text(
-                  'Save',
+                child: Text(
+                  Localization.of(context)!.save,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18.0,
@@ -134,14 +135,14 @@ class PayableView extends StatelessWidget {
     }
   }
 
-  Widget callCharge({required double payable}) {
+  Widget callCharge({required double payable, required BuildContext context}) {
     final display = createDisplay(
       length: 8,
       decimal: 2,
     );
     if (payable == 0.0) {
       return Text(
-        'Charge FRw' + display(payable).toString(),
+        Localization.of(context)!.charge + ' FRw' + display(payable).toString(),
         style: const TextStyle(
           fontSize: 20.0,
           color: Colors.white,
@@ -153,8 +154,8 @@ class PayableView extends StatelessWidget {
         children: <Widget>[
           Container(
             child: Container(
-              child: const Text(
-                'Charge',
+              child: Text(
+                Localization.of(context)!.charge,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18.0,

@@ -3,8 +3,32 @@
     "@save": {
         "description": "The conventional newborn programmer greeting"
     },
+    "retailPrice": "Igiciro",
+    "@retailPrice": {
+        "description": "The conventional newborn programmer greeting"
+    },
     "supplyPrice": "Ikiranguzo",
     "@supplyPrice": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "currentSale": "Igurishwa ryubu",
+    "@currentSale": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "addProduct": "Ongeramo ibicuruzwa",
+    "@addProduct": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "tickets": "Amatike",
+    "@tickets": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "charge": "kwishyuza",
+    "@charge": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "productName": "Product Name",
+    "@productName": {
         "description": "The conventional newborn programmer greeting"
     }
 }

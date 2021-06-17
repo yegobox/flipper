@@ -77,15 +77,19 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
       switch (index) {
         case 0:
           // this is english save it as we know it!
-          model.updateSettings(map: {'lenguage': 'en'});
+          model.setLanguage('en');
+          model.updateSettings(map: {'defaultLanguage': 'en'});
           break;
         case 1:
           // this is english save it as we know it!
-          model.updateSettings(map: {'lenguage': 'be'}); // for kinyarwanda
+          model.setLanguage('be');
+          model.updateSettings(
+              map: {'defaultLanguage': 'be'}); // for kinyarwanda
           break;
         case 3:
           // this is english save it as we know it!
-          model.updateSettings(map: {'lenguage': 'sw'});
+          model.setLanguage('sw');
+          model.updateSettings(map: {'defaultLanguage': 'sw'});
       }
     });
   }

@@ -1,8 +1,10 @@
 import 'package:flipper/routes.locator.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/setting.dart';
+import 'package:flutter/material.dart';
 
 class SettingViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
@@ -10,10 +12,21 @@ class SettingViewModel extends ReactiveViewModel {
   Setting? _setting = null;
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
+  final log = getLogger('SettingViewModel');
+  //
+  Locale? klocale = null;
+
+  Locale? get locale => klocale;
 
   Future<Setting?> getSetting() async {
+    await Future.delayed(Duration(microseconds: 2000));
     String userId = ProxyService.box.read(key: 'userId');
-    await ProxyService.api.getSetting(userId: int.parse(userId));
+    return await ProxyService.api.getSetting(userId: int.parse(userId));
+  }
+
+  void setLanguage(String lang) {
+    klocale = Locale(lang);
+    notifyListeners();
   }
 
   Future<bool> updateSettings({required Map map}) async {

@@ -54,6 +54,7 @@ class ObjectBoxApi implements Api {
   getDir({required String dbName}) async {
     Directory dir = await getApplicationDocumentsDirectory();
     _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
+    await Future.delayed(Duration(microseconds: 2000));
   }
 
   StompClient? stompClient;

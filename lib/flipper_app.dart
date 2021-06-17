@@ -1,5 +1,6 @@
 import 'package:flipper/app_view_model.dart';
 import 'package:flipper/flipper_options.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_login/flipper_theme_data.dart';
 import 'package:flipper_models/setting.dart';
@@ -22,6 +23,7 @@ class FlipperApp extends StatefulWidget {
 }
 
 class _FlipperAppState extends State<FlipperApp> {
+  final log = getLogger('FlipperApp');
   @override
   Widget build(BuildContext context) {
     if (!isWindows && !isMacOs) {
@@ -82,6 +84,7 @@ class _FlipperAppState extends State<FlipperApp> {
         viewModelBuilder: () => AppViewModel(),
         onModelReady: (model) async {
           Setting? setting = await model.getSetting();
+
           final locale =
               setting == null ? Locale('en') : Locale(setting.defaultLanguage!);
           model.setLocale(locale);

@@ -1,3 +1,4 @@
+import 'package:flipper/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -46,7 +47,7 @@ class SaleIndicator extends StatelessWidget {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Current Sale'),
+                          Text(Localization.of(context)!.currentSale),
                           Stack(
                             alignment: isAndroid
                                 ? AlignmentDirectional.bottomCenter
