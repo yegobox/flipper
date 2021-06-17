@@ -30,5 +30,9 @@
     "productName": "Izina ryigicuruzwa",
     "@productName": {
         "description": "The conventional newborn programmer greeting"
+    },
+    "flipperSetting": "Igenamiterere",
+    "@flipperSetting": {
+        "description": "The conventional newborn programmer greeting"
     }
 }

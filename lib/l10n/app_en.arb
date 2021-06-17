@@ -30,5 +30,9 @@
     "productName": "Product Name",
     "@productName": {
         "description": "The conventional newborn programmer greeting"
+    },
+    "flipperSetting": "Flipper Settings",
+    "@flipperSetting": {
+        "description": "The conventional newborn programmer greeting"
     }
 }

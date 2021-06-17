@@ -1,3 +1,4 @@
+import 'package:flipper/localization.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -232,7 +233,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
 
                             const Divider(),
                             _menuListRowButton(
-                              'Flipper Settings',
+                              Localization.of(context)!.flipperSetting,
                               context: context,
                             ),
                             const Divider(),
