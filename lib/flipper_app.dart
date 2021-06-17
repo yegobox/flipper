@@ -97,6 +97,7 @@ class _FlipperAppState extends State<FlipperApp> {
               textTheme: GoogleFonts.nunitoSansTextTheme(
                 Theme.of(context).textTheme,
               ),
+              //
               // You can change theme colors to directly change colors for the whole
               // app.
               primaryColor: Color(0xff5B428F),
