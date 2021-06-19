@@ -57,16 +57,31 @@ class ObjectBoxApi implements Api {
     await Future.delayed(Duration(microseconds: 2000));
   }
 
-  StompClient? stompClient;
-  StreamController<Message> streamController =
+  StompClient? stompMessageClient;
+  StreamController<Message> messageStreamController =
       StreamController<Message>.broadcast();
+
+  StompClient? stompUsersClient;
+  StreamController<Business> usersStreamController =
+      StreamController<Business>.broadcast();
   void onConnect(StompFrame frame) {
-    stompClient?.subscribe(
+    /// for message
+    stompMessageClient?.subscribe(
         destination: '/topic/messages',
         callback: (StompFrame frame) {
           if (frame.body != null) {
             Message result = sMessageJson(frame.body!);
-            streamController.add(result);
+            messageStreamController.add(result);
+          }
+        });
+
+    /// for users socket listner
+    stompUsersClient?.subscribe(
+        destination: '/topic/users',
+        callback: (StompFrame frame) {
+          if (frame.body != null) {
+            Business result = sbusinessFromJson(frame.body!);
+            usersStreamController.add(result);
           }
         });
   }
@@ -75,15 +90,25 @@ class ObjectBoxApi implements Api {
     // var dio = Dio();
     // dioClient = DioClient(apihub, dio, interceptors: []);
     //connect socket
-    if (stompClient == null) {
-      stompClient = StompClient(
+    if (stompMessageClient == null && stompUsersClient == null) {
+      stompMessageClient = StompClient(
           config: StompConfig.SockJS(
         url: socketUrl,
         onConnect: onConnect,
         onWebSocketError: (dynamic error) => print(error.toString()),
       ));
 
-      stompClient?.activate();
+      stompMessageClient?.activate();
+
+      /// activate the users client
+      stompUsersClient = StompClient(
+          config: StompConfig.SockJS(
+        url: socketUrl,
+        onConnect: onConnect,
+        onWebSocketError: (dynamic error) => print(error.toString()),
+      ));
+
+      stompUsersClient?.activate();
     }
     // end of socket connection
     if (dir != null) {
@@ -108,9 +133,24 @@ class ObjectBoxApi implements Api {
     if (businessList.isNotEmpty) {
       return businessList;
     }
+    return await loadingBusinesses(businessList, "businesses");
+    // final response = await dioClient.get(
+    //   "$apihub/v2/api/businesses",
+    // );
+    // List<Business> businesses = [];
+    // try {
+    //   return businessFromJson(response);
+    // } catch (e) {
+    //   print(e);
+    // }
+    // return businesses;
+  }
+
+  Future<List<Business>> loadingBusinesses(
+      List<Business> businessList, String endPoint) async {
     List<Business> businesses = [];
     try {
-      final response = await client.get(Uri.parse("$apihub/v2/api/businesses"));
+      final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
       if (businessList.isEmpty) {
         for (Business business in businessFromJson(response.body)) {
           final box = _store.box<Business>();
@@ -122,16 +162,6 @@ class ObjectBoxApi implements Api {
     } catch (e) {
       return businesses;
     }
-    // final response = await dioClient.get(
-    //   "$apihub/v2/api/businesses",
-    // );
-    // List<Business> businesses = [];
-    // try {
-    //   return businessFromJson(response);
-    // } catch (e) {
-    //   print(e);
-    // }
-    // return businesses;
   }
 
   @override
@@ -915,13 +945,13 @@ class ObjectBoxApi implements Api {
     return query.findFirst();
   }
 
-  late StreamSubscription<Message> subscription;
+  late StreamSubscription<Message> messageSubscription;
   @override
   Stream<List<Message>> messages() {
     int? businessId = ProxyService.box.read(key: 'businessId');
     //first I have to listen to a socket
-    Stream<Message> stream = streamController.stream;
-    subscription = stream.listen((message) {
+    Stream<Message> stream = messageStreamController.stream;
+    messageSubscription = stream.listen((message) {
       Message? kMessage = _store.box<Message>().get(message.id);
 
       log.i(message.receiverId == businessId);
@@ -935,7 +965,7 @@ class ObjectBoxApi implements Api {
     });
     return _store
         .box<Message>()
-        .query(Message_.receiverId.equals(1))
+        .query(Message_.receiverId.equals(businessId!))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
   }
@@ -947,5 +977,25 @@ class ObjectBoxApi implements Api {
         .box<Business>()
         .getAll()
         .firstWhere((unit) => unit.userId == userId);
+  }
+
+  late StreamSubscription<Business> userSubs;
+  @override
+  Stream<List<Business>> users() {
+    Stream<Business> stream = usersStreamController.stream;
+    userSubs = stream.listen((business) {
+      Message? kBusiness = _store.box<Message>().get(business.id);
+      log.i(kBusiness);
+      if (kBusiness == null) {
+        log.i("now inserting new business" + business.id.toString());
+        final box = _store.box<Business>();
+        box.put(business);
+      }
+    });
+    return _store
+        .box<Business>()
+        .query()
+        .watch(triggerImmediately: true)
+        .map((query) => query.find());
   }
 }

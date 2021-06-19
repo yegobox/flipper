@@ -701,4 +701,10 @@ class LiteApi<T> implements Api {
     // TODO: implement getBusiness
     throw UnimplementedError();
   }
+
+  @override
+  Stream<List<Business>> users() {
+    // TODO: implement users
+    throw UnimplementedError();
+  }
 }

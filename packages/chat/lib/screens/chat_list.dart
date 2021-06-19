@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'chatpage.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/message.dart';
+import 'package:flipper_models/business.dart';
 import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flipper_dashboard/custom_rect_tween.dart';
@@ -111,77 +112,24 @@ class _ChatListState extends State<ChatList> {
                         ),
                         child: FlatAddStoryBtn(),
                       ),
-                      FlatProfileImage(
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=80",
-                        onlineIndicator: true,
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                        onlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1502323777036-f29e3972d82f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
-                      ),
-                      FlatProfileImage(
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=80",
-                        onlineIndicator: true,
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                        onlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1502323777036-f29e3972d82f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1582721244958-d0cc82a417da?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2179&q=80",
-                      ),
-                      FlatProfileImage(
-                        onlineIndicator: true,
-                        outlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
-                      ),
-                      FlatProfileImage(
-                        onlineIndicator: true,
-                        outlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
-                      ),
-                      FlatProfileImage(
-                        onlineIndicator: true,
-                        outlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
-                      ),
-                      FlatProfileImage(
-                        onlineIndicator: true,
-                        outlineIndicator: true,
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                      ),
-                      FlatProfileImage(
-                        outlineIndicator: true,
-                      )
+                      StreamBuilder<List<Business>>(
+                          stream: ProxyService.api.users(),
+                          builder: (context, snapshot) {
+                            List<Business>? businesses = snapshot.data;
+                            if (businesses != null && businesses.isNotEmpty) {
+                              return Row(
+                                children: businesses
+                                    .map((e) => FlatProfileImage(
+                                          imageUrl: e.image,
+                                          onlineIndicator: true,
+                                          outlineIndicator: true,
+                                        ))
+                                    .toList(),
+                              );
+                            } else {
+                              return SizedBox.shrink();
+                            }
+                          }),
                     ],
                   ),
                 ),
@@ -222,20 +170,6 @@ class _ChatListState extends State<ChatList> {
                                                 message.createdAt)),
                                           ),
                                         ),
-                                        // child: ConversationList(
-                                        //   name: message.senderName,
-                                        //   messageText: message.message,
-                                        //   imageUrl: null,
-                                        // time: timeago.format(DateTime.parse(
-                                        //     message.createdAt)),
-                                        //   isMessageRead: (0 == 0 || 0 == 3)
-                                        //       ? true
-                                        //       : false,
-                                        //   onPressed: () {
-                                        //     ProxyService.nav
-                                        //         .navigateTo(Routes.chatPage);
-                                        //   },
-                                        // ),
                                       ))
                                   .toList(),
                             )

@@ -67,7 +67,7 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isChatAvailable() {
-    return false;
+    return true;
   }
 
   @override

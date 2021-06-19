@@ -30,7 +30,7 @@ class BottomMenuBar extends StatelessWidget {
               'assets/icons/keypad_disable.png',
             ),
           ),
-          label: 'Chats',
+          label: 'Keypad',
         ),
         BottomNavigationBarItem(
           activeIcon: Image(
