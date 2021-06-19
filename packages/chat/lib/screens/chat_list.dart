@@ -7,7 +7,6 @@ import 'package:flipper/constants.dart';
 import 'conversation_list.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/message.dart';
-import 'package:flipper_ui/src/shared/app_colors.dart';
 import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flipper_dashboard/custom_rect_tween.dart';
@@ -62,7 +61,7 @@ class _ChatListState extends State<ChatList> {
                   margin: const EdgeInsets.symmetric(horizontal: 10.0),
                   decoration: const BoxDecoration(
                     color: Colors.blue,
-                    borderRadius: BorderRadius.all(Radius.circular(50)),
+                    borderRadius: BorderRadius.all(Radius.elliptical(5, 5)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -71,21 +70,11 @@ class _ChatListState extends State<ChatList> {
                       Flexible(
                         flex: 1,
                         child: const Icon(
-                          Icons.add,
+                          Icons.qr_code_scanner,
                           size: 20,
                           color: Colors.white,
                         ),
                       ),
-                      Flexible(
-                        flex: 1,
-                        child: Text(
-                          Localization.of(context)!.addProduct,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
                     ],
                   ),
                 ),

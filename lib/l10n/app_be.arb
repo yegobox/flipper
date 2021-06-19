@@ -34,5 +34,9 @@
     "flipperSetting": "Igenamiterere",
     "@flipperSetting": {
         "description": "The conventional newborn programmer greeting"
+    },
+    "options": "Amahitamo",
+    "@options": {
+        "description": "Amahitamo"
     }
 }
