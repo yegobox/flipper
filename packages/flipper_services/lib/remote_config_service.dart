@@ -9,7 +9,7 @@ class RemoteConfigService implements Remote {
   void setDefault() {
     remoteConfig.setDefaults(<String, dynamic>{
       'welcome_message': 'Welcome to flipper',
-      'chat_feature': false,
+      'chat_feature': kDebugMode ? true : false,
       'spenn_payment': false,
       'email_receipt': false,
       'add_customer_to_sale': false,
