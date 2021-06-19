@@ -258,8 +258,9 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
               returnValue: Future<_i18.Setting?>.value())
           as _i12.Future<_i18.Setting?>);
   @override
-  _i12.Stream<List<_i19.Message>> messages() =>
-      (super.noSuchMethod(Invocation.method(#messages, []),
+  _i12.Stream<List<_i19.Message>> messages({int? receiverId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#messages, [], {#receiverId: receiverId}),
               returnValue: Stream<List<_i19.Message>>.empty())
           as _i12.Stream<List<_i19.Message>>);
   @override

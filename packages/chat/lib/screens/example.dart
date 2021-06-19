@@ -83,9 +83,7 @@ class Example extends StatelessWidget {
             title: "Marked Important",
           ),
           chatItem(
-            onPressed: () {
-              Navigator.pushNamed(context, KChatPage.id);
-            },
+            onPressed: () {},
             name: "Akshaye JH",
             profileImage: FlatProfileImage(
               imageUrl:

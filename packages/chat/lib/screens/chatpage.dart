@@ -29,7 +29,7 @@ class KChatPage extends StatelessWidget {
               onPressedCallback: () async {
                 ProxyService.nav.back();
               },
-              rightActionButtonName: 'Save',
+              rightActionButtonName: '',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 50,
