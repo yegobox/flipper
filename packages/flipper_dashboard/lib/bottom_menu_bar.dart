@@ -47,7 +47,7 @@ class BottomMenuBar extends StatelessWidget {
               'assets/icons/library_disable.png',
             ),
           ),
-          label: 'Deals',
+          label: 'Library',
         ),
       ],
     );

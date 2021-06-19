@@ -1,9 +1,18 @@
+import 'package:chat/flat_widgets/flat_action_btn.dart';
+import 'package:chat/flat_widgets/flat_add_story_btn.dart';
+import 'package:chat/flat_widgets/flat_chat_item.dart';
+import 'package:chat/flat_widgets/flat_counter.dart';
+import 'package:chat/flat_widgets/flat_page_header.dart';
+import 'package:chat/flat_widgets/flat_page_wrapper.dart';
+import 'package:chat/flat_widgets/flat_profile_image.dart';
+import 'package:chat/flat_widgets/flat_section_header.dart';
 import 'package:chat/screens/messa_view_model.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper/constants.dart';
+import 'chatpage.dart';
 import 'conversation_list.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/message.dart';
@@ -92,125 +101,120 @@ class _ChatListState extends State<ChatList> {
             drawer: FlipperDrawer(
               businesses: model.businesses,
             ),
-            body: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  SafeArea(
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 16, right: 16, top: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text(
-                            "Conversations",
-                            style: TextStyle(
-                                fontSize: 32, fontWeight: FontWeight.bold),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              ProxyService.nav.navigateTo(Routes.addConvo);
-                            },
-                            child: Container(
-                              padding: EdgeInsets.only(
-                                  left: 8, right: 8, top: 2, bottom: 2),
-                              height: 30,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                color: Colors.pink[50],
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.add,
-                                    color: Colors.pink,
-                                    size: 20,
-                                  ),
-                                  SizedBox(
-                                    width: 2,
-                                  ),
-                                  Text(
-                                    "Add New",
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
+            body: FlatPageWrapper(
+              scrollType: ScrollType.floatingHeader,
+              children: [
+                Container(
+                  height: 76.0,
+                  margin: EdgeInsets.symmetric(
+                    vertical: 16.0,
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 16, left: 16, right: 16),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search...",
-                        hintStyle: TextStyle(color: Colors.grey.shade600),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.grey.shade600,
-                          size: 20,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 16.0,
                         ),
-                        filled: true,
-                        fillColor: Colors.grey.shade100,
-                        contentPadding: EdgeInsets.all(8),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide:
-                                BorderSide(color: Colors.grey.shade100)),
+                        child: FlatAddStoryBtn(),
                       ),
-                    ),
+                      FlatProfileImage(
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=80",
+                        onlineIndicator: true,
+                        outlineIndicator: true,
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                        onlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1502323777036-f29e3972d82f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1582721244958-d0cc82a417da?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2179&q=80",
+                      ),
+                      FlatProfileImage(
+                        onlineIndicator: true,
+                        outlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                      )
+                    ],
                   ),
-                  StreamBuilder<List<Message>>(
-                      stream: ProxyService.api.messages(),
-                      builder: (context, snapshot) {
-                        List<Message>? messages = snapshot.data;
-                        return (messages != null && messages.length != 0)
-                            ? Column(
-                                children: messages
-                                    .map((message) => Slidable(
-                                          secondaryActions: <Widget>[
-                                            IconSlideAction(
-                                              caption: 'Delete',
-                                              color: Colors.red,
-                                              icon: Icons.delete,
-                                              onTap: () {
-                                                model.delete(message.id);
-                                              },
-                                            ),
-                                          ],
-                                          actionPane:
-                                              SlidableDrawerActionPane(),
-                                          child: ConversationList(
-                                            name: message.senderName,
-                                            messageText: message.message,
-                                            imageUrl: null,
-                                            time: timeago.format(DateTime.parse(
-                                                message.createdAt)),
-                                            isMessageRead: (0 == 0 || 0 == 3)
-                                                ? true
-                                                : false,
-                                            onPressed: () {
-                                              ProxyService.nav
-                                                  .navigateTo(Routes.chatPage);
+                ),
+                StreamBuilder<List<Message>>(
+                    stream: ProxyService.api.messages(),
+                    builder: (context, snapshot) {
+                      List<Message>? messages = snapshot.data;
+                      return (messages != null && messages.length != 0)
+                          ? Column(
+                              children: messages
+                                  .map((message) => Slidable(
+                                        secondaryActions: <Widget>[
+                                          IconSlideAction(
+                                            caption: 'Delete',
+                                            color: Colors.red,
+                                            icon: Icons.delete,
+                                            onTap: () {
+                                              model.delete(message.id);
                                             },
                                           ),
-                                        ))
-                                    .toList(),
-                              )
-                            : Center(
-                                child: Text(
-                                  'No Messages',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              );
-                      })
-                ],
-              ),
+                                        ],
+                                        actionPane: SlidableDrawerActionPane(),
+                                        child: chatItem(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                                context, KChatPage.id);
+                                          },
+                                          name: message.senderName,
+                                          profileImage: FlatProfileImage(
+                                            imageUrl:
+                                                "https://images.unsplash.com/photo-1521235042493-c5bef89dc2c8?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1385&q=80",
+                                            onlineIndicator: true,
+                                          ),
+                                          message: message.message,
+                                          multiLineMessage: true,
+                                          counter: FlatCounter(
+                                            text: timeago.format(DateTime.parse(
+                                                message.createdAt)),
+                                          ),
+                                        ),
+                                        // child: ConversationList(
+                                        //   name: message.senderName,
+                                        //   messageText: message.message,
+                                        //   imageUrl: null,
+                                        // time: timeago.format(DateTime.parse(
+                                        //     message.createdAt)),
+                                        //   isMessageRead: (0 == 0 || 0 == 3)
+                                        //       ? true
+                                        //       : false,
+                                        //   onPressed: () {
+                                        //     ProxyService.nav
+                                        //         .navigateTo(Routes.chatPage);
+                                        //   },
+                                        // ),
+                                      ))
+                                  .toList(),
+                            )
+                          : Center(
+                              child: Text(
+                                'No Messages',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            );
+                    })
+              ],
             ),
           ),
         );
