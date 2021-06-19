@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/message.dart';
+import 'package:flipper_dashboard/customappbar.dart';
 
 class KChatPage extends StatelessWidget {
   final int receiverId;
@@ -19,12 +20,26 @@ class KChatPage extends StatelessWidget {
         viewModelBuilder: () => MessageViewModel(),
         builder: (context, model, child) {
           return Scaffold(
+            appBar: CustomAppBar(
+              onPop: () async {
+                ProxyService.nav.back();
+              },
+              title: '',
+              showActionButton: false,
+              onPressedCallback: () async {
+                ProxyService.nav.back();
+              },
+              rightActionButtonName: 'Save',
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 50,
+            ),
             body: FlatPageWrapper(
               scrollType: ScrollType.floatingHeader,
               reverseBodyList: true,
               children: [
                 StreamBuilder<List<Message>>(
-                    stream: ProxyService.api.messages(),
+                    stream: ProxyService.api.messages(receiverId: receiverId),
                     builder: (context, snapshot) {
                       List<Message>? messages = snapshot.data;
                       return (messages != null && messages.length != 0)

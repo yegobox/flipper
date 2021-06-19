@@ -691,7 +691,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Stream<List<Message>> messages() {
+  Stream<List<Message>> messages({int? receiverId}) {
     // TODO: implement messages
     throw UnimplementedError();
   }
