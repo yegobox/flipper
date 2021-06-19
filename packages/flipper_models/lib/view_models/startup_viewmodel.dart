@@ -1,5 +1,6 @@
 import 'package:flipper/constants.dart';
 import 'package:flipper/routes.locator.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
@@ -12,6 +13,7 @@ class StartUpViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final appService = locator<AppService>();
   bool didSync = false;
+  final log = getLogger('StartUpViewModel');
 
   Future<void> runStartupLogic() async {
     appService.isLoggedIn();
@@ -52,12 +54,17 @@ class StartUpViewModel extends BaseViewModel {
     if (appService.hasLoggedInUser) {
       List<Business>? businesses = await ProxyService.api.businesses();
       try {
-        List<Branch> branches =
-            await ProxyService.api.branches(businessId: businesses[0].id);
-
-        ProxyService.box.write(key: 'branchId', value: branches[0].id);
-        ProxyService.box.write(key: 'businessId', value: businesses[0].id);
-      } catch (e) {}
+        if (businesses.isNotEmpty) {
+          List<Branch> branches =
+              await ProxyService.api.branches(businessId: businesses[0].id);
+          log.i(branches[0].id);
+          log.i(businesses[0].id);
+          ProxyService.box.write(key: 'branchId', value: branches[0].id);
+          ProxyService.box.write(key: 'businessId', value: businesses[0].id);
+        }
+      } catch (e) {
+        log.i(e);
+      }
     }
   }
 }

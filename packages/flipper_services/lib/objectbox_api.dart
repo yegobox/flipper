@@ -935,7 +935,7 @@ class ObjectBoxApi implements Api {
     });
     return _store
         .box<Message>()
-        .query(Message_.receiverId.equals(businessId!))
+        .query(Message_.receiverId.equals(1))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
   }
