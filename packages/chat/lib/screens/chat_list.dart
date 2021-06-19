@@ -1,4 +1,5 @@
 import 'package:chat/screens/messa_view_model.dart';
+import 'package:flipper/localization.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,6 +10,11 @@ import 'package:flipper_models/message.dart';
 import 'package:flipper_ui/src/shared/app_colors.dart';
 import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:flipper_dashboard/custom_rect_tween.dart';
+import 'package:flipper_dashboard/bottom_menu_bar.dart';
+import 'package:flipper_dashboard/flipper_drawer.dart';
+import 'package:flipper_dashboard/hero_dialog_route.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 
 class ChatList extends StatefulWidget {
   static final String id = "Homepage";
@@ -28,8 +34,6 @@ class _ChatListState extends State<ChatList> {
       onModelReady: (model) {
         // model.messages();
       },
-      // UnSubscribe to stream when disposed
-      // onDispose: ,
       builder: (context, model, child) {
         return WillPopScope(
           onWillPop: _onWillPop,
@@ -38,45 +42,66 @@ class _ChatListState extends State<ChatList> {
                 FloatingActionButtonLocation.miniCenterDocked,
             floatingActionButton: GestureDetector(
               onTap: () {
-                // TODOupdate the business online too for next login.
-                ProxyService.box.remove(key: pageKey);
-                ProxyService.nav.navigateTo(Routes.startUpView);
+                Navigator.of(context).push(
+                  HeroDialogRoute(
+                    builder: (context) {
+                      return const OptionModal(
+                        child: Text('hello world'),
+                      );
+                    },
+                  ),
+                );
               },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.symmetric(horizontal: 10.0),
-                decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: kcPrimaryColor,
-                      width: 1,
-                    )),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      flex: 1,
-                      child: const Icon(
-                        Icons.sync_alt,
-                        size: 20,
-                        color: Colors.black,
-                      ),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: Text(
-                        'Switch back to business',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.black,
+              child: Hero(
+                tag: addProductHero,
+                createRectTween: (begin, end) {
+                  return CustomRectTween(begin: begin, end: end);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  margin: const EdgeInsets.symmetric(horizontal: 10.0),
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.all(Radius.circular(50)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        flex: 1,
+                        child: const Icon(
+                          Icons.add,
+                          size: 20,
+                          color: Colors.white,
                         ),
                       ),
-                    )
-                  ],
+                      Flexible(
+                        flex: 1,
+                        child: Text(
+                          Localization.of(context)!.addProduct,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
+            ),
+            bottomNavigationBar: SafeArea(
+              child: BottomMenuBar(
+                switchTab: (index) {
+                  setState(() {
+                    // model.setTab(tab: index);
+                  });
+                },
+              ),
+            ),
+            drawer: FlipperDrawer(
+              businesses: model.businesses,
             ),
             body: SingleChildScrollView(
               physics: BouncingScrollPhysics(),

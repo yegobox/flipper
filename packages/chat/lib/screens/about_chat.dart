@@ -1,6 +1,4 @@
 import 'package:chat/flat_widgets/flat_info_page_wrapper.dart';
-import 'package:chat/flat_widgets/flat_primary_button.dart';
-import 'package:chat/screens/chat_list.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -17,6 +15,7 @@ class _AboutChatMiniAppState extends State<AboutChatMiniApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: FlatInfoPageWrapper(
         heading: "About Flipper social",
         subHeading: "Because we like fun!",

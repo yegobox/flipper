@@ -83,7 +83,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           case 'business':
             return BusinessWidget(model);
           case 'social':
-            if (ProxyService.remoteConfig.isChatAvailable()) {
+            if (ProxyService.remoteConfig.isChatAvailable() || kDebugMode) {
               return AboutChatMiniApp();
             } else {
               return BusinessWidget(model);
@@ -140,7 +140,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           duePay: model.orders.isNotEmpty
                               ? model.orders[0].orderItems
                                   .fold(0, (a, b) => a + b.price)
-                              : 0.0,
+                              : 0.00,
                         ),
                         onClick: () {},
                         controller: controller,

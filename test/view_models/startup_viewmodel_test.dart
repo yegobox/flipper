@@ -4,7 +4,7 @@ import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import '../helpers/test_helpers.dart';
-import 'api_test.dart';
+// import 'api_test.dart';
 
 StartUpViewModel _getModel() => StartUpViewModel();
 final Business businessMockData = new Business(

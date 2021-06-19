@@ -138,7 +138,7 @@ class PayableView extends StatelessWidget {
   Widget callCharge({required double payable, required BuildContext context}) {
     final display = createDisplay(
       length: 8,
-      decimal: 2,
+      decimal: 4,
     );
     if (payable == 0.0) {
       return Text(

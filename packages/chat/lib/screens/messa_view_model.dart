@@ -1,8 +1,9 @@
 import 'package:flipper/routes.logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 
-class MessageViewModel extends ReactiveViewModel {
+class MessageViewModel extends BusinessHomeViewModel {
   final log = getLogger('MessageViewModel');
   void messages() {
     ProxyService.api.messages();
