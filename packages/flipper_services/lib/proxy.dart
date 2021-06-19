@@ -1,7 +1,9 @@
+import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/platform.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
@@ -38,6 +40,8 @@ final ReportService _reportService = locator<ReportService>();
 final PdfInvoiceApi _pdfInvoiceApi = locator<PdfInvoiceApi>();
 final PdfApi _pdfApi = locator<PdfApi>();
 final Printer _printService = locator<Printer>();
+final Analytic _analytics = locator<Analytic>();
+final ForceDataEntryService _forceDataEntry = locator<ForceDataEntryService>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -52,9 +56,11 @@ abstract class ProxyService {
   static UploadT get upload => _upload;
   static KeyPadService get keypad => _keypad;
   static Remote get remoteConfig => _remoteConfig;
+  static Analytic get analytics => _analytics;
   static SettingsService get settings => _settings;
   static ReportService get report => _reportService;
   static PdfInvoiceApi get pdfInvoice => _pdfInvoiceApi;
   static PdfApi get pdfApi => _pdfApi;
   static Printer get printer => _printService;
+  static ForceDataEntryService get forceDateEntry => _forceDataEntry;
 }

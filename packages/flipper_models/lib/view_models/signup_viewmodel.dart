@@ -119,7 +119,6 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.api
           .create<PColor>(data: color.toJson(), endPoint: 'color');
       //now create default units for this branch
-
       final units = new Unit(
         name: 'sample',
         value: 'kg',

@@ -1,8 +1,11 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'dart:io';
 // import 'dart:typed_data';
+import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
+import 'package:flipper_services/firebase_analytics_service.dart';
+import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
@@ -118,6 +121,17 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
+  Analytic get analyticService {
+    late Analytic analyticService;
+    if (UniversalPlatform.isAndroid) {
+      analyticService = FirebaseAnalyticsService();
+    } else {
+      analyticService = UnSupportedAnalyticPlatform();
+    }
+    return analyticService;
+  }
+
+  @lazySingleton
   Api get apiService {
     late Api apiService;
     if (UniversalPlatform.isWindows ||
@@ -197,6 +211,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   PdfApi get pdfApi;
+
+  @lazySingleton
+  ForceDataEntryService get forcedataEntry;
 }
 
 class WindowsBlueToothPrinterService implements Printer {

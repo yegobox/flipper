@@ -13,7 +13,8 @@ class RemoteConfigService implements Remote {
       'spenn_payment': false,
       'email_receipt': false,
       'add_customer_to_sale': false,
-      'printer_receipt': false
+      'printer_receipt': false,
+      'force_remote_add_data': false
     });
   }
 
@@ -51,6 +52,11 @@ class RemoteConfigService implements Remote {
   @override
   bool isPrinterAvailable() {
     return remoteConfig.getBool('printer_receipt');
+  }
+
+  @override
+  bool forceDateEntry() {
+    return remoteConfig.getBool('force_remote_add_data');
   }
 }
 
@@ -92,6 +98,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isPrinterAvailable() {
+    return false;
+  }
+
+  @override
+  bool forceDateEntry() {
     return false;
   }
 }
