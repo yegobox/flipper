@@ -28,8 +28,8 @@ import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
-import 'package:flipper_models/category.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -276,8 +276,12 @@ class StackedRouter extends RouterBase {
       );
     },
     KChatPage: (data) {
+      var args = data.getArgs<KChatPageArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => KChatPage(),
+        builder: (context) => KChatPage(
+          key: args.key,
+          receiverId: args.receiverId,
+        ),
         settings: data,
       );
     },
@@ -371,4 +375,11 @@ class AfterSaleArguments {
   final Key? key;
   final double totalOrderAmount;
   AfterSaleArguments({this.key, required this.totalOrderAmount});
+}
+
+/// KChatPage arguments holder class
+class KChatPageArguments {
+  final Key? key;
+  final int receiverId;
+  KChatPageArguments({this.key, required this.receiverId});
 }

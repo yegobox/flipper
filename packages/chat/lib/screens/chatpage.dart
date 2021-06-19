@@ -1,100 +1,64 @@
 import 'package:chat/flat_widgets/flat_action_btn.dart';
 import 'package:chat/flat_widgets/flat_chat_message.dart';
 import 'package:chat/flat_widgets/flat_message_input_box.dart';
-import 'package:chat/flat_widgets/flat_page_header.dart';
 import 'package:chat/flat_widgets/flat_page_wrapper.dart';
-import 'package:chat/flat_widgets/flat_profile_image.dart';
+import 'package:chat/screens/messa_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked/stacked.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/message.dart';
 
-class KChatPage extends StatefulWidget {
-  static final String id = "ChatPage";
+class KChatPage extends StatelessWidget {
+  final int receiverId;
 
-  @override
-  _KChatPageState createState() => _KChatPageState();
-}
+  const KChatPage({Key? key, required this.receiverId}) : super(key: key);
 
-class _KChatPageState extends State<KChatPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FlatPageWrapper(
-        scrollType: ScrollType.floatingHeader,
-        reverseBodyList: true,
-        header: FlatPageHeader(
-          prefixWidget: FlatActionButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: "Mr Peace ",
-          suffixWidget: FlatProfileImage(
-            size: 35.0,
-            onlineIndicator: true,
-            imageUrl:
-                'https://images.pexels.com/photos/3866555/pexels-photo-3866555.png?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
-            onPressed: () {
-              print("Clicked Profile Image");
-            },
-          ),
-        ),
-        children: [
-          chatMessage(
-            message: "Hello World!, This is the first message.",
-            messageType: MessageType.sent,
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message: "Typing another message from the input box.",
-            messageType: MessageType.sent,
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message: "Message Length Small.",
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message:
-                "Message Length Large. This message has more text to configure the size of the message box.",
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message: "Meet me tomorrow at the coffee shop.",
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message: "Around 11 o'clock.",
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message:
-                "Flat Social UI kit is going really well. Hope this finishes soon.",
-            showTime: true,
-            time: "2 mins ago",
-          ),
-          chatMessage(
-            message: "Final Message in the list.",
-            showTime: true,
-            time: "2 mins ago",
-          ),
-        ],
-        footer: FlatMessageInputBox(
-          prefix: FlatActionButton(
-            iconData: Icons.add,
-            iconSize: 24.0,
-          ),
-          roundedCorners: true,
-          suffix: FlatActionButton(
-            iconData: Icons.image,
-            iconSize: 24.0,
-          ),
-        ),
-      ),
-    );
+    return ViewModelBuilder<MessageViewModel>.reactive(
+        viewModelBuilder: () => MessageViewModel(),
+        builder: (context, model, child) {
+          return Scaffold(
+            body: FlatPageWrapper(
+              scrollType: ScrollType.floatingHeader,
+              reverseBodyList: true,
+              children: [
+                StreamBuilder<List<Message>>(
+                    stream: ProxyService.api.messages(),
+                    builder: (context, snapshot) {
+                      List<Message>? messages = snapshot.data;
+                      return (messages != null && messages.length != 0)
+                          ? Column(
+                              children: messages
+                                  .map((message) => chatMessage(
+                                        message: "Final Message in the list.",
+                                        showTime: true,
+                                        messageType: MessageType.received,
+                                        time: "2 mins ago",
+                                      ))
+                                  .toList(),
+                            )
+                          : Center(
+                              child: Text(
+                                'No Messages',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            );
+                    })
+              ],
+              footer: FlatMessageInputBox(
+                prefix: FlatActionButton(
+                  iconData: Icons.add,
+                  iconSize: 24.0,
+                ),
+                roundedCorners: true,
+                suffix: FlatActionButton(
+                  iconData: Icons.image,
+                  iconSize: 24.0,
+                ),
+              ),
+            ),
+          );
+        });
   }
 }

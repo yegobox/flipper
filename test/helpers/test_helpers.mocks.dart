@@ -263,6 +263,11 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
               returnValue: Stream<List<_i19.Message>>.empty())
           as _i12.Stream<List<_i19.Message>>);
   @override
+  _i12.Stream<List<_i9.Business>> users() =>
+      (super.noSuchMethod(Invocation.method(#users, []),
+              returnValue: Stream<List<_i9.Business>>.empty())
+          as _i12.Stream<List<_i9.Business>>);
+  @override
   _i9.Business getBusiness() =>
       (super.noSuchMethod(Invocation.method(#getBusiness, []),
           returnValue: _FakeBusiness()) as _i9.Business);
@@ -365,6 +370,10 @@ class MockKeyPadService extends _i1.Mock implements _i21.KeyPadService {
   @override
   void reset() => super.noSuchMethod(Invocation.method(#reset, []),
       returnValueForMissingStub: null);
+  @override
+  void customQtyIncrease({int? qty}) =>
+      super.noSuchMethod(Invocation.method(#customQtyIncrease, [], {#qty: qty}),
+          returnValueForMissingStub: null);
   @override
   void increaseQty() => super.noSuchMethod(Invocation.method(#increaseQty, []),
       returnValueForMissingStub: null);

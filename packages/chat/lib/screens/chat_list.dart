@@ -4,9 +4,9 @@ import 'package:chat/flat_widgets/flat_counter.dart';
 import 'package:chat/flat_widgets/flat_page_wrapper.dart';
 import 'package:chat/flat_widgets/flat_profile_image.dart';
 import 'package:chat/screens/messa_view_model.dart';
+import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'chatpage.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/business.dart';
@@ -123,6 +123,12 @@ class _ChatListState extends State<ChatList> {
                                           imageUrl: e.image,
                                           onlineIndicator: true,
                                           outlineIndicator: true,
+                                          onPressed: () {
+                                            ProxyService.nav.navigateTo(
+                                                Routes.chatPage,
+                                                arguments: KChatPageArguments(
+                                                    receiverId: e.id));
+                                          },
                                         ))
                                     .toList(),
                               );
@@ -154,8 +160,11 @@ class _ChatListState extends State<ChatList> {
                                         actionPane: SlidableDrawerActionPane(),
                                         child: chatItem(
                                           onPressed: () {
-                                            Navigator.pushNamed(
-                                                context, KChatPage.id);
+                                            ProxyService.nav.navigateTo(
+                                                Routes.chatPage,
+                                                arguments: KChatPageArguments(
+                                                    receiverId:
+                                                        message.receiverId));
                                           },
                                           name: message.senderName,
                                           profileImage: FlatProfileImage(
