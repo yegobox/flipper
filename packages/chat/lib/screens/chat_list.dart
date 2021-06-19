@@ -1,19 +1,12 @@
-import 'package:chat/flat_widgets/flat_action_btn.dart';
 import 'package:chat/flat_widgets/flat_add_story_btn.dart';
 import 'package:chat/flat_widgets/flat_chat_item.dart';
 import 'package:chat/flat_widgets/flat_counter.dart';
-import 'package:chat/flat_widgets/flat_page_header.dart';
 import 'package:chat/flat_widgets/flat_page_wrapper.dart';
 import 'package:chat/flat_widgets/flat_profile_image.dart';
-import 'package:chat/flat_widgets/flat_section_header.dart';
 import 'package:chat/screens/messa_view_model.dart';
-import 'package:flipper/localization.dart';
-import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper/constants.dart';
 import 'chatpage.dart';
-import 'conversation_list.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/message.dart';
 import 'package:stacked/stacked.dart';
@@ -131,6 +124,18 @@ class _ChatListState extends State<ChatList> {
                             "https://images.unsplash.com/photo-1502323777036-f29e3972d82f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
                       ),
                       FlatProfileImage(
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=80",
+                        onlineIndicator: true,
+                        outlineIndicator: true,
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                        onlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1502323777036-f29e3972d82f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80",
+                      ),
+                      FlatProfileImage(
                         outlineIndicator: true,
                         imageUrl:
                             "https://images.unsplash.com/photo-1582721244958-d0cc82a417da?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2179&q=80",
@@ -140,6 +145,33 @@ class _ChatListState extends State<ChatList> {
                         outlineIndicator: true,
                         imageUrl:
                             "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
+                      ),
+                      FlatProfileImage(
+                        onlineIndicator: true,
+                        outlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
+                      ),
+                      FlatProfileImage(
+                        onlineIndicator: true,
+                        outlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
+                      ),
+                      FlatProfileImage(
+                        onlineIndicator: true,
+                        outlineIndicator: true,
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1583243567239-3727551e0c59?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1112&q=80",
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
+                      ),
+                      FlatProfileImage(
+                        outlineIndicator: true,
                       ),
                       FlatProfileImage(
                         outlineIndicator: true,
