@@ -984,12 +984,17 @@ class ObjectBoxApi implements Api {
   Stream<List<Business>> users() {
     Stream<Business> stream = usersStreamController.stream;
     userSubs = stream.listen((business) {
-      Message? kBusiness = _store.box<Message>().get(business.id);
-      log.i(kBusiness);
+      Business? kBusiness = _store.box<Business>().get(business.id);
+
       if (kBusiness == null) {
         log.i("now inserting new business" + business.id.toString());
         final box = _store.box<Business>();
         box.put(business);
+      } else {
+        //updat this business with the update object
+        final box = _store.box<Business>();
+        log.i(business.image);
+        box.put(business, mode: PutMode.update);
       }
     });
     return _store
