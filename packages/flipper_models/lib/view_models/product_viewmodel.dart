@@ -89,7 +89,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final int? userId = ProxyService.box.read(key: 'userId');
+    final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
     final categoryId = DateTime.now().millisecondsSinceEpoch;
     final Category category = new Category(
@@ -98,7 +98,7 @@ class ProductViewModel extends ReactiveViewModel {
       table: AppTables.category,
       focused: false,
       name: name,
-      channels: [userId.toString()],
+      channels: [userId!],
       fbranchId: branchId!,
     );
     await ProxyService.api
