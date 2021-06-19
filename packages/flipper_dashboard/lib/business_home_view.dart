@@ -83,7 +83,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           case 'business':
             return BusinessWidget(model);
           case 'social':
-            if (ProxyService.remoteConfig.isChatAvailable() || kDebugMode) {
+            if (ProxyService.remoteConfig.isChatAvailable() && kDebugMode) {
               return AboutChatMiniApp();
             } else {
               return BusinessWidget(model);

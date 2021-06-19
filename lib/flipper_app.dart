@@ -53,12 +53,15 @@ class _FlipperAppState extends State<FlipperApp> {
                 ),
                 // You can change theme colors to directly change colors for the whole
                 // app.
-                primaryColor: Color(0xff5B428F),
+                primaryColor: Colors.blueAccent,
+                // set canvasColor to transparent when working on dark mode.
+                // canvasColor: Colors.transparent,
+                primaryColorDark: Color(0xff262833),
                 // canvasColor: Colors.transparent,
                 // set canvasColor to transparent when working on dark mode.
                 // canvasColor: Colors.transparent,
                 // accentColor: Color(0xffF56D58),
-                primaryColorDark: Color(0xff262833),
+                // primaryColorDark: Color(0xff262833),
                 primaryColorLight: Color(0xffFCF9F5),
               ),
               darkTheme: FlipperThemeData.darkThemeData
@@ -100,11 +103,11 @@ class _FlipperAppState extends State<FlipperApp> {
               //
               // You can change theme colors to directly change colors for the whole
               // app.
-              primaryColor: Color(0xff5B428F),
+              primaryColor: Colors.blueAccent,
               // set canvasColor to transparent when working on dark mode.
               // canvasColor: Colors.transparent,
               primaryColorDark: Color(0xff262833),
-              primaryColorLight: Color(0xffFCF9F5),
+              primaryColorLight: Colors.white,
             ),
             // theme: FlipperThemeData.lightThemeData
             //     .copyWith(platform: TargetPlatform.android),
