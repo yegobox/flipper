@@ -34,8 +34,12 @@ class BoxInputField extends StatelessWidget {
       validator: (value) {
         validatorFunc!();
       },
+      style: Theme.of(context)
+          .textTheme
+          .bodyText2!
+          .copyWith(color: Colors.black, height: 1),
       keyboardType: textInputType,
-      style: TextStyle(height: 1),
+      // style: TextStyle(),
       obscureText: password,
       decoration: InputDecoration(
         hintText: placeholder,
