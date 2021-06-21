@@ -116,6 +116,7 @@ dependencies:
   flutter_text_drawable: ^1.0.0
   moor_flutter: ^4.0.0
   firebase_dynamic_links: ^2.0.1
+  #TODO replace share with https://pub.dev/packages/share_plus (this will work on all platforms soon today)
   share: ^2.0.1
   firebase_analytics: ^8.0.3
   bluetooth_thermal_printer: ^0.0.6
