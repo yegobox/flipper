@@ -116,8 +116,6 @@ dependencies:
   flutter_text_drawable: ^1.0.0
   moor_flutter: ^4.0.0
   firebase_dynamic_links: ^2.0.1
-  #TODO replace share with https://pub.dev/packages/share_plus (this will work on all platforms soon today)
-  share: ^2.0.1
   firebase_analytics: ^8.0.3
   bluetooth_thermal_printer: ^0.0.6
   esc_pos_utils_plus: ^2.0.1+3
@@ -151,6 +149,7 @@ dependencies:
   open_file: ^3.2.1
   firebase_performance: "^0.7.0+5"
   easy_debounce: ^2.0.0
+  share_plus: ^2.1.4
   # flutter_chat_ui: ^1.1.3
   # flutter_chat_ui: 
   # cbl: ^0.6.0

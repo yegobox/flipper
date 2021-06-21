@@ -75,11 +75,9 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Shareble get share {
     Shareble share;
-    if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS) {
-      share = ShareImplementation();
-    } else {
-      share = UnSupportedShare();
-    }
+
+    share = ShareImplementation();
+
     return share;
   }
 
@@ -303,13 +301,6 @@ class HttpUpload implements UploadT {
       required String fileName,
       required String productId}) async {
     print('no supported on this platform');
-  }
-}
-
-class UnSupportedShare implements Shareble {
-  @override
-  void share(String shareble) {
-    // TODO: implement share
   }
 }
 
