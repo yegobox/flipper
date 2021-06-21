@@ -80,6 +80,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                   setState(() {
                     isSwitched = value;
                     if (isSwitched) {
+                      // TODOupdate the business online too for next login.
                       ProxyService.box.write(key: pageKey, value: 'social');
                       ProxyService.nav.navigateTo(Routes.startUpView);
                     }
@@ -90,6 +91,18 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
               ),
             ],
           ),
+          // TODOthis feature broke need to re-work
+          // _menuListRowButton('Close a day',
+          //     isEnable: true, context: context, icon: 0xf155, onPressed: () {
+          //   //TODOfinish the feature soon.
+          //   // ProxyService.nav.navigateTo(
+          //   //   Routing.openCloseDrawerview,
+          //   //   arguments: OpenCloseDrawerViewArguments(
+          //   //     wording: 'Closing Float',
+          //   //     businessState: BusinessState.CLOSE,
+          //   //   ),
+          //   // );
+          // }),
           const Divider(height: 0),
           Row(
             children: <Widget>[
@@ -111,14 +124,14 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                           icon: 0xf066,
                           istwitterIcon: true,
                           size: 25,
-                          iconColor: Theme.of(context).colorScheme.secondary),
+                          iconColor: Theme.of(context).accentColor),
                     );
                   } else {
                     return customIcon(context,
                         icon: 0xf066,
                         istwitterIcon: true,
                         size: 25,
-                        iconColor: Theme.of(context).colorScheme.secondary);
+                        iconColor: Theme.of(context).accentColor);
                   }
                 },
               ),
@@ -143,10 +156,18 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     );
   }
 
+  void _navigateTo(String path) {
+    // ProxyService.nav.navigateTo(path);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<DrawerViewModel>.reactive(
       viewModelBuilder: () => DrawerViewModel(),
+      onModelReady: (model) {
+        // model.getBusiness();
+        // model.getBranches();
+      },
       builder: (context, model, child) => Container(
         child: Drawer(
           elevation: 0,
@@ -166,12 +187,60 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                         child: ListView(
                           physics: const BouncingScrollPhysics(),
                           children: <Widget>[
+                            // Future feature.
+                            // _menuListRowButton('Profile',
+                            //     icon: AppIcon.profile,
+                            //     context: context,
+                            //     isEnable: true, onPressed: () {
+                            //   _navigateTo('ProfilePage');
+                            // }),
+                            // _menuListRowButton('Lists',
+                            //     context: context,
+                            //     icon: AppIcon.lists, onPressed: () {
+                            //   //_navigateTo(Routing.allItemScreen);
+                            // }),
+                            // _menuListRowButton('Reports',
+                            //     context: context,
+                            //     icon: AppIcon.bookmark, onPressed: () {
+                            //   _navigateTo(Routing.salesView);
+                            // }),
+                            // _menuListRowButton('Items',
+                            //     context: context,
+                            //     icon: AppIcon.lists, onPressed: () {
+                            //   _navigationService.navigateTo(Routing.productView,
+                            //       arguments: ProductViewArguments(
+                            //           items: true,
+                            //           sellingModeView: true,
+                            //           userId: '1'));
+                            // }),
+                            // _menuListRowButton(
+                            //   'Payroll',
+                            //   context: context,
+                            //   icon: AppIcon.moments,
+                            //   onPressed: () {
+                            //     _navigateTo(Routing.contactView);
+                            //   },
+                            // ),
+                            // _menuListRowButton('Flipper deals',
+                            //     context: context, icon: AppIcon.twitterAds),
+                            // const Divider(),
+                            // _menuListRowButton('Settings and privacy',
+                            //     context: context,
+                            //     isEnable: true, onPressed: () {
+                            //   _navigateTo(Routing.settingsView);
+                            // }),
+
                             const Divider(),
                             _menuListRowButton(
                               Localization.of(context)!.flipperSetting,
                               context: context,
                             ),
                             const Divider(),
+                            // _menuListRowButton('Logout',
+                            //     context: context,
+                            //     icon: null,
+                            //     onPressed: _logOut,
+                            //     isEnable: true),
                           ],
                         ),
                       ),
