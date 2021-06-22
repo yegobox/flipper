@@ -16,4 +16,8 @@ class MessageViewModel extends BusinessHomeViewModel {
     log.i(id);
     ProxyService.api.delete(id: id, endPoint: 'message');
   }
+
+  void sendMessage({required int receiverId, required String message}) {
+    ProxyService.api.sendMessage(receiverId: receiverId, message: message);
+  }
 }

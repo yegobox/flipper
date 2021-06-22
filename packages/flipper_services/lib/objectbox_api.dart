@@ -949,16 +949,18 @@ class ObjectBoxApi implements Api {
   @override
   Stream<List<Message>> messages({int? receiverId}) {
     log.i(receiverId);
-    int? businessId = ProxyService.box.read(key: 'businessId');
+    int? myBusinessId = ProxyService.box.read(key: 'businessId');
     //first I have to listen to a socket
     Stream<Message> stream = messageStreamController.stream;
     messageSubscription = stream.listen((message) {
       Message? kMessage = _store.box<Message>().get(message.id);
 
-      log.i(message.receiverId == businessId);
+      log.i(message.receiverId == myBusinessId);
       log.i(kMessage);
       // ignore: unnecessary_null_comparison
-      if (kMessage == null && message.receiverId == businessId) {
+      if (kMessage == null &&
+          message.receiverId == myBusinessId &&
+          message.senderId != myBusinessId) {
         log.i("now inserting new object");
         final box = _store.box<Message>();
         box.put(message);
@@ -966,7 +968,9 @@ class ObjectBoxApi implements Api {
     });
     return _store
         .box<Message>()
-        .query(Message_.receiverId.equals(businessId!))
+        .query(Message_.receiverId
+            .equals(myBusinessId!)
+            .or(Message_.senderId.equals(myBusinessId)))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
   }
@@ -1003,5 +1007,22 @@ class ObjectBoxApi implements Api {
         .query()
         .watch(triggerImmediately: true)
         .map((query) => query.find());
+  }
+
+  @override
+  void sendMessage({required int receiverId, required String message}) {
+    int? myBusinessId = ProxyService.box.read(key: 'businessId');
+    Business? business = _store.box<Business>().get(myBusinessId!);
+    final box = _store.box<Message>();
+    Message kMessage = Message(
+      createdAt: DateTime.now().toIso8601String(),
+      lastActiveId: myBusinessId,
+      message: message,
+      receiverId: receiverId,
+      senderId: myBusinessId,
+      senderName: business!.name,
+    );
+    box.put(kMessage, mode: PutMode.insert);
+    //
   }
 }

@@ -13,8 +13,6 @@ import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/unit.dart';
-import 'package:flipper_models/variant_stock.dart';
-import 'package:flipper_services/api_result.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:injectable/injectable.dart';
@@ -436,5 +434,10 @@ class HttpApi<T> implements Api {
   Stream<List<Business>> users() {
     // TODO: implement users
     throw UnimplementedError();
+  }
+
+  @override
+  void sendMessage({required int receiverId, required String message}) {
+    // TODO: implement sendMessage
   }
 }

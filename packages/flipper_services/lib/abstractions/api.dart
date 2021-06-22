@@ -78,6 +78,7 @@ abstract class Api<T> {
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
   Stream<List<Message>> messages({int? receiverId});
+  void sendMessage({required int receiverId, required String message});
   Stream<List<Business>> users();
 
   Business getBusiness();

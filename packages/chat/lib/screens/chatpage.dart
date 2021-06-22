@@ -3,11 +3,13 @@ import 'package:chat/flat_widgets/flat_chat_message.dart';
 import 'package:chat/flat_widgets/flat_message_input_box.dart';
 import 'package:chat/flat_widgets/flat_page_wrapper.dart';
 import 'package:chat/screens/messa_view_model.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class KChatPage extends StatelessWidget {
   final int receiverId;
@@ -16,6 +18,7 @@ class KChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final log = getLogger('KChatPage');
     return ViewModelBuilder<MessageViewModel>.reactive(
         viewModelBuilder: () => MessageViewModel(),
         builder: (context, model, child) {
@@ -46,16 +49,20 @@ class KChatPage extends StatelessWidget {
                           ? Column(
                               children: messages
                                   .map((message) => chatMessage(
-                                        message: "Final Message in the list.",
+                                        message: message.message,
                                         showTime: true,
-                                        messageType: MessageType.received,
-                                        time: "2 mins ago",
+                                        messageType:
+                                            message.senderId == receiverId
+                                                ? MessageType.received
+                                                : MessageType.sent,
+                                        time: timeago.format(
+                                            DateTime.parse(message.createdAt)),
                                       ))
                                   .toList(),
                             )
                           : Center(
                               child: Text(
-                                'No Messages',
+                                'No Messages($receiverId)',
                                 style: TextStyle(color: Colors.black),
                               ),
                             );
@@ -65,12 +72,19 @@ class KChatPage extends StatelessWidget {
                 prefix: FlatActionButton(
                   iconData: Icons.add,
                   iconSize: 24.0,
+                  onPressed: () {
+                    log.i('+ button clicked');
+                  },
                 ),
                 roundedCorners: true,
-                suffix: FlatActionButton(
-                  iconData: Icons.image,
-                  iconSize: 24.0,
-                ),
+                onSubmitted: (message) {
+                  log.i(message);
+                  model.sendMessage(receiverId: receiverId, message: message);
+                },
+                // suffix: FlatActionButton(
+                //   iconData: Icons.image,
+                //   iconSize: 24.0,
+                // ),
               ),
             ),
           );

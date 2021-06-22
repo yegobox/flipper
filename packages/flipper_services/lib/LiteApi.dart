@@ -5,13 +5,11 @@ import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/b.dart';
 import 'package:flipper_models/setting.dart';
-import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/stock.dart';
-import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/variants.dart';
 
@@ -22,7 +20,6 @@ import 'package:flipper_models/color.dart';
 import 'package:flipper_models/category.dart';
 
 import 'package:flipper_models/branch.dart';
-import 'package:flipper_services/api_result.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/business.dart';
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
@@ -706,5 +703,10 @@ class LiteApi<T> implements Api {
   Stream<List<Business>> users() {
     // TODO: implement users
     throw UnimplementedError();
+  }
+
+  @override
+  void sendMessage({required int receiverId, required String message}) {
+    // TODO: implement sendMessage
   }
 }
