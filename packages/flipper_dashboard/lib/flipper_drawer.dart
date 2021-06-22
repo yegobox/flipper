@@ -97,15 +97,14 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 width: 10,
                 height: 45,
               ),
-              FutureBuilder(
+              FutureBuilder<String>(
                 future: _link.createDynamicLink(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    final ShortDynamicLink uri =
-                        snapshot.data as ShortDynamicLink;
+                    final String uri = snapshot.data as String;
                     return GestureDetector(
                       onTap: () {
-                        ProxyService.share.share(uri.shortUrl.toString());
+                        ProxyService.share.share(uri.toString());
                       },
                       child: customIcon(context,
                           icon: 0xf066,

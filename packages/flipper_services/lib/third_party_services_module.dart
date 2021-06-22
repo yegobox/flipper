@@ -304,19 +304,6 @@ class HttpUpload implements UploadT {
   }
 }
 
-class UnSupportedDynamicLink implements DynamicLink {
-  @override
-  Future<dynamic> createDynamicLink() async {
-    return null; //a reson to not return UnimplementedError when a function could be called during widget rendering!
-  }
-
-  @override
-  Future handleDynamicLink() {
-    // TODO: implement handleDynamicLink
-    throw UnimplementedError();
-  }
-}
-
 class WindowsLocationService implements FlipperLocation {
   @override
   Future<Map<String, String>> getLocation() async {

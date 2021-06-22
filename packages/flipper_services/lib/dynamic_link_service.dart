@@ -4,6 +4,19 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper_services/proxy.dart';
 import 'abstractions/dynamic_link.dart';
 
+class UnSupportedDynamicLink implements DynamicLink {
+  @override
+  Future<String> createDynamicLink() async {
+    return "https://play.google.com/store/apps/details?id=rw.flipper";
+  }
+
+  @override
+  Future handleDynamicLink() {
+    // TODO: implement handleDynamicLink
+    throw UnimplementedError();
+  }
+}
+
 class DynamicLinkService implements DynamicLink {
   Future handleDynamicLink() async {
     // if the is opened with the link
@@ -27,7 +40,7 @@ class DynamicLinkService implements DynamicLink {
     }
   }
 
-  Future<dynamic> createDynamicLink() async {
+  Future<String> createDynamicLink() async {
     // get minimum version from firestore to keep up with update
     final userId = ProxyService.box.read(key: 'userId');
     final DynamicLinkParameters parameters = DynamicLinkParameters(
@@ -49,9 +62,9 @@ class DynamicLinkService implements DynamicLink {
     );
     try {
       final shortLink = await parameters.buildShortLink();
-      return shortLink;
+      return shortLink.shortUrl.toString(); //as ShortDynamicLink
     } catch (PlatformException) {
-      return null;
+      return "https://play.google.com/store/apps/details?id=rw.flipper";
     }
   }
 }

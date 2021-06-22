@@ -3,5 +3,5 @@
 abstract class DynamicLink {
   Future handleDynamicLink();
   //ShortDynamicLink? was return type
-  Future<dynamic> createDynamicLink();
+  Future<String> createDynamicLink();
 }
