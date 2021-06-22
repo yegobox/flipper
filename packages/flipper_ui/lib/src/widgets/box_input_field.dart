@@ -8,6 +8,7 @@ class BoxInputField extends StatelessWidget {
   final Widget? trailing;
   final bool password;
   final Function? validatorFunc;
+  final Function? onChanged;
   final TextInputType textInputType;
   final void Function()? trailingTapped;
 
@@ -22,6 +23,7 @@ class BoxInputField extends StatelessWidget {
     this.leading,
     this.trailing,
     this.trailingTapped,
+    this.onChanged,
     this.password = false,
     this.validatorFunc,
     this.textInputType = TextInputType.text,
@@ -31,15 +33,19 @@ class BoxInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      onChanged: (value) {
+        if (onChanged != null) {
+          onChanged!(value);
+        }
+      },
       validator: (value) {
-        validatorFunc!();
+        return validatorFunc!(value);
       },
       style: Theme.of(context)
           .textTheme
           .bodyText2!
           .copyWith(color: Colors.black, height: 1),
       keyboardType: textInputType,
-      // style: TextStyle(),
       obscureText: password,
       decoration: InputDecoration(
         hintText: placeholder,
@@ -66,6 +72,7 @@ class BoxInputField extends StatelessWidget {
         enabledBorder: circularBorder.copyWith(
           borderSide: BorderSide(color: kcLightGreyColor),
         ),
+
         // filled: true,
         // fillColor: kcVeryLightGreyColor,
       ),

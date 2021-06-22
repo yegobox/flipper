@@ -182,7 +182,7 @@
     },
     {
       "id": "4:1236114536079259166",
-      "lastPropertyId": "15:88706347221077565",
+      "lastPropertyId": "16:195264200013359891",
       "name": "OrderF",
       "properties": [
         {
@@ -260,6 +260,11 @@
           "id": "15:88706347221077565",
           "name": "table",
           "type": 9
+        },
+        {
+          "id": "16:195264200013359891",
+          "name": "customerId",
+          "type": 6
         }
       ],
       "relations": []
@@ -805,9 +810,53 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "14:5570813440444123608",
+      "lastPropertyId": "7:4411823794679308743",
+      "name": "Customer",
+      "properties": [
+        {
+          "id": "1:2391486744497665525",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:8811824834752705077",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:573566445840738309",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "4:3291856998242083601",
+          "name": "phone",
+          "type": 9
+        },
+        {
+          "id": "5:4194968844165436425",
+          "name": "address",
+          "type": 9
+        },
+        {
+          "id": "6:2729430775340363747",
+          "name": "orderId",
+          "type": 6
+        },
+        {
+          "id": "7:4411823794679308743",
+          "name": "updatedAt",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "13:8608507958994323678",
+  "lastEntityId": "14:5570813440444123608",
   "lastIndexId": "2:6401461376584828673",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

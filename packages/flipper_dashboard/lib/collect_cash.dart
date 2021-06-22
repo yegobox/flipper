@@ -224,6 +224,8 @@ class _CollectCashViewState extends State<CollectCashView> {
           );
         },
         onModelReady: (model) {
+          // set the OrderId in object box for later use.
+          ProxyService.box.write(key: 'orderId', value: model.orders[0].id);
           Stream<String> stream = streamController.stream;
           subscription = stream.listen((event) {
             String userId = ProxyService.box.read(key: 'userId');

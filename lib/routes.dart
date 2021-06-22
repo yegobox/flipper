@@ -13,6 +13,7 @@ import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
+import 'package:flipper_dashboard/customers.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/payment_options.dart';
@@ -49,6 +50,8 @@ import 'package:chat/screens/chat_list.dart';
     MaterialRoute(page: ChatList, name: 'chatHome'),
     MaterialRoute(page: KChatPage, name: 'chatPage'),
     MaterialRoute(page: AddConversation, name: 'addConvo'),
+    // customer
+    MaterialRoute(page: Customers, name: 'customers'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

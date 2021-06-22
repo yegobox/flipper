@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/b.dart';
@@ -708,5 +709,33 @@ class LiteApi<T> implements Api {
   @override
   void sendMessage({required int receiverId, required String message}) {
     // TODO: implement sendMessage
+  }
+
+  @override
+  Customer? addCustomer({required Map customer, required int orderId}) {
+    // TODO: implement addCustomer
+  }
+
+  @override
+  void assingOrderToCustomer({required int customerId, required int orderId}) {
+    // TODO: implement assingOrderToCustomer
+  }
+
+  @override
+  Stream<Customer?> getCustomer({required String key}) {
+    // TODO: implement getCustomer
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<Customer?> getCustomerByOrderId({required int id}) {
+    // TODO: implement getCustomerById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<OrderF>> getOrderById({required int id}) {
+    // TODO: implement getOrderById
+    throw UnimplementedError();
   }
 }

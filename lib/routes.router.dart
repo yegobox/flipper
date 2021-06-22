@@ -20,6 +20,7 @@ import 'package:flipper_dashboard/create/color_tile.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
+import 'package:flipper_dashboard/customers.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/payment_options.dart';
@@ -56,6 +57,7 @@ class Routes {
   static const String chatHome = '/chat-list';
   static const String chatPage = '/k-chat-page';
   static const String addConvo = '/add-conversation';
+  static const String customers = '/Customers';
   static const all = <String>{
     startUpView,
     dashboard,
@@ -79,6 +81,7 @@ class Routes {
     chatHome,
     chatPage,
     addConvo,
+    customers,
   };
 }
 
@@ -108,6 +111,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.chatHome, page: ChatList),
     RouteDef(Routes.chatPage, page: KChatPage),
     RouteDef(Routes.addConvo, page: AddConversation),
+    RouteDef(Routes.customers, page: Customers),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -291,6 +295,16 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    Customers: (data) {
+      var args = data.getArgs<CustomersArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => Customers(
+          key: args.key,
+          orderId: args.orderId,
+        ),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -382,4 +396,11 @@ class KChatPageArguments {
   final Key? key;
   final int receiverId;
   KChatPageArguments({this.key, required this.receiverId});
+}
+
+/// Customers arguments holder class
+class CustomersArguments {
+  final Key? key;
+  final int orderId;
+  CustomersArguments({this.key, required this.orderId});
 }

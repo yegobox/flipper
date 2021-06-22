@@ -20,25 +20,25 @@ String orderToJson(List<OrderF> data) =>
 
 @Entity()
 class OrderF {
-  OrderF({
-    this.id = 0,
-    required this.reference,
-    required this.orderNumber,
-    required this.fbranchId,
-    required this.status,
-    required this.orderType,
-    required this.active,
-    required this.draft,
-    required this.subTotal,
-    required this.paymentType,
-    required this.cashReceived,
-    required this.customerChangeDue,
-    required this.createdAt,
-    this.updatedAt,
-    // required this.orderItems,
-    required this.table,
-    this.channels,
-  });
+  OrderF(
+      {this.id = 0,
+      required this.reference,
+      required this.orderNumber,
+      required this.fbranchId,
+      required this.status,
+      required this.orderType,
+      required this.active,
+      required this.draft,
+      required this.subTotal,
+      required this.paymentType,
+      required this.cashReceived,
+      required this.customerChangeDue,
+      required this.createdAt,
+      this.updatedAt,
+      // required this.orderItems,
+      required this.table,
+      this.channels,
+      this.customerId});
   @Id(assignable: true)
   int id;
   String reference;
@@ -58,6 +58,9 @@ class OrderF {
   String table;
   @Transient()
   List<String>? channels;
+
+  // now add a customer to an order
+  int? customerId;
 
   @Backlink()
   final orderItems = ToMany<OrderItem>();
@@ -80,6 +83,7 @@ class OrderF {
         // orderItems: List<OrderItem>.from(
         //     json["orderItems"].map((x) => OrderItem.fromJson(x))),
         table: json["table"],
+        customerId: json["customerId"],
         channels: List<String>.from(json["channels"].map((x) => x)),
       );
 
@@ -100,6 +104,7 @@ class OrderF {
         "updatedAt": updatedAt,
         "orderItems": orderItems,
         "table": table,
+        "customerId": customerId,
         "channels": channels,
       };
 }

@@ -6,7 +6,8 @@ import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/message.dart';
-import 'package:flipper_models/variant_stock.dart';
+import 'package:flipper_models/customer.dart';
+// import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/color.dart';
@@ -82,4 +83,9 @@ abstract class Api<T> {
   Stream<List<Business>> users();
 
   Business getBusiness();
+  Customer? addCustomer({required Map customer, required int orderId});
+  void assingOrderToCustomer({required int customerId, required int orderId});
+  Stream<Customer?> getCustomer({required String key});
+  Stream<Customer?> getCustomerByOrderId({required int id});
+  Future<List<OrderF>> getOrderById({required int id});
 }

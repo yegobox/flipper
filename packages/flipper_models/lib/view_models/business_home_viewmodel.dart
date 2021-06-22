@@ -42,6 +42,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   int _tab = 0;
   int get tab => _tab;
+  String searchKey = '';
+  String get searchCustomerkey => searchKey;
+  void setSearch(String key) {
+    searchKey = key;
+    notifyListeners();
+  }
+
   setTab({required int tab}) {
     _tab = tab;
   }
@@ -82,6 +89,16 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else {
       keypad.setCount(count: 0);
     }
+  }
+
+  /// the function is useful on completing a sale since we need to look for this past order
+  /// to add customer etc... we can not use getOrders as it was a general function for all completed functions
+  /// but this will be generic for this given order saved in a box it is very important to reach to collect cash screen
+  /// for the initation of writing this orderId in a box for later use!.
+  Future<void> getOrderById() async {
+    int? id = ProxyService.box.read(key: 'orderId');
+    log.i(id);
+    await ProxyService.keypad.getOrderById(id: id!);
   }
 
   ///list products availabe for sell
@@ -214,5 +231,22 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       latitude = location['latitude'];
       notifyListeners();
     }
+  }
+
+  void addCustomer(
+      {required String email,
+      required String phone,
+      required String name,
+      required int orderId}) {
+    log.i({'email': email, 'phone': phone, 'name': name});
+    ProxyService.api.addCustomer(
+        customer: {'email': email, 'phone': phone, 'name': name},
+        orderId: orderId);
+  }
+
+  Future<void> assignToSale(
+      {required int customerId, required int orderId}) async {
+    ProxyService.api
+        .assingOrderToCustomer(customerId: customerId, orderId: orderId);
   }
 }

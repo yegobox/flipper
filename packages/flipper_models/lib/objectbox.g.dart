@@ -12,6 +12,7 @@ import 'branch.dart';
 import 'business.dart';
 import 'category.dart';
 import 'color.dart';
+import 'customer.dart';
 import 'message.dart';
 import 'order.dart';
 import 'order_item.dart';
@@ -205,7 +206,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(4, 1236114536079259166),
       name: 'OrderF',
-      lastPropertyId: const IdUid(15, 88706347221077565),
+      lastPropertyId: const IdUid(16, 195264200013359891),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -282,6 +283,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(15, 88706347221077565),
             name: 'table',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(16, 195264200013359891),
+            name: 'customerId',
+            type: 6,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -823,6 +829,50 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(14, 5570813440444123608),
+      name: 'Customer',
+      lastPropertyId: const IdUid(7, 4411823794679308743),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 2391486744497665525),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 8811824834752705077),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 573566445840738309),
+            name: 'email',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 3291856998242083601),
+            name: 'phone',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 4194968844165436425),
+            name: 'address',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(6, 2729430775340363747),
+            name: 'orderId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(7, 4411823794679308743),
+            name: 'updatedAt',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -830,7 +880,7 @@ final _entities = <ModelEntity>[
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(13, 8608507958994323678),
+      lastEntityId: const IdUid(14, 5570813440444123608),
       lastIndexId: const IdUid(2, 6401461376584828673),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
@@ -1057,7 +1107,7 @@ ModelDefinition getObjectBoxModel() {
               ? null
               : fbb.writeString(object.updatedAt!);
           final tableOffset = fbb.writeString(object.table);
-          fbb.startTable(16);
+          fbb.startTable(17);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, referenceOffset);
           fbb.addOffset(2, orderNumberOffset);
@@ -1073,6 +1123,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(12, createdAtOffset);
           fbb.addOffset(13, updatedAtOffset);
           fbb.addOffset(14, tableOffset);
+          fbb.addInt64(15, object.customerId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1108,8 +1159,10 @@ ModelDefinition getObjectBoxModel() {
                   const fb.StringReader().vTableGet(buffer, rootOffset, 28, ''),
               updatedAt: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 30),
-              table: const fb.StringReader()
-                  .vTableGet(buffer, rootOffset, 32, ''));
+              table:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
+              customerId: const fb.Int64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 34));
           InternalToManyAccess.setRelInfo(
               object.orderItems,
               store,
@@ -1630,6 +1683,54 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
 
           return object;
+        }),
+    Customer: EntityDefinition<Customer>(
+        model: _entities[13],
+        toOneRelations: (Customer object) => [],
+        toManyRelations: (Customer object) => {},
+        getId: (Customer object) => object.id,
+        setId: (Customer object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Customer object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          final emailOffset = fbb.writeString(object.email);
+          final phoneOffset = fbb.writeString(object.phone);
+          final addressOffset = fbb.writeString(object.address);
+          final updatedAtOffset = object.updatedAt == null
+              ? null
+              : fbb.writeString(object.updatedAt!);
+          fbb.startTable(8);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addOffset(2, emailOffset);
+          fbb.addOffset(3, phoneOffset);
+          fbb.addOffset(4, addressOffset);
+          fbb.addInt64(5, object.orderId);
+          fbb.addOffset(6, updatedAtOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Customer(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              orderId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+              name:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              address:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
+              phone:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
+              email:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              updatedAt: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 16));
+
+          return object;
         })
   };
 
@@ -1815,6 +1916,10 @@ class OrderF_ {
 
   /// see [OrderF.table]
   static final table = QueryStringProperty<OrderF>(_entities[3].properties[14]);
+
+  /// see [OrderF.customerId]
+  static final customerId =
+      QueryIntegerProperty<OrderF>(_entities[3].properties[15]);
 }
 
 /// [OrderItem] entity fields to define ObjectBox queries.
@@ -2182,4 +2287,34 @@ class Setting_ {
   /// see [Setting.defaultLanguage]
   static final defaultLanguage =
       QueryStringProperty<Setting>(_entities[12].properties[6]);
+}
+
+/// [Customer] entity fields to define ObjectBox queries.
+class Customer_ {
+  /// see [Customer.id]
+  static final id = QueryIntegerProperty<Customer>(_entities[13].properties[0]);
+
+  /// see [Customer.name]
+  static final name =
+      QueryStringProperty<Customer>(_entities[13].properties[1]);
+
+  /// see [Customer.email]
+  static final email =
+      QueryStringProperty<Customer>(_entities[13].properties[2]);
+
+  /// see [Customer.phone]
+  static final phone =
+      QueryStringProperty<Customer>(_entities[13].properties[3]);
+
+  /// see [Customer.address]
+  static final address =
+      QueryStringProperty<Customer>(_entities[13].properties[4]);
+
+  /// see [Customer.orderId]
+  static final orderId =
+      QueryIntegerProperty<Customer>(_entities[13].properties[5]);
+
+  /// see [Customer.updatedAt]
+  static final updatedAt =
+      QueryStringProperty<Customer>(_entities[13].properties[6]);
 }

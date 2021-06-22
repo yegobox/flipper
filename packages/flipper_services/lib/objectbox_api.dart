@@ -401,6 +401,9 @@ class ObjectBoxApi implements Api {
       customer: Customer(
         name: 'Apple Inc.',
         address: 'Apple Street, Cupertino, CA 95014',
+        email: '',
+        phone: '',
+        orderId: 0,
       ),
       info: InvoiceInfo(
         date: date,
@@ -873,6 +876,7 @@ class ObjectBoxApi implements Api {
           channels: map['channels'],
           id: map['id'],
           cashReceived: map['cashReceived'],
+          customerId: map['customerId'],
           createdAt: map['createdAt'],
           customerChangeDue: map['customerChangeDue'],
           draft: map['draft'],
@@ -904,6 +908,23 @@ class ObjectBoxApi implements Api {
             id: map['id']);
         final box = _store.box<Setting>();
         box.put(Ksetting, mode: PutMode.update);
+        break;
+      case 'customer':
+        Customer? setting = _store.box<Customer>().get(id);
+        Map map = setting!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Customer kCustomer = Customer(
+            email: map['email'],
+            updatedAt: map['updatedAt'],
+            phone: map['phone'],
+            name: map['name'],
+            orderId: map['orderId'],
+            address: map['address'],
+            id: map['id']);
+        final box = _store.box<Customer>();
+        box.put(kCustomer, mode: PutMode.update);
         break;
       // case 'category'
       default:
@@ -966,11 +987,12 @@ class ObjectBoxApi implements Api {
         box.put(message);
       }
     });
+
     return _store
         .box<Message>()
         .query(Message_.receiverId
-            .equals(myBusinessId!)
-            .or(Message_.senderId.equals(myBusinessId)))
+            .equals(myBusinessId ?? 0)
+            .or(Message_.senderId.equals(myBusinessId ?? 0)))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
   }
@@ -1024,5 +1046,60 @@ class ObjectBoxApi implements Api {
     );
     box.put(kMessage, mode: PutMode.insert);
     //
+  }
+
+  @override
+  Customer? addCustomer({required Map customer, required int orderId}) {
+    final box = _store.box<Customer>();
+    Customer kCustomer = Customer(
+      name: customer['name'],
+      email: customer['email'],
+      phone: customer['phone'],
+      address: customer['address'] ?? '',
+      orderId: orderId,
+    );
+    int id = box.put(kCustomer, mode: PutMode.insert);
+    return _store.box<Customer>().get(id);
+  }
+
+  @override
+  void assingOrderToCustomer({required int customerId, required int orderId}) {
+    OrderF? order = _store.box<OrderF>().get(orderId)!;
+    Map korder = order.toJson();
+    korder['customerId'] = customerId;
+    update(data: korder, endPoint: 'order');
+
+    // and updat this customer with timestamp so it can trigger change!.
+    Customer? customer = _store.box<Customer>().get(customerId)!;
+    Map kCustomer = customer.toJson();
+    kCustomer['updatedAt'] = DateTime.now().toIso8601String();
+    int id = kCustomer['id'];
+    update(data: kCustomer, endPoint: 'customer/$id');
+  }
+
+  @override
+  Stream<Customer?> getCustomer({required String key}) {
+    return _store
+        .box<Customer>()
+        .query(Customer_.name
+            .equals(key)
+            .or((Customer_.phone.equals(key)).or(Customer_.email.equals(key))))
+        .watch(triggerImmediately: true)
+        .map((query) => query.findFirst());
+  }
+
+  @override
+  Stream<Customer?> getCustomerByOrderId({required int id}) {
+    log.i(id);
+    return _store
+        .box<Customer>()
+        .query(Customer_.orderId.equals(id))
+        .watch(triggerImmediately: true)
+        .map((query) => query.findFirst());
+  }
+
+  @override
+  Future<List<OrderF>> getOrderById({required int id}) async {
+    return _store.box<OrderF>().getAll().where((v) => v.id == id).toList();
   }
 }
