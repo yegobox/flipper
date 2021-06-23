@@ -206,61 +206,53 @@ class Sell extends StatelessWidget {
                 .setAmount(amount: variant.retailPrice * model.quantity);
             model.toggleCheckbox(variantId: variant.id);
           },
-          child: Container(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 4.0),
-              child: Column(
-                children: [
-                  Divider(
-                    color: Colors.grey[400],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id),
-                          builder: (context, snapshot) {
-                            return snapshot.hasData
-                                ? Expanded(
-                                    child: Text(
-                                      snapshot.data!.name,
-                                      style: GoogleFonts.lato(
-                                        textStyle: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 13.0,
-                                            color: Colors.grey[900]),
-                                      ),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 4.0),
+            child: Column(
+              children: [
+                Divider(
+                  color: Colors.grey[400],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    FutureBuilder<Variant?>(
+                        future: model.getVariant(variantId: variant.id),
+                        builder: (context, snapshot) {
+                          return snapshot.hasData
+                              ? Expanded(
+                                  child: Text(
+                                    snapshot.data!.name,
+                                    style: GoogleFonts.lato(
+                                      textStyle: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 13.0,
+                                          color: Colors.grey[900]),
                                     ),
-                                  )
-                                : SizedBox.shrink();
-                          }),
-                      Container(
-                        child: Row(children: [
-                          Container(
-                            child: Text(
-                              'Frw${variant.retailPrice.toInt()}',
-                              style: GoogleFonts.lato(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12.0,
-                                    color: Colors.grey[500]),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            child: Radio(
-                              // toggleable: true,
-                              value: variant.id,
-                              groupValue: model.checked,
-                              onChanged: (value) {},
-                            ),
-                          ),
-                        ]),
+                                  ),
+                                )
+                              : SizedBox.shrink();
+                        }),
+                    Row(children: [
+                      Text(
+                        'Frw${variant.retailPrice.toInt()}',
+                        style: GoogleFonts.lato(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.0,
+                              color: Colors.grey[500]),
+                        ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                      Radio(
+                        // toggleable: true,
+                        value: variant.id,
+                        groupValue: model.checked,
+                        onChanged: (value) {},
+                      ),
+                    ]),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

@@ -255,6 +255,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// this is to reset the value for a new sale to come!
   void clearPreviousSaleCounts() {
     keypad.setAmount(amount: 0);
-    keypad.customQtyIncrease(qty: 0);
+    keypad.customQtyIncrease(qty: 1);
   }
 }
