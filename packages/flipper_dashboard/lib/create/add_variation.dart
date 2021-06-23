@@ -1,3 +1,4 @@
+import 'package:flipper/localization.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/payable_view.dart';
@@ -103,7 +104,7 @@ class _AddVariationState extends State<AddVariation> {
                                 model.lock;
                               },
                               decoration: InputDecoration(
-                                hintText: 'Name',
+                                hintText: Localization.of(context)!.productName,
                                 fillColor: Theme.of(context)
                                     .copyWith(canvasColor: Colors.white)
                                     .canvasColor,
@@ -194,7 +195,7 @@ class _AddVariationState extends State<AddVariation> {
           },
           controller: costController,
           decoration: InputDecoration(
-            hintText: 'Cost Price',
+            hintText: Localization.of(context)!.supplyPrice,
             fillColor: Theme.of(context)
                 .copyWith(canvasColor: Colors.white)
                 .canvasColor,
@@ -225,7 +226,7 @@ class _AddVariationState extends State<AddVariation> {
           },
           controller: retailController,
           decoration: InputDecoration(
-            hintText: 'Retail Price',
+            hintText: Localization.of(context)!.retailPrice,
             fillColor: Theme.of(context)
                 .copyWith(canvasColor: Colors.white)
                 .canvasColor,

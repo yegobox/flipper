@@ -22,21 +22,23 @@ class AddProductView extends StatelessWidget {
   AddProductView({Key? key}) : super(key: key);
   final log = getLogger('AddProductView');
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
-  Future<bool> _onWillPop() async {
-    // ignore: todo
-    // TODO:show a modal for confirming if we want to exit
-    return false;
-  }
 
   @override
   Widget build(BuildContext context) {
+    Future<bool> _onWillPop() async {
+      // ignore: todo
+      // TODO:show a modal for confirming if we want to exit
+      return false;
+    }
+
     return ViewModelBuilder<ProductViewModel>.reactive(
       onModelReady: (model) {
         model.createTemporalProduct();
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
-        model.setName(name: ' '); //start locking the save button
+        //start locking the save button
+        model.setName(name: ' ');
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -62,11 +64,10 @@ class AddProductView extends StatelessWidget {
               bottomSpacer: 50,
             ),
             body: ListView(
+              physics: const AlwaysScrollableScrollPhysics(), // new
               children: <Widget>[
                 Column(children: <Widget>[
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  verticalSpaceSmall,
                   model.product == null
                       ? SizedBox.shrink()
                       : ImagePlaceHolderView(
@@ -102,12 +103,7 @@ class AddProductView extends StatelessWidget {
                     ),
                   ),
                   CategorySelector(categories: model.categories),
-                  const CenterDivider(
-                    width: double.infinity,
-                  ),
-                  const ListDivider(
-                    height: 24,
-                  ),
+                  verticalSpaceSmall,
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: Container(
@@ -126,25 +122,20 @@ class AddProductView extends StatelessWidget {
                           product: model.product,
                           type: 'product',
                         ),
-                  const CenterDivider(
-                    width: double.infinity,
-                  ),
+                  verticalSpaceSmall,
+                  verticalSpaceSmall,
                   RetailPrice(onModelUpdate: (value) {
                     if (value.length > 0) {
                       model.updateRegularVariant(
                           retailPrice: double.parse(value));
                     }
                   }),
-                  const CenterDivider(
-                    width: double.infinity,
-                  ),
+                  verticalSpaceSmall,
                   SupplyPrice(onModelUpdate: (value) {
                     model.updateRegularVariant(
                         supplyPrice: double.parse(value));
                   }),
-                  const CenterDivider(
-                    width: double.infinity,
-                  ),
+                  verticalSpaceSmall,
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: BoxButton.outline(
@@ -166,20 +157,19 @@ class AddProductView extends StatelessWidget {
                                   DateTime.parse(model.product.expiryDate)),
                     ),
                   ),
-                  const ListDivider(
-                    height: 10,
-                  ),
-                  const ListDivider(
-                    height: 10,
-                  ),
+                  verticalSpaceSmall,
+                  verticalSpaceSmall,
                   model.variants == null
                       ? SizedBox.shrink()
-                      : VariationList(
-                          variations: model.variants!,
-                          model: model,
-                          deleteVariant: (id) {
-                            model.deleteVariant(id: id);
-                          },
+                      : Padding(
+                          padding: const EdgeInsets.only(left: 18, right: 18),
+                          child: VariationList(
+                            variations: model.variants!,
+                            model: model,
+                            deleteVariant: (id) {
+                              model.deleteVariant(id: id);
+                            },
+                          ),
                         ),
                   Padding(
                     padding:
