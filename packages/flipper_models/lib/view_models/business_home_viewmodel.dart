@@ -249,4 +249,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.api
         .assingOrderToCustomer(customerId: customerId, orderId: orderId);
   }
+
+  /// as of when one sale is complete trying to sell second product
+  /// the previous Qty and totalAmount where still visible in header which confuses
+  /// this is to reset the value for a new sale to come!
+  void clearPreviousSaleCounts() {
+    keypad.setAmount(amount: 0);
+    keypad.customQtyIncrease(qty: 0);
+  }
 }
