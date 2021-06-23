@@ -79,6 +79,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.printer.getBluetooths();
         ProxyService.analytics.recordUser();
         ProxyService.forceDateEntry.caller();
+        // init the crashlytics
+        ProxyService.crash.initializeFlutterFire();
       },
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {
