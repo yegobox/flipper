@@ -38,6 +38,7 @@ class OrderF {
       // required this.orderItems,
       required this.table,
       this.channels,
+      this.note,
       this.customerId});
   @Id(assignable: true)
   int id;
@@ -62,6 +63,8 @@ class OrderF {
   // now add a customer to an order
   int? customerId;
 
+  String? note;
+
   @Backlink()
   final orderItems = ToMany<OrderItem>();
 
@@ -80,6 +83,7 @@ class OrderF {
         customerChangeDue: json["customerChangeDue"],
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
+        note: json["note"],
         // orderItems: List<OrderItem>.from(
         //     json["orderItems"].map((x) => OrderItem.fromJson(x))),
         table: json["table"],
@@ -102,6 +106,7 @@ class OrderF {
         "customerChangeDue": customerChangeDue,
         "createdAt": createdAt,
         "updatedAt": updatedAt,
+        "note": note,
         "orderItems": orderItems,
         "table": table,
         "customerId": customerId,

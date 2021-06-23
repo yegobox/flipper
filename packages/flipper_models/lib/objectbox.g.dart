@@ -206,7 +206,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(4, 1236114536079259166),
       name: 'OrderF',
-      lastPropertyId: const IdUid(16, 195264200013359891),
+      lastPropertyId: const IdUid(17, 4542730526473935887),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -288,6 +288,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(16, 195264200013359891),
             name: 'customerId',
             type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(17, 4542730526473935887),
+            name: 'note',
+            type: 9,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1107,7 +1112,9 @@ ModelDefinition getObjectBoxModel() {
               ? null
               : fbb.writeString(object.updatedAt!);
           final tableOffset = fbb.writeString(object.table);
-          fbb.startTable(17);
+          final noteOffset =
+              object.note == null ? null : fbb.writeString(object.note!);
+          fbb.startTable(18);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, referenceOffset);
           fbb.addOffset(2, orderNumberOffset);
@@ -1124,6 +1131,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(13, updatedAtOffset);
           fbb.addOffset(14, tableOffset);
           fbb.addInt64(15, object.customerId);
+          fbb.addOffset(16, noteOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1161,8 +1169,9 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 30),
               table:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
-              customerId: const fb.Int64Reader()
-                  .vTableGetNullable(buffer, rootOffset, 34));
+              note: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 36),
+              customerId: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 34));
           InternalToManyAccess.setRelInfo(
               object.orderItems,
               store,
@@ -1920,6 +1929,9 @@ class OrderF_ {
   /// see [OrderF.customerId]
   static final customerId =
       QueryIntegerProperty<OrderF>(_entities[3].properties[15]);
+
+  /// see [OrderF.note]
+  static final note = QueryStringProperty<OrderF>(_entities[3].properties[16]);
 }
 
 /// [OrderItem] entity fields to define ObjectBox queries.

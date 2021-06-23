@@ -875,6 +875,7 @@ class ObjectBoxApi implements Api {
           table: map['table'],
           channels: map['channels'],
           id: map['id'],
+          note: map['note'],
           cashReceived: map['cashReceived'],
           customerId: map['customerId'],
           createdAt: map['createdAt'],

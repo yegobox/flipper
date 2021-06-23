@@ -152,7 +152,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ),
                   onClick: () {
                     log.i('hello sir');
-                    _showAddNoteToSaleBottomSheet();
+                    _showAddNoteToSaleBottomSheet(model: model);
                   },
                   controller: controller,
                   amount: double.parse(model.key),
@@ -234,7 +234,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  void _showAddNoteToSaleBottomSheet() {
+  void _showAddNoteToSaleBottomSheet({required BusinessHomeViewModel model}) {
+    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+    TextEditingController _controller = new TextEditingController();
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -250,29 +252,47 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 verticalSpaceSmall,
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                  child: TextFormField(
-                    textAlign: TextAlign.center,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Add note',
-                      fillColor: Theme.of(context)
-                          .copyWith(canvasColor: Colors.cyan[50])
-                          .canvasColor,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                        borderRadius: BorderRadius.circular(5),
+                  child: Form(
+                    key: _formKey,
+                    child: TextFormField(
+                      textAlign: TextAlign.center,
+                      autofocus: true,
+                      controller: _controller,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Note is required';
+                        }
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Add note',
+                        fillColor: Theme.of(context)
+                            .copyWith(canvasColor: Colors.cyan[50])
+                            .canvasColor,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: HexColor('#D0D7E3')),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                       ),
+                      minLines:
+                          6, // any number you need (It works as the rows for the textarea)
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
                     ),
-                    minLines:
-                        6, // any number you need (It works as the rows for the textarea)
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
                   ),
                 ),
                 verticalSpaceSmall,
-                BoxButton(
-                  title: 'Save note',
+                Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: BoxButton(
+                    title: Localization.of(context)!.save,
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        model.addNoteToSale(note: _controller.text);
+                        ProxyService.nav.back();
+                      }
+                    },
+                  ),
                 )
               ],
             ),

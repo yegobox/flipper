@@ -257,4 +257,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.setAmount(amount: 0);
     keypad.customQtyIncrease(qty: 1);
   }
+
+  void addNoteToSale({required String note}) async {
+    log.i(orders[0].id);
+    List<OrderF?> order = await ProxyService.api.getOrderById(id: orders[0].id);
+    Map map = order[0]!.toJson();
+    map['note'] = note;
+    ProxyService.api.update(data: map, endPoint: 'order');
+  }
 }
