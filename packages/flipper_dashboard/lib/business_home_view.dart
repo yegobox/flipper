@@ -1,7 +1,10 @@
 library flipper_dashboard;
 
 import 'package:flipper/localization.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
+import 'package:flipper_dashboard/add_customer.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -38,6 +41,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   late AnimationController _fadeController;
   TextEditingController controller = TextEditingController();
+  final log = getLogger('KeyPadHead');
 
   @override
   void initState() {
@@ -146,7 +150,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             .fold(0, (a, b) => a + b.price)
                         : 0.00,
                   ),
-                  onClick: () {},
+                  onClick: () {
+                    log.i('hello sir');
+                    _showAddNoteToSaleBottomSheet();
+                  },
                   controller: controller,
                   amount: double.parse(model.key),
                 ),
@@ -224,6 +231,54 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           businesses: model.businesses,
         ),
       ),
+    );
+  }
+
+  void _showAddNoteToSaleBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Container(
+            child: Wrap(
+              children: [
+                verticalSpaceSmall,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                  child: TextFormField(
+                    textAlign: TextAlign.center,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Add note',
+                      fillColor: Theme.of(context)
+                          .copyWith(canvasColor: Colors.cyan[50])
+                          .canvasColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: HexColor('#D0D7E3')),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    minLines:
+                        6, // any number you need (It works as the rows for the textarea)
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                  ),
+                ),
+                verticalSpaceSmall,
+                BoxButton(
+                  title: 'Save note',
+                )
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

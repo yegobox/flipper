@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flipper/routes.logger.dart';
 import 'package:flutter/material.dart';
 
 import 'keypad_view.dart';
@@ -20,6 +21,7 @@ class KeyPadHead extends StatelessWidget {
   final TextEditingController controller;
   final Widget? payable;
   int tab;
+  final log = getLogger('KeyPadHead');
 
   @override
   Widget build(BuildContext context) {
