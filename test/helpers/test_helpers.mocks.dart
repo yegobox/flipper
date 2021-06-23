@@ -284,11 +284,11 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
               #addCustomer, [], {#customer: customer, #orderId: orderId}))
           as _i20.Customer?);
   @override
-  void assingOrderToCustomer({int? customerId, int? orderId}) => super
-      .noSuchMethod(
+  _i12.Future<dynamic> assingOrderToCustomer({int? customerId, int? orderId}) =>
+      (super.noSuchMethod(
           Invocation.method(#assingOrderToCustomer, [],
               {#customerId: customerId, #orderId: orderId}),
-          returnValueForMissingStub: null);
+          returnValue: Future<dynamic>.value()) as _i12.Future<dynamic>);
   @override
   _i12.Stream<_i20.Customer?> getCustomer({String? key}) =>
       (super.noSuchMethod(Invocation.method(#getCustomer, [], {#key: key}),

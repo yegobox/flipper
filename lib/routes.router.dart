@@ -30,7 +30,7 @@ import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/product.dart';
-import 'package:flipper_models/category.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
