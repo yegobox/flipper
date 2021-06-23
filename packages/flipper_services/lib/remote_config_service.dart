@@ -14,7 +14,7 @@ class RemoteConfigService implements Remote {
       'email_receipt': false,
       'add_customer_to_sale': false,
       'printer_receipt': false,
-      'force_remote_add_data': false
+      'force_remote_add_data': true
     });
   }
 

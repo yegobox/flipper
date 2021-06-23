@@ -2,8 +2,6 @@ import 'package:flipper/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/color.dart';
-import 'package:flipper_models/business.dart';
-import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/unit.dart';
 
 import 'package:flipper_models/unit_mock.dart';

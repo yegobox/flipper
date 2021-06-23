@@ -210,12 +210,14 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   Future<void> switchColor({required PColor color}) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color =
             await ProxyService.api.getColor(id: c.id, endPoint: 'color');
         final Map mapColor = _color!.toJson();
         mapColor['active'] = false;
+        mapColor['branchId'] = branchId;
         final id = mapColor['id'];
         ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
       }
@@ -227,6 +229,7 @@ class ProductViewModel extends ReactiveViewModel {
     final Map mapColor = _color!.toJson();
 
     mapColor['active'] = true;
+    mapColor['branchId'] = branchId;
     final id = mapColor['id'];
     ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
 
