@@ -3,6 +3,7 @@ import 'dart:async';
 // import 'package:cbl/cbl.dart';
 // import 'package:cbl_flutter/cbl_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
@@ -43,6 +44,8 @@ main() async {
     runApp(FlipperApp());
     // await PusherBeams.start(env['PUSHER_KEY']);
   }, (Object e, StackTrace s) async {
-    // await FirebaseCrashlytics.instance.recordError(e, s);
+    (isAndroid || isMacOs)
+        ? await FirebaseCrashlytics.instance.recordError(e, s)
+        : '';
   });
 }

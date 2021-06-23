@@ -294,6 +294,16 @@ class MockApi<T> extends _i1.Mock implements _i11.Api<T> {
       (super.noSuchMethod(Invocation.method(#getCustomer, [], {#key: key}),
               returnValue: Stream<_i20.Customer?>.empty())
           as _i12.Stream<_i20.Customer?>);
+  @override
+  _i12.Stream<_i20.Customer?> getCustomerByOrderId({int? id}) => (super
+          .noSuchMethod(Invocation.method(#getCustomerByOrderId, [], {#id: id}),
+              returnValue: Stream<_i20.Customer?>.empty())
+      as _i12.Stream<_i20.Customer?>);
+  @override
+  _i12.Future<List<_i6.OrderF>> getOrderById({int? id}) =>
+      (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
+              returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
+          as _i12.Future<List<_i6.OrderF>>);
 }
 
 /// A class which mocks [ProductService].
@@ -388,6 +398,11 @@ class MockKeyPadService extends _i1.Mock implements _i22.KeyPadService {
   @override
   _i12.Future<List<_i6.OrderF>> getOrders() =>
       (super.noSuchMethod(Invocation.method(#getOrders, []),
+              returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
+          as _i12.Future<List<_i6.OrderF>>);
+  @override
+  _i12.Future<List<_i6.OrderF>> getOrderById({int? id}) =>
+      (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i12.Future<List<_i6.OrderF>>);
   @override

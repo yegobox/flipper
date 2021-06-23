@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/product.dart';
@@ -18,7 +19,7 @@ import 'package:flipper_services/constants.dart';
 
 class ProductViewModel extends ReactiveViewModel {
   final AppService _appService = locator<AppService>();
-
+  final log = getLogger('ProductViewModel');
   final ProductService productService = locator<ProductService>();
 
   get products => productService.products;
@@ -301,6 +302,7 @@ class ProductViewModel extends ReactiveViewModel {
   Future<bool> addProduct({required Map mproduct}) async {
     if (name != null) {
       mproduct['name'] = name;
+      mproduct['color'] = currentColor;
       final response =
           await ProxyService.api.update(data: mproduct, endPoint: 'product');
       return response == 200;
@@ -326,10 +328,13 @@ class ProductViewModel extends ReactiveViewModel {
     loadProducts(); //refresh list of products
   }
 
-  void updateExpiryDate(DateTime date) {
+  void updateExpiryDate(DateTime date) async {
     Map kProduct = product.toJson();
     kProduct['expiryDate'] = date.toIso8601String();
     ProxyService.api.update(data: kProduct, endPoint: 'product');
+    Product? Cproduct = await ProxyService.api.getProduct(id: kProduct['id']);
+    productService.setCurrentProduct(product: Cproduct!);
+    notifyListeners();
   }
 
   @override

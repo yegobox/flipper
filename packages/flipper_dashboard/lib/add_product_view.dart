@@ -1,4 +1,5 @@
 import 'package:flipper/localization.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
@@ -15,9 +16,12 @@ import 'create/variation_list.dart';
 import 'customappbar.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:intl/intl.dart';
 
 class AddProductView extends StatelessWidget {
-  const AddProductView({Key? key}) : super(key: key);
+  AddProductView({Key? key}) : super(key: key);
+  final log = getLogger('AddProductView');
+  final DateFormat formatter = DateFormat('yyyy-MM-dd');
   Future<bool> _onWillPop() async {
     // ignore: todo
     // TODO:show a modal for confirming if we want to exit
@@ -146,17 +150,20 @@ class AddProductView extends StatelessWidget {
                     child: BoxButton.outline(
                       onTap: () {
                         DatePicker.showPicker(context, showTitleActions: true,
-                            // minTime: DateTime(2021, 5, 5, 20, 50),
-                            // maxTime: DateTime(2030, 6, 7, 05, 09),
                             onChanged: (date) {
-                          print('change $date in time zone ' +
+                          log.i('change $date in time zone ' +
                               date.timeZoneOffset.inHours.toString());
                         }, onConfirm: (date) {
-                          // print('confirm $date');
                           model.updateExpiryDate(date);
                         }, locale: LocaleType.en);
                       },
-                      title: 'Add Expiry Date (optional)',
+                      title: (model.product == null ||
+                              (model.product != null &&
+                                  model.product.expiryDate == null))
+                          ? 'Add Expiry Date (optional)'
+                          : 'Expires at ' +
+                              formatter.format(
+                                  DateTime.parse(model.product.expiryDate)),
                     ),
                   ),
                   const ListDivider(

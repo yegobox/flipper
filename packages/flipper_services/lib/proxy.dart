@@ -1,3 +1,4 @@
+import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/platform.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -42,9 +43,11 @@ final PdfApi _pdfApi = locator<PdfApi>();
 final Printer _printService = locator<Printer>();
 final Analytic _analytics = locator<Analytic>();
 final ForceDataEntryService _forceDataEntry = locator<ForceDataEntryService>();
+final Crash _crash = locator<Crash>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
+  static Crash get crash => _crash;
   static Shareble get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
   static NavigationService get nav => _nav;

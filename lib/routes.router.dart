@@ -150,8 +150,11 @@ class StackedRouter extends RouterBase {
       );
     },
     AddProductView: (data) {
+      var args = data.getArgs<AddProductViewArguments>(
+        orElse: () => AddProductViewArguments(),
+      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const AddProductView(),
+        builder: (context) => AddProductView(key: args.key),
         settings: data,
       );
     },
@@ -316,6 +319,12 @@ class StackedRouter extends RouterBase {
 class SignUpFormViewArguments {
   final Key? key;
   SignUpFormViewArguments({this.key});
+}
+
+/// AddProductView arguments holder class
+class AddProductViewArguments {
+  final Key? key;
+  AddProductViewArguments({this.key});
 }
 
 /// ListCategories arguments holder class
