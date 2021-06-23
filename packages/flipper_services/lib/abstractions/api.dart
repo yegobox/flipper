@@ -84,7 +84,7 @@ abstract class Api<T> {
 
   Business getBusiness();
   Customer? addCustomer({required Map customer, required int orderId});
-  void assingOrderToCustomer({required int customerId, required int orderId});
+  Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<Customer?> getCustomer({required String key});
   Stream<Customer?> getCustomerByOrderId({required int id});
   Future<List<OrderF>> getOrderById({required int id});

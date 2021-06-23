@@ -911,8 +911,9 @@ class ObjectBoxApi implements Api {
         box.put(Ksetting, mode: PutMode.update);
         break;
       case 'customer':
-        Customer? setting = _store.box<Customer>().get(id);
-        Map map = setting!.toJson();
+        Customer? customer = _store.box<Customer>().get(id);
+        log.i(customer!.id);
+        Map map = customer!.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
@@ -924,6 +925,7 @@ class ObjectBoxApi implements Api {
             orderId: map['orderId'],
             address: map['address'],
             id: map['id']);
+        log.i(kCustomer.toJson());
         final box = _store.box<Customer>();
         box.put(kCustomer, mode: PutMode.update);
         break;
@@ -1064,7 +1066,8 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  void assingOrderToCustomer({required int customerId, required int orderId}) {
+  Future assingOrderToCustomer(
+      {required int customerId, required int orderId}) async {
     OrderF? order = _store.box<OrderF>().get(orderId)!;
     Map korder = order.toJson();
     korder['customerId'] = customerId;
@@ -1074,8 +1077,9 @@ class ObjectBoxApi implements Api {
     Customer? customer = _store.box<Customer>().get(customerId)!;
     Map kCustomer = customer.toJson();
     kCustomer['updatedAt'] = DateTime.now().toIso8601String();
+    // kCustomer['orderId'] = DateTime.now().toIso8601String();
     int id = kCustomer['id'];
-    update(data: kCustomer, endPoint: 'customer/$id');
+    await update(data: kCustomer, endPoint: 'customer/$id');
   }
 
   @override

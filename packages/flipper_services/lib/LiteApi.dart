@@ -717,7 +717,8 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  void assingOrderToCustomer({required int customerId, required int orderId}) {
+  Future assingOrderToCustomer(
+      {required int customerId, required int orderId}) async {
     // TODO: implement assingOrderToCustomer
   }
 

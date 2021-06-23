@@ -69,12 +69,12 @@ class Customers extends StatelessWidget {
                                         customerId: snapshot.data!.id,
                                         orderId: orderId,
                                       );
-                                      ProxyService.nav.popUntil(
-                                          ModalRoute.withName(
-                                              Routes.afterSale));
 
                                       /// this update a model when the Order has the customerId in it then will show related data accordingly!
                                       model.getOrderById();
+                                      ProxyService.nav.popUntil(
+                                          ModalRoute.withName(
+                                              Routes.afterSale));
                                     },
                                     onLongPress: () {},
                                     child: Column(children: <Widget>[
