@@ -133,24 +133,22 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             side: const Text('Side'),
             main: Column(
               children: [
-                model.tab == 0
-                    ? KeyPadHead(
-                        payable: PayableView(
-                          onClick: () {
-                            ProxyService.nav.navigateTo(Routes.pay);
-                          },
-                          tickets: 0,
-                          orders: model.orders.length,
-                          duePay: model.orders.isNotEmpty
-                              ? model.orders[0].orderItems
-                                  .fold(0, (a, b) => a + b.price)
-                              : 0.00,
-                        ),
-                        onClick: () {},
-                        controller: controller,
-                        amount: double.parse(model.key),
-                      )
-                    : SizedBox.shrink(),
+                KeyPadHead(
+                  payable: PayableView(
+                    onClick: () {
+                      ProxyService.nav.navigateTo(Routes.pay);
+                    },
+                    tickets: 0,
+                    orders: model.orders.length,
+                    duePay: model.orders.isNotEmpty
+                        ? model.orders[0].orderItems
+                            .fold(0, (a, b) => a + b.price)
+                        : 0.00,
+                  ),
+                  onClick: () {},
+                  controller: controller,
+                  amount: double.parse(model.key),
+                ),
                 model.tab == 0
                     ? KeyPadView(model: model)
                     // show a list of products and on click handle different scenarios
