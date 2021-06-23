@@ -134,6 +134,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             main: Column(
               children: [
                 KeyPadHead(
+                  tab: model.tab,
                   payable: PayableView(
                     onClick: () {
                       ProxyService.nav.navigateTo(Routes.pay);
