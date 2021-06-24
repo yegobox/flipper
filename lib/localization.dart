@@ -3,7 +3,8 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
+import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
+import 'package:overlay_support/overlay_support.dart'; // Add this line.
 
 class Localization {
   static AppLocalizations? of(BuildContext context) {
@@ -12,6 +13,57 @@ class Localization {
 }
 
 class FlipperBottomSheet {
+  static showTicketsToSaleBottomSheet(
+      {required BusinessHomeViewModel model,
+      required BuildContext context}) async {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Container(
+            child: Wrap(
+              children: model.tickets
+                  .map((ticket) => SizedBox(
+                        height: 90,
+                        width: double.infinity,
+                        child: Column(children: <Widget>[
+                          ListTile(
+                            subtitle: Text(ticket.note!),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextButton(
+                                  child: Text(
+                                    'Resume',
+                                  ),
+                                  onPressed: () async {
+                                    await model.resumeOrder(
+                                        ticketId: ticket.id);
+                                    showSimpleNotification(
+                                        Text('Order Restored!'),
+                                        background: Colors.green);
+                                    ProxyService.nav.back();
+                                  },
+                                ),
+                              ],
+                            ),
+                            dense: true,
+                          )
+                        ]),
+                      ))
+                  .toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   static showAddNoteToSaleBottomSheet(
       {required BusinessHomeViewModel model,
       required BuildContext context}) async {

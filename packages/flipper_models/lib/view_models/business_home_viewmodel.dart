@@ -299,4 +299,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     //refresh order afterwards
     getOrders();
   }
+
+  Future resumeOrder({required int ticketId}) async {
+    List<OrderF?> Korders = await ProxyService.api.getOrderById(id: ticketId);
+    Map map = Korders[0]!.toJson();
+    map['status'] = pendingStatus;
+    await ProxyService.api.update(data: map, endPoint: 'order');
+    getOrders();
+  }
 }

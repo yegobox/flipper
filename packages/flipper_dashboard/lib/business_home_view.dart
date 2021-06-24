@@ -153,6 +153,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             .fold(0, (a, b) => a + b.price)
                         : 0.00,
                     ticketHandler: () {
+                      if (model.orders.isEmpty && model.tickets.isNotEmpty) {
+                        //then we know we need to resume.
+                        FlipperBottomSheet.showTicketsToSaleBottomSheet(
+                          model: model,
+                          context: context,
+                        );
+                      }
                       model.saveTicket((handle) {
                         if (handle == 'error') {
                           showSimpleNotification(
