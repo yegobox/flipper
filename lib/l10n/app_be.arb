@@ -38,5 +38,9 @@
     "options": "Amahitamo",
     "@options": {
         "description": "Amahitamo"
+    },
+    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
+    "@saveTicket": {
+        "description": "Amahitamo"
     }
 }

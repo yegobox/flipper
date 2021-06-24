@@ -275,4 +275,23 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     map['note'] = note;
     ProxyService.api.update(data: map, endPoint: 'order');
   }
+
+  ///save ticket, this method take any existing pending order
+  ///change status to parked, this allow the cashier to take another order of different client
+  ///and resume this when he feel like he wants to,
+  ///the note on order is served as display, therefore an order can not be parked without a note on it.
+  void saveTicket(Function error) async {
+    //get the current order
+    log.i(orders[0].id);
+    List<OrderF?> Korders =
+        await ProxyService.api.getOrderById(id: orders[0].id);
+    Map map = Korders[0]!.toJson();
+    map['status'] = parkedStatus;
+    if (map['note'] == null || map['note'] == '') {
+      return error();
+    }
+    ProxyService.api.update(data: map, endPoint: 'order');
+    //refresh order afterwards
+    getOrders();
+  }
 }

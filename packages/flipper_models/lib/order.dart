@@ -8,6 +8,9 @@ import 'package:objectbox/objectbox.dart';
 
 import 'order_item.dart';
 
+String parkedStatus = 'parked';
+String pending = 'parked';
+String complete = 'complete';
 OrderF sorderFromJson(String str) => OrderF.fromJson(json.decode(str));
 
 String sorderToJson(OrderF data) => json.encode(data.toJson());

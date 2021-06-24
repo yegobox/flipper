@@ -38,5 +38,9 @@
     "options": "Chaguzi",
     "@options": {
         "description": "Chaguzi"
+    },
+    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
+    "@saveTicket": {
+        "description": "Amahitamo"
     }
 }

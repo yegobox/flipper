@@ -38,5 +38,9 @@
     "options": "Options",
     "@options": {
         "description": "Amahitamo"
+    },
+    "saveTicket": "You can not save a ticket without adding a note!",
+    "@saveTicket": {
+        "description": "Amahitamo"
     }
 }

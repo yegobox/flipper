@@ -667,7 +667,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<OrderF>()
         .getAll()
-        .where((v) => v.status != 'completed')
+        .where((v) => v.status == 'pending')
         .toList();
   }
 
@@ -916,7 +916,7 @@ class ObjectBoxApi implements Api {
       case 'customer':
         Customer? customer = _store.box<Customer>().get(id);
         log.i(customer!.id);
-        Map map = customer!.toJson();
+        Map map = customer.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
@@ -1109,5 +1109,14 @@ class ObjectBoxApi implements Api {
   @override
   Future<List<OrderF>> getOrderById({required int id}) async {
     return _store.box<OrderF>().getAll().where((v) => v.id == id).toList();
+  }
+
+  @override
+  Future<List<OrderF>> tickets() async {
+    return _store
+        .box<OrderF>()
+        .getAll()
+        .where((v) => v.status == 'parked')
+        .toList();
   }
 }

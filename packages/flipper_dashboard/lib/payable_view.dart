@@ -20,12 +20,14 @@ class PayableView extends StatelessWidget {
       this.tickets = 0,
       this.duePay = 0,
       this.orders = 0,
-      required this.onClick})
+      required this.onClick,
+      required this.ticketHandler})
       : super(key: key);
   final double tickets;
   final int orders;
   final double duePay;
   final Function onClick;
+  final Function ticketHandler;
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +40,7 @@ class PayableView extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: () {
-                if (tickets == 0) {
-                  onClick();
-                } else {
-                  onClick();
-                }
+                ticketHandler();
               },
               child: Container(
                 alignment: Alignment.center,

@@ -739,4 +739,10 @@ class LiteApi<T> implements Api {
     // TODO: implement getOrderById
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<OrderF>> tickets() {
+    // TODO: implement tickets
+    throw UnimplementedError();
+  }
 }

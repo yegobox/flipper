@@ -4,6 +4,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 @FormView(fields: [
   FormTextField(name: 'name'),
@@ -84,16 +85,8 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                         Locale locale = Localizations.localeOf(context);
                         // If the form is valid, display a snackbar. In the real world,
                         // you'd often call a server or save the information in a database.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Processing Data',
-                              style: TextStyle(
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        );
+                        showSimpleNotification(Text("Signup in progress"),
+                            background: Colors.green);
                         model.signup(locale: locale);
                       }
                     },

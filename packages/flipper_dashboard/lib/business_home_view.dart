@@ -3,7 +3,6 @@ library flipper_dashboard;
 import 'package:flipper/localization.dart';
 import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_dashboard/add_customer.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -26,6 +25,7 @@ import 'keypad_head_view.dart';
 import 'keypad_view.dart';
 // import 'package:chat/screens/homepage.dart';
 import 'package:chat/screens/about_chat.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class Home extends StatefulWidget {
@@ -149,9 +149,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ? model.orders[0].orderItems
                             .fold(0, (a, b) => a + b.price)
                         : 0.00,
+                    ticketHandler: () {
+                      model.saveTicket(() {
+                        showSimpleNotification(
+                            Text(Localization.of(context)!.saveTicket),
+                            background: Colors.red);
+                      });
+                    },
                   ),
                   onClick: () {
-                    log.i('hello sir');
                     _showAddNoteToSaleBottomSheet(model: model);
                   },
                   controller: controller,
