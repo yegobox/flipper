@@ -85,6 +85,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.forceDateEntry.caller();
         // init the crashlytics
         ProxyService.crash.initializeFlutterFire();
+        model.getTickets();
       },
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {
@@ -143,7 +144,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     onClick: () {
                       ProxyService.nav.navigateTo(Routes.pay);
                     },
-                    tickets: 0,
+                    tickets: model.tickets.isEmpty
+                        ? 0
+                        : model.tickets.length.toDouble(),
                     orders: model.orders.length,
                     duePay: model.orders.isNotEmpty
                         ? model.orders[0].orderItems
@@ -158,7 +161,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     },
                   ),
                   onClick: () {
-                    _showAddNoteToSaleBottomSheet(model: model);
+                    FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                      model: model,
+                      context: context,
+                    );
                   },
                   controller: controller,
                   amount: double.parse(model.key),
@@ -237,74 +243,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           businesses: model.businesses,
         ),
       ),
-    );
-  }
-
-  void _showAddNoteToSaleBottomSheet({required BusinessHomeViewModel model}) {
-    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-    TextEditingController _controller = new TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: [
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                  child: Form(
-                    key: _formKey,
-                    child: TextFormField(
-                      textAlign: TextAlign.center,
-                      autofocus: true,
-                      controller: _controller,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Note is required';
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Add note',
-                        fillColor: Theme.of(context)
-                            .copyWith(canvasColor: Colors.cyan[50])
-                            .canvasColor,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      minLines:
-                          6, // any number you need (It works as the rows for the textarea)
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                    ),
-                  ),
-                ),
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: BoxButton(
-                    title: Localization.of(context)!.save,
-                    onTap: () {
-                      if (_formKey.currentState!.validate()) {
-                        model.addNoteToSale(note: _controller.text);
-                        ProxyService.nav.back();
-                      }
-                    },
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

@@ -19,10 +19,6 @@ class KeyPadService with ReactiveServiceMixin {
 
   String get key => _key.value;
 
-  final _orders = ReactiveValue<List<OrderF>>([]);
-
-  List<OrderF> get orders => _orders.value;
-
   final _countOrderItems = ReactiveValue<int>(0);
 
   int get countOrderItems => _countOrderItems.value;
@@ -60,6 +56,24 @@ class KeyPadService with ReactiveServiceMixin {
     print(count);
     _count.value = count;
   }
+
+  final _tickets = ReactiveValue<List<OrderF>>([]);
+
+  List<OrderF> get tickets => _tickets.value;
+  Future<List<OrderF>> getTickets() async {
+    List<OrderF> od = await ProxyService.api.tickets();
+    //
+    //NOTE: we assume index[0] as pending order can not be more than one at the moment
+    if (od.isNotEmpty) {
+      _countOrderItems.value = od[0].orderItems.length;
+    }
+    _orders.value = od;
+    return _orders.value;
+  }
+
+  final _orders = ReactiveValue<List<OrderF>>([]);
+
+  List<OrderF> get orders => _orders.value;
 
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)

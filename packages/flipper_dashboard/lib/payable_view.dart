@@ -51,7 +51,7 @@ class PayableView extends StatelessWidget {
                       canvasColor: HexColor('#2996CC'),
                     )
                     .canvasColor,
-                child: ticketText(orders: orders, context: context),
+                child: ticketText(tickets: tickets.toInt(), context: context),
               ),
             ),
           ),
@@ -87,8 +87,8 @@ class PayableView extends StatelessWidget {
     );
   }
 
-  Widget ticketText({required int orders, required BuildContext context}) {
-    if (orders == 0) {
+  Widget ticketText({required int tickets, required BuildContext context}) {
+    if (tickets == 0) {
       return Text(
         Localization.of(context)!.tickets,
         textAlign: TextAlign.center,
@@ -118,7 +118,7 @@ class PayableView extends StatelessWidget {
             Container(
               child: Container(
                 child: Text(
-                  orders.toString() + ' New Item' + (orders > 1 ? 's' : ''),
+                  tickets.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

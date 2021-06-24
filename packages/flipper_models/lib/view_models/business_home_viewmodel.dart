@@ -23,6 +23,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   late String? latitude;
 
   List<OrderF> get orders => keypad.orders;
+  List<OrderF> get tickets => keypad.tickets;
 
   int get countedOrderItems => keypad.count;
 
@@ -79,6 +80,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else {
       ProxyService.keypad.addKey(key);
     }
+  }
+
+  void getTickets() async {
+    await ProxyService.keypad.getTickets();
   }
 
   void getOrders() async {
