@@ -19,6 +19,7 @@ void main() {
       );
       data = productService.product!.toJson();
       data['name'] = 'product name';
+      data['color'] = '#ee5253';
       getAndRegisterApi(data: data, uri: 'product');
     });
     tearDown(() => unregisterServices());
@@ -26,13 +27,12 @@ void main() {
         () async {
       final model = _getModel();
 
-      //TODO fix the bellow breaking test caused by adding mproduct['color'] = currentColor; in addProduct func
-      // model.setName(name: 'product name');
-      // expect(model.product, isA<Product>());
-      expect(1, 1);
-      // expect(model.name, 'product name');
+      model.setName(name: 'product name');
+      expect(model.product, isA<Product>());
 
-      // expect(await model.addProduct(mproduct: data), true);
+      expect(model.name, 'product name');
+
+      expect(await model.addProduct(mproduct: data), true);
     });
   });
 }
