@@ -58,7 +58,8 @@ class _FlipperAppState extends State<FlipperApp> {
                   primaryColor: Colors.blueAccent,
                   // set canvasColor to transparent when working on dark mode.
                   // canvasColor: Colors.transparent,
-                  primaryColorDark: Color(0xff262833),
+                  // primaryColorDark: Color(0xff262833),
+                  primaryColorDark: Colors.white,
                   // canvasColor: Colors.transparent,
                   // set canvasColor to transparent when working on dark mode.
                   // canvasColor: Colors.transparent,
@@ -110,7 +111,8 @@ class _FlipperAppState extends State<FlipperApp> {
                 primaryColor: Colors.blueAccent,
                 // set canvasColor to transparent when working on dark mode.
                 // canvasColor: Colors.transparent,
-                primaryColorDark: Color(0xff262833),
+                // primaryColorDark: Color(0xff262833),
+                primaryColorDark: Colors.white,
                 primaryColorLight: Colors.white,
               ),
               // theme: FlipperThemeData.lightThemeData
