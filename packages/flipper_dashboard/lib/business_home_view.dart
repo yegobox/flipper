@@ -153,10 +153,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             .fold(0, (a, b) => a + b.price)
                         : 0.00,
                     ticketHandler: () {
-                      model.saveTicket(() {
-                        showSimpleNotification(
-                            Text(Localization.of(context)!.saveTicket),
-                            background: Colors.red);
+                      model.saveTicket((handle) {
+                        if (handle == 'error') {
+                          showSimpleNotification(
+                              Text(Localization.of(context)!.saveTicket),
+                              background: Colors.red);
+                        } else if (handle == 'saved') {
+                          showSimpleNotification(Text('Note added'),
+                              background: Colors.green);
+                        }
                       });
                     },
                   ),

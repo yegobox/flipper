@@ -287,13 +287,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///the note on order is served as display, therefore an order can not be parked without a note on it.
   void saveTicket(Function error) async {
     //get the current order
-    log.i(orders[0].id);
+    if (orders.isEmpty) return;
     List<OrderF?> Korders =
         await ProxyService.api.getOrderById(id: orders[0].id);
     Map map = Korders[0]!.toJson();
     map['status'] = parkedStatus;
     if (map['note'] == null || map['note'] == '') {
-      return error();
+      return error('error');
     }
     ProxyService.api.update(data: map, endPoint: 'order');
     //refresh order afterwards

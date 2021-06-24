@@ -67,8 +67,8 @@ class KeyPadService with ReactiveServiceMixin {
     if (od.isNotEmpty) {
       _countOrderItems.value = od[0].orderItems.length;
     }
-    _orders.value = od;
-    return _orders.value;
+    _tickets.value = od;
+    return _tickets.value;
   }
 
   final _orders = ReactiveValue<List<OrderF>>([]);

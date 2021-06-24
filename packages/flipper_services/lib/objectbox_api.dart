@@ -1116,7 +1116,7 @@ class ObjectBoxApi implements Api {
     return _store
         .box<OrderF>()
         .getAll()
-        .where((v) => v.status == 'parked')
+        .where((v) => v.status == parkedStatus)
         .toList();
   }
 }
