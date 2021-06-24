@@ -332,6 +332,9 @@ class ObjectBoxApi implements Api {
       case 'message':
         _store.box<Message>().remove(id);
         break;
+      case 'order':
+        _store.box<OrderF>().remove(id);
+        break;
       default:
     }
     return true;

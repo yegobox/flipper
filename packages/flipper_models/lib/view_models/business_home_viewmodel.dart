@@ -116,13 +116,23 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.keypad.reset();
   }
 
+  /// if deleting OrderItem leaves order with no OrderItem
+  /// this function also delete the order
   Future<bool> deleteOrderItem({required int id}) async {
     OrderF order = orders[0];
     if (order.orderItems.isNotEmpty) {
       OrderItem? orderItem = await ProxyService.api.getOrderItem(id: id);
       ProxyService.api.delete(id: orderItem!.id, endPoint: 'orderItem');
-      int orderId = order.id;
-      ProxyService.api.update(data: order.toJson(), endPoint: 'order/$orderId');
+
+      ProxyService.api.update(data: order.toJson(), endPoint: 'order');
+    }
+    getOrders();
+    log.i(orders[0].orderItems[0].name);
+    // since when crating an order we need to init orderItem with one default
+    //regular the orderItems will never be empty so we check if length is 1 instead
+    if (orders[0].orderItems.length == 1) {
+      //delete the order too!
+      ProxyService.api.delete(id: orders[0].id, endPoint: 'order');
     }
     getOrders();
     return false;

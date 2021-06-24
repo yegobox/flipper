@@ -111,7 +111,6 @@ class ProductRow extends StatelessWidget {
           color: Colors.red,
           icon: Icons.delete,
           onTap: () {
-            // model.deleteProduct(productId: product.id);
             delete(product.id);
           },
         ),

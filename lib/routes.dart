@@ -106,3 +106,5 @@ class AppSetup {
 // https://docs.objectbox.io/advanced/data-model-updates
 // A/B Testing.
 // https://firebase.google.com/docs/ab-testing/abtest-config#java
+
+// on DeleteOfOrderItem call another func to update tickets this can be refreshing tickets..
