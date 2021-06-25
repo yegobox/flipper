@@ -43,6 +43,7 @@ import 'package:uuid/uuid.dart';
 // import 'api_result.dart';
 // import 'network_exceptions.dart';
 final socketUrl = 'https://apihub.yegobox.com/ws-message';
+late Store store;
 
 class ObjectBoxApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
@@ -50,11 +51,10 @@ class ObjectBoxApi implements Api {
   // late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
   final log = getLogger('ObjectBoxAPi');
-  late Store _store;
-  getDir({required String dbName}) async {
+  // late
+  static getDir({required String dbName}) async {
     Directory dir = await getApplicationDocumentsDirectory();
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
-    await Future.delayed(Duration(microseconds: 2000));
+    store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
   }
 
   StompClient? stompMessageClient;
@@ -110,16 +110,12 @@ class ObjectBoxApi implements Api {
 
       stompUsersClient?.activate();
     }
-    // end of socket connection
-    if (dir != null) {
-      _store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
-    } else {
-      getDir(dbName: dbName);
-    }
+    // get store initialized.
+    getDir(dbName: dbName);
   }
   @override
   Future<List<Unit>> units({required int branchId}) async {
-    return _store
+    return store
         .box<Unit>()
         .getAll()
         .where((unit) => unit.fbranchId == branchId)
@@ -128,8 +124,8 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Business>> businesses() async {
-    await Future.delayed(Duration(microseconds: 2000));
-    List<Business> businessList = _store.box<Business>().getAll().toList();
+    // await Future.delayed(Duration(microseconds: 2000));
+    List<Business> businessList = store.box<Business>().getAll().toList();
     if (businessList.isNotEmpty) {
       return businessList;
     }
@@ -153,7 +149,7 @@ class ObjectBoxApi implements Api {
       final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
       if (businessList.isEmpty) {
         for (Business business in businessFromJson(response.body)) {
-          final box = _store.box<Business>();
+          final box = store.box<Business>();
           box.put(business);
         }
       }
@@ -166,7 +162,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Category>> categories({required int branchId}) async {
-    return _store
+    return store
         .box<Category>()
         .getAll()
         .where((category) => category.fbranchId == branchId)
@@ -175,7 +171,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<PColor>> colors({required int branchId}) async {
-    return _store
+    return store
         .box<PColor>()
         .getAll()
         .where((color) => color.fbranchId == branchId)
@@ -191,7 +187,7 @@ class ObjectBoxApi implements Api {
             table: data['table'],
             active: data['active'],
             fbranchId: ProxyService.box.read(key: 'branchId'));
-        final box = _store.box<PColor>();
+        final box = store.box<PColor>();
         box.put(color);
       }
       return 200;
@@ -205,7 +201,7 @@ class ObjectBoxApi implements Api {
         fbranchId: ProxyService.box.read(key: 'branchId'),
         focused: false,
       );
-      final box = _store.box<Category>();
+      final box = store.box<Category>();
       box.put(category);
       return 200;
     }
@@ -214,7 +210,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Product>> isTempProductExist() async {
-    return _store
+    return store
         .box<Product>()
         .getAll()
         .where((product) => product.name == 'temp')
@@ -223,7 +219,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Product>> products() async {
-    return _store.box<Product>().getAll();
+    return store.box<Product>().getAll();
   }
 
   @override
@@ -257,7 +253,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<Stock>> stocks({required int productId}) async {
-    List<Stock> stocks = _store
+    List<Stock> stocks = store
         .box<Stock>()
         .getAll()
         .where((stock) => stock.fproductId == productId)
@@ -267,13 +263,13 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<Variant?> variant({required int variantId}) async {
-    return _store.box<Variant>().get(variantId);
+    return store.box<Variant>().get(variantId);
   }
 
   @override
   Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
-    return _store
+    return store
         .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == productId)
@@ -283,7 +279,7 @@ class ObjectBoxApi implements Api {
   @override
   Future<int> addUnits({required Map data}) async {
     for (Map map in data['units']) {
-      final box = _store.box<Unit>();
+      final box = store.box<Unit>();
 
       final unit = Unit(
           active: false,
@@ -300,7 +296,7 @@ class ObjectBoxApi implements Api {
   @override
   Future<Stock?> getStock(
       {required int branchId, required int variantId}) async {
-    List<Stock> stocks = _store
+    List<Stock> stocks = store
         .box<Stock>()
         .getAll()
         .where((v) => v.fvariantId == variantId)
@@ -315,25 +311,25 @@ class ObjectBoxApi implements Api {
   Future<bool> delete({required dynamic id, String? endPoint}) async {
     switch (endPoint) {
       case 'color':
-        _store.box<PColor>().remove(id);
+        store.box<PColor>().remove(id);
         break;
       case 'orderItem':
-        _store.box<OrderItem>().remove(id);
+        store.box<OrderItem>().remove(id);
         break;
       case 'product':
-        _store.box<Product>().remove(id);
+        store.box<Product>().remove(id);
         break;
       case 'stock':
-        _store.box<Stock>().remove(id);
+        store.box<Stock>().remove(id);
         break;
       case 'variation':
-        _store.box<Variant>().remove(id);
+        store.box<Variant>().remove(id);
         break;
       case 'message':
-        _store.box<Message>().remove(id);
+        store.box<Message>().remove(id);
         break;
       case 'order':
-        _store.box<OrderF>().remove(id);
+        store.box<OrderF>().remove(id);
         break;
       default:
     }
@@ -347,7 +343,7 @@ class ObjectBoxApi implements Api {
       required double supplyPrice}) async {
     for (Variant variation in data) {
       Map d = variation.toJson();
-      final box = _store.box<Variant>();
+      final box = store.box<Variant>();
       final variantId = box.put(variation);
       final stockId = DateTime.now().millisecondsSinceEpoch;
       String? userId = ProxyService.box.read(key: 'userId');
@@ -366,7 +362,7 @@ class ObjectBoxApi implements Api {
         value: 0,
         active: false,
       );
-      final stockBox = _store.box<Stock>();
+      final stockBox = store.box<Stock>();
       stockBox.put(stock);
     }
     return 200;
@@ -492,7 +488,7 @@ class ObjectBoxApi implements Api {
   }
 
   Future<OrderF?> pendingOrderExist() async {
-    return _store
+    return store
         .box<OrderF>()
         .query(OrderF_.status.equals('pending'))
         .build()
@@ -539,9 +535,9 @@ class ObjectBoxApi implements Api {
         forderId: order.id,
       );
       order.orderItems.add(orderItems);
-      final box = _store.box<OrderF>();
+      final box = store.box<OrderF>();
       final id = box.put(order);
-      return _store.box<OrderF>().get(id)!;
+      return store.box<OrderF>().get(id)!;
     } else {
       OrderItem item = OrderItem(
         count: 1,
@@ -551,11 +547,11 @@ class ObjectBoxApi implements Api {
         forderId: existOrder.id,
       );
       existOrder.orderItems.add(item);
-      // final box = _store.box<OrderF>();
+      // final box = store.box<OrderF>();
       // final id = box.put(existOrder, mode: PutMode.update);
-      final id = _store.box<OrderF>().put(existOrder);
+      final id = store.box<OrderF>().put(existOrder);
       // update(data: existOrder.toJson(), endPoint: 'order');
-      return _store.box<OrderF>().get(id)!;
+      return store.box<OrderF>().get(id)!;
     }
   }
 
@@ -588,7 +584,7 @@ class ObjectBoxApi implements Api {
         ftaxId: data['ftaxId']);
     final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
-    final productBox = _store.box<Product>();
+    final productBox = store.box<Product>();
     final id = productBox.put(products);
     Variant variant = Variant(
       name: 'Regular',
@@ -606,7 +602,7 @@ class ObjectBoxApi implements Api {
     );
 
     products.variations.add(variant);
-    final productId = _store.box<Product>().put(products);
+    final productId = store.box<Product>().put(products);
     List<Variant> v = await variants(branchId: branchId, productId: productId);
 
     final stock = new Stock(
@@ -624,23 +620,23 @@ class ObjectBoxApi implements Api {
       active: false,
       value: 0,
     );
-    final stockBox = _store.box<Stock>();
+    final stockBox = store.box<Stock>();
     stockBox.put(stock);
-    return _store.box<Product>().get(productId)!;
+    return store.box<Product>().get(productId)!;
   }
 
   @override
   Future<PColor?> getColor({required int id, String? endPoint}) async {
-    return _store.box<PColor>().get(id);
+    return store.box<PColor>().get(id);
   }
 
   Variant getV() {
-    Product product = _store
+    Product product = store
         .box<Product>()
         .getAll()
         .where((v) => v.name == 'Custom Amount')
         .toList()[0];
-    return _store
+    return store
         .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == product.id)
@@ -659,12 +655,12 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<Product?> getProduct({required int id}) async {
-    return _store.box<Product>().get(id);
+    return store.box<Product>().get(id);
   }
 
   @override
   Future<List<OrderF>> orders() async {
-    return _store
+    return store
         .box<OrderF>()
         .getAll()
         .where((v) => v.status == 'pending')
@@ -703,7 +699,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<Stock> stockByVariantId({required int variantId}) async {
-    return _store
+    return store
         .box<Stock>()
         .getAll()
         .where((v) => v.fvariantId == variantId)
@@ -712,7 +708,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Stream<Stock> stockByVariantIdStream({required int variantId}) {
-    return _store
+    return store
         .box<Stock>()
         .query(Stock_.fvariantId.equals(variantId))
         .watch(triggerImmediately: true)
@@ -736,7 +732,7 @@ class ObjectBoxApi implements Api {
     final Map dn = data;
     switch (point) {
       case 'product':
-        Product? kProduct = _store.box<Product>().get(data['id']);
+        Product? kProduct = store.box<Product>().get(data['id']);
         Map map = kProduct!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -763,11 +759,11 @@ class ObjectBoxApi implements Api {
           fsupplierId: map['fsupplierId'],
           ftaxId: map['ftaxId'],
         );
-        final box = _store.box<Product>();
+        final box = store.box<Product>();
         box.put(product, mode: PutMode.update);
         break;
       case 'stock':
-        Stock? color = _store.box<Stock>().get(id);
+        Stock? color = store.box<Stock>().get(id);
         Map map = color!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -788,11 +784,11 @@ class ObjectBoxApi implements Api {
           value: map['value'],
           fvariantId: map['fvariantId'],
         );
-        final box = _store.box<Stock>();
+        final box = store.box<Stock>();
         box.put(stock, mode: PutMode.update);
         break;
       case 'category':
-        Category? color = _store.box<Category>().get(id);
+        Category? color = store.box<Category>().get(id);
         Map map = color!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -806,11 +802,11 @@ class ObjectBoxApi implements Api {
           id: map['id'],
           focused: map['focused'],
         );
-        final box = _store.box<Category>();
+        final box = store.box<Category>();
         box.put(category, mode: PutMode.update);
         break;
       case 'variant':
-        Variant? variation = _store.box<Variant>().get(id);
+        Variant? variation = store.box<Variant>().get(id);
         Map map = variation!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -828,11 +824,11 @@ class ObjectBoxApi implements Api {
           supplyPrice: map['supplyPrice'],
           unit: map['unit'],
         );
-        final box = _store.box<Variant>();
+        final box = store.box<Variant>();
         box.put(variant, mode: PutMode.update);
         break;
       case 'unit':
-        Unit? color = _store.box<Unit>().get(id);
+        Unit? color = store.box<Unit>().get(id);
         Map map = color!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -846,11 +842,11 @@ class ObjectBoxApi implements Api {
           id: map['id'],
           value: map['value'],
         );
-        final box = _store.box<Unit>();
+        final box = store.box<Unit>();
         box.put(unit, mode: PutMode.update);
         break;
       case 'color':
-        PColor? color = _store.box<PColor>().get(id);
+        PColor? color = store.box<PColor>().get(id);
         Map map = color!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -863,11 +859,11 @@ class ObjectBoxApi implements Api {
           id: map['id'],
           name: map['name'],
         );
-        final box = _store.box<PColor>();
+        final box = store.box<PColor>();
         box.put(pcolor, mode: PutMode.update);
         break;
       case 'order':
-        OrderF? orders = _store.box<OrderF>().get(dn['id']);
+        OrderF? orders = store.box<OrderF>().get(dn['id']);
         Map map = orders!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -892,11 +888,11 @@ class ObjectBoxApi implements Api {
           subTotal: map['subTotal'],
           updatedAt: map['updatedAt'],
         );
-        final box = _store.box<OrderF>();
+        final box = store.box<OrderF>();
         box.put(order, mode: PutMode.update);
         break;
       case 'settings':
-        Setting? setting = _store.box<Setting>().get(id);
+        Setting? setting = store.box<Setting>().get(id);
         Map map = setting!.toJson();
         data.forEach((key, value) {
           map[key] = value;
@@ -910,11 +906,11 @@ class ObjectBoxApi implements Api {
             openReceiptFileOSaleComplete: map['openReceiptFileOSaleComplete'],
             autoPrint: map['autoPrint'],
             id: map['id']);
-        final box = _store.box<Setting>();
+        final box = store.box<Setting>();
         box.put(Ksetting, mode: PutMode.update);
         break;
       case 'customer':
-        Customer? customer = _store.box<Customer>().get(id);
+        Customer? customer = store.box<Customer>().get(id);
         log.i(customer!.id);
         Map map = customer.toJson();
         data.forEach((key, value) {
@@ -929,7 +925,7 @@ class ObjectBoxApi implements Api {
             address: map['address'],
             id: map['id']);
         log.i(kCustomer.toJson());
-        final box = _store.box<Customer>();
+        final box = store.box<Customer>();
         box.put(kCustomer, mode: PutMode.update);
         break;
       // case 'category'
@@ -954,20 +950,20 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<OrderItem?> getOrderItem({required int id}) async {
-    return _store.box<OrderItem>().get(id);
+    return store.box<OrderItem>().get(id);
   }
 
   @override
   Future<Setting?> createSetting(
       {required int userId, required Setting setting}) async {
-    final box = _store.box<Setting>();
+    final box = store.box<Setting>();
     final id = box.put(setting);
-    return _store.box<Setting>().get(id);
+    return store.box<Setting>().get(id);
   }
 
   @override
   Future<Setting?> getSetting({required int userId}) async {
-    final box = _store.box<Setting>();
+    final box = store.box<Setting>();
     Query<Setting> query = box.query(Setting_.userId.equals(userId)).build();
     return query.findFirst();
   }
@@ -980,7 +976,7 @@ class ObjectBoxApi implements Api {
     //first I have to listen to a socket
     Stream<Message> stream = messageStreamController.stream;
     messageSubscription = stream.listen((message) {
-      Message? kMessage = _store.box<Message>().get(message.id);
+      Message? kMessage = store.box<Message>().get(message.id);
 
       log.i(message.receiverId == myBusinessId);
       log.i(kMessage);
@@ -989,12 +985,12 @@ class ObjectBoxApi implements Api {
           message.receiverId == myBusinessId &&
           message.senderId != myBusinessId) {
         log.i("now inserting new object");
-        final box = _store.box<Message>();
+        final box = store.box<Message>();
         box.put(message);
       }
     });
 
-    return _store
+    return store
         .box<Message>()
         .query(Message_.receiverId
             .equals(myBusinessId ?? 0)
@@ -1006,7 +1002,7 @@ class ObjectBoxApi implements Api {
   @override
   Business getBusiness() {
     String? userId = ProxyService.box.read(key: 'userId');
-    return _store
+    return store
         .box<Business>()
         .getAll()
         .firstWhere((unit) => unit.userId == userId);
@@ -1017,20 +1013,20 @@ class ObjectBoxApi implements Api {
   Stream<List<Business>> users() {
     Stream<Business> stream = usersStreamController.stream;
     userSubs = stream.listen((business) {
-      Business? kBusiness = _store.box<Business>().get(business.id);
+      Business? kBusiness = store.box<Business>().get(business.id);
 
       if (kBusiness == null) {
         log.i("now inserting new business" + business.id.toString());
-        final box = _store.box<Business>();
+        final box = store.box<Business>();
         box.put(business);
       } else {
         //updat this business with the update object
-        final box = _store.box<Business>();
+        final box = store.box<Business>();
         log.i(business.image);
         box.put(business, mode: PutMode.update);
       }
     });
-    return _store
+    return store
         .box<Business>()
         .query()
         .watch(triggerImmediately: true)
@@ -1040,8 +1036,8 @@ class ObjectBoxApi implements Api {
   @override
   void sendMessage({required int receiverId, required String message}) {
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
-    Business? business = _store.box<Business>().get(myBusinessId!);
-    final box = _store.box<Message>();
+    Business? business = store.box<Business>().get(myBusinessId!);
+    final box = store.box<Message>();
     Message kMessage = Message(
       createdAt: DateTime.now().toIso8601String(),
       lastActiveId: myBusinessId,
@@ -1056,7 +1052,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Customer? addCustomer({required Map customer, required int orderId}) {
-    final box = _store.box<Customer>();
+    final box = store.box<Customer>();
     Customer kCustomer = Customer(
       name: customer['name'],
       email: customer['email'],
@@ -1065,19 +1061,19 @@ class ObjectBoxApi implements Api {
       orderId: orderId,
     );
     int id = box.put(kCustomer, mode: PutMode.insert);
-    return _store.box<Customer>().get(id);
+    return store.box<Customer>().get(id);
   }
 
   @override
   Future assingOrderToCustomer(
       {required int customerId, required int orderId}) async {
-    OrderF? order = _store.box<OrderF>().get(orderId)!;
+    OrderF? order = store.box<OrderF>().get(orderId)!;
     Map korder = order.toJson();
     korder['customerId'] = customerId;
     update(data: korder, endPoint: 'order');
 
     // and updat this customer with timestamp so it can trigger change!.
-    Customer? customer = _store.box<Customer>().get(customerId)!;
+    Customer? customer = store.box<Customer>().get(customerId)!;
     Map kCustomer = customer.toJson();
     kCustomer['updatedAt'] = DateTime.now().toIso8601String();
     // kCustomer['orderId'] = DateTime.now().toIso8601String();
@@ -1087,7 +1083,7 @@ class ObjectBoxApi implements Api {
 
   @override
   Stream<Customer?> getCustomer({required String key}) {
-    return _store
+    return store
         .box<Customer>()
         .query(Customer_.name
             .equals(key)
@@ -1099,7 +1095,7 @@ class ObjectBoxApi implements Api {
   @override
   Stream<Customer?> getCustomerByOrderId({required int id}) {
     log.i(id);
-    return _store
+    return store
         .box<Customer>()
         .query(Customer_.orderId.equals(id))
         .watch(triggerImmediately: true)
@@ -1108,12 +1104,12 @@ class ObjectBoxApi implements Api {
 
   @override
   Future<List<OrderF>> getOrderById({required int id}) async {
-    return _store.box<OrderF>().getAll().where((v) => v.id == id).toList();
+    return store.box<OrderF>().getAll().where((v) => v.id == id).toList();
   }
 
   @override
   Future<List<OrderF>> tickets() async {
-    return _store
+    return store
         .box<OrderF>()
         .getAll()
         .where((v) => v.status == parkedStatus)

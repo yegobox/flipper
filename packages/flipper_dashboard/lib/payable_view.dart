@@ -92,7 +92,7 @@ class PayableView extends StatelessWidget {
       {required int tickets,
       required int orders,
       required BuildContext context}) {
-    if (tickets > 0 && orders == 0) {
+    if (tickets > 0 || orders == 0) {
       return Text(
         Localization.of(context)!.tickets,
         textAlign: TextAlign.center,
@@ -102,7 +102,7 @@ class PayableView extends StatelessWidget {
           color: Colors.white,
         ),
       );
-    } else {
+    } else if (orders > 0) {
       return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -134,6 +134,8 @@ class PayableView extends StatelessWidget {
               ),
             )
           ]);
+    } else {
+      return SizedBox.shrink();
     }
   }
 

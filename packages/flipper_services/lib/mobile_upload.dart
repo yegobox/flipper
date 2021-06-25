@@ -198,7 +198,7 @@ class MobileUpload implements UploadT {
       await handleImage(image: file, productId: productId);
     } catch (e) {
       log.i(e);
-      ProxyService.crash.log(e);
+      // ProxyService.crash.log(e);
     }
   }
 }

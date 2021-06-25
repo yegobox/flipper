@@ -3,14 +3,16 @@ import 'dart:async';
 // import 'package:cbl/cbl.dart';
 // import 'package:cbl_flutter/cbl_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+// import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/objectbox_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:flipper_services/proxy.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -32,6 +34,8 @@ main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
+  //make sure we init db.
+  ObjectBoxApi.getDir(dbName: 'db_1');
 
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
@@ -44,8 +48,8 @@ main() async {
     runApp(FlipperApp());
     // await PusherBeams.start(env['PUSHER_KEY']);
   }, (Object e, StackTrace s) async {
-    (isAndroid || isMacOs)
-        ? await FirebaseCrashlytics.instance.recordError(e, s)
-        : '';
+    // (isAndroid || isMacOs)
+    // ? await FirebaseCrashlytics.instance.recordError(e, s)
+    // : '';
   });
 }

@@ -31,7 +31,7 @@ void main() {
 
       appService.isLoggedIn();
       model.runStartupLogic();
-      await Future.delayed(Duration(microseconds: 5000));
+      // await Future.delayed(Duration(microseconds: 5000));
       await api.businesses();
 
       expect(model.didSync, true);
