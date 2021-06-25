@@ -37,6 +37,7 @@ void main() {
   );
   setUpAll(() {
     registerServices();
+    ObjectBoxApi.getDir(dbName: dbName);
   });
   tearDownAll(() {
     unregisterServices();
