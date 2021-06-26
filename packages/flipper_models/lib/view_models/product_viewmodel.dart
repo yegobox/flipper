@@ -340,6 +340,10 @@ class ProductViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
+  void filterProduct({required String searchKey}) {
+    productService.filtterProduct(searchKey: searchKey);
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [_appService, productService];

@@ -416,7 +416,10 @@ class _onCreate extends State<ProductView> {
                       keyboardType: TextInputType.text,
                       cursorColor: Colors.black26,
                       controller: etSearch,
-                      onChanged: (value) => strSearch = value,
+                      // onChanged: (value) => strSearch = value,
+                      onChanged: (searchKey) {
+                        model.filterProduct(searchKey: searchKey);
+                      },
                       style: const TextStyle(
                         color: Color(0xff3d454c),
                         fontSize: 15,

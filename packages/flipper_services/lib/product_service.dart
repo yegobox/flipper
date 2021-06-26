@@ -1,11 +1,14 @@
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/variants.dart';
+import 'package:flipper_dashboard/create/custom_extension.dart';
 
 class ProductService with ReactiveServiceMixin {
   String? _currentUnit = 'Kg'; //set default to kg
   String? get currentUnit => _currentUnit;
+  final log = getLogger('ProductService'); //
 
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
@@ -39,6 +42,19 @@ class ProductService with ReactiveServiceMixin {
 
   Future<void> loadProducts() async {
     _products.value = await ProxyService.api.products();
+  }
+
+  Future<void> filtterProduct({required String searchKey}) async {
+    _products.value = _products.value
+        .where((element) =>
+            element.name.toLowerCase().contains(searchKey) ||
+            element.name.toLowerCase() == searchKey ||
+            element.name
+                .toLowerCase()
+                .allMatches(searchKey)
+                .any((element) => true))
+        .toList();
+    if (searchKey.isEmpty) loadProducts();
   }
 
   ProductService() {

@@ -7,3 +7,9 @@ extension TextEditingControllerExtensions on TextEditingController {
     });
   }
 }
+
+extension StringExtension on String {
+  String toLower() {
+    return this.toLowerCase();
+  }
+}
