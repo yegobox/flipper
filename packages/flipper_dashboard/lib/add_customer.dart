@@ -1,5 +1,6 @@
 library flipper_login;
 
+import 'package:flipper/constants.dart';
 import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
 import 'package:flutter/material.dart';
@@ -27,12 +28,6 @@ class _AddCustomerState extends State<AddCustomer> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final log = getLogger('AddCustomer');
-  bool isNumeric(String? s) {
-    if (s == null) {
-      return false;
-    }
-    return double.tryParse(s) != null;
-  }
 
   bool isEmail(String? s) {
     if (s == null) {

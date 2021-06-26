@@ -35,10 +35,10 @@ jobs:
     - uses: actions/setup-java@v1
       with:
         java-version: '8.x'
-    - uses: subosito/flutter-action@master
+    - uses: subosito/flutter-action@stable
       with:
         # flutter-version: '1.22.3'
-        channel: 'master'
+        channel: 'stable'
     # pause test on server for now
     - run: flutter pub get
     - run: ./install.sh

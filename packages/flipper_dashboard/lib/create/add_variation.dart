@@ -1,4 +1,6 @@
+import 'package:flipper/constants.dart';
 import 'package:flipper/localization.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/payable_view.dart';
@@ -10,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/constants.dart';
 import 'divider.dart';
+import 'custom_extension.dart';
 
 class AddVariation extends StatefulWidget {
   AddVariation({Key? key, required this.productId}) : super(key: key);
@@ -26,7 +29,15 @@ class _AddVariationState extends State<AddVariation> {
   TextEditingController costController = TextEditingController();
 
   TextEditingController nameController = TextEditingController();
+  final log = getLogger('AddVariation');
   String sku = '';
+  @override
+  void dispose() {
+    nameController.dispose();
+    nameController.safeClear();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // ignore: always_specify_types
@@ -100,7 +111,15 @@ class _AddVariationState extends State<AddVariation> {
                                 }
                                 return null;
                               },
+                              onEditingComplete: () {
+                                log.i('hello');
+                              },
                               onChanged: (String _name) {
+                                if (_name.isEmpty) {
+                                  log.i('error is thrown');
+                                  return;
+                                  // nameController.safeClear();
+                                }
                                 model.lock;
                               },
                               decoration: InputDecoration(
@@ -191,6 +210,9 @@ class _AddVariationState extends State<AddVariation> {
             if (value == null || value.isEmpty) {
               return 'Cost price required';
             }
+            if (!isNumeric(value)) {
+              return 'Should be a number';
+            }
             return null;
           },
           controller: costController,
@@ -221,6 +243,9 @@ class _AddVariationState extends State<AddVariation> {
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Retail price required';
+            }
+            if (!isNumeric(value)) {
+              return 'Should be a number';
             }
             return null;
           },

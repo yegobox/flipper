@@ -24,3 +24,9 @@ const firstHeaderDesktopTopPadding = 5.0;
 
 // Pages
 const String pageKey = 'page';
+bool isNumeric(String? s) {
+  if (s == null) {
+    return false;
+  }
+  return double.tryParse(s) != null;
+}
