@@ -1076,6 +1076,7 @@ class ObjectBoxApi implements Api {
     Customer? customer = store.box<Customer>().get(customerId)!;
     Map kCustomer = customer.toJson();
     kCustomer['updatedAt'] = DateTime.now().toIso8601String();
+    kCustomer['orderId'] = orderId;
     // kCustomer['orderId'] = DateTime.now().toIso8601String();
     int id = kCustomer['id'];
     await update(data: kCustomer, endPoint: 'customer/$id');

@@ -1,6 +1,5 @@
 import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_dashboard/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'add_customer.dart';
