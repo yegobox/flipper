@@ -35,7 +35,7 @@ jobs:
     - uses: actions/setup-java@v1
       with:
         java-version: '8.x'
-    - uses: subosito/flutter-action@stable
+    - uses: subosito/flutter-action@master
       with:
         # flutter-version: '1.22.3'
         channel: 'stable'

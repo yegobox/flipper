@@ -412,7 +412,7 @@ class _onCreate extends State<ProductView> {
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.only(left: 12),
-                    child: TextField(
+                    child: TextFormField(
                       keyboardType: TextInputType.text,
                       cursorColor: Colors.black26,
                       controller: etSearch,
