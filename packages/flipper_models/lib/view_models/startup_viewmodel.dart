@@ -17,7 +17,7 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> runStartupLogic() async {
     appService.isLoggedIn();
-    // appInit();
+    appInit();
 
     if (appService.hasLoggedInUser) {
       // await Future.delayed(Duration(seconds: 2));
