@@ -27,7 +27,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  universal_platform: 1.0.0-nullsafety
+  universal_platform: ^1.0.0+1
   animations: ^2.0.0
   flutter_localized_locales: ^2.0.1
   # sized_context: ^0.2.1+1
@@ -37,7 +37,7 @@ dependencies:
   
   injectable: ^1.2.0
   http: ^0.13.0
-  get_it: ^6.0.0
+  get_it: 
  
   flipper_dashboard:
     path: 'packages/flipper_dashboard'
@@ -55,7 +55,7 @@ dependencies:
   built_collection:
   jiffy: 
   expandable: ^5.0.1
-  timezone: 0.7.0-nullsafety.0
+  timezone: ^0.7.0
   cupertino_icons:
   get_storage: ^2.0.2
   country_picker:
@@ -65,11 +65,11 @@ dependencies:
   firebase_crashlytics: 
   logger:
   async:
-  stacked: ^2.1.4
+  stacked: ^2.1.9
   stacked_hooks:
   stacked_services: 
-  cached_network_image: 3.0.0-nullsafety
-  flutter_dotenv: 4.0.0-nullsafety.0
+  cached_network_image: ^3.0.0
+  flutter_dotenv: ^5.0.0
   mailer:
   connectivity:
  
@@ -87,7 +87,7 @@ dependencies:
   # contacts_service:
   # pusher_beams: 
   #   path: 'packages/flutter_pusher_beams'
-  flutter_uploader: 3.0.0-beta.1
+  flutter_uploader: 3.0.0-beta.2
   
   bitsdojo_window: 
   observable_ish:
@@ -150,7 +150,7 @@ dependencies:
   firebase_performance: "^0.7.0+5"
   easy_debounce: ^2.0.0
   share_plus: ^2.1.4
-  rubber: ^1.0.0
+  # rubber: ^1.0.0
   overlay_support: ^1.2.1
   # flutter_chat_ui: ^1.1.3
   # flutter_chat_ui: 
