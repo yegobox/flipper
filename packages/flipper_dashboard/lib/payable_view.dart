@@ -122,7 +122,7 @@ class PayableView extends StatelessWidget {
             Container(
               child: Container(
                 child: Text(
-                  tickets.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
+                  orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

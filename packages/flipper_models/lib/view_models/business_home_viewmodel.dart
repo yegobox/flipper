@@ -196,6 +196,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       customAmount: amountTotal,
       variation: variation!,
       price: amountTotal,
+      useProductName: variation.name == 'Regular',
       quantity: quantity.toDouble(),
     );
     List<OrderF> orders = await ProxyService.keypad.getOrders();
