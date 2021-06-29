@@ -1116,4 +1116,17 @@ class ObjectBoxApi implements Api {
         .where((v) => v.status == parkedStatus)
         .toList();
   }
+
+  @override
+  Future<Variant?> getVariantByProductId({required int productId}) async {
+    List<Variant> variants = store
+        .box<Variant>()
+        .getAll()
+        .where((v) => v.fproductId == productId)
+        .toList();
+    if (variants.isNotEmpty) {
+      return variants[0];
+    }
+    return null;
+  }
 }

@@ -33,8 +33,6 @@ class _AddVariationState extends State<AddVariation> {
   String sku = '';
   @override
   void dispose() {
-    nameController.dispose();
-    nameController.safeClear();
     super.dispose();
   }
 

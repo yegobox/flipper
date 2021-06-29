@@ -476,4 +476,10 @@ class HttpApi<T> implements Api {
     // TODO: implement tickets
     throw UnimplementedError();
   }
+
+  @override
+  Future<Variant?> getVariantByProductId({required int productId}) {
+    // TODO: implement getVariantByProductId
+    throw UnimplementedError();
+  }
 }

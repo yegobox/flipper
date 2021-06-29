@@ -304,8 +304,18 @@ class ProductViewModel extends ReactiveViewModel {
 
   Future<bool> addProduct({required Map mproduct}) async {
     if (name != null) {
-      mproduct['name'] = name;
+      mproduct['name'] = _name;
       mproduct['color'] = currentColor;
+      // update the variant with the product name
+      Variant? variant = await ProxyService.api
+          .getVariantByProductId(productId: mproduct['id']);
+      if (variant != null) {
+        Map v = variant.toJson();
+        v['productName'] = _name;
+        v['fproductId'] = mproduct['id'];
+        int id = v['id'];
+        await ProxyService.api.update(data: v, endPoint: 'variant/$id');
+      }
       final response =
           await ProxyService.api.update(data: mproduct, endPoint: 'product');
       return response == 200;

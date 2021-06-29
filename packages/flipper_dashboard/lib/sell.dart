@@ -222,7 +222,9 @@ class Sell extends StatelessWidget {
                           return snapshot.hasData
                               ? Expanded(
                                   child: Text(
-                                    snapshot.data!.name,
+                                    snapshot.data!.name == 'Regular'
+                                        ? snapshot.data!.productName
+                                        : snapshot.data!.name,
                                     style: GoogleFonts.lato(
                                       textStyle: TextStyle(
                                           fontWeight: FontWeight.w700,

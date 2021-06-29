@@ -7,7 +7,6 @@ import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/customer.dart';
-// import 'package:flipper_models/variant_stock.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/color.dart';
@@ -89,4 +88,5 @@ abstract class Api<T> {
   Stream<Customer?> getCustomerByOrderId({required int id});
   Future<List<OrderF>> getOrderById({required int id});
   Future<List<OrderF>> tickets();
+  Future<Variant?> getVariantByProductId({required int productId});
 }
