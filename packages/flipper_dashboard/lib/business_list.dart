@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flipper_models/business.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BusinessList extends StatelessWidget {
   const BusinessList({Key? key, required this.businesses}) : super(key: key);
@@ -95,7 +96,7 @@ class BusinessList extends StatelessWidget {
     return Container(
       height: _Style.itemHeight,
       child: Padding(
-        padding: const EdgeInsets.only(right: _Style.padding),
+        padding: EdgeInsets.only(right: _Style.padding),
         child: _GroupButton(
           business: business,
           onPressedCircle: (Business business) {
@@ -301,7 +302,7 @@ class _Style {
   static const double circleHighlightBorderRadius = 10.0;
   static const double circleHighlightWidth = 4.0;
   static const double circleUnreadIndicatorWidth = 14.0;
-  static const Padding defaultPadding =
+  static Padding defaultPadding =
       Padding(padding: EdgeInsets.only(top: padding));
 
   // ignore: unused_field
@@ -309,7 +310,7 @@ class _Style {
   static const double flipperButtonWidth = 44.0;
   static const double fourthSectionHeight = 180.0;
   static const double itemHeight = 52.0;
-  static const double padding = 8.0;
+  static double padding = 8.w;
   static const double separatorHeight = 2.0;
   static const double separatorWidth = 48.0;
   static const double thirdSectionHeight = 60.0;

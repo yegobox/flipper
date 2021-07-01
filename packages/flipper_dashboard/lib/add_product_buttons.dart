@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper/routes.router.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AddProductButtons extends StatelessWidget {
   const AddProductButtons({Key? key}) : super(key: key);
@@ -9,19 +10,19 @@ class AddProductButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 18.0, right: 18.0),
+      padding: EdgeInsets.only(left: 18.w, right: 18.w),
       child: Container(
         width: double.infinity,
-        height: 200,
+        height: 200.h,
         child: Form(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Container(
                 width: double.infinity,
-                height: 60,
+                height: 60.h,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.w),
                   child: FlatButton(
                     color: Theme.of(context)
                         .copyWith(canvasColor: HexColor('#0097e6'))
@@ -39,11 +40,11 @@ class AddProductButtons extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.w),
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
-                  height: 60,
+                  height: 60.h,
                   child: OutlineButton(
                     onPressed: () {},
                     child: const Text('Create Discount'),
@@ -52,9 +53,9 @@ class AddProductButtons extends StatelessWidget {
               ),
               Container(
                 width: double.infinity,
-                height: 60,
+                height: 60.h,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.w),
                   child: FlatButton(
                     child: const Text('Dismiss'),
                     onPressed: () {
