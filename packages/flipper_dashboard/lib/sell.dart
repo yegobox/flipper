@@ -9,6 +9,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_debounce/easy_debounce.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum ForHere { lafayette, jefferson }
 enum ToGo { lafayette, jefferson }
@@ -41,14 +42,14 @@ class Sell extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
+          padding: EdgeInsets.only(left: 2.w, right: 2.w, top: 1.h),
           child: Column(
             children: [
               Divider(
                 color: Colors.grey[400],
               ),
-              const SizedBox(
-                height: 20.0,
+              SizedBox(
+                height: 20.h,
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -61,7 +62,7 @@ class Sell extends StatelessWidget {
                       style: GoogleFonts.lato(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.w900,
-                            fontSize: 10.0,
+                            fontSize: 10.sp,
                             color: Colors.grey[900]),
                       ),
                     ),
@@ -107,13 +108,13 @@ class Sell extends StatelessWidget {
                   ),
                   Container(
                     width: 1,
-                    height: 50,
+                    height: 50.h,
                     color: Colors.grey[400],
                   ),
                   Expanded(
                       flex: 2,
                       child: Container(
-                        margin: const EdgeInsets.only(left: 50, right: 50),
+                        margin: EdgeInsets.only(left: 50.w, right: 50.w),
                         child: TextFormField(
                           controller: quantityController,
                           onChanged: (quantity) {
@@ -157,10 +158,10 @@ class Sell extends StatelessWidget {
                   Container(
                     child: Container(
                       child: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.add,
                           color: Color(0xC9000000),
-                          size: 25,
+                          size: 25.sp,
                         ),
                         onPressed: () {
                           model.increaseQty((quantity) {
@@ -179,8 +180,8 @@ class Sell extends StatelessWidget {
               Divider(
                 color: Colors.grey[400],
               ),
-              const SizedBox(
-                height: 15.0,
+              SizedBox(
+                height: 15.h,
               ),
 
               ///TODOfeature to implements in near future
@@ -207,7 +208,7 @@ class Sell extends StatelessWidget {
             model.toggleCheckbox(variantId: variant.id);
           },
           child: Padding(
-            padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 4.0),
+            padding: EdgeInsets.only(left: 2.h, right: 2.0, top: 4.h),
             child: Column(
               children: [
                 Divider(
@@ -228,7 +229,7 @@ class Sell extends StatelessWidget {
                                     style: GoogleFonts.lato(
                                       textStyle: TextStyle(
                                           fontWeight: FontWeight.w700,
-                                          fontSize: 13.0,
+                                          fontSize: 13.sp,
                                           color: Colors.grey[900]),
                                     ),
                                   ),
@@ -241,7 +242,7 @@ class Sell extends StatelessWidget {
                         style: GoogleFonts.lato(
                           textStyle: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 12.0,
+                              fontSize: 12.sp,
                               color: Colors.grey[500]),
                         ),
                       ),
@@ -299,7 +300,7 @@ class Sell extends StatelessWidget {
               body: Container(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
+                    padding: EdgeInsets.fromLTRB(18.w, 30.h, 18.w, 2.w),
                     child: Column(
                       children: [
                         Row(
@@ -313,14 +314,14 @@ class Sell extends StatelessWidget {
                                     color: Colors.grey[800]),
                               ),
                             ),
-                            const SizedBox(
-                              height: 4.0,
+                            SizedBox(
+                              height: 4.h,
                             ),
                             Text(
                               '  CHOOSE ONE',
                               style: GoogleFonts.rubik(
                                 textStyle: TextStyle(
-                                    fontSize: 11.0, color: Colors.grey[700]),
+                                    fontSize: 11.sp, color: Colors.grey[700]),
                               ),
                             )
                           ],
