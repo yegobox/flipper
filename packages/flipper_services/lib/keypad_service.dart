@@ -53,7 +53,6 @@ class KeyPadService with ReactiveServiceMixin {
   }
 
   setCount({required int count}) {
-    print(count);
     _count.value = count;
   }
 
@@ -112,11 +111,14 @@ class KeyPadService with ReactiveServiceMixin {
   void customQtyIncrease({int? qty}) {
     _quantity.value = 0;
     _quantity.value = qty!;
-    log.i(_quantity.value);
+    log.i(quantity);
+    // notifyListeners();
   }
 
   void increaseQty() {
     _quantity.value++;
+    log.i(quantity);
+    // notifyListeners();
   }
 
   /// can not set -1 quantity
@@ -127,6 +129,8 @@ class KeyPadService with ReactiveServiceMixin {
     if (_quantity.value == 0) {
       _quantity.value = 1;
     }
+    log.i(quantity);
+    notifyListeners();
   }
 
   void pop() {

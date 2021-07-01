@@ -747,7 +747,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Variant?> getVariantByProductId({required int productId}) {
+  Future<List<Variant>> getVariantByProductId({required int productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }

@@ -88,5 +88,5 @@ abstract class Api<T> {
   Stream<Customer?> getCustomerByOrderId({required int id});
   Future<List<OrderF>> getOrderById({required int id});
   Future<List<OrderF>> tickets();
-  Future<Variant?> getVariantByProductId({required int productId});
+  Future<List<Variant>> getVariantByProductId({required int productId});
 }

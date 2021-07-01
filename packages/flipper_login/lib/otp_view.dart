@@ -4,6 +4,7 @@ import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class OtpView extends StatefulWidget {
   static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
@@ -26,7 +27,7 @@ class _OtpViewState extends State<OtpView> {
             child: Container(
               color: Colors.transparent,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
+                padding: EdgeInsets.fromLTRB(10.w, 40.h, 10.w, 10.w),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -42,23 +43,30 @@ class _OtpViewState extends State<OtpView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Container(
-                              margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
-                              child: const Text(
+                              margin:
+                                  EdgeInsets.fromLTRB(2.5.w, 0.h, 2.5.w, 0.w),
+                              child: Text(
                                 'Enter',
-                                style: TextStyle(fontWeight: FontWeight.w900),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 18.sp,
+                                ),
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
-                              child: const Text(
+                              margin:
+                                  EdgeInsets.fromLTRB(2.5.w, 0.h, 2.5.w, 0.w),
+                              child: Text(
                                 'Otp Received',
                                 style: TextStyle(
                                     color: Colors.blue,
+                                    fontSize: 14.sp,
                                     fontWeight: FontWeight.w900),
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.fromLTRB(2.5, 0, 2.5, 0),
+                              margin:
+                                  EdgeInsets.fromLTRB(2.5.w, 0.h, 2.5.w, 0.h),
                               child: const Text(
                                 '',
                                 style: TextStyle(fontWeight: FontWeight.w900),
@@ -67,7 +75,7 @@ class _OtpViewState extends State<OtpView> {
                           ]),
                     ),
                     Container(
-                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
+                      margin: EdgeInsets.fromLTRB(0.w, 0.w, 0.w, 40.w),
                       child: Form(
                         child: Container(
                           width: double.infinity,
@@ -111,11 +119,10 @@ class _OtpViewState extends State<OtpView> {
                             ),
                           )
                         : Padding(
-                            padding:
-                                const EdgeInsets.only(left: 8.0, right: 8.0),
+                            padding: EdgeInsets.only(left: 8.0.w, right: 8.w),
                             child: SizedBox(
                               width: double.infinity,
-                              height: 60,
+                              height: 60.h,
                               child: BoxButton(
                                 title: 'Otp',
                                 busy: true,

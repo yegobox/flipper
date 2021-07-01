@@ -37,7 +37,7 @@ dependencies:
   
   injectable: ^1.2.0
   http: ^0.13.0
-  get_it: 
+  get_it: ^6.0.0
  
   flipper_dashboard:
     path: 'packages/flipper_dashboard'
@@ -65,7 +65,7 @@ dependencies:
   firebase_crashlytics: 
   logger:
   async:
-  stacked: ^2.1.9
+  stacked: ^2.1.4
   stacked_hooks:
   stacked_services: 
   cached_network_image: ^3.0.0
@@ -152,7 +152,6 @@ dependencies:
       ref: master
   open_file: ^3.2.1
   firebase_performance: "^0.7.0+5"
-  easy_debounce: ^2.0.0
   share_plus: ^2.1.4
   # rubber: ^1.0.0
   overlay_support: ^1.2.1

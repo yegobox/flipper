@@ -3,7 +3,7 @@ library flipper_dashboard;
 import 'package:flipper/localization.dart';
 import 'package:flipper/routes.logger.dart';
 import 'package:flipper/routes.router.dart';
-import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -221,9 +221,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 children: [
                   Flexible(
                     flex: 1,
-                    child: const Icon(
+                    child: Icon(
                       Icons.add,
-                      size: 20,
+                      size: 20.sp,
                       color: Colors.white,
                     ),
                   ),

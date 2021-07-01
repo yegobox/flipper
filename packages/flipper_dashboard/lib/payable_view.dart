@@ -2,6 +2,7 @@
 import 'package:flipper/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HexColor extends Color {
   HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
@@ -32,8 +33,8 @@ class PayableView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width - 22,
-      margin: const EdgeInsetsDirectional.only(top: 15),
+      width: MediaQuery.of(context).size.width.w - 22.w,
+      margin: EdgeInsetsDirectional.only(top: 15.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -44,7 +45,7 @@ class PayableView extends StatelessWidget {
               },
               child: Container(
                 alignment: Alignment.center,
-                height: 60,
+                height: 60.h,
                 width: MediaQuery.of(context).size.width,
                 color: Theme.of(context)
                     .copyWith(
@@ -57,8 +58,8 @@ class PayableView extends StatelessWidget {
             ),
           ),
           Container(
-            width: 0.5,
-            height: 60,
+            width: 0.5.w,
+            height: 60.h,
             color: Colors.black54,
           ),
           Expanded(
@@ -68,7 +69,7 @@ class PayableView extends StatelessWidget {
               },
               child: Container(
                 alignment: Alignment.center,
-                height: 60,
+                height: 60.h,
                 width: MediaQuery.of(context).size.width,
                 color: Theme.of(context)
                     .copyWith(
@@ -97,7 +98,7 @@ class PayableView extends StatelessWidget {
         Localization.of(context)!.tickets,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 20.0,
+          fontSize: 20.sp,
           fontWeight: FontWeight.w500,
           color: Colors.white,
         ),
@@ -112,7 +113,7 @@ class PayableView extends StatelessWidget {
                   Localization.of(context)!.save,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 18.0,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
@@ -125,8 +126,8 @@ class PayableView extends StatelessWidget {
                   orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15.0,
+                  style: TextStyle(
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w400,
                     color: Colors.white,
                   ),
@@ -147,8 +148,8 @@ class PayableView extends StatelessWidget {
     if (payable == 0.0) {
       return Text(
         Localization.of(context)!.charge + ' FRw' + display(payable).toString(),
-        style: const TextStyle(
-          fontSize: 20.0,
+        style: TextStyle(
+          fontSize: 20.sp,
           color: Colors.white,
         ),
       );
@@ -162,7 +163,7 @@ class PayableView extends StatelessWidget {
                 Localization.of(context)!.charge,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18.0,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -172,13 +173,13 @@ class PayableView extends StatelessWidget {
           Flexible(
             child: Container(
               child: Container(
-                padding: const EdgeInsets.only(left: 10),
+                padding: EdgeInsets.only(left: 10.w),
                 child: Text(
                   'FRw' + display(payable).toString(),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15.0,
+                  style: TextStyle(
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w400,
                     color: Colors.white,
                   ),

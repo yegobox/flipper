@@ -8,8 +8,9 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:easy_debounce/easy_debounce.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 enum ForHere { lafayette, jefferson }
 enum ToGo { lafayette, jefferson }
@@ -42,7 +43,7 @@ class Sell extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
-          padding: EdgeInsets.only(left: 2.w, right: 2.w, top: 1.h),
+          padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
           child: Column(
             children: [
               Divider(
@@ -80,10 +81,10 @@ class Sell extends StatelessWidget {
                   Container(
                     child: model.quantity <= 1
                         ? IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               AntDesign.minus,
                               color: Colors.grey,
-                              size: 25,
+                              size: 25.sp,
                             ),
                             onPressed: () {
                               model.decreaseQty((quantity) {
@@ -93,10 +94,10 @@ class Sell extends StatelessWidget {
                             },
                           )
                         : IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               AntDesign.minus,
                               color: Color(0xC9000000),
-                              size: 25,
+                              size: 25.sp,
                             ),
                             onPressed: () {
                               model.decreaseQty((quantity) {
@@ -114,28 +115,13 @@ class Sell extends StatelessWidget {
                   Expanded(
                       flex: 2,
                       child: Container(
-                        margin: EdgeInsets.only(left: 50.w, right: 50.w),
+                        margin: const EdgeInsets.only(left: 50, right: 50),
                         child: TextFormField(
                           controller: quantityController,
                           onChanged: (quantity) {
-                            EasyDebounce.debounce(
-                              'model.debounceId',
-                              Duration(milliseconds: 500),
-                              () {
-                                if (quantity != '0') {
-                                  quantityController.text = '1';
-                                }
-                                if (!quantity.isEmpty && quantity != '0') {
-                                  model.keypad.customQtyIncrease(
-                                      qty: int.parse(quantity));
-                                  model.keypad.setAmount(
-                                    amount:
-                                        model.currentItemStock!.retailPrice *
-                                            int.parse(quantity),
-                                  );
-                                }
-                              },
-                            );
+                            if (!quantity.isEmpty) {
+                              model.customQtyIncrease(int.parse(quantity));
+                            }
                           },
                           style: TextStyle(
                             color: Theme.of(context)
@@ -151,17 +137,17 @@ class Sell extends StatelessWidget {
                         ),
                       )),
                   Container(
-                    width: 1,
-                    height: 50,
+                    width: 1.w,
+                    height: 50.h,
                     color: Colors.grey[400],
                   ),
                   Container(
                     child: Container(
                       child: IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.add,
                           color: Color(0xC9000000),
-                          size: 25.sp,
+                          size: 25,
                         ),
                         onPressed: () {
                           model.increaseQty((quantity) {
@@ -174,14 +160,14 @@ class Sell extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 3.0,
+              SizedBox(
+                height: 3.h,
               ),
               Divider(
                 color: Colors.grey[400],
               ),
-              SizedBox(
-                height: 15.h,
+              const SizedBox(
+                height: 15.0,
               ),
 
               ///TODOfeature to implements in near future
@@ -203,12 +189,14 @@ class Sell extends StatelessWidget {
           onTap: () {
             //load stock of this variant
             model.loadVariantStock(variantId: variant.id);
+            model.handleCustomQtySetBeforeSelectingVariation();
+            log.i(model.quantity);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
             model.toggleCheckbox(variantId: variant.id);
           },
           child: Padding(
-            padding: EdgeInsets.only(left: 2.h, right: 2.0, top: 4.h),
+            padding: EdgeInsets.only(left: 2.w, right: 2.0, top: 4.w),
             child: Column(
               children: [
                 Divider(
@@ -224,7 +212,10 @@ class Sell extends StatelessWidget {
                               ? Expanded(
                                   child: Text(
                                     snapshot.data!.name == 'Regular'
-                                        ? snapshot.data!.productName
+                                        ? snapshot.data!.productName +
+                                            "(" +
+                                            snapshot.data!.name +
+                                            ")"
                                         : snapshot.data!.name,
                                     style: GoogleFonts.lato(
                                       textStyle: TextStyle(
@@ -270,6 +261,7 @@ class Sell extends StatelessWidget {
         onModelReady: (model) async {
           ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
           model.clearPreviousSaleCounts();
+          model.toggleCheckbox(variantId: -1);
           await model.getVariants(productId: product.id);
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
@@ -286,21 +278,24 @@ class Sell extends StatelessWidget {
                 disableButton: false,
                 showActionButton: true,
                 onPressedCallback: () async {
-                  await model.saveOrder(
+                  bool saved = await model.saveOrder(
                     variationId: model.checked,
                     amount: model.amountTotal,
                   );
+                  if (!saved) {
+                    showSimpleNotification(Text('No item selected'),
+                        background: Colors.red);
+                  }
                   ProxyService.nav.back();
                 },
-                // actionButtonName: 'Add',
                 icon: Icons.close,
                 multi: 1,
-                bottomSpacer: 49,
+                bottomSpacer: 49.w,
               ),
               body: Container(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(18.w, 30.h, 18.w, 2.w),
+                    padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
                     child: Column(
                       children: [
                         Row(
@@ -310,7 +305,7 @@ class Sell extends StatelessWidget {
                               style: GoogleFonts.rubik(
                                 textStyle: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 14.0,
+                                    fontSize: 14.sp,
                                     color: Colors.grey[800]),
                               ),
                             ),
@@ -321,7 +316,7 @@ class Sell extends StatelessWidget {
                               '  CHOOSE ONE',
                               style: GoogleFonts.rubik(
                                 textStyle: TextStyle(
-                                    fontSize: 11.sp, color: Colors.grey[700]),
+                                    fontSize: 11.0, color: Colors.grey[700]),
                               ),
                             )
                           ],

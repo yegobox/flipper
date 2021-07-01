@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BottomMenuBar extends StatelessWidget {
   const BottomMenuBar({Key? key, required this.switchTab, this.index = 0})
@@ -17,15 +18,15 @@ class BottomMenuBar extends StatelessWidget {
       items: [
         BottomNavigationBarItem(
           activeIcon: Image(
-            width: 28,
-            height: 25,
+            width: 28.w,
+            height: 25.h,
             image: AssetImage(
               'assets/icons/keypad_enable.png',
             ),
           ),
           icon: Image(
-            width: 28,
-            height: 25,
+            width: 28.w,
+            height: 25.h,
             image: AssetImage(
               'assets/icons/keypad_disable.png',
             ),
@@ -34,15 +35,15 @@ class BottomMenuBar extends StatelessWidget {
         ),
         BottomNavigationBarItem(
           activeIcon: Image(
-            width: 28,
-            height: 25,
+            width: 28.w,
+            height: 25.h,
             image: AssetImage(
               'assets/icons/library_enable.png',
             ),
           ),
           icon: Image(
-            width: 28,
-            height: 25,
+            width: 28.w,
+            height: 25.h,
             image: AssetImage(
               'assets/icons/library_disable.png',
             ),

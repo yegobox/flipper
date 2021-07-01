@@ -152,6 +152,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     callback(quantity);
   }
 
+  void handleCustomQtySetBeforeSelectingVariation() {
+    if (_currentItemStock != null) {
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+    }
+  }
+
+  void customQtyIncrease(int quantity) {
+    ProxyService.keypad.customQtyIncrease(qty: quantity);
+    if (_currentItemStock != null) {
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+    }
+  }
+
   void increaseQty(Function callback) {
     ProxyService.keypad.increaseQty();
     if (_currentItemStock != null) {
@@ -169,14 +182,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     _currentItemStock = await ProxyService.api
         .getStock(branchId: branchId, variantId: variantId);
 
-    notifyListeners();
+    // notifyListeners();
   }
 
   Future<List<Variant>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
     _variants = await ProxyService.api
         .variants(branchId: branchId, productId: productId);
-    notifyListeners();
+    // notifyListeners();
     return _variants;
   }
 
@@ -188,20 +201,31 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.toggleCheckbox(variantId: variantId);
   }
 
-  Future saveOrder({required int variationId, required double amount}) async {
-    Variant? variation = await ProxyService.api.variant(
-      variantId: variationId,
-    );
-    await ProxyService.api.createOrder(
-      customAmount: amountTotal,
-      variation: variation!,
-      price: amountTotal,
-      useProductName: variation.name == 'Regular',
-      quantity: quantity.toDouble(),
-    );
-    List<OrderF> orders = await ProxyService.keypad.getOrders();
-    if (orders.isNotEmpty) {
-      keypad.setCount(count: orders[0].orderItems.length);
+  Future<bool> saveOrder(
+      {required int variationId, required double amount}) async {
+    if (amountTotal != 0.0) {
+      log.i(quantity);
+      log.i(amountTotal);
+
+      Variant? variation = await ProxyService.api.variant(
+        variantId: variationId,
+      );
+      log.i(variation!.name);
+      await ProxyService.api.createOrder(
+        customAmount: amountTotal,
+        variation: variation,
+        price: amountTotal,
+        useProductName: variation.name == 'Regular',
+        quantity: quantity.toDouble(),
+      );
+
+      List<OrderF> orders = await ProxyService.keypad.getOrders();
+      if (orders.isNotEmpty) {
+        keypad.setCount(count: orders[0].orderItems.length);
+      }
+      return true;
+    } else {
+      return false;
     }
   }
 

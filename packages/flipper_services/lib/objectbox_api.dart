@@ -527,6 +527,7 @@ class ObjectBoxApi implements Api {
         fbranchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
       );
+      log.i(quantity);
       OrderItem orderItems = OrderItem(
         count: quantity,
         name: useProductName ? variation.productName : variation.name,
@@ -539,8 +540,9 @@ class ObjectBoxApi implements Api {
       final id = box.put(order);
       return store.box<OrderF>().get(id)!;
     } else {
+      log.i(quantity);
       OrderItem item = OrderItem(
-        count: 1,
+        count: quantity,
         name: useProductName ? variation.productName : variation.name,
         fvariantId: variation.id,
         price: price,
@@ -1118,15 +1120,11 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Variant?> getVariantByProductId({required int productId}) async {
-    List<Variant> variants = store
+  Future<List<Variant>> getVariantByProductId({required int productId}) async {
+    return store
         .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == productId)
         .toList();
-    if (variants.isNotEmpty) {
-      return variants[0];
-    }
-    return null;
   }
 }

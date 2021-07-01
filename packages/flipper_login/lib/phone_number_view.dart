@@ -8,6 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/otp_view.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -27,7 +28,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
+          padding: EdgeInsets.fromLTRB(10.w, 40.w, 10.h, 10.h),
           child: Container(
             color: Colors.white,
             child: Form(
@@ -35,28 +36,33 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(
-                      height: 30,
+                    SizedBox(
+                      height: 30.h,
                     ),
                     RichText(
                         text: TextSpan(children: [
-                      const TextSpan(text: 'Welcome To'),
+                      TextSpan(
+                        text: 'Welcome to',
+                        style: TextStyle(fontSize: 18.sp),
+                      ),
                       TextSpan(
                           text: ' FLIPPER',
-                          style: TextStyle(color: Colors.blue.shade900)),
+                          style: TextStyle(
+                              color: Colors.blue.shade900, fontSize: 14.sp)),
                       const TextSpan(text: ''),
                     ], style: const TextStyle(color: Colors.black))),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 12,
-                        bottom: 12,
+                      padding: EdgeInsets.only(
+                        left: 12.w,
+                        right: 12.w,
+                        bottom: 12.w,
                       ),
                       child: Container(
                         decoration: BoxDecoration(
                             color: Colors.white,
-                            border: Border.all(color: Colors.blue, width: 0.2),
+                            border:
+                                Border.all(color: Colors.blue, width: 0.2.w),
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
@@ -68,6 +74,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                           children: [
                             CountryCodePicker(
                               initialSelection: 'RW',
+                              textStyle: TextStyle(fontSize: 18.sp),
                               favorite: ['+250', 'RWF'],
                               showFlagDialog: true,
                               onChanged: (code) {
@@ -81,7 +88,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                             ),
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.only(left: 8.0),
+                                padding: EdgeInsets.only(left: 8.0.w),
                                 child: TextFormField(
                                   validator: (value) {
                                     if (value!.isEmpty) {
@@ -99,14 +106,14 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                                       .bodyText2!
                                       .copyWith(color: Colors.black),
                                   controller: phoneController,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     focusColor: Colors.black,
                                     border: InputBorder.none,
                                     hintText: '788 3600 58',
                                     hintStyle: TextStyle(
                                       color: Colors.grey,
                                       fontFamily: 'Sen',
-                                      fontSize: 18,
+                                      fontSize: 18.sp,
                                     ),
                                   ),
                                 ),

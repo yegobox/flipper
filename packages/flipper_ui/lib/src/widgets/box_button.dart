@@ -3,6 +3,7 @@ import 'package:flipper_ui/src/shared/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BoxButton extends StatelessWidget {
   final String title;
@@ -35,9 +36,9 @@ class BoxButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
+        duration: Duration(milliseconds: 350),
         width: double.infinity,
-        height: 48,
+        height: 48.h,
         alignment: Alignment.center,
         decoration: !outline
             ? BoxDecoration(
@@ -49,17 +50,18 @@ class BoxButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: kcPrimaryColor,
-                  width: 1,
+                  width: 1.w,
                 )),
         child: !busy
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (leading != null) leading!,
-                  if (leading != null) SizedBox(width: 5),
+                  if (leading != null) SizedBox(width: 5.w),
                   Text(
                     title,
                     style: bodyStyle.copyWith(
+                      fontSize: 18.sp,
                       fontWeight: !outline ? FontWeight.bold : FontWeight.w400,
                       color: !outline ? Colors.white : kcPrimaryColor,
                     ),
