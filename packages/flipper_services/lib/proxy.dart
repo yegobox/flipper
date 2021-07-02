@@ -6,6 +6,7 @@ import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/keypad_service.dart';
+import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
 import 'package:flipper_services/report_service.dart';
@@ -44,6 +45,8 @@ final Printer _printService = locator<Printer>();
 final Analytic _analytics = locator<Analytic>();
 final ForceDataEntryService _forceDataEntry = locator<ForceDataEntryService>();
 final Crash _crash = locator<Crash>();
+final LocalNotificationService _notification =
+    locator<LocalNotificationService>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -66,4 +69,5 @@ abstract class ProxyService {
   static PdfApi get pdfApi => _pdfApi;
   static Printer get printer => _printService;
   static ForceDataEntryService get forceDateEntry => _forceDataEntry;
+  static LocalNotificationService get notification => _notification;
 }

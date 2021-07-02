@@ -55,10 +55,10 @@ class SignUpLoginButton extends StatelessWidget {
                     BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
                 child: SizedBox(
                     width: double.infinity,
-                    height: 60.h,
+                    height: 50.h,
                     child: SizedBox(
                       width: double.infinity,
-                      height: 60.h,
+                      height: 50.h,
                       child: BoxButton.outline(
                         title: 'SIGN IN',
                         onTap: () {

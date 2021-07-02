@@ -26,6 +26,7 @@ import 'keypad_view.dart';
 // import 'package:chat/screens/homepage.dart';
 import 'package:chat/screens/about_chat.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 @FormView(fields: [FormTextField(name: 'note')])
 class Home extends StatefulWidget {
@@ -48,6 +49,25 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     super.initState();
     _setupAnimation();
     _sideOpenController = ValueNotifier<bool>(false);
+    ProxyService.notification.initialize(context);
+    if (!isWindows) {
+      FirebaseMessaging.instance.getInitialMessage().then((message) {
+        if (message != null) {
+          final routeFromMessage = message.data["route"];
+
+          Navigator.of(context).pushNamed(routeFromMessage);
+        }
+      });
+
+      ///forground work
+      FirebaseMessaging.onMessage.listen((message) {
+        if (message.notification != null) {
+          print(message.notification!.body);
+          print(message.notification!.title);
+        }
+        ProxyService.notification.display(message);
+      });
+    }
   }
 
   void _setupAnimation() {

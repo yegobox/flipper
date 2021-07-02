@@ -37,6 +37,7 @@ import 'dynamic_link_service.dart';
 import 'flipper_firebase_auth.dart';
 import 'http_api.dart';
 import 'keypad_service.dart';
+import 'local_notification_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -154,6 +155,17 @@ abstract class ThirdPartyServicesModule {
       apiService = HttpApi();
     }
     return apiService;
+  }
+
+  @lazySingleton
+  LNotification get notification {
+    late LNotification notificationService;
+    if (UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
+      notificationService = LocalNotificationService();
+    } else {
+      notificationService = UnSupportedLocalNotification();
+    }
+    return notificationService;
   }
 
   // @lazySingleton

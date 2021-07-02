@@ -3,7 +3,9 @@ import 'dart:async';
 // import 'package:cbl/cbl.dart';
 // import 'package:cbl_flutter/cbl_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
@@ -17,6 +19,10 @@ final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
 final isAndroid = UniversalPlatform.isAndroid;
 final isWeb = UniversalPlatform.isWeb;
+Future<void> backgroundHandler(RemoteMessage message) async {
+  print(message.data.toString());
+  print(message.notification!.title);
+}
 
 // cd android && ./gradlew signingReport
 main() async {
@@ -28,12 +34,14 @@ main() async {
     DeviceOrientation.portraitDown,
   ]);
   (!isWindows) ? await Firebase.initializeApp() : '';
+  (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   // (isAndroid|| isWeb||isMacOs)
   // (isWindows) ? Cbl.init() : ''; //paused for now as couchbase is not supported on some platforms
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
   //make sure we init db.
+  //
   ObjectBoxApi.getDir(dbName: 'db_1');
 
   runZonedGuarded<Future<void>>(() async {

@@ -142,6 +142,7 @@ class ObjectBoxApi implements Api {
     // return businesses;
   }
 
+  /// this load the user business using the userId that is sent in header
   Future<List<Business>> loadingBusinesses(
       List<Business> businessList, String endPoint) async {
     List<Business> businesses = [];
