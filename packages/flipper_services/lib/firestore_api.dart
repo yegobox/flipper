@@ -2,15 +2,38 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper/routes.logger.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'exceptions/firestore_api_exception.dart';
 
-class FirestoreApi {
+abstract class Firestore {
+  Future<void> createUser({required dynamic user});
+  Future<void> getUser({required String userId});
+  Future<void> saveTokenToDatabase(String token);
+}
+
+class UnSupportedFirestoreApi implements Firestore {
+  @override
+  Future<void> createUser({required user}) async {
+    // TODO: implement createUser
+  }
+
+  @override
+  Future<void> getUser({required String userId}) async {
+    // TODO: implement getUser
+  }
+
+  @override
+  Future<void> saveTokenToDatabase(String token) async {
+    // TODO: implement saveTokenToDatabase
+  }
+}
+
+class FirestoreApi implements Firestore {
   final log = getLogger('FirestoreApi');
 
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
-
+  @override
   Future<void> createUser({required dynamic user}) async {
     log.i('user:$user');
 
@@ -26,6 +49,7 @@ class FirestoreApi {
     }
   }
 
+  @override
   Future<void> getUser({required String userId}) async {
     log.i('userId:$userId');
 
@@ -45,5 +69,13 @@ class FirestoreApi {
           message:
               'Your userId passed in is empty. Please pass in a valid user if from your Firebase user.');
     }
+  }
+
+  @override
+  Future<void> saveTokenToDatabase(String token) async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      'tokens': FieldValue.arrayUnion([token]),
+    });
   }
 }

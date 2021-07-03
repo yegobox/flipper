@@ -51,11 +51,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _sideOpenController = ValueNotifier<bool>(false);
     ProxyService.notification.initialize(context);
     if (!isWindows) {
+      ///gives you the message on which user taps
+      ///and it opened the app from terminated state
+
       FirebaseMessaging.instance.getInitialMessage().then((message) {
         if (message != null) {
-          final routeFromMessage = message.data["route"];
-
-          Navigator.of(context).pushNamed(routeFromMessage);
+          // final routeFromMessage = message.data["route"];
+          // Navigator.of(context).pushNamed(routeFromMessage);
         }
       });
 
@@ -67,6 +69,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         }
         ProxyService.notification.display(message);
       });
+
+      ///When the app is in background but opened and user taps
+      ///on the notification
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        // TODO decide on creating notification that open page,this is for chat mainly etc...
+        // final routeFromMessage = message.data["route"];
+        // Navigator.of(context).pushNamed(routeFromMessage);
+      });
+      // FirebaseMessaging.subscribe()
     }
   }
 
