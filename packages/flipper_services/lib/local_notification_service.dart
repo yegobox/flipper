@@ -1,10 +1,11 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 abstract class LNotification {
-  void initialize(BuildContext context);
+  void initialize();
   void display(RemoteMessage message);
   Future<void> saveTokenToDatabase(String token);
 }
@@ -16,7 +17,7 @@ class UnSupportedLocalNotification implements LNotification {
   }
 
   @override
-  void initialize(BuildContext context) {
+  void initialize() {
     // TODO: implement initialize
   }
 
@@ -30,7 +31,8 @@ class UnSupportedLocalNotification implements LNotification {
 class LocalNotificationService implements LNotification {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
-
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final log = getLogger('LocalNotificationService');
   @override
   void display(RemoteMessage message) async {
     try {
@@ -58,7 +60,21 @@ class LocalNotificationService implements LNotification {
   }
 
   @override
-  void initialize(BuildContext context) {
+  Future<void> initialize() async {
+    log.i('getting token');
+    // get permission
+    // getting permission on android does not matter!
+    await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    String? token = await FirebaseMessaging.instance.getToken();
+    ProxyService.firestore.saveTokenToDatabase(token!);
     final InitializationSettings initializationSettings =
         InitializationSettings(
             android: AndroidInitializationSettings("@mipmap/ic_launcher"));
@@ -68,10 +84,8 @@ class LocalNotificationService implements LNotification {
       if (route != null) {
         // Navigator.of(context).pushNamed(route);
       }
-
-      String? token = await FirebaseMessaging.instance.getToken();
-      ProxyService.firestore.saveTokenToDatabase(token!);
     });
+    await FirebaseMessaging.instance.subscribeToTopic('all');
   }
 
   @override

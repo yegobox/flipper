@@ -3,17 +3,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper/routes.logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_services/proxy.dart';
 import 'exceptions/firestore_api_exception.dart';
 
 abstract class Firestore {
-  Future<void> createUser({required dynamic user});
+  Future<void> createUser({required dynamic user, required String token});
   Future<void> getUser({required String userId});
   Future<void> saveTokenToDatabase(String token);
 }
 
 class UnSupportedFirestoreApi implements Firestore {
   @override
-  Future<void> createUser({required user}) async {
+  Future<void> createUser({required user, required String token}) async {
     // TODO: implement createUser
   }
 
@@ -34,12 +35,15 @@ class FirestoreApi implements Firestore {
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
   @override
-  Future<void> createUser({required dynamic user}) async {
+  Future<void> createUser(
+      {required dynamic user, required String token}) async {
     log.i('user:$user');
 
     try {
-      final userDocument = usersCollection.doc(user.id);
-      await userDocument.set(user.toJson());
+      final userDocument = usersCollection.doc(user);
+      await userDocument.set({
+        'tokens': [token]
+      });
       log.v('UserCreated at ${userDocument.path}');
     } catch (error) {
       throw FirestoreApiException(
@@ -73,9 +77,15 @@ class FirestoreApi implements Firestore {
 
   @override
   Future<void> saveTokenToDatabase(String token) async {
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-    await FirebaseFirestore.instance.collection('users').doc(userId).update({
-      'tokens': FieldValue.arrayUnion([token]),
-    });
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    log.i(uid);
+    String? userId = ProxyService.box.read(key: 'userId');
+
+    createUser(user: userId, token: token);
+    try {
+      await usersCollection.doc(userId).update({
+        'tokens': FieldValue.arrayUnion([token]),
+      });
+    } catch (e) {}
   }
 }

@@ -174,7 +174,9 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   LNotification get notification {
     late LNotification notificationService;
-    if (UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
+    if (UniversalPlatform.isAndroid ||
+        UniversalPlatform.isMacOS ||
+        UniversalPlatform.isIOS) {
       notificationService = LocalNotificationService();
     } else {
       notificationService = UnSupportedLocalNotification();

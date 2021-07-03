@@ -49,7 +49,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     super.initState();
     _setupAnimation();
     _sideOpenController = ValueNotifier<bool>(false);
-    ProxyService.notification.initialize(context);
+    ProxyService.notification.initialize();
     if (!isWindows) {
       ///gives you the message on which user taps
       ///and it opened the app from terminated state
@@ -64,8 +64,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ///forground work
       FirebaseMessaging.onMessage.listen((message) {
         if (message.notification != null) {
-          print(message.notification!.body);
-          print(message.notification!.title);
+          log.i(message.notification!.body);
+          log.i(message.notification!.title);
         }
         ProxyService.notification.display(message);
       });
