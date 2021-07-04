@@ -108,4 +108,7 @@ class AppSetup {
 // https://firebase.google.com/docs/ab-testing/abtest-config#java
 
 // on DeleteOfOrderItem call another func to update tickets this can be refreshing tickets..
-// 
+// TODO make multiple account supported
+  // 1) visit all the model and check if all have the branch they belongs to
+  // 2) add branchId where necessary
+  // 3) on Query respect branch, note the branch should be the one from ProxyService.box.read()

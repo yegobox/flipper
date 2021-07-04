@@ -9,8 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
-import 'package:file_picker/file_picker.dart';
-// http upload
 import 'dart:convert';
 
 UploadResponse uploadResponseFromJson(String str) =>
@@ -36,22 +34,13 @@ class UploadResponse {
 
 class HttpUpload implements UploadT {
   final _picker = ImagePicker();
-
+  final log = getLogger('HttpUpload');
   @override
   Future browsePictureFromGallery({required int productId}) async {
-    final PickedFile? image =
-        await _picker.getImage(source: ImageSource.gallery);
-    // final File file = File(image!.path);
-    // await handleImage(image: file, productId: productId);
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['png', 'jpg'],
-    );
-    File? file = File.fromRawPath(result!.files.first.bytes!);
-    print('printing a file');
+    PickedFile? image = await _picker.getImage(source: ImageSource.gallery);
 
-    print(file);
-    // result!.files[0].bytes;
+    final File file = File(image!.path);
+    await handleImage(image: file, productId: productId);
   }
 
   @override
@@ -72,9 +61,9 @@ class HttpUpload implements UploadT {
       // final Document productUpdated = _databaseService.getById(id: product.id);
       // _state.setProduct(product: Product.fromMap(productUpdated.map));
       // final bool internetAvailable = await isInternetAvailable();
-      print('we got here');
-      print(fileName);
-      print(storagePath);
+      log.i('we got here');
+      log.i(fileName);
+      log.i(storagePath);
       upload(
         fileName: fileName,
         productId: productId,
@@ -160,7 +149,7 @@ class MobileUpload implements UploadT {
       ProxyService.api.update(data: map, endPoint: 'product');
       ProxyService.api.products(); //refresh data!
     }, onError: (ex, stacktrace) {
-      print('error' + stacktrace.toString());
+      log.i('error' + stacktrace.toString());
     });
   }
 
@@ -180,8 +169,7 @@ class MobileUpload implements UploadT {
 
   @override
   Future browsePictureFromGallery({required int productId}) async {
-    final PickedFile? image =
-        await _picker.getImage(source: ImageSource.gallery);
+    PickedFile? image = await _picker.getImage(source: ImageSource.gallery);
     if (image == null) return;
     final File file = File(image.path);
     await handleImage(image: file, productId: productId);
@@ -193,7 +181,8 @@ class MobileUpload implements UploadT {
     try {
       final PickedFile? image =
           await _picker.getImage(source: ImageSource.camera);
-      final File file = File(image!.path);
+      if (image == null) return;
+      final File file = File(image.path);
 
       await handleImage(image: file, productId: productId);
     } catch (e) {
