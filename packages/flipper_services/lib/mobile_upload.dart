@@ -79,14 +79,10 @@ class MobileUpload implements UploadT {
     CompressObject compressObject = CompressObject(
       imageFile: image, //image
       path: tempDir.path, //compress to path
-      quality: 85, //first compress quality, default 80
-      //compress quality step, The bigger the fast, Smaller is more accurate, default 6
+      quality: 85,
       step: 9,
       mode: CompressMode.LARGE2SMALL, //default AUTO
     );
-    // log.i(image);
-    // log.i(compressObject);
-    // upload(productId: productId, paths: [image.path]);
     Luban.compressImage(compressObject).then((_path) {
       upload(
         productId: productId,
