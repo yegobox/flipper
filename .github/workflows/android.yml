@@ -113,7 +113,9 @@ jobs:
       with:
         serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
         packageName: rw.flipper
-        releaseFile: app-release.aab
+        releaseFiles: app-release.aab
+        # inAppUpdatePriority: 2
+        # userFraction: 0.33
         track: internal
         # c: true #set this for the current situation
         whatsNewDirectory: distribution/whatsnew            
