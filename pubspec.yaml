@@ -240,3 +240,4 @@ flutter:
   # openssl x509 -in csr.csr -out crt.crt -req -signkey windows.key -days 365
   # openssl pkcs12 -export -out CERTIFICATE.pfx -inkey windows.key -in crt.crt
   # update version.
+  # update version.
