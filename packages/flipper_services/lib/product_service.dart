@@ -40,11 +40,12 @@ class ProductService with ReactiveServiceMixin {
         .variants(branchId: branchId!, productId: productId);
   }
 
-  Future<void> loadProducts() async {
-    _products.value = await ProxyService.api.products();
+  Future<void> loadProducts({required int branchId}) async {
+    _products.value = await ProxyService.api.products(branchId: branchId);
   }
 
-  Future<void> filtterProduct({required String searchKey}) async {
+  Future<void> filtterProduct(
+      {required String searchKey, required int branchId}) async {
     _products.value = _products.value
         .where((element) =>
             element.name.toLowerCase().contains(searchKey) ||
@@ -54,7 +55,7 @@ class ProductService with ReactiveServiceMixin {
                 .allMatches(searchKey)
                 .any((element) => true))
         .toList();
-    if (searchKey.isEmpty) loadProducts();
+    if (searchKey.isEmpty) loadProducts(branchId: branchId);
   }
 
   ProductService() {

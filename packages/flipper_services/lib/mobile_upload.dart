@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flipper/routes.logger.dart';
+import 'package:flipper_services/upload_response.dart';
 
 import 'abstractions/upload.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,27 +11,6 @@ import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 import 'dart:convert';
-
-UploadResponse uploadResponseFromJson(String str) =>
-    UploadResponse.fromJson(json.decode(str));
-
-String uploadResponseToJson(UploadResponse data) => json.encode(data.toJson());
-
-class UploadResponse {
-  UploadResponse({
-    required this.url,
-  });
-
-  String url;
-
-  factory UploadResponse.fromJson(Map<String, dynamic> json) => UploadResponse(
-        url: json["url"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "url": url,
-      };
-}
 
 class HttpUpload implements UploadT {
   final _picker = ImagePicker();
@@ -65,9 +45,8 @@ class HttpUpload implements UploadT {
       log.i(fileName);
       log.i(storagePath);
       upload(
-        fileName: fileName,
+        paths: [storagePath],
         productId: productId,
-        storagePath: storagePath,
       );
     });
   }
@@ -84,11 +63,9 @@ class HttpUpload implements UploadT {
   }
 
   @override
-  Future upload(
-      {required String storagePath,
-      required String fileName,
-      required int productId}) async {
-    print('no supported on this platform');
+  Future upload({required List<String?> paths, required int productId}) {
+    // TODO: implement upload
+    throw UnimplementedError();
   }
 }
 
@@ -107,30 +84,32 @@ class MobileUpload implements UploadT {
       step: 9,
       mode: CompressMode.LARGE2SMALL, //default AUTO
     );
+    // log.i(image);
+    // log.i(compressObject);
+    // upload(productId: productId, paths: [image.path]);
     Luban.compressImage(compressObject).then((_path) {
-      final String fileName = _path!.split('/').removeLast();
-      final String storagePath = _path.replaceAll('/' + fileName, '');
-
       upload(
-        fileName: fileName,
         productId: productId,
-        storagePath: storagePath,
+        paths: [_path!],
       );
+    }).onError((error, stackTrace) {
+      log.i(error);
     });
   }
 
   @override
   Future upload({
-    required String storagePath,
-    required String fileName,
+    required List<String?> paths,
     required int productId,
   }) async {
     final FlutterUploader uploader = FlutterUploader();
-    var fileItem = FileItem(path: storagePath, field: 'picture');
+    // log.i(storagePath);
+    // var fileItem = FileItem(path: storagePath, field: 'picture');
+    // log.i(fileItem);
     final String token = ProxyService.box.read(key: 'UToken');
     await uploader.enqueue(MultipartFormDataUpload(
       url: 'https://flipper.yegobox.com/upload',
-      files: [fileItem],
+      files: paths.map((e) => FileItem(path: e!, field: 'picture')).toList(),
       method: UploadMethod.POST,
       tag: 'Upload',
       headers: {'Authorization': 'Bearer  ' + token},
@@ -140,14 +119,19 @@ class MobileUpload implements UploadT {
       // print('uploadProgress:' + progress.toString());
     });
     uploader.result.listen((UploadTaskResponse result) async {
-      final UploadResponse uploadResponse =
-          uploadResponseFromJson(result.response!);
+      if (result.response != 'There are no items to upload') {
+        final UploadResponse uploadResponse =
+            uploadResponseFromJson(result.response!);
+        Product? product = await ProxyService.api.getProduct(id: productId);
+        Map map = product!.toJson();
+        map['picture'] = uploadResponse.url;
+        map['imageUrl'] = uploadResponse.url;
 
-      Product? product = await ProxyService.api.getProduct(id: productId);
-      Map map = product!.toJson();
-      map['picture'] = uploadResponse.url;
-      ProxyService.api.update(data: map, endPoint: 'product');
-      ProxyService.api.products(); //refresh data!
+        ProxyService.api.update(data: map, endPoint: 'product');
+        Product? kProduct = await ProxyService.api.getProduct(id: productId);
+        ProxyService.productService
+            .setCurrentProduct(product: kProduct!); //refresh data!
+      }
     }, onError: (ex, stacktrace) {
       log.i('error' + stacktrace.toString());
     });

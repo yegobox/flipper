@@ -60,7 +60,7 @@ class PayableView extends StatelessWidget {
           Container(
             width: 0.5.w,
             height: 60.h,
-            color: Colors.black54,
+            color: Colors.blue,
           ),
           Expanded(
             child: InkWell(
@@ -98,7 +98,7 @@ class PayableView extends StatelessWidget {
         Localization.of(context)!.tickets,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 20.sp,
+          fontSize: 19.sp,
           fontWeight: FontWeight.w500,
           color: Colors.white,
         ),
@@ -113,7 +113,7 @@ class PayableView extends StatelessWidget {
                   Localization.of(context)!.save,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 18.sp,
+                    fontSize: 19.sp,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
@@ -147,9 +147,9 @@ class PayableView extends StatelessWidget {
     );
     if (payable == 0.0) {
       return Text(
-        Localization.of(context)!.charge + ' FRw' + display(payable).toString(),
+        Localization.of(context)!.charge + ' FRw ' + payable.toString(),
         style: TextStyle(
-          fontSize: 20.sp,
+          fontSize: 19.sp,
           color: Colors.white,
         ),
       );
@@ -163,7 +163,7 @@ class PayableView extends StatelessWidget {
                 Localization.of(context)!.charge,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: 19.sp,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),

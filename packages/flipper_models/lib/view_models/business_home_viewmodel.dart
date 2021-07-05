@@ -55,6 +55,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void addKey(String key) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
     if (key == 'C') {
       ProxyService.keypad.pop();
     } else if (key == '+') {
@@ -71,7 +72,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           //default on keypad
           quantity: 1,
         );
-        List<OrderF> orders = await ProxyService.keypad.getOrders();
+        List<OrderF> orders =
+            await ProxyService.keypad.getOrders(branchId: branchId);
         if (orders.isNotEmpty) {
           keypad.setCount(count: orders[0].orderItems.length);
         }
@@ -87,7 +89,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void getOrders() async {
-    List<OrderF> od = await ProxyService.keypad.getOrders();
+    int branchId = ProxyService.box.read(key: 'branchId');
+    List<OrderF> od = await ProxyService.keypad.getOrders(branchId: branchId);
 
     if (od.isNotEmpty && od[0].orderItems.isNotEmpty) {
       keypad.setCount(count: orders[0].orderItems.length);
@@ -108,7 +111,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   ///list products availabe for sell
   Future<List<Product>> products() async {
-    return await ProxyService.api.products();
+    int branchId = ProxyService.box.read(key: 'branchId');
+    return await ProxyService.api.products(branchId: branchId);
   }
 
   List<Business> get businesses => _app.businesses;
@@ -203,6 +207,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<bool> saveOrder(
       {required int variationId, required double amount}) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
     if (amountTotal != 0.0) {
       log.i(quantity);
       log.i(amountTotal);
@@ -219,7 +224,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         quantity: quantity.toDouble(),
       );
 
-      List<OrderF> orders = await ProxyService.keypad.getOrders();
+      List<OrderF> orders =
+          await ProxyService.keypad.getOrders(branchId: branchId);
       if (orders.isNotEmpty) {
         keypad.setCount(count: orders[0].orderItems.length);
       }

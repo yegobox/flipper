@@ -77,8 +77,8 @@ class KeyPadService with ReactiveServiceMixin {
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
-  Future<List<OrderF>> getOrders() async {
-    List<OrderF> od = await ProxyService.api.orders();
+  Future<List<OrderF>> getOrders({required int branchId}) async {
+    List<OrderF> od = await ProxyService.api.orders(branchId: branchId);
     //
     //NOTE: we assume index[0] as pending order can not be more than one at the moment
     if (od.isNotEmpty) {

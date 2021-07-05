@@ -4,6 +4,7 @@
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.CAMERA" />
 
+
   <queries>
     <intent>
       <action android:name="android.media.action.IMAGE_CAPTURE" />
@@ -15,6 +16,15 @@
 
   <!-- android:name="io.flutter.app.FlutterPlayStoreSplitApplication" -->
   <application android:extractNativeLibs="true" tools:replace="android:extractNativeLibs" android:label="flipper" android:icon="@mipmap/launcher_icon">
+    <provider android:name="androidx.work.impl.WorkManagerInitializer" android:authorities="${applicationId}.workmanager-init" android:enabled="false" android:exported="false" />
+
+    <provider android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer" android:authorities="${applicationId}.flutter-upload-init" android:exported="false">
+      <!-- changes this number to configure the maximum number of concurrent tasks -->
+      <meta-data android:name="com.bluechilli.flutterupload.MAX_CONCURRENT_TASKS" android:value="3" />
+
+      <!-- changes this number to configure connection timeout for the upload http request -->
+      <meta-data android:name="com.bluechilli.flutteruploader.UPLOAD_CONNECTION_TIMEOUT_IN_SECONDS" android:value="3600" />
+    </provider>
     <activity android:name=".MainActivity" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
       <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user

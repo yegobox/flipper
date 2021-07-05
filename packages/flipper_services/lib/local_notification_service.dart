@@ -1,7 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/routes.logger.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 abstract class LNotification {
@@ -73,8 +71,7 @@ class LocalNotificationService implements LNotification {
       provisional: false,
       sound: true,
     );
-    String? token = await FirebaseMessaging.instance.getToken();
-    ProxyService.firestore.saveTokenToDatabase(token!);
+
     final InitializationSettings initializationSettings =
         InitializationSettings(
             android: AndroidInitializationSettings("@mipmap/ic_launcher"));

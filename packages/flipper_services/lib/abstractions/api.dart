@@ -17,7 +17,7 @@ import 'package:flipper_models/variants.dart';
 
 abstract class Api<T> {
   Future<Login> login({required String phone});
-  Future<List<Product>> products();
+  Future<List<Product>> products({required int branchId});
   Future<int> signup({required Map business});
   Future<SyncF> authenticateWithOfflineDb({required String userId});
   Future<List<Business>> businesses();
@@ -50,7 +50,7 @@ abstract class Api<T> {
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});
-  Future<List<Product>> isTempProductExist();
+  Future<List<Product>> isTempProductExist({required int branchId});
   Future<bool> logOut();
 
   ///create an order if no pending order exist should create a new one
@@ -64,7 +64,7 @@ abstract class Api<T> {
     double quantity = 1,
   });
 
-  Future<List<OrderF>> orders();
+  Future<List<OrderF>> orders({required int branchId});
   Future<OrderItem?> getOrderItem({required int id});
 
   Future<Variant> getCustomProductVariant();

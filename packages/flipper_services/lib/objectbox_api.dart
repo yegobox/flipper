@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:get_storage/get_storage.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/invoice.dart';
@@ -47,6 +48,7 @@ late Store store;
 
 class ObjectBoxApi implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
+
   String flipperApi = "https://flipper.yegobox.com";
   // late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
@@ -87,7 +89,6 @@ class ObjectBoxApi implements Api {
   }
 
   ObjectBoxApi({required String dbName, Directory? dir}) {
-    // var dio = Dio();
     // dioClient = DioClient(apihub, dio, interceptors: []);
     //connect socket
     if (stompMessageClient == null && stompUsersClient == null) {
@@ -210,17 +211,22 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<Product>> isTempProductExist() async {
+  Future<List<Product>> isTempProductExist({required int branchId}) async {
     return store
         .box<Product>()
         .getAll()
+        .where((v) => v.fbranchId == branchId)
         .where((product) => product.name == 'temp')
         .toList();
   }
 
   @override
-  Future<List<Product>> products() async {
-    return store.box<Product>().getAll();
+  Future<List<Product>> products({required int branchId}) async {
+    return store
+        .box<Product>()
+        .getAll()
+        .where((v) => v.fbranchId == branchId)
+        .toList();
   }
 
   @override
@@ -274,6 +280,7 @@ class ObjectBoxApi implements Api {
         .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == productId)
+        .where((v) => v.fbranchId == branchId)
         .toList();
   }
 
@@ -488,10 +495,12 @@ class ObjectBoxApi implements Api {
     }
   }
 
-  Future<OrderF?> pendingOrderExist() async {
+  Future<OrderF?> pendingOrderExist({required int branchId}) async {
     return store
         .box<OrderF>()
-        .query(OrderF_.status.equals('pending'))
+        .query(OrderF_.status
+            .equals('pending')
+            .and(OrderF_.fbranchId.equals(branchId)))
         .build()
         .findFirst();
   }
@@ -509,7 +518,7 @@ class ObjectBoxApi implements Api {
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     int branchId = ProxyService.box.read(key: 'branchId');
-    OrderF? existOrder = await pendingOrderExist();
+    OrderF? existOrder = await pendingOrderExist(branchId: branchId);
     if (existOrder == null) {
       final order = new OrderF(
         reference: ref,
@@ -662,19 +671,18 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<List<OrderF>> orders() async {
+  Future<List<OrderF>> orders({required int branchId}) async {
     return store
         .box<OrderF>()
         .getAll()
         .where((v) => v.status == 'pending')
+        .where((v) => v.fbranchId == branchId)
         .toList();
   }
 
   @override
   Future<Spenn> spennPayment(
       {required double amount, required phoneNumber}) async {
-    final String transactionNumber =
-        DateTime.now().millisecondsSinceEpoch.toString();
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
     String businessName = getBusiness().name;

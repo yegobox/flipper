@@ -87,8 +87,6 @@ class OrderF {
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
         note: json["note"],
-        // orderItems: List<OrderItem>.from(
-        //     json["orderItems"].map((x) => OrderItem.fromJson(x))),
         table: json["table"],
         customerId: json["customerId"],
         channels: List<String>.from(json["channels"].map((x) => x)),

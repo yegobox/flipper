@@ -285,7 +285,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Product>> isTempProductExist() async {
+  Future<List<Product>> isTempProductExist({required int branchId}) async {
     Q5.parameters = {'T': AppTables.product, 'NAME': 'temp'};
     final ResultSet product = Q5.execute();
     final List<Product> p = [];
@@ -318,7 +318,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Product>> products() async {
+  Future<List<Product>> products({required int branchId}) async {
     Q16.parameters = {'T': AppTables.product};
     final ResultSet product = Q16.execute();
     final List<Product> p = [];
@@ -586,7 +586,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<OrderF>> orders() async {
+  Future<List<OrderF>> orders({required int branchId}) async {
     Q3.parameters = {'T': AppTables.order, 'S': 'pending'};
     final ResultSet order = Q3.execute();
     final List<OrderF> orders = [];

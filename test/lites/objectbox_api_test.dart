@@ -122,7 +122,7 @@ void main() {
     expect(order, isA<OrderF>());
 
     //test if order exist
-    OrderF? orderExist = await api.pendingOrderExist();
+    OrderF? orderExist = await api.pendingOrderExist(branchId: 11);
     expect(orderExist, isA<OrderF>());
     expect(orderExist!.active, true);
     expect(orderExist.toJson(), isA<Map>());
@@ -163,7 +163,7 @@ void main() {
   test('get list of products', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
-    List<Product> products = await api.products();
+    List<Product> products = await api.products(branchId: 11);
     expect(products.isEmpty, false);
   });
   test('get list of stocks for specific productId', () async {
@@ -188,18 +188,18 @@ void main() {
   test('update a product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
-    List<Product> products = await api.isTempProductExist();
+    List<Product> products = await api.isTempProductExist(branchId: 11);
     final Map data = products[0].toJson();
     data['unit'] = 'updated';
 
     await api.update(data: data, endPoint: 'product');
-    List<Product> kProduct = await api.isTempProductExist();
+    List<Product> kProduct = await api.isTempProductExist(branchId: 11);
     expect(kProduct[0].unit, 'updated');
   });
   test('test temporal product  exist', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
-    List<Product> products = await api.isTempProductExist();
+    List<Product> products = await api.isTempProductExist(branchId: 11);
     expect(products.isEmpty, false);
   });
   test('test get branches', () async {

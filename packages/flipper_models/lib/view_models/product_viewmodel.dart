@@ -41,14 +41,17 @@ class ProductViewModel extends ReactiveViewModel {
   List<Variant>? get variants => productService.variants;
 
   Future<void> loadProducts() async {
-    await productService.loadProducts();
+    int branchId = ProxyService.box.read(key: 'branchId');
+    await productService.loadProducts(branchId: branchId);
   }
 
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   ///
   Future<int> createTemporalProduct() async {
-    final List<Product> isTemp = await ProxyService.api.isTempProductExist();
+    int branchId = ProxyService.box.read(key: 'branchId');
+    final List<Product> isTemp =
+        await ProxyService.api.isTempProductExist(branchId: branchId);
     if (isTemp.isEmpty) {
       Product product =
           await ProxyService.api.createProduct(product: productMock);
@@ -352,7 +355,8 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void filterProduct({required String searchKey}) {
-    productService.filtterProduct(searchKey: searchKey);
+    int branchId = ProxyService.box.read(key: 'branchId');
+    productService.filtterProduct(searchKey: searchKey, branchId: branchId);
   }
 
   @override

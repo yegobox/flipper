@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flipper/routes.router.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/category.dart';
@@ -59,6 +60,8 @@ class SignupViewModel extends FormViewModel {
   }
 
   void signup({Locale? locale}) async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    ProxyService.firestore.saveTokenToDatabase(token!);
     //set the startup app.
     // TODO uncomment this when the social feature is out!
     // ProxyService.box.write(key: pageKey, value: businessType);

@@ -87,7 +87,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Product>> products() async {
+  Future<List<Product>> products({required int branchId}) async {
     final response = await client.get(Uri.parse("$apihub/api/products"));
     return productFromJson(response.body);
   }
@@ -181,7 +181,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Product>> isTempProductExist() async {
+  Future<List<Product>> isTempProductExist({required int branchId}) async {
     final response = await client.get(Uri.parse("$apihub/api/product/temp"));
     return productFromJson(response.body);
   }
@@ -351,7 +351,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<OrderF>> orders() async {
+  Future<List<OrderF>> orders({required int branchId}) async {
     final response = await client.get(Uri.parse("$apihub/api/orders"));
 
     return orderFromJson(response.body);
