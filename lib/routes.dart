@@ -75,7 +75,7 @@ class AppSetup {
 //cheat code
 //TODO: push notification service https://github.com/Pronto-AG/Pronto-MIA-App/blob/master/pronto_mia/lib/core/services/push_notification_service.dart
 // find . -name '*.dart' | xargs wc -l
-//  16693  +633  +1388 = 18714
+//  30243  +1625 = 31868
 // sudo a2enmod proxy_wstunnel (enabling apache sockets)
 // bb-operations-sql.database.windows.net
 // 1433
@@ -109,3 +109,6 @@ class AppSetup {
 
 // on DeleteOfOrderItem call another func to update tickets this can be refreshing tickets..
 // version.
+// TODO: implement geofancing of businesses and customers 
+// https://pub.dev/packages/geofence_service (if I am near a shop in 100 metters to receive advert of business willing to offer me deal)
+// a user will set the price he is willing to pay and item then he get adverts related to the settings.

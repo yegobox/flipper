@@ -138,7 +138,7 @@ dependencies:
   rounded_loading_button: ^2.0.4
   hive_flutter: ^1.0.0
   path_provider: ^2.0.2
-  objectbox: ^1.0.0
+  objectbox: ^1.1.0
   objectbox_flutter_libs: any
   dio: ^4.0.0
   freezed: ^0.14.2
