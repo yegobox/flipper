@@ -6,6 +6,7 @@ import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
+import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
@@ -79,6 +80,19 @@ abstract class ThirdPartyServicesModule {
     share = ShareImplementation();
 
     return share;
+  }
+
+  @lazySingleton
+  Review get review {
+    Review crash;
+    if (UniversalPlatform.isAndroid ||
+        UniversalPlatform.isIOS ||
+        UniversalPlatform.isMacOS) {
+      crash = InAppReviewService();
+    } else {
+      crash = UnSupportedReview();
+    }
+    return crash;
   }
 
   @lazySingleton
