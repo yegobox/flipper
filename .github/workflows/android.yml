@@ -12,7 +12,7 @@ jobs:
     - name: Fetch all history for all tags and branches
       run: |
         git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-        git fetch --prune --depth=10
+        git fetch --prune --depth=20
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.5
       with:
