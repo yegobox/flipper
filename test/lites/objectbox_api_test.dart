@@ -46,7 +46,7 @@ void main() {
   test('test create unit', () async {
     //
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     int id = DateTime.now().millisecondsSinceEpoch;
     final units = new Unit(
       name: 'sample',
@@ -62,13 +62,13 @@ void main() {
   });
   test('test load units', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Unit> units = await api.units(branchId: 11);
     expect(units.isEmpty, false);
   });
   test('test create colors', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -97,7 +97,7 @@ void main() {
   });
   test('create variants', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
 
     variations.add(data);
     final response = await api.addVariant(
@@ -109,7 +109,7 @@ void main() {
   });
   test('test create order', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     variations.add(data);
     final response = await api.addVariant(
         data: variations, retailPrice: 0.0, supplyPrice: 0.0);
@@ -129,7 +129,7 @@ void main() {
   });
   test('create product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     Product product = await api.createProduct(product: productMock);
 
     expect(product.name, 'temp');
@@ -148,7 +148,7 @@ void main() {
   });
   test('create a custom product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     Product product = await api.createProduct(product: customProductMock);
     Product? getProduct = await api.getProduct(id: product.id);
     expect(getProduct!.name, 'Custom Amount');
@@ -156,25 +156,25 @@ void main() {
   });
   test('get custom amount product variant', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     Variant variant = await api.getCustomProductVariant();
     expect(variant.name, 'Regular');
   });
   test('get list of products', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Product> products = await api.products(branchId: 11);
     expect(products.isEmpty, false);
   });
   test('get list of stocks for specific productId', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Stock> stocks = await api.stocks(productId: 2);
     expect(stocks.isEmpty, false);
   });
   test('update a stock', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     Variant variant = await api.getCustomProductVariant();
     Stock stock = await api.stockByVariantId(variantId: variant.id);
     Map data = stock.toJson();
@@ -187,7 +187,7 @@ void main() {
   });
   test('update a product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Product> products = await api.isTempProductExist(branchId: 11);
     final Map data = products[0].toJson();
     data['unit'] = 'updated';
@@ -198,19 +198,19 @@ void main() {
   });
   test('test temporal product  exist', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     List<Product> products = await api.isTempProductExist(branchId: 11);
     expect(products.isEmpty, false);
   });
   test('test get branches', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     // List<Branch> branches = await api.branches(businessId: 10);
     expect(1, 1); //TODOshould be false
   });
   test('test create categories', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
 
     Category category = Category(
       active: true,
@@ -225,7 +225,7 @@ void main() {
   });
   test('test add settings', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     Setting setting = new Setting(
         email: 'b@gmail.com',
         userId: 300,
@@ -241,7 +241,7 @@ void main() {
   });
   test('can update a settings', () async {
     Directory dir = await getApplicationDocumentsDirectory();
-    ObjectBoxApi api = new ObjectBoxApi(dir: dir, dbName: dbName);
+    ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     Map map = {'email': 'updated@gmail.com'};
     Setting? s = await api.getSetting(userId: 300);
     int id = s!.id;

@@ -108,7 +108,7 @@ class AppSetup {
 // https://firebase.google.com/docs/ab-testing/abtest-config#java
 
 // on DeleteOfOrderItem call another func to update tickets this can be refreshing tickets..
-// version.
+// version.(1)
 // TODO: implement geofancing of businesses and customers 
 // https://pub.dev/packages/geofence_service (if I am near a shop in 100 metters to receive advert of business willing to offer me deal)
 // a user will set the price he is willing to pay and item then he get adverts related to the settings.
