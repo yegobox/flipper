@@ -23,7 +23,6 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
-// import 'package:chat/screens/homepage.dart';
 import 'package:chat/screens/about_chat.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -117,6 +116,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         // init the crashlytics
         // ProxyService.crash.initializeFlutterFire();
         model.getTickets();
+        // implement review system.
+        ProxyService.review.review();
       },
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {

@@ -15,23 +15,24 @@ import 'abstractions/location.dart' as _i9;
 import 'abstractions/platform.dart' as _i15;
 import 'abstractions/printer.dart' as _i19;
 import 'abstractions/remote.dart' as _i21;
-import 'abstractions/share.dart' as _i24;
+import 'abstractions/share.dart' as _i25;
 import 'abstractions/storage.dart' as _i14;
-import 'abstractions/upload.dart' as _i25;
+import 'abstractions/upload.dart' as _i26;
 import 'app_service.dart' as _i5;
 import 'FirebaseCrashlyticService.dart' as _i6;
 import 'firestore_api.dart' as _i8;
 import 'force_data_service.dart' as _i10;
 import 'http_api.dart' as _i11;
+import 'in_app_review.dart' as _i23;
 import 'keypad_service.dart' as _i12;
 import 'local_notification_service.dart' as _i13;
 import 'pdf_api.dart' as _i17;
 import 'pdf_invoice_api.dart' as _i18;
 import 'product_service.dart' as _i20;
 import 'report_service.dart' as _i22;
-import 'setting_service.dart' as _i23;
+import 'setting_service.dart' as _i24;
 import 'third_party_services_module.dart'
-    as _i26; // ignore_for_file: unnecessary_lambdas
+    as _i27; // ignore_for_file: unnecessary_lambdas
 
 // ignore_for_file: lines_longer_than_80_chars
 /// initializes the registration of provided dependencies inside of [GetIt]
@@ -67,14 +68,15 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
       () => thirdPartyServicesModule.productService);
   gh.lazySingleton<_i21.Remote>(() => thirdPartyServicesModule.remote);
   gh.lazySingleton<_i22.ReportService>(() => thirdPartyServicesModule.report);
-  gh.lazySingleton<_i23.SettingsService>(
+  gh.lazySingleton<_i23.Review>(() => thirdPartyServicesModule.review);
+  gh.lazySingleton<_i24.SettingsService>(
       () => thirdPartyServicesModule.settings);
-  gh.lazySingleton<_i24.Shareble>(() => thirdPartyServicesModule.share);
-  gh.lazySingleton<_i25.UploadT>(() => thirdPartyServicesModule.upload);
+  gh.lazySingleton<_i25.Shareble>(() => thirdPartyServicesModule.share);
+  gh.lazySingleton<_i26.UploadT>(() => thirdPartyServicesModule.upload);
   return get;
 }
 
-class _$ThirdPartyServicesModule extends _i26.ThirdPartyServicesModule {
+class _$ThirdPartyServicesModule extends _i27.ThirdPartyServicesModule {
   @override
   _i5.AppService get appService => _i5.AppService();
   @override
@@ -92,5 +94,5 @@ class _$ThirdPartyServicesModule extends _i26.ThirdPartyServicesModule {
   @override
   _i22.ReportService get report => _i22.ReportService();
   @override
-  _i23.SettingsService get settings => _i23.SettingsService();
+  _i24.SettingsService get settings => _i24.SettingsService();
 }
