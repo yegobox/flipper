@@ -163,7 +163,7 @@ abstract class ThirdPartyServicesModule {
         UniversalPlatform.isMacOS) {
       // apiService = LiteApi(database: db); //lite app
 
-      apiService = ObjectBoxApi(dbName: 'db_1'); //pro app
+      apiService = ObjectBoxApi(); //pro app
       // apiService = HttpApi(); //lite app
     } else {
       apiService = HttpApi();

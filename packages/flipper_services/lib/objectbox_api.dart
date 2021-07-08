@@ -88,7 +88,7 @@ class ObjectBoxApi implements Api {
         });
   }
 
-  ObjectBoxApi({required String dbName, Directory? dir}) {
+  ObjectBoxApi({String? dbName, Directory? dir}) {
     // dioClient = DioClient(apihub, dio, interceptors: []);
     //connect socket
     if (stompMessageClient == null && stompUsersClient == null) {
@@ -112,7 +112,9 @@ class ObjectBoxApi implements Api {
       stompUsersClient?.activate();
     }
     // get store initialized.
-    getDir(dbName: dbName);
+    if (dbName != null) {
+      getDir(dbName: dbName);
+    }
   }
   @override
   Future<List<Unit>> units({required int branchId}) async {

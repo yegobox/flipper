@@ -881,6 +881,22 @@ final _entities = <ModelEntity>[
       backlinks: <ModelBacklink>[])
 ];
 
+/// Open an ObjectBox store with the model declared in this file.
+Store openStore(
+        {String? directory,
+        int? maxDBSizeInKB,
+        int? fileMode,
+        int? maxReaders,
+        bool queriesCaseSensitiveDefault = true,
+        String? macosApplicationGroup}) =>
+    Store(getObjectBoxModel(),
+        directory: directory,
+        maxDBSizeInKB: maxDBSizeInKB,
+        fileMode: fileMode,
+        maxReaders: maxReaders,
+        queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
+        macosApplicationGroup: macosApplicationGroup);
+
 /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel())
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
@@ -1961,7 +1977,7 @@ class OrderItem_ {
 
   /// see [OrderItem.order]
   static final order =
-      QueryRelationProperty<OrderItem, OrderF>(_entities[4].properties[6]);
+      QueryRelationToOne<OrderItem, OrderF>(_entities[4].properties[6]);
 }
 
 /// [PColor] entity fields to define ObjectBox queries.
@@ -2171,7 +2187,7 @@ class Variant_ {
 
   /// see [Variant.product]
   static final product =
-      QueryRelationProperty<Variant, Product>(_entities[9].properties[10]);
+      QueryRelationToOne<Variant, Product>(_entities[9].properties[10]);
 
   /// see [Variant.supplyPrice]
   static final supplyPrice =

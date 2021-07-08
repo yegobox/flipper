@@ -15,13 +15,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.4"
-  after_layout:
-    dependency: transitive
-    description:
-      name: after_layout
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
   analyzer:
     dependency: transitive
     description:
@@ -210,7 +203,7 @@ packages:
       name: cached_network_image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-nullsafety"
+    version: "3.0.0"
   camera:
     dependency: transitive
     description:
@@ -414,13 +407,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  easy_debounce:
-    dependency: transitive
-    description:
-      name: easy_debounce
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   equatable:
     dependency: transitive
     description:
@@ -463,13 +449,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.1"
-  file_picker:
-    dependency: transitive
-    description:
-      name: file_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.2+2"
   firebase:
     dependency: transitive
     description:
@@ -674,9 +653,11 @@ packages:
   flutter_datetime_picker:
     dependency: transitive
     description:
-      name: flutter_datetime_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: eb66486c47d50bf550950c196486121ffcea8885
+      url: "https://github.com/Realank/flutter_datetime_picker.git"
+    source: git
     version: "1.5.1"
   flutter_dotenv:
     dependency: transitive
@@ -684,7 +665,7 @@ packages:
       name: flutter_dotenv
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.0-nullsafety.0"
+    version: "5.0.0"
   flutter_hooks:
     dependency: transitive
     description:
@@ -701,6 +682,20 @@ packages:
       url: "https://github.com/adarsh-technocrat/flutter-icons"
     source: git
     version: "1.1.1-nullsafety.0"
+  flutter_local_notifications:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.0.0"
+  flutter_local_notifications_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -741,6 +736,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
+  flutter_screenutil:
+    dependency: transitive
+    description:
+      name: flutter_screenutil
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.0+2"
   flutter_slidable:
     dependency: transitive
     description:
@@ -766,7 +768,7 @@ packages:
       name: flutter_uploader
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-beta.1"
+    version: "3.0.0-beta.2"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -1135,21 +1137,21 @@ packages:
       name: objectbox
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   objectbox_flutter_libs:
     dependency: transitive
     description:
       name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   objectbox_generator:
     dependency: "direct dev"
     description:
       name: objectbox_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   observable_ish:
     dependency: transitive
     description:
@@ -1339,13 +1341,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.4"
-  rubber:
-    dependency: transitive
-    description:
-      name: rubber
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
   rxdart:
     dependency: transitive
     description:
@@ -1560,7 +1555,7 @@ packages:
       name: timezone
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.0-nullsafety.0"
+    version: "0.7.0"
   timing:
     dependency: transitive
     description:
@@ -1588,7 +1583,7 @@ packages:
       name: universal_platform
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0-nullsafety"
+    version: "1.0.0+1"
   url_launcher:
     dependency: transitive
     description:
@@ -1689,4 +1684,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.13.0 <3.0.0"
-  flutter: ">=2.0.4"
+  flutter: ">=2.2.0"
