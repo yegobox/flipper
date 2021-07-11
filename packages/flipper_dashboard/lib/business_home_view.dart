@@ -101,6 +101,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+      key: Key('businessHomeView'),
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
         model.getOrders();

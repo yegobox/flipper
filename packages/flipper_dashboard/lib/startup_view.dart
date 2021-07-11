@@ -17,11 +17,9 @@ class StartUpView extends StatelessWidget {
       onModelReady: (model) =>
           SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
         model.runStartupLogic();
-        // model.appInit();
       }),
       viewModelBuilder: () => StartUpViewModel(),
       builder: (context, model, child) {
-        // return LoaderView();
         return LoadingWithPercentage();
       },
     );

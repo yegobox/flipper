@@ -15,6 +15,7 @@ class SignUpLoginButton extends StatelessWidget {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
+          key: Key('loginForm'),
           padding: MediaQuery.of(context).viewInsets,
           child: Container(
             child: PhoneNumberView(),
@@ -41,6 +42,7 @@ class SignUpLoginButton extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Padding(
+                key: Key('createAccountButton'),
                 padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 0.h),
                 child: BoxButton(
                   title: 'Create Account',

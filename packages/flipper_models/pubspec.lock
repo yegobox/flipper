@@ -85,41 +85,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  bitsdojo_window:
-    dependency: transitive
-    description:
-      name: bitsdojo_window
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0+1"
-  bitsdojo_window_linux:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0+1"
-  bitsdojo_window_macos:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
-  bitsdojo_window_platform_interface:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
-  bitsdojo_window_windows:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
   bluetooth_thermal_printer:
     dependency: transitive
     description:
@@ -574,14 +539,14 @@ packages:
       name: firebase_remote_config
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.0+1"
+    version: "0.10.0+2"
   firebase_remote_config_platform_interface:
     dependency: transitive
     description:
       name: firebase_remote_config_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0+1"
+    version: "0.3.0+2"
   fixnum:
     dependency: transitive
     description:
@@ -1137,21 +1102,21 @@ packages:
       name: objectbox
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   objectbox_flutter_libs:
     dependency: transitive
     description:
       name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   objectbox_generator:
     dependency: "direct dev"
     description:
       name: objectbox_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   observable_ish:
     dependency: transitive
     description:

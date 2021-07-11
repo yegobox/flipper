@@ -7,6 +7,7 @@ class LoadingWithPercentage extends StatelessWidget {
   Widget build(BuildContext context) {
     const double size = 200.0;
     return SafeArea(
+      key: Key('Loader'),
       child: Scaffold(
         body: Center(
           // This Tween Animation Builder is Just For Demonstration, Do not use this AS-IS in Projects

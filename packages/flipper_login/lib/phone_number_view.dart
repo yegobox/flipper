@@ -90,6 +90,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                               child: Padding(
                                 padding: EdgeInsets.only(left: 8.0.w),
                                 child: TextFormField(
+                                  key: Key('phoneField'),
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return 'Phone number is required';
@@ -142,6 +143,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                             height: 60,
                             child: !model.loginStart
                                 ? BoxButton(
+                                    key: Key('signIn'),
                                     title: 'SIGN IN',
                                     onTap: () async {
                                       if (PhoneNumberView._formKey.currentState!
@@ -177,6 +179,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                                     },
                                   )
                                 : Padding(
+                                    key: Key('busyButon'),
                                     padding: const EdgeInsets.only(
                                         left: 8.0, right: 8.0),
                                     child: SizedBox(

@@ -22,6 +22,7 @@ class _OtpViewState extends State<OtpView> {
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         return SingleChildScrollView(
+          key: Key('optForm'),
           child: Form(
             key: OtpView._formKey,
             child: Container(
@@ -90,6 +91,7 @@ class _OtpViewState extends State<OtpView> {
                             children: <Widget>[
                               Expanded(
                                   child: BoxInputField(
+                                key: Key('otpField'),
                                 textInputType: TextInputType.phone,
                                 controller: otpController,
                                 leading: Icon(Icons.password),
@@ -109,6 +111,7 @@ class _OtpViewState extends State<OtpView> {
                     !model.otpStart
                         ? Container(
                             child: BoxButton(
+                              key: Key('verifyOtp'),
                               onTap: () {
                                 if (OtpView._formKey.currentState!.validate()) {
                                   model.setOtp(ot: otpController.value.text);

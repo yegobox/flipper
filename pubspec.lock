@@ -1124,21 +1124,21 @@ packages:
       name: objectbox
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   objectbox_flutter_libs:
     dependency: "direct main"
     description:
       name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   objectbox_generator:
     dependency: "direct dev"
     description:
       name: objectbox_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   observable_ish:
     dependency: "direct main"
     description:

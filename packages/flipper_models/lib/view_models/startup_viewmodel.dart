@@ -17,7 +17,7 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> runStartupLogic() async {
     appService.isLoggedIn();
-    appInit();
+    await appInit();
 
     if (appService.hasLoggedInUser) {
       // await Future.delayed(Duration(seconds: 2));
@@ -57,8 +57,8 @@ class StartUpViewModel extends BaseViewModel {
         if (businesses.isNotEmpty) {
           List<Branch> branches =
               await ProxyService.api.branches(businessId: businesses[0].id);
-          log.i(branches[0].id);
-          log.i(businesses[0].id);
+          log.i('BranchId', branches[0].id);
+          log.i('BusinessId', businesses[0].id);
           ProxyService.box.write(key: 'branchId', value: branches[0].id);
           ProxyService.box.write(key: 'businessId', value: businesses[0].id);
         }
