@@ -8,11 +8,13 @@ jobs:
     name: integrationTest
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: integrationTest
         run: |
           pushd android
           ./gradlew app:assembleAndroidTest
           ./gradlew app:assembleDebug -Ptarget="flipper/integration_test/app_test.dart"
+          popd
   version:
     name: Create version number
     needs: [ integrationTest ]
