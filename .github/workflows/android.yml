@@ -4,6 +4,16 @@ on:
   push:
     branches: [main,aurore,mobile]
 jobs:      
+  integrationTest:
+    name: integrationTest
+    runs-on: ubuntu-latest
+    steps:
+      - name: integrationTest
+        run: |
+          pushd android
+          ./gradlew app:assembleAndroidTest
+          ./gradlew app:assembleDebug -Ptarget="flipper/integration_test/app_test.dart"
+          popd
   version:
     name: Create version number
     runs-on: ubuntu-latest
