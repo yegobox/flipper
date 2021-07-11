@@ -5,7 +5,7 @@ on:
     branches: [main,aurore,mobile]
 jobs:      
   # id of job, a string that is unique to the "jobs" node above.
-  test:
+  integrationTest:
     runs-on: ubuntu-latest
     strategy:
       matrix:
