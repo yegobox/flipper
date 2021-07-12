@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flipper/routes.logger.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'keypad_view.dart';
 
 class KeyPadHead extends StatelessWidget {
@@ -38,11 +38,11 @@ class KeyPadHead extends StatelessWidget {
                 },
                 child: IgnorePointer(
                   child: Container(
-                    padding: const EdgeInsets.only(
-                      right: 20.0,
-                      top: 15.0,
-                      left: 20.0,
-                      bottom: 15.0,
+                    padding: EdgeInsets.only(
+                      right: 20.w,
+                      top: 15.h,
+                      left: 20.w,
+                      bottom: 15.h,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

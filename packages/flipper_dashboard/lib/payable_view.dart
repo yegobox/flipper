@@ -33,7 +33,7 @@ class PayableView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width.w - 22.w,
+      width: double.infinity.w,
       margin: EdgeInsetsDirectional.only(top: 15.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -46,7 +46,7 @@ class PayableView extends StatelessWidget {
               child: Container(
                 alignment: Alignment.center,
                 height: 60.h,
-                width: MediaQuery.of(context).size.width,
+                width: MediaQuery.of(context).size.width.w,
                 color: Theme.of(context)
                     .copyWith(
                       canvasColor: HexColor('#2996CC'),

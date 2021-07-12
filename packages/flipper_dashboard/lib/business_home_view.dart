@@ -15,6 +15,7 @@ import 'package:flipper_services/proxy.dart';
 import 'add_product_buttons.dart';
 import 'bottom_menu_bar.dart';
 import 'custom_rect_tween.dart';
+import 'desktop_view.dart';
 import 'flipper_drawer.dart';
 import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
@@ -26,6 +27,10 @@ import 'keypad_view.dart';
 import 'package:chat/screens/about_chat.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isWindows = UniversalPlatform.isWindows;
+final isMacOs = UniversalPlatform.isMacOS;
 
 @FormView(fields: [FormTextField(name: 'note')])
 class Home extends StatefulWidget {
@@ -121,22 +126,26 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.review.review();
       },
       builder: (context, model, child) {
-        switch (ProxyService.box.read(key: 'page')) {
-          case 'business':
-            return BusinessWidget(model);
-          case 'social':
-            if (ProxyService.remoteConfig.isChatAvailable()) {
-              return AboutChatMiniApp();
-            } else {
+        if (isWindows || isMacOs) {
+          return DesktopView(model: model, controller: controller);
+        } else {
+          switch (ProxyService.box.read(key: 'page')) {
+            case 'business':
               return BusinessWidget(model);
-            }
-          case 'openBusiness':
-            return Text('open business');
-          case 'closedBusiness':
-            return Text('closed business');
-          default:
+            case 'social':
+              if (ProxyService.remoteConfig.isChatAvailable()) {
+                return AboutChatMiniApp();
+              } else {
+                return BusinessWidget(model);
+              }
+            case 'openBusiness':
+              return Text('open business');
+            case 'closedBusiness':
+              return Text('closed business');
+            default:
+          }
+          return BusinessWidget(model);
         }
-        return BusinessWidget(model);
       },
     );
   }
