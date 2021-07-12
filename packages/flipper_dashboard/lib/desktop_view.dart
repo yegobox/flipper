@@ -258,8 +258,9 @@ class MenuItem extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Container(
-              padding: const EdgeInsets.all(20),
-              child: Image.asset("assets/images/$itemIcon.png")),
+            padding: const EdgeInsets.all(20),
+            child: Image.asset("assets/images/$itemIcon.png"),
+          ),
           Container(
             padding: const EdgeInsets.all(20),
             child: Text(
