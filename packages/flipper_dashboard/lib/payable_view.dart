@@ -60,7 +60,11 @@ class PayableView extends StatelessWidget {
           Container(
             width: 0.5.w,
             height: 60.h,
-            color: Colors.blue,
+            color: Theme.of(context)
+                .copyWith(
+                  canvasColor: HexColor('#2996CC'),
+                )
+                .canvasColor,
           ),
           Expanded(
             child: InkWell(
