@@ -1,9 +1,12 @@
 import 'package:flipper/localization.dart';
+import 'package:flipper/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper_dashboard/top_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
@@ -19,6 +22,7 @@ class DesktopView extends StatefulWidget {
 }
 
 class _DesktopViewState extends State<DesktopView> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   final List<String> menuItems = [
     "Home",
     "Blogger",
@@ -81,6 +85,7 @@ class _DesktopViewState extends State<DesktopView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: topNavigationBar(context, scaffoldKey),
       extendBody: true,
       body: Container(
         color: Color(0xFFB1F2B36),
@@ -95,7 +100,7 @@ class _DesktopViewState extends State<DesktopView> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Container(
-                        margin: const EdgeInsets.only(top: 2),
+                        margin: EdgeInsets.only(top: 2.h),
                         child: Container(
                           color: Color(0xFFB1F2B36),
                           child: Row(
@@ -175,33 +180,14 @@ class _DesktopViewState extends State<DesktopView> {
                   child: SafeArea(
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
-                      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
-                        Container(
-                          margin: const EdgeInsets.only(top: 0),
-                          height: 60,
-                          child: Row(
-                            children: <Widget>[
-                              GestureDetector(
-                                onTap: () {
-                                  sidebarOpen = !sidebarOpen;
-                                  setSidebarState();
-                                },
-                                child: Container(
-                                    color: Colors.white,
-                                    padding: const EdgeInsets.all(20),
-                                    child: Icon(Icons.menu)),
-                              ),
-                            ],
-                          ),
-                        ),
                         KeyPadHead(
                           tab: widget.model.tab,
                           payable: Padding(
                             padding: EdgeInsets.only(right: 15.w),
                             child: PayableView(
                               onClick: () {
-                                // ProxyService.nav.navigateTo(Routes.pay);
+                                ProxyService.nav.navigateTo(Routes.pay);
                               },
                               tickets: widget.model.tickets.isEmpty
                                   ? 0
