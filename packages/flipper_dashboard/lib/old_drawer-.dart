@@ -1,5 +1,5 @@
 import 'package:flipper/localization.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/upload_response.dart';
 
 import 'abstractions/upload.dart';

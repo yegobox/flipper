@@ -1,7 +1,7 @@
 import 'package:flipper/app_view_model.dart';
 import 'package:flipper/flipper_options.dart';
-import 'package:flipper/routes.logger.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_login/flipper_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';

@@ -1,7 +1,7 @@
 library flipper_models;
 
-import 'package:flipper/routes.logger.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_models/color.dart';

@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'keypad_view.dart';

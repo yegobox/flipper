@@ -1,5 +1,5 @@
 import 'package:country_code_picker/country_code.dart';
-import 'package:flipper/routes.locator.dart';
+import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';

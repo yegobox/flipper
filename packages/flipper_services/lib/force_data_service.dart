@@ -1,4 +1,4 @@
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/color.dart';

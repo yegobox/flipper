@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_services/proxy.dart';
@@ -12,7 +12,7 @@ import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 
 final socketUrl = 'https://apihub.yegobox.com/ws-message';
 

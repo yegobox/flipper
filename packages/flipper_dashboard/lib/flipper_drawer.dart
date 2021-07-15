@@ -1,8 +1,7 @@
 import 'package:flipper/localization.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/drawer_viewmodel.dart';
 import 'package:flipper_services/abstractions/dynamic_link.dart';

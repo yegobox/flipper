@@ -85,41 +85,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  bitsdojo_window:
-    dependency: transitive
-    description:
-      name: bitsdojo_window
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
-  bitsdojo_window_linux:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
-  bitsdojo_window_macos:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
-  bitsdojo_window_platform_interface:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
-  bitsdojo_window_windows:
-    dependency: transitive
-    description:
-      name: bitsdojo_window_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
   bluetooth_thermal_printer:
     dependency: transitive
     description:
@@ -400,13 +365,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  easy_debounce:
-    dependency: transitive
-    description:
-      name: easy_debounce
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   equatable:
     dependency: transitive
     description:
@@ -449,13 +407,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.0"
-  file_picker:
-    dependency: transitive
-    description:
-      name: file_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.2+2"
   firebase:
     dependency: transitive
     description:
@@ -581,14 +532,14 @@ packages:
       name: firebase_remote_config
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.0+1"
+    version: "0.10.0+2"
   firebase_remote_config_platform_interface:
     dependency: transitive
     description:
       name: firebase_remote_config_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0+1"
+    version: "0.3.0+2"
   fixnum:
     dependency: transitive
     description:
@@ -614,6 +565,13 @@ packages:
     dependency: transitive
     description:
       path: "../flipper_models"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_routing:
+    dependency: transitive
+    description:
+      path: "../flipper_routing"
       relative: true
     source: path
     version: "0.0.1"
@@ -689,6 +647,20 @@ packages:
       url: "https://github.com/adarsh-technocrat/flutter-icons"
     source: git
     version: "1.1.1-nullsafety.0"
+  flutter_local_notifications:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.0.0"
+  flutter_local_notifications_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -774,20 +746,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "9.0.0"
-  freezed:
-    dependency: transitive
-    description:
-      name: freezed
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.2"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.2"
   frontend_server_client:
     dependency: transitive
     description:
@@ -941,7 +899,7 @@ packages:
       name: in_app_review
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.2"
   in_app_review_platform_interface:
     dependency: transitive
     description:
@@ -1123,14 +1081,14 @@ packages:
       name: objectbox
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.1"
   objectbox_flutter_libs:
     dependency: transitive
     description:
       name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.1"
   observable_ish:
     dependency: transitive
     description:
@@ -1677,4 +1635,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.4"
+  flutter: ">=2.2.0"

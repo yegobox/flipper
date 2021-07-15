@@ -1,8 +1,8 @@
 library flipper_dashboard;
 
 import 'package:flipper/localization.dart';
-import 'package:flipper/routes.logger.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';

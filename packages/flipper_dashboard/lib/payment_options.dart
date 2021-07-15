@@ -1,4 +1,4 @@
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

@@ -1,4 +1,4 @@
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/product.dart';
 import 'package:flipper_services/proxy.dart';
@@ -8,7 +8,7 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:easy_debounce/easy_debounce.dart';
+// import 'package:easy_debounce/easy_debounce.dart';
 
 enum ForHere { lafayette, jefferson }
 enum ToGo { lafayette, jefferson }
@@ -117,24 +117,24 @@ class Sell extends StatelessWidget {
                         child: TextFormField(
                           controller: quantityController,
                           onChanged: (quantity) {
-                            EasyDebounce.debounce(
-                              'model.debounceId',
-                              Duration(milliseconds: 500),
-                              () {
-                                if (quantity != '0') {
-                                  quantityController.text = '1';
-                                }
-                                if (!quantity.isEmpty && quantity != '0') {
-                                  model.keypad.customQtyIncrease(
-                                      qty: int.parse(quantity));
-                                  model.keypad.setAmount(
-                                    amount:
-                                        model.currentItemStock!.retailPrice *
-                                            int.parse(quantity),
-                                  );
-                                }
-                              },
-                            );
+                            // EasyDebounce.debounce(
+                            //   'model.debounceId',
+                            //   Duration(milliseconds: 500),
+                            //   () {
+                            //     if (quantity != '0') {
+                            //       quantityController.text = '1';
+                            //     }
+                            //     if (!quantity.isEmpty && quantity != '0') {
+                            //       model.keypad.customQtyIncrease(
+                            //           qty: int.parse(quantity));
+                            //       model.keypad.setAmount(
+                            //         amount:
+                            //             model.currentItemStock!.retailPrice *
+                            //                 int.parse(quantity),
+                            //       );
+                            //     }
+                            //   },
+                            // );
                           },
                           style: TextStyle(
                             color: Theme.of(context)

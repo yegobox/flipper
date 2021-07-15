@@ -1,5 +1,5 @@
 import 'package:flipper/localization.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/top_nav.dart';
 import 'package:flutter/material.dart';

@@ -6,7 +6,7 @@ import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/invoice.dart';
 import 'package:flipper_models/supplier.dart';
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';

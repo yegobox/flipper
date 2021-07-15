@@ -1,6 +1,6 @@
 library flipper_services;
 
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';

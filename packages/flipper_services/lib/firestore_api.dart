@@ -1,7 +1,7 @@
 // import 'package:customer/app/app.logger.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/proxy.dart';
 import 'exceptions/firestore_api_exception.dart';

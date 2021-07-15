@@ -1,4 +1,4 @@
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'close_button.dart';

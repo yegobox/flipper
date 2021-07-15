@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/branch.dart';

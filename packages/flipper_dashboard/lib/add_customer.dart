@@ -1,8 +1,8 @@
 library flipper_login;
 
 import 'package:flipper/constants.dart';
-import 'package:flipper/routes.logger.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';

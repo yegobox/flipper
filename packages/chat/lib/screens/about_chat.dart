@@ -1,5 +1,5 @@
 import 'package:chat/flat_widgets/flat_info_page_wrapper.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';

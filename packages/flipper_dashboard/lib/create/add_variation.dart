@@ -1,6 +1,6 @@
 import 'package:flipper/constants.dart';
 import 'package:flipper/localization.dart';
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/payable_view.dart';

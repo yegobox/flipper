@@ -1,5 +1,5 @@
-import 'package:flipper/routes.locator.dart';
-import 'package:flipper/routes.logger.dart';
+import 'package:flipper_routing/routes.locator.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/proxy.dart';

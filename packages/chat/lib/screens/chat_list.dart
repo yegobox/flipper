@@ -4,7 +4,7 @@ import 'package:chat/flat_widgets/flat_counter.dart';
 import 'package:chat/flat_widgets/flat_page_wrapper.dart';
 import 'package:chat/flat_widgets/flat_profile_image.dart';
 import 'package:chat/screens/messa_view_model.dart';
-import 'package:flipper/routes.router.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
