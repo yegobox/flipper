@@ -1,4 +1,5 @@
 import 'package:flipper/localization.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/top_nav.dart';
@@ -8,6 +9,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'add_product_buttons.dart';
+import 'custom_rect_tween.dart';
+import 'hero_dialog_route.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
 
@@ -25,15 +29,17 @@ class _DesktopViewState extends State<DesktopView> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   final List<String> menuItems = [
     "Home",
-    "Blogger",
-    "Add New Post",
-    "Settings"
+    "Settings",
+    "Sale",
+    "Analytics",
+    "Library"
   ];
-  final List<String> menuIcons = [
-    "icon_home",
-    "icon_blogger",
-    "icon_add",
-    "icon_settings"
+  final List<IconData> menuIcons = [
+    Icons.home,
+    Icons.settings,
+    Icons.sell,
+    Icons.analytics,
+    Icons.library_add,
   ];
 
   bool sidebarOpen = false;
@@ -86,6 +92,58 @@ class _DesktopViewState extends State<DesktopView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: topNavigationBar(context, scaffoldKey),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
+      floatingActionButton: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            HeroDialogRoute(
+              builder: (context) {
+                return const OptionModal(
+                  child: AddProductButtons(),
+                );
+              },
+            ),
+          );
+        },
+        child: Hero(
+          tag: addProductHero,
+          createRectTween: (begin, end) {
+            return CustomRectTween(begin: begin, end: end);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.symmetric(horizontal: 10.0),
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.all(Radius.circular(50)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  flex: 1,
+                  child: Icon(
+                    Icons.add,
+                    size: 20.sp,
+                    color: Colors.white,
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: Text(
+                    Localization.of(context)!.addProduct,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
       extendBody: true,
       body: Container(
         color: Color(0xFFB1F2B36),
@@ -156,7 +214,7 @@ class _DesktopViewState extends State<DesktopView> {
                       ),
                       Container(
                         child: MenuItem(
-                          itemIcon: "icon_logout",
+                          itemIcon: Icons.logout,
                           itemText: "Logout",
                           selected: selectedMenuItem,
                           position: menuItems.length + 1,
@@ -246,7 +304,7 @@ class _DesktopViewState extends State<DesktopView> {
 
 class MenuItem extends StatelessWidget {
   final String? itemText;
-  final String? itemIcon;
+  final IconData? itemIcon;
   final int? selected;
   final int? position;
   MenuItem({this.itemText, this.itemIcon, this.selected, this.position});
@@ -259,7 +317,12 @@ class MenuItem extends StatelessWidget {
         children: <Widget>[
           Container(
             padding: const EdgeInsets.all(20),
-            child: Image.asset("assets/images/$itemIcon.png"),
+            child: Icon(
+              itemIcon,
+              color: Colors.pink,
+              size: 24.0,
+              semanticLabel: '',
+            ),
           ),
           Container(
             padding: const EdgeInsets.all(20),

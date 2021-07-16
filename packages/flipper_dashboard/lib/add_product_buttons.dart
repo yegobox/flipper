@@ -13,16 +13,15 @@ class AddProductButtons extends StatelessWidget {
       padding: EdgeInsets.only(left: 18.w, right: 18.w),
       child: Container(
         width: double.infinity,
-        height: 200.h,
         child: Form(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            // mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               Container(
                 width: double.infinity,
-                height: 60.h,
+                height: 45.h,
                 child: Padding(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(8),
                   child: FlatButton(
                     color: Theme.of(context)
                         .copyWith(canvasColor: HexColor('#0097e6'))
@@ -40,11 +39,11 @@ class AddProductButtons extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(8),
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
-                  height: 60.h,
+                  height: 40.h,
                   child: OutlineButton(
                     onPressed: () {},
                     child: const Text('Create Discount'),
@@ -53,9 +52,9 @@ class AddProductButtons extends StatelessWidget {
               ),
               Container(
                 width: double.infinity,
-                height: 60.h,
+                height: 40.h,
                 child: Padding(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(8),
                   child: FlatButton(
                     child: const Text('Dismiss'),
                     onPressed: () {

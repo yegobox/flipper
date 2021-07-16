@@ -106,6 +106,8 @@ dependencies:
     path: 'packages/chat'
   flipper_routing:
     path: 'packages/flipper_routing'
+  flipper_chat:
+    path: 'packages/flipper_chat'
       
   google_fonts:
   font_awesome_flutter: ^9.0.0
