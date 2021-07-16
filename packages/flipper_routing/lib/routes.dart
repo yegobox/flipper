@@ -25,11 +25,15 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:chat/screens/about_chat.dart';
 import 'package:chat/screens/chatpage.dart';
 import 'package:chat/screens/chat_list.dart';
+import 'package:flipper_chat/pages/root_app.dart';
 
 @StackedApp(
   routes: [
-    MaterialRoute(page: StartUpView, initial: true),
+    // MaterialRoute(page: StartUpView, initial: true),
+    MaterialRoute(page: StartUpView),
+    MaterialRoute(page: RootApp, initial: true),
     MaterialRoute(page: DashboardView, name: 'dashboard'),
+
     MaterialRoute(page: SignUpFormView, name: 'signup'),
     MaterialRoute(page: Home, name: 'home'),
     MaterialRoute(page: Login, name: 'login'),

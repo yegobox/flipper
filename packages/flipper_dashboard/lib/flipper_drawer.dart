@@ -10,7 +10,7 @@ import 'package:flipper_services/locator.dart';
 import 'business_list.dart';
 import 'custom_widgets.dart';
 import 'package:flipper_models/business.dart';
-import 'package:flipper/constants.dart';
+import 'package:flipper_services/constants.dart';
 
 class FlipperDrawer extends StatefulWidget {
   FlipperDrawer({Key? key, required this.businesses}) : super(key: key);

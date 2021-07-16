@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
-import 'package:flipper/constants.dart';
+import 'package:flipper_services/constants.dart';
 
 enum CustomTextDirection {
   localeBased,

@@ -1,4 +1,4 @@
-import 'package:flipper/constants.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper_models/product_mock.dart';

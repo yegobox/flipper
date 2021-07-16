@@ -3,7 +3,7 @@
 // **************************************************************************
 // InjectableConfigGenerator
 // **************************************************************************
-
+//
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 import 'package:stacked_services/stacked_services.dart' as _i16;

@@ -10,6 +10,7 @@ import 'package:chat/screens/about_chat.dart';
 import 'package:chat/screens/add_conversation.dart';
 import 'package:chat/screens/chat_list.dart';
 import 'package:chat/screens/chatpage.dart';
+import 'package:flipper_chat/pages/root_app.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
@@ -36,8 +37,9 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class Routes {
-  static const String startUpView = '/';
+  static const String rootApp = '/';
   static const String dashboard = '/dashboard-view';
+  static const String startUpView = '/start-up-view';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
   static const String login = '/Login';
@@ -60,8 +62,9 @@ class Routes {
   static const String addConvo = '/add-conversation';
   static const String customers = '/Customers';
   static const all = <String>{
-    startUpView,
+    rootApp,
     dashboard,
+    startUpView,
     signup,
     home,
     login,
@@ -90,8 +93,9 @@ class StackedRouter extends RouterBase {
   @override
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
-    RouteDef(Routes.startUpView, page: StartUpView),
+    RouteDef(Routes.rootApp, page: RootApp),
     RouteDef(Routes.dashboard, page: DashboardView),
+    RouteDef(Routes.startUpView, page: StartUpView),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
     RouteDef(Routes.login, page: Login),
@@ -117,15 +121,21 @@ class StackedRouter extends RouterBase {
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
   final _pagesMap = <Type, StackedRouteFactory>{
-    StartUpView: (data) {
+    RootApp: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const StartUpView(),
+        builder: (context) => RootApp(),
         settings: data,
       );
     },
     DashboardView: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => DashboardView(),
+        settings: data,
+      );
+    },
+    StartUpView: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const StartUpView(),
         settings: data,
       );
     },
