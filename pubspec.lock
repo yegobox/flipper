@@ -22,13 +22,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.1"
-  animate_do:
-    dependency: transitive
-    description:
-      name: animate_do
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   animations:
     dependency: "direct main"
     description:
@@ -106,13 +99,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  bubble:
-    dependency: transitive
-    description:
-      name: bubble
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.1"
   build:
     dependency: transitive
     description:
@@ -568,13 +554,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  flipper_chat:
-    dependency: "direct main"
-    description:
-      path: "packages/flipper_chat"
-      relative: true
-    source: path
-    version: "0.0.1"
   flipper_dashboard:
     dependency: "direct main"
     description:
@@ -593,13 +572,6 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/flipper_models"
-      relative: true
-    source: path
-    version: "0.0.1"
-  flipper_routing:
-    dependency: "direct main"
-    description:
-      path: "packages/flipper_routing"
       relative: true
     source: path
     version: "0.0.1"
@@ -755,13 +727,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.0"
-  flutter_svg:
-    dependency: transitive
-    description:
-      name: flutter_svg
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.22.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -1027,13 +992,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.1"
-  line_icons:
-    dependency: transitive
-    description:
-      name: line_icons
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.1"
   loading:
     dependency: "direct main"
     description:
@@ -1223,13 +1181,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
-  path_drawing:
-    dependency: transitive
-    description:
-      name: path_drawing
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.1"
   path_parsing:
     dependency: transitive
     description:
