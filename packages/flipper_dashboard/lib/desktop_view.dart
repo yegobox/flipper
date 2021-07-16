@@ -221,6 +221,10 @@ class _DesktopViewState extends State<DesktopView> {
                       ),
                       Container(
                         child: MenuItem(
+                          onClick: () async {
+                            await ProxyService.api.logOut();
+                            ProxyService.nav.navigateTo(Routes.startUpView);
+                          },
                           itemIcon: Icons.logout,
                           itemText: "Logout",
                           selected: selectedMenuItem,
@@ -314,31 +318,44 @@ class MenuItem extends StatelessWidget {
   final IconData? itemIcon;
   final int? selected;
   final int? position;
-  MenuItem({this.itemText, this.itemIcon, this.selected, this.position});
+  final Function? onClick;
+  MenuItem(
+      {this.itemText,
+      this.itemIcon,
+      this.selected,
+      this.position,
+      this.onClick});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: selected == position ? Color(0xFFB151E26) : Color(0xFFB1F2B36),
-      child: Row(
-        children: <Widget>[
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: Icon(
-              itemIcon,
-              color: Colors.pink,
-              size: 24.0,
-              semanticLabel: '',
+    return InkWell(
+      onTap: () {
+        if (onClick != null) {
+          onClick!();
+        }
+      },
+      child: Container(
+        color: selected == position ? Color(0xFFB151E26) : Color(0xFFB1F2B36),
+        child: Row(
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Icon(
+                itemIcon,
+                color: Colors.pink,
+                size: 24.0,
+                semanticLabel: '',
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: Text(
-              itemText!,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          )
-        ],
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                itemText!,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
