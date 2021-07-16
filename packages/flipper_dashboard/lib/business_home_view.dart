@@ -127,7 +127,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       },
       builder: (context, model, child) {
         if (isWindows || isMacOs) {
-          return DesktopView(model: model, controller: controller);
+          return DesktopView(
+            model: model,
+            controller: controller,
+            userName: 'Richard',
+            userProfileImg:
+                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
+          );
         } else {
           switch (ProxyService.box.read(key: 'page')) {
             case 'business':

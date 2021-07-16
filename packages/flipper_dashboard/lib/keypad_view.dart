@@ -45,7 +45,8 @@ class Keyboard extends StatelessWidget {
     return Expanded(
       child: Padding(
         padding: (isWindows || isMacOs)
-            ? EdgeInsets.only(left: 1.w, right: 15.w, bottom: 1.h)
+            ? EdgeInsets.all(0)
+            // ? EdgeInsets.only(left: 1.w, right: 15.w, bottom: 1.h)
             : EdgeInsets.all(0),
         child: Container(
           child: Column(

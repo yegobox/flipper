@@ -6,7 +6,6 @@ import 'package:flipper_dashboard/top_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'add_product_buttons.dart';
@@ -16,10 +15,17 @@ import 'keypad_head_view.dart';
 import 'keypad_view.dart';
 
 class DesktopView extends StatefulWidget {
-  DesktopView({Key? key, required this.model, required this.controller})
+  DesktopView(
+      {Key? key,
+      required this.model,
+      required this.controller,
+      required this.userName,
+      required this.userProfileImg})
       : super(key: key);
   final BusinessHomeViewModel model;
   final TextEditingController controller;
+  final String userName;
+  final String userProfileImg;
 
   @override
   _DesktopViewState createState() => _DesktopViewState();
@@ -91,7 +97,8 @@ class _DesktopViewState extends State<DesktopView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: topNavigationBar(context, scaffoldKey),
+      appBar: topNavigationBar(
+          context, scaffoldKey, widget.userName, widget.userProfileImg),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
       floatingActionButton: GestureDetector(
         onTap: () {

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'custom_text.dart';
 
-AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key) =>
+AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
+        String userName, String userProfileImg) =>
     AppBar(
       leading: !ResponsiveWidget.isSmallScreen(context)
           ? Row(
@@ -72,7 +73,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key) =>
               width: 24,
             ),
             CustomText(
-              text: "+250783054874",
+              text: userName,
               color: Color(0xFFA4A6B3),
             ),
             SizedBox(
@@ -90,10 +91,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key) =>
                 margin: EdgeInsets.all(2),
                 child: CircleAvatar(
                   backgroundColor: Color(0xFFF7F8FC),
-                  child: Icon(
-                    Icons.person_outline,
-                    color: Color(0xFF363740),
-                  ),
+                  backgroundImage: NetworkImage(userProfileImg),
                 ),
               ),
             )
