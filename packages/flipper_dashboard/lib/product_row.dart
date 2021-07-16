@@ -5,6 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/view_models/stock_viewmodel.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/product.dart';
 
@@ -39,11 +40,10 @@ class ProductRow extends StatelessWidget {
         },
         child: Column(children: <Widget>[
           ListTile(
-            contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-            // leading: callImageBox(context, product),
+            contentPadding: EdgeInsets.fromLTRB(0, 0, 15.w, 0),
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
-              width: 58,
+              width: 58.w,
               child: !hasImage
                   ? TextDrawable(
                       backgroundColor: HexColor(color),
@@ -73,7 +73,6 @@ class ProductRow extends StatelessWidget {
               name,
               style: const TextStyle(color: Colors.black),
             ),
-            // FIXME: this model need to be worked on
             trailing: ViewModelBuilder<StockViewModel>.reactive(
               viewModelBuilder: () => StockViewModel(),
               onModelReady: (StockViewModel stockModel) =>
@@ -100,7 +99,7 @@ class ProductRow extends StatelessWidget {
             ),
           ),
           Container(
-            height: 0.5,
+            height: 0.5.h,
             color: Colors.black26,
           ),
         ]),

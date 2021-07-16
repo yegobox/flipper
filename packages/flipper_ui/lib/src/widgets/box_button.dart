@@ -50,7 +50,7 @@ class BoxButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: kcPrimaryColor,
-                  width: 1.w,
+                  width: 1,
                 )),
         child: !busy
             ? Row(

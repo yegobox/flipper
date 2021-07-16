@@ -1,5 +1,6 @@
 import 'package:flipper/localization.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/top_nav.dart';
@@ -35,17 +36,19 @@ class _DesktopViewState extends State<DesktopView> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   final List<String> menuItems = [
     "Home",
-    "Settings",
     "Sale",
     "Analytics",
-    "Library"
+    "Keypad",
+    "Library",
+    "Settings"
   ];
   final List<IconData> menuIcons = [
     Icons.home,
-    Icons.settings,
     Icons.sell,
     Icons.analytics,
+    Icons.keyboard,
     Icons.library_add,
+    Icons.settings
   ];
 
   bool sidebarOpen = false;
@@ -74,19 +77,40 @@ class _DesktopViewState extends State<DesktopView> {
   void setPageTitle() {
     switch (selectedMenuItem) {
       case 0:
-        page = KeyPadView(model: widget.model);
+        setState(() {
+          page = KeyPadView(model: widget.model);
+        });
         break;
       case 1:
-        page = KeyPadView(model: widget.model);
+        setState(() {
+          page =
+              ProductView(userId: '1', items: true); //show analytics page here
+        });
         break;
       case 2:
-        page = KeyPadView(model: widget.model);
+        setState(() {
+          page = ProductView(userId: '1', items: true);
+        });
         break;
       case 3:
-        page = KeyPadView(model: widget.model);
+        setState(() {
+          page = ProductView(userId: '1', items: true);
+        });
+        break;
+      case 4:
+        setState(() {
+          page = ProductView(userId: '1', items: true);
+        });
+        break;
+      case 5:
+        setState(() {
+          page = KeyPadView(model: widget.model);
+        });
         break;
       default:
-        page = KeyPadView(model: widget.model);
+        setState(() {
+          page = KeyPadView(model: widget.model);
+        });
     }
   }
 
@@ -165,59 +189,37 @@ class _DesktopViewState extends State<DesktopView> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Container(
-                        margin: EdgeInsets.only(top: 2.h),
-                        child: Container(
-                          color: Color(0xFFB1F2B36),
-                          child: Row(
-                            children: <Widget>[
-                              GestureDetector(
-                                onTap: () {
-                                  sidebarOpen = true;
-                                  setSidebarState();
+                        child: Expanded(
+                          child: new ListView.builder(
+                            itemCount: menuItems.length,
+                            itemBuilder: (context, index) => GestureDetector(
+                              onTap: () {
+                                sidebarOpen = false;
+                                selectedMenuItem = index;
+                                setSidebarState();
+                                setPageTitle();
+                              },
+                              child: MenuItem(
+                                onClick: (itemIcon) {
+                                  if (itemIcon == Icons.keyboard) {
+                                    selectedMenuItem =
+                                        menuIcons.indexOf(Icons.keyboard);
+                                  }
+                                  if (itemIcon == Icons.library_add) {
+                                    print(menuIcons.indexOf(Icons.keyboard));
+                                    selectedMenuItem =
+                                        menuIcons.indexOf(Icons.library_add);
+                                  }
+                                  setPageTitle();
                                 },
-                                child: Container(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Image.asset(
-                                        "assets/images/icon_search.png")),
+                                itemIcon: menuIcons[index],
+                                itemText: menuItems[index],
+                                selected: selectedMenuItem,
+                                position: index,
                               ),
-                              Container(
-                                  child: Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      contentPadding: const EdgeInsets.all(20),
-                                      hintText: "Search here...",
-                                      hintStyle: TextStyle(
-                                        color: Color(0xFFB666666),
-                                      )),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ))
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        child: Expanded(
-                            child: new ListView.builder(
-                                itemCount: menuItems.length,
-                                itemBuilder: (context, index) =>
-                                    GestureDetector(
-                                      onTap: () {
-                                        sidebarOpen = false;
-                                        selectedMenuItem = index;
-                                        setSidebarState();
-                                        setPageTitle();
-                                      },
-                                      child: MenuItem(
-                                        itemIcon: menuIcons[index],
-                                        itemText: menuItems[index],
-                                        selected: selectedMenuItem,
-                                        position: index,
-                                      ),
-                                    ))),
                       ),
                       Container(
                         child: MenuItem(
@@ -331,7 +333,7 @@ class MenuItem extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (onClick != null) {
-          onClick!();
+          onClick!(itemIcon);
         }
       },
       child: Container(

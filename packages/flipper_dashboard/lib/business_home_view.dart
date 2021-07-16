@@ -131,8 +131,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             model: model,
             controller: controller,
             userName: ProxyService.box.read(key: 'userName') ?? '',
-            userProfileImg: ProxyService.box.read(key: 'businessUrl') ??
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
+            userProfileImg: ProxyService.box.read(key: 'businessUrl'),
           );
         } else {
           switch (ProxyService.box.read(key: 'page')) {

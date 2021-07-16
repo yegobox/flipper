@@ -30,15 +30,15 @@ class StartUpViewModel extends BaseViewModel {
         ProxyService.appService.setBusiness(businesses: businesses);
 
         if (ProxyService.box.read(key: pageKey) == null) {
-          //TODOWhen we add the possiblity to add multiple users to log in on one system then we need to change this
-          //TODOWe need to add a way to get the current user's name and id
-          ProxyService.box.write(key: 'userName', value: businesses[0].name);
-          ProxyService.box.write(
-              key: 'businessUrl',
-              value: businesses[0].businessUrl ??
-                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU');
           ProxyService.box.write(key: pageKey, value: businesses[0].type);
         }
+        //TODOWhen we add the possiblity to add multiple users to log in on one system then we need to change this
+        //TODOWe need to add a way to get the current user's name and id
+        ProxyService.box.write(key: 'userName', value: businesses[0].name);
+        ProxyService.box.write(
+            key: 'businessUrl',
+            value: businesses[0].businessUrl ??
+                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU');
         _navigationService.replaceWith(Routes.home);
       } else if (businessId != null) {
         ProxyService.appService.setBusiness(businesses: businesses);
