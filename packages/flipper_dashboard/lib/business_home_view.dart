@@ -130,7 +130,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           return DesktopView(
             model: model,
             controller: controller,
-            userName: ProxyService.box.read(key: 'userName') ?? '',
+            userName: ProxyService.box.read(key: 'userName') ?? 'N/A',
             userProfileImg: ProxyService.box.read(key: 'businessUrl'),
           );
         } else {
