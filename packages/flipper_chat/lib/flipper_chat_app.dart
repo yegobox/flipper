@@ -1,16 +1,16 @@
-import 'package:flipper_chat/pages/settings_page.dart';
+import 'package:flipper_chat/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:flipper_chat/pages/calls_page.dart';
-import 'package:flipper_chat/pages/chat_page.dart';
+import 'package:flipper_chat/calls_page.dart';
+import 'package:flipper_chat/chat_page.dart';
 import 'package:flipper_chat/theme/colors.dart';
 
-class RootApp extends StatefulWidget {
+class FlipperChatApp extends StatefulWidget {
   @override
-  _RootAppState createState() => _RootAppState();
+  _FlipperChatAppState createState() => _FlipperChatAppState();
 }
 
-class _RootAppState extends State<RootApp> {
+class _FlipperChatAppState extends State<FlipperChatApp> {
   int pageIndex = 0;
   @override
   Widget build(BuildContext context) {

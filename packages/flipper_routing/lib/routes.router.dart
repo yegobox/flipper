@@ -6,11 +6,7 @@
 
 // ignore_for_file: public_member_api_docs
 
-import 'package:chat/screens/about_chat.dart';
-import 'package:chat/screens/add_conversation.dart';
-import 'package:chat/screens/chat_list.dart';
-import 'package:chat/screens/chatpage.dart';
-import 'package:flipper_chat/pages/root_app.dart';
+import 'package:flipper_chat/flipper_chat_app.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
@@ -38,7 +34,7 @@ import 'package:stacked/stacked.dart';
 
 class Routes {
   static const String startUpView = '/start-up-view';
-  static const String rootApp = '/';
+  static const String flipperChatApp = '/';
   static const String dashboard = '/dashboard-view';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
@@ -56,14 +52,10 @@ class Routes {
   static const String collect = '/collect-cash-view';
   static const String afterSale = '/after-sale';
   static const String settings = '/settings-screen';
-  static const String about = '/about-chat-mini-app';
-  static const String chatHome = '/chat-list';
-  static const String chatPage = '/k-chat-page';
-  static const String addConvo = '/add-conversation';
   static const String customers = '/Customers';
   static const all = <String>{
     startUpView,
-    rootApp,
+    flipperChatApp,
     dashboard,
     signup,
     home,
@@ -81,10 +73,6 @@ class Routes {
     collect,
     afterSale,
     settings,
-    about,
-    chatHome,
-    chatPage,
-    addConvo,
     customers,
   };
 }
@@ -94,7 +82,7 @@ class StackedRouter extends RouterBase {
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
     RouteDef(Routes.startUpView, page: StartUpView),
-    RouteDef(Routes.rootApp, page: RootApp),
+    RouteDef(Routes.flipperChatApp, page: FlipperChatApp),
     RouteDef(Routes.dashboard, page: DashboardView),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
@@ -112,10 +100,6 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.collect, page: CollectCashView),
     RouteDef(Routes.afterSale, page: AfterSale),
     RouteDef(Routes.settings, page: SettingsScreen),
-    RouteDef(Routes.about, page: AboutChatMiniApp),
-    RouteDef(Routes.chatHome, page: ChatList),
-    RouteDef(Routes.chatPage, page: KChatPage),
-    RouteDef(Routes.addConvo, page: AddConversation),
     RouteDef(Routes.customers, page: Customers),
   ];
   @override
@@ -127,9 +111,9 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
-    RootApp: (data) {
+    FlipperChatApp: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => RootApp(),
+        builder: (context) => FlipperChatApp(),
         settings: data,
       );
     },
@@ -281,34 +265,6 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
-    AboutChatMiniApp: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => AboutChatMiniApp(),
-        settings: data,
-      );
-    },
-    ChatList: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => ChatList(),
-        settings: data,
-      );
-    },
-    KChatPage: (data) {
-      var args = data.getArgs<KChatPageArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => KChatPage(
-          key: args.key,
-          receiverId: args.receiverId,
-        ),
-        settings: data,
-      );
-    },
-    AddConversation: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => const AddConversation(),
-        settings: data,
-      );
-    },
     Customers: (data) {
       var args = data.getArgs<CustomersArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
@@ -409,13 +365,6 @@ class AfterSaleArguments {
   final Key? key;
   final double totalOrderAmount;
   AfterSaleArguments({this.key, required this.totalOrderAmount});
-}
-
-/// KChatPage arguments holder class
-class KChatPageArguments {
-  final Key? key;
-  final int receiverId;
-  KChatPageArguments({this.key, required this.receiverId});
 }
 
 /// Customers arguments holder class

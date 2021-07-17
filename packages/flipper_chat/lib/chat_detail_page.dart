@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/json/chat_json.dart';
 import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/message.dart';
 
 class ChatDetailPage extends StatefulWidget {
   final String? name;
@@ -158,19 +160,25 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         image: DecorationImage(
             image: AssetImage("assets/images/bg_chat.jpg"), fit: BoxFit.cover),
       ),
-      child: ListView(
-        padding: EdgeInsets.only(top: 20, bottom: 80),
-        children: List.generate(
-          messages.length,
-          (index) {
-            return CustomBubbleChat(
-              message: messages[index]['message'],
-              isMe: messages[index]['isMe'],
-              isLast: messages[index]['isLast'],
-              time: messages[index]['time'],
-            );
-          },
-        ),
+      child: StreamBuilder<List<Message>>(
+        stream: ProxyService.api
+            .messages(receiverId: ProxyService.box.read(key: 'businessId')),
+        builder: (context, snapshots) {
+          return ListView(
+            padding: EdgeInsets.only(top: 20, bottom: 80),
+            children: List.generate(
+              messages.length,
+              (index) {
+                return CustomBubbleChat(
+                  message: messages[index]['message'],
+                  isMe: messages[index]['isMe'],
+                  isLast: messages[index]['isLast'],
+                  time: messages[index]['time'],
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

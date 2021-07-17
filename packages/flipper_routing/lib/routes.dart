@@ -1,6 +1,5 @@
 library flipper_routing;
 
-import 'package:chat/screens/add_conversation.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
@@ -22,16 +21,13 @@ import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:chat/screens/about_chat.dart';
-import 'package:chat/screens/chatpage.dart';
-import 'package:chat/screens/chat_list.dart';
-import 'package:flipper_chat/pages/root_app.dart';
+import 'package:flipper_chat/flipper_chat_app.dart';
 
 @StackedApp(
   routes: [
     // MaterialRoute(page: StartUpView, initial: true),
     MaterialRoute(page: StartUpView),
-    MaterialRoute(page: RootApp, initial: true),
+    MaterialRoute(page: FlipperChatApp, initial: true),
     MaterialRoute(page: DashboardView, name: 'dashboard'),
 
     MaterialRoute(page: SignUpFormView, name: 'signup'),
@@ -52,10 +48,7 @@ import 'package:flipper_chat/pages/root_app.dart';
     MaterialRoute(page: SettingsScreen, name: 'settings'),
 
     // chat routes
-    MaterialRoute(page: AboutChatMiniApp, name: 'about'),
-    MaterialRoute(page: ChatList, name: 'chatHome'),
-    MaterialRoute(page: KChatPage, name: 'chatPage'),
-    MaterialRoute(page: AddConversation, name: 'addConvo'),
+
     // customer
     MaterialRoute(page: Customers, name: 'customers'),
   ],

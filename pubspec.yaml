@@ -102,8 +102,6 @@ dependencies:
     path: 'packages/loading'
   flipper_ui:
     path: 'packages/flipper_ui'
-  chat:
-    path: 'packages/chat'
   flipper_routing:
     path: 'packages/flipper_routing'
   flipper_chat:
