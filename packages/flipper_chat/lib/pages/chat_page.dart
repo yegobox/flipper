@@ -3,6 +3,8 @@ import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/json/chat_json.dart';
 import 'package:flipper_chat/pages/chat_detail_page.dart';
 import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/message.dart';
 
 class ChatPage extends StatefulWidget {
   @override
@@ -108,92 +110,136 @@ class _ChatPageState extends State<ChatPage> {
         SizedBox(
           height: 10,
         ),
-        Column(
-            children: List.generate(chat_data.length, (index) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => ChatDetailPage(
-                            name: chat_data[index]['name'],
-                            img: chat_data[index]['img'],
-                          )));
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                            image: NetworkImage(chat_data[index]['img']),
-                            fit: BoxFit.cover)),
-                  ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Expanded(
-                    child: Container(
-                      height: 85,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    width: (size.width - 40) * 0.6,
-                                    child: Text(chat_data[index]['name'],
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: white,
-                                            fontWeight: FontWeight.w600)),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      chat_data[index]['date'],
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          color: white.withOpacity(0.4)),
+        ListView(
+          children: [
+            StreamBuilder<List<Message>>(
+                stream: ProxyService.api.messages(receiverId: 1),
+                builder: (context, snapshot) {
+                  List<Message>? messages = snapshot.data;
+                  return (messages != null && messages.length != 0)
+                      ? Column(
+                          children: messages
+                              .map((e) => GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ChatDetailPage(
+                                            name: e.senderName,
+                                            //TODO: add image to message object
+                                            img:
+                                                "https://lh3.googleusercontent.com/a-/AOh14GhqYCtgODjBQZ2EcAvJApnWnnDPgZe80-AMM6tctw=s600-k-no-rp-mo",
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 15, right: 15, bottom: 5),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 60,
+                                            height: 60,
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                image: DecorationImage(
+                                                    image: NetworkImage(
+                                                        "https://lh3.googleusercontent.com/a-/AOh14GhqYCtgODjBQZ2EcAvJApnWnnDPgZe80-AMM6tctw=s600-k-no-rp-mo"),
+                                                    fit: BoxFit.cover)),
+                                          ),
+                                          SizedBox(
+                                            width: 15,
+                                          ),
+                                          Expanded(
+                                            child: Container(
+                                              height: 85,
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Column(
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Container(
+                                                            width: (size.width -
+                                                                    40) *
+                                                                0.6,
+                                                            child: Text(
+                                                                e.senderName,
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    color:
+                                                                        white,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600)),
+                                                          ),
+                                                          Expanded(
+                                                            child: Text(
+                                                              e.createdAt,
+                                                              style: TextStyle(
+                                                                  fontSize: 14,
+                                                                  color: white
+                                                                      .withOpacity(
+                                                                          0.4)),
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 5,
+                                                      ),
+                                                      Container(
+                                                        width:
+                                                            (size.width - 40) *
+                                                                1,
+                                                        child: Text(
+                                                          e.message,
+                                                          style: TextStyle(
+                                                              fontSize: 15,
+                                                              height: 1.3,
+                                                              color: white
+                                                                  .withOpacity(
+                                                                      0.4)),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                  Divider(
+                                                    color:
+                                                        white.withOpacity(0.3),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
                                     ),
-                                  )
-                                ],
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              Container(
-                                width: (size.width - 40) * 1,
-                                child: Text(
-                                  chat_data[index]['text'],
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      height: 1.3,
-                                      color: white.withOpacity(0.4)),
-                                ),
-                              )
-                            ],
+                                  ))
+                              .toList(),
+                        )
+                      : Center(
+                          child: Text(
+                            'No Messages(1)',
+                            style: TextStyle(color: Colors.black),
                           ),
-                          Divider(
-                            color: white.withOpacity(0.3),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        }))
+                        );
+                })
+          ],
+          // children: List.generate(chat_data.length, (index) {
+          //   return;
+          // }),
+        )
       ],
     );
   }
