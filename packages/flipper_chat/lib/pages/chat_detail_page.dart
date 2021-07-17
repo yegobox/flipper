@@ -70,24 +70,24 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           color: primary,
         ),
       ),
-      actions: [
-        Icon(
-          LineIcons.camera,
-          color: primary,
-          size: 27,
-        ),
-        SizedBox(
-          width: 15,
-        ),
-        Icon(
-          LineIcons.phone,
-          color: primary,
-          size: 27,
-        ),
-        SizedBox(
-          width: 10,
-        ),
-      ],
+      // actions: [
+      //   Icon(
+      //     LineIcons.camera,
+      //     color: primary,
+      //     size: 27,
+      //   ),
+      //   SizedBox(
+      //     width: 15,
+      //   ),
+      //   Icon(
+      //     LineIcons.phone,
+      //     color: primary,
+      //     size: 27,
+      //   ),
+      //   SizedBox(
+      //     width: 10,
+      //   ),
+      // ],
     );
   }
 
@@ -155,19 +155,23 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   Widget getBody() {
     return Container(
       decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage("assets/images/bg_chat.jpg"),
-              fit: BoxFit.cover)),
+        image: DecorationImage(
+            image: AssetImage("assets/images/bg_chat.jpg"), fit: BoxFit.cover),
+      ),
       child: ListView(
-          padding: EdgeInsets.only(top: 20, bottom: 80),
-          children: List.generate(messages.length, (index) {
+        padding: EdgeInsets.only(top: 20, bottom: 80),
+        children: List.generate(
+          messages.length,
+          (index) {
             return CustomBubbleChat(
               message: messages[index]['message'],
               isMe: messages[index]['isMe'],
               isLast: messages[index]['isLast'],
               time: messages[index]['time'],
             );
-          })),
+          },
+        ),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_chat/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/pages/calls_page.dart';
@@ -23,10 +24,7 @@ class _RootAppState extends State<RootApp> {
   Widget getBody() {
     return IndexedStack(
       index: pageIndex,
-      children: [
-        CallsPage(),
-        ChatPage(),
-      ],
+      children: [CallsPage(), ChatPage(), SettingsPage()],
     );
   }
 
@@ -34,8 +32,9 @@ class _RootAppState extends State<RootApp> {
     List iconItems = [
       LineIcons.phoneSquare,
       LineIcons.comment,
+      LineIcons.comment,
     ];
-    List textItems = ["Status", "Calls"];
+    List textItems = ["Status", "Messages", "Settings"];
     return Container(
       height: 90,
       width: double.infinity,

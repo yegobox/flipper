@@ -3,8 +3,9 @@ import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/json/chat_json.dart';
 import 'package:flipper_chat/pages/chat_detail_page.dart';
 import 'package:flipper_chat/theme/colors.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/message.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ChatPage extends StatefulWidget {
   @override
@@ -71,35 +72,36 @@ class _ChatPageState extends State<ChatPage> {
                   cursorColor: primary,
                   decoration: InputDecoration(
                       prefixIcon:
-                          Icon(LineIcons.search, color: white.withOpacity(0.3)),
+                          Icon(LineIcons.search, color: white.withOpacity(0.5)),
                       border: InputBorder.none,
                       hintText: "Search",
                       hintStyle: TextStyle(
-                          color: white.withOpacity(0.3), fontSize: 17)),
+                          color: white.withOpacity(0.3), fontSize: 16)),
                 ),
               ),
               SizedBox(
                 height: 25,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Broadcast Lists",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: primary,
-                        fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    "New Group",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: primary,
-                        fontWeight: FontWeight.w500),
-                  )
-                ],
-              )
+              //TODOre:enable this Row widdget when I have an idea of feature I can add in here.
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Text(
+              //       "Broadcast Lists",
+              //       style: TextStyle(
+              //           fontSize: 16,
+              //           color: primary,
+              //           fontWeight: FontWeight.w500),
+              //     ),
+              //     Text(
+              //       "New Group",
+              //       style: TextStyle(
+              //           fontSize: 16,
+              //           color: primary,
+              //           fontWeight: FontWeight.w500),
+              //     )
+              //   ],
+              // )
             ],
           ),
         ),
@@ -110,136 +112,128 @@ class _ChatPageState extends State<ChatPage> {
         SizedBox(
           height: 10,
         ),
-        ListView(
-          children: [
-            StreamBuilder<List<Message>>(
-                stream: ProxyService.api.messages(receiverId: 1),
-                builder: (context, snapshot) {
-                  List<Message>? messages = snapshot.data;
-                  return (messages != null && messages.length != 0)
-                      ? Column(
-                          children: messages
-                              .map((e) => GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ChatDetailPage(
-                                            name: e.senderName,
-                                            //TODO: add image to message object
-                                            img:
-                                                "https://lh3.googleusercontent.com/a-/AOh14GhqYCtgODjBQZ2EcAvJApnWnnDPgZe80-AMM6tctw=s600-k-no-rp-mo",
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 15, right: 15, bottom: 5),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+        StreamBuilder<List<Message>>(
+            stream: ProxyService.api.messages(),
+            builder: (context, snapshot) {
+              List<Message>? messages = snapshot.data;
+              return (messages != null && messages.length > 0)
+                  ? Column(
+                      children: List.generate(
+                        messages.length,
+                        (index) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatDetailPage(
+                                    name: chat_data[index]['name'],
+                                    img: chat_data[index]['img'],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: 15,
+                                right: 15,
+                                bottom: 5,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                        image: NetworkImage(
+                                            chat_data[index]['img']),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      height: 85,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Container(
-                                            width: 60,
-                                            height: 60,
-                                            decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                image: DecorationImage(
-                                                    image: NetworkImage(
-                                                        "https://lh3.googleusercontent.com/a-/AOh14GhqYCtgODjBQZ2EcAvJApnWnnDPgZe80-AMM6tctw=s600-k-no-rp-mo"),
-                                                    fit: BoxFit.cover)),
-                                          ),
-                                          SizedBox(
-                                            width: 15,
-                                          ),
-                                          Expanded(
-                                            child: Container(
-                                              height: 85,
-                                              child: Column(
+                                          Column(
+                                            children: [
+                                              Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceBetween,
                                                 children: [
-                                                  Column(
-                                                    children: [
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Container(
-                                                            width: (size.width -
-                                                                    40) *
-                                                                0.6,
-                                                            child: Text(
-                                                                e.senderName,
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    color:
-                                                                        white,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600)),
-                                                          ),
-                                                          Expanded(
-                                                            child: Text(
-                                                              e.createdAt,
-                                                              style: TextStyle(
-                                                                  fontSize: 14,
-                                                                  color: white
-                                                                      .withOpacity(
-                                                                          0.4)),
-                                                            ),
-                                                          )
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Container(
-                                                        width:
-                                                            (size.width - 40) *
-                                                                1,
-                                                        child: Text(
-                                                          e.message,
-                                                          style: TextStyle(
-                                                              fontSize: 15,
-                                                              height: 1.3,
-                                                              color: white
-                                                                  .withOpacity(
-                                                                      0.4)),
-                                                        ),
-                                                      )
-                                                    ],
+                                                  Container(
+                                                    width:
+                                                        (size.width - 40) * 0.6,
+                                                    child: Text(
+                                                        messages[index]
+                                                            .senderName,
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            color: white,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600)),
                                                   ),
-                                                  Divider(
-                                                    color:
-                                                        white.withOpacity(0.3),
+                                                  Expanded(
+                                                    child: Text(
+                                                      timeago.format(
+                                                          DateTime.parse(
+                                                              messages[index]
+                                                                  .createdAt)),
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color:
+                                                            white.withOpacity(
+                                                          0.4,
+                                                        ),
+                                                      ),
+                                                    ),
                                                   )
                                                 ],
                                               ),
-                                            ),
+                                              SizedBox(
+                                                height: 5,
+                                              ),
+                                              Container(
+                                                width: (size.width - 40) * 1,
+                                                child: Text(
+                                                  messages[index].message,
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    height: 1.3,
+                                                    color:
+                                                        white.withOpacity(0.4),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                          Divider(
+                                            color: white.withOpacity(0.3),
                                           )
                                         ],
                                       ),
                                     ),
-                                  ))
-                              .toList(),
-                        )
-                      : Center(
-                          child: Text(
-                            'No Messages(1)',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        );
-                })
-          ],
-          // children: List.generate(chat_data.length, (index) {
-          //   return;
-          // }),
-        )
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Text("empty message");
+            })
       ],
     );
   }

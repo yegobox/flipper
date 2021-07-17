@@ -144,6 +144,7 @@ class _ChatListState extends State<ChatList> {
                     stream: ProxyService.api.messages(),
                     builder: (context, snapshot) {
                       List<Message>? messages = snapshot.data;
+
                       return (messages != null && messages.length != 0)
                           ? Column(
                               children: messages

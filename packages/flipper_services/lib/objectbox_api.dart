@@ -984,8 +984,11 @@ class ObjectBoxApi implements Api {
   late StreamSubscription<Message> messageSubscription;
   @override
   Stream<List<Message>> messages({int? receiverId}) {
-    log.i(receiverId);
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
+    if (receiverId == null) {
+      receiverId = myBusinessId;
+    }
+    log.i(receiverId);
     //first I have to listen to a socket
     Stream<Message> stream = messageStreamController.stream;
     messageSubscription = stream.listen((message) {
