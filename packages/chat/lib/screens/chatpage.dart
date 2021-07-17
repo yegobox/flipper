@@ -2,7 +2,8 @@ import 'package:chat/flat_widgets/flat_action_btn.dart';
 import 'package:chat/flat_widgets/flat_chat_message.dart';
 import 'package:chat/flat_widgets/flat_message_input_box.dart';
 import 'package:chat/flat_widgets/flat_page_wrapper.dart';
-import 'package:chat/screens/messa_view_model.dart';
+import 'package:flipper_models/view_models/message_view_model.dart';
+
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';

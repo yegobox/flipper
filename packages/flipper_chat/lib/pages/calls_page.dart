@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/json/chat_json.dart';
 import 'package:flipper_chat/theme/colors.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:stacked/stacked.dart';
+import 'package:flipper_models/view_models/message_view_model.dart';
 
 class CallsPage extends StatefulWidget {
   @override
@@ -13,10 +16,16 @@ class _CallsPageState extends State<CallsPage> {
   int activeMenu = 0;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: getAppBar() as PreferredSizeWidget?,
-      body: getBody(),
+    return ViewModelBuilder<MessageViewModel>.reactive(
+      viewModelBuilder: () => MessageViewModel(),
+      onModelReady: (model) {},
+      builder: (context, model, child) {
+        return Scaffold(
+          backgroundColor: bgColor,
+          appBar: getAppBar() as PreferredSizeWidget?,
+          body: getBody(model: model),
+        );
+      },
     );
   }
 
@@ -85,7 +94,7 @@ class _CallsPageState extends State<CallsPage> {
     );
   }
 
-  Widget getBody() {
+  Widget getBody({required MessageViewModel model}) {
     return ListView(
       children: [
         Padding(
@@ -155,110 +164,123 @@ class _CallsPageState extends State<CallsPage> {
           padding: const EdgeInsets.only(top: 5, right: 5, left: 5),
           child: Divider(color: white.withOpacity(0.3)),
         ),
-        activeMenu == 0 ? getAll() : getMissed()
+        activeMenu == 0 ? getAll(model: model) : getMissed()
       ],
     );
   }
 
-  Widget getAll() {
+  Widget getAll({required MessageViewModel model}) {
     var size = MediaQuery.of(context).size;
     return Column(
         children: List.generate(chat_data.length, (index) {
       return Padding(
         padding: const EdgeInsets.only(left: 15, right: 15),
-        child: FadeInDown(
-          duration: Duration(milliseconds: 100 * index),
-          child: Column(
-            children: [
-              Row(
+        child: Slidable(
+            secondaryActions: <Widget>[
+              IconSlideAction(
+                caption: 'Receive Order',
+                color: Colors.blue,
+                icon: Icons.check,
+                onTap: () {
+                  model.receiveOrder(chatId: chat_data[index].id);
+                },
+              ),
+            ],
+            actionPane: SlidableDrawerActionPane(),
+            child: FadeInDown(
+              duration: Duration(milliseconds: 100 * index),
+              child: Column(
                 children: [
-                  Container(
-                    width: (size.width - 30) * 0.75,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 45,
-                          height: 45,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                  image: NetworkImage(chat_data[index]['img']),
-                                  fit: BoxFit.cover)),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Container(
-                          width: (size.width - 85) * 0.7,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                chat_data[index]['name'],
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: white,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              SizedBox(
-                                height: 3,
-                              ),
-                              Row(
+                  Row(
+                    children: [
+                      Container(
+                        width: (size.width - 30) * 0.75,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                      image:
+                                          NetworkImage(chat_data[index]['img']),
+                                      fit: BoxFit.cover)),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Container(
+                              width: (size.width - 85) * 0.7,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    Icons.call,
-                                    size: 17,
-                                    color: white.withOpacity(0.5),
+                                  Text(
+                                    chat_data[index]['name'],
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        color: white,
+                                        fontWeight: FontWeight.w600),
                                   ),
                                   SizedBox(
-                                    width: 3,
+                                    height: 3,
                                   ),
-                                  Text(
-                                    "Incoming",
-                                    style: TextStyle(
-                                        fontSize: 14,
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.shop_2_outlined,
+                                        size: 17,
                                         color: white.withOpacity(0.5),
-                                        fontWeight: FontWeight.w400),
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Text(
+                                        "Burger & Souce",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            color: white.withOpacity(0.5),
+                                            fontWeight: FontWeight.w400),
+                                      )
+                                    ],
                                   )
                                 ],
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: (size.width - 30) * 0.25,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          chat_data[index]['date'],
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: white.withOpacity(0.5)),
+                              ),
+                            )
+                          ],
                         ),
-                        Icon(
-                          Icons.info_outline,
-                          color: primary,
-                        )
-                      ],
+                      ),
+                      Container(
+                        width: (size.width - 30) * 0.25,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              chat_data[index]['date'],
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: white.withOpacity(0.5)),
+                            ),
+                            Icon(
+                              Icons.info_outline,
+                              color: primary,
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 55),
+                    child: Divider(
+                      color: white.withOpacity(0.3),
                     ),
                   )
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 55),
-                child: Divider(
-                  color: white.withOpacity(0.3),
-                ),
-              )
-            ],
-          ),
-        ),
+            )),
       );
     }));
   }

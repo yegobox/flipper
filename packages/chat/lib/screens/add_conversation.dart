@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:chat/screens/messa_view_model.dart';
+import 'package:flipper_models/view_models/message_view_model.dart';
+
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'conversation_list.dart';

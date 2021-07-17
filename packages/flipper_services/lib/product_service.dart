@@ -3,12 +3,11 @@ import 'package:flipper_models/product.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/variants.dart';
-import 'package:flipper_dashboard/create/custom_extension.dart';
 
 class ProductService with ReactiveServiceMixin {
   String? _currentUnit = 'Kg'; //set default to kg
   String? get currentUnit => _currentUnit;
-  final log = getLogger('ProductService'); //
+  final log = getLogger('ProductService');
 
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
