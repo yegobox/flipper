@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/pages/calls_page.dart';
-import 'package:flipper_chat/pages/camera_page.dart';
 import 'package:flipper_chat/pages/chat_page.dart';
-import 'package:flipper_chat/pages/settings_page.dart';
-import 'package:flipper_chat/pages/status_page.dart';
 import 'package:flipper_chat/theme/colors.dart';
 
 class RootApp extends StatefulWidget {
@@ -27,24 +24,18 @@ class _RootAppState extends State<RootApp> {
     return IndexedStack(
       index: pageIndex,
       children: [
-        StatusPage(),
         CallsPage(),
-        CameraPage(),
         ChatPage(),
-        SettingsPage()
       ],
     );
   }
 
   Widget getFooter() {
     List iconItems = [
-      LineIcons.circle,
       LineIcons.phoneSquare,
-      LineIcons.camera,
       LineIcons.comment,
-      LineIcons.kissingFace, //as gear
     ];
-    List textItems = ["Status", "Calls", "Camera", "Chats", "Settings"];
+    List textItems = ["Status", "Calls"];
     return Container(
       height: 90,
       width: double.infinity,

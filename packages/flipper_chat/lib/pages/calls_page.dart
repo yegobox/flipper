@@ -24,20 +24,6 @@ class _CallsPageState extends State<CallsPage> {
     return AppBar(
       backgroundColor: bgColor,
       centerTitle: true,
-      leading: IconButton(
-        icon: Text(
-          "Edit",
-          style: TextStyle(
-              fontSize: 16, color: primary, fontWeight: FontWeight.w500),
-        ),
-        onPressed: null,
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.call, color: primary),
-          onPressed: null,
-        )
-      ],
       title: Container(
         width: 155,
         decoration: BoxDecoration(
@@ -64,7 +50,7 @@ class _CallsPageState extends State<CallsPage> {
                           : Colors.transparent),
                   child: Center(
                     child: Text(
-                      "All",
+                      "Orders",
                       style: TextStyle(fontSize: 13),
                     ),
                   ),
@@ -86,7 +72,7 @@ class _CallsPageState extends State<CallsPage> {
                           : Colors.transparent),
                   child: Center(
                     child: Text(
-                      "Missed",
+                      "Completed",
                       style: TextStyle(fontSize: 13),
                     ),
                   ),
@@ -108,7 +94,7 @@ class _CallsPageState extends State<CallsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Calls",
+                "KDS",
                 style: TextStyle(
                     fontSize: 23, color: white, fontWeight: FontWeight.bold),
               ),
@@ -154,7 +140,7 @@ class _CallsPageState extends State<CallsPage> {
                     width: 10,
                   ),
                   Text(
-                    "Create a room",
+                    "Create order",
                     style: TextStyle(
                         fontSize: 16,
                         color: primary,

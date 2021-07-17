@@ -1,11 +1,9 @@
-import 'package:chat/flat_widgets/flat_action_btn.dart';
 import 'package:chat/flat_widgets/flat_add_story_btn.dart';
 import 'package:chat/flat_widgets/flat_chat_item.dart';
 import 'package:chat/flat_widgets/flat_counter.dart';
 import 'package:chat/flat_widgets/flat_page_header.dart';
 import 'package:chat/flat_widgets/flat_profile_image.dart';
 import 'package:chat/flat_widgets/flat_section_header.dart';
-import 'package:chat/screens/chatpage.dart';
 import 'package:flutter/material.dart';
 
 class AppPage extends StatefulWidget {
