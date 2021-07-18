@@ -19,7 +19,7 @@ jobs:
             ./scripts/setenv.sh
             cd ./flipper
             flutter pub get
-            flutter drive --target=test_driver/app.dart
+            flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
   version:
     name: Create version number
     needs: [ integrationTest ]
