@@ -27,6 +27,8 @@ class Message {
   int senderId;
   String senderName;
 
+  // add extra field
+
   factory Message.fromJson(Map<String, dynamic> json) => Message(
       id: json["id"],
       message: json["message"],

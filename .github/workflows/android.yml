@@ -14,8 +14,12 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: ./gradlew  connectedCheck
-        # run: "flutter drive --target=test_driver/integration_test.dart"
+          script: |
+            /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
+            ./scripts/setenv.sh
+            cd ./flipper
+            flutter pub get
+            flutter drive --target=test_driver/app.dart
   version:
     name: Create version number
     needs: [ integrationTest ]
