@@ -25,14 +25,12 @@ jobs:
           ndk: 21.3.6528147
           # with:
           channel: 'stable' # or: 'dev' or 'beta'
-      # - name: "Run Flutter Driver tests"
-        
-        # 
-          script: |
-            /Users/runner/Library/Android/sdk/tools/bin/avdmanager list | grep -i 'Name:.*Nexus 6' | awk '{print $2}' | xargs -I {} /Users/runner/Library/Android/sdk/tools/bin/avdmanager create avd --force --name={} --package=com.android.tools.build:22.0.1 --abi=x86_64 --tag=google_apis --sdcard=2048 --partition-size=1024 --skin=google --device-name=Nexus 6
+          - name: "Run Flutter Driver tests"
+            run: "flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d android"
+          # script: |
+          #   /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
+          #   flutter pub get
           #   flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
-      run:   flutter pub get
-        # run: "flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart"
   version:
     name: Create version number
     needs: [ integrationTest ]
