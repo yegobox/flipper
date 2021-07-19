@@ -24,7 +24,6 @@ jobs:
           ndk: 21.3.6528147
           script: |
             /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
-            cd ./flipper
             flutter pub get
             flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
   version:

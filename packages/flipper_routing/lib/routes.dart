@@ -25,9 +25,10 @@ import 'package:flipper_chat/flipper_chat_app.dart';
 
 @StackedApp(
   routes: [
-    // MaterialRoute(page: StartUpView, initial: true),
-    MaterialRoute(page: StartUpView),
-    MaterialRoute(page: FlipperChatApp, initial: true),
+    MaterialRoute(page: StartUpView, initial: true),
+    // MaterialRoute(page: StartUpView),
+    MaterialRoute(page: FlipperChatApp, name: 'chat'),
+    // MaterialRoute(page: FlipperChatApp, initial: true),
     MaterialRoute(page: DashboardView, name: 'dashboard'),
 
     MaterialRoute(page: SignUpFormView, name: 'signup'),

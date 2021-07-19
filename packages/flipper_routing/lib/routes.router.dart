@@ -33,8 +33,8 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class Routes {
-  static const String startUpView = '/start-up-view';
-  static const String flipperChatApp = '/';
+  static const String startUpView = '/';
+  static const String chat = '/flipper-chat-app';
   static const String dashboard = '/dashboard-view';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
@@ -55,7 +55,7 @@ class Routes {
   static const String customers = '/Customers';
   static const all = <String>{
     startUpView,
-    flipperChatApp,
+    chat,
     dashboard,
     signup,
     home,
@@ -82,7 +82,7 @@ class StackedRouter extends RouterBase {
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
     RouteDef(Routes.startUpView, page: StartUpView),
-    RouteDef(Routes.flipperChatApp, page: FlipperChatApp),
+    RouteDef(Routes.chat, page: FlipperChatApp),
     RouteDef(Routes.dashboard, page: DashboardView),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
