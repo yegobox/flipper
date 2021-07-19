@@ -26,10 +26,10 @@ jobs:
           # with:
           channel: 'stable' # or: 'dev' or 'beta'
       - name: "Run Flutter Driver tests"
-        run: avdmanager list
+        
         # run: "flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart "
-          # script: |
-          #   /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
+          script: |
+            /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
           #   flutter pub get
           #   flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
   version:
