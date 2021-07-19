@@ -9,7 +9,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        api-level: [24]
+        api-level: [ 24]
         target: [ google_apis]
     steps:
       - name: checkout
@@ -23,10 +23,9 @@ jobs:
           arch: x86_64
           profile: Nexus 6
           ndk: 21.3.6528147
-          # with:
-          channel: 'stable' # or: 'dev' or 'beta'
-          - name: "Run Flutter Driver tests"
-            run: "flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart"
+          sdk: android-24
+          extra-args: --enable-remote-debugging
+          script: flutter/bin/run-android-emulator
           # script: |
           #   /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
           #   flutter pub get
