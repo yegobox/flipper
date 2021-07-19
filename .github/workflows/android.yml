@@ -26,6 +26,7 @@ jobs:
       run: "xcrun instruments -s"
     - name: "Start Simulator"
       run: |
+        avdmanager list
         UDID=$(
           xcrun instruments -s |
           awk \
