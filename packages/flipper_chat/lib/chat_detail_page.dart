@@ -1,29 +1,126 @@
-import 'package:bubble/bubble.dart';
-import 'package:flutter/material.dart';
-import 'package:line_icons/line_icons.dart';
-import 'package:flipper_chat/json/chat_json.dart';
+import 'dart:convert';
+
 import 'package:flipper_chat/theme/colors.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/message.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 class ChatDetailPage extends StatefulWidget {
-  final String? name;
-  final String? img;
+  const ChatDetailPage({Key? key, required this.name, required this.img})
+      : super(key: key);
+  final String name;
+  final String img;
 
-  const ChatDetailPage({Key? key, this.name, this.img}) : super(key: key);
   @override
   _ChatDetailPageState createState() => _ChatDetailPageState();
 }
 
 class _ChatDetailPageState extends State<ChatDetailPage> {
+  List<types.Message> _messages = [];
+  final _user = const types.User(id: '06c33e8b-e835-4736-80f4-63f44b66666c');
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: getAppBar() as PreferredSizeWidget?,
-      bottomSheet: getBottomSheet(),
-      body: getBody(),
+  void initState() {
+    super.initState();
+    _loadMessages();
+  }
+
+  void _addMessage(types.Message message) {
+    setState(() {
+      _messages.insert(0, message);
+    });
+  }
+
+  void _handleAtachmentPressed() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: SizedBox(
+            height: 144,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _handleImageSelection();
+                  },
+                  child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Photo'),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _handleFileSelection();
+                  },
+                  child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('File'),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Cancel'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  void _handleFileSelection() async {}
+
+  void _handleImageSelection() async {}
+
+  void _handleMessageTap(types.Message message) async {
+    if (message is types.FileMessage) {
+      // await OpenFile.open(message.uri);
+    }
+  }
+
+  void _handlePreviewDataFetched(
+    types.TextMessage message,
+    types.PreviewData previewData,
+  ) {
+    final index = _messages.indexWhere((element) => element.id == message.id);
+    final updatedMessage = _messages[index].copyWith(previewData: previewData);
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      setState(() {
+        _messages[index] = updatedMessage;
+      });
+    });
+  }
+
+  void _handleSendPressed(types.PartialText message) {
+    final textMessage = types.TextMessage(
+      author: _user,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: 'uid',
+      text: message.text,
+    );
+
+    _addMessage(textMessage);
+  }
+
+  void _loadMessages() async {
+    final response = await rootBundle.loadString('assets/messages.json');
+    final messages = (jsonDecode(response) as List)
+        .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    setState(() {
+      _messages = messages;
+    });
   }
 
   Widget getAppBar() {
@@ -72,268 +169,21 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           color: primary,
         ),
       ),
-      // actions: [
-      //   Icon(
-      //     LineIcons.camera,
-      //     color: primary,
-      //     size: 27,
-      //   ),
-      //   SizedBox(
-      //     width: 15,
-      //   ),
-      //   Icon(
-      //     LineIcons.phone,
-      //     color: primary,
-      //     size: 27,
-      //   ),
-      //   SizedBox(
-      //     width: 10,
-      //   ),
-      // ],
     );
   }
 
-  Widget getBottomSheet() {
-    var size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: 80,
-      decoration: BoxDecoration(color: greyColor),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(
-              Icons.add,
-              color: primary,
-              size: 28,
-            ),
-            Container(
-              width: size.width * 0.6,
-              height: 32,
-              decoration: BoxDecoration(
-                  color: white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(30)),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: TextField(
-                  style: TextStyle(color: white),
-                  cursorColor: primary,
-                  decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: "",
-                      suffixIcon: Icon(
-                        LineIcons.stickyNote,
-                        color: primary,
-                        size: 25,
-                      )),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Icon(
-                LineIcons.camera,
-                color: primary,
-                size: 25,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Icon(
-                LineIcons.microphone,
-                color: primary,
-                size: 25,
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getBody() {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-            image: AssetImage("assets/images/bg_chat.jpg"), fit: BoxFit.cover),
-      ),
-      child: StreamBuilder<List<Message>>(
-        stream: ProxyService.api
-            .messages(receiverId: ProxyService.box.read(key: 'businessId')),
-        builder: (context, snapshots) {
-          return ListView(
-            padding: EdgeInsets.only(top: 20, bottom: 80),
-            children: List.generate(
-              messages.length,
-              (index) {
-                return CustomBubbleChat(
-                  message: messages[index]['message'],
-                  isMe: messages[index]['isMe'],
-                  isLast: messages[index]['isLast'],
-                  time: messages[index]['time'],
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class CustomBubbleChat extends StatelessWidget {
-  final bool? isMe;
-  final String? message;
-  final String? time;
-  final bool? isLast;
-
-  const CustomBubbleChat(
-      {Key? key, this.isMe, this.message, this.time, this.isLast})
-      : super(key: key);
   @override
   Widget build(BuildContext context) {
-    if (isMe!) {
-      if (!isLast!) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20, bottom: 2),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: chatBoxMe, borderRadius: BorderRadius.circular(6)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 8, right: 8, top: 5, bottom: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          message!,
-                          style: TextStyle(fontSize: 16, color: white),
-                        ),
-                        SizedBox(
-                          height: 3,
-                        ),
-                        Text(
-                          time!,
-                          style: TextStyle(
-                              fontSize: 12, color: white.withOpacity(0.4)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ],
-        );
-      } else {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Flexible(
-              child: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 20, right: 14, bottom: 10),
-                  child: Bubble(
-                    nip: BubbleNip.rightBottom,
-                    color: chatBoxMe,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          message!,
-                          style: TextStyle(fontSize: 16, color: white),
-                        ),
-                        SizedBox(
-                          height: 3,
-                        ),
-                        Text(
-                          time!,
-                          style: TextStyle(
-                              fontSize: 12, color: white.withOpacity(0.4)),
-                        ),
-                      ],
-                    ),
-                  )),
-            )
-          ],
-        );
-      }
-    } else {
-      if (!isLast!) {
-        return Row(
-          children: [
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20, bottom: 2),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: chatBoxOther,
-                      borderRadius: BorderRadius.circular(6)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 8, right: 8, top: 5, bottom: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          message!,
-                          style: TextStyle(fontSize: 16, color: white),
-                        ),
-                        SizedBox(
-                          height: 3,
-                        ),
-                        Text(
-                          time!,
-                          style: TextStyle(
-                              fontSize: 12, color: white.withOpacity(0.4)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ],
-        );
-      } else {
-        return Row(
-          children: [
-            Flexible(
-              child: Padding(
-                  padding:
-                      const EdgeInsets.only(right: 20, left: 14, bottom: 10),
-                  child: Bubble(
-                    nip: BubbleNip.rightBottom,
-                    color: chatBoxOther,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          message!,
-                          style: TextStyle(fontSize: 16, color: white),
-                        ),
-                        SizedBox(
-                          height: 3,
-                        ),
-                        Text(
-                          time!,
-                          style: TextStyle(
-                              fontSize: 12, color: white.withOpacity(0.4)),
-                        ),
-                      ],
-                    ),
-                  )),
-            )
-          ],
-        );
-      }
-    }
+    return Scaffold(
+      appBar: getAppBar() as PreferredSizeWidget?,
+      body: Chat(
+        messages: _messages,
+        onAttachmentPressed: _handleAtachmentPressed,
+        onMessageTap: _handleMessageTap,
+        onPreviewDataFetched: _handlePreviewDataFetched,
+        onSendPressed: _handleSendPressed,
+        user: _user,
+      ),
+    );
   }
 }
