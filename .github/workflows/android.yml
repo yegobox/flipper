@@ -7,29 +7,20 @@ jobs:
   # id of job, a string that is unique to the "jobs" node above.
   integrationTest:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        api-level: [ 24]
-        target: [ google_apis]
     steps:
       - name: checkout
         uses: actions/checkout@v2
       - name: run tests
-        # uses: reactivecircus/android-emulator-runner@v2
-        uses: subosito/flutter-action@master
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}
+          api-level: 29
           arch: x86_64
           profile: Nexus 6
           ndk: 21.3.6528147
-          sdk: android-24
-          extra-args: --enable-remote-debugging
-          script: flutter/bin/run-android-emulator
-          # script: |
-          #   /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
-          #   flutter pub get
-          #   flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
+          script: |
+            /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
+            flutter pub get
+            flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
   version:
     name: Create version number
     needs: [ integrationTest ]
