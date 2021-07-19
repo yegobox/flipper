@@ -18,7 +18,7 @@ jobs:
       # fails.
       fail-fast: false
     # The type of machine to run the job on.
-    runs-on: macOS-latest
+    runs-on: windows-latest
     # Contains a sequence of tasks.
     steps:
     # A name for your step to display on GitHub.
