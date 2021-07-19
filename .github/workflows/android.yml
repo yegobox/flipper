@@ -27,14 +27,6 @@ jobs:
     - name: "Start Simulator"
       run: |
         avdmanager list
-        UDID=$(
-          xcrun instruments -s |
-          awk \
-            -F ' *[][]' \
-            -v 'device=${{ matrix.device }}' \
-            '$1 == device { print $2 }'
-        )
-        xcrun simctl boot "${UDID:?No Simulator with this name found}"
     # The branch or tag ref that triggered the workflow will be checked out.
     # https://github.com/actions/checkout
     - uses: actions/checkout@v1
