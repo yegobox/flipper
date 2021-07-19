@@ -26,7 +26,7 @@ jobs:
           # with:
           channel: 'stable' # or: 'dev' or 'beta'
       - name: "Run Flutter Driver tests"
-        run: |
+        - run: |
           UDID=$(
             xcrun instruments -s |
             awk \
@@ -35,7 +35,7 @@ jobs:
               '$1 == device { print $2 }'
           )
           xcrun simctl boot "${UDID:?No Simulator with this name found}"
-        run: "flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart "
+        - run: "flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart "
           # script: |
           #   /Users/runner/Library/Android/sdk/tools/bin/avdmanager list
           #   flutter pub get
