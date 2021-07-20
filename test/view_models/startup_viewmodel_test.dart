@@ -31,10 +31,10 @@ void main() {
 
       appService.isLoggedIn();
       model.runStartupLogic();
-      // await Future.delayed(Duration(microseconds: 5000));
+      await Future.delayed(Duration(microseconds: 50));
       await api.businesses();
 
-      expect(model.didSync, false);
+      expect(model.didSync, true);
 
       verify(navigationService.replaceWith(Routes.home));
     });
@@ -45,6 +45,7 @@ void main() {
       appService.isLoggedIn();
       model.runStartupLogic();
       expect(model.didSync, false);
+      await Future.delayed(Duration(microseconds: 50));
       verify(navigationService.replaceWith(Routes.login));
     });
   });

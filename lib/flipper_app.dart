@@ -46,9 +46,7 @@ class _FlipperAppState extends State<FlipperApp> {
               child: ScreenUtilInit(
                 designSize: const Size(360, 640),
                 builder: () => MaterialApp(
-                  themeMode: ThemeMode.system,
-                  // theme: FlipperThemeData.lightThemeData
-                  //     .copyWith(platform: TargetPlatform.android),
+                  // themeMode: ThemeMode.system,
                   theme: ThemeData(
                     // This changes font for the entire app using the Google Fonts package
                     // from pub.dev : https://pub.dev/packages/google_fonts
@@ -69,8 +67,8 @@ class _FlipperAppState extends State<FlipperApp> {
                     // primaryColorDark: Color(0xff262833),
                     primaryColorLight: Color(0xffFCF9F5),
                   ),
-                  darkTheme: FlipperThemeData.darkThemeData
-                      .copyWith(platform: TargetPlatform.android),
+                  // darkTheme: FlipperThemeData.darkThemeData
+                  //     .copyWith(platform: TargetPlatform.android),
                   debugShowCheckedModeBanner: false,
                   title: 'flipper',
                   localizationsDelegates:
@@ -104,7 +102,7 @@ class _FlipperAppState extends State<FlipperApp> {
             child: ScreenUtilInit(
               designSize: const Size(360, 640),
               builder: () => MaterialApp(
-                themeMode: ThemeMode.system,
+                // themeMode: ThemeMode.system,
                 theme: ThemeData(
                   // This changes font for the entire app using the Google Fonts package
                   // from pub.dev : https://pub.dev/packages/google_fonts
@@ -121,10 +119,8 @@ class _FlipperAppState extends State<FlipperApp> {
                   primaryColorDark: Colors.white,
                   primaryColorLight: Colors.white,
                 ),
-                // theme: FlipperThemeData.lightThemeData
+                // darkTheme: FlipperThemeData.darkThemeData
                 //     .copyWith(platform: TargetPlatform.android),
-                darkTheme: FlipperThemeData.darkThemeData
-                    .copyWith(platform: TargetPlatform.android),
                 debugShowCheckedModeBanner: false,
                 title: 'flipper',
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
