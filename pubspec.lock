@@ -1331,12 +1331,10 @@ packages:
   photo_view:
     dependency: transitive
     description:
-      path: "."
-      ref: SDAChess-patch-441
-      resolved-ref: "915493e77bfc5179369030b67eee8221a574de4a"
-      url: "https://github.com/SDAChess/photo_view.git"
-    source: git
-    version: "0.11.1"
+      name: photo_view
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.12.0"
   platform:
     dependency: transitive
     description:
