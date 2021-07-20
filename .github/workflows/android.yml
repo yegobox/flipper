@@ -111,7 +111,7 @@ jobs:
       - uses: subosito/flutter-action@master
         with:
           channel: "master"
-
+      - run: git submodule update --init
       - run: flutter pub get
       - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
       - run: flutter build appbundle --no-tree-shake-icons
