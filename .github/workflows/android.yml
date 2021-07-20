@@ -96,7 +96,7 @@ jobs:
       - name: Update version in YAML
         # the bellow line breaks a lot.
         # run: sed -i 's/99.99.99+99/${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
-        run: sed -i 's/99.99.99+99/1.7.0-0182/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.7.0-mobile0182/g' pubspec.yaml
       - name: Update KeyStore password in gradle properties
         run: sed -i 's/#{KEYSTORE_PASS}#/${{ secrets.KEYSTORE_PASS }}/g' android/key.properties
       - name: Update KeyStore key password in gradle properties
