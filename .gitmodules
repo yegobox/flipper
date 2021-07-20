@@ -2,3 +2,7 @@
 	path = packages
 	url =https://github.com/yegobox/packages.git
 	branch = main
+[submodule "open-sources/flutter_chat_ui"]
+	path = open-sources/flutter_chat_ui
+	url =https://github.com/flyerhq/flutter_chat_ui.git
+	branch = main

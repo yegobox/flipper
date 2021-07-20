@@ -11,7 +11,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('end-to-end test', () {
-    testWidgets('Should load the app and act as real user!',
+    testWidgets('This use case assume the user has an account arleady!',
         (WidgetTester tester) async {
       //start by logging out the user
       app.main();
