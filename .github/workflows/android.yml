@@ -8,31 +8,31 @@ jobs:
   # https://github.com/ksheremet/flutter_actions/blob/master/.github/workflows/flutter-drive.yml
   # https://github.com/ReactiveCircus/android-emulator-runner
   # https://developpaper.com/test-and-deploy-flutter-on-github-actions/
-  integrationTest:
-    runs-on: macos-latest
-    #creates a build matrix for your jobs
-    strategy:
-      #set of different configurations of the virtual environment.
-      matrix:
-        api-level: [29]
-        target: [default]
-    steps:
-      - uses: actions/checkout@v1
-      - uses: subosito/flutter-action@v1
-        with:
-          # flutter-version: '1.12.14'
-          channel: "stable"
-      - name: Run Flutter Driver tests
-        uses: reactivecircus/android-emulator-runner@v1
-        with:
-          api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}
-          arch: x86_64
-          profile: Nexus 6
-          script: flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
+  # integrationTest:
+  #   runs-on: macos-latest
+  #   #creates a build matrix for your jobs
+  #   strategy:
+  #     #set of different configurations of the virtual environment.
+  #     matrix:
+  #       api-level: [29]
+  #       target: [default]
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - uses: subosito/flutter-action@v1
+  #       with:
+  #         # flutter-version: '1.12.14'
+  #         channel: "stable"
+  #     - name: Run Flutter Driver tests
+  #       uses: reactivecircus/android-emulator-runner@v1
+  #       with:
+  #         api-level: ${{ matrix.api-level }}
+  #         target: ${{ matrix.target }}
+  #         arch: x86_64
+  #         profile: Nexus 6
+  #         script: flutter drive  --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
   version:
     name: Create version number
-    needs: [integrationTest]
+    # needs: [integrationTest]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -56,7 +56,7 @@ jobs:
           path: version.txt
   testing:
     name: Unit Testing
-    needs: [integrationTest]
+    # needs: [integrationTest]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -73,7 +73,7 @@ jobs:
       - run: flutter test
   build:
     name: Build APK and Create release
-    needs: [testing, version, integrationTest]
+    needs: [testing, version]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

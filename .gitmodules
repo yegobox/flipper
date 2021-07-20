@@ -1,7 +1,3 @@
-[submodule ".flutter"]
-	path = .flutter
-	url = https://github.com/flutter/flutter.git
-	branch = stable
 [submodule "packages"]
 	path = packages
 	url =https://github.com/yegobox/packages.git

@@ -34,7 +34,7 @@ void main() {
       // await Future.delayed(Duration(microseconds: 5000));
       await api.businesses();
 
-      expect(model.didSync, true);
+      expect(model.didSync, false);
 
       verify(navigationService.replaceWith(Routes.home));
     });

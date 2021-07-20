@@ -135,7 +135,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
               decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                      image: NetworkImage(widget.img!), fit: BoxFit.cover)),
+                      image: NetworkImage(widget.img), fit: BoxFit.cover)),
             ),
             SizedBox(
               width: 10,
@@ -146,7 +146,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.name!,
+                    widget.name,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
