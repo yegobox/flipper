@@ -37,7 +37,7 @@ class _FlipperAppState extends State<FlipperApp> {
           onModelReady: (model) async {
             String? defaultLanguage = await model.getSetting();
             final locale = defaultLanguage == null
-                ? Locale('be')
+                ? Locale('en')
                 : Locale(defaultLanguage);
             model.setLocale(locale);
           },

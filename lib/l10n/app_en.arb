@@ -1,45 +1,45 @@
 {
-    "save": "Save",
+    "save": "Bika",
     "@save": {
         "description": "The conventional newborn programmer greeting"
     },
-    "retailPrice": "Retail Price",
+    "retailPrice": "Igiciro",
     "@retailPrice": {
         "description": "The conventional newborn programmer greeting"
     },
-    "supplyPrice": "Supply Price",
+    "supplyPrice": "Ikiranguzo",
     "@supplyPrice": {
         "description": "The conventional newborn programmer greeting"
     },
-    "currentSale": "Current Sale",
+    "currentSale": "Igurishwa ryubu",
     "@currentSale": {
         "description": "The conventional newborn programmer greeting"
     },
-    "addProduct": "Add Product",
+    "addProduct": "Ongeramo ibicuruzwa",
     "@addProduct": {
         "description": "The conventional newborn programmer greeting"
     },
-    "tickets": "Tickets",
+    "tickets": "Amatike",
     "@tickets": {
         "description": "The conventional newborn programmer greeting"
     },
-    "charge": "Charge",
+    "charge": "kwishyuza",
     "@charge": {
         "description": "The conventional newborn programmer greeting"
     },
-    "productName": "Product Name",
+    "productName": "Izina ryigicuruzwa",
     "@productName": {
         "description": "The conventional newborn programmer greeting"
     },
-    "flipperSetting": "Flipper Settings",
+    "flipperSetting": "Igenamiterere",
     "@flipperSetting": {
         "description": "The conventional newborn programmer greeting"
     },
-    "options": "Options",
+    "options": "Amahitamo",
     "@options": {
         "description": "Amahitamo"
     },
-    "saveTicket": "You can not save a ticket without adding a note!",
+    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
     "@saveTicket": {
         "description": "Amahitamo"
     }
