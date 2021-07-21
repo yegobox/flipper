@@ -122,7 +122,8 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: ${{ steps.version.outputs.content }}
+          # tag: ${{ steps.version.outputs.content }}
+          tag: 1.7.0-mobile0164
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2
