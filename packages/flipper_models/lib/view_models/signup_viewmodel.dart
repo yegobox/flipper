@@ -18,6 +18,8 @@ final isWindows = UniversalPlatform.isWindows;
 class SignupViewModel extends FormViewModel {
   String? businessType = 'business';
 
+  bool registerStart = false;
+
   void setBuinessType({required String type}) {
     businessType = type;
     notifyListeners();
@@ -60,6 +62,8 @@ class SignupViewModel extends FormViewModel {
   }
 
   void signup({Locale? locale}) async {
+    registerStart = true;
+    notifyListeners();
     String? token = await FirebaseMessaging.instance.getToken();
     ProxyService.firestore.saveTokenToDatabase(token!);
     //set the startup app.

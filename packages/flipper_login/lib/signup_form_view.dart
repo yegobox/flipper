@@ -5,6 +5,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 @FormView(fields: [
   FormTextField(name: 'name'),
@@ -76,23 +77,36 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                     );
                   }).toList(),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Validate returns true if the form is valid, or false otherwise.
-                      if (_formKey.currentState!.validate()) {
-                        Locale locale = Localizations.localeOf(context);
-                        // If the form is valid, display a snackbar. In the real world,
-                        // you'd often call a server or save the information in a database.
-                        showSimpleNotification(Text("Signup in progress"),
-                            background: Colors.green);
-                        model.signup(locale: locale);
-                      }
-                    },
-                    child: Text('Register'),
-                  ),
-                )
+                !model.registerStart
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Validate returns true if the form is valid, or false otherwise.
+                            if (_formKey.currentState!.validate()) {
+                              Locale locale = Localizations.localeOf(context);
+                              // If the form is valid, display a snackbar. In the real world,
+                              // you'd often call a server or save the information in a database.
+                              showSimpleNotification(Text("Signup in progress"),
+                                  background: Colors.green);
+                              model.signup(locale: locale);
+                            }
+                          },
+                          child: Text('Register'),
+                        ),
+                      )
+                    : Padding(
+                        key: Key('busyButon'),
+                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 60,
+                          child: BoxButton(
+                            title: 'SIGN IN',
+                            busy: true,
+                          ),
+                        ),
+                      )
               ],
             ),
           ),

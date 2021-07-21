@@ -15,11 +15,15 @@ class LocationService implements FlipperLocation {
 
   @override
   Future<Map<String, String>> getLocation() async {
-    _locationData = await location.getLocation();
-    return {
-      'longitude': _locationData.longitude.toString(),
-      'latitude': _locationData.latitude.toString()
-    };
+    try {
+      _locationData = await location.getLocation();
+      return {
+        'longitude': _locationData.longitude.toString(),
+        'latitude': _locationData.latitude.toString()
+      };
+    } catch (e) {
+      return {'longitude': "0.0", 'latitude': " 0.0"};
+    }
   }
 
   @override
