@@ -34,7 +34,7 @@ void main() {
       await Future.delayed(Duration(microseconds: 50));
       await api.businesses();
 
-      expect(model.didSync, true);
+      expect(model.isBusinessSet, true);
 
       verify(navigationService.replaceWith(Routes.home));
     });
@@ -44,7 +44,7 @@ void main() {
       final model = _getModel();
       appService.isLoggedIn();
       model.runStartupLogic();
-      expect(model.didSync, false);
+      expect(model.isBusinessSet, false);
       await Future.delayed(Duration(microseconds: 50));
       verify(navigationService.replaceWith(Routes.login));
     });

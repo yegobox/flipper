@@ -22,7 +22,7 @@ class LocationService implements FlipperLocation {
         'latitude': _locationData.latitude.toString()
       };
     } catch (e) {
-      return {'longitude': "0.0", 'latitude': " 0.0"};
+      return {'longitude': "1.1", 'latitude': "1.1"};
     }
   }
 

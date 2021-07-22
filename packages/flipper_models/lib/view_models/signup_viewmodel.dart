@@ -25,17 +25,17 @@ class SignupViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  late String? longitude;
-  late String? latitude;
+  String? longitude = '0.0';
+  String? latitude = '0.0';
 
-  String? _name;
+  String? kName;
   void setName({required String name}) {
-    _name = name;
+    kName = name;
   }
 
-  String? _country;
+  String? kCountry;
   void setCountry({required String country}) {
-    _country = country;
+    kCountry = country;
   }
 
   String? _type;
@@ -61,7 +61,7 @@ class SignupViewModel extends FormViewModel {
     }
   }
 
-  void signup({Locale? locale}) async {
+  Future<void> signup({Locale? locale}) async {
     registerStart = true;
     notifyListeners();
     String? token = await FirebaseMessaging.instance.getToken();
@@ -70,7 +70,7 @@ class SignupViewModel extends FormViewModel {
     // TODO uncomment this when the social feature is out!
     // ProxyService.box.write(key: pageKey, value: businessType);
     int okStatus = await ProxyService.api.signup(business: {
-      'name': _name,
+      'name': kName,
       'latitude': latitude,
       'longitude': longitude,
       'currency': 'RW',

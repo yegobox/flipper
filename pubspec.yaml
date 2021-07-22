@@ -180,6 +180,7 @@ dev_dependencies:
   hive_generator: ^1.1.0
   flutter_launcher_icons: ^0.9.0
   objectbox_generator: any
+  matcher: ^0.12.10
 
 flutter_icons:
   android: "launcher_icon"

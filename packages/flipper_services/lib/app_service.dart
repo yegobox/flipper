@@ -70,8 +70,9 @@ class AppService with ReactiveServiceMixin {
   bool get hasLoggedInUser => _loggedIn;
 
   bool isLoggedIn() {
-    return _loggedIn =
-        ProxyService.box.read(key: 'userId') == null ? false : true;
+    _loggedIn = ProxyService.box.read(key: 'userId') == null ? false : true;
+    notifyListeners();
+    return _loggedIn;
   }
 
   AppService() {

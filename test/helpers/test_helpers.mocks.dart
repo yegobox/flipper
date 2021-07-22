@@ -22,16 +22,17 @@ import 'package:flipper_models/sync.dart' as _i3;
 import 'package:flipper_models/unit.dart' as _i17;
 import 'package:flipper_models/variants.dart' as _i7;
 import 'package:flipper_services/abstractions/api.dart' as _i12;
+import 'package:flipper_services/abstractions/location.dart' as _i27;
 import 'package:flipper_services/abstractions/storage.dart' as _i25;
 import 'package:flipper_services/app_service.dart' as _i26;
 import 'package:flipper_services/keypad_service.dart' as _i23;
 import 'package:flipper_services/product_service.dart' as _i22;
 import 'package:flipper_services/setting_service.dart' as _i24;
-import 'package:flutter/src/widgets/framework.dart' as _i28;
-import 'package:flutter/src/widgets/navigator.dart' as _i29;
+import 'package:flutter/src/widgets/framework.dart' as _i29;
+import 'package:flutter/src/widgets/navigator.dart' as _i30;
 import 'package:logger/src/logger.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stacked_services/src/navigation_service.dart' as _i27;
+import 'package:stacked_services/src/navigation_service.dart' as _i28;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: comment_references
@@ -577,10 +578,25 @@ class MockAppService extends _i1.Mock implements _i26.AppService {
           returnValueForMissingStub: null);
 }
 
+/// A class which mocks [FlipperLocation].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockFlipperLocation extends _i1.Mock implements _i27.FlipperLocation {
+  @override
+  _i13.Future<Map<String, String>> getLocation() => (super.noSuchMethod(
+          Invocation.method(#getLocation, []),
+          returnValue: Future<Map<String, String>>.value(<String, String>{}))
+      as _i13.Future<Map<String, String>>);
+  @override
+  _i13.Future<bool> doWeHaveLocationPermission() =>
+      (super.noSuchMethod(Invocation.method(#doWeHaveLocationPermission, []),
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+}
+
 /// A class which mocks [NavigationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
+class MockNavigationService extends _i1.Mock implements _i28.NavigationService {
   @override
   String get previousRoute =>
       (super.noSuchMethod(Invocation.getter(#previousRoute), returnValue: '')
@@ -590,9 +606,9 @@ class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
       (super.noSuchMethod(Invocation.getter(#currentRoute), returnValue: '')
           as String);
   @override
-  _i28.GlobalKey<_i29.NavigatorState>? nestedNavigationKey(int? index) =>
+  _i29.GlobalKey<_i30.NavigatorState>? nestedNavigationKey(int? index) =>
       (super.noSuchMethod(Invocation.method(#nestedNavigationKey, [index]))
-          as _i28.GlobalKey<_i29.NavigatorState>?);
+          as _i29.GlobalKey<_i30.NavigatorState>?);
   @override
   void config(
           {bool? enableLog,
@@ -612,7 +628,7 @@ class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
           }),
           returnValueForMissingStub: null);
   @override
-  _i13.Future<dynamic>? navigateWithTransition(_i28.Widget? page,
+  _i13.Future<dynamic>? navigateWithTransition(_i29.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
@@ -628,7 +644,7 @@ class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
         #id: id
       })) as _i13.Future<dynamic>?);
   @override
-  _i13.Future<dynamic>? replaceWithTransition(_i28.Widget? page,
+  _i13.Future<dynamic>? replaceWithTransition(_i29.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
@@ -648,7 +664,7 @@ class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
       Invocation.method(#back, [], {#result: result, #id: id}),
       returnValue: false) as bool);
   @override
-  void popUntil(_i29.RoutePredicate? predicate) =>
+  void popUntil(_i30.RoutePredicate? predicate) =>
       super.noSuchMethod(Invocation.method(#popUntil, [predicate]),
           returnValueForMissingStub: null);
   @override
@@ -670,7 +686,7 @@ class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
         #parameters: parameters
       })) as _i13.Future<dynamic>?);
   @override
-  _i13.Future<dynamic>? navigateToView(_i28.Widget? view,
+  _i13.Future<dynamic>? navigateToView(_i29.Widget? view,
           {dynamic arguments, int? id, bool? preventDuplicates = true}) =>
       (super.noSuchMethod(Invocation.method(#navigateToView, [
         view
@@ -718,13 +734,13 @@ class MockNavigationService extends _i1.Mock implements _i27.NavigationService {
         #parameters: parameters
       })) as _i13.Future<dynamic>?);
   @override
-  _i13.Future<dynamic>? clearTillFirstAndShowView(_i28.Widget? view,
+  _i13.Future<dynamic>? clearTillFirstAndShowView(_i29.Widget? view,
           {dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#clearTillFirstAndShowView, [view],
           {#arguments: arguments, #id: id})) as _i13.Future<dynamic>?);
   @override
   _i13.Future<dynamic>? pushNamedAndRemoveUntil(String? routeName,
-          {_i29.RoutePredicate? predicate, dynamic arguments, int? id}) =>
+          {_i30.RoutePredicate? predicate, dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#pushNamedAndRemoveUntil, [
         routeName
       ], {

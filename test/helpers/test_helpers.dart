@@ -1,3 +1,4 @@
+import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/login.dart';
@@ -25,6 +26,7 @@ import 'package:flipper_services/locator.dart';
   MockSpec<SettingsService>(returnNullOnMissingStub: true),
   MockSpec<LocalStorage>(returnNullOnMissingStub: true),
   MockSpec<AppService>(returnNullOnMissingStub: true),
+  MockSpec<FlipperLocation>(returnNullOnMissingStub: true),
   MockSpec<NavigationService>(returnNullOnMissingStub: true),
 ])
 Api getAndRegisterApi(
@@ -61,7 +63,8 @@ Api getAndRegisterApi(
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);
   }
-  when(service.branches(businessId: 10)).thenAnswer((_) async => [branchMock]);
+  when(service.branches(businessId: anyNamed('businessId')))
+      .thenAnswer((_) async => [branchMock]);
   locator.registerSingleton<Api>(service);
   return service;
 }
@@ -117,6 +120,16 @@ NavigationService getAndRegisterNavigationService() {
   return service;
 }
 
+MockFlipperLocation getAndRegisterLocationService() {
+  _removeRegistrationIfExists<FlipperLocation>();
+  final service = MockFlipperLocation();
+  when(service.getLocation())
+      .thenAnswer((_) async => {'longitude': "0.0", 'latitude': " 0.0"});
+  when(service.doWeHaveLocationPermission()).thenAnswer((_) async => false);
+  locator.registerSingleton<FlipperLocation>(service);
+  return service;
+}
+
 MockSettingsService getAndRegisterSettingsService() {
   _removeRegistrationIfExists<SettingsService>();
   final service = MockSettingsService();
@@ -137,6 +150,10 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.read(key: 'businessId')).thenAnswer((_) => 10);
   when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
   when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
+  when(service.write(key: 'branchId', value: anyNamed("value")))
+      .thenAnswer((_) => true);
+  when(service.write(key: 'businessId', value: anyNamed("value")))
+      .thenAnswer((_) => true);
   when(service.write(key: 'businessUrl', value: anyNamed("value")))
       .thenAnswer((_) => true);
   when(service.write(key: 'userName', value: anyNamed("value")))
@@ -148,6 +165,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
 
 void registerServices() {
   getAndRegisterApi();
+  getAndRegisterLocationService();
   getAndRegisterNavigationService();
   getAndRegisterSettingsService();
   getAndRegisterLocalStorage();
