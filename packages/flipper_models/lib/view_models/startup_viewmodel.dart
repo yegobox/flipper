@@ -59,17 +59,14 @@ class StartUpViewModel extends BaseViewModel {
   appInit() async {
     if (appService.hasLoggedInUser) {
       List<Business>? businesses = await ProxyService.api.businesses();
-      try {
-        if (businesses.isNotEmpty) {
-          List<Branch> branches =
-              await ProxyService.api.branches(businessId: businesses[0].id);
-          log.i('BranchId', branches[0].id);
-          log.i('BusinessId', businesses[0].id);
-          ProxyService.box.write(key: 'branchId', value: branches[0].id);
-          ProxyService.box.write(key: 'businessId', value: businesses[0].id);
-        }
-      } catch (e) {
-        log.i(e);
+
+      if (businesses.isNotEmpty) {
+        List<Branch> branches =
+            await ProxyService.api.branches(businessId: businesses[0].id);
+        log.i('BranchId', branches[0].id);
+        log.i('BusinessId', businesses[0].id);
+        ProxyService.box.write(key: 'branchId', value: branches[0].id);
+        ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       }
     }
   }

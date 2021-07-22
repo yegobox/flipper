@@ -13,7 +13,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class PhoneNumberView extends StatefulWidget {
-  static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
 
   @override
   _PhoneNumberViewState createState() => _PhoneNumberViewState();
@@ -21,6 +20,7 @@ class PhoneNumberView extends StatefulWidget {
 
 class _PhoneNumberViewState extends State<PhoneNumberView> {
   TextEditingController phoneController = TextEditingController();
+  GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
           child: Container(
             color: Colors.white,
             child: Form(
-              key: PhoneNumberView._formKey,
+              key: _formKey,
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -146,9 +146,10 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                                     key: Key('signIn'),
                                     title: 'SIGN IN',
                                     onTap: () async {
-                                      if (PhoneNumberView._formKey.currentState!
+
+                                      if (_formKey.currentState!
                                           .validate()) {
-                                        //TODOmore phone validation to come!
+                                        //TODO:more phone validation to come!
                                         model.setPhoneNumber(
                                             phone: phoneController.value.text);
                                         final phoneAuth =

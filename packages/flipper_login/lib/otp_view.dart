@@ -7,15 +7,13 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class OtpView extends StatefulWidget {
-  static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-
   @override
   _OtpViewState createState() => _OtpViewState();
 }
 
 class _OtpViewState extends State<OtpView> {
   TextEditingController otpController = TextEditingController();
-
+  GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
@@ -24,7 +22,7 @@ class _OtpViewState extends State<OtpView> {
         return SingleChildScrollView(
           key: Key('optForm'),
           child: Form(
-            key: OtpView._formKey,
+            key: _formKey,
             child: Container(
               color: Colors.transparent,
               child: Container(
@@ -113,7 +111,7 @@ class _OtpViewState extends State<OtpView> {
                             child: BoxButton(
                               key: Key('verifyOtp'),
                               onTap: () {
-                                if (OtpView._formKey.currentState!.validate()) {
+                                if (_formKey.currentState!.validate()) {
                                   model.setOtp(ot: otpController.value.text);
                                   model.fb.verifyWithOtp();
                                 }
