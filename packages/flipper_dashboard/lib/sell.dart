@@ -237,11 +237,13 @@ class Sell extends StatelessWidget {
                               color: Colors.grey[500]),
                         ),
                       ),
-                      Radio(
+                      Radio<int>(
                         // toggleable: true,
                         value: variant.id,
                         groupValue: model.checked,
-                        onChanged: (value) {},
+                        onChanged: (value) {
+                          model.toggleCheckbox(variantId: variant.id);
+                        },
                       ),
                     ]),
                   ],
