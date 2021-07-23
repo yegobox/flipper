@@ -12,13 +12,12 @@ import 'package:flipper_models/unit_mock.dart';
 class ForceDataEntryService {
   final log = getLogger('ForceDataEntryService');
   void caller() {
-    if (ProxyService.remoteConfig.forceDateEntry()) {
-      addData();
-    }
+    // if (ProxyService.remoteConfig.forceDateEntry()) {
+    addData();
+    // }
   }
 
   Future<void> addData() async {
-    // int? businessId = ProxyService.box.read(key: 'businessId');
     int? branchId = ProxyService.box.read(key: 'branchId');
 
     final String? userId = ProxyService.box.read(key: 'userId');

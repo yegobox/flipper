@@ -23,10 +23,13 @@ class ListUnits extends StatelessWidget {
               model.units[i].name,
               style: const TextStyle(color: Colors.black),
             ),
-            trailing: Radio<Object?>(
+            trailing: Radio<int>(
               value: model.units[i].id,
               groupValue: model.units[i].active ? model.units[i].id : 0,
-              onChanged: (value) {},
+              onChanged: (value) {
+                model.saveFocusedUnit(
+                    newUnit: model.units[i], id: model.product.id, type: type);
+              },
             ),
           ),
         ),
