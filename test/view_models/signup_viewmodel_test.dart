@@ -1,5 +1,8 @@
 import 'package:flipper_models/view_models/signup_viewmodel.dart';
+import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_services/objectbox_api.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'dart:math';
 
 import '../helpers/test_helpers.dart';
@@ -13,9 +16,8 @@ void main() {
     tearDown(() => unregisterServices());
     test('signup with a new user', () async {
       final model = _getModel();
-      //write test to test model.signup set setName with random name and setCountry with random country
-      //test that the model is updated with the new name and country
-      //randomise a string
+      final navigationService = getAndRegisterNavigationService();
+
       Random _rnd = Random();
       String getRandomString(int length) =>
           String.fromCharCodes(Iterable.generate(
@@ -27,18 +29,14 @@ void main() {
       expect(model.kCountry, _name);
 
       model.registerLocation();
+      //delay 2 seconds
+      await Future.delayed(Duration(seconds: 2));
 
-      //calling signup method should get the business registerd
-      //and calling box.read('businessId') should not return null
-      //calling box.read('branchId') should not return null)
-      //should very that we land on the business page home page
+      expect(model.longitude, '1.1');
+      expect(model.latitude, '1.1');
+      await model.signup();
 
-      //expect model.longitude to be set
-      //expect model.latitude to be set
-      expect(model.longitude, '0.0');
-      expect(model.latitude, '0.0');
-      // await model.signup();
-      // expect(model.businessId, not(null));
+      verify(navigationService.navigateTo(Routes.home));
     });
   });
 }

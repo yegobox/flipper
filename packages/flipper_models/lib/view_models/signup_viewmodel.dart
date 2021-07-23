@@ -25,8 +25,8 @@ class SignupViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  String? longitude = '0.0';
-  String? latitude = '0.0';
+  String? longitude = null;
+  String? latitude = null;
 
   String? kName;
   void setName({required String name}) {
@@ -64,10 +64,12 @@ class SignupViewModel extends FormViewModel {
   Future<void> signup({Locale? locale}) async {
     registerStart = true;
     notifyListeners();
-    String? token = await FirebaseMessaging.instance.getToken();
-    ProxyService.firestore.saveTokenToDatabase(token!);
+    if (ProxyService.remoteConfig.isSubmitDeviceTokenEnabled()) {
+      String? token = await FirebaseMessaging.instance.getToken();
+      ProxyService.firestore.saveTokenToDatabase(token!);
+    }
     //set the startup app.
-    // TODO uncomment this when the social feature is out!
+    // TODOuncomment this when the social feature is out!
     // ProxyService.box.write(key: pageKey, value: businessType);
     int okStatus = await ProxyService.api.signup(business: {
       'name': kName,

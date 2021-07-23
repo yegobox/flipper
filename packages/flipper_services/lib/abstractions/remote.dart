@@ -7,5 +7,6 @@ abstract class Remote {
   bool isAddCustomerToSaleAvailable();
   bool isPrinterAvailable();
   bool forceDateEntry();
+  bool isSubmitDeviceTokenEnabled();
   void config();
 }

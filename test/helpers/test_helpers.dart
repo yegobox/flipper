@@ -1,4 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:flipper_services/abstractions/location.dart';
+import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/login.dart';
@@ -16,11 +19,14 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stacked_services/stacked_services.dart';
+import '../view_models/startup_viewmodel_test.dart';
 import 'test_helpers.mocks.dart';
 import 'package:flipper_services/locator.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<Api>(returnNullOnMissingStub: true),
+  MockSpec<Remote>(returnNullOnMissingStub: true),
+  MockSpec<FirebaseMessaging>(returnNullOnMissingStub: true),
   MockSpec<ProductService>(returnNullOnMissingStub: true),
   MockSpec<KeyPadService>(returnNullOnMissingStub: true),
   MockSpec<SettingsService>(returnNullOnMissingStub: true),
@@ -48,7 +54,7 @@ Api getAndRegisterApi(
     ),
   );
 
-  when(service.businesses()).thenAnswer((_) async => businesses!);
+  when(service.businesses()).thenAnswer((_) async => [businessMockData]);
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
   when(service.getCustomProductVariant())
@@ -65,6 +71,16 @@ Api getAndRegisterApi(
   }
   when(service.branches(businessId: anyNamed('businessId')))
       .thenAnswer((_) async => [branchMock]);
+  when(service.create(data: anyNamed('data'), endPoint: 'category'))
+      .thenAnswer((realInvocation) async => 200);
+  when(service.create(data: anyNamed('data'), endPoint: 'color'))
+      .thenAnswer((_) async => 200);
+
+  when(service.addUnits(data: anyNamed('data'))).thenAnswer((_) async => 200);
+  when(service.createProduct(product: anyNamed('product')))
+      .thenAnswer((_) async => customProductMock);
+  when(service.signup(business: anyNamed('business')))
+      .thenAnswer((_) async => 200);
   locator.registerSingleton<Api>(service);
   return service;
 }
@@ -113,6 +129,14 @@ ProductService getAndRegisterProductService(
   return service;
 }
 
+MockFirebaseMessaging getFirebaseMessaging() {
+  _removeRegistrationIfExists<FirebaseMessaging>();
+  final service = MockFirebaseMessaging();
+  locator.registerSingleton<FirebaseMessaging>(service);
+  when(service.getToken()).thenAnswer((_) async => 'token');
+  return service;
+}
+
 NavigationService getAndRegisterNavigationService() {
   _removeRegistrationIfExists<NavigationService>();
   final service = MockNavigationService();
@@ -124,9 +148,18 @@ MockFlipperLocation getAndRegisterLocationService() {
   _removeRegistrationIfExists<FlipperLocation>();
   final service = MockFlipperLocation();
   when(service.getLocation())
-      .thenAnswer((_) async => {'longitude': "0.0", 'latitude': " 0.0"});
+      .thenAnswer((_) async => {'longitude': "1.1", 'latitude': "1.1"});
   when(service.doWeHaveLocationPermission()).thenAnswer((_) async => false);
   locator.registerSingleton<FlipperLocation>(service);
+  return service;
+}
+
+MockRemote getAndRegisterRemoteConfig() {
+  _removeRegistrationIfExists<Remote>();
+  final service = MockRemote();
+  //some mocking here
+  when(service.isSubmitDeviceTokenEnabled()).thenAnswer((_) => false);
+  locator.registerSingleton<Remote>(service);
   return service;
 }
 
@@ -173,6 +206,8 @@ void registerServices() {
   getAndRegisterProductService();
   getAndRegisterKeyPadServiceUnmocked();
   getAndRegisterKeyPadService();
+  getFirebaseMessaging();
+  getAndRegisterRemoteConfig();
 }
 
 void unregisterServices() {

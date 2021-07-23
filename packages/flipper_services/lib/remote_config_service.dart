@@ -14,7 +14,8 @@ class RemoteConfigService implements Remote {
       'email_receipt': false,
       'add_customer_to_sale': false,
       'printer_receipt': false,
-      'force_remote_add_data': true
+      'force_remote_add_data': true,
+      'is_submit_device_token_enabled': false,
     });
   }
 
@@ -24,6 +25,11 @@ class RemoteConfigService implements Remote {
 
   bool isChatAvailable() {
     return remoteConfig.getBool('chat_feature');
+  }
+
+  @override
+  bool isSubmitDeviceTokenEnabled() {
+    return remoteConfig.getBool('is_submit_device_token_enabled');
   }
 
   void config() async {
@@ -103,6 +109,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool forceDateEntry() {
+    return false;
+  }
+
+  @override
+  bool isSubmitDeviceTokenEnabled() {
     return false;
   }
 }
