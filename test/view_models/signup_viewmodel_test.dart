@@ -1,6 +1,6 @@
 import 'package:flipper_models/view_models/signup_viewmodel.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_services/objectbox_api.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'dart:math';
@@ -37,6 +37,6 @@ void main() {
       await model.signup();
 
       verify(navigationService.navigateTo(Routes.home));
-    });
+    }, skip: kIsWeb);
   });
 }
