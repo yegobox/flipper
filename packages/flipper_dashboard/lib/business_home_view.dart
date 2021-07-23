@@ -189,7 +189,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   tab: model.tab,
                   payable: PayableView(
                     onClick: () {
-                      ProxyService.nav.navigateTo(Routes.pay);
+                      if (model.orders.length > 0) {
+                        ProxyService.nav.navigateTo(Routes.pay);
+                      } else {
+                        showSimpleNotification(
+                          Text('Ntabyo kwishyuzwa bihari'),
+                          background: Colors.green,
+                          position: NotificationPosition.bottom,
+                        );
+                      }
                     },
                     tickets: model.tickets.isEmpty
                         ? 0
@@ -210,11 +218,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       model.saveTicket((handle) {
                         if (handle == 'error') {
                           showSimpleNotification(
-                              Text(Localization.of(context)!.saveTicket),
-                              background: Colors.red);
+                            Text(Localization.of(context)!.saveTicket),
+                            background: Colors.red,
+                            position: NotificationPosition.bottom,
+                          );
                         } else if (handle == 'saved') {
-                          showSimpleNotification(Text('Note added'),
-                              background: Colors.green);
+                          showSimpleNotification(
+                            Text('Note added'),
+                            background: Colors.green,
+                            position: NotificationPosition.bottom,
+                          );
                         }
                       });
                     },
