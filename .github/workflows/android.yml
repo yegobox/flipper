@@ -2,7 +2,7 @@ name: App PlayStore Release
 
 on:
   push:
-    branches: [main, aurore, mobile]
+    branches: [main, mobile]
 jobs:
   # id of job, a string that is unique to the "jobs" node above.
   # https://github.com/ksheremet/flutter_actions/blob/master/.github/workflows/flutter-drive.yml
