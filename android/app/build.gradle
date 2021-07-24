@@ -47,11 +47,11 @@ android {
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // following this https://medium.com/codechai/flutter-app-couldnt-find-libflutter-so-c95ad81cbccd in fix of https://console.firebase.google.com/u/1/project/yegobox-2ee43/crashlytics/app/android:rw.flipper/issues/e97fecabf6b18259b9afff207a564318?time=last-seven-days&sessionEventKey=60FB532A01BE00011DC35EE37BBAD720_1566716303944361882
-        ndk {
-            abiFilters 'x86_64'
-            // more about abis: https://developer.android.com/ndk/guides/abis
-            // abiFilters 'armeabi-v7a'
-        }
+        // ndk {
+        //     abiFilters 'x86_64'
+        //     // more about abis: https://developer.android.com/ndk/guides/abis
+        //     // abiFilters 'armeabi-v7a'
+        // }
     }
     signingConfigs {
         firebaseCrashlytics {
