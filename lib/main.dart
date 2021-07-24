@@ -26,7 +26,7 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 
 // cd android && ./gradlew signingReport
 main() async {
-  // CouchbaseLite.initialize(libraries: flutterLibraries());
+  // CouchbaseLite.initialize(libraries: flutterLibraries())
 
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([

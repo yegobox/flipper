@@ -45,7 +45,7 @@ dependencies:
   stacked_firebase_auth: ^0.2.2+1
   cloud_firestore: ^1.0.1
   camera: ^0.8.0
-  awesome_notifications: ^0.0.6+7
+  awesome_notifications: ^0.0.6+10
   # geolocator:
   location: ^4.1.1
   # permission_handler:
@@ -155,6 +155,7 @@ dependencies:
   # flutter_chat_ui: ^1.1.8
   flutter_chat_ui:
     path: "open-sources/flutter_chat_ui"
+  qr_code_scanner: ^0.5.2
   # flutter_chat_ui:
   # cbl: ^0.6.0
   # cbl_flutter:
