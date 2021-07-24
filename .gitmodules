@@ -6,3 +6,8 @@
 	path = open-sources/flutter_chat_ui
 	url =https://github.com/yegobox/flutter_chat_ui.git
 	branch = main
+[submodule "Features"]
+	path = Features
+	url =https://github.com/yegobox/designDocs.git
+	branch = main
+	

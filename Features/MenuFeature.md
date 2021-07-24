@@ -1,5 +1,5 @@
 # Feature description
-    This is feature is for restaurants and hotels. to easy the process of creating orders.
+    This feature is for restaurants and hotels. to easy the process of creating orders.
     It will be used by the restaurants and hotels to create orders.
 # Menu
 A product can be added to the menu. when the product is added to the menu, it is displayed in the menu.
