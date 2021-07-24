@@ -114,7 +114,7 @@ jobs:
           channel: "master"
       - run: git submodule update --init
       - run: flutter pub get
-      - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
+      # - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
       - run: flutter build appbundle --no-tree-shake-icons
       - name: Create a Release in GitHub
         uses: ncipollo/release-action@v1
