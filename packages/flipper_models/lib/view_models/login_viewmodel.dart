@@ -10,6 +10,7 @@ final isWindows = UniversalPlatform.isWindows;
 
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
+
   bool loginStart = false;
   bool otpStart = false;
   final fb = locator<LoginStandard>();

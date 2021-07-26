@@ -47,10 +47,9 @@ android {
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // following this https://medium.com/codechai/flutter-app-couldnt-find-libflutter-so-c95ad81cbccd in fix of https://console.firebase.google.com/u/1/project/yegobox-2ee43/crashlytics/app/android:rw.flipper/issues/e97fecabf6b18259b9afff207a564318?time=last-seven-days&sessionEventKey=60FB532A01BE00011DC35EE37BBAD720_1566716303944361882
+        // this is much better but provide more
         ndk {
-             abiFilters 'armeabi-v7a','arm64-v8a','x86_64'  // see this https://flutter.dev/docs/deployment/android#what-are-the-supported-target-architectures
-            // more about abis: https://developer.android.com/ndk/guides/abis
-           
+            abiFilters "armeabi", "armeabi-v7a", 'arm64-v8a', 'x86_64'
         }
     }
     signingConfigs {
@@ -75,6 +74,9 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             // signingConfig signingConfigs.debug
             signingConfig signingConfigs.release
+            ndk {
+                abiFilters "armeabi", "armeabi-v7a", 'arm64-v8a', 'x86_64'
+            }
         }
     }
 }
