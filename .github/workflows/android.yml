@@ -34,6 +34,7 @@ jobs:
     name: Create version number
     # needs: [integrationTest]
     runs-on: windows-latest
+
     steps:
       - uses: actions/checkout@v1
       - name: Fetch all history for all tags and branches
@@ -82,17 +83,17 @@ jobs:
         env:
           FIREBASE_SECRET: ${{ secrets.FIREBASE_SECRET }}
         run: echo $FIREBASE_SECRET > android/app/google-services.json
-      - name: Get version.txt
-        uses: actions/download-artifact@v2
-        with:
-          name: gitversion
-      - name: Create new file without newline char from version.txt
-        run: tr -d '\n' < version.txt > version1.txt
-      - name: Read version
-        id: version
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: version1.txt
+      # - name: Get version.txt
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: gitversion
+      # - name: Create new file without newline char from version.txt
+      # run: tr -d '\n' < version.txt > version1.txt
+      # - name: Read version
+      #   id: version
+      #   uses: juliangruber/read-file-action@v1
+      #   with:
+      #     path: version1.txt
       - name: Update version in YAML
         run: sed -i 's/99.99.99+99/1.9.30+11123/g' pubspec.yaml
         # run: sed -i 's/99.99.99+99/${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
