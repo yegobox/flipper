@@ -152,6 +152,7 @@ class ObjectBoxApi implements Api {
     try {
       final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
       if (businessList.isEmpty) {
+        log.i(response.body);
         for (Business business in businessFromJson(response.body)) {
           final box = store.box<Business>();
           box.put(business);

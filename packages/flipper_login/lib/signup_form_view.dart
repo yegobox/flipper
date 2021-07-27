@@ -6,6 +6,7 @@ import 'signup_form_view.form.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 @FormView(fields: [
   FormTextField(name: 'name'),
@@ -79,9 +80,9 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                 ),
                 !model.registerStart
                     ? Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: ElevatedButton(
-                          onPressed: () {
+                        padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                        child: BoxButton(
+                          onTap: () {
                             // Validate returns true if the form is valid, or false otherwise.
                             if (_formKey.currentState!.validate()) {
                               Locale locale = Localizations.localeOf(context);
@@ -92,12 +93,12 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                               model.signup(locale: locale);
                             }
                           },
-                          child: Text('Register'),
+                          title: 'Register',
                         ),
                       )
                     : Padding(
                         key: Key('busyButon'),
-                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                        padding: EdgeInsets.only(left: 8.w, right: 8.w),
                         child: SizedBox(
                           width: double.infinity,
                           height: 60,

@@ -100,3 +100,4 @@ jobs:
           track: internal
           # c: true #set this for the current situation
           whatsNewDirectory: distribution/whatsnew
+# https://techcommunity.microsoft.com/t5/windows-dev-appconsult/enable-ci-cd-for-windows-apps-with-github-actions-and-azure/ba-p/1453991

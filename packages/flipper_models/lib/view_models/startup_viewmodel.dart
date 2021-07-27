@@ -22,7 +22,6 @@ class StartUpViewModel extends BaseViewModel {
       List<Business>? businesses = await ProxyService.api.businesses();
 
       isBusinessSet = (businesses.isNotEmpty) ? true : false;
-      int? businessId = ProxyService.box.read(key: 'businessId');
 
       if (isBusinessSet) {
         ProxyService.appService.setBusiness(businesses: businesses);
@@ -38,7 +37,7 @@ class StartUpViewModel extends BaseViewModel {
             value: businesses[0].businessUrl ??
                 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU');
         _navigationService.replaceWith(Routes.home);
-      } else if (businessId != null) {
+      } else {
         _navigationService.replaceWith(Routes.signup);
       }
     } else {
