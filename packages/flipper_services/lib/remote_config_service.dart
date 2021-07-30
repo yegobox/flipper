@@ -16,6 +16,7 @@ class RemoteConfigService implements Remote {
       'printer_receipt': false,
       'force_remote_add_data': true,
       'is_submit_device_token_enabled': false,
+      'analytic_feature_available': false,
     });
   }
 
@@ -63,6 +64,14 @@ class RemoteConfigService implements Remote {
   @override
   bool forceDateEntry() {
     return remoteConfig.getBool('force_remote_add_data');
+  }
+
+  @override
+  bool isAnalyticFeatureAvailable() {
+    if (kDebugMode) {
+      return true;
+    }
+    return remoteConfig.getBool('analytic_feature_available');
   }
 }
 
@@ -115,5 +124,13 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isSubmitDeviceTokenEnabled() {
     return false;
+  }
+
+  @override
+  bool isAnalyticFeatureAvailable() {
+    if (kDebugMode) {
+      return true;
+    }
+    return true;
   }
 }

@@ -13,18 +13,23 @@ class SettingViewModel extends ReactiveViewModel {
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
   final log = getLogger('SettingViewModel');
+  String defaultLanguage = 'en';
   //
-  Locale? klocale = null;
+  Locale klocale = Locale('en');
 
-  Locale? get locale => klocale;
+  Locale get locale => klocale;
 
-  Future<String?> getSetting() async {
-    return await ProxyService.box.read(key: 'defaultLanguage');
+  String? getSetting() {
+    defaultLanguage = ProxyService.box.read(key: 'defaultLanguage') ?? 'en';
+    klocale = Locale(defaultLanguage);
+    notifyListeners();
+    return defaultLanguage;
   }
 
   void setLanguage(String lang) {
     klocale = Locale(lang);
     ProxyService.box.write(key: 'defaultLanguage', value: lang);
+    defaultLanguage = lang;
     notifyListeners();
   }
 

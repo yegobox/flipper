@@ -9,6 +9,7 @@
 import 'package:flipper_chat/flipper_chat_app.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
+import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
@@ -52,6 +53,7 @@ class Routes {
   static const String collect = '/collect-cash-view';
   static const String afterSale = '/after-sale';
   static const String settings = '/settings-screen';
+  static const String analytics = '/Analytics';
   static const String customers = '/Customers';
   static const all = <String>{
     startUpView,
@@ -73,6 +75,7 @@ class Routes {
     collect,
     afterSale,
     settings,
+    analytics,
     customers,
   };
 }
@@ -100,6 +103,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.collect, page: CollectCashView),
     RouteDef(Routes.afterSale, page: AfterSale),
     RouteDef(Routes.settings, page: SettingsScreen),
+    RouteDef(Routes.analytics, page: Analytics),
     RouteDef(Routes.customers, page: Customers),
   ];
   @override
@@ -262,6 +266,12 @@ class StackedRouter extends RouterBase {
     SettingsScreen: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => SettingsScreen(),
+        settings: data,
+      );
+    },
+    Analytics: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => Analytics(),
         settings: data,
       );
     },

@@ -2,7 +2,6 @@ import 'package:flipper/app_view_model.dart';
 import 'package:flipper/flipper_options.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_login/flipper_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -35,11 +34,8 @@ class _FlipperAppState extends State<FlipperApp> {
       return ViewModelBuilder<AppViewModel>.reactive(
           viewModelBuilder: () => AppViewModel(),
           onModelReady: (model) async {
-            String? defaultLanguage = await model.getSetting();
-            final locale = defaultLanguage == null
-                ? Locale('en')
-                : Locale(defaultLanguage);
-            model.setLocale(locale);
+            model.getSetting(); //load default language
+            model.setLocale(model.klocale);
           },
           builder: (context, model, child) {
             return OverlaySupport.global(

@@ -156,9 +156,10 @@ dependencies:
   flutter_chat_ui:
     path: "open-sources/flutter_chat_ui"
   qr_code_scanner: ^0.5.2
-  feather_icons: ^1.0.1
+  feather_icons: ^1.1.0-nullsafety.0
   ionicons: ^0.1.2
   ant_icons: ^2.0.0-nullsafety.0
+  fl_chart: ^0.36.3
   # flutter_chat_ui:
   # cbl: ^0.6.0
   # cbl_flutter:

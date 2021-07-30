@@ -4,6 +4,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
+import 'package:flipper_routing/routes.logger.dart';
 
 class LanguagesScreen extends StatefulWidget {
   @override
@@ -12,14 +13,18 @@ class LanguagesScreen extends StatefulWidget {
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
   int languageIndex = 0;
+  final log = getLogger('LanguagesScreen');
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
         viewModelBuilder: () => SettingViewModel(),
+        onModelReady: (model) {
+          model.getSetting();
+          log.i(model.getSetting());
+        },
         builder: (context, model, child) {
           return Scaffold(
-            // appBar: AppBar(title: Text('Languages')),
             appBar: CustomAppBar(
               onPop: () {
                 ProxyService.nav.back();
@@ -29,7 +34,6 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               onPressedCallback: () async {
                 ProxyService.nav.back();
               },
-              // rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
               bottomSpacer: 55,
@@ -39,21 +43,24 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                 SettingsSection(tiles: [
                   SettingsTile(
                     title: "English",
-                    trailing: trailingWidget(0),
+                    trailing:
+                        trailingWidget(model.defaultLanguage == 'en' ? 0 : 1),
                     onPressed: (BuildContext context) {
                       changeLanguage(0, model);
                     },
                   ),
                   SettingsTile(
                     title: "Ikinyarwanda",
-                    trailing: trailingWidget(1),
+                    trailing:
+                        trailingWidget(model.defaultLanguage == 'fr' ? 0 : 1),
                     onPressed: (BuildContext context) {
                       changeLanguage(1, model);
                     },
                   ),
                   SettingsTile(
                     title: "Swahili",
-                    trailing: trailingWidget(3),
+                    trailing:
+                        trailingWidget(model.defaultLanguage == 'sw' ? 0 : 1),
                     onPressed: (BuildContext context) {
                       changeLanguage(3, model);
                     },
@@ -82,9 +89,9 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           break;
         case 1:
           // this is english save it as we know it!
-          model.setLanguage('be');
+          model.setLanguage('fr');
           model.updateSettings(
-              map: {'defaultLanguage': 'be'}); // for kinyarwanda
+              map: {'defaultLanguage': 'fr'}); // for kinyarwanda
           break;
         case 3:
           // this is english save it as we know it!

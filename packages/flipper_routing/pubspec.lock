@@ -43,6 +43,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  ant_icons:
+    dependency: transitive
+    description:
+      name: ant_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0-nullsafety.0"
   archive:
     dependency: transitive
     description:
@@ -84,7 +91,7 @@ packages:
       name: awesome_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.6+9"
+    version: "0.0.6+10"
   barcode:
     dependency: transitive
     description:
@@ -407,6 +414,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
+  feather_icons:
+    dependency: transitive
+    description:
+      name: feather_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   ffi:
     dependency: transitive
     description:
@@ -639,9 +653,9 @@ packages:
   flutter_chat_ui:
     dependency: transitive
     description:
-      name: flutter_chat_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/flutter_chat_ui"
+      relative: true
+    source: path
     version: "1.1.8"
   flutter_country_picker:
     dependency: transitive
@@ -998,6 +1012,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.3"
+  ionicons:
+    dependency: transitive
+    description:
+      name: ionicons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.2"
   jiffy:
     dependency: transitive
     description:
@@ -1277,7 +1298,7 @@ packages:
       name: photo_view
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.1"
+    version: "0.12.0"
   platform:
     dependency: transitive
     description:
@@ -1341,6 +1362,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  qr_code_scanner:
+    dependency: transitive
+    description:
+      name: qr_code_scanner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.2"
   qr_flutter:
     dependency: transitive
     description:

@@ -1,37 +1,37 @@
 {
-    "save": "Bika",
+    "save": "Okoa",
     "@save": {
         "description": "The conventional newborn programmer greeting"
     },
-    "retailPrice": "Igiciro",
+    "retailPrice": "Retail price",
     "@retailPrice": {
         "description": "The conventional newborn programmer greeting"
     },
-    "supplyPrice": "Ikiranguzo",
+    "supplyPrice": "Supply Price",
     "@supplyPrice": {
         "description": "The conventional newborn programmer greeting"
     },
-    "currentSale": "Igurishwa ryubu",
+    "currentSale": "Uujuzi wa sasa",
     "@currentSale": {
         "description": "The conventional newborn programmer greeting"
     },
-    "addProduct": "Ongeramo ibicuruzwa",
+    "addProduct": "Ongeza bidhaa",
     "@addProduct": {
         "description": "The conventional newborn programmer greeting"
     },
-    "tickets": "Amatike",
+    "tickets": "Tiketi",
     "@tickets": {
         "description": "The conventional newborn programmer greeting"
     },
-    "charge": "kwishyuza",
+    "charge": "Malipo",
     "@charge": {
         "description": "The conventional newborn programmer greeting"
     },
-    "productName": "Product Name",
+    "productName": "Jina la bidhaa",
     "@productName": {
         "description": "The conventional newborn programmer greeting"
     },
-    "flipperSetting": "Flipper Settings",
+    "flipperSetting": "Mipangilio",
     "@flipperSetting": {
         "description": "The conventional newborn programmer greeting"
     },
@@ -39,8 +39,8 @@
     "@options": {
         "description": "Chaguzi"
     },
-    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
+    "saveTicket": "huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti",
     "@saveTicket": {
-        "description": "Amahitamo"
+        "description": "huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti"
     }
 }

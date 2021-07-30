@@ -11,6 +11,8 @@ import 'business_list.dart';
 import 'custom_widgets.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:ionicons/ionicons.dart';
+import 'package:ant_icons/ant_icons.dart';
 
 class FlipperDrawer extends StatefulWidget {
   FlipperDrawer({Key? key, required this.businesses}) : super(key: key);
@@ -26,7 +28,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
 
   ListTile _menuListRowButton(String title,
       {Function? onPressed,
-      int? icon,
+      IconData? icon,
       bool isEnable = true,
       required BuildContext context}) {
     return ListTile(
@@ -36,10 +38,10 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
         }
       },
       title: IconButton(
-        icon: const Icon(Icons.settings),
+        icon: Icon(icon ?? Icons.settings),
         tooltip: 'Settings',
         onPressed: () {
-          ProxyService.nav.navigateTo(Routes.settings);
+          onPressed!();
         },
       ),
       leading: customText(
@@ -168,7 +170,22 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             _menuListRowButton(
                               Localization.of(context)!.flipperSetting,
                               context: context,
+                              icon: AntIcons.setting,
+                              onPressed: () {
+                                ProxyService.nav.navigateTo(Routes.settings);
+                              },
                             ),
+                            const Divider(),
+                            if (ProxyService.remoteConfig
+                                .isAnalyticFeatureAvailable())
+                              _menuListRowButton(
+                                'Analytics',
+                                context: context,
+                                icon: Ionicons.analytics,
+                                onPressed: () {
+                                  ProxyService.nav.navigateTo(Routes.analytics);
+                                },
+                              ),
                             const Divider(),
                           ],
                         ),
