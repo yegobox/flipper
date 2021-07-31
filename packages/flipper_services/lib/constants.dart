@@ -1,6 +1,13 @@
+import 'package:flutter/material.dart';
+
 String appFont = 'HelveticaNeuea';
 String dbName = 'main';
 
+const double kPadding = 10.0;
+const Color purpleLight = Color(0XFF1e224c);
+const Color purpleDark = Color(0XFF0d193e);
+const Color orange = Color(0XFFec8d2f);
+const Color red = Color(0XFFf44336);
 // Copyright 2019 The Flutter team. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.

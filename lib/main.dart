@@ -42,7 +42,7 @@ main() async {
   setupLocator();
   //make sure we init db.
   //
-  ObjectBoxApi.getDir(dbName: 'db_1');
+  await ObjectBoxApi.getDir(dbName: 'db_1');
 
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
