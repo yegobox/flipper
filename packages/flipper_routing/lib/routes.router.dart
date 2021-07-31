@@ -6,7 +6,7 @@
 
 // ignore_for_file: public_member_api_docs
 
-import 'package:flipper_chat/flipper_chat_app.dart';
+import 'package:flipper_chat/lite/pages/lite.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
@@ -35,7 +35,7 @@ import 'package:stacked/stacked.dart';
 
 class Routes {
   static const String startUpView = '/';
-  static const String chat = '/flipper-chat-app';
+  static const String chat = '/Lite';
   static const String dashboard = '/dashboard-view';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
@@ -85,7 +85,7 @@ class StackedRouter extends RouterBase {
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
     RouteDef(Routes.startUpView, page: StartUpView),
-    RouteDef(Routes.chat, page: FlipperChatApp),
+    RouteDef(Routes.chat, page: Lite),
     RouteDef(Routes.dashboard, page: DashboardView),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
@@ -115,9 +115,9 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
-    FlipperChatApp: (data) {
+    Lite: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => FlipperChatApp(),
+        builder: (context) => const Lite(),
         settings: data,
       );
     },

@@ -24,7 +24,7 @@ class _FlipperChatAppState extends State<FlipperChatApp> {
   Widget getBody() {
     return IndexedStack(
       index: pageIndex,
-      children: [CallsPage(), ChatPage(), SettingsPage()],
+      children: [KCallsPage(), ChatPage(), SettingsPage()],
     );
   }
 

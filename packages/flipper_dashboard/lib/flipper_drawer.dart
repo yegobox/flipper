@@ -71,25 +71,15 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
       left: 0,
       child: Column(
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Social'),
-              Switch.adaptive(
-                value: isSwitched,
-                onChanged: (value) {
-                  setState(() {
-                    isSwitched = value;
-                    if (isSwitched) {
-                      ProxyService.box.write(key: pageKey, value: 'social');
-                      ProxyService.nav.navigateTo(Routes.startUpView);
-                    }
-                  });
-                },
-                activeTrackColor: Colors.yellow,
-                activeColor: Colors.orangeAccent,
-              ),
-            ],
+          _menuListRowButton(
+            'Flipper Social',
+            context: context,
+            icon: Ionicons.chatbox,
+            onPressed: () {
+              ProxyService.box.write(key: pageKey, value: 'social');
+
+              ProxyService.nav.navigateTo(Routes.startUpView);
+            },
           ),
           const Divider(height: 0),
           Row(

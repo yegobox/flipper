@@ -7,12 +7,12 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 
-class CallsPage extends StatefulWidget {
+class KCallsPage extends StatefulWidget {
   @override
-  _CallsPageState createState() => _CallsPageState();
+  _KCallsPageState createState() => _KCallsPageState();
 }
 
-class _CallsPageState extends State<CallsPage> {
+class _KCallsPageState extends State<KCallsPage> {
   int activeMenu = 0;
   @override
   Widget build(BuildContext context) {
@@ -21,6 +21,7 @@ class _CallsPageState extends State<CallsPage> {
       onModelReady: (model) {},
       builder: (context, model, child) {
         return Scaffold(
+          // backgroundColor: bgColor,
           backgroundColor: bgColor,
           appBar: getAppBar() as PreferredSizeWidget?,
           body: getBody(model: model),
@@ -102,61 +103,61 @@ class _CallsPageState extends State<CallsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "KDS",
-                style: TextStyle(
-                    fontSize: 23, color: white, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Container(
-                height: 38,
-                decoration: BoxDecoration(
-                    color: textfieldColor,
-                    borderRadius: BorderRadius.circular(10)),
-                child: TextField(
-                  style: TextStyle(color: white),
-                  cursorColor: primary,
-                  decoration: InputDecoration(
-                      prefixIcon:
-                          Icon(LineIcons.search, color: white.withOpacity(0.3)),
-                      border: InputBorder.none,
-                      hintText: "Search",
-                      hintStyle: TextStyle(
-                          color: white.withOpacity(0.3), fontSize: 17)),
-                ),
-              ),
-              SizedBox(
-                height: 25,
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        color: white.withOpacity(0.1), shape: BoxShape.circle),
-                    child: Center(
-                      child: Icon(
-                        Icons.video_call,
-                        color: primary,
-                        size: 25,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    "Create order",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: primary,
-                        fontWeight: FontWeight.w500),
-                  )
-                ],
-              )
+              // Text(
+              //   "KDS",
+              //   style: TextStyle(
+              //       fontSize: 23, color: white, fontWeight: FontWeight.bold),
+              // ),
+              // SizedBox(
+              //   height: 15,
+              // ),
+              // Container(
+              //   height: 38,
+              //   decoration: BoxDecoration(
+              //       color: textfieldColor,
+              //       borderRadius: BorderRadius.circular(10)),
+              //   child: TextField(
+              //     style: TextStyle(color: white),
+              //     cursorColor: primary,
+              //     decoration: InputDecoration(
+              //         prefixIcon:
+              //             Icon(LineIcons.search, color: white.withOpacity(0.3)),
+              //         border: InputBorder.none,
+              //         hintText: "Search",
+              //         hintStyle: TextStyle(
+              //             color: white.withOpacity(0.3), fontSize: 17)),
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: 25,
+              // ),
+              // Row(
+              //   children: [
+              //     Container(
+              //       width: 40,
+              //       height: 40,
+              //       decoration: BoxDecoration(
+              //           color: white.withOpacity(0.1), shape: BoxShape.circle),
+              //       child: Center(
+              //         child: Icon(
+              //           Icons.video_call,
+              //           color: primary,
+              //           size: 25,
+              //         ),
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //     Text(
+              //       "Create order",
+              //       style: TextStyle(
+              //           fontSize: 16,
+              //           color: primary,
+              //           fontWeight: FontWeight.w500),
+              //     )
+              //   ],
+              // )
             ],
           ),
         ),

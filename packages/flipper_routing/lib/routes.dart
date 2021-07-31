@@ -23,12 +23,14 @@ import 'package:flipper_dashboard/analytic.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_chat/flipper_chat_app.dart';
+import 'package:flipper_chat/lite/pages/lite.dart';
 
 @StackedApp(
   routes: [
     MaterialRoute(page: StartUpView, initial: true),
     // MaterialRoute(page: StartUpView),
-    MaterialRoute(page: FlipperChatApp, name: 'chat'),
+    // MaterialRoute(page: FlipperChatApp, name: 'chat'),
+    MaterialRoute(page: Lite, name: 'chat'),
     // MaterialRoute(page: FlipperChatApp, initial: true),
     MaterialRoute(page: DashboardView, name: 'dashboard'),
 

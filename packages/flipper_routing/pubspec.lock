@@ -420,7 +420,7 @@ packages:
       name: feather_icons
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.1.0-nullsafety.0"
   ffi:
     dependency: transitive
     description:
@@ -575,6 +575,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  fl_chart:
+    dependency: transitive
+    description:
+      name: fl_chart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.36.3"
   flipper:
     dependency: "direct main"
     description:
