@@ -1056,6 +1056,7 @@ class ObjectBoxApi implements Api {
     Business? business = store.box<Business>().get(myBusinessId!);
     final box = store.box<Message>();
     Message kMessage = Message(
+      status: false,
       createdAt: DateTime.now().toIso8601String(),
       lastActiveId: myBusinessId,
       message: message,

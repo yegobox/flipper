@@ -12,21 +12,22 @@ class Message {
       required this.createdAt,
       required this.receiverId,
       required this.senderId,
+      this.status = false,
+      this.senderImage,
       required this.senderName,
       required this.lastActiveId});
   @Id(assignable: true)
   int id;
   @Property(uid: 1)
   String message;
-  // @Property(uid: 2)
   String createdAt;
-  // @Property(uid: 2)
   int receiverId;
   int lastActiveId;
   @Property(uid: 2)
   int senderId;
   String senderName;
-
+  bool status;
+  String? senderImage;
   // add extra field
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -36,6 +37,8 @@ class Message {
       receiverId: json["receiverId"],
       lastActiveId: json["lastActiveId"],
       senderName: json["senderName"],
+      status: json["status"],
+      senderImage: json["senderImage"],
       senderId: json["senderId"]);
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
@@ -44,6 +47,8 @@ class Message {
         "createdAt": createdAt,
         "receiverId": receiverId,
         "lastActiveId": lastActiveId,
-        "senderId": senderId
+        "senderId": senderId,
+        "status": status,
+        "senderImage": senderImage
       };
 }

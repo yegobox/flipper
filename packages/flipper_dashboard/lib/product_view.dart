@@ -6,7 +6,6 @@ import 'package:flipper_models/product.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'custom_dropdown.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'product_row.dart';
 
 class ProductView extends StatefulWidget {

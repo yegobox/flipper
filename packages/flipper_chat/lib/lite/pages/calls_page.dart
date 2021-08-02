@@ -1,10 +1,11 @@
 import 'package:flipper_chat/lite/data.dart';
 import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_models/view_models/message_view_model.dart';
 
 class CallsPage extends StatelessWidget {
-  const CallsPage({Key? key}) : super(key: key);
-
+  CallsPage({Key? key, required this.model}) : super(key: key);
+  MessageViewModel model;
   @override
   Widget build(BuildContext context) {
     late bool callStatus = false;

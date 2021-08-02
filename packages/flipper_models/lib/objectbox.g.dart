@@ -756,7 +756,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(11, 412268228015472147),
+      lastPropertyId: const IdUid(13, 3550400819773032582),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -786,6 +786,16 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(11, 412268228015472147),
             name: 'senderName',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(12, 329309886203959362),
+            name: 'status',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(13, 3550400819773032582),
+            name: 'senderImage',
             type: 9,
             flags: 0)
       ],
@@ -1631,7 +1641,10 @@ ModelDefinition getObjectBoxModel() {
           final createdAtOffset = fbb.writeString(object.createdAt);
           final messageOffset = fbb.writeString(object.message);
           final senderNameOffset = fbb.writeString(object.senderName);
-          fbb.startTable(12);
+          final senderImageOffset = object.senderImage == null
+              ? null
+              : fbb.writeString(object.senderImage!);
+          fbb.startTable(14);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
@@ -1639,6 +1652,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addInt64(8, object.receiverId);
           fbb.addOffset(9, messageOffset);
           fbb.addOffset(10, senderNameOffset);
+          fbb.addBool(11, object.status);
+          fbb.addOffset(12, senderImageOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1656,6 +1671,10 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
               senderId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+              status: const fb.BoolReader()
+                  .vTableGet(buffer, rootOffset, 26, false),
+              senderImage: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 28),
               senderName:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
               lastActiveId:
@@ -2285,6 +2304,14 @@ class Message_ {
   /// see [Message.senderName]
   static final senderName =
       QueryStringProperty<Message>(_entities[11].properties[6]);
+
+  /// see [Message.status]
+  static final status =
+      QueryBooleanProperty<Message>(_entities[11].properties[7]);
+
+  /// see [Message.senderImage]
+  static final senderImage =
+      QueryStringProperty<Message>(_entities[11].properties[8]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.

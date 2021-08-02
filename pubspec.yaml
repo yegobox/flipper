@@ -225,7 +225,6 @@ flutter:
   assets:
     - assets/
     - assets/images/
-    - assets/images/2_challenge_whatsapp/
     - assets/icons/
     - vendor/
   fonts:

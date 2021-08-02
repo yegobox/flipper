@@ -3,48 +3,16 @@ import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flipper_chat/lite/pages/chat_page.dart';
 import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flipper_chat/lite/widgets/button_circle.dart';
-// import 'package:flipper_chat/widgets/navigation/right_to_left_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_models/view_models/message_view_model.dart';
 
 class GroupsPage extends StatelessWidget {
-  const GroupsPage({Key? key}) : super(key: key);
-
+  GroupsPage({Key? key, required this.model}) : super(key: key);
+  MessageViewModel model;
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Grupos',
-                      style: Helpers.txtDefault.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 25,
-                      ),
-                    ),
-                    Text(
-                      '3 Grupos Creados',
-                      style: Helpers.txtDefault,
-                    ),
-                  ],
-                ),
-              ),
-              ButtonCircle(
-                icon: Icons.archive,
-                backgroundColor: Colors.transparent,
-                onPressed: () {},
-              )
-            ],
-          ),
-        ),
         Expanded(
           child: ListView.builder(
             // itemExtent: 180,
@@ -166,7 +134,9 @@ class GroupsPage extends StatelessWidget {
                       onTap: () {
                         Navigator.of(context).push(
                           RightToLeftRoute(
-                            page: ChatPage(),
+                            page: ChatPage(
+                              model: model,
+                            ),
                           ),
                         );
                       },
