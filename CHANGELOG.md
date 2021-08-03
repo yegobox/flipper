@@ -1,0 +1,2 @@
+<!-- TODO: when a product added with no price it cause confusion in other product list -->
+<!-- TODO:when a product has no price is attempted to be sold it behaves abnormally when about to sale like showing that no item is choosen -->

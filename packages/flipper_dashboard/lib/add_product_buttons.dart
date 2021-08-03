@@ -38,18 +38,18 @@ class AddProductButtons extends StatelessWidget {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(8),
-                child: Container(
-                  color: Colors.white70,
-                  width: double.infinity,
-                  height: 40.h,
-                  child: OutlineButton(
-                    onPressed: () {},
-                    child: const Text('Create Discount'),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: EdgeInsets.all(8),
+              //   child: Container(
+              //     color: Colors.white70,
+              //     width: double.infinity,
+              //     height: 40.h,
+              //     child: OutlineButton(
+              //       onPressed: () {},
+              //       child: const Text('Create Discount'),
+              //     ),
+              //   ),
+              // ),
               Container(
                 width: double.infinity,
                 height: 40.h,

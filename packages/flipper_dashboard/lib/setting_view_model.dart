@@ -22,11 +22,9 @@ class SettingViewModel extends ReactiveViewModel {
   Locale? get locale => klocale;
 
   String? getSetting() {
-    defaultLanguage = ProxyService.box.read(key: 'defaultLanguage');
-    notifyListeners();
-    klocale = Locale(defaultLanguage ?? 'en');
+    klocale = Locale(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
 
-    return defaultLanguage;
+    return ProxyService.box.read(key: 'defaultLanguage');
   }
 
   void setLanguage(String lang) {
