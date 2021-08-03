@@ -12,6 +12,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flipper_dashboard/setting_view_model.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -31,11 +32,13 @@ class _FlipperAppState extends State<FlipperApp> {
       final FirebaseAnalyticsObserver observer =
           FirebaseAnalyticsObserver(analytics: analytics);
 
-      return ViewModelBuilder<AppViewModel>.reactive(
-          viewModelBuilder: () => AppViewModel(),
+      return ViewModelBuilder<SettingViewModel>.reactive(
+          viewModelBuilder: () => SettingViewModel(),
           onModelReady: (model) async {
-            model.getSetting(); //load default language
-            model.setLocale(model.klocale);
+            // model.getSetting();
+            String? defaultLanguage = await model.getSetting();
+
+            defaultLanguage == null ? Locale('en') : Locale(defaultLanguage);
           },
           builder: (context, model, child) {
             return OverlaySupport.global(
@@ -72,7 +75,8 @@ class _FlipperAppState extends State<FlipperApp> {
                   supportedLocales: AppLocalizations.supportedLocales,
                   // supportedLocales: FlipperLocalizations.supportedLocales,
                   // locale: FlipperOptions.of(context).locale,
-                  locale: model.locale, //belalus == rwanda language in our app
+                  locale: model.languageService
+                      .locale, //french == rwanda language in our app
                   localeResolutionCallback: (locale, supportedLocales) {
                     deviceLocale = locale!;
                     return locale;
@@ -85,13 +89,12 @@ class _FlipperAppState extends State<FlipperApp> {
             );
           });
     } else {
-      return ViewModelBuilder<AppViewModel>.reactive(
-        viewModelBuilder: () => AppViewModel(),
+      return ViewModelBuilder<SettingViewModel>.reactive(
+        viewModelBuilder: () => SettingViewModel(),
         onModelReady: (model) async {
           String? defaultLanguage = await model.getSetting();
-          final locale =
-              defaultLanguage == null ? Locale('be') : Locale(defaultLanguage);
-          model.setLocale(locale);
+
+          defaultLanguage == null ? Locale('en') : Locale(defaultLanguage);
         },
         builder: (context, model, child) {
           return OverlaySupport.global(
@@ -123,7 +126,8 @@ class _FlipperAppState extends State<FlipperApp> {
                 supportedLocales: AppLocalizations.supportedLocales,
                 // supportedLocales: FlipperLocalizations.supportedLocales,
                 // locale: FlipperOptions.of(context).locale,
-                locale: model.locale, //belalus == rwanda language in our app
+                locale: model.languageService
+                    .locale, //french == rwanda language in our app
                 localeResolutionCallback: (locale, supportedLocales) {
                   deviceLocale = locale!;
                   return locale;

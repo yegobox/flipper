@@ -7,6 +7,7 @@ import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
+import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
@@ -250,6 +251,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   KeyPadService get keypadService;
+
+  @lazySingleton
+  LanguageService get languageService;
 
   @lazySingleton
   SettingsService get settings;

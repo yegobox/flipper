@@ -8,6 +8,7 @@ import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/firestore_api.dart';
+import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
@@ -38,6 +39,8 @@ final UploadT _upload = locator<UploadT>();
 final AppService _appService = locator<AppService>();
 final ProductService _productService = locator<ProductService>();
 final KeyPadService _keypad = locator<KeyPadService>();
+final LanguageService _locale = locator<LanguageService>();
+// LanguageService
 final Remote _remoteConfig = locator<Remote>();
 final SettingsService _settings = locator<SettingsService>();
 final ReportService _reportService = locator<ReportService>();
@@ -64,6 +67,7 @@ abstract class ProxyService {
   static ProductService get productService => _productService;
   static UploadT get upload => _upload;
   static KeyPadService get keypad => _keypad;
+  static LanguageService get locale => _locale;
   static Remote get remoteConfig => _remoteConfig;
   static Analytic get analytics => _analytics;
   static SettingsService get settings => _settings;

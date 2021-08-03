@@ -43,26 +43,26 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                 SettingsSection(tiles: [
                   SettingsTile(
                     title: "English",
-                    trailing:
-                        trailingWidget(model.defaultLanguage == 'en' ? 0 : 1),
+                    trailing: trailingWidget(model.defaultLanguage == 'en'),
                     onPressed: (BuildContext context) {
-                      changeLanguage(0, model);
+                      model.setLanguage('en');
+                      model.updateSettings(map: {'defaultLanguage': 'en'});
                     },
                   ),
                   SettingsTile(
                     title: "Ikinyarwanda",
-                    trailing:
-                        trailingWidget(model.defaultLanguage == 'fr' ? 0 : 1),
+                    trailing: trailingWidget(model.defaultLanguage == 'fr'),
                     onPressed: (BuildContext context) {
-                      changeLanguage(1, model);
+                      model.setLanguage('fr');
+                      model.updateSettings(map: {'defaultLanguage': 'fr'});
                     },
                   ),
                   SettingsTile(
                     title: "Swahili",
-                    trailing:
-                        trailingWidget(model.defaultLanguage == 'sw' ? 0 : 1),
+                    trailing: trailingWidget(model.defaultLanguage == 'sw'),
                     onPressed: (BuildContext context) {
-                      changeLanguage(3, model);
+                      model.setLanguage('sw');
+                      model.updateSettings(map: {'defaultLanguage': 'sw'});
                     },
                   ),
                 ]),
@@ -72,32 +72,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         });
   }
 
-  Widget trailingWidget(int index) {
-    return (languageIndex == index)
-        ? Icon(Icons.check, color: Colors.blue)
-        : Icon(null);
-  }
-
-  void changeLanguage(int index, SettingViewModel model) {
-    setState(() {
-      languageIndex = index;
-      switch (index) {
-        case 0:
-          // this is english save it as we know it!
-          model.setLanguage('en');
-          model.updateSettings(map: {'defaultLanguage': 'en'});
-          break;
-        case 1:
-          // this is english save it as we know it!
-          model.setLanguage('fr');
-          model.updateSettings(
-              map: {'defaultLanguage': 'fr'}); // for kinyarwanda
-          break;
-        case 3:
-          // this is english save it as we know it!
-          model.setLanguage('sw');
-          model.updateSettings(map: {'defaultLanguage': 'sw'});
-      }
-    });
+  Widget trailingWidget(bool checked) {
+    return (checked) ? Icon(Icons.check, color: Colors.blue) : Icon(null);
   }
 }

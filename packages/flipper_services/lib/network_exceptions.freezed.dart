@@ -6,7 +6,7 @@ part of 'network_exceptions.dart';
 // **************************************************************************
 // FreezedGenerator
 // **************************************************************************
-//
+
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
