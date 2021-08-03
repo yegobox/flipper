@@ -69,10 +69,18 @@ class ProductViewModel extends ReactiveViewModel {
     return isTemp[0].id;
   }
 
+  void isPriceSet(bool bool) {
+    _price = bool;
+    _lock = !bool || _name == null;
+    notifyListeners();
+  }
+
+  bool _price = false;
+
   void setName({String? name}) {
     _name = name;
     final cleaned = name?.trim();
-    _lock = cleaned?.length == null || cleaned?.length == 0;
+    _lock = cleaned?.length == null || cleaned?.length == 0 || !_price;
     notifyListeners();
   }
 
@@ -111,10 +119,12 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void updateCategory({required Category category}) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
     for (Category category in categories) {
       if (category.focused) {
         Category cat = category;
         cat.focused = !cat.focused;
+        cat.fbranchId = branchId;
         cat.active = !cat.active;
         int categoryId = category.id;
         await ProxyService.api.update(
@@ -127,7 +137,7 @@ class ProductViewModel extends ReactiveViewModel {
     Category cat = category;
     cat.focused = !cat.focused;
     cat.active = !cat.active;
-
+    cat.fbranchId = branchId;
     int categoryId = category.id;
     await ProxyService.api.update(
       endPoint: 'category/$categoryId',

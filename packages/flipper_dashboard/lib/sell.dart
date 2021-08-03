@@ -243,6 +243,12 @@ class Sell extends StatelessWidget {
                         groupValue: model.checked,
                         onChanged: (value) {
                           model.toggleCheckbox(variantId: variant.id);
+                          model.loadVariantStock(variantId: variant.id);
+                          model.handleCustomQtySetBeforeSelectingVariation();
+                          log.i(model.quantity);
+                          model.keypad.setAmount(
+                              amount: variant.retailPrice * model.quantity);
+                          model.toggleCheckbox(variantId: variant.id);
                         },
                       ),
                     ]),

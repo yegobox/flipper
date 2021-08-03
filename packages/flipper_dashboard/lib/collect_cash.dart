@@ -107,6 +107,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     child: Container(
                                       width: double.infinity,
                                       child: TextFormField(
+                                        keyboardType: TextInputType.number,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyText1!

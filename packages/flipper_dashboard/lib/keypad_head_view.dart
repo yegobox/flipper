@@ -48,36 +48,37 @@ class KeyPadHead extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Expanded(
-                            child: Container(
-                          alignment: Alignment.center,
                           child: Container(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: TextField(
-                              keyboardType: TextInputType.text,
-                              cursorColor: Colors.black26,
-                              //will disable paste operation
-                              enableInteractiveSelection: false,
-                              focusNode: AlwaysDisabledFocusNode(),
-                              controller: controller,
-                              // onChanged: (value) => addNote = value,
-                              style: const TextStyle(
-                                color: Color(0xff3d454c),
-                                fontSize: 15,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: note ?? 'Add a note',
-                                border: InputBorder.none,
-                                hintStyle: const TextStyle(
-                                  color: Colors.black26,
+                            alignment: Alignment.center,
+                            child: Container(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: TextField(
+                                keyboardType: TextInputType.text,
+                                cursorColor: Colors.black26,
+                                //will disable paste operation
+                                enableInteractiveSelection: false,
+                                focusNode: AlwaysDisabledFocusNode(),
+                                controller: controller,
+                                // onChanged: (value) => addNote = value,
+                                style: const TextStyle(
+                                  color: Color(0xff3d454c),
                                   fontSize: 15,
-                                  fontFeatures: [
-                                    FontFeature.enable('sups'),
-                                  ],
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: note ?? 'Add a note',
+                                  border: InputBorder.none,
+                                  hintStyle: const TextStyle(
+                                    color: Colors.black26,
+                                    fontSize: 15,
+                                    fontFeatures: [
+                                      FontFeature.enable('sups'),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        )),
+                        ),
                         Expanded(
                           child: Text(
                             'FRw' + amount.toString(),

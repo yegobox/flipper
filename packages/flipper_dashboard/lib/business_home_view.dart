@@ -221,10 +221,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       }
                       model.saveTicket((handle) {
                         if (handle == 'error') {
-                          showSimpleNotification(
-                            Text(Localization.of(context)!.saveTicket),
-                            background: Colors.red,
-                            position: NotificationPosition.bottom,
+                          //show the modal to add a not to a ticket here
+                          FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                            model: model,
+                            context: context,
                           );
                         } else if (handle == 'saved') {
                           showSimpleNotification(

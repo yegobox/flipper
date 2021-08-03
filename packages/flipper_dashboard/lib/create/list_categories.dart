@@ -97,9 +97,10 @@ class ListCategories extends StatelessWidget {
                   ),
                 ),
                 CategoryList(
-                    categories: model.categories,
-                    context: context,
-                    model: model),
+                  categories: model.categories,
+                  context: context,
+                  model: model,
+                ),
               ],
             ),
           );

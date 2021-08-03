@@ -16,6 +16,7 @@ import 'customappbar.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:intl/intl.dart';
 
 class AddProductView extends StatelessWidget {
@@ -125,9 +126,13 @@ class AddProductView extends StatelessWidget {
                   verticalSpaceSmall,
                   verticalSpaceSmall,
                   RetailPrice(onModelUpdate: (value) {
-                    if (value.length > 0) {
+                    String trimed = value.trim();
+                    if (trimed.length > 0) {
+                      model.isPriceSet(true);
                       model.updateRegularVariant(
                           retailPrice: double.parse(value));
+                    } else {
+                      model.isPriceSet(false);
                     }
                   }),
                   verticalSpaceSmall,

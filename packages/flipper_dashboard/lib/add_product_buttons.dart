@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -17,49 +17,31 @@ class AddProductButtons extends StatelessWidget {
           child: Column(
             // mainAxisSize: MainAxisSize.max,
             children: <Widget>[
-              Container(
-                width: double.infinity,
-                height: 45.h,
-                child: Padding(
-                  padding: EdgeInsets.all(8),
-                  child: FlatButton(
-                    color: Theme.of(context)
-                        .copyWith(canvasColor: HexColor('#0097e6'))
-                        .canvasColor,
-                    onPressed: () async {
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: Container(
+                  color: Colors.white70,
+                  width: double.infinity,
+                  height: 40.h,
+                  child: BoxButton(
+                    onTap: () {
                       ProxyService.nav.navigateTo(Routes.product);
                     },
-                    child: Text(
-                      'Add Product',
-                      style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                            color: Colors.white,
-                          ),
-                    ),
+                    title: 'Add Product',
                   ),
                 ),
               ),
-              // Padding(
-              //   padding: EdgeInsets.all(8),
-              //   child: Container(
-              //     color: Colors.white70,
-              //     width: double.infinity,
-              //     height: 40.h,
-              //     child: OutlineButton(
-              //       onPressed: () {},
-              //       child: const Text('Create Discount'),
-              //     ),
-              //   ),
-              // ),
-              Container(
-                width: double.infinity,
-                height: 40.h,
-                child: Padding(
-                  padding: EdgeInsets.all(8),
-                  child: FlatButton(
-                    child: const Text('Dismiss'),
-                    onPressed: () {
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: Container(
+                  color: Colors.white70,
+                  width: double.infinity,
+                  height: 40.h,
+                  child: BoxButton.outline(
+                    onTap: () {
                       ProxyService.nav.back();
                     },
+                    title: 'Dismiss',
                   ),
                 ),
               )

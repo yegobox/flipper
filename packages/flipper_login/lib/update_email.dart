@@ -60,7 +60,8 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
               Stack(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    padding: const EdgeInsets.only(
+                        left: 8.0, right: 8.0, bottom: 20),
                     child: SizedBox(
                       width: double.infinity,
                       height: 60,
