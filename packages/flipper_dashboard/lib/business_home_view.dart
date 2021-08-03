@@ -165,7 +165,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           scaffoldKey: _scaffoldKey,
           sideOpenController: _sideOpenController,
           child: SaleIndicator(
-            totalAmount: 300,
             counts: model.countedOrderItems,
             onClick: () {
               if (model.countedOrderItems > 0) {
@@ -207,7 +206,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ? model.orders[0].orderItems
                             .fold(0, (a, b) => a + b.price)
                         : 0.00,
-                    ticketHandler: () {
+                    ticketHandler: () async {
+                      log.i(model.orders.length);
+                      log.i(model.tickets.length);
+                      await model.keypad.getTickets();
+                      await model.keypad.getOrders(
+                          branchId: ProxyService.box.read(key: 'branchId'));
                       if (model.orders.isEmpty && model.tickets.isNotEmpty) {
                         //then we know we need to resume.
                         FlipperBottomSheet.showTicketsToSaleBottomSheet(

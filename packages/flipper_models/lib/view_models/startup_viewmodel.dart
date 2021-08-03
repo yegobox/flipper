@@ -50,15 +50,17 @@ class StartUpViewModel extends BaseViewModel {
 
   /// get IDS to use along the way in the app
   appInit() async {
-    if (appService.hasLoggedInUser) {
+    if (ProxyService.box.read(key: 'branchId') != null ||
+        ProxyService.box.read(key: 'businessId') != null) return;
+    if (appService.isLoggedIn()) {
       List<Business>? businesses = await ProxyService.api.businesses();
 
       if (businesses.isNotEmpty) {
         log.i(businesses[0].id);
         List<Branch> branches =
             await ProxyService.api.branches(businessId: businesses[0].id);
-        // log.i('BranchId', branches[0].id);
-        // log.i('BusinessId', businesses[0].id);
+        log.i(branches[0].id);
+        log.i(businesses[0].id);
         ProxyService.box.write(key: 'branchId', value: branches[0].id);
         ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       }

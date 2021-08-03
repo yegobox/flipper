@@ -88,7 +88,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await ProxyService.keypad.getTickets();
   }
 
-  void getOrders() async {
+  Future<void> getOrders() async {
     int branchId = ProxyService.box.read(key: 'branchId');
     List<OrderF> od = await ProxyService.keypad.getOrders(branchId: branchId);
 
@@ -97,6 +97,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else {
       keypad.setCount(count: 0);
     }
+    notifyListeners();
   }
 
   /// the function is useful on completing a sale since we need to look for this past order
@@ -143,7 +144,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       //delete the order too!
       ProxyService.api.delete(id: orders[0].id, endPoint: 'order');
     }
-    getOrders();
+    await getOrders();
     return false;
   }
 
@@ -258,9 +259,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         .collectCashPayment(cashReceived: payableAmount, order: orders[0]);
   }
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
-
   void registerLocation() async {
     final permission = await ProxyService.location.doWeHaveLocationPermission();
     if (permission) {
@@ -328,7 +326,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
     ProxyService.api.update(data: map, endPoint: 'order');
     //refresh order afterwards
-    getOrders();
+    await getOrders();
   }
 
   Future resumeOrder({required int ticketId}) async {
@@ -336,6 +334,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Map map = Korders[0]!.toJson();
     map['status'] = pendingStatus;
     await ProxyService.api.update(data: map, endPoint: 'order');
-    getOrders();
+    await keypad.getTickets();
+    await keypad.getOrders(branchId: ProxyService.box.read(key: 'branchId'));
+    await getOrders();
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
 }

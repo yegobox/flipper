@@ -8,12 +8,11 @@ final isAndroid = UniversalPlatform.isAndroid;
 class SaleIndicator extends StatelessWidget {
   const SaleIndicator(
       {Key? key,
-      this.totalAmount = 0,
       this.counts = 0,
       required this.onClick,
       required this.onLogout})
       : super(key: key);
-  final double totalAmount;
+
   final int counts;
   final Function onClick;
   final Function onLogout;
@@ -35,7 +34,7 @@ class SaleIndicator extends StatelessWidget {
                 onPressed: () {
                   onClick();
                 },
-                child: totalAmount == 0
+                child: counts == 0
                     ? Text(
                         'No Sale',
                         style: Theme.of(context).textTheme.headline4!.copyWith(

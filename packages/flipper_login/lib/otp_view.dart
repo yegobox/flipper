@@ -56,7 +56,7 @@ class _OtpViewState extends State<OtpView> {
                               margin:
                                   EdgeInsets.fromLTRB(2.5.w, 0.h, 2.5.w, 0.w),
                               child: Text(
-                                'Otp Received',
+                                'Code Received',
                                 style: TextStyle(
                                     color: Colors.blue,
                                     fontSize: 14.sp,

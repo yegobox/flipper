@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/order.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'add_product_buttons.dart';
 import 'custom_rect_tween.dart';
@@ -268,7 +269,11 @@ class _DesktopViewState extends State<DesktopView> {
                                   ? widget.model.orders[0].orderItems
                                       .fold(0, (a, b) => a + b.price)
                                   : 0.00,
-                              ticketHandler: () {
+                              ticketHandler: () async {
+                                widget.model.keypad.getTickets();
+                                widget.model.keypad.getOrders(
+                                    branchId:
+                                        ProxyService.box.read(key: 'branchId'));
                                 if (widget.model.orders.isEmpty &&
                                     widget.model.tickets.isNotEmpty) {
                                   //then we know we need to resume.
