@@ -66,9 +66,10 @@ void main() {
       expect(model.lock, true);
     });
 
-    test('When name is given lock should be removed to enable save', () async {
+    test('When name and price is given lock should be removed to enable save', () async {
       final model = _getModel();
       model.setName(name: 'richie');
+      model.isPriceSet(true);
       expect(model.lock, false);
     });
   });
