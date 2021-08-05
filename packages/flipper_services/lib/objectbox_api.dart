@@ -703,6 +703,9 @@ class ObjectBoxApi implements Api {
           'amount': amount.toString(),
           'message': 'Pay ' + businessName,
           'phoneNumber': '+25' + phoneNumber,
+          'paymentType': 'SPENN',
+          'itemName': '', //TODOget this item name from the item being sold
+          'note': '', //TODOget this note from the item being sold
           'uid': userId,
           'userId': userId
         },
@@ -1141,6 +1144,15 @@ class ObjectBoxApi implements Api {
         .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == productId)
+        .toList();
+  }
+
+  @override
+  Future<List<OrderF>> getOrderByStatus({required String status}) async {
+    return store
+        .box<OrderF>()
+        .getAll()
+        .where((v) => v.status == status)
         .toList();
   }
 }

@@ -89,4 +89,5 @@ abstract class Api<T> {
   Future<List<OrderF>> getOrderById({required int id});
   Future<List<OrderF>> tickets();
   Future<List<Variant>> getVariantByProductId({required int productId});
+  Future<List<OrderF>> getOrderByStatus({required String status});
 }

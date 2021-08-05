@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 String appFont = 'HelveticaNeuea';
 String dbName = 'main';
-
+String parkedStatus = 'parked';
+String pendingStatus = 'pending';
+String completeStatus = 'complete';
 const double kPadding = 10.0;
 const Color purpleLight = Color(0XFF1e224c);
 const Color purpleDark = Color(0XFF0d193e);

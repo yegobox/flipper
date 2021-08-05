@@ -124,6 +124,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         model.getTickets();
         // implement review system.
         ProxyService.review.review();
+        // schedule the report
+        ProxyService.report.schedule();
       },
       builder: (context, model, child) {
         if (isWindows || isMacOs) {

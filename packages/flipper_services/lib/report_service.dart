@@ -1,7 +1,12 @@
 import 'package:cron/cron.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_routing/routes.logger.dart';
 
 class ReportService {
   final cron = Cron();
+  final log = getLogger('flipper.services.report');
 
   /// This is the report mainly for yegobox|flipper business
   /// the report shall help the company know what customers are selling
@@ -20,10 +25,14 @@ class ReportService {
   void customerBasedReport() {
     //TODOcheck if the user has email' in his settings
   }
-  scheduleReport() {
+  schedule() {
     cron.schedule(Schedule.parse('1-5 * * * *'), () async {
-      // print('every three minutes');
-      // TODOget the sale done and send them on the server. for analytics!
+      log.i('raport scheduled..');
+      //TODO: load the sales report and sump them to api which will also dump them in shared customer sheets
+      //look where we have order is completed from the db
+      List<OrderF> completed_orders =
+          await ProxyService.api.getOrderByStatus(status: completeStatus);
+      //send http request with json as body to the api
     });
   }
 }

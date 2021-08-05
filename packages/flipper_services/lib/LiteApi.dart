@@ -751,4 +751,10 @@ class LiteApi<T> implements Api {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<OrderF>> getOrderByStatus({required String status}) {
+    // TODO: implement getOrderByStatus
+    throw UnimplementedError();
+  }
 }
