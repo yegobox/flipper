@@ -20,8 +20,8 @@ class InAppReviewService implements Review {
     Random rnd = new Random();
     int min = 8, max = 42;
     int r = min + rnd.nextInt(max - min);
-    // TODO: replace 2 by r once tested on production that they can review.
-    if (2.isEven) {
+
+    if (r.isEven) {
       //this is to occasionally show the rating of flipper to the user
       if (await inAppReview.isAvailable()) {
         inAppReview.requestReview();

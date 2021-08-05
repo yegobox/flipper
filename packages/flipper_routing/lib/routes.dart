@@ -116,3 +116,7 @@ class AppSetup {
 // TODO: implement geofancing of businesses and customers 
 // https://pub.dev/packages/geofence_service (if I am near a shop in 100 metters to receive advert of business willing to offer me deal)
 // a user will set the price he is willing to pay and item then he get adverts related to the settings.
+
+
+// masterting analytics
+// https://medium.com/flutterdevs/firebase-analytics-2044e865efc4
