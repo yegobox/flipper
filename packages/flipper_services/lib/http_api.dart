@@ -22,7 +22,7 @@ import 'package:uuid/uuid.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/variants.dart';
-
+import 'package:flipper_services/constants.dart';
 import 'constants.dart';
 
 class ExtendedClient extends http.BaseClient {
@@ -480,6 +480,12 @@ class HttpApi<T> implements Api {
   @override
   Future<List<Variant>> getVariantByProductId({required int productId}) {
     // TODO: implement getVariantByProductId
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<OrderF>> getOrderByStatus({required String status}) {
+    // TODO: implement getOrderByStatus
     throw UnimplementedError();
   }
 }

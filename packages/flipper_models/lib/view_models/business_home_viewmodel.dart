@@ -12,6 +12,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/constants.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   final log = getLogger('BusinessHomeViewModel');
