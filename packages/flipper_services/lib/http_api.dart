@@ -407,7 +407,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<Setting> getSetting({required int userId}) {
+  Setting? getSetting({required int userId}) {
     // TODO: implement getSetting
     throw UnimplementedError();
   }
@@ -486,6 +486,18 @@ class HttpApi<T> implements Api {
   @override
   Future<List<OrderF>> getOrderByStatus({required String status}) {
     // TODO: implement getOrderByStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> createGoogleSheetDoc() {
+    // TODO: implement createGoogleSheetDoc
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> sendReport({required List<OrderF> orders}) {
+    // TODO: implement sendReport
     throw UnimplementedError();
   }
 }

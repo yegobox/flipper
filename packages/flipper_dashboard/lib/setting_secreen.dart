@@ -6,7 +6,7 @@ import 'package:flipper_login/update_printer_settings.dart';
 import 'languages_screen.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:overlay_support/overlay_support.dart';
 import 'setting_view_model.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -15,12 +15,15 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool lockInBackground = true;
+  bool lockInBackground = false;
   bool notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
+      onModelReady: (model) {
+        model.settings();
+      },
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
@@ -36,14 +39,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             multi: 3,
             bottomSpacer: 50,
           ),
-          body: buildSettingsList(),
+          body: buildSettingsList(model: model),
         );
       },
       viewModelBuilder: () => SettingViewModel(),
     );
   }
 
-  Widget buildSettingsList() {
+  Widget buildSettingsList({required SettingViewModel model}) {
     return SettingsList(
       sections: [
         SettingsSection(
@@ -64,15 +67,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: 'Local',
               leading: Icon(Icons.cloud_queue),
             ),
-            // SettingsTile(
-            //   title: 'Printing',
-            //   subtitle: 'Auto',
-            //   leading: Icon(Icons.print),
-            //   onPressed: (context) {
-            //     //open printing configuration.
-            //     showPrinterSetupModal();
-            //   },
-            // ),
           ],
         ),
         SettingsSection(
@@ -89,51 +83,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // SettingsTile(title: 'Sign out', leading: Icon(Icons.exit_to_app)),
           ],
         ),
-        // SettingsSection(
-        //   title: 'Security',
-        //   tiles: [
-        // SettingsTile.switchTile(
-        //   title: 'Lock app in background',
-        //   leading: Icon(Icons.phonelink_lock),
-        //   switchValue: lockInBackground,
-        //   onToggle: (bool value) {
-        //     setState(() {
-        //       lockInBackground = value;
-        //       notificationsEnabled = value;
-        //     });
-        //   },
-        // ),
-        // SettingsTile.switchTile(
-        //     title: 'Use fingerprint',
-        //     subtitle: 'Allow application to access stored fingerprint IDs.',
-        //     leading: Icon(Icons.fingerprint),
-        //     onToggle: (bool value) {},
-        //     switchValue: false),
-        // SettingsTile.switchTile(
-        //   title: 'Change password',
-        //   leading: Icon(Icons.lock),
-        //   switchValue: true,
-        //   onToggle: (bool value) {},
-        // ),
-        // SettingsTile.switchTile(
-        //   title: 'Enable Notifications',
-        //   enabled: notificationsEnabled,
-        //   leading: Icon(Icons.notifications_active),
-        //   switchValue: true,
-        //   onToggle: (value) {},
-        // ),
-        //   ],
-        // ),
-        // SettingsSection(
-        //   title: 'Misc',
-        //   tiles: [
-        //     SettingsTile(
-        //         title: 'Terms of Service', leading: Icon(Icons.description)),
-        //     SettingsTile(
-        //         title: 'Open source licenses',
-        //         leading: Icon(Icons.collections_bookmark)),
-        //   ],
-        // ),
+        SettingsSection(
+          title: 'Security',
+          tiles: [
+            SettingsTile.switchTile(
+              title: 'Enable printer',
+              leading: Icon(Icons.print),
+              switchValue: model.enablePrinter,
+              onToggle: (bool value) {
+                model.enablePrint();
+              },
+            ),
+            SettingsTile.switchTile(
+              title: 'Send daily report',
+              leading: Icon(Icons.analytics),
+              switchValue: model.sendDailReport,
+              onToggle: (bool value) {
+                model.enableDailyReport(() {
+                  showSimpleNotification(
+                    Text('You need to add email first'),
+                    background: Colors.red,
+                    position: NotificationPosition.bottom,
+                  );
+                });
+              },
+            )
+          ],
+        ),
       ],
     );
   }

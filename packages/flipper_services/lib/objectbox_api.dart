@@ -700,6 +700,8 @@ class ObjectBoxApi implements Api {
     });
     final response = await client.post(Uri.parse("$flipperApi/pay"),
         body: {
+          // add the business owner phone number
+          'userPhone': ProxyService.box.read(key: 'userPhone'),
           'amount': amount.toString(),
           'message': 'Pay ' + businessName,
           'phoneNumber': '+25' + phoneNumber,
@@ -914,11 +916,13 @@ class ObjectBoxApi implements Api {
         data.forEach((key, value) {
           map[key] = value;
         });
-        log.i(map['autoPrint']);
+
         Setting Ksetting = Setting(
             email: map['email'],
             hasPin: map['hasPin'],
             defaultLanguage: map['defaultLanguage'],
+            googleSheetDocCreated: map['googleSheetDocCreated'],
+            sendDailyReport: map['sendDailyReport'],
             userId: map['userId'],
             openReceiptFileOSaleComplete: map['openReceiptFileOSaleComplete'],
             autoPrint: map['autoPrint'],
@@ -979,7 +983,7 @@ class ObjectBoxApi implements Api {
   }
 
   @override
-  Future<Setting?> getSetting({required int userId}) async {
+  Setting? getSetting({required int userId}) {
     final box = store.box<Setting>();
     Query<Setting> query = box.query(Setting_.userId.equals(userId)).build();
     return query.findFirst();
@@ -1154,5 +1158,23 @@ class ObjectBoxApi implements Api {
         .getAll()
         .where((v) => v.status == status)
         .toList();
+  }
+
+  @override
+  Future<void> sendReport({required List<OrderF> orders}) async {
+    await client.post(Uri.parse("$apihub/v2/api/report"),
+        body: jsonEncode(orders),
+        headers: {'Content-Type': 'application/json'});
+  }
+
+  @override
+  Future<void> createGoogleSheetDoc() async {
+    Business? business = getBusiness();
+    String docName = business.name + '- Report';
+    Setting? setting =
+        getSetting(userId: int.parse(ProxyService.box.read(key: 'userId')));
+    await client.post(Uri.parse("$apihub/v2/api/createSheetDocument"),
+        body: jsonEncode({"title": docName, "shareToEmail": setting!.email}),
+        headers: {'Content-Type': 'application/json'});
   }
 }

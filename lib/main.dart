@@ -27,7 +27,6 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 // cd android && ./gradlew signingReport
 main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
-
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -40,8 +39,6 @@ main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
-  //make sure we init db.
-  //
   await ObjectBoxApi.getDir(dbName: 'db_1');
 
   runZonedGuarded<Future<void>>(() async {
@@ -53,10 +50,5 @@ main() async {
       ),
     );
     runApp(FlipperApp());
-    // await PusherBeams.start(env['PUSHER_KEY']);
-  }, (Object e, StackTrace s) async {
-    // (isAndroid || isMacOs)
-    // ? await FirebaseCrashlytics.instance.recordError(e, s)
-    // : '';
-  });
+  }, (Object e, StackTrace s) async {});
 }

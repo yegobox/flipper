@@ -263,10 +263,9 @@ class MockApi<T> extends _i1.Mock implements _i14.Api<T> {
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i15.Future<void>);
   @override
-  _i15.Future<_i21.Setting?> getSetting({int? userId}) =>
-      (super.noSuchMethod(Invocation.method(#getSetting, [], {#userId: userId}),
-              returnValue: Future<_i21.Setting?>.value())
-          as _i15.Future<_i21.Setting?>);
+  _i21.Setting? getSetting({int? userId}) =>
+      (super.noSuchMethod(Invocation.method(#getSetting, [], {#userId: userId}))
+          as _i21.Setting?);
   @override
   _i15.Future<_i21.Setting?> createSetting(
           {int? userId, _i21.Setting? setting}) =>
@@ -333,6 +332,12 @@ class MockApi<T> extends _i1.Mock implements _i14.Api<T> {
                   #getVariantByProductId, [], {#productId: productId}),
               returnValue: Future<List<_i7.Variant>>.value(<_i7.Variant>[]))
           as _i15.Future<List<_i7.Variant>>);
+  @override
+  _i15.Future<List<_i6.OrderF>> getOrderByStatus({String? status}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getOrderByStatus, [], {#status: status}),
+              returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
+          as _i15.Future<List<_i6.OrderF>>);
 }
 
 /// A class which mocks [Remote].
@@ -368,6 +373,10 @@ class MockRemote extends _i1.Mock implements _i24.Remote {
   @override
   bool forceDateEntry() =>
       (super.noSuchMethod(Invocation.method(#forceDateEntry, []),
+          returnValue: false) as bool);
+  @override
+  bool isAnalyticFeatureAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isAnalyticFeatureAvailable, []),
           returnValue: false) as bool);
   @override
   bool isSubmitDeviceTokenEnabled() =>
@@ -658,9 +667,24 @@ class MockKeyPadService extends _i1.Mock implements _i28.KeyPadService {
 /// See the documentation for Mockito's code generation for more information.
 class MockSettingsService extends _i1.Mock implements _i29.SettingsService {
   @override
+  _i12.Logger get log =>
+      (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
+          as _i12.Logger);
+  @override
   _i15.Future<bool> updateSettings({Map<dynamic, dynamic>? map}) =>
       (super.noSuchMethod(Invocation.method(#updateSettings, [], {#map: map}),
           returnValue: Future<bool>.value(false)) as _i15.Future<bool>);
+  @override
+  Map<String, dynamic> settings() =>
+      (super.noSuchMethod(Invocation.method(#settings, []),
+          returnValue: <String, dynamic>{}) as Map<String, dynamic>);
+  @override
+  void enableDailyReport() =>
+      super.noSuchMethod(Invocation.method(#enableDailyReport, []),
+          returnValueForMissingStub: null);
+  @override
+  void enablePrint() => super.noSuchMethod(Invocation.method(#enablePrint, []),
+      returnValueForMissingStub: null);
 }
 
 /// A class which mocks [LocalStorage].

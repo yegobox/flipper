@@ -804,7 +804,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(13, 8608507958994323678),
       name: 'Setting',
-      lastPropertyId: const IdUid(7, 2340950397470773920),
+      lastPropertyId: const IdUid(9, 307198340603284020),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -841,6 +841,16 @@ final _entities = <ModelEntity>[
             id: const IdUid(7, 2340950397470773920),
             name: 'defaultLanguage',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 94075064098112918),
+            name: 'sendDailyReport',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 307198340603284020),
+            name: 'googleSheetDocCreated',
+            type: 1,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1696,7 +1706,7 @@ ModelDefinition getObjectBoxModel() {
           final defaultLanguageOffset = object.defaultLanguage == null
               ? null
               : fbb.writeString(object.defaultLanguage!);
-          fbb.startTable(8);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, emailOffset);
           fbb.addOffset(2, hasPinOffset);
@@ -1704,6 +1714,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addBool(4, object.openReceiptFileOSaleComplete);
           fbb.addBool(5, object.autoPrint);
           fbb.addOffset(6, defaultLanguageOffset);
+          fbb.addBool(7, object.sendDailyReport);
+          fbb.addBool(8, object.googleSheetDocCreated);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1721,8 +1733,12 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 14),
               openReceiptFileOSaleComplete: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 12),
+              sendDailyReport: const fb.BoolReader()
+                  .vTableGetNullable(buffer, rootOffset, 18),
               defaultLanguage: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 16),
+              googleSheetDocCreated: const fb.BoolReader()
+                  .vTableGetNullable(buffer, rootOffset, 20),
               userId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
 
@@ -2342,6 +2358,14 @@ class Setting_ {
   /// see [Setting.defaultLanguage]
   static final defaultLanguage =
       QueryStringProperty<Setting>(_entities[12].properties[6]);
+
+  /// see [Setting.sendDailyReport]
+  static final sendDailyReport =
+      QueryBooleanProperty<Setting>(_entities[12].properties[7]);
+
+  /// see [Setting.googleSheetDocCreated]
+  static final googleSheetDocCreated =
+      QueryBooleanProperty<Setting>(_entities[12].properties[8]);
 }
 
 /// [Customer] entity fields to define ObjectBox queries.

@@ -23,7 +23,7 @@ class SettingViewModel extends ReactiveViewModel {
 
   String? getSetting() {
     klocale = Locale(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
-
+    setLanguage(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
     return ProxyService.box.read(key: 'defaultLanguage');
   }
 
@@ -46,6 +46,44 @@ class SettingViewModel extends ReactiveViewModel {
     String userId = ProxyService.box.read(key: 'userId');
     _setting = await ProxyService.api.getSetting(userId: int.parse(userId));
     notifyListeners();
+  }
+
+  bool sendDailReport = false;
+  bool enablePrinter = false;
+  void toggleSettings() {
+    sendDailReport = settingService.settings()['email'] != null &&
+        settingService.settings()['sendDailyReport'];
+    notifyListeners();
+    log.i(sendDailReport);
+    enablePrinter = settingService.settings()['autoPrint'] != null &&
+        settingService.settings()['autoPrint'];
+    log.i(enablePrinter);
+    notifyListeners();
+  }
+
+  Map<String, dynamic> settings() {
+    return settingService.settings();
+  }
+
+  //enable print
+  void enablePrint() {
+    settingService.enablePrint(bool: !enablePrinter);
+    toggleSettings();
+  }
+
+  void enableDailyReport(Function callback) {
+    //if contains email and the key is not null or empty
+    if (settings()['email'] != null && settings()['email'].length > 0) {
+      settingService.enableDailyReport(bool: !sendDailReport);
+      if (settings()['googleSheetDocCreated'] == null ||
+          settings()['googleSheetDocCreated'] == false) {
+        settingService.createGoogleSheetDoc();
+        ProxyService.api.createGoogleSheetDoc();
+      }
+      toggleSettings();
+    } else {
+      callback();
+    }
   }
 
   @override

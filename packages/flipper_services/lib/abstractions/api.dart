@@ -73,7 +73,7 @@ abstract class Api<T> {
       {required double cashReceived, required OrderF order});
 
 // app settings and users settings
-  Future<Setting?> getSetting({required int userId});
+  Setting? getSetting({required int userId});
 
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
@@ -90,4 +90,6 @@ abstract class Api<T> {
   Future<List<OrderF>> tickets();
   Future<List<Variant>> getVariantByProductId({required int productId});
   Future<List<OrderF>> getOrderByStatus({required String status});
+  Future<void> sendReport({required List<OrderF> orders});
+  Future<void> createGoogleSheetDoc();
 }

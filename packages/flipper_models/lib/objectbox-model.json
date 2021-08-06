@@ -784,7 +784,7 @@
     },
     {
       "id": "13:8608507958994323678",
-      "lastPropertyId": "7:2340950397470773920",
+      "lastPropertyId": "9:307198340603284020",
       "name": "Setting",
       "properties": [
         {
@@ -822,6 +822,16 @@
           "id": "7:2340950397470773920",
           "name": "defaultLanguage",
           "type": 9
+        },
+        {
+          "id": "8:94075064098112918",
+          "name": "sendDailyReport",
+          "type": 1
+        },
+        {
+          "id": "9:307198340603284020",
+          "name": "googleSheetDocCreated",
+          "type": 1
         }
       ],
       "relations": []

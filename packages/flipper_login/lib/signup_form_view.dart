@@ -26,9 +26,7 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
-            onPop: () {
-              // ProxyService.nav.back();
-            },
+            onPop: () {},
             title: '',
             showActionButton: false,
             onPressedCallback: () async {},
@@ -51,6 +49,11 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Name is required';
+                      }
+                      // adapt the cause where we send sms under the name of the business owner
+                      //the sms provider only accept 11 characters.
+                      if (value.length > 11) {
+                        return 'Name is too long';
                       }
                       return null;
                     },
