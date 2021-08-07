@@ -16,7 +16,7 @@ class SettingViewModel extends ReactiveViewModel {
   bool get updateStart => _updateStarted;
   final log = getLogger('SettingViewModel');
   String? defaultLanguage = null;
-  //
+
   Locale? klocale = null;
 
   Locale? get locale => klocale;
@@ -48,33 +48,23 @@ class SettingViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  bool sendDailReport = false;
-  bool enablePrinter = false;
   void toggleSettings() {
-    sendDailReport = settingService.settings()['email'] != null &&
-        settingService.settings()['sendDailyReport'];
-    notifyListeners();
-    log.i(sendDailReport);
-    enablePrinter = settingService.settings()['autoPrint'] != null &&
-        settingService.settings()['autoPrint'];
-    log.i(enablePrinter);
-    notifyListeners();
+    log.i('toggleSettings');
+    settingService.toggleSettings();
   }
 
   Map<String, dynamic> settings() {
     return settingService.settings();
   }
 
-  //enable print
   void enablePrint() {
-    settingService.enablePrint(bool: !enablePrinter);
+    settingService.enablePrint(bool: !settingService.enablePrinter);
     toggleSettings();
   }
 
   void enableDailyReport(Function callback) {
-    //if contains email and the key is not null or empty
     if (settings()['email'] != null && settings()['email'].length > 0) {
-      settingService.enableDailyReport(bool: !sendDailReport);
+      settingService.enableDailyReport(bool: !settingService.sendDailReport);
       if (settings()['googleSheetDocCreated'] == null ||
           settings()['googleSheetDocCreated'] == false) {
         settingService.createGoogleSheetDoc();

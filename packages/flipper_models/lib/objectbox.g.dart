@@ -206,7 +206,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(4, 1236114536079259166),
       name: 'OrderF',
-      lastPropertyId: const IdUid(17, 4542730526473935887),
+      lastPropertyId: const IdUid(18, 8708948374178397045),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -293,6 +293,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(17, 4542730526473935887),
             name: 'note',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(18, 8708948374178397045),
+            name: 'reported',
+            type: 1,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1150,7 +1155,7 @@ ModelDefinition getObjectBoxModel() {
           final tableOffset = fbb.writeString(object.table);
           final noteOffset =
               object.note == null ? null : fbb.writeString(object.note!);
-          fbb.startTable(18);
+          fbb.startTable(19);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, referenceOffset);
           fbb.addOffset(2, orderNumberOffset);
@@ -1168,6 +1173,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(14, tableOffset);
           fbb.addInt64(15, object.customerId);
           fbb.addOffset(16, noteOffset);
+          fbb.addBool(17, object.reported);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1203,10 +1209,11 @@ ModelDefinition getObjectBoxModel() {
                   const fb.StringReader().vTableGet(buffer, rootOffset, 28, ''),
               updatedAt: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 30),
+              reported: const fb.BoolReader()
+                  .vTableGetNullable(buffer, rootOffset, 38),
               table:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
-              note: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 36),
+              note: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 36),
               customerId: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 34));
           InternalToManyAccess.setRelInfo(
               object.orderItems,
@@ -1983,6 +1990,10 @@ class OrderF_ {
 
   /// see [OrderF.note]
   static final note = QueryStringProperty<OrderF>(_entities[3].properties[16]);
+
+  /// see [OrderF.reported]
+  static final reported =
+      QueryBooleanProperty<OrderF>(_entities[3].properties[17]);
 }
 
 /// [OrderItem] entity fields to define ObjectBox queries.

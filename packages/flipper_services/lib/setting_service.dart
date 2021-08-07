@@ -1,9 +1,18 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:stacked/stacked.dart';
 
-class SettingsService {
+class SettingsService with ReactiveServiceMixin {
   final log = getLogger('SettingsService');
+  //  bool sendDailReport = false;
+  final _enablePrinter = ReactiveValue<bool>(false);
+
+  bool get enablePrinter => _enablePrinter.value;
+
+  final _sendDailReport = ReactiveValue<bool>(false);
+
+  bool get sendDailReport => _sendDailReport.value;
   Future<bool> updateSettings({required Map map}) async {
     //todo: when no setting for this user create one with given detail
     //if the setting exist then update the given detail.
@@ -64,5 +73,16 @@ class SettingsService {
 
   void createGoogleSheetDoc() async {
     await updateSettings(map: {'googleSheetDocCreated': true});
+  }
+
+  void toggleSettings() {
+    _enablePrinter.value =
+        settings()['autoPrint'] != null && settings()['autoPrint'];
+    _sendDailReport.value =
+        settings()['email'] != null && settings()['sendDailyReport'];
+  }
+
+  SettingsService() {
+    listenToReactiveValues([_sendDailReport, _enablePrinter]);
   }
 }

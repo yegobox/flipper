@@ -22,7 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       onModelReady: (model) {
-        model.settings();
+        model.toggleSettings();
       },
       builder: (context, model, child) {
         return Scaffold(
@@ -89,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsTile.switchTile(
               title: 'Enable printer',
               leading: Icon(Icons.print),
-              switchValue: model.enablePrinter,
+              switchValue: model.settingService.enablePrinter,
               onToggle: (bool value) {
                 model.enablePrint();
               },
@@ -97,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsTile.switchTile(
               title: 'Send daily report',
               leading: Icon(Icons.analytics),
-              switchValue: model.sendDailReport,
+              switchValue: model.settingService.sendDailReport,
               onToggle: (bool value) {
                 model.enableDailyReport(() {
                   showSimpleNotification(

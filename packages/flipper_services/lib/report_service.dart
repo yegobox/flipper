@@ -35,14 +35,22 @@ class ReportService {
   //after demo i.e that time we will be sure that bluethooth is working
   // then we will customize invoice to match with actual data.
   schedule() {
-    if (settingService.enabledReport()) {
-      cron.schedule(Schedule.parse('1-5 * * * *'), () async {
-        log.i('raport processed..');
+    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      if (settingService.enabledReport()) {
         List<OrderF> completed_orders =
             await ProxyService.api.getOrderByStatus(status: completeStatus);
-
-        ProxyService.api.sendReport(orders: completed_orders);
-      });
-    }
+        log.i(completed_orders);
+        // loop all completed orders and and change each with reported = true
+        for (OrderF completed_order in completed_orders) {
+          completed_order.reported = true;
+          ProxyService.api
+              .update(data: completed_order.toJson(), endPoint: 'order');
+        }
+        if (completed_orders.isNotEmpty) {
+          log.i('raport processed..1/2');
+          ProxyService.api.sendReport(orders: completed_orders);
+        }
+      }
+    });
   }
 }

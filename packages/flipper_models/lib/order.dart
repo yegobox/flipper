@@ -35,6 +35,7 @@ class OrderF {
       required this.customerChangeDue,
       required this.createdAt,
       this.updatedAt,
+      this.reported,
       // required this.orderItems,
       required this.table,
       this.channels,
@@ -55,6 +56,7 @@ class OrderF {
   double customerChangeDue;
   String createdAt;
   String? updatedAt;
+  bool? reported;
 
   String table;
   @Transient()
@@ -76,6 +78,7 @@ class OrderF {
         status: json["status"],
         orderType: json["orderType"],
         active: json["active"],
+        reported: json["reported"],
         draft: json["draft"],
         subTotal: json["subTotal"],
         paymentType: json["paymentType"],
@@ -95,6 +98,7 @@ class OrderF {
         "orderNumber": orderNumber,
         "fbranchId": int.parse(fbranchId.toString()),
         "status": status,
+        "reported": reported,
         "orderType": orderType,
         "active": active,
         "draft": draft,

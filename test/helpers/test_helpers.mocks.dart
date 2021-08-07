@@ -338,6 +338,16 @@ class MockApi<T> extends _i1.Mock implements _i14.Api<T> {
               Invocation.method(#getOrderByStatus, [], {#status: status}),
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i15.Future<List<_i6.OrderF>>);
+  @override
+  _i15.Future<void> sendReport({List<_i6.OrderF>? orders}) =>
+      (super.noSuchMethod(Invocation.method(#sendReport, [], {#orders: orders}),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i15.Future<void>);
+  @override
+  _i15.Future<void> createGoogleSheetDoc() =>
+      (super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i15.Future<void>);
 }
 
 /// A class which mocks [Remote].
@@ -679,12 +689,21 @@ class MockSettingsService extends _i1.Mock implements _i29.SettingsService {
       (super.noSuchMethod(Invocation.method(#settings, []),
           returnValue: <String, dynamic>{}) as Map<String, dynamic>);
   @override
-  void enableDailyReport() =>
-      super.noSuchMethod(Invocation.method(#enableDailyReport, []),
+  void enableDailyReport({bool? bool}) => super.noSuchMethod(
+      Invocation.method(#enableDailyReport, [], {#bool: bool}),
+      returnValueForMissingStub: null);
+  @override
+  bool enabledReport() =>
+      (super.noSuchMethod(Invocation.method(#enabledReport, []),
+          returnValue: false) as bool);
+  @override
+  void enablePrint({bool? bool}) =>
+      super.noSuchMethod(Invocation.method(#enablePrint, [], {#bool: bool}),
           returnValueForMissingStub: null);
   @override
-  void enablePrint() => super.noSuchMethod(Invocation.method(#enablePrint, []),
-      returnValueForMissingStub: null);
+  void createGoogleSheetDoc() =>
+      super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
+          returnValueForMissingStub: null);
 }
 
 /// A class which mocks [LocalStorage].

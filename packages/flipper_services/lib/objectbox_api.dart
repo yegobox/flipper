@@ -397,7 +397,8 @@ class ObjectBoxApi implements Api {
       {required double cashReceived, required OrderF order}) async {
     Map data = order.toJson();
     data['cashReceived'] = cashReceived;
-    data['status'] = 'completed';
+    data['status'] = completeStatus;
+    data['reported'] = false;
     data['draft'] = false;
     final date = DateTime.now();
     final dueDate = date.add(Duration(days: 7));
@@ -897,6 +898,7 @@ class ObjectBoxApi implements Api {
           cashReceived: map['cashReceived'],
           customerId: map['customerId'],
           createdAt: map['createdAt'],
+          reported: map['reported'],
           customerChangeDue: map['customerChangeDue'],
           draft: map['draft'],
           orderNumber: map['orderNumber'],
@@ -1155,16 +1157,20 @@ class ObjectBoxApi implements Api {
   Future<List<OrderF>> getOrderByStatus({required String status}) async {
     return store
         .box<OrderF>()
-        .getAll()
-        .where((v) => v.status == status)
-        .toList();
+        .query(
+            OrderF_.status.equals(status).and((OrderF_.reported.equals(false))))
+        .build()
+        .find();
   }
 
   @override
   Future<void> sendReport({required List<OrderF> orders}) async {
-    await client.post(Uri.parse("$apihub/v2/api/report"),
+    final response = await client.post(Uri.parse("$apihub/v2/api/report"),
         body: jsonEncode(orders),
         headers: {'Content-Type': 'application/json'});
+    log.i(response.body);
+    log.i(orders);
+    log.i(jsonEncode(orders));
   }
 
   @override
