@@ -126,7 +126,7 @@ class ColorTile extends StatelessWidget {
                   children: [
                     SizedBox(
                       height: 50,
-                      width: 180,
+                      width: 140,
                       child: OutlineButton(
                         color: HexColor('#ecf0f1'),
                         child: const Text('Choose Photo'),
@@ -141,7 +141,7 @@ class ColorTile extends StatelessWidget {
                     ),
                     SizedBox(
                       height: 50,
-                      width: 180,
+                      width: 140,
                       child: OutlineButton(
                         color: HexColor('#ecf0f1'),
                         child: const Text('Take Photo'),

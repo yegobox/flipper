@@ -115,14 +115,17 @@ class MobileUpload implements UploadT {
       // print('uploadProgress:' + progress.toString());
     });
     uploader.result.listen((UploadTaskResponse result) async {
-      if (result.response != 'There are no items to upload') {
+      if (result.response != 'There are no items to upload' ||
+          result.response != null) {
         final UploadResponse uploadResponse =
             uploadResponseFromJson(result.response!);
         Product? product = await ProxyService.api.getProduct(id: productId);
         Map map = product!.toJson();
         map['picture'] = uploadResponse.url;
         map['imageUrl'] = uploadResponse.url;
-
+        map['hasPicture'] = true;
+        log.i(map);
+        log.i(productId);
         ProxyService.api.update(data: map, endPoint: 'product');
         Product? kProduct = await ProxyService.api.getProduct(id: productId);
         ProxyService.productService
