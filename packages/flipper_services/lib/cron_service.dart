@@ -1,14 +1,16 @@
 import 'package:cron/cron.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 
-class ReportService {
+class CronService {
   final cron = Cron();
   final settingService = locator<SettingsService>();
+  final printer = locator<Printer>();
   final log = getLogger('flipper.services.report');
 
   /// This is the report mainly for yegobox|flipper business
@@ -29,6 +31,13 @@ class ReportService {
   //bluethooth should search and auto connect to any near bluethoopt printer.
   //the setting should enable this i.e toggled to true i.e we will start the search process on app startup
   //the search process should be triggered by a button on the settings page
+  connectBlueToothPrinter() {
+    //this is the code to connect to bluetooth printer
+    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      log.i('start connecting bluethooth');
+      printer.connect();
+    });
+  }
 
   //the default file that will be generated and saved in known app folder
   //will be printed everytime a sales is complete for demo

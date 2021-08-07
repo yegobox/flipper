@@ -223,6 +223,7 @@ flutter_icons:
 flutter:
   uses-material-design: true
   assets:
+    - packages/flipper/assets/fliper-logo.png
     - assets/
     - assets/images/
     - assets/icons/

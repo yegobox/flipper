@@ -14,7 +14,7 @@ import 'package:flipper_services/pdf_invoice_api.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
-import 'package:flipper_services/report_service.dart';
+import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flutter/material.dart';
@@ -259,7 +259,7 @@ abstract class ThirdPartyServicesModule {
   SettingsService get settings;
 
   @lazySingleton
-  ReportService get report;
+  CronService get cron;
 
   @lazySingleton
   PdfInvoiceApi get pdfInvoice;
@@ -273,14 +273,14 @@ abstract class ThirdPartyServicesModule {
 
 class WindowsBlueToothPrinterService implements Printer {
   @override
-  Future<bool> connect({required String mac}) async {
+  Future<bool> connect() async {
     // TODO: implement connect
     // throw UnimplementedError();
     return false;
   }
 
   @override
-  Future<List?> getBluetooths() async {
+  Future<List?> blueTooths() async {
     // TODO: implement getBluetooths
     // throw UnimplementedError();
   }

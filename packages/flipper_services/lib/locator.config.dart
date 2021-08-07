@@ -30,7 +30,7 @@ import 'local_notification_service.dart' as _i13;
 import 'pdf_api.dart' as _i18;
 import 'pdf_invoice_api.dart' as _i19;
 import 'product_service.dart' as _i21;
-import 'report_service.dart' as _i23;
+import 'cron_service.dart' as _i23;
 import 'setting_service.dart' as _i25;
 import 'third_party_services_module.dart'
     as _i28; // ignore_for_file: unnecessary_lambdas
@@ -70,7 +70,7 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i21.ProductService>(
       () => thirdPartyServicesModule.productService);
   gh.lazySingleton<_i22.Remote>(() => thirdPartyServicesModule.remote);
-  gh.lazySingleton<_i23.ReportService>(() => thirdPartyServicesModule.report);
+  gh.lazySingleton<_i23.CronService>(() => thirdPartyServicesModule.cron);
   gh.lazySingleton<_i24.Review>(() => thirdPartyServicesModule.review);
   gh.lazySingleton<_i25.SettingsService>(
       () => thirdPartyServicesModule.settings);
@@ -97,7 +97,7 @@ class _$ThirdPartyServicesModule extends _i28.ThirdPartyServicesModule {
   @override
   _i21.ProductService get productService => _i21.ProductService();
   @override
-  _i23.ReportService get report => _i23.ReportService();
+  _i23.CronService get cron => _i23.CronService();
   @override
   _i25.SettingsService get settings => _i25.SettingsService();
 }

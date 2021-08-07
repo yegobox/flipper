@@ -12,7 +12,7 @@ import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
-import 'package:flipper_services/report_service.dart';
+import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -43,7 +43,7 @@ final LanguageService _locale = locator<LanguageService>();
 // LanguageService
 final Remote _remoteConfig = locator<Remote>();
 final SettingsService _settings = locator<SettingsService>();
-final ReportService _reportService = locator<ReportService>();
+final CronService _reportService = locator<CronService>();
 final PdfInvoiceApi _pdfInvoiceApi = locator<PdfInvoiceApi>();
 final PdfApi _pdfApi = locator<PdfApi>();
 final Printer _printService = locator<Printer>();
@@ -71,7 +71,7 @@ abstract class ProxyService {
   static Remote get remoteConfig => _remoteConfig;
   static Analytic get analytics => _analytics;
   static SettingsService get settings => _settings;
-  static ReportService get report => _reportService;
+  static CronService get cron => _reportService;
   static PdfInvoiceApi get pdfInvoice => _pdfInvoiceApi;
   static PdfApi get pdfApi => _pdfApi;
   static Printer get printer => _printService;

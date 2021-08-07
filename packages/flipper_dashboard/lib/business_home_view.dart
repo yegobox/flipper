@@ -116,7 +116,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.remoteConfig.config();
         ProxyService.remoteConfig.fetch();
         //connect to anyy available printer
-        ProxyService.printer.getBluetooths();
+        // ProxyService.printer.blueTooths();
         ProxyService.analytics.recordUser();
         ProxyService.forceDateEntry.caller();
         // init the crashlytics
@@ -125,7 +125,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         // implement review system.
         ProxyService.review.review();
         // schedule the report
-        ProxyService.report.schedule();
+        ProxyService.cron.schedule();
+        ProxyService.cron.connectBlueToothPrinter();
       },
       builder: (context, model, child) {
         if (isWindows || isMacOs) {

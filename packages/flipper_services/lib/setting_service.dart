@@ -67,6 +67,10 @@ class SettingsService with ReactiveServiceMixin {
     return settings()['email'] != null && settings()['sendDailyReport'];
   }
 
+  bool enabledPrint() {
+    return settings()['autoPrint'] != null && settings()['autoPrint'];
+  }
+
   void enablePrint({required bool bool}) async {
     await updateSettings(map: {'autoPrint': bool});
   }
