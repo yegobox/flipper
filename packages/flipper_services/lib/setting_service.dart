@@ -84,6 +84,7 @@ class SettingsService with ReactiveServiceMixin {
         settings()['autoPrint'] != null && settings()['autoPrint'];
     _sendDailReport.value =
         settings()['email'] != null && settings()['sendDailyReport'];
+    log.i(sendDailReport);
   }
 
   SettingsService() {

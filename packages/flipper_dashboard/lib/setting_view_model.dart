@@ -77,5 +77,5 @@ class SettingViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [languageService];
+  List<ReactiveServiceMixin> get reactiveServices => [languageService,settingService];
 }

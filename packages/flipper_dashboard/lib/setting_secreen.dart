@@ -86,14 +86,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         SettingsSection(
           title: 'Security',
           tiles: [
-            SettingsTile.switchTile(
-              title: 'Enable printer',
-              leading: Icon(Icons.print),
-              switchValue: model.settingService.enablePrinter,
-              onToggle: (bool value) {
-                model.enablePrint();
-              },
-            ),
+            // SettingsTile.switchTile(
+            //   title: 'Enable printer',
+            //   leading: Icon(Icons.print),
+            //   switchValue: model.settingService.enablePrinter,
+            //   onToggle: (bool value) {
+            //     model.enablePrint();
+            //   },
+            // ),
             SettingsTile.switchTile(
               title: 'Send daily report',
               leading: Icon(Icons.analytics),
