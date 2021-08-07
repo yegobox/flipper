@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.10.4+11148/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.10.5+11149/g' pubspec.yaml
       - name: Update env URL
         run: sed -i 's/#{PUSHER_KEY}#/${{ secrets.PUSHER_KEY }}/g'  .env
       - uses: actions/setup-java@v1
@@ -72,14 +72,14 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: 1.10.4+11148
+          tag: 1.10.5+11149
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2
         with:
           name: appbundle
           path: build/app/outputs/bundle/release/app-release.aab
-  release:
+  release-internal:
     name: Release app to internal track
     needs: [build]
     runs-on: windows-latest
@@ -100,9 +100,30 @@ jobs:
           track: internal
           # c: true #set this for the current situation
           whatsNewDirectory: distribution/whatsnew
+  release-beta:
+    name: Release app to internal track
+    needs: [build]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Get appbundle from artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: appbundle
+      - name: Release app to internal track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          packageName: rw.flipper
+          releaseFiles: app-release.aab
+          # inAppUpdatePriority: 2
+          # userFraction: 0.33
+          track: beta
+          # c: true #set this for the current situation
+          whatsNewDirectory: distribution/whatsnew
   slackNotification:
     name: Slack Notification
-    needs: [release]
+    needs: [release-internal, release-beta]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
