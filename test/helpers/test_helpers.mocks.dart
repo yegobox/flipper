@@ -681,6 +681,14 @@ class MockSettingsService extends _i1.Mock implements _i29.SettingsService {
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
           as _i12.Logger);
   @override
+  bool get enablePrinter =>
+      (super.noSuchMethod(Invocation.getter(#enablePrinter), returnValue: false)
+          as bool);
+  @override
+  bool get sendDailReport => (super
+          .noSuchMethod(Invocation.getter(#sendDailReport), returnValue: false)
+      as bool);
+  @override
   _i15.Future<bool> updateSettings({Map<dynamic, dynamic>? map}) =>
       (super.noSuchMethod(Invocation.method(#updateSettings, [], {#map: map}),
           returnValue: Future<bool>.value(false)) as _i15.Future<bool>);
@@ -689,12 +697,17 @@ class MockSettingsService extends _i1.Mock implements _i29.SettingsService {
       (super.noSuchMethod(Invocation.method(#settings, []),
           returnValue: <String, dynamic>{}) as Map<String, dynamic>);
   @override
-  void enableDailyReport({bool? bool}) => super.noSuchMethod(
+  _i15.Future<void> enableDailyReport({bool? bool}) => (super.noSuchMethod(
       Invocation.method(#enableDailyReport, [], {#bool: bool}),
-      returnValueForMissingStub: null);
+      returnValue: Future<void>.value(),
+      returnValueForMissingStub: Future.value()) as _i15.Future<void>);
   @override
   bool enabledReport() =>
       (super.noSuchMethod(Invocation.method(#enabledReport, []),
+          returnValue: false) as bool);
+  @override
+  bool enabledPrint() =>
+      (super.noSuchMethod(Invocation.method(#enabledPrint, []),
           returnValue: false) as bool);
   @override
   void enablePrint({bool? bool}) =>
@@ -703,6 +716,27 @@ class MockSettingsService extends _i1.Mock implements _i29.SettingsService {
   @override
   void createGoogleSheetDoc() =>
       super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
+          returnValueForMissingStub: null);
+  @override
+  void toggleSettings() =>
+      super.noSuchMethod(Invocation.method(#toggleSettings, []),
+          returnValueForMissingStub: null);
+  @override
+  void listenToReactiveValues(List<dynamic>? reactiveValues) =>
+      super.noSuchMethod(
+          Invocation.method(#listenToReactiveValues, [reactiveValues]),
+          returnValueForMissingStub: null);
+  @override
+  void addListener(void Function()? listener) =>
+      super.noSuchMethod(Invocation.method(#addListener, [listener]),
+          returnValueForMissingStub: null);
+  @override
+  void removeListener(void Function()? listener) =>
+      super.noSuchMethod(Invocation.method(#removeListener, [listener]),
+          returnValueForMissingStub: null);
+  @override
+  void notifyListeners() =>
+      super.noSuchMethod(Invocation.method(#notifyListeners, []),
           returnValueForMissingStub: null);
 }
 
