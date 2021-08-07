@@ -59,7 +59,7 @@ class SettingsService with ReactiveServiceMixin {
     }
   }
 
-  void enableDailyReport({required bool bool}) async {
+  Future<void> enableDailyReport({required bool bool}) async {
     await updateSettings(map: {'sendDailyReport': bool});
   }
 

@@ -62,9 +62,10 @@ class SettingViewModel extends ReactiveViewModel {
     toggleSettings();
   }
 
-  void enableDailyReport(Function callback) {
+  void enableDailyReport(Function callback) async {
     if (settings()['email'] != null && settings()['email'].length > 0) {
-      settingService.enableDailyReport(bool: !settingService.sendDailReport);
+      await settingService.enableDailyReport(
+          bool: !settingService.sendDailReport);
       if (settings()['googleSheetDocCreated'] == null ||
           settings()['googleSheetDocCreated'] == false) {
         settingService.createGoogleSheetDoc();
@@ -77,5 +78,6 @@ class SettingViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [languageService,settingService];
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [languageService, settingService];
 }
