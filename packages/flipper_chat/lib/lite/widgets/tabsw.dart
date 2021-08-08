@@ -2,6 +2,7 @@ import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_services/constants.dart';
 
 class Tabs extends StatelessWidget {
   Tabs({
@@ -67,7 +68,7 @@ class BtnTab extends StatelessWidget {
                 alignment: Alignment.center,
                 borderRadius: BorderRadius.circular(50),
                 minSize: 0,
-                color: status ? Helpers.greenColor : Colors.white,
+                color: status ? primary : Colors.white,
                 onPressed: ontap,
               ),
             ),
@@ -81,7 +82,7 @@ class BtnTab extends StatelessWidget {
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: Helpers.greenColor,
+                      color: primary,
                       border: Border.all(color: Colors.white, width: 1.5),
                       shape: BoxShape.circle,
                     ),

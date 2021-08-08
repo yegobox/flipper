@@ -131,7 +131,7 @@ class _LiteState extends State<Lite> {
               height: 55,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Helpers.greenColor,
+                color: primary,
               ),
               margin: const EdgeInsets.only(right: 10),
               child: IconButton(

@@ -23,7 +23,7 @@ class AppBarW extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         'Flipper',
         style: TextStyle(
-            color: Helpers.greenColor,
+            color: primary,
             fontFamily: 'Konnect',
             fontWeight: FontWeight.bold,
             fontSize: 25),
