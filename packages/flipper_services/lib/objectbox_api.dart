@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_services/mobile_upload.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
@@ -46,7 +47,7 @@ import 'package:uuid/uuid.dart';
 final socketUrl = 'https://apihub.yegobox.com/ws-message';
 late Store store;
 
-class ObjectBoxApi implements Api {
+class ObjectBoxApi extends MobileUpload implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
 
   String flipperApi = "https://flipper.yegobox.com";
@@ -1182,5 +1183,26 @@ class ObjectBoxApi implements Api {
     await client.post(Uri.parse("$apihub/v2/api/createSheetDocument"),
         body: jsonEncode({"title": docName, "shareToEmail": setting!.email}),
         headers: {'Content-Type': 'application/json'});
+  }
+
+  ///in normal case the business is arleady streamed to users() method.
+  ///but there is case when is not, then we fetch it first using http and
+  ///only insert it to the store. only if it does not exist. and we do this only if there
+  ///is internet. because the method can take some time. it is advised to schedule it
+  ///in cron so it can run in app backgroup like every hour.
+  @override
+  Future<List<Business>> contacts() async {
+    bool isInternetAvaible = await isInternetAvailable();
+    List<Business> businesses = store.box<Business>().getAll().toList();
+    if (isInternetAvaible) {
+      final response = await client.get(Uri.parse("$apihub/v2/api/users"));
+      for (Business business in businessFromJson(response.body)) {
+        if (!businesses.contains(business)) {
+          final box = store.box<Business>();
+          box.put(business);
+        }
+      }
+    }
+    return businesses;
   }
 }

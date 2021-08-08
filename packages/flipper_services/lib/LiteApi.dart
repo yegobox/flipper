@@ -769,4 +769,10 @@ class LiteApi<T> implements Api {
     // TODO: implement sendReport
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<Business>> contacts() {
+    // TODO: implement contacts
+    throw UnimplementedError();
+  }
 }

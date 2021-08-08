@@ -75,6 +75,14 @@ class AppService with ReactiveServiceMixin {
     return _loggedIn;
   }
 
+  final _contacts = ReactiveValue<List<Business>>([]);
+  List<Business> get contacts => _contacts.value;
+
+  ///contact are business in other words
+  loadContacts() async {
+    _contacts.value = await ProxyService.api.contacts();
+  }
+
   AppService() {
     listenToReactiveValues(
         [_categories, _units, _colors, _currentColor, _businesses]);

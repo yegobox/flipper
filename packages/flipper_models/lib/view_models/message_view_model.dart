@@ -1,8 +1,14 @@
+import 'package:flipper_models/business.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_chat/lite/common/index.dart';
+import 'package:azlistview/azlistview.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/app_service.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class MessageViewModel extends BusinessHomeViewModel {
   //save chat_data in a list
@@ -153,6 +159,59 @@ class MessageViewModel extends BusinessHomeViewModel {
 
   void receiveOrder({required int chatId}) {}
 
+  List<Contact> originList = [];
+  final appService = locator<AppService>();
+  List<Contact> dataList = [];
+  final ItemScrollController itemScrollController = ItemScrollController();
+
+  void loadData() async {
+    appService.loadContacts();
+    originList = appService.contacts.map((v) {
+      Contact model = Contact.fromJson(v.toJson());
+      log.i(v.toJson());
+      String tag = model.name.substring(0, 1).toUpperCase();
+      if (RegExp("[A-Z]").hasMatch(tag)) {
+        model.tagIndex = tag;
+      } else {
+        model.tagIndex = "#";
+      }
+      return model;
+    }).toList();
+    _handleList(originList);
+  }
+
+  void _handleList(List<Contact> list) {
+    dataList.clear();
+    if (ObjectUtil.isEmpty(list)) {
+      // setState(() {});
+      return;
+    }
+    dataList.addAll(list);
+
+    // A-Z sort.
+    SuspensionUtil.sortListBySuspensionTag(dataList);
+
+    // show sus tag.
+    SuspensionUtil.setShowSuspensionStatus(dataList);
+
+    if (itemScrollController.isAttached) {
+      itemScrollController.jumpTo(index: 0);
+    }
+    notifyListeners();
+  }
+
+  void search(String text) {
+    if (ObjectUtil.isEmpty(text)) {
+      _handleList(originList);
+    } else {
+      List<Contact> list = originList.where((v) {
+        return v.name.toLowerCase().contains(text.toLowerCase());
+      }).toList();
+      _handleList(list);
+    }
+    notifyListeners();
+  }
+
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [];
+  List<ReactiveServiceMixin> get reactiveServices => [appService];
 }

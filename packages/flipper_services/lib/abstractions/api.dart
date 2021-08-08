@@ -79,7 +79,17 @@ abstract class Api<T> {
       {required int userId, required Setting setting});
   Stream<List<Message>> messages({int? receiverId});
   void sendMessage({required int receiverId, required String message});
+
+  /// we treat all business as users and as contact at the same time
+  /// this is because a business act as point of contact for a user
+  /// and we do not to refer to the business phone number to send messages
+  /// we only care about name, this deliver from our core mission that
+  /// we want to make communication easy for business and users i.e customers
+  ///
   Stream<List<Business>> users();
+  //the method is not different from users, but users is for streaming users being added
+  //to connected devices, while this method is for getting all users using List<Business>
+  Future<List<Business>> contacts();
 
   Business getBusiness();
   Customer? addCustomer({required Map customer, required int orderId});
