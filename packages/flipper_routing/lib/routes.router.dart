@@ -6,6 +6,7 @@
 
 // ignore_for_file: public_member_api_docs
 
+import 'package:flipper_chat/lite/pages/contact_page.dart';
 import 'package:flipper_chat/lite/pages/lite.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
@@ -36,6 +37,7 @@ import 'package:stacked/stacked.dart';
 class Routes {
   static const String startUpView = '/';
   static const String chat = '/Lite';
+  static const String contacts = '/contact-page';
   static const String dashboard = '/dashboard-view';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
@@ -58,6 +60,7 @@ class Routes {
   static const all = <String>{
     startUpView,
     chat,
+    contacts,
     dashboard,
     signup,
     home,
@@ -86,6 +89,7 @@ class StackedRouter extends RouterBase {
   final _routes = <RouteDef>[
     RouteDef(Routes.startUpView, page: StartUpView),
     RouteDef(Routes.chat, page: Lite),
+    RouteDef(Routes.contacts, page: ContactPage),
     RouteDef(Routes.dashboard, page: DashboardView),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
@@ -118,6 +122,18 @@ class StackedRouter extends RouterBase {
     Lite: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => const Lite(),
+        settings: data,
+      );
+    },
+    ContactPage: (data) {
+      var args = data.getArgs<ContactPageArguments>(
+        orElse: () => ContactPageArguments(),
+      );
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => ContactPage(
+          key: args.key,
+          fromType: args.fromType,
+        ),
         settings: data,
       );
     },
@@ -291,6 +307,13 @@ class StackedRouter extends RouterBase {
 /// ************************************************************************
 /// Arguments holder classes
 /// *************************************************************************
+
+/// ContactPage arguments holder class
+class ContactPageArguments {
+  final Key? key;
+  final int? fromType;
+  ContactPageArguments({this.key, this.fromType});
+}
 
 /// SignUpFormView arguments holder class
 class SignUpFormViewArguments {

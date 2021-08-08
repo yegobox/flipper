@@ -100,17 +100,17 @@ jobs:
           track: internal
           # c: true #set this for the current situation
           whatsNewDirectory: distribution/whatsnew
-      - name: Release app to internal beta
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-          packageName: rw.flipper
-          releaseFiles: app-release.aab
-          # inAppUpdatePriority: 2
-          # userFraction: 0.33
-          track: beta
-          # c: true #set this for the current situation
-          whatsNewDirectory: distribution/whatsnew
+      # - name: Release app to internal beta
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+      #     packageName: rw.flipper
+      #     releaseFiles: app-release.aab
+      #     # inAppUpdatePriority: 2
+      #     # userFraction: 0.33
+      #     track: beta
+      #     # c: true #set this for the current situation
+      #     whatsNewDirectory: distribution/whatsnew
   slackNotification:
     name: Slack Notification
     needs: [release-internal]

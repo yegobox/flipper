@@ -16,6 +16,14 @@ List<Business> businessFromJson(String str) =>
 String businessToJson(List<Business> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+/// A business object. which in some case act as contact
+/// in flipper we believe that to talk to business should be as easy as walk to the business to shop
+/// the conversation should be open and easy to track
+/// we give the business and customers the best way to keep this convesation open and convenient
+/// with that being said to talk to a business you do not need their phone number etc...
+/// you just need a name and maybe also be in same area(location)
+/// it is in this regards business is a contact
+
 @Entity()
 class Business {
   Business({
@@ -37,7 +45,6 @@ class Business {
     required this.type,
     this.active = false,
   });
-// TODO:add active propety in the API
   @Id(assignable: true)
   int id;
   String name;
@@ -59,25 +66,23 @@ class Business {
   String type;
   bool? active;
 
-  factory Business.fromJson(Map<String, dynamic> json) => Business(
-        id: json["id"],
-        name: json["name"],
-        currency: json["currency"],
-        fcategoryId: json["fcategoryId"],
-        latitude: json["latitude"],
-        longitude: json["longitude"],
-        userId: json["userId"].toString(),
-        typeId: json["typeId"],
-        timeZone: json["timeZone"],
-        // channels: List<String>.from(json["channels"].map((x) => x)),
-        table: json["table"],
-        country: json["country"],
-        businessUrl: json["businessUrl"],
-        hexColor: json["hexColor"],
-        image: json["image"],
-        type: json["type"],
-        active: json["active"],
-      );
+  Business.fromJson(Map<String, dynamic> json)
+      : id = json["id"],
+        name = json["name"],
+        currency = json["currency"],
+        fcategoryId = json["fcategoryId"],
+        latitude = json["latitude"],
+        longitude = json["longitude"],
+        userId = json["userId"].toString(),
+        typeId = json["typeId"],
+        timeZone = json["timeZone"],
+        table = json["table"],
+        country = json["country"],
+        businessUrl = json["businessUrl"],
+        hexColor = json["hexColor"],
+        image = json["image"],
+        type = json["type"],
+        active = json["active"];
 
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),

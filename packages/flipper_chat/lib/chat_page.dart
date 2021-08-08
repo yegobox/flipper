@@ -6,6 +6,7 @@ import 'package:flipper_chat/theme/colors.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:flipper_services/proxy.dart';
 
 class ChatPage extends StatefulWidget {
   @override
@@ -35,7 +36,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       actions: [
         IconButton(
-          onPressed: null,
+          onPressed: () {},
           icon: Icon(
             Icons.edit,
             color: primary,

@@ -1,7 +1,10 @@
 import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flipper_chat/lite/widgets/button_circle.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_services/proxy.dart';
 
 class AppBarW extends StatelessWidget implements PreferredSizeWidget {
   const AppBarW(this.title, {Key? key, this.btnBack = true})
@@ -32,14 +35,24 @@ class AppBarW extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () {},
           icon: CupertinoIcons.moon_fill,
         ),
-        ButtonCircle(
-          onPressed: () {},
-          icon: CupertinoIcons.search,
-        ),
-        ButtonCircle(
-          onPressed: () {},
-          icon: Icons.more_horiz,
-        ),
+        IconButton(
+          onPressed: () {
+            ProxyService.nav.navigateTo(Routes.contacts);
+          },
+          icon: Icon(
+            Icons.edit,
+            color: primary,
+          ),
+        )
+
+        // ButtonCircle(
+        //   onPressed: () {},
+        //   icon: CupertinoIcons.search,
+        // ),
+        // ButtonCircle(
+        //   onPressed: () {},
+        //   icon: Icons.more_horiz,
+        // ),
       ],
       automaticallyImplyLeading: false,
       leading: btnBack

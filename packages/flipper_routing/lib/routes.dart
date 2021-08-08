@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
+
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
@@ -22,8 +23,9 @@ import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_chat/flipper_chat_app.dart';
+// import 'package:flipper_chat/flipper_chat_app.dart';
 import 'package:flipper_chat/lite/pages/lite.dart';
+import 'package:flipper_chat/lite/pages/contact_page.dart';
 
 @StackedApp(
   routes: [
@@ -31,6 +33,7 @@ import 'package:flipper_chat/lite/pages/lite.dart';
     // MaterialRoute(page: StartUpView),
     // MaterialRoute(page: FlipperChatApp, name: 'chat'),
     MaterialRoute(page: Lite, name: 'chat'),
+    MaterialRoute(page: ContactPage, name: 'contacts'),
     // MaterialRoute(page: FlipperChatApp, initial: true),
     MaterialRoute(page: DashboardView, name: 'dashboard'),
 

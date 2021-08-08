@@ -3,6 +3,7 @@ import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flipper_chat/lite/pages/chat_page.dart';
 import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flutter/material.dart';
+// TODO: rename message_view_model to chatViewModel
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_models/message.dart';
 import 'package:timeago/timeago.dart' as timeago;
