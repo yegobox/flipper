@@ -2,7 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/json/chat_json.dart';
-import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter/services.dart' show rootBundle;

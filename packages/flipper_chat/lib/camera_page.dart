@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/constants.dart';
 
 class CameraPage extends StatefulWidget {
   @override

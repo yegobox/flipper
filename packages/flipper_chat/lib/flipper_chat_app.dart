@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/calls_page.dart';
 import 'package:flipper_chat/chat_page.dart';
-import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/constants.dart';
 
 class FlipperChatApp extends StatefulWidget {
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_chat/json/chat_json.dart';
-import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/constants.dart';
 
 class SettingsPage extends StatefulWidget {
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:flipper_chat/json/chat_json.dart';
-import 'package:flipper_chat/theme/colors.dart';
+import 'package:flipper_services/constants.dart';
 
 class StatusPage extends StatefulWidget {
   @override
