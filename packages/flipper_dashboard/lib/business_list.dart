@@ -14,31 +14,35 @@ class BusinessList extends StatelessWidget {
         children: <Widget>[
           Container(
             child: Column(children: <Widget>[
-              ..._buildSelectionHighlight(
-                  isSelected: false, circleColor: Colors.white),
-              const SizedBox(height: 1),
-              _selectableListItem(
-                userIcon: Image.asset('assets/fliper-logo.png'),
-                // userIcon: Text(
-                //   "Hello World".length > 2
-                //       ? "Hello World".substring(0, 3).toUpperCase()
-                //       : "Hello World".toUpperCase(),
-                // ),
-                isSquareShape: false,
-                action: () {},
-              ),
+              // ..._buildSelectionHighlight(
+              //     isSelected: false, circleColor: Colors.white),
+              const SizedBox(height: 70),
+              Container(
+                  width: 40,
+                  height: 40,
+                  child: Image.asset('assets/fliper-logo.png'))
+              // _selectableListItem(
+              //   userIcon: Image.asset('assets/fliper-logo.png'),
+              //   // userIcon: Text(
+              //   //   "Hello World".length > 2
+              //   //       ? "Hello World".substring(0, 3).toUpperCase()
+              //   //       : "Hello World".toUpperCase(),
+              //   // ),
+              //   isSquareShape: false,
+              //   action: () {},
+              // ),
             ]),
           ),
-          const SizedBox(height: 3),
-          Container(
-            color: Theme.of(context)
-                .copyWith(
-                  canvasColor: const Color.fromRGBO(33, 127, 125, 1.0),
-                )
-                .canvasColor,
-            height: _Style.separatorHeight,
-            width: _Style.separatorWidth,
-          ),
+          // const SizedBox(height: 3),
+          // Container(
+          //   color: Theme.of(context)
+          //       .copyWith(
+          //         canvasColor: const Color.fromRGBO(33, 127, 125, 1.0),
+          //       )
+          //       .canvasColor,
+          //   height: _Style.separatorHeight,
+          //   width: _Style.separatorWidth,
+          // ),
         ],
       ),
     );
@@ -131,9 +135,9 @@ class BusinessList extends StatelessWidget {
           children: <Widget>[
             Column(
               children: [
-                _buildFirstSectionFlipperLogo(context: context),
+                // _buildFirstSectionFlipperLogo(context: context),
                 Padding(
-                  padding: const EdgeInsets.only(top: 34.0),
+                  padding: const EdgeInsets.only(top: 60.0),
                   child: getRenderableBusinessList(
                     businesses: businesses,
                     context: context,

@@ -117,9 +117,11 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 onTap: () {
                   // drawerViewmodel.loginWithQr(context: context);
                 },
-                child: Image.asset(
-                  'assets/images/qr.png',
-                  height: 25,
+                child: CircleAvatar(
+                  child: Icon(
+                    Icons.center_focus_weak,
+                    color: primary,
+                  ),
                 ),
               ),
               const SizedBox(
