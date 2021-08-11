@@ -420,7 +420,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Stream<List<Message>> messages({int? receiverId}) {
+  Stream<List<Message>> getChats({int? receiverId}) {
     // TODO: implement messages
     throw UnimplementedError();
   }
@@ -504,6 +504,18 @@ class HttpApi<T> implements Api {
   @override
   Future<List<Business>> contacts() {
     // TODO: implement contacts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Message> getConversations({required int authorId}) {
+    // TODO: implement getMessage
+    throw UnimplementedError();
+  }
+
+  @override
+  Business getBusinessById({required int id}) {
+    // TODO: implement getBusinessById
     throw UnimplementedError();
   }
 }

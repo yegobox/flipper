@@ -16,13 +16,14 @@ class BusinessList extends StatelessWidget {
             child: Column(children: <Widget>[
               ..._buildSelectionHighlight(
                   isSelected: false, circleColor: Colors.white),
-              // const SizedBox(height: 1),
+              const SizedBox(height: 1),
               _selectableListItem(
-                userIcon: Text(
-                  "Hello World".length > 2
-                      ? "Hello World".substring(0, 3).toUpperCase()
-                      : "Hello World".toUpperCase(),
-                ),
+                userIcon: Image.asset('assets/fliper-logo.png'),
+                // userIcon: Text(
+                //   "Hello World".length > 2
+                //       ? "Hello World".substring(0, 3).toUpperCase()
+                //       : "Hello World".toUpperCase(),
+                // ),
                 isSquareShape: false,
                 action: () {},
               ),
@@ -123,7 +124,7 @@ class BusinessList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return Container(
       child: Container(
         color: HexColor('#130f1f'),
         child: Stack(
@@ -132,7 +133,7 @@ class BusinessList extends StatelessWidget {
               children: [
                 _buildFirstSectionFlipperLogo(context: context),
                 Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
+                  padding: const EdgeInsets.only(top: 34.0),
                   child: getRenderableBusinessList(
                     businesses: businesses,
                     context: context,

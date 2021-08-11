@@ -24,7 +24,7 @@ import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
-import 'package:flipper_chat/flipper_chat_app.dart';
+import 'package:flipper_chat/lite/pages/lite.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -142,7 +142,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               return BusinessWidget(model);
             case 'social':
               if (ProxyService.remoteConfig.isChatAvailable()) {
-                return FlipperChatApp();
+                return Lite();
               } else {
                 return BusinessWidget(model);
               }

@@ -1,0 +1,5 @@
+# Getting all users i.e contacts in other words.
+GET https://apihub.yegobox.com/v2/api/users
+Accept-Language: en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4
+Content-Type: application/json
+userId: 300

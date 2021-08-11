@@ -4,6 +4,7 @@ import 'package:flipper_models/category.dart';
 import 'package:flipper_models/color.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/unit.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
 
 class AppService with ReactiveServiceMixin {
@@ -11,6 +12,8 @@ class AppService with ReactiveServiceMixin {
   String? get userid => ProxyService.box.read(key: 'userId');
   int? get businessId => ProxyService.box.read(key: 'businessId');
   int? get branchId => ProxyService.box.read(key: 'branchId');
+
+  final log = getLogger('AppService');
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
@@ -80,7 +83,9 @@ class AppService with ReactiveServiceMixin {
 
   ///contact are business in other words
   loadContacts() async {
-    _contacts.value = await ProxyService.api.contacts();
+    List<Business> contacts = await ProxyService.api.contacts();
+    log.i(contacts);
+    _contacts.value = contacts;
   }
 
   AppService() {

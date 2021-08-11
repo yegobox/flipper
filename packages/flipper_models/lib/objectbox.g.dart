@@ -78,7 +78,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 2865100998343489519),
       name: 'Business',
-      lastPropertyId: const IdUid(16, 307297663923335262),
+      lastPropertyId: const IdUid(22, 5348406758024782343),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -148,7 +148,7 @@ final _entities = <ModelEntity>[
             flags: 0),
         ModelProperty(
             id: const IdUid(14, 7935104562269846262),
-            name: 'image',
+            name: 'imageUrl',
             type: 9,
             flags: 0),
         ModelProperty(
@@ -160,6 +160,36 @@ final _entities = <ModelEntity>[
             id: const IdUid(16, 307297663923335262),
             name: 'active',
             type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(17, 9158620068473699373),
+            name: 'lastSeen',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(18, 5806007020145977170),
+            name: 'metadata',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(19, 5463609435049086704),
+            name: 'role',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(20, 1278202304031278496),
+            name: 'firstName',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(21, 2101408374380372529),
+            name: 'lastName',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(22, 5348406758024782343),
+            name: 'createdAt',
+            type: 9,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -761,7 +791,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(13, 3550400819773032582),
+      lastPropertyId: const IdUid(14, 3792350989547430964),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -801,6 +831,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(13, 3550400819773032582),
             name: 'senderImage',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(14, 3792350989547430964),
+            name: 'author',
             type: 9,
             flags: 0)
       ],
@@ -1030,10 +1065,25 @@ ModelDefinition getObjectBoxModel() {
           final hexColorOffset = object.hexColor == null
               ? null
               : fbb.writeString(object.hexColor!);
-          final imageOffset =
-              object.image == null ? null : fbb.writeString(object.image!);
+          final imageUrlOffset = object.imageUrl == null
+              ? null
+              : fbb.writeString(object.imageUrl!);
           final typeOffset = fbb.writeString(object.type);
-          fbb.startTable(17);
+          final metadataOffset = object.metadata == null
+              ? null
+              : fbb.writeString(object.metadata!);
+          final roleOffset =
+              object.role == null ? null : fbb.writeString(object.role!);
+          final firstNameOffset = object.firstName == null
+              ? null
+              : fbb.writeString(object.firstName!);
+          final lastNameOffset = object.lastName == null
+              ? null
+              : fbb.writeString(object.lastName!);
+          final createdAtOffset = object.createdAt == null
+              ? null
+              : fbb.writeString(object.createdAt!);
+          fbb.startTable(23);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, currencyOffset);
@@ -1047,9 +1097,15 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(10, countryOffset);
           fbb.addOffset(11, businessUrlOffset);
           fbb.addOffset(12, hexColorOffset);
-          fbb.addOffset(13, imageOffset);
+          fbb.addOffset(13, imageUrlOffset);
           fbb.addOffset(14, typeOffset);
           fbb.addBool(15, object.active);
+          fbb.addInt64(16, object.lastSeen);
+          fbb.addOffset(17, metadataOffset);
+          fbb.addOffset(18, roleOffset);
+          fbb.addOffset(19, firstNameOffset);
+          fbb.addOffset(20, lastNameOffset);
+          fbb.addOffset(21, createdAtOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1083,10 +1139,16 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 26),
               hexColor: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 28),
-              image: const fb.StringReader()
+              imageUrl: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 30),
               type: const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
-              active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34));
+              active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
+              metadata: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
+              lastSeen: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 36),
+              role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
+            ..firstName = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42)
+            ..lastName = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44)
+            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
 
           return object;
         }),
@@ -1661,7 +1723,9 @@ ModelDefinition getObjectBoxModel() {
           final senderImageOffset = object.senderImage == null
               ? null
               : fbb.writeString(object.senderImage!);
-          fbb.startTable(14);
+          final authorOffset =
+              object.author == null ? null : fbb.writeString(object.author!);
+          fbb.startTable(15);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
@@ -1671,6 +1735,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(10, senderNameOffset);
           fbb.addBool(11, object.status);
           fbb.addOffset(12, senderImageOffset);
+          fbb.addOffset(13, authorOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1694,6 +1759,8 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 28),
               senderName:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
+              author: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 30),
               lastActiveId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0));
 
@@ -1888,8 +1955,8 @@ class Business_ {
   static final hexColor =
       QueryStringProperty<Business>(_entities[1].properties[12]);
 
-  /// see [Business.image]
-  static final image =
+  /// see [Business.imageUrl]
+  static final imageUrl =
       QueryStringProperty<Business>(_entities[1].properties[13]);
 
   /// see [Business.type]
@@ -1899,6 +1966,30 @@ class Business_ {
   /// see [Business.active]
   static final active =
       QueryBooleanProperty<Business>(_entities[1].properties[15]);
+
+  /// see [Business.lastSeen]
+  static final lastSeen =
+      QueryIntegerProperty<Business>(_entities[1].properties[16]);
+
+  /// see [Business.metadata]
+  static final metadata =
+      QueryStringProperty<Business>(_entities[1].properties[17]);
+
+  /// see [Business.role]
+  static final role =
+      QueryStringProperty<Business>(_entities[1].properties[18]);
+
+  /// see [Business.firstName]
+  static final firstName =
+      QueryStringProperty<Business>(_entities[1].properties[19]);
+
+  /// see [Business.lastName]
+  static final lastName =
+      QueryStringProperty<Business>(_entities[1].properties[20]);
+
+  /// see [Business.createdAt]
+  static final createdAt =
+      QueryStringProperty<Business>(_entities[1].properties[21]);
 }
 
 /// [Category] entity fields to define ObjectBox queries.
@@ -2339,6 +2430,10 @@ class Message_ {
   /// see [Message.senderImage]
   static final senderImage =
       QueryStringProperty<Message>(_entities[11].properties[8]);
+
+  /// see [Message.author]
+  static final author =
+      QueryStringProperty<Message>(_entities[11].properties[9]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.

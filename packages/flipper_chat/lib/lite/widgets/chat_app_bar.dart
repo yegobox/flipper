@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 
-class AppBarW extends StatelessWidget implements PreferredSizeWidget {
-  const AppBarW(this.title, {Key? key, this.btnBack = true})
+class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const ChatAppBar(this.title, {Key? key, this.btnBack = true})
       : preferredSize = const Size.fromHeight(kToolbarHeight),
         super(key: key);
 
@@ -20,18 +20,19 @@ class AppBarW extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(
-        'Flipper',
-        style: TextStyle(
-            color: primary,
-            fontFamily: 'Konnect',
-            fontWeight: FontWeight.bold,
-            fontSize: 25),
+      /// the scan widget will be used to order food in a restaurant,
+      /// make appointment, or check in/out.
+      title: CircleAvatar(
+        child: Icon(
+          Icons.center_focus_weak,
+          color: primary,
+        ),
       ),
       elevation: 0,
       backgroundColor: Colors.white,
       actions: [
         ButtonCircle(
+          iconColor: primary,
           onPressed: () {},
           icon: CupertinoIcons.moon_fill,
         ),

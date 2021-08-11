@@ -691,7 +691,7 @@ packages:
       path: "../../open-sources/flutter_chat_ui"
       relative: true
     source: path
-    version: "1.1.8"
+    version: "1.1.9"
   flutter_country_picker:
     dependency: transitive
     description:
@@ -1462,6 +1462,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  random_string:
+    dependency: transitive
+    description:
+      name: random_string
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.1"
   rational:
     dependency: transitive
     description:

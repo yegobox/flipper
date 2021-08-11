@@ -4,7 +4,7 @@ import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flipper_chat/lite/pages/calls_page.dart';
 import 'package:flipper_chat/lite/pages/chats_page.dart';
 import 'package:flipper_chat/lite/pages/groups_page.dart';
-import 'package:flipper_chat/lite/widgets/appbarw.dart';
+import 'package:flipper_chat/lite/widgets/chat_app_bar.dart';
 import 'package:flipper_chat/lite/widgets/button_circle.dart';
 import 'package:flipper_chat/lite/widgets/tabsw.dart';
 import 'package:flutter/cupertino.dart';
@@ -67,7 +67,7 @@ class _LiteState extends State<Lite> {
       viewModelBuilder: () => MessageViewModel(),
       builder: (context, model, child) {
         return Scaffold(
-          appBar: AppBarW('Flipper', btnBack: false),
+          appBar: ChatAppBar('Flipper', btnBack: false),
           body: SafeArea(
             child: Column(
               children: [

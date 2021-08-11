@@ -134,9 +134,7 @@ class GroupsPage extends StatelessWidget {
                       onTap: () {
                         Navigator.of(context).push(
                           RightToLeftRoute(
-                            page: ChatPage(
-                              model: model,
-                            ),
+                            page: ChatPage(),
                           ),
                         );
                       },

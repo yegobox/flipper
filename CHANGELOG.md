@@ -13,3 +13,4 @@
 <!-- DONE: category becomes empty all of sudden -->
 <!-- Done: change input type to number so the keyboard behaves when tendering (on field where we put amount) -->
 <!--  -->
+<!-- TODO: scrolling when added many product does not work -->

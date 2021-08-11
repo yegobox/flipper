@@ -593,14 +593,14 @@ packages:
       name: flutter_chat_types
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.1"
   flutter_chat_ui:
     dependency: transitive
     description:
       path: "../../open-sources/flutter_chat_ui"
       relative: true
     source: path
-    version: "1.1.8"
+    version: "1.1.9"
   flutter_country_picker:
     dependency: transitive
     description:
@@ -646,7 +646,7 @@ packages:
       name: flutter_link_previewer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.3"
   flutter_linkify:
     dependency: transitive
     description:

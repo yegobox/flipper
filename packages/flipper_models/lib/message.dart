@@ -15,6 +15,7 @@ class Message {
       this.status = false,
       this.senderImage,
       required this.senderName,
+      this.author,
       required this.lastActiveId});
   @Id(assignable: true)
   int id;
@@ -24,11 +25,14 @@ class Message {
   int receiverId;
   int lastActiveId;
   @Property(uid: 2)
+
+  /// this is a business Id from business table.
   int senderId;
   String senderName;
   bool status;
   String? senderImage;
   // add extra field
+  String? author;
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
       id: json["id"],

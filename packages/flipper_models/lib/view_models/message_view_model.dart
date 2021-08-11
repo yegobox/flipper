@@ -9,14 +9,18 @@ import 'package:azlistview/azlistview.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:random_string/random_string.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter/services.dart' show rootBundle;
 
 class MessageViewModel extends BusinessHomeViewModel {
   //save chat_data in a list
   List<String> chat_data = [];
 
   final log = getLogger('MessageViewModel');
+  Business? user = null;
   void messages() {
-    ProxyService.api.messages();
+    ProxyService.api.getChats();
   }
 
   void onNewOrder() {
@@ -28,133 +32,9 @@ class MessageViewModel extends BusinessHomeViewModel {
     ProxyService.api.delete(id: id, endPoint: 'message');
   }
 
-  void sendMessage({required int receiverId, required String message}) {
-    ProxyService.api.sendMessage(receiverId: receiverId, message: message);
-  }
-
   Stream<List<Message>> getMessages() async* {
-    List<Message> messages = [
-      Message(
-          createdAt: new DateTime.now().toIso8601String(),
-          id: 2000,
-          message: 'test message',
-          receiverId: 1,
-          senderId: 1,
-          lastActiveId: 1,
-          senderName: 'Richie',
-          status: true,
-          senderImage:
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU'),
-      Message(
-          createdAt: new DateTime.now().toIso8601String(),
-          id: 2000,
-          message: 'test message',
-          receiverId: 1,
-          senderId: 1,
-          lastActiveId: 1,
-          senderName: 'Aurore',
-          senderImage:
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-          status: false),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        senderName: 'Aurore',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        senderName: 'Aurore',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderName: 'Aurore',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderName: 'Aurore',
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        senderName: 'Aurore',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        senderName: 'Aurore',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        senderName: 'Aurore',
-        status: false,
-      ),
-      Message(
-        createdAt: new DateTime.now().toIso8601String(),
-        id: 2000,
-        message: 'test message',
-        senderImage:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        receiverId: 1,
-        senderId: 1,
-        lastActiveId: 1,
-        senderName: 'Aurore',
-        status: false,
-      ),
-    ];
-    yield messages;
-    // return ProxyService.api.messages();
+    Stream<List<Message>> messages = await ProxyService.api.getChats();
+    yield* messages;
   }
 
   void receiveOrder({required int chatId}) {}
@@ -214,4 +94,30 @@ class MessageViewModel extends BusinessHomeViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [appService];
+
+  List<types.Message> conversations = [];
+  void getConversations() async {
+    final response = await rootBundle.loadString('assets/messages.json');
+    final messagess = (jsonDecode(response) as List)
+        .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    conversations = messagess;
+    notifyListeners();
+  }
+
+  // void sendMessage({required int receiverId, required String message}) {
+  //   ProxyService.api.sendMessage(receiverId: receiverId, message: message);
+  // }
+  void sendMessage(types.Message message) {
+    conversations.insert(0, message);
+  }
+
+  ///the mothod looks for the business that is arleady saved on local
+  ///so we have to make sure before the user or business start to chat bot have arleady saved
+  ///the business on local
+  void loadSenderBusiness({required int senderId}) async {
+    user = await ProxyService.api.getBusinessById(id: senderId);
+    notifyListeners();
+  }
 }

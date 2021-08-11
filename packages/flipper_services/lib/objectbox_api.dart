@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flipper_services/mobile_upload.dart';
+import 'package:flutter/foundation.dart' as kDebugMode;
 import 'package:get_storage/get_storage.dart';
-import 'package:flipper_services/pdf_api.dart';
+import 'package:random_string/random_string.dart';
+// import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/invoice.dart';
 import 'package:flipper_models/supplier.dart';
@@ -994,7 +996,26 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   late StreamSubscription<Message> messageSubscription;
   @override
-  Stream<List<Message>> messages({int? receiverId}) {
+  Stream<List<Message>> getChats({int? receiverId}) async* {
+    if (kDebugMode.kDebugMode) {
+      List<Message> messages = [];
+      for (var i = 0; i < 1000; i++) {
+        messages.add(Message(
+          createdAt: new DateTime.now().toIso8601String(),
+          id: 2000,
+          message: randomAlpha(120),
+          receiverId: 1,
+          senderId: 1,
+          lastActiveId: 1,
+          senderName: 'Richie',
+          status: i % 2 == 0 ? true : false,
+          senderImage:
+              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
+        ));
+      }
+      yield messages;
+      return;
+    }
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
     if (receiverId == null) {
       receiverId = myBusinessId;
@@ -1017,7 +1038,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       }
     });
 
-    return store
+    yield* store
         .box<Message>()
         .query(Message_.receiverId
             .equals(myBusinessId ?? 0)
@@ -1049,7 +1070,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       } else {
         //updat this business with the update object
         final box = store.box<Business>();
-        log.i(business.image);
+        log.i(business.imageUrl);
         box.put(business, mode: PutMode.update);
       }
     });
@@ -1062,6 +1083,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   void sendMessage({required int receiverId, required String message}) {
+    if (kDebugMode.kDebugMode) {
+      //mock adding a message
+    }
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
     Business? business = store.box<Business>().get(myBusinessId!);
     final box = store.box<Message>();
@@ -1075,7 +1099,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
       senderName: business!.name,
     );
     box.put(kMessage, mode: PutMode.insert);
-    //
   }
 
   @override
@@ -1195,7 +1218,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
     bool isInternetAvaible = await isInternetAvailable();
     List<Business> businesses = store.box<Business>().getAll().toList();
     if (isInternetAvaible) {
+      log.i('got the network');
+      log.i("$apihub/v2/api/users");
       final response = await client.get(Uri.parse("$apihub/v2/api/users"));
+      log.i(response.body);
       for (Business business in businessFromJson(response.body)) {
         if (!businesses.contains(business)) {
           final box = store.box<Business>();
@@ -1204,5 +1230,34 @@ class ObjectBoxApi extends MobileUpload implements Api {
       }
     }
     return businesses;
+  }
+
+  @override
+  Future<Message> getConversations({required int authorId}) async {
+    // TODO: implement getMessage
+    throw UnimplementedError();
+    // List<Message> message = [
+    //  Message(
+    //     author: {
+    //       "firstName": "Alex",
+    //       "id": "b4878b96-efbc-479a-8291-474ef323dec7",
+    //       "imageUrl": "https://avatars.githubusercontent.com/u/14123304?v=4"
+    //     },
+    //     createdAt: 1598438797000,
+    //     id": "e7a673e9-86eb-4572-936f-2882b0183cdc",
+    //     status: "seen",
+    //     text: "https://flyer.chat",
+    //     type: "text"
+    //   }
+    //  )
+    // ];
+  }
+
+  @override
+  Business getBusinessById({required int id}) {
+    return store
+        .box<Business>()
+        .getAll()
+        .firstWhere((business) => business.id == id);
   }
 }

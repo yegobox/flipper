@@ -77,8 +77,9 @@ abstract class Api<T> {
 
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
-  Stream<List<Message>> messages({int? receiverId});
+  Stream<List<Message>> getChats({int? receiverId});
   void sendMessage({required int receiverId, required String message});
+  Future<Message> getConversations({required int authorId});
 
   /// we treat all business as users and as contact at the same time
   /// this is because a business act as point of contact for a user
@@ -102,4 +103,5 @@ abstract class Api<T> {
   Future<List<OrderF>> getOrderByStatus({required String status});
   Future<void> sendReport({required List<OrderF> orders});
   Future<void> createGoogleSheetDoc();
+  Business getBusinessById({required int id});
 }

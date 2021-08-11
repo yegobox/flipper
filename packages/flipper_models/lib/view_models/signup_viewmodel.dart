@@ -75,7 +75,9 @@ class SignupViewModel extends FormViewModel {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
+      'phoneNumber': ProxyService.box.read(key: 'userPhone'),
       'currency': 'RW',
+      'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.read(key: 'userId'),
       'type': businessType,
       // ignore: todo
