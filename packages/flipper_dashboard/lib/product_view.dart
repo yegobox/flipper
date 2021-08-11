@@ -393,7 +393,7 @@ class _onCreate extends State<ProductView> {
             ),
           ),
           // Text('up here..'),
-          BuildProductsView(model: model),
+          Flexible(child: BuildProductsView(model: model)),
         ]),
       );
     } else {
@@ -452,7 +452,7 @@ class _onCreate extends State<ProductView> {
               ],
             ),
           ),
-          BuildProductsView(model: model),
+          Flexible(child: BuildProductsView(model: model)),
         ]),
       );
     }
@@ -488,24 +488,22 @@ class BuildProductsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return model.products.length == 0
         ? SizedBox.shrink()
-        : Padding(
+        : ListView.builder(
             padding: EdgeInsets.only(left: 2),
-            child: Column(
-              children: model.products
-                  .map<Widget>(
-                    (Product product) => ProductRow(
-                      color: product.color,
-                      hasImage: product.hasPicture,
-                      product: product,
-                      name: product.name,
-                      imageUrl: product.imageUrl,
-                      delete: (productId) {
-                        model.deleteProduct(productId: productId);
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
+            shrinkWrap: false,
+            itemCount: model.products.length,
+            itemBuilder: (context, index) {
+              return ProductRow(
+                color: model.products[index].color,
+                hasImage: model.products[index].hasPicture,
+                product: model.products[index],
+                name: model.products[index].name,
+                imageUrl: model.products[index].imageUrl,
+                delete: (productId) {
+                  model.deleteProduct(productId: productId);
+                },
+              );
+            },
           );
   }
 }

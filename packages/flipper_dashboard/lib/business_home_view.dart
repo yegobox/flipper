@@ -251,7 +251,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 model.tab == 0
                     ? KeyPadView(model: model)
                     // show a list of products and on click handle different scenarios
-                    : ProductView(userId: '1', items: true),
+                    : Flexible(child: ProductView(userId: '1', items: true)),
               ],
             ),
           ),
