@@ -25,8 +25,8 @@ class SignupViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  String? longitude = null;
-  String? latitude = null;
+  String? longitude = '1';
+  String? latitude = '1';
 
   String? kName;
   void setName({required String name}) {

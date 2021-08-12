@@ -1240,8 +1240,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
     bool isInternetAvaible = await isInternetAvailable();
     List<Business> businesses = store.box<Business>().getAll().toList();
     if (isInternetAvaible) {
-      log.i('got the network');
-      log.i("$apihub/v2/api/users");
       final response = await client.get(Uri.parse("$apihub/v2/api/users"));
       log.i(response.body);
       for (Business business in businessFromJson(response.body)) {

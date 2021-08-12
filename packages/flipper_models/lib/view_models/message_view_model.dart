@@ -9,7 +9,6 @@ import 'package:azlistview/azlistview.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:random_string/random_string.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -45,10 +44,10 @@ class MessageViewModel extends BusinessHomeViewModel {
   final ItemScrollController itemScrollController = ItemScrollController();
 
   void loadData() async {
-    appService.loadContacts();
+    await appService.loadContacts();
     originList = appService.contacts.map((v) {
       Contact model = Contact.fromJson(v.toJson());
-      log.i(v.toJson());
+      // log.i(v.toJson());
       String tag = model.name.substring(0, 1).toUpperCase();
       if (RegExp("[A-Z]").hasMatch(tag)) {
         model.tagIndex = tag;
@@ -63,7 +62,6 @@ class MessageViewModel extends BusinessHomeViewModel {
   void _handleList(List<Contact> list) {
     dataList.clear();
     if (ObjectUtil.isEmpty(list)) {
-      // setState(() {});
       return;
     }
     dataList.addAll(list);
