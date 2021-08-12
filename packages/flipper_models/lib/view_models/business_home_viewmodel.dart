@@ -218,13 +218,41 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         variantId: variationId,
       );
       log.i(variation!.name);
-      await ProxyService.api.createOrder(
-        customAmount: amountTotal,
-        variation: variation,
-        price: amountTotal,
-        useProductName: variation.name == 'Regular',
-        quantity: quantity.toDouble(),
-      );
+
+      /// if variation given given exist in the orderItems then we update the order with new count
+      List<OrderF> exist_orders =
+          await ProxyService.api.orders(branchId: branchId);
+      if (exist_orders.isNotEmpty) {
+        for (OrderItem item in exist_orders[0].orderItems) {
+          if (item.fvariantId == variationId) {
+            Map i = {
+              'count': item.count + quantity.toDouble(),
+              'price': (item.count + quantity.toDouble()) * amountTotal,
+              'fvariantId': variationId,
+              //TODOinvestigate why sometimes exist_orders[0].id does not equal to item.forderId
+              'id': exist_orders[0].id,
+            };
+            ProxyService.api.update(data: i, endPoint: 'order');
+            log.i(item.toJson());
+          } else {
+            await ProxyService.api.createOrder(
+              customAmount: amountTotal,
+              variation: variation,
+              price: amountTotal,
+              useProductName: variation.name == 'Regular',
+              quantity: quantity.toDouble(),
+            );
+          }
+        }
+      } else {
+        await ProxyService.api.createOrder(
+          customAmount: amountTotal,
+          variation: variation,
+          price: amountTotal,
+          useProductName: variation.name == 'Regular',
+          quantity: quantity.toDouble(),
+        );
+      }
 
       List<OrderF> orders =
           await ProxyService.keypad.getOrders(branchId: branchId);

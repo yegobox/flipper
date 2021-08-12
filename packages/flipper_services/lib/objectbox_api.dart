@@ -886,8 +886,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
         box.put(pcolor, mode: PutMode.update);
         break;
       case 'order':
-        OrderF? orders = store.box<OrderF>().get(dn['id']);
-        Map map = orders!.toJson();
+        OrderF? singleOrder = store.box<OrderF>().get(dn['id']);
+        Map map = singleOrder!.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
@@ -914,6 +914,28 @@ class ObjectBoxApi extends MobileUpload implements Api {
         );
         final box = store.box<OrderF>();
         box.put(order, mode: PutMode.update);
+        //update relationship OrderItem
+        // OrderItem? orderItem = store.box<OrderItem>().get(order.id);
+        singleOrder.id = map['id'];
+        // singleOrder.orderItems.add(element)
+        //loop through singleOrder.orderItems find where fvariantId equal to the one in data map
+        //update the element with the new data this will update the relationship
+        List<OrderItem> updatedOrderItem = [];
+        for (OrderItem item in singleOrder.orderItems) {
+          if (item.fvariantId == data['fvariantId']) {
+            item.fvariantId = data['fvariantId'];
+            item.count = data['count'];
+            item.price = data['price'];
+            item.forderId = data['id'];
+            item.fvariantId = data['fvariantId'];
+            updatedOrderItem.add(item);
+            log.i(item);
+            store.box<OrderItem>().put(item, mode: PutMode.update);
+          }
+          //add other that are not touched during update
+          // updatedOrderItem.add(item);
+          store.box<OrderItem>().put(item, mode: PutMode.update);
+        }
         break;
       case 'settings':
         Setting? setting = store.box<Setting>().get(id);
