@@ -1,10 +1,14 @@
 import 'package:flipper_chat/lite/common/index.dart';
+import 'package:flipper_chat/lite/pages/chat_page.dart';
+import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flipper_models/message.dart';
 import 'package:azlistview/azlistview.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 
 class ContactPage extends StatefulWidget {
@@ -55,13 +59,26 @@ class _ContactPageState extends State<ContactPage> {
     );
   }
 
-  Widget getListItem(BuildContext context, Contact model,
+  Widget getListItem(BuildContext context, Contact contact,
       {double susHeight = 40}) {
     return ListTile(
-      title: Text(model.name),
+      title: Text(contact.name),
       onTap: () {
-        LogUtil.v("onItemClick : $model");
-        Utils.showSnackBar(context, "onItemClick : $model");
+        log.i(contact.id);
+        String userId = ProxyService.box.read(key: 'userId');
+        Message chat = Message(
+          message: '',
+          createdAt: '',
+          receiverId: contact.id,
+          senderId: int.parse(userId),
+          senderName: '',
+          lastActiveId: int.parse(userId),
+        );
+        Navigator.of(context).push(
+          RightToLeftRoute(
+            page: ChatPage(message: chat),
+          ),
+        );
       },
     );
   }

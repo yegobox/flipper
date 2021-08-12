@@ -101,7 +101,8 @@ class Business {
       : id = json["id"],
         name = json["name"],
         currency = json["currency"],
-        fcategoryId = json["fcategoryId"],
+        // TODOwhen loading the fcategoryId it seems somehow fcategoryId is a string and we are expecting an int or maybe there is null returned!
+        // fcategoryId = json["fcategoryId"],
         latitude = json["latitude"] ?? '1',
         longitude = json["longitude"] ?? '1',
         userId = json["userId"].toString(),

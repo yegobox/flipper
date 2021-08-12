@@ -84,7 +84,7 @@ class AppService with ReactiveServiceMixin {
   ///contact are business in other words
   Future<void> loadContacts() async {
     List<Business> contacts = await ProxyService.api.contacts();
-    log.i(contacts.length);
+    // log.i(contacts.length);
     _contacts.value = contacts;
   }
 

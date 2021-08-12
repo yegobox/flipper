@@ -1245,7 +1245,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     List<Business> businesses = store.box<Business>().getAll().toList();
     if (isInternetAvaible) {
       final response = await client.get(Uri.parse("$apihub/v2/api/users"));
-      log.i(response.body);
+
       for (Business business in businessFromJson(response.body)) {
         if (!businesses.contains(business)) {
           final box = store.box<Business>();

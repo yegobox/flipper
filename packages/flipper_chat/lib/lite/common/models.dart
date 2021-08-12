@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:azlistview/azlistview.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_models/business.dart';
 
 import 'package:github_language_colors/github_language_colors.dart';
 
@@ -70,8 +71,9 @@ class ContactInfo extends ISuspensionBean {
   String toString() => json.encode(this);
 }
 
-class Contact extends GithubLanguage with ISuspensionBean {
+class Contact extends Business with ISuspensionBean {
   String? tagIndex;
+
   String? pinyin;
   String? shortPinyin;
 
