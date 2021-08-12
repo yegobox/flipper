@@ -54,7 +54,8 @@ Api getAndRegisterApi(
     ),
   );
 
-  when(service.businesses()).thenAnswer((_) async => [businessMockData]);
+  when(service.businesses(userId: '300'))
+      .thenAnswer((_) async => [businessMockData]);
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
   when(service.getCustomProductVariant())

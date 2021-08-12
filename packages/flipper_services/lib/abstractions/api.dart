@@ -20,7 +20,7 @@ abstract class Api<T> {
   Future<List<Product>> products({required int branchId});
   Future<int> signup({required Map business});
   Future<SyncF> authenticateWithOfflineDb({required String userId});
-  Future<List<Business>> businesses();
+  Future<List<Business>> businesses({required String userId});
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock>> stocks({required int productId});
   Stream<Stock> stockByVariantIdStream({required int variantId});

@@ -19,7 +19,9 @@ class StartUpViewModel extends BaseViewModel {
     await appInit();
 
     if (appService.isLoggedIn()) {
-      List<Business>? businesses = await ProxyService.api.businesses();
+      String userId = ProxyService.box.read(key: 'userId');
+      List<Business>? businesses =
+          await ProxyService.api.businesses(userId: userId);
 
       isBusinessSet = (businesses.isNotEmpty) ? true : false;
 
@@ -53,7 +55,9 @@ class StartUpViewModel extends BaseViewModel {
     if (ProxyService.box.read(key: 'branchId') != null ||
         ProxyService.box.read(key: 'businessId') != null) return;
     if (appService.isLoggedIn()) {
-      List<Business>? businesses = await ProxyService.api.businesses();
+      String userId = ProxyService.box.read(key: 'userId');
+      List<Business>? businesses =
+          await ProxyService.api.businesses(userId: userId);
 
       if (businesses.isNotEmpty) {
         log.i(businesses[0].id);

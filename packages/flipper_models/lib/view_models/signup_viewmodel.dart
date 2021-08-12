@@ -85,14 +85,16 @@ class SignupViewModel extends FormViewModel {
       'country': 'RW'
     });
     if (okStatus == 200) {
+      final String? userId = ProxyService.box.read(key: 'userId');
       //get businesses's id then look for related branch [0] create the default category
-      List<Business> businesses = await ProxyService.api.businesses();
+      List<Business> businesses =
+          await ProxyService.api.businesses(userId: userId!);
 
       ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       ProxyService.appService.setBusiness(businesses: businesses);
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses[0].id);
-      final String? userId = ProxyService.box.read(key: 'userId');
+
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
       final Category category = Category(
@@ -100,7 +102,7 @@ class SignupViewModel extends FormViewModel {
         table: AppTables.category,
         focused: true,
         name: 'NONE',
-        channels: [userId!],
+        channels: [userId],
         fbranchId: branches[0].id,
       );
       await ProxyService.api

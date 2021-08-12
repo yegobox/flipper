@@ -32,7 +32,8 @@ void main() {
       appService.isLoggedIn();
       model.runStartupLogic();
       await Future.delayed(Duration(microseconds: 50));
-      await api.businesses();
+
+      await api.businesses(userId: "300");
 
       expect(model.isBusinessSet, true);
 

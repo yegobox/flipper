@@ -146,7 +146,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Business>> businesses() async {
+  Future<List<Business>> businesses({required String userId}) async {
     final response = await client.get(Uri.parse("$apihub/api/businesses"));
     return businessFromJson(response.body);
   }

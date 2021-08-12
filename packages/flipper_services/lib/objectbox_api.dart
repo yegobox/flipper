@@ -129,9 +129,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<Business>> businesses() async {
-    // await Future.delayed(Duration(microseconds: 2000));
-    List<Business> businessList = store.box<Business>().getAll().toList();
+  Future<List<Business>> businesses({required String userId}) async {
+    // TODO: now add userId in getting the data
+    List<Business> businessList = store
+        .box<Business>()
+        .getAll()
+        .where((business) => business.userId == userId)
+        .toList();
     if (businessList.isNotEmpty) {
       return businessList;
     }
