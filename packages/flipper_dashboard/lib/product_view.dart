@@ -489,7 +489,7 @@ class BuildProductsView extends StatelessWidget {
     return model.products.length == 0
         ? SizedBox.shrink()
         : ListView.builder(
-            padding: EdgeInsets.only(left: 2),
+            padding: EdgeInsets.only(left: 0),
             shrinkWrap: false,
             itemCount: model.products.length,
             itemBuilder: (context, index) {

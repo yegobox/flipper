@@ -8,7 +8,7 @@ import 'package:flipper_models/view_models/drawer_viewmodel.dart';
 import 'package:flipper_services/abstractions/dynamic_link.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
-import 'business_list.dart';
+import 'business_widgets.dart';
 import 'custom_widgets.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/constants.dart';
@@ -176,9 +176,6 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                BusinessList(
-                  businesses: widget.businesses,
-                ),
                 Expanded(
                   child: Stack(
                     children: <Widget>[

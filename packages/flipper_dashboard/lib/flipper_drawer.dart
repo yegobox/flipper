@@ -1,4 +1,5 @@
 import 'package:flipper/localization.dart';
+import 'package:flipper_dashboard/loader.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ import 'package:flipper_models/view_models/drawer_viewmodel.dart';
 import 'package:flipper_services/abstractions/dynamic_link.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
-import 'business_list.dart';
+import 'business_widgets.dart';
 import 'custom_widgets.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/constants.dart';
@@ -140,58 +141,85 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     return ViewModelBuilder<DrawerViewModel>.reactive(
       viewModelBuilder: () => DrawerViewModel(),
       builder: (context, model, child) => Container(
-        child: Drawer(
-          elevation: 0,
-          child: Container(
-            color: Colors.white,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                BusinessList(
-                  businesses: widget.businesses,
-                ),
-                Expanded(
-                  child: Stack(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 45),
-                        child: ListView(
-                          physics: const BouncingScrollPhysics(),
-                          children: <Widget>[
-                            const Divider(),
-                            _menuListRowButton(
-                              Localization.of(context)!.flipperSetting,
-                              context: context,
-                              icon: AntIcons.setting,
-                              onPressed: () {
-                                ProxyService.nav.navigateTo(Routes.settings);
-                              },
-                            ),
-                            const Divider(),
-                            if (ProxyService.remoteConfig
-                                .isAnalyticFeatureAvailable())
+        child: SafeArea(
+          child: Drawer(
+            elevation: 0,
+            child: Container(
+              color: Colors.white,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    color: HexColor('#130f1f'),
+                    width: 60,
+                    height: MediaQuery.of(context).size.height,
+                    child: Stack(
+                      children: [
+                        BusinessButton(
+                          business: widget.businesses[0],
+                          onPressedCircle: (Business business) {
+                            // model.switchBusiness(from: model.business, to: business);
+                          },
+                          isActive: true,
+                          hasUpdates: true,
+                        ),
+                        Positioned(
+                          bottom: 10,
+                          left: 8,
+                          child: SizedBox(
+                            width: 45,
+                            height: 45,
+                            child: Image.asset('assets/fliper-logo.png'),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 45),
+                          child: ListView(
+                            physics: const BouncingScrollPhysics(),
+                            children: <Widget>[
+                              const Divider(),
                               _menuListRowButton(
-                                'Analytics',
+                                Localization.of(context)!.flipperSetting,
                                 context: context,
-                                icon: Ionicons.analytics,
+                                icon: AntIcons.setting,
                                 onPressed: () {
-                                  ProxyService.nav.navigateTo(Routes.analytics);
+                                  ProxyService.nav.navigateTo(Routes.settings);
                                 },
                               ),
-                            const Divider(),
-                          ],
+                              const Divider(),
+                              if (ProxyService.remoteConfig
+                                  .isAnalyticFeatureAvailable())
+                                _menuListRowButton(
+                                  'Analytics',
+                                  context: context,
+                                  icon: Ionicons.analytics,
+                                  onPressed: () {
+                                    ProxyService.nav
+                                        .navigateTo(Routes.analytics);
+                                  },
+                                ),
+                              const Divider(),
+                            ],
+                          ),
                         ),
-                      ),
-                      ProxyService.remoteConfig.isChatAvailable() || kDebugMode
-                          ? _footer(
-                              drawerViewmodel: model,
-                              context: context,
-                            )
-                          : SizedBox.shrink()
-                    ],
-                  ),
-                )
-              ],
+                        ProxyService.remoteConfig.isChatAvailable() ||
+                                kDebugMode
+                            ? _footer(
+                                drawerViewmodel: model,
+                                context: context,
+                              )
+                            : SizedBox.shrink()
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),
