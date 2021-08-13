@@ -936,9 +936,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
             log.i(item);
             store.box<OrderItem>().put(item, mode: PutMode.update);
           }
-          //add other that are not touched during update
-          // updatedOrderItem.add(item);
-          store.box<OrderItem>().put(item, mode: PutMode.update);
         }
         break;
       case 'settings':
@@ -1283,5 +1280,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .box<Business>()
         .getAll()
         .firstWhere((business) => business.id == id);
+  }
+
+  @override
+  OrderItem? getOrderItemByVariantId({required int variantId}) {
+    return store
+        .box<OrderItem>()
+        .query(OrderItem_.fvariantId.equals(variantId))
+        .build()
+        .findFirst();
   }
 }

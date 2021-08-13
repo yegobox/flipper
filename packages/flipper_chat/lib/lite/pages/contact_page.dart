@@ -6,9 +6,7 @@ import 'package:flipper_models/message.dart';
 import 'package:azlistview/azlistview.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 
 class ContactPage extends StatefulWidget {

@@ -234,15 +234,18 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             };
             ProxyService.api.update(data: i, endPoint: 'order');
             log.i(item.toJson());
-          } else {
-            await ProxyService.api.createOrder(
-              customAmount: amountTotal,
-              variation: variation,
-              price: amountTotal,
-              useProductName: variation.name == 'Regular',
-              quantity: quantity.toDouble(),
-            );
           }
+        }
+        OrderItem? existOrderItem =
+            ProxyService.api.getOrderItemByVariantId(variantId: variationId);
+        if (existOrderItem == null) {
+          await ProxyService.api.createOrder(
+            customAmount: amountTotal,
+            variation: variation,
+            price: amountTotal,
+            useProductName: variation.name == 'Regular',
+            quantity: quantity.toDouble(),
+          );
         }
       } else {
         await ProxyService.api.createOrder(

@@ -787,4 +787,10 @@ class LiteApi<T> implements Api {
     // TODO: implement getBusinessById
     throw UnimplementedError();
   }
+
+  @override
+  OrderItem? getOrderItemByVariantId({required int variantId}) {
+    // TODO: implement getOrderItemByVariantId
+    throw UnimplementedError();
+  }
 }

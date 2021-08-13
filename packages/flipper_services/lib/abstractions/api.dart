@@ -104,4 +104,5 @@ abstract class Api<T> {
   Future<void> sendReport({required List<OrderF> orders});
   Future<void> createGoogleSheetDoc();
   Business getBusinessById({required int id});
+  OrderItem? getOrderItemByVariantId({required int variantId});
 }
