@@ -168,7 +168,7 @@ dependencies:
   #   git:
   #     url: git://github.com/Sky24n/github_language_colors.git
   random_string:
-  flutter_qr_reader: 1.0.5
+  # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:
   # cbl: ^0.6.0
