@@ -23,6 +23,7 @@ import 'package:flipper_dashboard/customers.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/payment_options.dart';
+import 'package:flipper_dashboard/scanner_view.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
@@ -56,6 +57,7 @@ class Routes {
   static const String afterSale = '/after-sale';
   static const String settings = '/settings-screen';
   static const String analytics = '/Analytics';
+  static const String qrview = '/qr-view';
   static const String customers = '/Customers';
   static const all = <String>{
     startUpView,
@@ -79,6 +81,7 @@ class Routes {
     afterSale,
     settings,
     analytics,
+    qrview,
     customers,
   };
 }
@@ -108,6 +111,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.afterSale, page: AfterSale),
     RouteDef(Routes.settings, page: SettingsScreen),
     RouteDef(Routes.analytics, page: Analytics),
+    RouteDef(Routes.qrview, page: ScannView),
     RouteDef(Routes.customers, page: Customers),
   ];
   @override
@@ -288,6 +292,12 @@ class StackedRouter extends RouterBase {
     Analytics: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => Analytics(),
+        settings: data,
+      );
+    },
+    ScannView: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => ScannView(),
         settings: data,
       );
     },

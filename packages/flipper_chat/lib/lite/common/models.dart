@@ -4,8 +4,6 @@ import 'package:azlistview/azlistview.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/business.dart';
 
-import 'package:github_language_colors/github_language_colors.dart';
-
 class CityModel extends ISuspensionBean {
   String name;
   String? tagIndex;

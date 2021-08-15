@@ -21,6 +21,7 @@ import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/analytic.dart';
+import 'package:flipper_dashboard/scanner_view.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper_chat/flipper_chat_app.dart';
@@ -54,6 +55,7 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
     MaterialRoute(page: AfterSale, name: 'afterSale'),
     MaterialRoute(page: SettingsScreen, name: 'settings'),
     MaterialRoute(page: Analytics, name: 'analytics'),
+    MaterialRoute(page: ScannView, name: 'qrview'),
 
     // chat routes
 

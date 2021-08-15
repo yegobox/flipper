@@ -677,14 +677,14 @@ packages:
       name: flutter_chat_types
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.3"
   flutter_chat_ui:
     dependency: transitive
     description:
       path: "../../open-sources/flutter_chat_ui"
       relative: true
     source: path
-    version: "1.1.8"
+    version: "1.1.9"
   flutter_country_picker:
     dependency: transitive
     description:
@@ -730,7 +730,7 @@ packages:
       name: flutter_link_previewer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.3"
   flutter_linkify:
     dependency: transitive
     description:
@@ -872,15 +872,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
-  github_language_colors:
-    dependency: transitive
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: b4f88207ebc0c5dcc8baa1676a0fd7796974173a
-      url: "git://github.com/Sky24n/github_language_colors.git"
-    source: git
-    version: "2.0.0"
   glob:
     dependency: transitive
     description:
@@ -1133,13 +1124,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
-  lpinyin:
-    dependency: transitive
-    description:
-      name: lpinyin
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.3"
   mailer:
     dependency: transitive
     description:
@@ -1427,6 +1411,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  random_string:
+    dependency: transitive
+    description:
+      name: random_string
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.1"
   rational:
     dependency: transitive
     description:

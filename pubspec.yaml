@@ -163,11 +163,12 @@ dependencies:
   azlistview: ^2.0.0-nullsafety.0
   common_utils: ^2.0.2
   # remove after flutter_chat is updated
-  lpinyin: ^2.0.3
-  github_language_colors:
-    git:
-      url: git://github.com/Sky24n/github_language_colors.git
+  # lpinyin: ^2.0.3
+  # github_language_colors:
+  #   git:
+  #     url: git://github.com/Sky24n/github_language_colors.git
   random_string:
+  flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:
   # cbl: ^0.6.0

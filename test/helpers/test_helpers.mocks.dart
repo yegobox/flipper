@@ -35,8 +35,11 @@ import 'package:flipper_services/app_service.dart' as _i31;
 import 'package:flipper_services/keypad_service.dart' as _i28;
 import 'package:flipper_services/product_service.dart' as _i27;
 import 'package:flipper_services/setting_service.dart' as _i29;
+import 'package:flutter/src/animation/curves.dart' as _i36;
 import 'package:flutter/src/widgets/framework.dart' as _i34;
 import 'package:flutter/src/widgets/navigator.dart' as _i35;
+import 'package:get/get_instance/src/bindings_interface.dart' as _i37;
+import 'package:get/get_navigation/src/routes/transitions_type.dart' as _i38;
 import 'package:logger/src/logger.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stacked_services/src/navigation_service.dart' as _i33;
@@ -364,6 +367,11 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
   _i10.Business getBusinessById({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getBusinessById, [], {#id: id}),
           returnValue: _FakeBusiness()) as _i10.Business);
+  @override
+  _i21.OrderItem? getOrderItemByVariantId({int? variantId}) =>
+      (super.noSuchMethod(Invocation.method(
+              #getOrderItemByVariantId, [], {#variantId: variantId}))
+          as _i21.OrderItem?);
 }
 
 /// A class which mocks [Remote].
@@ -905,12 +913,17 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
           }),
           returnValueForMissingStub: null);
   @override
-  _i16.Future<dynamic>? navigateWithTransition(_i34.Widget? page,
+  _i16.Future<T?>? navigateWithTransition<T>(_i34.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
           bool? popGesture,
-          int? id}) =>
+          int? id,
+          _i36.Curve? curve,
+          _i37.Bindings? binding,
+          bool? fullscreenDialog = false,
+          bool? preventDuplicates = true,
+          _i38.Transition? transitionClass}) =>
       (super.noSuchMethod(Invocation.method(#navigateWithTransition, [
         page
       ], {
@@ -918,15 +931,25 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #transition: transition,
         #duration: duration,
         #popGesture: popGesture,
-        #id: id
-      })) as _i16.Future<dynamic>?);
+        #id: id,
+        #curve: curve,
+        #binding: binding,
+        #fullscreenDialog: fullscreenDialog,
+        #preventDuplicates: preventDuplicates,
+        #transitionClass: transitionClass
+      })) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? replaceWithTransition(_i34.Widget? page,
+  _i16.Future<T?>? replaceWithTransition<T>(_i34.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
           bool? popGesture,
-          int? id}) =>
+          int? id,
+          _i36.Curve? curve,
+          _i37.Bindings? binding,
+          bool? fullscreenDialog = false,
+          bool? preventDuplicates = true,
+          _i38.Transition? transitionClass}) =>
       (super.noSuchMethod(Invocation.method(#replaceWithTransition, [
         page
       ], {
@@ -934,10 +957,15 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #transition: transition,
         #duration: duration,
         #popGesture: popGesture,
-        #id: id
-      })) as _i16.Future<dynamic>?);
+        #id: id,
+        #curve: curve,
+        #binding: binding,
+        #fullscreenDialog: fullscreenDialog,
+        #preventDuplicates: preventDuplicates,
+        #transitionClass: transitionClass
+      })) as _i16.Future<T?>?);
   @override
-  bool back({dynamic result, int? id}) => (super.noSuchMethod(
+  bool back<T>({T? result, int? id}) => (super.noSuchMethod(
       Invocation.method(#back, [], {#result: result, #id: id}),
       returnValue: false) as bool);
   @override
@@ -949,7 +977,7 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
       super.noSuchMethod(Invocation.method(#popRepeated, [popTimes]),
           returnValueForMissingStub: null);
   @override
-  _i16.Future<dynamic>? navigateTo(String? routeName,
+  _i16.Future<T?>? navigateTo<T>(String? routeName,
           {dynamic arguments,
           int? id,
           bool? preventDuplicates = true,
@@ -961,19 +989,35 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #id: id,
         #preventDuplicates: preventDuplicates,
         #parameters: parameters
-      })) as _i16.Future<dynamic>?);
+      })) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? navigateToView(_i34.Widget? view,
-          {dynamic arguments, int? id, bool? preventDuplicates = true}) =>
+  _i16.Future<T?>? navigateToView<T>(_i34.Widget? view,
+          {dynamic arguments,
+          int? id,
+          bool? opaque,
+          _i36.Curve? curve,
+          _i37.Bindings? binding,
+          Duration? duration,
+          bool? fullscreenDialog = false,
+          bool? popGesture,
+          bool? preventDuplicates = true,
+          _i38.Transition? transition}) =>
       (super.noSuchMethod(Invocation.method(#navigateToView, [
         view
       ], {
         #arguments: arguments,
         #id: id,
-        #preventDuplicates: preventDuplicates
-      })) as _i16.Future<dynamic>?);
+        #opaque: opaque,
+        #curve: curve,
+        #binding: binding,
+        #duration: duration,
+        #fullscreenDialog: fullscreenDialog,
+        #popGesture: popGesture,
+        #preventDuplicates: preventDuplicates,
+        #transition: transition
+      })) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? replaceWith(String? routeName,
+  _i16.Future<T?>? replaceWith<T>(String? routeName,
           {dynamic arguments,
           int? id,
           bool? preventDuplicates = true,
@@ -985,9 +1029,9 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #id: id,
         #preventDuplicates: preventDuplicates,
         #parameters: parameters
-      })) as _i16.Future<dynamic>?);
+      })) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? clearStackAndShow(String? routeName,
+  _i16.Future<T?>? clearStackAndShow<T>(String? routeName,
           {dynamic arguments, int? id, Map<String, String>? parameters}) =>
       (super.noSuchMethod(Invocation.method(#clearStackAndShow, [
         routeName
@@ -995,9 +1039,9 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #arguments: arguments,
         #id: id,
         #parameters: parameters
-      })) as _i16.Future<dynamic>?);
+      })) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? clearTillFirstAndShow(String? routeName,
+  _i16.Future<T?>? clearTillFirstAndShow<T>(String? routeName,
           {dynamic arguments,
           int? id,
           bool? preventDuplicates = true,
@@ -1009,14 +1053,14 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #id: id,
         #preventDuplicates: preventDuplicates,
         #parameters: parameters
-      })) as _i16.Future<dynamic>?);
+      })) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? clearTillFirstAndShowView(_i34.Widget? view,
+  _i16.Future<T?>? clearTillFirstAndShowView<T>(_i34.Widget? view,
           {dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#clearTillFirstAndShowView, [view],
-          {#arguments: arguments, #id: id})) as _i16.Future<dynamic>?);
+          {#arguments: arguments, #id: id})) as _i16.Future<T?>?);
   @override
-  _i16.Future<dynamic>? pushNamedAndRemoveUntil(String? routeName,
+  _i16.Future<T?>? pushNamedAndRemoveUntil<T>(String? routeName,
           {_i35.RoutePredicate? predicate, dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#pushNamedAndRemoveUntil, [
         routeName
@@ -1024,5 +1068,5 @@ class MockNavigationService extends _i1.Mock implements _i33.NavigationService {
         #predicate: predicate,
         #arguments: arguments,
         #id: id
-      })) as _i16.Future<dynamic>?);
+      })) as _i16.Future<T?>?);
 }

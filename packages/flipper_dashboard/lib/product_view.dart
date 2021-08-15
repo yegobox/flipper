@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'custom_dropdown.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'product_row.dart';
+import 'package:flipper_services/proxy.dart';
 
 class ProductView extends StatefulWidget {
   const ProductView({
@@ -389,6 +391,20 @@ class _onCreate extends State<ProductView> {
                     ),
                   ),
                 ),
+                if (ProxyService.remoteConfig.scann_selling())
+                  Container(
+                    child: GestureDetector(
+                      onTap: () {
+                        ProxyService.nav.navigateTo(Routes.qrview);
+                      },
+                      child: CircleAvatar(
+                        child: Icon(
+                          Icons.center_focus_weak,
+                          color: primary,
+                        ),
+                      ),
+                    ),
+                  )
               ],
             ),
           ),
