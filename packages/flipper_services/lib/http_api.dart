@@ -524,4 +524,10 @@ class HttpApi<T> implements Api {
     // TODO: implement getOrderItemByVariantId
     throw UnimplementedError();
   }
+
+  @override
+  Future<Product?> getProductByBarCode({required String barCode}) {
+    // TODO: implement getProductByBarCode
+    throw UnimplementedError();
+  }
 }

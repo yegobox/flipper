@@ -7,6 +7,7 @@ class BoxInputField extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool password;
+  final bool enabled;
   final Function? validatorFunc;
   final Function? onChanged;
   final TextInputType textInputType;
@@ -21,6 +22,7 @@ class BoxInputField extends StatelessWidget {
     required this.controller,
     this.placeholder = '',
     this.leading,
+    this.enabled = true,
     this.trailing,
     this.trailingTapped,
     this.onChanged,
@@ -32,6 +34,7 @@ class BoxInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: enabled,
       controller: controller,
       onChanged: (value) {
         if (onChanged != null) {

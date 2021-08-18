@@ -39,6 +39,7 @@ class Product {
       this.imageLocal,
       this.currentUpdate,
       this.expiryDate,
+      this.barCode,
       this.imageUrl});
   @Id(assignable: true)
   int id;
@@ -62,6 +63,7 @@ class Product {
   bool? currentUpdate;
   String? imageUrl;
   String? expiryDate;
+  String? barCode;
 
   @Backlink()
   final variations = ToMany<Variant>();
@@ -69,6 +71,7 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: int.parse(json["id"]),
         name: json["name"],
+        barCode: json["barCode"],
         description: json["description"],
         active: json["active"],
         ftaxId: json["ftaxId"],
@@ -92,6 +95,7 @@ class Product {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
+        "barCode": barCode,
         "description": description,
         "expiryDate": expiryDate,
         "active": active,

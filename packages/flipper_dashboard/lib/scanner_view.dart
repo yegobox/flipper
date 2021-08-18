@@ -1,72 +1,22 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/product.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked/stacked.dart';
+import 'package:flipper/localization.dart';
 import 'package:flipper_services/proxy.dart';
-import 'dart:developer';
-import 'dart:io';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
-// import 'package:flutter_qr_reader/qrcode_reader_view.dart';
-
-// class ScannView extends StatefulWidget {
-//   ScannView({Key? key}) : super(key: key);
-
-//   @override
-//   _ScannViewState createState() => new _ScannViewState();
-// }
-
-// class _ScannViewState extends State<ScannView> {
-//   GlobalKey<QrcodeReaderViewState> _key = GlobalKey();
-//   @override
-//   void initState() {
-//     super.initState();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return new Scaffold(
-//       body: QrcodeReaderView(
-//         key: _key,
-//         onScan: onScan,
-//         headerWidget: AppBar(
-//           backgroundColor: Colors.transparent,
-//           elevation: 0.0,
-//         ),
-//       ),
-//     );
-//   }
-
-//   Future onScan(String? data) async {
-//     await showCupertinoDialog(
-//       context: context,
-//       builder: (context) {
-//         return CupertinoAlertDialog(
-//           title: Text("扫码结果"),
-//           content: Text(data!),
-//           actions: <Widget>[
-//             CupertinoDialogAction(
-//               child: Text("确认"),
-//               onPressed: () => Navigator.pop(context),
-//             )
-//           ],
-//         );
-//       },
-//     );
-//     _key.currentState!.startScan();
-//   }
-
-//   @override
-//   void dispose() {
-//     super.dispose();
-//   }
-// }
-
 class ScannView extends StatefulWidget {
-  const ScannView({Key? key}) : super(key: key);
+  const ScannView({Key? key, this.intent = 'selling'}) : super(key: key);
+  final String intent;
 
   @override
   State<StatefulWidget> createState() => _ScannViewState();
@@ -76,6 +26,7 @@ class _ScannViewState extends State<ScannView> {
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final log = getLogger('_ScannViewState');
 
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
@@ -90,29 +41,35 @@ class _ScannViewState extends State<ScannView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        onPop: () async {
-          ProxyService.nav.back();
-        },
-        title: '',
-        disableButton: true,
-        showActionButton: false,
-        onPressedCallback: () async {
-          ProxyService.nav.back();
-        },
-        rightActionButtonName: 'Save',
-        icon: Icons.close,
-        multi: 3,
-        bottomSpacer: 50,
-      ),
-      body: Column(
-        children: <Widget>[Expanded(flex: 4, child: _buildQrView(context))],
-      ),
+    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+      viewModelBuilder: () => BusinessHomeViewModel(),
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            onPop: () async {
+              ProxyService.nav.back();
+            },
+            title: '',
+            disableButton: true,
+            showActionButton: false,
+            onPressedCallback: () async {
+              ProxyService.nav.back();
+            },
+            icon: Icons.close,
+            multi: 3,
+            bottomSpacer: 50,
+          ),
+          body: Column(
+            children: <Widget>[
+              Expanded(flex: 4, child: _buildQrView(context, model))
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildQrView(BuildContext context) {
+  Widget _buildQrView(BuildContext context, BusinessHomeViewModel model) {
     // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
     var scanArea = (MediaQuery.of(context).size.width < 400 ||
             MediaQuery.of(context).size.height < 400)
@@ -122,7 +79,9 @@ class _ScannViewState extends State<ScannView> {
     // we need to listen for Flutter SizeChanged notification and update controller
     return QRView(
       key: qrKey,
-      onQRViewCreated: _onQRViewCreated,
+      onQRViewCreated: (controller) {
+        _onQRViewCreated(controller, model);
+      },
       overlay: QrScannerOverlayShape(
           borderColor: Colors.red,
           borderRadius: 10,
@@ -134,7 +93,7 @@ class _ScannViewState extends State<ScannView> {
   }
 
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-    log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
+    log.i('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('no Permission')),
@@ -142,20 +101,46 @@ class _ScannViewState extends State<ScannView> {
     }
   }
 
-  void _onQRViewCreated(QRViewController controller) {
+  void _onQRViewCreated(
+      QRViewController controller, BusinessHomeViewModel model) {
     setState(() {
       this.controller = controller;
     });
+
+    if (kDebugMode) {
+      model.productService.setBarcode('11232532');
+      navigate('11232532', model);
+    }
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         result = scanData;
-        showSimpleNotification(
-          Text(scanData.code),
-          background: Colors.green,
-          position: NotificationPosition.bottom,
-        );
+        model.productService.setBarcode(scanData.code);
+        navigate(scanData.code, model);
       });
     });
+  }
+
+  void navigate(String code, BusinessHomeViewModel model) async {
+    if (widget.intent == addBarCode) {
+      ProxyService.nav.back();
+      return;
+    }
+    if (widget.intent == selling) {
+      Product? product =
+          await model.productService.getProductByBarCode(code: code);
+      if (product != null) {
+        ProxyService.nav.navigateTo(Routes.sell,
+            arguments: SellArguments(product: product));
+        return;
+      }
+      showSimpleNotification(
+        Text(Localization.of(context)!.productNotFound),
+        background: Colors.green,
+        position: NotificationPosition.bottom,
+      );
+      ProxyService.nav.back();
+      return;
+    }
   }
 
   @override

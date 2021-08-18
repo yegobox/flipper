@@ -42,5 +42,13 @@
     "saveTicket": "huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti",
     "@saveTicket": {
         "description": "huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti"
+    },
+    "productNotFound": "Bidhaa haijapatikana",
+    "@productNotFound": {
+        "description": "Bidhaa haijapatikana"
+    },
+    "noPayable": "Hakuna malipo yoyote yanayopatikana",
+    "@noPayable": {
+        "description": "Hakuna malipo yoyote yanayopatikana"
     }
 }

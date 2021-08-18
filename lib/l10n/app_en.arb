@@ -42,5 +42,13 @@
     "saveTicket": "you can not save the tickets without adding a note to ticket",
     "@saveTicket": {
         "description": "can not save the tickets without adding a note to ticket"
+    },
+    "productNotFound": "Product not found",
+    "@productNotFound": {
+        "description": "Product not found"
+    },
+    "noPayable": "No payable",
+    "@noPayable": {
+        "description": "No payable"
     }
 }

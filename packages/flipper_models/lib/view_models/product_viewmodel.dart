@@ -318,6 +318,8 @@ class ProductViewModel extends ReactiveViewModel {
   Future<bool> addProduct({required Map mproduct}) async {
     if (name != null) {
       mproduct['name'] = _name;
+      mproduct['barCode'] = productService.barCode.toString();
+      log.i(productService.barCode);
       mproduct['color'] = currentColor;
       // update the variant with the product name
       List<Variant> variants = await ProxyService.api
@@ -325,7 +327,6 @@ class ProductViewModel extends ReactiveViewModel {
       for (Variant variant in variants) {
         Map v = variant.toJson();
         v['productName'] = _name;
-
         v['fproductId'] = mproduct['id'];
         int id = v['id'];
         await ProxyService.api.update(data: v, endPoint: 'variant/$id');

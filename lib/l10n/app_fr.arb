@@ -42,5 +42,13 @@
     "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
     "@saveTicket": {
         "description": "Amahitamo"
+    },
+    "productNotFound": "Igicuruzwa ntikibonetse",
+    "@productNotFound": {
+        "description": "Igicuruzwa ntikibonetse"
+    },
+    "noPayable": "Ntabyo kwishyuzwa bihari",
+    "@noPayable": {
+        "description": "Ntabyo kwishyuzwa bihari"
     }
 }

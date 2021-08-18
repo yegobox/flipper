@@ -47,6 +47,7 @@ abstract class Api<T> {
   });
 
   Future<Product?> getProduct({required int id});
+  Future<Product?> getProductByBarCode({required String barCode});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});

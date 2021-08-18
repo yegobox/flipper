@@ -49,7 +49,8 @@ class BoxButton extends StatelessWidget {
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: kcPrimaryColor,
+                  color: kcMediumGreyColor,
+                  // color: kcPrimaryColor,
                   width: 1,
                 )),
         child: !busy
@@ -61,8 +62,8 @@ class BoxButton extends StatelessWidget {
                   Text(
                     title,
                     style: bodyStyle.copyWith(
-                      fontSize: 18.sp,
-                      fontWeight: !outline ? FontWeight.bold : FontWeight.w400,
+                      // fontSize: 18.sp,
+                      // fontWeight: !outline ? FontWeight.bold : FontWeight.w400,
                       color: !outline ? Colors.white : kcPrimaryColor,
                     ),
                   ),

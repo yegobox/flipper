@@ -9,6 +9,10 @@ class ProductService with ReactiveServiceMixin {
   String? get currentUnit => _currentUnit;
   final log = getLogger('ProductService');
 
+  final _barCode = ReactiveValue<String>('');
+  String get barCode => _barCode.value;
+  void setBarcode(String value) => _barCode.value = value;
+
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
 
@@ -57,7 +61,11 @@ class ProductService with ReactiveServiceMixin {
     if (searchKey.isEmpty) loadProducts(branchId: branchId);
   }
 
+  Future<Product?> getProductByBarCode({required String code}) async {
+    return await ProxyService.api.getProductByBarCode(barCode: code);
+  }
+
   ProductService() {
-    listenToReactiveValues([_product, _variants, _products]);
+    listenToReactiveValues([_product, _variants, _products, _barCode]);
   }
 }

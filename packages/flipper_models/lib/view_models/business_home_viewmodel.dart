@@ -10,6 +10,7 @@ import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/variants.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
+import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
@@ -17,6 +18,7 @@ import 'package:flipper_services/constants.dart';
 class BusinessHomeViewModel extends ReactiveViewModel {
   final log = getLogger('BusinessHomeViewModel');
   final KeyPadService keypad = locator<KeyPadService>();
+  final ProductService productService = locator<ProductService>();
   final AppService _app = locator<AppService>();
   String get key => keypad.key;
 
@@ -372,5 +374,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices => [keypad, _app];
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [keypad, _app, productService];
 }

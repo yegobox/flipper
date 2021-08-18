@@ -195,7 +195,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ProxyService.nav.navigateTo(Routes.pay);
                       } else {
                         showSimpleNotification(
-                          Text('Ntabyo kwishyuzwa bihari'),
+                          Text(Localization.of(context)!.noPayable),
                           background: Colors.green,
                           position: NotificationPosition.bottom,
                         );

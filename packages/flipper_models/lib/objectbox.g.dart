@@ -417,7 +417,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(7, 5845890317736708113),
       name: 'Product',
-      lastPropertyId: const IdUid(19, 2367454108669958312),
+      lastPropertyId: const IdUid(20, 4617414251103113403),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -513,6 +513,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(19, 2367454108669958312),
             name: 'expiryDate',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(20, 4617414251103113403),
+            name: 'barCode',
             type: 9,
             flags: 0)
       ],
@@ -1402,7 +1407,9 @@ ModelDefinition getObjectBoxModel() {
           final expiryDateOffset = object.expiryDate == null
               ? null
               : fbb.writeString(object.expiryDate!);
-          fbb.startTable(20);
+          final barCodeOffset =
+              object.barCode == null ? null : fbb.writeString(object.barCode!);
+          fbb.startTable(21);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, descriptionOffset);
@@ -1422,6 +1429,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addBool(16, object.currentUpdate);
           fbb.addOffset(17, imageUrlOffset);
           fbb.addOffset(18, expiryDateOffset);
+          fbb.addOffset(19, barCodeOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1463,6 +1471,7 @@ ModelDefinition getObjectBoxModel() {
                   const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
               currentUpdate: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 36),
               expiryDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40),
+              barCode: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42),
               imageUrl: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38));
           InternalToManyAccess.setRelInfo(
               object.variations,
@@ -2209,6 +2218,10 @@ class Product_ {
   /// see [Product.expiryDate]
   static final expiryDate =
       QueryStringProperty<Product>(_entities[6].properties[18]);
+
+  /// see [Product.barCode]
+  static final barCode =
+      QueryStringProperty<Product>(_entities[6].properties[19]);
 }
 
 /// [Stock] entity fields to define ObjectBox queries.

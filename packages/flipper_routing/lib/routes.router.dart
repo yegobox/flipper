@@ -57,7 +57,7 @@ class Routes {
   static const String afterSale = '/after-sale';
   static const String settings = '/settings-screen';
   static const String analytics = '/Analytics';
-  static const String qrview = '/qr-view';
+  static const String qrview = '/scann-view';
   static const String customers = '/Customers';
   static const all = <String>{
     startUpView,
@@ -296,8 +296,14 @@ class StackedRouter extends RouterBase {
       );
     },
     ScannView: (data) {
+      var args = data.getArgs<ScannViewArguments>(
+        orElse: () => ScannViewArguments(),
+      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => ScannView(),
+        builder: (context) => ScannView(
+          key: args.key,
+          intent: args.intent,
+        ),
         settings: data,
       );
     },
@@ -408,6 +414,13 @@ class AfterSaleArguments {
   final Key? key;
   final double totalOrderAmount;
   AfterSaleArguments({this.key, required this.totalOrderAmount});
+}
+
+/// ScannView arguments holder class
+class ScannViewArguments {
+  final Key? key;
+  final String intent;
+  ScannViewArguments({this.key, this.intent = 'selling'});
 }
 
 /// Customers arguments holder class

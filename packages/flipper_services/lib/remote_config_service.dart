@@ -17,7 +17,7 @@ class RemoteConfigService implements Remote {
       'force_remote_add_data': true,
       'is_submit_device_token_enabled': false,
       'analytic_feature_available': false,
-      'scann_selling': false
+      'scann_selling': true
     });
   }
 

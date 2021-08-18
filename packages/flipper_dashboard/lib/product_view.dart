@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/product.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'custom_dropdown.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'product_row.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isWindows = UniversalPlatform.isWindows;
+final isMacOs = UniversalPlatform.isMacOS;
 
 class ProductView extends StatefulWidget {
   const ProductView({
@@ -391,7 +394,9 @@ class _onCreate extends State<ProductView> {
                     ),
                   ),
                 ),
-                if (ProxyService.remoteConfig.scann_selling())
+                if (ProxyService.remoteConfig.scann_selling() &&
+                    !isWindows &&
+                    !isMacOs)
                   Container(
                     child: GestureDetector(
                       onTap: () {

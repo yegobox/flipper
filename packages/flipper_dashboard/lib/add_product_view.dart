@@ -6,6 +6,8 @@ import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'create/build_image_holder.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'create/category_selector.dart';
 import 'create/divider.dart';
 import 'create/retail_price.dart';
@@ -16,13 +18,13 @@ import 'customappbar.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:intl/intl.dart';
 
 class AddProductView extends StatelessWidget {
   AddProductView({Key? key}) : super(key: key);
   final log = getLogger('AddProductView');
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
+  TextEditingController barCode = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +158,7 @@ class AddProductView extends StatelessWidget {
                       title: (model.product == null ||
                               (model.product != null &&
                                   model.product.expiryDate == null))
-                          ? 'Add Expiry Date (optional)'
+                          ? 'Expiry Date'
                           : 'Expires at ' +
                               formatter.format(
                                   DateTime.parse(model.product.expiryDate)),
@@ -177,8 +179,7 @@ class AddProductView extends StatelessWidget {
                           ),
                         ),
                   Padding(
-                    padding:
-                        const EdgeInsets.only(left: 18, right: 18, top: 10),
+                    padding: const EdgeInsets.only(left: 18, right: 18, top: 2),
                     child: SizedBox(
                       height: 50,
                       width: double.infinity,
@@ -191,7 +192,28 @@ class AddProductView extends StatelessWidget {
                       ),
                     ),
                   ),
-                ])
+                ]),
+                Padding(
+                  padding: const EdgeInsets.only(left: 18, right: 18, top: 5),
+                  child: GestureDetector(
+                    onTap: () {
+                      barCode.text = model.productService.barCode;
+                      ProxyService.nav.navigateTo(
+                        Routes.qrview,
+                        arguments: ScannViewArguments(intent: 'addBarCode'),
+                      );
+                    },
+                    child: BoxInputField(
+                      enabled: false,
+                      controller: barCode,
+                      trailing: Icon(
+                        Icons.center_focus_weak,
+                        color: primary,
+                      ),
+                      placeholder: 'BarCode',
+                    ),
+                  ),
+                )
               ],
             ),
           ),

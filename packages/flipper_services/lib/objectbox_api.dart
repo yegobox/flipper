@@ -768,6 +768,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           active: map['active'],
           fbranchId: map['fbranchId'],
           table: map['table'],
+          barCode: map['barCode'],
           channels: map['channels'],
           id: map['id'],
           expiryDate: map['expiryDate'],
@@ -1287,6 +1288,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
     return store
         .box<OrderItem>()
         .query(OrderItem_.fvariantId.equals(variantId))
+        .build()
+        .findFirst();
+  }
+
+  @override
+  Future<Product?> getProductByBarCode({required String barCode}) async {
+    return store
+        .box<Product>()
+        .query(Product_.barCode.equals(barCode))
         .build()
         .findFirst();
   }
