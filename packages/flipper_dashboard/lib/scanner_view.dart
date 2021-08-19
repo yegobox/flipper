@@ -106,17 +106,20 @@ class _ScannViewState extends State<ScannView> {
     setState(() {
       this.controller = controller;
     });
-
+    result = null;
     if (kDebugMode) {
       model.productService.setBarcode('11232532');
       navigate('11232532', model);
     }
+
     controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-        model.productService.setBarcode(scanData.code);
-        navigate(scanData.code, model);
-      });
+      if (result == null) {
+        setState(() {
+          result = scanData;
+          model.productService.setBarcode(scanData.code);
+          navigate(scanData.code, model);
+        });
+      }
     });
   }
 
