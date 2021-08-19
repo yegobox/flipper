@@ -11,7 +11,10 @@ class ProductService with ReactiveServiceMixin {
 
   final _barCode = ReactiveValue<String>('');
   String get barCode => _barCode.value;
-  void setBarcode(String value) => _barCode.value = value;
+  void setBarcode(String value) {
+    _barCode.value = value;
+    notifyListeners();
+  }
 
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;

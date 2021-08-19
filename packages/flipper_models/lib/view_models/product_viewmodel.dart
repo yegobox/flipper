@@ -40,6 +40,10 @@ class ProductViewModel extends ReactiveViewModel {
 
   List<Variant>? get variants => productService.variants;
 
+  Stream<String> getBarCode() async* {
+    yield productService.barCode;
+  }
+
   Future<void> loadProducts() async {
     int branchId = ProxyService.box.read(key: 'branchId');
     await productService.loadProducts(branchId: branchId);

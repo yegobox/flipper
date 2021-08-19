@@ -193,27 +193,37 @@ class AddProductView extends StatelessWidget {
                     ),
                   ),
                 ]),
-                Padding(
-                  padding: const EdgeInsets.only(left: 18, right: 18, top: 5),
-                  child: GestureDetector(
-                    onTap: () {
-                      barCode.text = model.productService.barCode;
-                      ProxyService.nav.navigateTo(
-                        Routes.qrview,
-                        arguments: ScannViewArguments(intent: 'addBarCode'),
+                StreamBuilder<String>(
+                    stream: model.getBarCode(),
+                    builder: (context, snapshot) {
+                      barCode.text = snapshot.hasData ? snapshot.data! : '';
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          left: 18,
+                          right: 18,
+                          top: 20,
+                          bottom: 30,
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            ProxyService.nav.navigateTo(
+                              Routes.qrview,
+                              arguments:
+                                  ScannViewArguments(intent: 'addBarCode'),
+                            );
+                          },
+                          child: BoxInputField(
+                            enabled: false,
+                            controller: barCode,
+                            trailing: Icon(
+                              Icons.center_focus_weak,
+                              color: primary,
+                            ),
+                            placeholder: 'BarCode',
+                          ),
+                        ),
                       );
-                    },
-                    child: BoxInputField(
-                      enabled: false,
-                      controller: barCode,
-                      trailing: Icon(
-                        Icons.center_focus_weak,
-                        color: primary,
-                      ),
-                      placeholder: 'BarCode',
-                    ),
-                  ),
-                )
+                    })
               ],
             ),
           ),
