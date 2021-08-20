@@ -24,19 +24,19 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_models/variants.dart';
 import 'package:flipper_services/constants.dart';
 import 'constants.dart';
+import 'package:flipper_routing/routes.logger.dart';
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
   // ignore: sort_constructors_first
   ExtendedClient(this._inner);
-
+  final log = getLogger('ExtendedClient');
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     String? token = ProxyService.box.read(key: 'bearerToken');
     String? userId = ProxyService.box.read(key: 'userId');
     // you may want to pickup the value from tshared preferences, like:
-    // customValue = await LocalStorage.getStringItem('token');
-
+    log.i(request);
     request.headers['Authorization'] = token == null ? '' : token;
     request.headers['userId'] = userId == null ? '' : userId;
 
