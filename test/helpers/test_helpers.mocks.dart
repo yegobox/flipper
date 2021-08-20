@@ -203,6 +203,12 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
       Invocation.method(#getProduct, [], {#id: id}),
       returnValue: Future<_i5.Product?>.value()) as _i16.Future<_i5.Product?>);
   @override
+  _i16.Future<_i5.Product?> getProductByBarCode({String? barCode}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getProductByBarCode, [], {#barCode: barCode}),
+              returnValue: Future<_i5.Product?>.value())
+          as _i16.Future<_i5.Product?>);
+  @override
   _i16.Future<_i5.Product> createProduct({_i5.Product? product}) =>
       (super.noSuchMethod(
               Invocation.method(#createProduct, [], {#product: product}),
@@ -417,6 +423,10 @@ class MockRemote extends _i1.Mock implements _i24.Remote {
       (super.noSuchMethod(Invocation.method(#isSubmitDeviceTokenEnabled, []),
           returnValue: false) as bool);
   @override
+  bool scann_selling() =>
+      (super.noSuchMethod(Invocation.method(#scann_selling, []),
+          returnValue: false) as bool);
+  @override
   void config() => super.noSuchMethod(Invocation.method(#config, []),
       returnValueForMissingStub: null);
 }
@@ -546,9 +556,17 @@ class MockProductService extends _i1.Mock implements _i27.ProductService {
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
           as _i13.Logger);
   @override
+  String get barCode =>
+      (super.noSuchMethod(Invocation.getter(#barCode), returnValue: '')
+          as String);
+  @override
   List<_i5.Product> get products =>
       (super.noSuchMethod(Invocation.getter(#products),
           returnValue: <_i5.Product>[]) as List<_i5.Product>);
+  @override
+  void setBarcode(String? value) =>
+      super.noSuchMethod(Invocation.method(#setBarcode, [value]),
+          returnValueForMissingStub: null);
   @override
   dynamic setProductUnit({String? unit}) =>
       super.noSuchMethod(Invocation.method(#setProductUnit, [], {#unit: unit}));
@@ -561,10 +579,11 @@ class MockProductService extends _i1.Mock implements _i27.ProductService {
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future.value()) as _i16.Future<void>);
   @override
-  _i16.Future<void> loadProducts({int? branchId}) => (super.noSuchMethod(
-      Invocation.method(#loadProducts, [], {#branchId: branchId}),
-      returnValue: Future<void>.value(),
-      returnValueForMissingStub: Future.value()) as _i16.Future<void>);
+  _i16.Future<List<_i5.Product>> loadProducts({int? branchId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#loadProducts, [], {#branchId: branchId}),
+              returnValue: Future<List<_i5.Product>>.value(<_i5.Product>[]))
+          as _i16.Future<List<_i5.Product>>);
   @override
   _i16.Future<void> filtterProduct({String? searchKey, int? branchId}) =>
       (super.noSuchMethod(
@@ -572,6 +591,12 @@ class MockProductService extends _i1.Mock implements _i27.ProductService {
               {#searchKey: searchKey, #branchId: branchId}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i16.Future<void>);
+  @override
+  _i16.Future<_i5.Product?> getProductByBarCode({String? code}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getProductByBarCode, [], {#code: code}),
+              returnValue: Future<_i5.Product?>.value())
+          as _i16.Future<_i5.Product?>);
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(
