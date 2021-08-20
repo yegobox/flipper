@@ -46,8 +46,9 @@ class ProductService with ReactiveServiceMixin {
         .variants(branchId: branchId!, productId: productId);
   }
 
-  Future<void> loadProducts({required int branchId}) async {
+  Future<List<Product>> loadProducts({required int branchId}) async {
     _products.value = await ProxyService.api.products(branchId: branchId);
+    return products;
   }
 
   Future<void> filtterProduct(

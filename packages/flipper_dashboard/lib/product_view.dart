@@ -507,27 +507,26 @@ class BuildProductsView extends StatelessWidget {
   final ProductViewModel model;
   @override
   Widget build(BuildContext context) {
-    return model.products.length == 0
+    return model.productService.products.length == 0
         ? SizedBox.shrink()
-        : ListView.builder(
-            padding: EdgeInsets.only(left: 0),
-            shrinkWrap: false,
-            itemCount: model.products.length,
-            itemBuilder: (context, index) {
-              return ProductRow(
-                color: model.products[index].color,
-                hasImage: model.products[index].hasPicture,
-                product: model.products[index],
-                name: model.products[index].name,
-                imageUrl: model.products[index].imageUrl,
-                addToMenu: (productId) {
-                  model.addToMenu(productId: productId);
-                },
-                delete: (productId) {
-                  model.deleteProduct(productId: productId);
-                },
-              );
-            },
+        : ListView(
+            children: model.productService.products
+                .map(
+                  (product) => ProductRow(
+                    color: product.color,
+                    hasImage: product.hasPicture,
+                    product: product,
+                    name: product.name,
+                    imageUrl: product.imageUrl,
+                    addToMenu: (productId) {
+                      model.addToMenu(productId: productId);
+                    },
+                    delete: (productId) {
+                      model.deleteProduct(productId: productId);
+                    },
+                  ),
+                )
+                .toList(),
           );
   }
 }

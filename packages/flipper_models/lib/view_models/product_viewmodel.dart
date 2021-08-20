@@ -22,8 +22,6 @@ class ProductViewModel extends ReactiveViewModel {
   final log = getLogger('ProductViewModel');
   final ProductService productService = locator<ProductService>();
 
-  get products => productService.products;
-
   List<PColor> get colors => _appService.colors;
 
   List<Unit> get units => _appService.units;
@@ -43,6 +41,8 @@ class ProductViewModel extends ReactiveViewModel {
   Stream<String> getBarCode() async* {
     yield productService.barCode;
   }
+
+  // List<Product> get products => productService.products;
 
   Future<void> loadProducts() async {
     int branchId = ProxyService.box.read(key: 'branchId');
