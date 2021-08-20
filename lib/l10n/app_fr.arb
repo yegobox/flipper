@@ -50,5 +50,13 @@
     "noPayable": "Ntabyo kwishyuzwa bihari",
     "@noPayable": {
         "description": "Ntabyo kwishyuzwa bihari"
+    },
+    "delete": "Siba",
+    "@delete": {
+        "description": "Siba"
+    },
+    "addTomenu": "Menu",
+    "@addTomenu": {
+        "description": "Ongeraho kuri menu"
     }
 }

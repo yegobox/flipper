@@ -1,4 +1,5 @@
 import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper/localization.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -16,6 +17,7 @@ class ProductRow extends StatelessWidget {
       required this.name,
       required this.hasImage,
       this.imageUrl,
+      required this.addToMenu,
       required this.product,
       required this.delete})
       : super(key: key);
@@ -25,6 +27,7 @@ class ProductRow extends StatelessWidget {
   final String? imageUrl;
   final Product product;
   final Function delete;
+  final Function addToMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +107,27 @@ class ProductRow extends StatelessWidget {
           ),
         ]),
       ),
+      actions: [
+        IconSlideAction(
+          caption: Localization.of(context)!.addTomenu,
+          color: Colors.white,
+          icon: Icons.menu,
+          onTap: () {
+            addToMenu(product.id);
+          },
+        ),
+      ],
       secondaryActions: <Widget>[
         IconSlideAction(
-          caption: 'Delete',
+          caption: Localization.of(context)!.addTomenu,
+          color: Colors.white,
+          icon: Icons.menu,
+          onTap: () {
+            addToMenu(product.id);
+          },
+        ),
+        IconSlideAction(
+          caption: Localization.of(context)!.delete,
           color: Colors.red,
           icon: Icons.delete,
           onTap: () {

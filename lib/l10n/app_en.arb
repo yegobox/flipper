@@ -50,5 +50,13 @@
     "noPayable": "No payable",
     "@noPayable": {
         "description": "No payable"
+    },
+    "delete": "Delete",
+    "@delete": {
+        "description": "Delete"
+    },
+    "addTomenu": "Menu",
+    "@addTomenu": {
+        "description": "Ongeraho kuri menu"
     }
 }

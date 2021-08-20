@@ -374,6 +374,11 @@ class ProductViewModel extends ReactiveViewModel {
     productService.filtterProduct(searchKey: searchKey, branchId: branchId);
   }
 
+  void addToMenu({required int productId}) {
+    //
+    log.i('can add to menu');
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [_appService, productService];

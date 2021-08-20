@@ -50,5 +50,13 @@
     "noPayable": "Hakuna malipo yoyote yanayopatikana",
     "@noPayable": {
         "description": "Hakuna malipo yoyote yanayopatikana"
+    },
+    "delete": "Futa",
+    "@delete": {
+        "description": "Futa"
+    },
+    "addTomenu": "Menu",
+    "@addTomenu": {
+        "description": "Menu"
     }
 }
