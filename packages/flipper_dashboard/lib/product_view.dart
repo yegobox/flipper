@@ -510,6 +510,7 @@ class BuildProductsView extends StatelessWidget {
     return model.productService.products.length == 0
         ? SizedBox.shrink()
         : ListView(
+            shrinkWrap: true,
             children: model.productService.products
                 .map(
                   (product) => ProductRow(
