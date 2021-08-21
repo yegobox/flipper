@@ -66,7 +66,7 @@ class SignupViewModel extends FormViewModel {
     notifyListeners();
     if (ProxyService.remoteConfig.isSubmitDeviceTokenEnabled()) {
       String? token = await FirebaseMessaging.instance.getToken();
-      ProxyService.firestore.saveTokenToDatabase(token!);
+      ProxyService.firestore.saveTokenToDatabase(token: token!);
     }
     //set the startup app.
     // TODOuncomment this when the social feature is out!

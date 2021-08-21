@@ -530,4 +530,10 @@ class HttpApi<T> implements Api {
     // TODO: implement getProductByBarCode
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateBusiness({required int id, required Map business}) {
+    // TODO: implement updateBusiness
+    throw UnimplementedError();
+  }
 }

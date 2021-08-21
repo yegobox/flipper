@@ -9,7 +9,7 @@ import 'exceptions/firestore_api_exception.dart';
 abstract class Firestore {
   Future<void> createUser({required dynamic user, required String token});
   Future<void> getUser({required String userId});
-  Future<void> saveTokenToDatabase(String token);
+  Future<void> saveTokenToDatabase({String? token, Map? business});
 }
 
 class UnSupportedFirestoreApi implements Firestore {
@@ -24,7 +24,7 @@ class UnSupportedFirestoreApi implements Firestore {
   }
 
   @override
-  Future<void> saveTokenToDatabase(String token) async {
+  Future<void> saveTokenToDatabase({String? token, Map? business}) async {
     // TODO: implement saveTokenToDatabase
   }
 }
@@ -76,16 +76,24 @@ class FirestoreApi implements Firestore {
   }
 
   @override
-  Future<void> saveTokenToDatabase(String token) async {
-    String uid = FirebaseAuth.instance.currentUser!.uid;
-    log.i(uid);
+  Future<void> saveTokenToDatabase({String? token, Map? business}) async {
+    // String uid = FirebaseAuth.instance.currentUser!.uid;
     String? userId = ProxyService.box.read(key: 'userId');
+    log.i(business!['id']);
+    if (business['id'] is int) {
+      ProxyService.api.updateBusiness(id: business['id'], business: business);
 
-    createUser(user: userId, token: token);
-    try {
-      await usersCollection.doc(userId).update({
-        'tokens': FieldValue.arrayUnion([token]),
-      });
-    } catch (e) {}
+      //this update local database
+      ProxyService.api
+          .update(data: business, endPoint: 'businesses/' + business['id']);
+    }
+
+    //old way!
+    // createUser(user: userId, token: token!);
+    // try {
+    //   await usersCollection.doc(userId).update({
+    //     'tokens': FieldValue.arrayUnion([token]),
+    //   });
+    // } catch (e) {}
   }
 }

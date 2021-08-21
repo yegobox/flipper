@@ -833,6 +833,39 @@ class ObjectBoxApi extends MobileUpload implements Api {
         final box = store.box<Category>();
         box.put(category, mode: PutMode.update);
         break;
+      case 'business':
+        Business? business = store.box<Business>().get(id);
+        Map map = business!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        Business ubusiness = Business(
+          active: map['active'],
+          name: map['name'],
+          table: map['table'],
+          channels: map['channels'],
+          fcategoryId: map['fcategoryId'],
+          id: map['id'],
+          imageUrl: map['imageUrl'],
+          businessUrl: map['businessUrl'],
+          firstName: map['firstName'],
+          lastSeen: map['lastSeen'],
+          currency: map['currency'],
+          role: map['role'],
+          latitude: map['latitude'],
+          longitude: map['longitude'],
+          userId: map['userId'],
+          country: map['country'],
+          hexColor: map['hexColor'],
+          type: map['type'],
+          deviceToken: map['deviceToken'],
+          timeZone: map['timeZone'],
+          typeId: map['typeId'],
+          metadata: map['metadata'],
+        );
+        final box = store.box<Business>();
+        box.put(ubusiness, mode: PutMode.update);
+        break;
       case 'variant':
         Variant? variation = store.box<Variant>().get(id);
         Map map = variation!.toJson();
@@ -1299,5 +1332,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .query(Product_.barCode.equals(barCode))
         .build()
         .findFirst();
+  }
+
+  @override
+  Future<void> updateBusiness({required int id, required Map business}) async {
+    // log.i(business['deviceToken']);
+    final response = await client.patch(
+        Uri.parse("$apihub/v2/api/business/$id"),
+        body: {'deviceToken': business['deviceToken']});
+    log.i(response.body);
   }
 }

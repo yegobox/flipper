@@ -50,6 +50,9 @@ class Business {
       this.active = false,
       this.metadata,
       this.lastSeen,
+      this.firstName,
+      this.lastName,
+      this.deviceToken,
       this.role});
   @Id(assignable: true)
   int id;
@@ -96,10 +99,12 @@ class Business {
   /// Last name of the user
   String? lastName;
   String? createdAt;
+  String? deviceToken;
 
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],
+        deviceToken = json["deviceToken"],
         currency = json["currency"],
         // TODOwhen loading the fcategoryId it seems somehow fcategoryId is a string and we are expecting an int or maybe there is null returned!
         // fcategoryId = json["fcategoryId"],
@@ -124,6 +129,7 @@ class Business {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
+        "deviceToken": deviceToken,
         "currency": currency,
         "fcategoryId": fcategoryId.toString(),
         "latitude": latitude,

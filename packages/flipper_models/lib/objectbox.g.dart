@@ -78,7 +78,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 2865100998343489519),
       name: 'Business',
-      lastPropertyId: const IdUid(22, 5348406758024782343),
+      lastPropertyId: const IdUid(23, 3713089851155268736),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -189,6 +189,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(22, 5348406758024782343),
             name: 'createdAt',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(23, 3713089851155268736),
+            name: 'deviceToken',
             type: 9,
             flags: 0)
       ],
@@ -1088,7 +1093,10 @@ ModelDefinition getObjectBoxModel() {
           final createdAtOffset = object.createdAt == null
               ? null
               : fbb.writeString(object.createdAt!);
-          fbb.startTable(23);
+          final deviceTokenOffset = object.deviceToken == null
+              ? null
+              : fbb.writeString(object.deviceToken!);
+          fbb.startTable(24);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, currencyOffset);
@@ -1111,6 +1119,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(19, firstNameOffset);
           fbb.addOffset(20, lastNameOffset);
           fbb.addOffset(21, createdAtOffset);
+          fbb.addOffset(22, deviceTokenOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1153,7 +1162,8 @@ ModelDefinition getObjectBoxModel() {
               role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
             ..firstName = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42)
             ..lastName = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44)
-            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
+            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46)
+            ..deviceToken = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
 
           return object;
         }),
@@ -1999,6 +2009,10 @@ class Business_ {
   /// see [Business.createdAt]
   static final createdAt =
       QueryStringProperty<Business>(_entities[1].properties[21]);
+
+  /// see [Business.deviceToken]
+  static final deviceToken =
+      QueryStringProperty<Business>(_entities[1].properties[22]);
 }
 
 /// [Category] entity fields to define ObjectBox queries.

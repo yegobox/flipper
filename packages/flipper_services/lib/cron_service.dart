@@ -2,8 +2,10 @@ import 'package:cron/cron.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 
@@ -43,7 +45,19 @@ class CronService {
   //will be printed everytime a sales is complete for demo
   //after demo i.e that time we will be sure that bluethooth is working
   // then we will customize invoice to match with actual data.
-  schedule() {
+  schedule() async {
+    //save the device token to firestore if it is not already there
+    Business? business = await ProxyService.api.getBusiness();
+    String? token = await FirebaseMessaging.instance.getToken();
+    // we need to think when the devices change or app is uninstalled
+    // for the case like that the token needs to be updated, but not covered now
+    // this sill make more sence once we implement the sync that is when we will implement such solution
+    if (business.deviceToken == null) {
+      Map updatedBusiness = business.toJson();
+      updatedBusiness['deviceToken'] = token.toString();
+      ProxyService.firestore
+          .saveTokenToDatabase(token: token!, business: updatedBusiness);
+    }
     cron.schedule(Schedule.parse('*/1 * * * *'), () async {
       if (settingService.enabledReport()) {
         List<OrderF> completed_orders =
