@@ -85,7 +85,7 @@ class FirestoreApi implements Firestore {
 
       //this update local database
       ProxyService.api
-          .update(data: business, endPoint: 'businesses/' + business['id']);
+          .update(data: business, endPoint: 'businesses/' + business['id'].toString());
     }
 
     //old way!
