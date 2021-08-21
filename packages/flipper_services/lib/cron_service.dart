@@ -52,13 +52,14 @@ class CronService {
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
-    if (business.deviceToken == null) {
-      Map updatedBusiness = business.toJson();
-      updatedBusiness['deviceToken'] = token.toString();
-      ProxyService.firestore
-          .saveTokenToDatabase(token: token!, business: updatedBusiness);
-    }
+
     cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      if (business.deviceToken == null) {
+        Map updatedBusiness = business.toJson();
+        updatedBusiness['deviceToken'] = token.toString();
+        ProxyService.firestore
+            .saveTokenToDatabase(token: token!, business: updatedBusiness);
+      }
       if (settingService.enabledReport()) {
         List<OrderF> completed_orders =
             await ProxyService.api.getOrderByStatus(status: completeStatus);
