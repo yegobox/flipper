@@ -1,5 +1,6 @@
 library flipper_dashboard;
 
+import 'package:upgrader/upgrader.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -158,6 +159,83 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  Widget BodyWidget(BusinessHomeViewModel model) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideOutScreen(
+        sideOpenController: _sideOpenController,
+        side: const Text('Side'),
+        main: Column(
+          children: [
+            KeyPadHead(
+              tab: model.tab,
+              payable: PayableView(
+                onClick: () {
+                  if (model.orders.length > 0) {
+                    ProxyService.nav.navigateTo(Routes.pay);
+                  } else {
+                    showSimpleNotification(
+                      Text(Localization.of(context)!.noPayable),
+                      background: Colors.green,
+                      position: NotificationPosition.bottom,
+                    );
+                  }
+                },
+                tickets:
+                    model.tickets.isEmpty ? 0 : model.tickets.length.toDouble(),
+                orders: model.orders.length,
+                duePay: model.orders.isNotEmpty
+                    ? model.orders[0].orderItems.fold(0, (a, b) => a + b.price)
+                    : 0.00,
+                ticketHandler: () async {
+                  log.i(model.orders.length);
+                  log.i(model.tickets.length);
+                  await model.keypad.getTickets();
+                  await model.keypad.getOrders(
+                      branchId: ProxyService.box.read(key: 'branchId'));
+                  if (model.orders.isEmpty && model.tickets.isNotEmpty) {
+                    //then we know we need to resume.
+                    FlipperBottomSheet.showTicketsToSaleBottomSheet(
+                      model: model,
+                      context: context,
+                    );
+                  }
+                  model.saveTicket((handle) {
+                    if (handle == 'error') {
+                      //show the modal to add a not to a ticket here
+                      FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                        model: model,
+                        context: context,
+                      );
+                    } else if (handle == 'saved') {
+                      showSimpleNotification(
+                        Text('Note added'),
+                        background: Colors.green,
+                        position: NotificationPosition.bottom,
+                      );
+                    }
+                  });
+                },
+              ),
+              onClick: () {
+                FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                  model: model,
+                  context: context,
+                );
+              },
+              controller: controller,
+              amount: double.parse(model.key),
+            ),
+            model.tab == 0
+                ? KeyPadView(model: model)
+                // show a list of products and on click handle different scenarios
+                : Flexible(child: ProductView(userId: '1', items: true)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget BusinessWidget(BusinessHomeViewModel model) {
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -180,82 +258,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             },
           ),
         ),
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideOutScreen(
-            sideOpenController: _sideOpenController,
-            side: const Text('Side'),
-            main: Column(
-              children: [
-                KeyPadHead(
-                  tab: model.tab,
-                  payable: PayableView(
-                    onClick: () {
-                      if (model.orders.length > 0) {
-                        ProxyService.nav.navigateTo(Routes.pay);
-                      } else {
-                        showSimpleNotification(
-                          Text(Localization.of(context)!.noPayable),
-                          background: Colors.green,
-                          position: NotificationPosition.bottom,
-                        );
-                      }
-                    },
-                    tickets: model.tickets.isEmpty
-                        ? 0
-                        : model.tickets.length.toDouble(),
-                    orders: model.orders.length,
-                    duePay: model.orders.isNotEmpty
-                        ? model.orders[0].orderItems
-                            .fold(0, (a, b) => a + b.price)
-                        : 0.00,
-                    ticketHandler: () async {
-                      log.i(model.orders.length);
-                      log.i(model.tickets.length);
-                      await model.keypad.getTickets();
-                      await model.keypad.getOrders(
-                          branchId: ProxyService.box.read(key: 'branchId'));
-                      if (model.orders.isEmpty && model.tickets.isNotEmpty) {
-                        //then we know we need to resume.
-                        FlipperBottomSheet.showTicketsToSaleBottomSheet(
-                          model: model,
-                          context: context,
-                        );
-                      }
-                      model.saveTicket((handle) {
-                        if (handle == 'error') {
-                          //show the modal to add a not to a ticket here
-                          FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                            model: model,
-                            context: context,
-                          );
-                        } else if (handle == 'saved') {
-                          showSimpleNotification(
-                            Text('Note added'),
-                            background: Colors.green,
-                            position: NotificationPosition.bottom,
-                          );
-                        }
-                      });
-                    },
-                  ),
-                  onClick: () {
-                    FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                      model: model,
-                      context: context,
-                    );
-                  },
-                  controller: controller,
-                  amount: double.parse(model.key),
-                ),
-                model.tab == 0
-                    ? KeyPadView(model: model)
-                    // show a list of products and on click handle different scenarios
-                    : Flexible(child: ProductView(userId: '1', items: true)),
-              ],
-            ),
-          ),
-        ),
+        body: !isMacOs && !isWindows
+            ? UpgradeAlert(
+                durationToAlertAgain: Duration(days: 1),
+                dialogStyle: UpgradeDialogStyle.cupertino,
+                child: BodyWidget(model))
+            : BodyWidget(model),
         floatingActionButtonLocation:
             FloatingActionButtonLocation.miniCenterDocked,
         floatingActionButton: GestureDetector(
