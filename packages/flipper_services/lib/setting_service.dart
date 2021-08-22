@@ -81,9 +81,9 @@ class SettingsService with ReactiveServiceMixin {
 
   void toggleSettings() {
     _enablePrinter.value =
-        settings()['autoPrint'] != null && settings()['autoPrint'];
+        settings()['autoPrint'] != null && settings()['autoPrint'] != null;
     _sendDailReport.value =
-        settings()['email'] != null && settings()['sendDailyReport'];
+        settings()['email'] != null && settings()['sendDailyReport'] != null;
     log.i(sendDailReport);
   }
 
