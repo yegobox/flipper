@@ -17,7 +17,8 @@ class RemoteConfigService implements Remote {
       'force_remote_add_data': true,
       'is_submit_device_token_enabled': false,
       'analytic_feature_available': false,
-      'scann_selling': true
+      'scann_selling': true,
+      'is_menu_available': false
     });
   }
 
@@ -82,6 +83,14 @@ class RemoteConfigService implements Remote {
     }
     return remoteConfig.getBool('scann_selling');
   }
+
+  @override
+  bool isMenuAvailable() {
+    if (kDebugMode) {
+      return true;
+    }
+    return remoteConfig.getBool('is_menu_available');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -145,7 +154,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool scann_selling() {
-    // TODO: implement scann_selling
-    throw UnimplementedError();
+    return true;
+  }
+
+  @override
+  bool isMenuAvailable() {
+    return false;
   }
 }

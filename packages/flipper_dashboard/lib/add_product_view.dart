@@ -194,7 +194,7 @@ class AddProductView extends StatelessWidget {
                   ),
                 ]),
                 StreamBuilder<String>(
-                    stream: model.getBarCode(),
+                    stream: model.getBarCode().asBroadcastStream(),
                     builder: (context, snapshot) {
                       barCode.text = snapshot.hasData ? snapshot.data! : '';
                       return Padding(

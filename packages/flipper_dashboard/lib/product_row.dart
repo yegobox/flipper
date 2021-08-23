@@ -19,6 +19,7 @@ class ProductRow extends StatelessWidget {
       this.imageUrl,
       required this.addToMenu,
       required this.product,
+      required this.edit,
       required this.delete})
       : super(key: key);
   final String color;
@@ -28,6 +29,7 @@ class ProductRow extends StatelessWidget {
   final Product product;
   final Function delete;
   final Function addToMenu;
+  final Function edit;
 
   @override
   Widget build(BuildContext context) {
@@ -118,12 +120,21 @@ class ProductRow extends StatelessWidget {
         ),
       ],
       secondaryActions: <Widget>[
+        if (ProxyService.remoteConfig.isMenuAvailable())
+          IconSlideAction(
+            caption: Localization.of(context)!.addTomenu,
+            color: Colors.white,
+            icon: Icons.menu,
+            onTap: () {
+              addToMenu(product.id);
+            },
+          ),
         IconSlideAction(
-          caption: Localization.of(context)!.addTomenu,
+          caption: Localization.of(context)!.delete,
           color: Colors.white,
-          icon: Icons.menu,
+          icon: Icons.edit,
           onTap: () {
-            addToMenu(product.id);
+            edit(product.id);
           },
         ),
         IconSlideAction(

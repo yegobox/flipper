@@ -11,4 +11,5 @@ abstract class Remote {
   bool isSubmitDeviceTokenEnabled();
   bool scann_selling();
   void config();
+  bool isMenuAvailable();
 }

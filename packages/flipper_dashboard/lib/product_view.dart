@@ -519,6 +519,7 @@ class BuildProductsView extends StatelessWidget {
                     product: product,
                     name: product.name,
                     imageUrl: product.imageUrl,
+                    edit: (productId) {},
                     addToMenu: (productId) {
                       model.addToMenu(productId: productId);
                     },
