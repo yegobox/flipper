@@ -6,7 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
+// import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
@@ -38,12 +38,16 @@ main() async {
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.
     // Temporarily toggle this to true if you want to test crash reporting in your app.
-    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+    if (!isWindows) {
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+    }
   } else {
     // Handle Crashlytics enabled status when not in Debug,
     // e.g. allow your users to opt-in to crash reporting.
     // Pass all uncaught errors from the framework to Crashlytics.
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+    if (!isWindows) {
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+    }
   }
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   // (isAndroid|| isWeb||isMacOs)
@@ -52,26 +56,26 @@ main() async {
   // done init in mobile.//done separation.
   setupLocator();
   await ObjectBoxApi.getDir(dbName: 'db_1');
-  AwesomeNotifications().initialize(
-      // set the icon to null if you want to use the default app icon
-      // 'resource://drawable/res_app_icon',
-      null,
-      [
-        NotificationChannel(
-          channelKey: 'flipper_channel',
-          channelName: 'Flipper notifications',
-          channelDescription: 'Notification channel for basi notification',
-          defaultColor: Color(0xFF9D50DD),
-          ledColor: Colors.white,
-        )
-      ]);
-  AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-    if (!isAllowed) {
-      // Insert here your friendly dialog box before call the request method
-      // This is very important to not harm the user experience
-      AwesomeNotifications().requestPermissionToSendNotifications();
-    }
-  });
+  // AwesomeNotifications().initialize(
+  //     // set the icon to null if you want to use the default app icon
+  //     // 'resource://drawable/res_app_icon',
+  //     null,
+  //     [
+  //       NotificationChannel(
+  //         channelKey: 'flipper_channel',
+  //         channelName: 'Flipper notifications',
+  //         channelDescription: 'Notification channel for basi notification',
+  //         defaultColor: Color(0xFF9D50DD),
+  //         ledColor: Colors.white,
+  //       )
+  //     ]);
+  // AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+  //   if (!isAllowed) {
+  //     // Insert here your friendly dialog box before call the request method
+  //     // This is very important to not harm the user experience
+  //     AwesomeNotifications().requestPermissionToSendNotifications();
+  //   }
+  // });
 
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
@@ -82,5 +86,9 @@ main() async {
       ),
     );
     runApp(FlipperApp());
-  }, (error, stack) => FirebaseCrashlytics.instance.recordError(error, stack));
+  }, (error, stack) {
+    if (!isWindows) {
+      FirebaseCrashlytics.instance.recordError(error, stack);
+    }
+  });
 }
