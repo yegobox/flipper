@@ -231,7 +231,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
               'price': (item.count + quantity.toDouble()) *
                   (amountTotal / quantity.toDouble()),
               'fvariantId': variationId,
-              //TODOinvestigate why sometimes exist_orders[0].id does not equal to item.forderId
               'id': exist_orders[0].id,
             };
             ProxyService.api.update(data: i, endPoint: 'order');

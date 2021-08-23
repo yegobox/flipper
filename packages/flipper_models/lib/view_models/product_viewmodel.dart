@@ -388,8 +388,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   Stream<String> getProductName() async* {
-    log.i(productService.product!.name);
-    yield productService.product!.name;
+    yield  productService.product!=null? productService.product!.name:'';
   }
 
   @override
