@@ -213,9 +213,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       {required int variationId, required double amount}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
     if (amountTotal != 0.0) {
-      log.i(quantity);
-      log.i(amountTotal);
-
       Variant? variation = await ProxyService.api.variant(
         variantId: variationId,
       );
@@ -227,15 +224,18 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       if (exist_orders.isNotEmpty) {
         for (OrderItem item in exist_orders[0].orderItems) {
           if (item.fvariantId == variationId) {
+            log.i(item.count + quantity.toDouble());
+            log.i(amountTotal);
             Map i = {
               'count': item.count + quantity.toDouble(),
-              'price': (item.count + quantity.toDouble()) * amountTotal,
+              'price': (item.count + quantity.toDouble()) *
+                  (amountTotal / quantity.toDouble()),
               'fvariantId': variationId,
               //TODOinvestigate why sometimes exist_orders[0].id does not equal to item.forderId
               'id': exist_orders[0].id,
             };
             ProxyService.api.update(data: i, endPoint: 'order');
-            log.i(item.toJson());
+            // log.i(item.toJson());
           }
         }
         OrderItem? existOrderItem =
