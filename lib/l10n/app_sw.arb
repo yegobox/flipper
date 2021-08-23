@@ -58,5 +58,9 @@
     "addTomenu": "Menu",
     "@addTomenu": {
         "description": "Menu"
+    },
+    "edit": "Edit",
+    "@edit": {
+        "description": "Ongeraho kuri menu"
     }
 }

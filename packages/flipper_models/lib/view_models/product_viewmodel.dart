@@ -50,9 +50,17 @@ class ProductViewModel extends ReactiveViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   ///
-  Future<int> createTemporalProduct() async {
+  Future<int> loadTemporalproductOrEditIfProductIdGiven(
+      {int? productId}) async {
+    if (productId != null) {
+      Product? product = await ProxyService.api.getProduct(id: productId);
+      productService.setCurrentProduct(product: product!);
+      productService.variantsProduct(productId: product.id);
+      notifyListeners();
+      return product.id;
+    }
     int branchId = ProxyService.box.read(key: 'branchId');
-    final List<Product> isTemp =
+    List<Product> isTemp =
         await ProxyService.api.isTempProductExist(branchId: branchId);
     if (isTemp.isEmpty) {
       Product product =
@@ -63,10 +71,10 @@ class ProductViewModel extends ReactiveViewModel {
       notifyListeners();
       return product.id;
     }
-    // ProxyService.api.delete(id: isTemp[0].id);
-    // return "d";
+
     productService.setCurrentProduct(product: isTemp[0]);
     productService.variantsProduct(productId: isTemp[0].id);
+    notifyListeners();
 
     return isTemp[0].id;
   }
@@ -212,7 +220,7 @@ class ProductViewModel extends ReactiveViewModel {
     if (variant!.name != 'Regular') {
       ProxyService.api.delete(id: id, endPoint: 'variation');
       //this will reload the variations remain
-      createTemporalProduct();
+      loadTemporalproductOrEditIfProductIdGiven();
     }
   }
 
@@ -318,8 +326,11 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   Future<bool> addProduct({required Map mproduct}) async {
+    log.i(_name);
+    log.i(productService.product!.name);
     if (name != null) {
-      mproduct['name'] = _name;
+      mproduct['name'] =
+          _name == null || _name == '' ? productService.product!.name : _name;
       mproduct['barCode'] = productService.barCode.toString();
       log.i(productService.barCode);
       mproduct['color'] = currentColor;
@@ -373,8 +384,12 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void addToMenu({required int productId}) {
-    //
     log.i('can add to menu');
+  }
+
+  Stream<String> getProductName() async* {
+    log.i(productService.product!.name);
+    yield productService.product!.name;
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/stock.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/variants.dart';
@@ -69,7 +70,13 @@ class ProductService with ReactiveServiceMixin {
     return await ProxyService.api.getProductByBarCode(barCode: code);
   }
 
+  final _stocks = ReactiveValue<List<Stock>>([]);
+  List<Stock> get stocks => _stocks.value;
+  loadStockByProductId({required int productId}) async {
+    _stocks.value = await ProxyService.api.stocks(productId: productId);
+  }
+
   ProductService() {
-    listenToReactiveValues([_product, _variants, _products, _barCode]);
+    listenToReactiveValues([_product, _variants, _products, _barCode, _stocks]);
   }
 }

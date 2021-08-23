@@ -515,11 +515,19 @@ class BuildProductsView extends StatelessWidget {
                 .map(
                   (product) => ProductRow(
                     color: product.color,
+                    model: model,
                     hasImage: product.hasPicture,
                     product: product,
                     name: product.name,
                     imageUrl: product.imageUrl,
-                    edit: (productId) {},
+                    edit: (productId) {
+                      ProxyService.nav.navigateTo(
+                        Routes.product,
+                        arguments: AddProductViewArguments(
+                          productId: productId,
+                        ),
+                      );
+                    },
                     addToMenu: (productId) {
                       model.addToMenu(productId: productId);
                     },

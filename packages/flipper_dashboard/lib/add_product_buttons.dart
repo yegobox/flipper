@@ -25,6 +25,7 @@ class AddProductButtons extends StatelessWidget {
                   height: 40.h,
                   child: BoxButton(
                     onTap: () {
+                      //edit this navigation and upon the edit should take the product Id to edit.
                       ProxyService.nav.navigateTo(Routes.product);
                     },
                     title: 'Add Product',

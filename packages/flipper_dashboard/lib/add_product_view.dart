@@ -21,11 +21,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 class AddProductView extends StatelessWidget {
-  AddProductView({Key? key}) : super(key: key);
+  AddProductView({Key? key, this.productId}) : super(key: key);
   final log = getLogger('AddProductView');
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   TextEditingController barCode = TextEditingController();
-
+  TextEditingController productName = TextEditingController(text: '');
+  final int? productId;
   @override
   Widget build(BuildContext context) {
     Future<bool> _onWillPop() async {
@@ -36,7 +37,7 @@ class AddProductView extends StatelessWidget {
 
     return ViewModelBuilder<ProductViewModel>.reactive(
       onModelReady: (model) {
-        model.createTemporalProduct();
+        model.loadTemporalproductOrEditIfProductIdGiven(productId: productId);
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
@@ -82,27 +83,36 @@ class AddProductView extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: Container(
                       width: double.infinity,
-                      child: TextFormField(
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyText1!
-                            .copyWith(color: Colors.black),
-                        // validator: Validators.isValid,
-                        onChanged: (String name) async {
-                          model.setName(name: name);
-                        },
-                        decoration: InputDecoration(
-                          hintText: Localization.of(context)!.productName,
-                          fillColor: Theme.of(context)
-                              .copyWith(canvasColor: Colors.white)
-                              .canvasColor,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
-                      ),
+                      child: StreamBuilder<String>(
+                          stream: model.getProductName().asBroadcastStream(),
+                          builder: (context, snapshot) {
+                            return TextFormField(
+                              initialValue: (snapshot.data == null) ||
+                                      (snapshot.data) == 'temp'
+                                  ? ''
+                                  : snapshot.data,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText1!
+                                  .copyWith(color: Colors.black),
+                              // validator: Validators.isValid,
+                              onChanged: (String name) async {
+                                model.setName(name: name);
+                              },
+                              decoration: InputDecoration(
+                                hintText: Localization.of(context)!.productName,
+                                fillColor: Theme.of(context)
+                                    .copyWith(canvasColor: Colors.white)
+                                    .canvasColor,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: HexColor('#D0D7E3')),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                            );
+                          }),
                     ),
                   ),
                   CategorySelector(categories: model.categories),

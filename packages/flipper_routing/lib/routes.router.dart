@@ -173,7 +173,10 @@ class StackedRouter extends RouterBase {
         orElse: () => AddProductViewArguments(),
       );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => AddProductView(key: args.key),
+        builder: (context) => AddProductView(
+          key: args.key,
+          productId: args.productId,
+        ),
         settings: data,
       );
     },
@@ -340,7 +343,8 @@ class SignUpFormViewArguments {
 /// AddProductView arguments holder class
 class AddProductViewArguments {
   final Key? key;
-  AddProductViewArguments({this.key});
+  final int? productId;
+  AddProductViewArguments({this.key, this.productId});
 }
 
 /// ListCategories arguments holder class

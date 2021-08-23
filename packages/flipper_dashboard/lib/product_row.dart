@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/view_models/stock_viewmodel.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/product.dart';
@@ -20,6 +21,7 @@ class ProductRow extends StatelessWidget {
       required this.addToMenu,
       required this.product,
       required this.edit,
+      required this.model,
       required this.delete})
       : super(key: key);
   final String color;
@@ -30,9 +32,11 @@ class ProductRow extends StatelessWidget {
   final Function delete;
   final Function addToMenu;
   final Function edit;
+  final ProductViewModel model;
 
   @override
   Widget build(BuildContext context) {
+    model.productService.loadStockByProductId(productId: product.id);
     return Slidable(
       child: GestureDetector(
         onTap: () {
@@ -78,30 +82,23 @@ class ProductRow extends StatelessWidget {
               name,
               style: const TextStyle(color: Colors.black),
             ),
-            trailing: ViewModelBuilder<StockViewModel>.reactive(
-              viewModelBuilder: () => StockViewModel(),
-              onModelReady: (StockViewModel stockModel) =>
-                  stockModel.loadStockByProductId(productId: product.id),
-              builder: (context, stockModel, child) {
-                return stockModel.stocks.isEmpty
+            trailing: model.productService.stocks.isEmpty
+                ? const Text(
+                    ' Prices',
+                    style: TextStyle(color: Colors.black),
+                  )
+                : model.productService.stocks.length > 1
                     ? const Text(
                         ' Prices',
                         style: TextStyle(color: Colors.black),
                       )
-                    : stockModel.stocks.length > 1
-                        ? const Text(
-                            ' Prices',
-                            style: TextStyle(color: Colors.black),
-                          )
-                        : Text(
-                            'RWF ' +
-                                stockModel.stocks[0].retailPrice
-                                    .toInt()
-                                    .toString(),
-                            style: const TextStyle(color: Colors.black),
-                          );
-              },
-            ),
+                    : Text(
+                        'RWF ' +
+                            model.productService.stocks[0].retailPrice
+                                .toInt()
+                                .toString(),
+                        style: const TextStyle(color: Colors.black),
+                      ),
           ),
           Container(
             height: 0.5.h,
@@ -130,7 +127,7 @@ class ProductRow extends StatelessWidget {
             },
           ),
         IconSlideAction(
-          caption: Localization.of(context)!.delete,
+          caption: Localization.of(context)!.edit,
           color: Colors.white,
           icon: Icons.edit,
           onTap: () {
