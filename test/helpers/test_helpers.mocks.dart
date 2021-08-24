@@ -112,10 +112,9 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
           returnValue: Future<List<_i17.Branch>>.value(<_i17.Branch>[])) as _i16
       .Future<List<_i17.Branch>>);
   @override
-  _i16.Future<List<_i4.Stock>> stocks({int? productId}) => (super.noSuchMethod(
-          Invocation.method(#stocks, [], {#productId: productId}),
-          returnValue: Future<List<_i4.Stock>>.value(<_i4.Stock>[]))
-      as _i16.Future<List<_i4.Stock>>);
+  List<_i4.Stock> stocks({int? productId}) => (super.noSuchMethod(
+      Invocation.method(#stocks, [], {#productId: productId}),
+      returnValue: <_i4.Stock>[]) as List<_i4.Stock>);
   @override
   _i16.Stream<_i4.Stock> stockByVariantIdStream({int? variantId}) =>
       (super.noSuchMethod(
@@ -613,8 +612,9 @@ class MockProductService extends _i1.Mock implements _i27.ProductService {
               returnValue: Future<_i5.Product?>.value())
           as _i16.Future<_i5.Product?>);
   @override
-  dynamic loadStockByProductId({int? productId}) => super.noSuchMethod(
-      Invocation.method(#loadStockByProductId, [], {#productId: productId}));
+  List<_i4.Stock> loadStockByProductId({int? productId}) => (super.noSuchMethod(
+      Invocation.method(#loadStockByProductId, [], {#productId: productId}),
+      returnValue: <_i4.Stock>[]) as List<_i4.Stock>);
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(
