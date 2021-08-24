@@ -378,6 +378,14 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
       (super.noSuchMethod(Invocation.method(
               #getOrderItemByVariantId, [], {#variantId: variantId}))
           as _i21.OrderItem?);
+  @override
+  _i16.Future<void> updateBusiness(
+          {int? id, Map<dynamic, dynamic>? business}) =>
+      (super.noSuchMethod(
+          Invocation.method(
+              #updateBusiness, [], {#id: id, #business: business}),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i16.Future<void>);
 }
 
 /// A class which mocks [Remote].
@@ -429,6 +437,10 @@ class MockRemote extends _i1.Mock implements _i24.Remote {
   @override
   void config() => super.noSuchMethod(Invocation.method(#config, []),
       returnValueForMissingStub: null);
+  @override
+  bool isMenuAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isMenuAvailable, []),
+          returnValue: false) as bool);
 }
 
 /// A class which mocks [FirebaseMessaging].
@@ -564,6 +576,9 @@ class MockProductService extends _i1.Mock implements _i27.ProductService {
       (super.noSuchMethod(Invocation.getter(#products),
           returnValue: <_i5.Product>[]) as List<_i5.Product>);
   @override
+  List<_i4.Stock> get stocks => (super.noSuchMethod(Invocation.getter(#stocks),
+      returnValue: <_i4.Stock>[]) as List<_i4.Stock>);
+  @override
   void setBarcode(String? value) =>
       super.noSuchMethod(Invocation.method(#setBarcode, [value]),
           returnValueForMissingStub: null);
@@ -597,6 +612,9 @@ class MockProductService extends _i1.Mock implements _i27.ProductService {
               Invocation.method(#getProductByBarCode, [], {#code: code}),
               returnValue: Future<_i5.Product?>.value())
           as _i16.Future<_i5.Product?>);
+  @override
+  dynamic loadStockByProductId({int? productId}) => super.noSuchMethod(
+      Invocation.method(#loadStockByProductId, [], {#productId: productId}));
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(
