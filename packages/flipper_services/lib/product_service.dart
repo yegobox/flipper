@@ -72,8 +72,9 @@ class ProductService with ReactiveServiceMixin {
 
   final _stocks = ReactiveValue<List<Stock>>([]);
   List<Stock> get stocks => _stocks.value;
-  loadStockByProductId({required int productId}) async {
-    _stocks.value = await ProxyService.api.stocks(productId: productId);
+  List<Stock> loadStockByProductId({required int productId}) {
+    _stocks.value = ProxyService.api.stocks(productId: productId);
+    return stocks;
   }
 
   ProductService() {

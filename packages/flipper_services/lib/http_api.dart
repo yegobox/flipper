@@ -93,11 +93,11 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Stock>> stocks({required int productId}) async {
-    final response = await client
-        .get(Uri.parse("$apihub/api/stocks-byProductId/$productId"));
-
-    return stockFromJson(response.body);
+  List<Stock> stocks({required int productId}) {
+    // final response =  client
+    //     .get(Uri.parse("$apihub/api/stocks-byProductId/$productId"));
+    throw UnimplementedError();
+    // return stockFromJson(response.body);
   }
 
   @override

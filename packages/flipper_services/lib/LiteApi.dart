@@ -340,7 +340,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<List<Stock>> stocks({required int productId}) async {
+  List<Stock> stocks({required int productId}) {
     final List<Stock> stocks = [];
 
     Q19.parameters = {'T': AppTables.stock, 'PRODUCTID': productId};

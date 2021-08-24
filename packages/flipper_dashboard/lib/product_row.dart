@@ -4,12 +4,11 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
-import 'package:flipper_models/view_models/stock_viewmodel.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/stock.dart';
 
 class ProductRow extends StatelessWidget {
   const ProductRow(
@@ -18,6 +17,7 @@ class ProductRow extends StatelessWidget {
       required this.name,
       required this.hasImage,
       this.imageUrl,
+      required this.stocks,
       required this.addToMenu,
       required this.product,
       required this.edit,
@@ -33,10 +33,10 @@ class ProductRow extends StatelessWidget {
   final Function addToMenu;
   final Function edit;
   final ProductViewModel model;
+  final List<Stock> stocks;
 
   @override
   Widget build(BuildContext context) {
-    model.productService.loadStockByProductId(productId: product.id);
     return Slidable(
       child: GestureDetector(
         onTap: () {
@@ -82,21 +82,18 @@ class ProductRow extends StatelessWidget {
               name,
               style: const TextStyle(color: Colors.black),
             ),
-            trailing: model.productService.stocks.isEmpty
+            trailing: stocks.isEmpty
                 ? const Text(
                     ' Prices',
                     style: TextStyle(color: Colors.black),
                   )
-                : model.productService.stocks.length > 1
+                : stocks.length > 1
                     ? const Text(
                         ' Prices',
                         style: TextStyle(color: Colors.black),
                       )
                     : Text(
-                        'RWF ' +
-                            model.productService.stocks[0].retailPrice
-                                .toInt()
-                                .toString(),
+                        'RWF ' + stocks[0].retailPrice.toInt().toString(),
                         style: const TextStyle(color: Colors.black),
                       ),
           ),

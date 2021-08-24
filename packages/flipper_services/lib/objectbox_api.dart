@@ -269,7 +269,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<Stock>> stocks({required int productId}) async {
+  List<Stock> stocks({required int productId}) {
     List<Stock> stocks = store
         .box<Stock>()
         .getAll()

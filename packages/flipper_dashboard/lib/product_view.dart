@@ -511,32 +511,34 @@ class BuildProductsView extends StatelessWidget {
         ? SizedBox.shrink()
         : ListView(
             shrinkWrap: true,
-            children: model.productService.products
-                .map(
-                  (product) => ProductRow(
-                    color: product.color,
-                    model: model,
-                    hasImage: product.hasPicture,
-                    product: product,
-                    name: product.name,
-                    imageUrl: product.imageUrl,
-                    edit: (productId) {
-                      ProxyService.nav.navigateTo(
-                        Routes.product,
-                        arguments: AddProductViewArguments(
-                          productId: productId,
-                        ),
-                      );
-                    },
-                    addToMenu: (productId) {
-                      model.addToMenu(productId: productId);
-                    },
-                    delete: (productId) {
-                      model.deleteProduct(productId: productId);
-                    },
-                  ),
-                )
-                .toList(),
+            children: model.productService.products.map(
+              (product) {
+                return ProductRow(
+                  color: product.color,
+                  stocks: model.productService
+                      .loadStockByProductId(productId: product.id),
+                  model: model,
+                  hasImage: product.hasPicture,
+                  product: product,
+                  name: product.name,
+                  imageUrl: product.imageUrl,
+                  edit: (productId) {
+                    ProxyService.nav.navigateTo(
+                      Routes.product,
+                      arguments: AddProductViewArguments(
+                        productId: productId,
+                      ),
+                    );
+                  },
+                  addToMenu: (productId) {
+                    model.addToMenu(productId: productId);
+                  },
+                  delete: (productId) {
+                    model.deleteProduct(productId: productId);
+                  },
+                );
+              },
+            ).toList(),
           );
   }
 }
