@@ -2,6 +2,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/proxy.dart';
@@ -22,6 +23,10 @@ class StartUpViewModel extends BaseViewModel {
       String userId = ProxyService.box.read(key: 'userId');
       List<Business>? businesses =
           await ProxyService.api.businesses(userId: userId);
+
+      String? token = await FirebaseMessaging.instance.getToken();
+      ProxyService.firestore
+          .saveTokenToDatabase(token: token!, business: businesses[0].toJson());
 
       isBusinessSet = (businesses.isNotEmpty) ? true : false;
 
