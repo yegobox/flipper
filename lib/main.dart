@@ -30,6 +30,7 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
   WidgetsFlutterBinding.ensureInitialized();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

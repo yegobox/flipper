@@ -135,6 +135,7 @@ MockFirebaseMessaging getFirebaseMessaging() {
   final service = MockFirebaseMessaging();
   locator.registerSingleton<FirebaseMessaging>(service);
   when(service.getToken()).thenAnswer((_) async => 'token');
+
   return service;
 }
 

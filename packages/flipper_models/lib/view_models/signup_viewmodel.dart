@@ -90,10 +90,10 @@ class SignupViewModel extends FormViewModel {
       ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       ProxyService.appService.setBusiness(businesses: businesses);
       // if (ProxyService.remoteConfig.isSubmitDeviceTokenEnabled()) {
-      String? token = await FirebaseMessaging.instance.getToken();
-      ProxyService.firestore
-          .saveTokenToDatabase(token: token!, business: businesses[0].toJson());
-      // }
+      // String? token = await FirebaseMessaging.instance.getToken();
+      // ProxyService.firestore
+      //     .saveTokenToDatabase(token: token!, business: businesses[0].toJson());
+      // // }
       List<Branch> branches =
           await ProxyService.api.branches(businessId: businesses[0].id);
 
