@@ -888,7 +888,7 @@
     },
     {
       "id": "14:5570813440444123608",
-      "lastPropertyId": "7:4411823794679308743",
+      "lastPropertyId": "8:2869323377143838880",
       "name": "Customer",
       "properties": [
         {
@@ -926,6 +926,11 @@
           "id": "7:4411823794679308743",
           "name": "updatedAt",
           "type": 9
+        },
+        {
+          "id": "8:2869323377143838880",
+          "name": "branchId",
+          "type": 6
         }
       ],
       "relations": []

@@ -108,4 +108,13 @@ abstract class Api<T> {
   OrderItem? getOrderItemByVariantId({required int variantId});
   //abstract method to update business
   Future<void> updateBusiness({required int id, required Map business});
+
+  //analytics
+  int lifeTimeCustomersForbranch({required int branchId});
+
+  List<OrderF> weeklyOrdersReport({
+    required DateTime weekStartDate,
+    required DateTime weekEndDate,
+    required int branchId,
+  });
 }

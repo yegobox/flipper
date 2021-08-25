@@ -908,7 +908,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(14, 5570813440444123608),
       name: 'Customer',
-      lastPropertyId: const IdUid(7, 4411823794679308743),
+      lastPropertyId: const IdUid(8, 2869323377143838880),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -945,6 +945,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(7, 4411823794679308743),
             name: 'updatedAt',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 2869323377143838880),
+            name: 'branchId',
+            type: 6,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1159,11 +1164,11 @@ ModelDefinition getObjectBoxModel() {
               active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
               metadata: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
               lastSeen: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 36),
+              firstName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42),
+              lastName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44),
+              deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48),
               role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
-            ..firstName = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42)
-            ..lastName = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44)
-            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46)
-            ..deviceToken = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
+            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
 
           return object;
         }),
@@ -1853,7 +1858,7 @@ ModelDefinition getObjectBoxModel() {
           final updatedAtOffset = object.updatedAt == null
               ? null
               : fbb.writeString(object.updatedAt!);
-          fbb.startTable(8);
+          fbb.startTable(9);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, emailOffset);
@@ -1861,6 +1866,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(4, addressOffset);
           fbb.addInt64(5, object.orderId);
           fbb.addOffset(6, updatedAtOffset);
+          fbb.addInt64(7, object.branchId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1872,6 +1878,8 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
               orderId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+              branchId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
               name:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
               address:
@@ -2529,4 +2537,8 @@ class Customer_ {
   /// see [Customer.updatedAt]
   static final updatedAt =
       QueryStringProperty<Customer>(_entities[13].properties[6]);
+
+  /// see [Customer.branchId]
+  static final branchId =
+      QueryIntegerProperty<Customer>(_entities[13].properties[7]);
 }

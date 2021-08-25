@@ -536,4 +536,19 @@ class HttpApi<T> implements Api {
     // TODO: implement updateBusiness
     throw UnimplementedError();
   }
+
+  @override
+  int lifeTimeCustomersForbranch({required int branchId}) {
+    // TODO: implement lifeTimeCustomersForbranch
+    throw UnimplementedError();
+  }
+
+  @override
+  List<OrderF> weeklyOrdersReport(
+      {required DateTime weekStartDate,
+      required DateTime weekEndDate,
+      required int branchId}) {
+    // TODO: implement weeklyOrdersReport
+    throw UnimplementedError();
+  }
 }

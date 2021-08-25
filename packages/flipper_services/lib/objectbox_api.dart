@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:rxdart/rxdart.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flutter/foundation.dart' as kDebugMode;
 import 'package:get_storage/get_storage.dart';
@@ -418,6 +419,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       ),
       customer: Customer(
         name: 'Apple Inc.',
+        branchId: ProxyService.box.read(key: 'branchId'),
         address: 'Apple Street, Cupertino, CA 95014',
         email: '',
         phone: '',
@@ -1001,6 +1003,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         });
         Customer kCustomer = Customer(
             email: map['email'],
+            branchId: map['branchId'],
             updatedAt: map['updatedAt'],
             phone: map['phone'],
             name: map['name'],
@@ -1163,6 +1166,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final box = store.box<Customer>();
     Customer kCustomer = Customer(
       name: customer['name'],
+      branchId: customer['branchId'],
       email: customer['email'],
       phone: customer['phone'],
       address: customer['address'] ?? '',
@@ -1342,5 +1346,76 @@ class ObjectBoxApi extends MobileUpload implements Api {
         body: jsonEncode({'deviceToken': business['deviceToken']}),
         headers: {'Content-Type': 'application/json'});
     log.i(response.body);
+  }
+
+  @override
+  int lifeTimeCustomersForbranch({required int branchId}) {
+    return store
+        .box<Customer>()
+        .getAll()
+        .where((unit) => unit.branchId == branchId)
+        .toList()
+        .length;
+  }
+
+  List<DateTime> getWeeksForRange(DateTime start, DateTime end) {
+    var result = [];
+    var date = start;
+    List<DateTime> week = [];
+
+    while (date.difference(end).inDays <= 0) {
+      // start new week on Monday
+      if (date.weekday == 1 && week.length > 0) {
+        result.add(week);
+      }
+
+      week.add(date);
+      date = date.add(const Duration(days: 1));
+    }
+    return week;
+  }
+
+  @override
+  List<OrderF> weeklyOrdersReport({
+    required DateTime weekStartDate,
+    required DateTime weekEndDate,
+    required int branchId,
+  }) {
+    List<DateTime> weekDates = getWeeksForRange(weekStartDate, weekEndDate);
+    List<OrderF> pastOrders = [];
+
+    // store
+    //     .box<OrderF>()
+    //     .query(OrderF_.status
+    //         .equals(completeStatus)
+    //         .and(OrderF_.fbranchId.equals(branchId)).and(OrderF_.createdAt.oneOf(date.to)))
+
+    //     .build()
+    //     .findFirst();
+
+    // bad algo as this create dups and we remove the duplicates later.
+    // we can do better.!
+    for (DateTime date in weekDates) {
+      List<OrderF> orders = store
+          .box<OrderF>()
+          .getAll()
+          .where((order) =>
+              DateTime.parse(order.createdAt).difference(date).inDays >= -7 &&
+              order.fbranchId == branchId)
+          .toList();
+      if (orders.length > 0) {
+        //if in pastOrders there is no object orders[0] that exist then we add it in the list
+        for (var i = 0; i < orders.length; i++) {
+          //is orders[i] does not exist in pastOrders then we add it in the list
+          pastOrders.add(orders[i]);
+        }
+      }
+    }
+    // filter list pastOrders for duplicate values of OrderF.orderNumber property
+    Map<String, OrderF> mp = {};
+    for (var item in pastOrders) {
+      mp[item.orderNumber] = item;
+    }
+    return mp.values.toList();
   }
 }

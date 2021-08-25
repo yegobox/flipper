@@ -15,6 +15,7 @@ import 'package:flipper_services/pdf_invoice_api.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/analytic_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
@@ -37,6 +38,7 @@ final FlipperLocation _location = locator<FlipperLocation>();
 final LocalStorage _box = locator<LocalStorage>();
 final UploadT _upload = locator<UploadT>();
 final AppService _appService = locator<AppService>();
+final AnalyticService _analytic = locator<AnalyticService>();
 final ProductService _productService = locator<ProductService>();
 final KeyPadService _keypad = locator<KeyPadService>();
 final LanguageService _locale = locator<LanguageService>();
@@ -47,6 +49,7 @@ final CronService _reportService = locator<CronService>();
 final PdfInvoiceApi _pdfInvoiceApi = locator<PdfInvoiceApi>();
 final PdfApi _pdfApi = locator<PdfApi>();
 final Printer _printService = locator<Printer>();
+//rename this to app analytics, i.e analytics for app improvments
 final Analytic _analytics = locator<Analytic>();
 final ForceDataEntryService _forceDataEntry = locator<ForceDataEntryService>();
 final Crash _crash = locator<Crash>();
@@ -79,4 +82,6 @@ abstract class ProxyService {
   static LNotification get notification => _notification;
   static Firestore get firestore => _firestore;
   static Review get review => _review;
+  static AnalyticService get analytic => _analytic;
+  // _analytic
 }

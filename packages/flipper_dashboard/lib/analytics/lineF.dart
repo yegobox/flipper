@@ -80,9 +80,6 @@ class LineFState extends State<LineF> {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 38,
-              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),

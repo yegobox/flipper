@@ -15,10 +15,13 @@ class Customer {
 
   int orderId;
 
+  int branchId;
+
   String? updatedAt;
   Customer(
       {this.id = 0,
       required this.orderId,
+      required this.branchId,
       required this.name,
       required this.address,
       required this.phone,
@@ -26,6 +29,7 @@ class Customer {
       this.updatedAt});
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
       id: json["id"],
+      branchId: json["branchId"],
       name: json["name"],
       orderId: json["orderId"],
       address: json["address"],
@@ -35,6 +39,7 @@ class Customer {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
+        "branchId": branchId,
         "email": email,
         "orderId": orderId,
         "phone": phone,

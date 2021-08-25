@@ -13,6 +13,7 @@ import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/pdf_invoice_api.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/analytic_service.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -160,14 +161,14 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  Analytic get analyticService {
-    late Analytic analyticService;
+  Analytic get appAnalytic {
+    late Analytic appAnalytic;
     if (UniversalPlatform.isAndroid) {
-      analyticService = FirebaseAnalyticsService();
+      appAnalytic = FirebaseAnalyticsService();
     } else {
-      analyticService = UnSupportedAnalyticPlatform();
+      appAnalytic = UnSupportedAnalyticPlatform();
     }
-    return analyticService;
+    return appAnalytic;
   }
 
   @lazySingleton
@@ -246,6 +247,10 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   AppService get appService;
+
+  @lazySingleton
+  AnalyticService get analytic;
+
   @lazySingleton
   ProductService get productService;
 

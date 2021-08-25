@@ -16,7 +16,7 @@ class RemoteConfigService implements Remote {
       'printer_receipt': false,
       'force_remote_add_data': true,
       'is_submit_device_token_enabled': false,
-      'analytic_feature_available': false,
+      'analytic_feature_available': true,
       'scann_selling': true,
       'is_menu_available': false
     });

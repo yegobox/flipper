@@ -9,3 +9,6 @@ keyPassword=#{KEYSTORE_KEY_PASS}#
 keyAlias=key
 storeFile=./external/key.jks
 # done -->
+<!-- liquidity report -->
+<!-- freelancer payout ask -->
+<!-- tested USSD -->
