@@ -8,6 +8,7 @@
 
 import 'package:flipper_chat/lite/pages/contact_page.dart';
 import 'package:flipper_chat/lite/pages/lite.dart';
+import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
@@ -44,6 +45,7 @@ class Routes {
   static const String home = '/Home';
   static const String login = '/Login';
   static const String product = '/add-product-view';
+  static const String discount = '/add-discount';
   static const String categories = '/list-categories';
   static const String colors = '/color-tile';
   static const String stock = '/receive-stock';
@@ -68,6 +70,7 @@ class Routes {
     home,
     login,
     product,
+    discount,
     categories,
     colors,
     stock,
@@ -98,6 +101,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.home, page: Home),
     RouteDef(Routes.login, page: Login),
     RouteDef(Routes.product, page: AddProductView),
+    RouteDef(Routes.discount, page: AddDiscount),
     RouteDef(Routes.categories, page: ListCategories),
     RouteDef(Routes.colors, page: ColorTile),
     RouteDef(Routes.stock, page: ReceiveStock),
@@ -177,6 +181,15 @@ class StackedRouter extends RouterBase {
           key: args.key,
           productId: args.productId,
         ),
+        settings: data,
+      );
+    },
+    AddDiscount: (data) {
+      var args = data.getArgs<AddDiscountArguments>(
+        orElse: () => AddDiscountArguments(),
+      );
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => AddDiscount(key: args.key),
         settings: data,
       );
     },
@@ -345,6 +358,12 @@ class AddProductViewArguments {
   final Key? key;
   final int? productId;
   AddProductViewArguments({this.key, this.productId});
+}
+
+/// AddDiscount arguments holder class
+class AddDiscountArguments {
+  final Key? key;
+  AddDiscountArguments({this.key});
 }
 
 /// ListCategories arguments holder class

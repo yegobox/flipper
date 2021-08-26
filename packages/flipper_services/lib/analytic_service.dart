@@ -45,6 +45,7 @@ class AnalyticService with ReactiveServiceMixin {
     for (OrderF order in orders) {
       revenues.add(order.cashReceived.toInt());
     }
+    // given data list to be [1,2,3,4,5]
     // transform data list to be [[0,1], [1,2], [2,3], [3,4], [4,5]]
     _groupedData.value = [];
     for (int i = 0; i < revenues.length; i++) {

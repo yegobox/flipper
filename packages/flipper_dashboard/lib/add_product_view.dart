@@ -74,7 +74,7 @@ class AddProductView extends StatelessWidget {
                   verticalSpaceSmall,
                   model.product == null
                       ? SizedBox.shrink()
-                      : ImagePlaceHolderView(
+                      : ColorAndImagePlaceHolder(
                           currentColor: model.currentColor,
                           product: model.product,
                         ),

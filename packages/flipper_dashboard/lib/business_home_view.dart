@@ -1,5 +1,6 @@
 library flipper_dashboard;
 
+import 'package:flutter/cupertino.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -297,8 +298,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   Flexible(
                     flex: 1,
                     child: Icon(
-                      Icons.add,
-                      size: 20.sp,
+                      CupertinoIcons.add,
                       color: Colors.white,
                     ),
                   ),

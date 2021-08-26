@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 
 import 'package:flipper_dashboard/flipper_dashboard.dart';
+import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
@@ -42,6 +43,7 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
     MaterialRoute(page: Home, name: 'home'),
     MaterialRoute(page: Login, name: 'login'),
     MaterialRoute(page: AddProductView, name: 'product'),
+    MaterialRoute(page: AddDiscount, name: 'discount'),
     MaterialRoute(page: ListCategories, name: 'categories'),
     MaterialRoute(page: ColorTile, name: 'colors'),
     MaterialRoute(page: ReceiveStock, name: 'stock'),
@@ -128,3 +130,8 @@ class AppSetup {
 // https://medium.com/flutterdevs/firebase-analytics-2044e865efc4
 
 // test pin:085214
+
+
+// when adding new repo with other submodules
+// git submodule add https://github.com/yegobox/lite_rolling_switch.git open-sources/lite_rolling_switch
+// https://gist.github.com/myusuf3/7f645819ded92bda6677

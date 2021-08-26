@@ -1340,12 +1340,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<void> updateBusiness({required int id, required Map business}) async {
-    // log.i(business['deviceToken']);
-    final response = await client.patch(
-        Uri.parse("$apihub/v2/api/business/$id"),
+    await client.patch(Uri.parse("$apihub/v2/api/business/$id"),
         body: jsonEncode({'deviceToken': business['deviceToken']}),
         headers: {'Content-Type': 'application/json'});
-    log.i(response.body);
   }
 
   @override

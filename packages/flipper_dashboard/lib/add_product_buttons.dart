@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isAndroid = UniversalPlatform.isAndroid;
+final isIos = UniversalPlatform.isIOS;
 
 class AddProductButtons extends StatelessWidget {
   const AddProductButtons({Key? key}) : super(key: key);
@@ -25,13 +29,27 @@ class AddProductButtons extends StatelessWidget {
                   height: 40.h,
                   child: BoxButton(
                     onTap: () {
-                      //edit this navigation and upon the edit should take the product Id to edit.
                       ProxyService.nav.navigateTo(Routes.product);
                     },
                     title: 'Add Product',
                   ),
                 ),
               ),
+              if (isIos || isAndroid)
+                Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Container(
+                    color: Colors.white70,
+                    width: double.infinity,
+                    height: 40.h,
+                    child: BoxButton(
+                      onTap: () {
+                        ProxyService.nav.navigateTo(Routes.discount);
+                      },
+                      title: 'Add Discount',
+                    ),
+                  ),
+                ),
               Padding(
                 padding: EdgeInsets.all(8),
                 child: Container(
