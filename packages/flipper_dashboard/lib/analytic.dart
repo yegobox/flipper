@@ -251,7 +251,9 @@ class Analytics extends StatelessWidget {
                 ),
               ),
               Container(
-                child: LineF(),
+                child: LineF(
+                  xValues: model.analytic.groupedData,
+                ),
               ),
             ],
           );

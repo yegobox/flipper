@@ -6,6 +6,9 @@ class AnalyticService with ReactiveServiceMixin {
   final _customers = ReactiveValue<int>(0);
   int? get customers => _customers.value;
 
+  final _groupedData = ReactiveValue<List<List<int>>>([]);
+  List<List<int>> get groupedData => _groupedData.value;
+
   final _revenue = ReactiveValue<int>(0);
   int? get revenue => _revenue.value;
 
@@ -38,6 +41,16 @@ class AnalyticService with ReactiveServiceMixin {
         //this will help to go back in a week
         weekEndDate: today,
         branchId: branchId);
+    List<int> revenues = [];
+    for (OrderF order in orders) {
+      revenues.add(order.cashReceived.toInt());
+    }
+    // transform data list to be [[0,1], [1,2], [2,3], [3,4], [4,5]]
+    _groupedData.value = [];
+    for (int i = 0; i < revenues.length; i++) {
+      //apply modulo to have a graph of the week that is not exceeding the viewpoint
+      _groupedData.value.add([revenues[i] % 10, i % 10]);
+    }
     if (orders.isNotEmpty) {
       _revenue.value += orders.fold(0,
           (a, b) => a + (b.cashReceived.toInt() - b.customerChangeDue.toInt()));
