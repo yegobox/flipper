@@ -30,26 +30,29 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
             //if for the case of adding a discount the product will be null
             if (product.data == null)
               return Container(
-                height: 80,
-                width: 80,
+                height: 100,
+                width: 100,
                 color: HexColor('#cccccc'),
                 child: Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
                     Positioned(
                       left: 31,
-                      top: 24,
-                      child: Text(
-                        '%',
-                        style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.black,
+                      top: 40,
+                      child: RotationTransition(
+                        turns: AlwaysStoppedAnimation(50 / 360),
+                        child: Text(
+                          'RWF',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
                     Icon(
                       FeatherIcons.tag,
-                      size: 70.sp,
+                      size: 80.sp,
                       color: Colors.white,
                     ),
                   ],

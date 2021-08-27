@@ -12,12 +12,14 @@ class BoxButton extends StatelessWidget {
   final void Function()? onTap;
   final bool outline;
   final Widget? leading;
+  final double borderRadius;
 
   const BoxButton({
     Key? key,
     required this.title,
     this.disabled = false,
     this.busy = false,
+    this.borderRadius = 8,
     this.onTap,
     this.leading,
   })  : outline = false,
@@ -27,6 +29,7 @@ class BoxButton extends StatelessWidget {
     required this.title,
     this.onTap,
     this.leading,
+    this.borderRadius = 8,
   })  : disabled = false,
         busy = false,
         outline = true;
@@ -43,11 +46,11 @@ class BoxButton extends StatelessWidget {
         decoration: !outline
             ? BoxDecoration(
                 color: !disabled ? kcPrimaryColor : kcMediumGreyColor,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(borderRadius),
               )
             : BoxDecoration(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
                   color: kcMediumGreyColor,
                   // color: kcPrimaryColor,

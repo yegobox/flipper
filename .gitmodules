@@ -11,3 +11,6 @@
 	url =https://github.com/yegobox/designDocs.git
 	branch = main
 	
+[submodule "open-sources/animated_toggle_switch"]
+	path = open-sources/animated_toggle_switch
+	url = https://github.com/yegobox/animated_toggle_switch.git

@@ -29,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  animated_toggle_switch:
+    dependency: transitive
+    description:
+      path: "../../open-sources/animated_toggle_switch"
+      relative: true
+    source: path
+    version: "0.2.0"
   animations:
     dependency: transitive
     description:
@@ -713,13 +720,6 @@ packages:
       relative: true
     source: path
     version: "1.1.9"
-  flutter_conditional_rendering:
-    dependency: transitive
-    description:
-      name: flutter_conditional_rendering
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   flutter_country_picker:
     dependency: transitive
     description:

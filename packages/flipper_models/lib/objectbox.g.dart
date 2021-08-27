@@ -13,6 +13,7 @@ import 'business.dart';
 import 'category.dart';
 import 'color.dart';
 import 'customer.dart';
+import 'discount.dart';
 import 'message.dart';
 import 'order.dart';
 import 'order_item.dart';
@@ -953,6 +954,35 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(15, 587125237409554238),
+      name: 'Discount',
+      lastPropertyId: const IdUid(4, 2114727522821621245),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 2070918125028837887),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 4876468586823146665),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 8439964586178305954),
+            name: 'amount',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 2114727522821621245),
+            name: 'branchId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -976,7 +1006,7 @@ Store openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(14, 5570813440444123608),
+      lastEntityId: const IdUid(15, 587125237409554238),
       lastIndexId: const IdUid(2, 6401461376584828673),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
@@ -1892,6 +1922,39 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 16));
 
           return object;
+        }),
+    Discount: EntityDefinition<Discount>(
+        model: _entities[14],
+        toOneRelations: (Discount object) => [],
+        toManyRelations: (Discount object) => {},
+        getId: (Discount object) => object.id,
+        setId: (Discount object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Discount object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          fbb.startTable(5);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addInt64(2, object.amount);
+          fbb.addInt64(3, object.branchId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Discount(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              name:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              amount: const fb.Int64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 8),
+              branchId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
+
+          return object;
         })
   };
 
@@ -2541,4 +2604,22 @@ class Customer_ {
   /// see [Customer.branchId]
   static final branchId =
       QueryIntegerProperty<Customer>(_entities[13].properties[7]);
+}
+
+/// [Discount] entity fields to define ObjectBox queries.
+class Discount_ {
+  /// see [Discount.id]
+  static final id = QueryIntegerProperty<Discount>(_entities[14].properties[0]);
+
+  /// see [Discount.name]
+  static final name =
+      QueryStringProperty<Discount>(_entities[14].properties[1]);
+
+  /// see [Discount.amount]
+  static final amount =
+      QueryIntegerProperty<Discount>(_entities[14].properties[2]);
+
+  /// see [Discount.branchId]
+  static final branchId =
+      QueryIntegerProperty<Discount>(_entities[14].properties[3]);
 }

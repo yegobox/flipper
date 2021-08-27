@@ -8,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:random_string/random_string.dart';
 // import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/invoice.dart';
 import 'package:flipper_models/supplier.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -1414,5 +1415,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
       mp[item.orderNumber] = item;
     }
     return mp.values.toList();
+  }
+
+  @override
+  Future<void> saveDiscount(
+      {required int branchId, required name, double? amount}) async {
+    // create Discount object and add it to the store
+    var discount =
+        new Discount(name: name, amount: amount!.toInt(), branchId: branchId);
+    store.box<Discount>().put(discount);
   }
 }

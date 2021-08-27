@@ -820,4 +820,11 @@ class LiteApi<T> implements Api {
     // TODO: implement weeklyOrdersReport
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> saveDiscount(
+      {required int branchId, required name, double? amount}) {
+    // TODO: implement saveDiscount
+    throw UnimplementedError();
+  }
 }

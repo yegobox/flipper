@@ -133,5 +133,5 @@ class AppSetup {
 
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/lite_rolling_switch.git open-sources/lite_rolling_switch
+// git submodule add https://github.com/yegobox/animated_toggle_switch.git open-sources/animated_toggle_switch
 // https://gist.github.com/myusuf3/7f645819ded92bda6677

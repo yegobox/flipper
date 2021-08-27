@@ -155,6 +155,8 @@ dependencies:
   # flutter_chat_ui: ^1.1.8
   flutter_chat_ui:
     path: "open-sources/flutter_chat_ui"
+  animated_toggle_switch:
+    path: "open-sources/animated_toggle_switch"
   qr_code_scanner: ^0.5.2
   feather_icons: ^1.1.0-nullsafety.0
   ionicons: ^0.1.2

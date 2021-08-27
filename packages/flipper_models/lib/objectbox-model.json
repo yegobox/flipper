@@ -934,9 +934,38 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "15:587125237409554238",
+      "lastPropertyId": "4:2114727522821621245",
+      "name": "Discount",
+      "properties": [
+        {
+          "id": "1:2070918125028837887",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:4876468586823146665",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:8439964586178305954",
+          "name": "amount",
+          "type": 6
+        },
+        {
+          "id": "4:2114727522821621245",
+          "name": "branchId",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "14:5570813440444123608",
+  "lastEntityId": "15:587125237409554238",
   "lastIndexId": "2:6401461376584828673",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

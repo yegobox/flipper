@@ -117,4 +117,7 @@ abstract class Api<T> {
     required DateTime weekEndDate,
     required int branchId,
   });
+  //save discount
+  Future<void> saveDiscount(
+      {required int branchId, required name, double? amount});
 }
