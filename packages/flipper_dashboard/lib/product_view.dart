@@ -513,6 +513,10 @@ class BuildProductsView extends StatelessWidget {
             shrinkWrap: true,
             children: model.productService.products.map(
               (product) {
+                //I need to add the the discount in the products list
+                //then on rendering the list here, I need to first check if the item is a product or a discount
+                //if first is a discount then some few things need to be done
+                //if is a product proceed with the normal rendering
                 return ProductRow(
                   color: product.color,
                   stocks: model.productService

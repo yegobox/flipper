@@ -827,4 +827,10 @@ class LiteApi<T> implements Api {
     // TODO: implement saveDiscount
     throw UnimplementedError();
   }
+
+  @override
+  OrderF addOrderItem({required OrderF order, required Map data}) {
+    // TODO: implement addOrderItem
+    throw UnimplementedError();
+  }
 }

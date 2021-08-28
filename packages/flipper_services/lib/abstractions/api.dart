@@ -120,4 +120,6 @@ abstract class Api<T> {
   //save discount
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
+
+  OrderF addOrderItem({required OrderF order, required Map data});
 }

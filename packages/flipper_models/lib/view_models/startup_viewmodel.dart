@@ -61,6 +61,7 @@ class StartUpViewModel extends BaseViewModel {
         ProxyService.box.read(key: 'businessId') != null) return;
     if (appService.isLoggedIn()) {
       String userId = ProxyService.box.read(key: 'userId');
+
       List<Business>? businesses =
           await ProxyService.api.businesses(userId: userId);
 

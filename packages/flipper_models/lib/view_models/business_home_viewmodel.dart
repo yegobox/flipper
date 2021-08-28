@@ -217,43 +217,53 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         variantId: variationId,
       );
       log.i(variation!.name);
+      String name = '';
+      if (variation.name == 'Regular') {
+        name = variation.productName + '(Regular)';
+      } else {
+        name = variation.productName + '(${variation.name})';
+      }
 
       /// if variation given given exist in the orderItems then we update the order with new count
       List<OrderF> exist_orders =
           await ProxyService.api.orders(branchId: branchId);
       if (exist_orders.isNotEmpty) {
+        /// if order exist then we need to update the orderItem that match with the item we want to update with new count
+        /// if orderItem does not exist then we need to create a new orderItem
         for (OrderItem item in exist_orders[0].orderItems) {
           if (item.fvariantId == variationId) {
             log.i(item.count + quantity.toDouble());
             log.i(amountTotal);
-            Map i = {
+            Map data = {
               'count': item.count + quantity.toDouble(),
               'price': (item.count + quantity.toDouble()) *
                   (amountTotal / quantity.toDouble()),
               'fvariantId': variationId,
               'id': exist_orders[0].id,
+              'name': name,
             };
-            ProxyService.api.update(data: i, endPoint: 'order');
-            // log.i(item.toJson());
+            ProxyService.api.update(data: data, endPoint: 'order');
           }
         }
         OrderItem? existOrderItem =
             ProxyService.api.getOrderItemByVariantId(variantId: variationId);
         if (existOrderItem == null) {
-          await ProxyService.api.createOrder(
-            customAmount: amountTotal,
-            variation: variation,
-            price: amountTotal,
-            useProductName: variation.name == 'Regular',
-            quantity: quantity.toDouble(),
-          );
+          Map data = {
+            'count': quantity.toDouble(),
+            'price':
+                (quantity.toDouble()) * (amountTotal / quantity.toDouble()),
+            'fvariantId': variationId,
+            'name': name,
+            'forderId': exist_orders[0].id,
+          };
+          ProxyService.api.addOrderItem(order: exist_orders[0], data: data);
         }
       } else {
         await ProxyService.api.createOrder(
           customAmount: amountTotal,
           variation: variation,
           price: amountTotal,
-          useProductName: variation.name == 'Regular',
+          useProductName: false,
           quantity: quantity.toDouble(),
         );
       }

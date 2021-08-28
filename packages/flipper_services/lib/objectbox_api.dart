@@ -132,7 +132,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<List<Business>> businesses({required String userId}) async {
-    // TODO: now add userId in getting the data
     List<Business> businessList = store
         .box<Business>()
         .getAll()
@@ -155,13 +154,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   /// this load the user business using the userId that is sent in header
+  /// the userId is the userId of the user that is logged in
   Future<List<Business>> loadingBusinesses(
       List<Business> businessList, String endPoint) async {
     List<Business> businesses = [];
     try {
       final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
       if (businessList.isEmpty) {
-        // log.i(response.body);
         for (Business business in businessFromJson(response.body)) {
           final box = store.box<Business>();
           box.put(business);
@@ -552,9 +551,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
         createdAt: DateTime.now().toIso8601String(),
       );
       log.i(quantity);
+      String name = '';
+      if (variation.name == 'Regular') {
+        name = variation.productName + '(Regular)';
+      } else {
+        name = variation.productName + '(${variation.name})';
+      }
       OrderItem orderItems = OrderItem(
         count: quantity,
-        name: useProductName ? variation.productName : variation.name,
+        // name: useProductName ? variation.productName : variation.name,
+        name: name,
         fvariantId: variation.id,
         price: price,
         forderId: order.id,
@@ -564,7 +570,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
       final id = box.put(order);
       return store.box<OrderF>().get(id)!;
     } else {
-      log.i(quantity);
       OrderItem item = OrderItem(
         count: quantity,
         name: useProductName ? variation.productName : variation.name,
@@ -1424,5 +1429,22 @@ class ObjectBoxApi extends MobileUpload implements Api {
     var discount =
         new Discount(name: name, amount: amount!.toInt(), branchId: branchId);
     store.box<Discount>().put(discount);
+  }
+
+  @override
+  OrderF addOrderItem({required OrderF order, required Map data}) {
+    OrderItem item = OrderItem(
+      count: data['count'],
+      name: data['name'],
+      fvariantId: data['fvariantId'],
+      price: data['price'],
+      forderId: data['forderId'],
+    );
+    order.orderItems.add(item);
+    // final box = store.box<OrderF>();
+    // final id = box.put(existOrder, mode: PutMode.update);
+    final id = store.box<OrderF>().put(order);
+    // update(data: existOrder.toJson(), endPoint: 'order');
+    return store.box<OrderF>().get(id)!;
   }
 }
