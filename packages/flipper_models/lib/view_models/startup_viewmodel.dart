@@ -25,12 +25,13 @@ class StartUpViewModel extends BaseViewModel {
           await ProxyService.api.businesses(userId: userId);
 
       String? token = await FirebaseMessaging.instance.getToken();
-      ProxyService.firestore
-          .saveTokenToDatabase(token: token!, business: businesses[0].toJson());
 
       isBusinessSet = (businesses.isNotEmpty) ? true : false;
 
       if (isBusinessSet) {
+        ProxyService.firestore.saveTokenToDatabase(
+            token: token!, business: businesses[0].toJson());
+
         ProxyService.appService.setBusiness(businesses: businesses);
         ProxyService.box.write(key: 'userName', value: businesses[0].name);
         ProxyService.box.write(
