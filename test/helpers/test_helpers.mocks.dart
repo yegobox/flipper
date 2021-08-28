@@ -385,6 +385,33 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               #updateBusiness, [], {#id: id, #business: business}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i16.Future<void>);
+  @override
+  int lifeTimeCustomersForbranch({int? branchId}) => (super.noSuchMethod(
+      Invocation.method(#lifeTimeCustomersForbranch, [], {#branchId: branchId}),
+      returnValue: 0) as int);
+  @override
+  List<_i6.OrderF> weeklyOrdersReport(
+          {DateTime? weekStartDate, DateTime? weekEndDate, int? branchId}) =>
+      (super.noSuchMethod(
+          Invocation.method(#weeklyOrdersReport, [], {
+            #weekStartDate: weekStartDate,
+            #weekEndDate: weekEndDate,
+            #branchId: branchId
+          }),
+          returnValue: <_i6.OrderF>[]) as List<_i6.OrderF>);
+  @override
+  _i16.Future<void> saveDiscount(
+          {int? branchId, dynamic name, double? amount}) =>
+      (super.noSuchMethod(
+          Invocation.method(#saveDiscount, [],
+              {#branchId: branchId, #name: name, #amount: amount}),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i16.Future<void>);
+  @override
+  _i6.OrderF addOrderItem({_i6.OrderF? order, Map<dynamic, dynamic>? data}) =>
+      (super.noSuchMethod(
+          Invocation.method(#addOrderItem, [], {#order: order, #data: data}),
+          returnValue: _FakeOrderF()) as _i6.OrderF);
 }
 
 /// A class which mocks [Remote].
