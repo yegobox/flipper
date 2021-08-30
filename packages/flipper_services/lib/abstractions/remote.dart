@@ -12,4 +12,5 @@ abstract class Remote {
   bool scann_selling();
   void config();
   bool isMenuAvailable();
+  bool isDiscountAvailable();
 }

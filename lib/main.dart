@@ -7,6 +7,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
@@ -16,6 +17,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:path_provider/path_provider.dart';
+
+Future<void> _deleteCacheDir() async {
+  final cacheDir = await getTemporaryDirectory();
+
+  if (cacheDir.existsSync()) {
+    cacheDir.deleteSync(recursive: true);
+  }
+}
+
+Future<void> _deleteAppDir() async {
+  final appDir = await getApplicationSupportDirectory();
+
+  if (appDir.existsSync()) {
+    appDir.deleteSync(recursive: true);
+  }
+}
 
 ///
 final isWindows = UniversalPlatform.isWindows;
@@ -31,7 +49,8 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
   WidgetsFlutterBinding.ensureInitialized();
-
+  // await _deleteCacheDir();
+  // await _deleteAppDir();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -57,6 +76,9 @@ main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
+
+  /// useful when dealing with debuging on windows and we need to start the app from the signup page.
+  // ProxyService.box.remove(key: 'userId');
   await ObjectBoxApi.getDir(dbName: 'db_1');
   // AwesomeNotifications().initialize(
   //     // set the icon to null if you want to use the default app icon

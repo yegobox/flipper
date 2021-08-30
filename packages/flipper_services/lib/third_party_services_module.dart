@@ -1,6 +1,7 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 // import 'dart:typed_data';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
@@ -313,6 +314,7 @@ class WindowsLocationService implements FlipperLocation {
 }
 
 class WindowsFirebaseAuthenticationImplementation implements LoginStandard {
+  final log = getLogger("WindowsFirebaseAuthenticationImplementation");
   @override
   Future<bool> createAccountWithPhone(
       {required String phone, required BuildContext context}) async {
@@ -349,11 +351,16 @@ class WindowsFirebaseAuthenticationImplementation implements LoginStandard {
     ///call api to sync! start by syncing
     ///so that we cover the case when a user synced and deleted app
     ///and come again in this case the API will have sync!
-    await ProxyService.api
-        .authenticateWithOfflineDb(userId: login.id.toString());
+    // log.i(login.toJson());
+    try {
+      await ProxyService.api
+          .authenticateWithOfflineDb(userId: login.id.toString());
 
-    //then go startup logic
-    ProxyService.nav.navigateTo(Routes.startUpView);
-    ProxyService.box.write(key: 'userId', value: login.id.toString());
+      //then go startup logic
+      ProxyService.nav.navigateTo(Routes.startUpView);
+      ProxyService.box.write(key: 'userId', value: login.id.toString());
+    } catch (e) {
+      throw Exception(e);
+    }
   }
 }

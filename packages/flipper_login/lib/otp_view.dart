@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 class OtpView extends StatefulWidget {
   @override
@@ -113,7 +114,15 @@ class _OtpViewState extends State<OtpView> {
                               onTap: () {
                                 if (_formKey.currentState!.validate()) {
                                   model.setOtp(ot: otpController.value.text);
-                                  model.fb.verifyWithOtp();
+                                  try {
+                                    model.fb.verifyWithOtp();
+                                  } catch (e) {
+                                    showSimpleNotification(
+                                      Text(e.toString()),
+                                      background: Colors.green,
+                                      position: NotificationPosition.bottom,
+                                    );
+                                  }
                                 }
                               },
                               title: 'Verify',

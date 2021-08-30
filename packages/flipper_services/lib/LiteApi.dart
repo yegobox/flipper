@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order.dart';
-import 'package:flipper_models/b.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/spenn.dart';
@@ -604,24 +603,24 @@ class LiteApi<T> implements Api {
   /// experimenting methods
   /// this methods are here to experiments before we
   /// take big decision in general app
-  Future<B> insertB() async {
-    Document b = Document('1', data: {
-      'id': '1b',
-      'name': 'name',
-      'asi': [
-        {
-          'id': '1a',
-          'name': 'aa',
-        },
-        {
-          'id': '1aa',
-          'name': 'aaa',
-        }
-      ]
-    });
-    Document d = db.saveDocument(b);
-    return sbFromJson(d.json);
-  }
+  // Future<B> insertB() async {
+  //   Document b = Document('1', data: {
+  //     'id': '1b',
+  //     'name': 'name',
+  //     'asi': [
+  //       {
+  //         'id': '1a',
+  //         'name': 'aa',
+  //       },
+  //       {
+  //         'id': '1aa',
+  //         'name': 'aaa',
+  //       }
+  //     ]
+  //   });
+  //   Document d = db.saveDocument(b);
+  //   return sbFromJson(d.json);
+  // }
 
   @override
   Future<Variant?> variant({required int variantId}) async {

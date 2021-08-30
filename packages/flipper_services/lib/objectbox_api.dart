@@ -1029,15 +1029,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<SyncF> authenticateWithOfflineDb({required String userId}) async {
+    log.i(userId);
     final response = await client.post(Uri.parse("$apihub/auth"),
         body: jsonEncode({'userId': userId}),
         headers: {'Content-Type': 'application/json'});
-
-    ProxyService.box
-        .write(key: 'bearerToken', value: syncFromJson(response.body).token);
-    ProxyService.box
-        .write(key: 'userId', value: syncFromJson(response.body).userId);
-    return syncFromJson(response.body);
+    log.i(response.body);
+    if (response.statusCode == 200) {
+      ProxyService.box
+          .write(key: 'bearerToken', value: syncFromJson(response.body).token);
+      ProxyService.box
+          .write(key: 'userId', value: syncFromJson(response.body).userId);
+      return syncFromJson(response.body);
+    } else {
+      throw Exception('403 Error');
+    }
   }
 
   @override
