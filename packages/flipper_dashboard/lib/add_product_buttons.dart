@@ -35,7 +35,8 @@ class AddProductButtons extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isIos || isAndroid)
+              if (isIos ||
+                  isAndroid && ProxyService.remoteConfig.isDiscountAvailable())
                 Padding(
                   padding: EdgeInsets.all(8),
                   child: Container(
