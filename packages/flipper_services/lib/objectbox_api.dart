@@ -1156,6 +1156,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   void sendMessage({required int receiverId, required String message}) {
     if (kDebugMode.kDebugMode) {
       //mock adding a message
+
     }
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
     Business? business = store.box<Business>().get(myBusinessId!);

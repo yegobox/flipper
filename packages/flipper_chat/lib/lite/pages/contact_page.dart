@@ -95,18 +95,17 @@ class _ContactPageState extends State<ContactPage> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 150.0),
-                  child: Row(children: [
-                    Text('New Chat'),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 90.0),
-                      child: TextButton(
-                          onPressed: () {
-                            ProxyService.nav.back();
-                          },
-                          child: Text('Cancel')),
-                    )
-                  ]),
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('New Chat'),
+                        TextButton(
+                            onPressed: () {
+                              ProxyService.nav.back();
+                            },
+                            child: Text('Cancel'))
+                      ]),
                 ),
                 Container(
                   margin: EdgeInsets.all(12),

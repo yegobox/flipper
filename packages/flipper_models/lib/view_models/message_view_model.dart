@@ -96,19 +96,20 @@ class MessageViewModel extends BusinessHomeViewModel {
   List<types.Message> conversations = [];
   void getConversations() async {
     final response = await rootBundle.loadString('assets/messages.json');
-    final messagess = (jsonDecode(response) as List)
+    final messages = (jsonDecode(response) as List)
         .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
         .toList();
-
-    conversations = messagess;
-    notifyListeners();
+    conversations = messages;
   }
 
-  // void sendMessage({required int receiverId, required String message}) {
-  //   ProxyService.api.sendMessage(receiverId: receiverId, message: message);
-  // }
   void sendMessage(types.Message message) {
     conversations.insert(0, message);
+
+    /// wait for database save, then insert the message in the conversation list
+    /// one tick can be shown when the message has not been sent to http server
+    /// but the message has been saved in the database
+    ProxyService.api.sendMessage(receiverId: 1, message: 'message');
+    notifyListeners();
   }
 
   ///the mothod looks for the business that is arleady saved on local

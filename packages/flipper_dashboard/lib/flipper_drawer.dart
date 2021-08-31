@@ -38,13 +38,45 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
           onPressed();
         }
       },
-      title: IconButton(
-        icon: Icon(icon ?? Icons.settings),
-        tooltip: 'Settings',
-        onPressed: () {
-          onPressed!();
-        },
-      ),
+      title: icon == Ionicons.chatbox
+          ? Stack(
+              children: [
+                IconButton(
+                  icon: Icon(icon ?? Icons.settings),
+                  tooltip: 'Chat',
+                  onPressed: () {
+                    onPressed!();
+                  },
+                ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            )
+          : IconButton(
+              icon: Icon(icon ?? Icons.settings),
+              tooltip: 'Settings',
+              onPressed: () {
+                onPressed!();
+              },
+            ),
       leading: customText(
         //was title when leading was not commented out.
         title,

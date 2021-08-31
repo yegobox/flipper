@@ -21,15 +21,27 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
-class AddProductView extends StatelessWidget {
+class AddProductView extends StatefulWidget {
   AddProductView({Key? key, this.productId}) : super(key: key);
-  final log = getLogger('AddProductView');
-  final DateFormat formatter = DateFormat('yyyy-MM-dd');
-  TextEditingController barCode = TextEditingController();
-  TextEditingController productName = TextEditingController(text: '');
-  TextEditingController retailPriceController = TextEditingController(text: '');
-  TextEditingController supplyPriceController = TextEditingController(text: '');
   final int? productId;
+
+  @override
+  _AddProductViewState createState() => _AddProductViewState();
+}
+
+class _AddProductViewState extends State<AddProductView> {
+  final log = getLogger('AddProductView');
+
+  final DateFormat formatter = DateFormat('yyyy-MM-dd');
+
+  TextEditingController barCode = TextEditingController();
+
+  TextEditingController productName = TextEditingController(text: '');
+
+  TextEditingController retailPriceController = TextEditingController(text: '');
+
+  TextEditingController supplyPriceController = TextEditingController(text: '');
+
   @override
   Widget build(BuildContext context) {
     Future<bool> _onWillPop() async {
@@ -40,14 +52,17 @@ class AddProductView extends StatelessWidget {
 
     return ViewModelBuilder<ProductViewModel>.reactive(
       onModelReady: (model) async {
-        model.loadTemporalproductOrEditIfProductIdGiven(productId: productId);
+        model.loadTemporalproductOrEditIfProductIdGiven(
+            productId: widget.productId);
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
         //start locking the save button
         model.setName(name: ' ');
         if (model.productService.product!.name != 'temp') {
-          productName.text = model.product!.name;
+          setState(() {
+            productName.text = model.product!.name;
+          });
         }
 
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
@@ -59,11 +74,15 @@ class AddProductView extends StatelessWidget {
             variants.firstWhere((variant) => variant.name == 'Regular');
 
         if (regularVariant.retailPrice.toString() != '0.0') {
-          retailPriceController.text = regularVariant.retailPrice.toString();
+          setState(() {
+            retailPriceController.text = regularVariant.retailPrice.toString();
+          });
           model.isPriceSet(true);
         }
         if (regularVariant.supplyPrice.toString() != '0.0') {
-          supplyPriceController.text = regularVariant.supplyPrice.toString();
+          setState(() {
+            supplyPriceController.text = regularVariant.supplyPrice.toString();
+          });
         }
       },
       viewModelBuilder: () => ProductViewModel(),
