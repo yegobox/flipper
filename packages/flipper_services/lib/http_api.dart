@@ -478,7 +478,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({required int productId}) {
+  List<Variant> getVariantByProductId({required int productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }

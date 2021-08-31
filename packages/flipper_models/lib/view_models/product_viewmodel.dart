@@ -50,11 +50,13 @@ class ProductViewModel extends ReactiveViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   ///
+  String kProductName = 'null';
   Future<int> loadTemporalproductOrEditIfProductIdGiven(
       {int? productId}) async {
     if (productId != null) {
       Product? product = await ProxyService.api.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
+      kProductName = product.name;
       productService.variantsProduct(productId: product.id);
       notifyListeners();
       return product.id;
@@ -68,6 +70,7 @@ class ProductViewModel extends ReactiveViewModel {
       productService.variantsProduct(productId: product.id);
 
       productService.setCurrentProduct(product: product);
+      kProductName = product.name;
       notifyListeners();
       return product.id;
     }

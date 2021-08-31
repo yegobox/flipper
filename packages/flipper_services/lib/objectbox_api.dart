@@ -1242,7 +1242,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({required int productId}) async {
+  List<Variant> getVariantByProductId({required int productId}) {
     return store
         .box<Variant>()
         .getAll()

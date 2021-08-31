@@ -19,21 +19,21 @@ import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<void> _deleteCacheDir() async {
-  final cacheDir = await getTemporaryDirectory();
+// Future<void> _deleteCacheDir() async {
+//   final cacheDir = await getTemporaryDirectory();
 
-  if (cacheDir.existsSync()) {
-    cacheDir.deleteSync(recursive: true);
-  }
-}
+//   if (cacheDir.existsSync()) {
+//     cacheDir.deleteSync(recursive: true);
+//   }
+// }
 
-Future<void> _deleteAppDir() async {
-  final appDir = await getApplicationSupportDirectory();
+// Future<void> _deleteAppDir() async {
+//   final appDir = await getApplicationSupportDirectory();
 
-  if (appDir.existsSync()) {
-    appDir.deleteSync(recursive: true);
-  }
-}
+//   if (appDir.existsSync()) {
+//     appDir.deleteSync(recursive: true);
+//   }
+// }
 
 ///
 final isWindows = UniversalPlatform.isWindows;

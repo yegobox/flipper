@@ -52,37 +52,34 @@ class _AddProductViewState extends State<AddProductView> {
 
     return ViewModelBuilder<ProductViewModel>.reactive(
       onModelReady: (model) async {
-        model.loadTemporalproductOrEditIfProductIdGiven(
+        await model.loadTemporalproductOrEditIfProductIdGiven(
             productId: widget.productId);
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
         //start locking the save button
         model.setName(name: ' ');
-        if (model.productService.product!.name != 'temp') {
-          setState(() {
-            productName.text = model.product!.name;
-          });
-        }
 
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
         /// normal this is a List of variants where match the productId and take where we have the regular variant
-        List<Variant> variants = await ProxyService.api
-            .getVariantByProductId(productId: model.productService.product!.id);
-        //filter the variants where we have the regular variant and get one of them
-        Variant regularVariant =
-            variants.firstWhere((variant) => variant.name == 'Regular');
+        if (widget.productId != null) {
+          log.i(widget.productId);
+          List<Variant> variants = ProxyService.api
+              .getVariantByProductId(productId: widget.productId!);
+          //filter the variants where we have the regular variant and get one of them
+          Variant regularVariant =
+              variants.firstWhere((variant) => variant.name == 'Regular');
 
-        if (regularVariant.retailPrice.toString() != '0.0') {
-          setState(() {
+          productName.text = model.kProductName;
+
+          if (regularVariant.retailPrice.toString() != '0.0') {
             retailPriceController.text = regularVariant.retailPrice.toString();
-          });
-          model.isPriceSet(true);
-        }
-        if (regularVariant.supplyPrice.toString() != '0.0') {
-          setState(() {
+
+            model.isPriceSet(true);
+          }
+          if (regularVariant.supplyPrice.toString() != '0.0') {
             supplyPriceController.text = regularVariant.supplyPrice.toString();
-          });
+          }
         }
       },
       viewModelBuilder: () => ProductViewModel(),
