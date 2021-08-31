@@ -20,20 +20,21 @@ String variationToJson(List<Variant> data) =>
 
 @Entity()
 class Variant {
-  Variant(
-      {this.id = 0,
-      required this.name,
-      required this.sku,
-      required this.fproductId,
-      required this.unit,
-      required this.table,
-      this.channels,
-      required this.supplyPrice,
-      required this.retailPrice,
-      required this.productName,
-      required this.fbranchId,
-      this.taxName,
-      this.taxPercentage});
+  Variant({
+    this.id = 0,
+    required this.name,
+    required this.sku,
+    required this.fproductId,
+    required this.unit,
+    required this.table,
+    this.channels,
+    required this.supplyPrice,
+    required this.retailPrice,
+    required this.productName,
+    required this.fbranchId,
+    this.taxName,
+    this.taxPercentage,
+  });
 
   @Id(assignable: true)
   int id;

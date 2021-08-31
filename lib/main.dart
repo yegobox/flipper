@@ -7,7 +7,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flipper_services/proxy.dart';
+// import 'package:flipper_services/proxy.dart';
 import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';

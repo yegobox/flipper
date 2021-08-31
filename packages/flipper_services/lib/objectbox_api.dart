@@ -1034,15 +1034,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
         body: jsonEncode({'userId': userId}),
         headers: {'Content-Type': 'application/json'});
     log.i(response.body);
-    if (response.statusCode == 201) {
-      ProxyService.box
-          .write(key: 'bearerToken', value: syncFromJson(response.body).token);
-      ProxyService.box
-          .write(key: 'userId', value: syncFromJson(response.body).userId);
-      return syncFromJson(response.body);
-    } else {
-      throw Exception('403 Error');
-    }
+    // if (response.statusCode == 201) {
+    ProxyService.box
+        .write(key: 'bearerToken', value: syncFromJson(response.body).token);
+    ProxyService.box
+        .write(key: 'userId', value: syncFromJson(response.body).userId);
+    return syncFromJson(response.body);
+    // } else {
+    //   throw Exception('403 Error');
+    // }
   }
 
   @override

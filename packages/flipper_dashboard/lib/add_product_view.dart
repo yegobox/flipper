@@ -10,6 +10,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'create/category_selector.dart';
 import 'create/divider.dart';
+import 'package:flipper_models/variants.dart';
 import 'create/retail_price.dart';
 import 'create/section_select_unit.dart';
 import 'create/supply_price_widget.dart';
@@ -26,6 +27,8 @@ class AddProductView extends StatelessWidget {
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   TextEditingController barCode = TextEditingController();
   TextEditingController productName = TextEditingController(text: '');
+  TextEditingController retailPriceController = TextEditingController(text: '');
+  TextEditingController supplyPriceController = TextEditingController(text: '');
   final int? productId;
   @override
   Widget build(BuildContext context) {
@@ -36,13 +39,32 @@ class AddProductView extends StatelessWidget {
     }
 
     return ViewModelBuilder<ProductViewModel>.reactive(
-      onModelReady: (model) {
+      onModelReady: (model) async {
         model.loadTemporalproductOrEditIfProductIdGiven(productId: productId);
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
         //start locking the save button
         model.setName(name: ' ');
+        if (model.productService.product!.name != 'temp') {
+          productName.text = model.product!.name;
+        }
+
+        /// get the regular variant then get it's price to fill in the form when we are in edit mode!
+        /// normal this is a List of variants where match the productId and take where we have the regular variant
+        List<Variant> variants = await ProxyService.api
+            .getVariantByProductId(productId: model.productService.product!.id);
+        //filter the variants where we have the regular variant and get one of them
+        Variant regularVariant =
+            variants.firstWhere((variant) => variant.name == 'Regular');
+
+        if (regularVariant.retailPrice.toString() != '0.0') {
+          retailPriceController.text = regularVariant.retailPrice.toString();
+          model.isPriceSet(true);
+        }
+        if (regularVariant.supplyPrice.toString() != '0.0') {
+          supplyPriceController.text = regularVariant.supplyPrice.toString();
+        }
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -58,7 +80,8 @@ class AddProductView extends StatelessWidget {
               disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {
-                await model.addProduct(mproduct: model.product.toJson());
+                await model.addProduct(
+                    mproduct: model.product.toJson(), name: productName.text);
                 await model.loadProducts();
                 ProxyService.nav.back();
               },
@@ -83,36 +106,27 @@ class AddProductView extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: Container(
                       width: double.infinity,
-                      child: StreamBuilder<String>(
-                          stream: model.getProductName().asBroadcastStream(),
-                          builder: (context, snapshot) {
-                            return TextFormField(
-                              initialValue: (snapshot.data == null) ||
-                                      (snapshot.data) == 'temp'
-                                  ? ''
-                                  : snapshot.data,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(color: Colors.black),
-                              // validator: Validators.isValid,
-                              onChanged: (String name) async {
-                                model.setName(name: name);
-                              },
-                              decoration: InputDecoration(
-                                hintText: Localization.of(context)!.productName,
-                                fillColor: Theme.of(context)
-                                    .copyWith(canvasColor: Colors.white)
-                                    .canvasColor,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: HexColor('#D0D7E3')),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                            );
-                          }),
+                      child: TextFormField(
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                              color: Colors.black,
+                            ),
+                        controller: productName,
+                        onChanged: (value) {
+                          /// for locking on unlocking the save button
+                          model.setName(name: value);
+                        },
+                        decoration: InputDecoration(
+                          hintText: Localization.of(context)!.productName,
+                          fillColor: Theme.of(context)
+                              .copyWith(canvasColor: Colors.white)
+                              .canvasColor,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: HexColor('#D0D7E3')),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   CategorySelector(categories: model.categories),
@@ -137,21 +151,27 @@ class AddProductView extends StatelessWidget {
                         ),
                   verticalSpaceSmall,
                   verticalSpaceSmall,
-                  RetailPrice(onModelUpdate: (value) {
-                    String trimed = value.trim();
-                    if (trimed.length > 0) {
-                      model.isPriceSet(true);
-                      model.updateRegularVariant(
-                          retailPrice: double.parse(value));
-                    } else {
-                      model.isPriceSet(false);
-                    }
-                  }),
+                  RetailPrice(
+                    controller: retailPriceController,
+                    onModelUpdate: (value) {
+                      String trimed = value.trim();
+                      if (trimed.length > 0) {
+                        model.isPriceSet(true);
+                        model.updateRegularVariant(
+                            retailPrice: double.parse(value));
+                      } else {
+                        model.isPriceSet(false);
+                      }
+                    },
+                  ),
                   verticalSpaceSmall,
-                  SupplyPrice(onModelUpdate: (value) {
-                    model.updateRegularVariant(
-                        supplyPrice: double.parse(value));
-                  }),
+                  SupplyPrice(
+                    controller: supplyPriceController,
+                    onModelUpdate: (value) {
+                      model.updateRegularVariant(
+                          supplyPrice: double.parse(value));
+                    },
+                  ),
                   verticalSpaceSmall,
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),

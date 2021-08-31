@@ -3,8 +3,11 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 
 class RetailPrice extends StatelessWidget {
-  const RetailPrice({Key? key, required this.onModelUpdate}) : super(key: key);
+  const RetailPrice(
+      {Key? key, required this.onModelUpdate, required this.controller})
+      : super(key: key);
   final Function onModelUpdate;
+  final TextEditingController controller;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -12,6 +15,7 @@ class RetailPrice extends StatelessWidget {
       child: Container(
         width: double.infinity,
         child: TextFormField(
+          controller: controller,
           style: Theme.of(context)
               .textTheme
               .bodyText1!

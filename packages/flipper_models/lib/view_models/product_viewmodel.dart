@@ -325,31 +325,24 @@ class ProductViewModel extends ReactiveViewModel {
     productService.variantsProduct(productId: product.id);
   }
 
-  Future<bool> addProduct({required Map mproduct}) async {
-    log.i(_name);
-    log.i(productService.product!.name);
-    if (name != null) {
-      mproduct['name'] =
-          _name == null || _name == '' ? productService.product!.name : _name;
-      mproduct['barCode'] = productService.barCode.toString();
-      log.i(productService.barCode);
-      mproduct['color'] = currentColor;
-      // update the variant with the product name
-      List<Variant> variants = await ProxyService.api
-          .getVariantByProductId(productId: mproduct['id']);
-      for (Variant variant in variants) {
-        Map v = variant.toJson();
-        v['productName'] = _name;
-        v['fproductId'] = mproduct['id'];
-        int id = v['id'];
-        await ProxyService.api.update(data: v, endPoint: 'variant/$id');
-      }
-      final response =
-          await ProxyService.api.update(data: mproduct, endPoint: 'product');
-      return response == 200;
-    } else {
-      return false;
+  Future<bool> addProduct({required Map mproduct, required String name}) async {
+    mproduct['name'] = name;
+    mproduct['barCode'] = productService.barCode.toString();
+    log.i(productService.barCode);
+    mproduct['color'] = currentColor;
+    // update the variant with the product name
+    List<Variant> variants =
+        await ProxyService.api.getVariantByProductId(productId: mproduct['id']);
+    for (Variant variant in variants) {
+      Map v = variant.toJson();
+      v['productName'] = name;
+      v['fproductId'] = mproduct['id'];
+      int id = v['id'];
+      await ProxyService.api.update(data: v, endPoint: 'variant/$id');
     }
+    final response =
+        await ProxyService.api.update(data: mproduct, endPoint: 'product');
+    return response == 200;
   }
 
   void deleteProduct({required int productId}) async {
@@ -388,7 +381,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   Stream<String> getProductName() async* {
-    yield  productService.product!=null? productService.product!.name:'';
+    yield productService.product != null ? productService.product!.name : '';
   }
 
   @override
