@@ -97,22 +97,25 @@ class _ContactPageState extends State<ContactPage> {
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('New Chat'),
-                        TextButton(
-                            onPressed: () {
-                              ProxyService.nav.back();
-                            },
-                            child: Text('Cancel'))
-                      ]),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('New Chat'),
+                      TextButton(
+                        onPressed: () {
+                          ProxyService.nav.back();
+                        },
+                        child: Text('Cancel'),
+                      )
+                    ],
+                  ),
                 ),
                 Container(
                   margin: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                       border: Border.all(
-                          color: Color.fromARGB(255, 225, 226, 230),
-                          width: 0.33),
+                        color: Color.fromARGB(255, 225, 226, 230),
+                        width: 0.33,
+                      ),
                       color: Color.fromARGB(255, 239, 240, 244),
                       borderRadius: BorderRadius.circular(12)),
                   child: TextField(

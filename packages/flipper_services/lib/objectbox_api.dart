@@ -6,6 +6,8 @@ import 'package:flipper_services/mobile_upload.dart';
 import 'package:flutter/foundation.dart' as kDebugMode;
 import 'package:get_storage/get_storage.dart';
 import 'package:random_string/random_string.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 // import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/discount.dart';
@@ -1068,25 +1070,25 @@ class ObjectBoxApi extends MobileUpload implements Api {
   late StreamSubscription<Message> messageSubscription;
   @override
   Stream<List<Message>> getChats({int? receiverId}) async* {
-    if (kDebugMode.kDebugMode) {
-      List<Message> messages = [];
-      for (var i = 0; i < 1000; i++) {
-        messages.add(Message(
-          createdAt: new DateTime.now().toIso8601String(),
-          id: 2000,
-          message: randomAlpha(120),
-          receiverId: 1,
-          senderId: 1,
-          lastActiveId: 1,
-          senderName: 'Richie',
-          status: i % 2 == 0 ? true : false,
-          senderImage:
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-        ));
-      }
-      yield messages;
-      return;
-    }
+    // if (kDebugMode.kDebugMode) {
+    //   List<Message> messages = [];
+    //   for (var i = 0; i < 1000; i++) {
+    //     messages.add(Message(
+    //       createdAt: new DateTime.now().toIso8601String(),
+    //       id: 2000,
+    //       message: randomAlpha(120),
+    //       receiverId: 1,
+    //       senderId: 1,
+    //       lastActiveId: 1,
+    //       senderName: 'Richie',
+    //       status: i % 2 == 0 ? true : false,
+    //       senderImage:
+    //           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
+    //     ));
+    //   }
+    //   yield messages;
+    //   return;
+    // }
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
     if (receiverId == null) {
       receiverId = myBusinessId;
@@ -1305,23 +1307,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<Message> getConversations({required int authorId}) async {
-    // TODO: implement getMessage
+    // final response = await rootBundle.loadString('assets/messages.json');
+    // final messages = (jsonDecode(response) as List)
+    //     .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
+    //     .toList();
+    // return messages;
+
     throw UnimplementedError();
-    // List<Message> message = [
-    //  Message(
-    //     author: {
-    //       "firstName": "Alex",
-    //       "id": "b4878b96-efbc-479a-8291-474ef323dec7",
-    //       "imageUrl": "https://avatars.githubusercontent.com/u/14123304?v=4"
-    //     },
-    //     createdAt: 1598438797000,
-    //     id": "e7a673e9-86eb-4572-936f-2882b0183cdc",
-    //     status: "seen",
-    //     text: "https://flyer.chat",
-    //     type: "text"
-    //   }
-    //  )
-    // ];
   }
 
   @override

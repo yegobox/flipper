@@ -346,12 +346,11 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i16.Future<List<_i6.OrderF>>);
   @override
-  _i16.Future<List<_i7.Variant>> getVariantByProductId({int? productId}) =>
+  List<_i7.Variant> getVariantByProductId({int? productId}) =>
       (super.noSuchMethod(
-              Invocation.method(
-                  #getVariantByProductId, [], {#productId: productId}),
-              returnValue: Future<List<_i7.Variant>>.value(<_i7.Variant>[]))
-          as _i16.Future<List<_i7.Variant>>);
+          Invocation.method(
+              #getVariantByProductId, [], {#productId: productId}),
+          returnValue: <_i7.Variant>[]) as List<_i7.Variant>);
   @override
   _i16.Future<List<_i6.OrderF>> getOrderByStatus({String? status}) =>
       (super.noSuchMethod(
@@ -466,6 +465,10 @@ class MockRemote extends _i1.Mock implements _i24.Remote {
   @override
   bool isMenuAvailable() =>
       (super.noSuchMethod(Invocation.method(#isMenuAvailable, []),
+          returnValue: false) as bool);
+  @override
+  bool isDiscountAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isDiscountAvailable, []),
           returnValue: false) as bool);
 }
 

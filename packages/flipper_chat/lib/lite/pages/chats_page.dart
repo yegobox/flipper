@@ -7,6 +7,7 @@ import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_models/message.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+// ignore: must_be_immutable
 class ChatsPage extends StatefulWidget {
   ChatsPage({Key? key, required this.model}) : super(key: key);
   MessageViewModel model;
@@ -22,7 +23,9 @@ class _ChatsPageState extends State<ChatsPage> {
       stream: widget.model.getMessages(),
       builder: (context, snapshot) {
         if (snapshot.data == null || snapshot.data!.length == 0)
-          return SizedBox.shrink();
+          return Center(
+            child: Text('No conversations'),
+          );
         List<Message> messages = snapshot.data!;
         return Column(
           children: [

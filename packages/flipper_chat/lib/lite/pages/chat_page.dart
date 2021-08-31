@@ -19,7 +19,6 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  // final _user = const types.User(id: '06c33e8b-e835-4736-80f4-63f44b66666c');
   final log = getLogger('_ChatPageState');
 
   void _handleMessageTap(types.Message message) async {

@@ -19,7 +19,7 @@ class Message {
       required this.lastActiveId});
   @Id(assignable: true)
   int id;
-  @Property(uid: 1)
+  @Property(uid: 2)
   String message;
   String createdAt;
   int receiverId;
