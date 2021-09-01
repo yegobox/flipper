@@ -10,7 +10,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:uuid/uuid.dart';
 
 class MessageViewModel extends BusinessHomeViewModel {
   //save chat_data in a list
@@ -94,21 +94,51 @@ class MessageViewModel extends BusinessHomeViewModel {
   List<ReactiveServiceMixin> get reactiveServices => [appService];
 
   List<types.Message> conversations = [];
-  void getConversations() async {
-    final response = await rootBundle.loadString('assets/messages.json');
-    final messages = (jsonDecode(response) as List)
-        .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-        .toList();
-    conversations = messages;
+
+  /// the method expect to return a list of [types.Message] yet we have it frm [Message]
+  /// to [types.Message] thanks to types.Message.fromJson we can easily convert it
+  void getConversations({required int senderId}) async {
+    List<Message> messages =
+        ProxyService.api.getConversations(authorId: senderId);
+    for (Message message in messages) {
+      conversations.add(types.Message.fromJson(message.toJson()));
+    }
   }
 
-  void sendMessage(types.Message message) {
-    conversations.insert(0, message);
+  /// wait for database save, then insert the message in the conversation list
+  /// one tick can be shown when the message has not been sent to http server
+  /// but the message has been saved in the database
+  void sendMessage({required String message, required String receiverId}) {
+    // todo: create a new Object of message send it instead of a string.!
+    log.i(receiverId);
+    int senderId = ProxyService.box.read(key: 'businessId');
+    Business business = ProxyService.api.getBusinessById(id: senderId);
 
-    /// wait for database save, then insert the message in the conversation list
-    /// one tick can be shown when the message has not been sent to http server
-    /// but the message has been saved in the database
-    ProxyService.api.sendMessage(receiverId: 1, message: 'message');
+    Map<String, dynamic> author = types.User(id: senderId.toString()).toJson();
+    Message kMessage = Message(
+      status: 'online',
+      senderImage: business.imageUrl,
+      // get type in best way!
+      type: 'text',
+      //TODOadd more data in sender object!.
+      author: author,
+      createdAt: DateTime.now().microsecondsSinceEpoch,
+      lastActiveId: business.id,
+      text: message,
+      receiverId: int.parse(receiverId),
+      senderId: senderId,
+      senderName: business.name,
+    );
+    // log.i(kMessage.toJson());
+    ProxyService.api
+        .sendMessage(receiverId: int.parse(receiverId), message: kMessage);
+    final textMessage = types.TextMessage(
+      author: types.User(id: receiverId),
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: const Uuid().v4(),
+      text: message,
+    );
+    conversations.insert(0, textMessage);
     notifyListeners();
   }
 

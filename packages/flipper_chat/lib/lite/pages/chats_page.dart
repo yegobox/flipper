@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_models/message.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 // ignore: must_be_immutable
@@ -27,6 +28,7 @@ class _ChatsPageState extends State<ChatsPage> {
             child: Text('No conversations'),
           );
         List<Message> messages = snapshot.data!;
+
         return Column(
           children: [
             Expanded(
@@ -36,6 +38,7 @@ class _ChatsPageState extends State<ChatsPage> {
                 itemCount: messages.length,
                 itemBuilder: (BuildContext context, int index) {
                   Message chat = messages[index];
+                  String senderName = messages[index].senderName;
                   return InkWell(
                     onTap: () {
                       Navigator.of(context).push(
@@ -50,7 +53,9 @@ class _ChatsPageState extends State<ChatsPage> {
                         children: [
                           Container(
                             width: 5,
-                            color: chat.status ? primary : Colors.transparent,
+                            color: chat.status == 'online'
+                                ? primary
+                                : Colors.transparent,
                             margin: const EdgeInsets.only(right: 3),
                           ),
                           Container(
@@ -58,19 +63,31 @@ class _ChatsPageState extends State<ChatsPage> {
                             alignment: Alignment.center,
                             child: Stack(
                               children: [
-                                CircleAvatar(
-                                  maxRadius: 25,
-                                  minRadius: 25,
-                                  backgroundImage:
-                                      NetworkImage(chat.senderImage ?? ""),
-                                  backgroundColor: Helpers.greyLigthColor,
+                                ///TODOwhen users are alowed to change avatar work on this;
+                                // chat.senderImage == null
+                                //     ?
+                                ClipOval(
+                                  child: Container(
+                                    width: 45,
+                                    height: 45,
+                                    child: SvgPicture.network(chat
+                                            .senderImage ??
+                                        "https://avatars.dicebear.com/api/micah/$senderName.svg"),
+                                  ),
                                 ),
+                                // : CircleAvatar(
+                                //     maxRadius: 25,
+                                //     minRadius: 25,
+                                //     backgroundImage:
+                                //         NetworkImage(chat.senderImage!),
+                                //     backgroundColor: Helpers.greyLigthColor,
+                                //   ),
                                 Positioned(
                                   right: 2,
                                   top: 0,
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: chat.status
+                                      color: chat.status == 'online'
                                           ? Helpers.greenColor
                                           : Colors.transparent,
                                       shape: BoxShape.circle,
@@ -104,14 +121,17 @@ class _ChatsPageState extends State<ChatsPage> {
                                         ),
                                       ),
                                       Text(
-                                        timeago.format(
-                                            DateTime.parse(chat.createdAt)),
+                                        timeago.format(DateTime.parse(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                    chat.createdAt,
+                                                    isUtc: true)
+                                                .toIso8601String())),
                                         style: Helpers.txtDefault,
                                       ),
                                     ],
                                   ),
                                   Text(
-                                    chat.message,
+                                    chat.text,
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     softWrap: true,

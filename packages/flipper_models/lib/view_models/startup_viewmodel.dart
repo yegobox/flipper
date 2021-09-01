@@ -35,10 +35,11 @@ class StartUpViewModel extends BaseViewModel {
 
         ProxyService.appService.setBusiness(businesses: businesses);
         ProxyService.box.write(key: 'userName', value: businesses[0].name);
+        String name = businesses[0].name;
         ProxyService.box.write(
             key: 'businessUrl',
             value: businesses[0].businessUrl ??
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU');
+                "https://avatars.dicebear.com/api/initials/$name.svg");
 
         switch (ProxyService.box.read(key: pageKey)) {
           case 'social':

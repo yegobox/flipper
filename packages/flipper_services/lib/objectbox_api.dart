@@ -1155,24 +1155,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  void sendMessage({required int receiverId, required String message}) {
-    if (kDebugMode.kDebugMode) {
-      //mock adding a message
-
-    }
-    int? myBusinessId = ProxyService.box.read(key: 'businessId');
-    Business? business = store.box<Business>().get(myBusinessId!);
+  void sendMessage({required int receiverId, required Message message}) {
     final box = store.box<Message>();
-    Message kMessage = Message(
-      status: false,
-      createdAt: DateTime.now().toIso8601String(),
-      lastActiveId: myBusinessId,
-      message: message,
-      receiverId: receiverId,
-      senderId: myBusinessId,
-      senderName: business!.name,
-    );
-    box.put(kMessage, mode: PutMode.insert);
+    // log.i(message.toJson());
+    int i = box.put(message, mode: PutMode.insert);
+    Message? kMessage = store.box<Message>().get(i);
+    log.i(kMessage ?? 'null');
   }
 
   @override
@@ -1306,14 +1294,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<Message> getConversations({required int authorId}) async {
-    // final response = await rootBundle.loadString('assets/messages.json');
-    // final messages = (jsonDecode(response) as List)
-    //     .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-    //     .toList();
-    // return messages;
-
-    throw UnimplementedError();
+  List<Message> getConversations({required int authorId}) {
+    return store
+        .box<Message>()
+        .getAll()
+        .where((business) => business.senderId == authorId)
+        .toList();
   }
 
   @override

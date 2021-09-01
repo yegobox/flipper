@@ -79,8 +79,8 @@ abstract class Api<T> {
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
   Stream<List<Message>> getChats({int? receiverId});
-  void sendMessage({required int receiverId, required String message});
-  Future<Message> getConversations({required int authorId});
+  void sendMessage({required int receiverId, required Message message});
+  List<Message> getConversations({required int authorId});
 
   /// we treat all business as users and as contact at the same time
   /// this is because a business act as point of contact for a user

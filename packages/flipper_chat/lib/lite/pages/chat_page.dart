@@ -6,8 +6,6 @@ import 'package:stacked/stacked.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flipper_models/message.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:uuid/uuid.dart';
-import 'package:flipper_services/proxy.dart';
 
 // ignore: must_be_immutable
 class ChatPage extends StatefulWidget {
@@ -31,12 +29,12 @@ class _ChatPageState extends State<ChatPage> {
       types.PreviewData previewData, MessageViewModel viewModel) {
     final index = viewModel.conversations
         .indexWhere((element) => element.id == message.id);
-    final updatedMessage =
-        viewModel.conversations[index].copyWith(previewData: previewData);
+    // final updatedMessage =
+    //     viewModel.conversations[index].copyWith(previewData: previewData);
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       setState(() {
-        viewModel.conversations[index] = updatedMessage;
+        // viewModel.conversations[index] = updatedMessage;
       });
     });
   }
@@ -60,23 +58,18 @@ class _ChatPageState extends State<ChatPage> {
               _handlePreviewDataFetched(message, type, model);
             },
             onSendPressed: (message) {
-              final textMessage = types.TextMessage(
-                author: types.User(id: widget.message!.receiverId.toString()),
-                createdAt: DateTime.now().millisecondsSinceEpoch,
-                id: const Uuid().v4(),
-                text: message.text,
+              model.sendMessage(
+                message: message.text,
+                receiverId: widget.message!.receiverId.toString(),
               );
-              model.sendMessage(textMessage);
             },
-            user: model.user == null
-                ? types.User(id: widget.message!.receiverId.toString())
-                : model.user as types.User,
+            user: types.User(id: widget.message!.receiverId.toString()),
           ),
         );
       },
       onModelReady: (model) {
         model.loadSenderBusiness(senderId: widget.message!.senderId);
-        model.getConversations();
+        model.getConversations(senderId: widget.message!.senderId);
       },
       viewModelBuilder: () => MessageViewModel(),
     );

@@ -802,7 +802,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(14, 3792350989547430964),
+      lastPropertyId: const IdUid(19, 8949027605740184096),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -818,26 +818,15 @@ final _entities = <ModelEntity>[
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(8, 1098149876836892244),
-            name: 'createdAt',
-            type: 9,
-            flags: 0),
-        ModelProperty(
             id: const IdUid(9, 8074429391081551579),
             name: 'receiverId',
             type: 6,
             flags: 0),
-        ModelProperty(
-            id: const IdUid(10, 1), name: 'message', type: 9, flags: 0),
+        ModelProperty(id: const IdUid(10, 1), name: 'text', type: 9, flags: 0),
         ModelProperty(
             id: const IdUid(11, 412268228015472147),
             name: 'senderName',
             type: 9,
-            flags: 0),
-        ModelProperty(
-            id: const IdUid(12, 329309886203959362),
-            name: 'status',
-            type: 1,
             flags: 0),
         ModelProperty(
             id: const IdUid(13, 3550400819773032582),
@@ -845,8 +834,28 @@ final _entities = <ModelEntity>[
             type: 9,
             flags: 0),
         ModelProperty(
-            id: const IdUid(14, 3792350989547430964),
-            name: 'author',
+            id: const IdUid(15, 6952405727114646126),
+            name: 'type',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(16, 1210769162470646879),
+            name: 'dbAuthor',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(17, 1832585454190011486),
+            name: 'createdAt',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(18, 2033045415914865953),
+            name: 'status',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(19, 8949027605740184096),
+            name: 'dbId',
             type: 9,
             flags: 0)
       ],
@@ -1016,7 +1025,10 @@ ModelDefinition getObjectBoxModel() {
         1718505003743814710,
         938205566050096652,
         6311916302122232138,
-        6932238253732696423
+        6932238253732696423,
+        3792350989547430964,
+        1098149876836892244,
+        329309886203959362
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -1771,25 +1783,30 @@ ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (Message object, fb.Builder fbb) {
-          final createdAtOffset = fbb.writeString(object.createdAt);
-          final messageOffset = fbb.writeString(object.message);
+          final textOffset = fbb.writeString(object.text);
           final senderNameOffset = fbb.writeString(object.senderName);
           final senderImageOffset = object.senderImage == null
               ? null
               : fbb.writeString(object.senderImage!);
-          final authorOffset =
-              object.author == null ? null : fbb.writeString(object.author!);
-          fbb.startTable(15);
+          final typeOffset = fbb.writeString(object.type);
+          final dbAuthorOffset = object.dbAuthor == null
+              ? null
+              : fbb.writeString(object.dbAuthor!);
+          final statusOffset = fbb.writeString(object.status);
+          final dbIdOffset = fbb.writeString(object.dbId);
+          fbb.startTable(20);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
-          fbb.addOffset(7, createdAtOffset);
           fbb.addInt64(8, object.receiverId);
-          fbb.addOffset(9, messageOffset);
+          fbb.addOffset(9, textOffset);
           fbb.addOffset(10, senderNameOffset);
-          fbb.addBool(11, object.status);
           fbb.addOffset(12, senderImageOffset);
-          fbb.addOffset(13, authorOffset);
+          fbb.addOffset(14, typeOffset);
+          fbb.addOffset(15, dbAuthorOffset);
+          fbb.addInt64(16, object.createdAt);
+          fbb.addOffset(17, statusOffset);
+          fbb.addOffset(18, dbIdOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1799,24 +1816,28 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Message(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              message:
+              text:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
               createdAt:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 36, 0),
               receiverId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
               senderId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
-              status: const fb.BoolReader()
-                  .vTableGet(buffer, rootOffset, 26, false),
+              status:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 38, ''),
               senderImage: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 28),
               senderName:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              author: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 30),
+              type:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
               lastActiveId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0));
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0))
+            ..dbAuthor = const fb.StringReader()
+                .vTableGetNullable(buffer, rootOffset, 34)
+            ..dbId =
+                const fb.StringReader().vTableGet(buffer, rootOffset, 40, '');
 
           return object;
         }),
@@ -2505,33 +2526,39 @@ class Message_ {
   static final lastActiveId =
       QueryIntegerProperty<Message>(_entities[11].properties[2]);
 
-  /// see [Message.createdAt]
-  static final createdAt =
-      QueryStringProperty<Message>(_entities[11].properties[3]);
-
   /// see [Message.receiverId]
   static final receiverId =
-      QueryIntegerProperty<Message>(_entities[11].properties[4]);
+      QueryIntegerProperty<Message>(_entities[11].properties[3]);
 
-  /// see [Message.message]
-  static final message =
-      QueryStringProperty<Message>(_entities[11].properties[5]);
+  /// see [Message.text]
+  static final text = QueryStringProperty<Message>(_entities[11].properties[4]);
 
   /// see [Message.senderName]
   static final senderName =
-      QueryStringProperty<Message>(_entities[11].properties[6]);
-
-  /// see [Message.status]
-  static final status =
-      QueryBooleanProperty<Message>(_entities[11].properties[7]);
+      QueryStringProperty<Message>(_entities[11].properties[5]);
 
   /// see [Message.senderImage]
   static final senderImage =
+      QueryStringProperty<Message>(_entities[11].properties[6]);
+
+  /// see [Message.type]
+  static final type = QueryStringProperty<Message>(_entities[11].properties[7]);
+
+  /// see [Message.dbAuthor]
+  static final dbAuthor =
       QueryStringProperty<Message>(_entities[11].properties[8]);
 
-  /// see [Message.author]
-  static final author =
-      QueryStringProperty<Message>(_entities[11].properties[9]);
+  /// see [Message.createdAt]
+  static final createdAt =
+      QueryIntegerProperty<Message>(_entities[11].properties[9]);
+
+  /// see [Message.status]
+  static final status =
+      QueryStringProperty<Message>(_entities[11].properties[10]);
+
+  /// see [Message.dbId]
+  static final dbId =
+      QueryStringProperty<Message>(_entities[11].properties[11]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.

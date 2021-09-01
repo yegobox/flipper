@@ -706,7 +706,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  void sendMessage({required int receiverId, required String message}) {
+  void sendMessage({required int receiverId, required Message message}) {
     // TODO: implement sendMessage
   }
 
@@ -776,7 +776,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<Message> getConversations({required int authorId}) {
+  List<Message> getConversations({required int authorId}) {
     // TODO: implement getMessage
     throw UnimplementedError();
   }

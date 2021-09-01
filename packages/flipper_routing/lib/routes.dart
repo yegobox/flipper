@@ -133,7 +133,7 @@ class AppSetup {
 
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/animated_toggle_switch.git open-sources/animated_toggle_switch
+// git submodule add https://github.com/flyerhq/flutter_chat_types.git open-sources/flutter_chat_types
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%

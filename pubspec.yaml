@@ -134,7 +134,7 @@ dependencies:
   rounded_loading_button: ^2.0.4
   hive_flutter: ^1.0.0
   path_provider: ^2.0.2
-  objectbox: ^1.1.1
+  objectbox: ^1.2.0
   objectbox_flutter_libs: any
   dio: ^4.0.0
   # freezed: ^0.14.2
@@ -171,6 +171,7 @@ dependencies:
   #     url: git://github.com/Sky24n/github_language_colors.git
   random_string:
   upgrader: ^3.5.1
+  flutter_svg: ^0.22.0
   # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:

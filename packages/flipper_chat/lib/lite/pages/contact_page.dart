@@ -65,11 +65,12 @@ class _ContactPageState extends State<ContactPage> {
         log.i(contact.id);
         String userId = ProxyService.box.read(key: 'userId');
         Message chat = Message(
-          message: '',
-          createdAt: '',
+          text: '',
+          createdAt: DateTime.now().microsecondsSinceEpoch,
           receiverId: contact.id,
           senderId: int.parse(userId),
           senderName: '',
+          type: 'text',
           lastActiveId: int.parse(userId),
         );
         Navigator.of(context).push(
