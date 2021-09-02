@@ -3,7 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flipper_chat/lite/pages/calls_page.dart';
 import 'package:flipper_chat/lite/pages/chats_page.dart';
-import 'package:flipper_chat/lite/pages/groups_page.dart';
+import 'package:flipper_chat/lite/pages/orders_page.dart';
 import 'package:flipper_chat/lite/widgets/chat_app_bar.dart';
 import 'package:flipper_chat/lite/widgets/button_circle.dart';
 import 'package:flipper_chat/lite/widgets/tabsw.dart';
@@ -71,7 +71,6 @@ class _LiteState extends State<Lite> {
           body: SafeArea(
             child: Column(
               children: [
-                // Historys(),
                 Expanded(
                   child: PageView.builder(
                     controller: pageController,
@@ -85,7 +84,7 @@ class _LiteState extends State<Lite> {
                         case 0:
                           return ChatsPage(model: model);
                         case 1:
-                          return GroupsPage(model: model);
+                          return OrderPage(model: model);
                         case 3:
                           return CallsPage(model: model);
                         default:
@@ -107,15 +106,15 @@ class _LiteState extends State<Lite> {
                         ),
                         BtnTab(
                           text: 'Orders',
-                          notications: 5,
+                          notications: 0,
                           status: (value == 1),
                           ontap: () => changePage(1),
                         ),
-                        BtnTab(
-                          text: 'Calls',
-                          status: (value == 3),
-                          ontap: () => changePage(3),
-                        ),
+                        // BtnTab(
+                        //   text: 'Calls',
+                        //   status: (value == 3),
+                        //   ontap: () => changePage(3),
+                        // ),
                       ],
                     );
                   },

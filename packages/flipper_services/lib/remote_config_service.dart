@@ -19,7 +19,8 @@ class RemoteConfigService implements Remote {
       'analytic_feature_available': true,
       'scann_selling': true,
       'is_menu_available': false,
-      'is_discount_available': false
+      'is_discount_available': false,
+      'is_order_available': false
     });
   }
 
@@ -100,6 +101,11 @@ class RemoteConfigService implements Remote {
     }
     return remoteConfig.getBool('is_discount_available');
   }
+
+  @override
+  bool isOrderAvailable() {
+    return false;
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -177,5 +183,10 @@ class RemoteConfigWindows implements Remote {
       return true;
     }
     return true;
+  }
+
+  @override
+  bool isOrderAvailable() {
+    return false;
   }
 }

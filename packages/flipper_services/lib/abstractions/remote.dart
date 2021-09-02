@@ -13,4 +13,5 @@ abstract class Remote {
   void config();
   bool isMenuAvailable();
   bool isDiscountAvailable();
+  bool isOrderAvailable();
 }
