@@ -1,13 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:rxdart/rxdart.dart';
 import 'package:flipper_services/mobile_upload.dart';
-import 'package:flutter/foundation.dart' as kDebugMode;
 import 'package:get_storage/get_storage.dart';
-import 'package:random_string/random_string.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 // import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/discount.dart';
@@ -1157,18 +1152,21 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   void sendMessage({required int receiverId, required Message message}) {
     final box = store.box<Message>();
-    // log.i(message.toJson());
     int i = box.put(message, mode: PutMode.insert);
     Message? kMessage = store.box<Message>().get(i);
     log.i(kMessage ?? 'null');
+    // send the message to http server, for other users to listen to
+    // if the message is sent to the server but not received by the other user
+    // then keep the message in the local database
   }
 
   @override
   Customer? addCustomer({required Map customer, required int orderId}) {
+    int branchId = ProxyService.box.read(key: 'branchId');
     final box = store.box<Customer>();
     Customer kCustomer = Customer(
       name: customer['name'],
-      branchId: customer['branchId'],
+      branchId: branchId,
       email: customer['email'],
       phone: customer['phone'],
       address: customer['address'] ?? '',

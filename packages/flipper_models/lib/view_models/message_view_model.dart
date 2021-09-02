@@ -120,7 +120,7 @@ class MessageViewModel extends BusinessHomeViewModel {
       senderImage: business.imageUrl,
       // get type in best way!
       type: 'text',
-      //TODOadd more data in sender object!.
+      //TODOadd more data in author object!.
       author: author,
       createdAt: DateTime.now().microsecondsSinceEpoch,
       lastActiveId: business.id,
@@ -133,7 +133,8 @@ class MessageViewModel extends BusinessHomeViewModel {
     ProxyService.api
         .sendMessage(receiverId: int.parse(receiverId), message: kMessage);
     final textMessage = types.TextMessage(
-      author: types.User(id: receiverId),
+      // author: types.User(id: receiverId),
+      author: types.User(id: senderId.toString()),
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
       text: message,
