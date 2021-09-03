@@ -7,13 +7,14 @@ import 'message.dart';
 class Conversation {
   Conversation({
     this.id = 0,
-    required this.avatars,
-    required this.initials,
+    this.avatars,
+    this.initials,
   });
   @Id(assignable: true)
   int id;
 
   /// list of avatars urls in json format for the people in the conversation
+  @Property(uid: 8331604158242099606)
   Map<String, dynamic>? avatars;
 
   ///  a list of the names initials of the people in the conversation
@@ -32,12 +33,12 @@ class Conversation {
     }
   }
 
-  String? get dbInitials => avatars == null ? null : json.encode(avatars);
+  String? get dbInitials => initials == null ? null : json.encode(initials);
   set dbInitials(String? value) {
     if (value == null) {
-      avatars = null;
+      initials = null;
     } else {
-      avatars = Map.from(json.decode(value).map((k, v) => MapEntry(k, v)));
+      initials = Map.from(json.decode(value).map((k, v) => MapEntry(k, v)));
     }
   }
 }

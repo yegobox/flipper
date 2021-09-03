@@ -12,6 +12,7 @@ import 'branch.dart';
 import 'business.dart';
 import 'category.dart';
 import 'color.dart';
+import 'conversation.dart';
 import 'customer.dart';
 import 'discount.dart';
 import 'message.dart';
@@ -802,7 +803,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(19, 8949027605740184096),
+      lastPropertyId: const IdUid(20, 2393751583070263733),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -857,7 +858,14 @@ final _entities = <ModelEntity>[
             id: const IdUid(19, 8949027605740184096),
             name: 'dbId',
             type: 9,
-            flags: 0)
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(20, 2393751583070263733),
+            name: 'conversationId',
+            type: 11,
+            flags: 520,
+            indexId: const IdUid(3, 3253799497487419212),
+            relationTarget: 'Conversation')
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[]),
@@ -992,7 +1000,33 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
-      backlinks: <ModelBacklink>[])
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(16, 1485111935930131080),
+      name: 'Conversation',
+      lastPropertyId: const IdUid(7, 8408422868540398686),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 1421381851867583644),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(6, 8062944332124432080),
+            name: 'dbAvatars',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(7, 8408422868540398686),
+            name: 'dbInitials',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[
+        ModelBacklink(name: 'messages', srcEntity: 'Message', srcField: '')
+      ])
 ];
 
 /// Open an ObjectBox store with the model declared in this file.
@@ -1015,8 +1049,8 @@ Store openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(15, 587125237409554238),
-      lastIndexId: const IdUid(2, 6401461376584828673),
+      lastEntityId: const IdUid(16, 1485111935930131080),
+      lastIndexId: const IdUid(3, 3253799497487419212),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
@@ -1028,7 +1062,11 @@ ModelDefinition getObjectBoxModel() {
         6932238253732696423,
         3792350989547430964,
         1098149876836892244,
-        329309886203959362
+        329309886203959362,
+        7387474418444201850,
+        819227061083687997,
+        55405895619852984,
+        2670733005554439365
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -1776,7 +1814,7 @@ ModelDefinition getObjectBoxModel() {
         }),
     Message: EntityDefinition<Message>(
         model: _entities[11],
-        toOneRelations: (Message object) => [],
+        toOneRelations: (Message object) => [object.conversation],
         toManyRelations: (Message object) => {},
         getId: (Message object) => object.id,
         setId: (Message object, int id) {
@@ -1794,7 +1832,7 @@ ModelDefinition getObjectBoxModel() {
               : fbb.writeString(object.dbAuthor!);
           final statusOffset = fbb.writeString(object.status);
           final dbIdOffset = fbb.writeString(object.dbId);
-          fbb.startTable(20);
+          fbb.startTable(21);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
@@ -1807,6 +1845,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addInt64(16, object.createdAt);
           fbb.addOffset(17, statusOffset);
           fbb.addOffset(18, dbIdOffset);
+          fbb.addInt64(19, object.conversation.targetId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1838,7 +1877,9 @@ ModelDefinition getObjectBoxModel() {
                 .vTableGetNullable(buffer, rootOffset, 34)
             ..dbId =
                 const fb.StringReader().vTableGet(buffer, rootOffset, 40, '');
-
+          object.conversation.targetId =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 42, 0);
+          object.conversation.attach(store);
           return object;
         }),
     Setting: EntityDefinition<Setting>(
@@ -1975,6 +2016,50 @@ ModelDefinition getObjectBoxModel() {
               branchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0));
 
+          return object;
+        }),
+    Conversation: EntityDefinition<Conversation>(
+        model: _entities[15],
+        toOneRelations: (Conversation object) => [],
+        toManyRelations: (Conversation object) => {
+              RelInfo<Message>.toOneBacklink(20, object.id,
+                      (Message srcObject) => srcObject.conversation):
+                  object.messages
+            },
+        getId: (Conversation object) => object.id,
+        setId: (Conversation object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Conversation object, fb.Builder fbb) {
+          final dbAvatarsOffset = object.dbAvatars == null
+              ? null
+              : fbb.writeString(object.dbAvatars!);
+          final dbInitialsOffset = object.dbInitials == null
+              ? null
+              : fbb.writeString(object.dbInitials!);
+          fbb.startTable(8);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(5, dbAvatarsOffset);
+          fbb.addOffset(6, dbInitialsOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Conversation(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0))
+            ..dbAvatars = const fb.StringReader()
+                .vTableGetNullable(buffer, rootOffset, 14)
+            ..dbInitials = const fb.StringReader()
+                .vTableGetNullable(buffer, rootOffset, 16);
+          InternalToManyAccess.setRelInfo(
+              object.messages,
+              store,
+              RelInfo<Message>.toOneBacklink(
+                  20, object.id, (Message srcObject) => srcObject.conversation),
+              store.box<Conversation>());
           return object;
         })
   };
@@ -2559,6 +2644,10 @@ class Message_ {
   /// see [Message.dbId]
   static final dbId =
       QueryStringProperty<Message>(_entities[11].properties[11]);
+
+  /// see [Message.conversation]
+  static final conversation =
+      QueryRelationToOne<Message, Conversation>(_entities[11].properties[12]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.
@@ -2649,4 +2738,19 @@ class Discount_ {
   /// see [Discount.branchId]
   static final branchId =
       QueryIntegerProperty<Discount>(_entities[14].properties[3]);
+}
+
+/// [Conversation] entity fields to define ObjectBox queries.
+class Conversation_ {
+  /// see [Conversation.id]
+  static final id =
+      QueryIntegerProperty<Conversation>(_entities[15].properties[0]);
+
+  /// see [Conversation.dbAvatars]
+  static final dbAvatars =
+      QueryStringProperty<Conversation>(_entities[15].properties[1]);
+
+  /// see [Conversation.dbInitials]
+  static final dbInitials =
+      QueryStringProperty<Conversation>(_entities[15].properties[2]);
 }
