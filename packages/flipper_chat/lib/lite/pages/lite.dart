@@ -167,7 +167,7 @@ class _LiteState extends State<Lite> {
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 12),
                                       child: Text(
-                                        'Flipper options',
+                                        'Flipper apps',
                                         style: Helpers.txtDefault.copyWith(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -176,26 +176,10 @@ class _LiteState extends State<Lite> {
                                     ),
                                     Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
+                                          MainAxisAlignment.spaceBetween,
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       children: [
-                                        Column(
-                                          children: [
-                                            ButtonCircle(
-                                              onPressed: () {},
-                                              icon: CupertinoIcons
-                                                  .chat_bubble_text,
-                                              size: 70,
-                                              iconSize: 32,
-                                            ),
-                                            const SizedBox(height: 5),
-                                            const Text(
-                                              'Nuevo Chat',
-                                              style: Helpers.txtDefault,
-                                            ),
-                                          ],
-                                        ),
                                         Column(
                                           children: [
                                             ButtonCircle(
@@ -206,7 +190,7 @@ class _LiteState extends State<Lite> {
                                             ),
                                             const SizedBox(height: 5),
                                             const Text(
-                                              'Nuevo Grupo',
+                                              'Connet',
                                               style: Helpers.txtDefault,
                                             ),
                                           ],
@@ -215,13 +199,13 @@ class _LiteState extends State<Lite> {
                                           children: [
                                             ButtonCircle(
                                               onPressed: () {
-                                                //switch back to business
                                                 ProxyService.box.write(
-                                                    key: pageKey,
-                                                    value: 'business');
-
+                                                  key: pageKey,
+                                                  value: 'business',
+                                                );
                                                 ProxyService.nav.navigateTo(
-                                                    Routes.startUpView);
+                                                  Routes.startUpView,
+                                                );
                                               },
                                               icon: Icons.update_outlined,
                                               size: 70,
@@ -229,7 +213,7 @@ class _LiteState extends State<Lite> {
                                             ),
                                             const SizedBox(height: 5),
                                             const Text(
-                                              'Goback to business',
+                                              'POS',
                                               style: Helpers.txtDefault,
                                             ),
                                           ],

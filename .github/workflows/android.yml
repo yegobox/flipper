@@ -60,9 +60,9 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: "8.x"
-      - uses: subosito/flutter-action@master
+      - uses: subosito/flutter-action@stable
         with:
-          channel: "master"
+          channel: "stable"
       - run: git submodule update --init
       - run: flutter pub get
       # - run: flutter build apk --release --split-per-abi --no-tree-shake-icons
