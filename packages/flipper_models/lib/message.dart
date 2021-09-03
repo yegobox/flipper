@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:flipper_models/conversation.dart';
 import 'package:objectbox/objectbox.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 Message sMessageJson(String str) => Message.fromJson(json.decode(str));
 
@@ -43,6 +43,9 @@ class Message {
   Map<String, dynamic>? author;
 
   String type;
+
+  // a message belongs to a conversation
+  final conversation = ToOne<Conversation>();
 
   String get dbId => id.toString();
   set dbId(String id) {

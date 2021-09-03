@@ -31,6 +31,14 @@ class MessageViewModel extends BusinessHomeViewModel {
     ProxyService.api.delete(id: id, endPoint: 'message');
   }
 
+  /// get a list of [Conversation] a conversation is a list of [Message]
+  /// a conversation can be a group or a private chat
+  /// a conversation have a [Conversation.type]
+  /// a conversation can be a [Conversation.type.private] or a [Conversation.type.group]
+  /// a conversation have a list of last online images if is a group then it will have more than one image
+  /// if no image then last online image will be null and the message is not empty
+  /// then the Letter of people in the conversation will be shown, only top 3 people will be shown.
+  /// TODOrename this to getConversations
   Stream<List<Message>> getMessages() async* {
     Stream<List<Message>> messages = await ProxyService.api.getChats();
     yield* messages;
