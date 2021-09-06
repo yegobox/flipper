@@ -60,7 +60,7 @@ class _ChatPageState extends State<ChatPage> {
             onSendPressed: (message) {
               model.sendMessage(
                 message: message.text,
-                receiverId: widget.conversation!.receiverId.toString(),
+                receiverId: widget.conversation!.receiverId,
                 conversationId: widget.conversation!.id,
               );
             },

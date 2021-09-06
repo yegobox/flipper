@@ -19,6 +19,7 @@ import 'message.dart';
 import 'order.dart';
 import 'order_item.dart';
 import 'product.dart';
+import 'queue_item.dart';
 import 'setting.dart';
 import 'stock.dart';
 import 'unit.dart';
@@ -1066,7 +1067,21 @@ final _entities = <ModelEntity>[
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[
         ModelBacklink(name: 'messages', srcEntity: 'Message', srcField: '')
-      ])
+      ]),
+  ModelEntity(
+      id: const IdUid(17, 2390185527754733161),
+      name: 'QueueItem',
+      lastPropertyId: const IdUid(1, 6844216237085553109),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 6844216237085553109),
+            name: 'id',
+            type: 6,
+            flags: 129)
+      ],
+      relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[])
 ];
 
 /// Open an ObjectBox store with the model declared in this file.
@@ -1089,7 +1104,7 @@ Store openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(16, 1485111935930131080),
+      lastEntityId: const IdUid(17, 2390185527754733161),
       lastIndexId: const IdUid(4, 4090710537214135983),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
@@ -2132,6 +2147,29 @@ ModelDefinition getObjectBoxModel() {
                   20, object.id, (Message srcObject) => srcObject.conversation),
               store.box<Conversation>());
           return object;
+        }),
+    QueueItem: EntityDefinition<QueueItem>(
+        model: _entities[16],
+        toOneRelations: (QueueItem object) => [],
+        toManyRelations: (QueueItem object) => {},
+        getId: (QueueItem object) => object.id,
+        setId: (QueueItem object, int id) {
+          object.id = id;
+        },
+        objectToFB: (QueueItem object, fb.Builder fbb) {
+          fbb.startTable(2);
+          fbb.addInt64(0, object.id);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = QueueItem(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0));
+
+          return object;
         })
   };
 
@@ -2856,4 +2894,11 @@ class Conversation_ {
   /// see [Conversation.createdAt]
   static final createdAt =
       QueryIntegerProperty<Conversation>(_entities[15].properties[8]);
+}
+
+/// [QueueItem] entity fields to define ObjectBox queries.
+class QueueItem_ {
+  /// see [QueueItem.id]
+  static final id =
+      QueryIntegerProperty<QueueItem>(_entities[16].properties[0]);
 }

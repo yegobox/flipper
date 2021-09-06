@@ -10,18 +10,17 @@ const _defaultReceiveTimeout = Duration.millisecondsPerMinute;
 class DioClient {
   final String baseUrl;
 
-  late Dio _dio;
+  final Dio _dio = Dio();
 
   final List<Interceptor> interceptors;
 
   DioClient(
-    this.baseUrl,
-    Dio dio, {
+    this.baseUrl, {
     required this.interceptors,
   }) {
-    String userId = ProxyService.box.read(key: 'userId');
+    int userId = 300;
     String? token = ProxyService.box.read(key: 'bearerToken');
-    _dio = dio;
+
     _dio
       ..options.baseUrl = baseUrl
       ..options.connectTimeout = _defaultConnectTimeout

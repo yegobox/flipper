@@ -36,8 +36,14 @@ class CronService {
   connectBlueToothPrinter() {
     //this is the code to connect to bluetooth printer
     cron.schedule(Schedule.parse('*/1 * * * *'), () async {
-      log.i('start connecting bluethooth');
-      printer.connect();
+      // log.i('start connecting bluethooth');
+      // printer.connect();
+    });
+  }
+
+  loadNewContacts() {
+    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      ProxyService.api.contacts().asBroadcastStream();
     });
   }
 
@@ -48,7 +54,11 @@ class CronService {
   schedule() async {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.api.getBusiness();
-    String? token = await FirebaseMessaging.instance.getToken();
+    String? token = null;
+    if (!isWindows) {
+      token = await FirebaseMessaging.instance.getToken();
+    }
+
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution

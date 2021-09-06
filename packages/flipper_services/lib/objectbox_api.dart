@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_services/dio_client.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:get_storage/get_storage.dart';
 // import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/queue_item.dart';
 import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/invoice.dart';
 import 'package:flipper_models/supplier.dart';
@@ -53,7 +55,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
 
   String flipperApi = "https://flipper.yegobox.com";
-  // late DioClient dioClient;
+  late DioClient dioClient;
   String apihub = "https://apihub.yegobox.com";
   final log = getLogger('ObjectBoxAPi');
   // late
@@ -94,7 +96,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   ObjectBoxApi({String? dbName, Directory? dir}) {
-    // dioClient = DioClient(apihub, dio, interceptors: []);
+    dioClient = DioClient(apihub, interceptors: []);
     //connect socket
     if (stompMessageClient == null && stompUsersClient == null) {
       stompMessageClient = StompClient(
@@ -1029,20 +1031,27 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<SyncF> authenticateWithOfflineDb({required String userId}) async {
-    log.i(userId);
-    final response = await client.post(Uri.parse("$apihub/auth"),
-        body: jsonEncode({'userId': userId}),
-        headers: {'Content-Type': 'application/json'});
-    log.i(response.body);
-    // if (response.statusCode == 201) {
-    ProxyService.box
-        .write(key: 'bearerToken', value: syncFromJson(response.body).token);
-    ProxyService.box
-        .write(key: 'userId', value: syncFromJson(response.body).userId);
-    return syncFromJson(response.body);
-    // } else {
-    //   throw Exception('403 Error');
-    // }
+    final response = await http.post(
+      Uri.parse('https://apihub.yegobox.com/auth'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(
+        <String, String>{
+          'userId': userId,
+        },
+      ),
+    );
+
+    if (response.statusCode == 201) {
+      ProxyService.box
+          .write(key: 'bearerToken', value: syncFromJson(response.body).token);
+      ProxyService.box
+          .write(key: 'userId', value: syncFromJson(response.body).userId);
+      return syncFromJson(response.body);
+    } else {
+      throw Exception('403 Error');
+    }
   }
 
   @override
@@ -1233,24 +1242,21 @@ class ObjectBoxApi extends MobileUpload implements Api {
   ///in cron so it can run in app backgroup like every hour.
   @override
   Stream<List<Business>> contacts() async* {
-    bool isInternetAvaible = await isInternetAvailable();
+    List<Business> businesses = store.box<Business>().getAll().toList();
+    final response = await client.get(Uri.parse("$apihub/v2/api/users"));
+
+    for (Business business in businessFromJson(response.body)) {
+      if (!businesses.contains(business)) {
+        final box = store.box<Business>();
+        box.put(business);
+      }
+    }
 
     yield* store
         .box<Business>()
         .query()
         .watch(triggerImmediately: true)
         .map((query) => query.find());
-    if (isInternetAvaible) {
-      List<Business> businesses = store.box<Business>().getAll().toList();
-      final response = await client.get(Uri.parse("$apihub/v2/api/users"));
-
-      for (Business business in businessFromJson(response.body)) {
-        if (!businesses.contains(business)) {
-          final box = store.box<Business>();
-          box.put(business);
-        }
-      }
-    }
   }
 
   @override
@@ -1287,7 +1293,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     log.i(receiverId);
     //first I have to listen to a socket
     Stream<Message> stream = messageStreamController.stream;
-    messageSubscription = stream.listen((message) {
+    messageSubscription = stream.listen((message) async {
       Message? kMessage = store.box<Message>().get(message.id);
 
       log.i(message.receiverId == myBusinessId);
@@ -1297,23 +1303,45 @@ class ObjectBoxApi extends MobileUpload implements Api {
           message.receiverId == myBusinessId &&
           message.senderId != myBusinessId) {
         log.i("now inserting new object");
-        // if message.convoId does not exist in the store then we insert it then add the message on it.
         Conversation? conversation =
             store.box<Conversation>().get(message.convoId);
+        QueueItem queueItem = QueueItem(
+          id: message.id,
+        );
+        //save queue item in store
+        store.box<QueueItem>().put(queueItem);
         if (conversation == null) {
           conversation = Conversation(
-            senderName: '',
+            senderName: message.senderName,
             id: message.convoId,
             receiverId: message.receiverId,
             senderId: message.senderId,
             createdAt: message.createdAt,
-            status: 'online',
+            status: message.status,
           );
-          conversation.messages.add(message);
-          store.box<Conversation>().put(conversation);
+          // find if this message exists in the store
+          // if it does not exist then insert it
+          Message? messageExist = store.box<Message>().get(message.id);
+          if (messageExist == null) {
+            conversation.messages.add(message);
+            store.box<Conversation>().put(conversation);
+          }
         } else {
-          conversation.messages.add(message);
-          store.box<Conversation>().put(conversation);
+          Message? messageExist = store.box<Message>().get(message.id);
+          if (messageExist == null) {
+            conversation.messages.add(message);
+            store.box<Conversation>().put(conversation);
+          }
+        }
+        //get all queue items from store
+        List<QueueItem> queueItems = store.box<QueueItem>().getAll();
+        while (queueItems.isNotEmpty) {
+          int id = queueItems.first.id;
+          final response =
+              await client.delete(Uri.parse("$apihub/message/$id"));
+          if (response.statusCode == 200) {
+            store.box<QueueItem>().remove(queueItems.first.id);
+          }
         }
       }
     });
@@ -1329,10 +1357,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Business getBusinessById({required int id}) {
+    // return store
+    //     .box<Business>()
+    //     .getAll()
+    //     .firstWhere((business) => business.id == id);
     return store
         .box<Business>()
-        .getAll()
-        .firstWhere((business) => business.id == id);
+        .query(Business_.id.equals(id))
+        .build()
+        .findFirst()!;
   }
 
   @override
@@ -1455,5 +1488,23 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final id = store.box<OrderF>().put(order);
     // update(data: existOrder.toJson(), endPoint: 'order');
     return store.box<OrderF>().get(id)!;
+  }
+
+  @override
+  Conversation createConversation({required Conversation conversation}) {
+    int id = store.box<Conversation>().put(conversation);
+    //get the conversation from the store
+    return store.box<Conversation>().get(id)!;
+  }
+
+  @override
+  Conversation? getConversationByContactId({required int contactId}) {
+    return store
+        .box<Conversation>()
+        .query(Conversation_.receiverId
+            .equals(contactId)
+            .or(Conversation_.senderId.equals(contactId)))
+        .build()
+        .findFirst();
   }
 }

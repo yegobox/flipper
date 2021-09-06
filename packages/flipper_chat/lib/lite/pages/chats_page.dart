@@ -69,7 +69,7 @@ class _ChatsPageState extends State<ChatsPage> {
                                     width: 45,
                                     height: 45,
                                     child: SvgPicture.network(conversation
-                                                .avatars ==
+                                                .avatars !=
                                             null
                                         ? conversation.avatars!.entries
                                             .map((entry) =>

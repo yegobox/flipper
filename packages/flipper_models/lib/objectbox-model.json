@@ -1045,9 +1045,23 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "17:2390185527754733161",
+      "lastPropertyId": "1:6844216237085553109",
+      "name": "QueueItem",
+      "properties": [
+        {
+          "id": "1:6844216237085553109",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "16:1485111935930131080",
+  "lastEntityId": "17:2390185527754733161",
   "lastIndexId": "4:4090710537214135983",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

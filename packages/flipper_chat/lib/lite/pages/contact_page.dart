@@ -62,21 +62,33 @@ class _ContactPageState extends State<ContactPage> {
     return ListTile(
       title: Text(contact.name),
       onTap: () {
-        log.i(contact.id);
-        String userId = ProxyService.box.read(key: 'userId');
-        Conversation conversation = Conversation(
-          createdAt: DateTime.now().microsecondsSinceEpoch,
-          receiverId: contact.id,
-          senderId: int.parse(userId),
-          senderName: model.business!.name,
-          lastMessage: 'text',
-          status: 'online',
-        );
-        Navigator.of(context).push(
-          RightToLeftRoute(
-            page: ChatPage(conversation: conversation),
-          ),
-        );
+        //sender is the id of the current business
+        int senderId = ProxyService.box.read(key: 'businessId');
+        Conversation? conversation =
+            ProxyService.api.getConversationByContactId(contactId: contact.id);
+        if (conversation == null) {
+          conversation = Conversation(
+            createdAt: DateTime.now().microsecondsSinceEpoch,
+            receiverId: contact.id,
+            senderId: senderId,
+            senderName: model.business!.name,
+            lastMessage: 'text',
+            status: 'online',
+          );
+          Conversation convo =
+              ProxyService.api.createConversation(conversation: conversation);
+          Navigator.of(context).push(
+            RightToLeftRoute(
+              page: ChatPage(conversation: convo),
+            ),
+          );
+        } else {
+          Navigator.of(context).push(
+            RightToLeftRoute(
+              page: ChatPage(conversation: conversation),
+            ),
+          );
+        }
       },
     );
   }

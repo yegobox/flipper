@@ -565,4 +565,16 @@ class HttpApi<T> implements Api {
     // TODO: implement addOrderItem
     throw UnimplementedError();
   }
+
+  @override
+  Conversation createConversation({required Conversation conversation}) {
+    // TODO: implement createConversation
+    throw UnimplementedError();
+  }
+
+  @override
+  Conversation? getConversationByContactId({required int contactId}) {
+    // TODO: implement getConversationByContactId
+    throw UnimplementedError();
+  }
 }

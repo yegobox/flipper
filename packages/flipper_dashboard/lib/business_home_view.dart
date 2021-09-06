@@ -127,34 +127,35 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.review.review();
         // schedule the report
         ProxyService.cron.schedule();
+        ProxyService.cron.loadNewContacts();
         ProxyService.cron.connectBlueToothPrinter();
       },
       builder: (context, model, child) {
-        if (isWindows || isMacOs) {
-          return DesktopView(
-            model: model,
-            controller: controller,
-            userName: ProxyService.box.read(key: 'userName') ?? 'N/A',
-            userProfileImg: ProxyService.box.read(key: 'businessUrl'),
-          );
-        } else {
-          switch (ProxyService.box.read(key: 'page')) {
-            case 'business':
+        // if (isWindows || isMacOs) {
+        //   return DesktopView(
+        //     model: model,
+        //     controller: controller,
+        //     userName: ProxyService.box.read(key: 'userName') ?? 'N/A',
+        //     userProfileImg: ProxyService.box.read(key: 'businessUrl'),
+        //   );
+        // } else {
+        switch (ProxyService.box.read(key: 'page')) {
+          case 'business':
+            return BusinessWidget(model);
+          case 'social':
+            if (ProxyService.remoteConfig.isChatAvailable()) {
+              return Lite();
+            } else {
               return BusinessWidget(model);
-            case 'social':
-              if (ProxyService.remoteConfig.isChatAvailable()) {
-                return Lite();
-              } else {
-                return BusinessWidget(model);
-              }
-            case 'openBusiness':
-              return Text('open business');
-            case 'closedBusiness':
-              return Text('closed business');
-            default:
-          }
-          return BusinessWidget(model);
+            }
+          case 'openBusiness':
+            return Text('open business');
+          case 'closedBusiness':
+            return Text('closed business');
+          default:
         }
+        return BusinessWidget(model);
+        // }
       },
     );
   }

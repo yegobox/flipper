@@ -123,4 +123,8 @@ abstract class Api<T> {
       {required int branchId, required name, double? amount});
 
   OrderF addOrderItem({required OrderF order, required Map data});
+
+  Conversation createConversation({required Conversation conversation});
+
+  Conversation? getConversationByContactId({required int contactId});
 }

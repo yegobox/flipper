@@ -360,6 +360,7 @@ class WindowsFirebaseAuthenticationImplementation implements LoginStandard {
       ProxyService.nav.navigateTo(Routes.startUpView);
       ProxyService.box.write(key: 'userId', value: login.id.toString());
     } catch (e) {
+      log.e(e);
       throw Exception(e);
     }
   }

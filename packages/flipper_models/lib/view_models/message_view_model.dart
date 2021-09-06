@@ -112,6 +112,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   /// the method expect to return a list of [types.Message] yet we have it frm [Message]
   /// to [types.Message] thanks to types.Message.fromJson we can easily convert it
   void getConversations({required int conversationId}) async {
+    log.i(conversationId);
     List<Message> messages = ProxyService.api
         .conversationsFutureList(conversationId: conversationId);
     for (Message message in messages) {
@@ -124,10 +125,11 @@ class MessageViewModel extends BusinessHomeViewModel {
   /// but the message has been saved in the database
   /// sending a message we need to know the conversation Id to send message to the right conversation
   /// then if the conversation is null it create a conversation and insert the message in the conversation
-  void sendMessage(
-      {required String message,
-      required String receiverId,
-      required int conversationId}) async {
+  void sendMessage({
+    required String message,
+    required int receiverId,
+    required int conversationId,
+  }) async {
     int senderId = ProxyService.box.read(key: 'businessId');
     Business business = ProxyService.api.getBusinessById(id: senderId);
 
@@ -140,14 +142,16 @@ class MessageViewModel extends BusinessHomeViewModel {
       createdAt: DateTime.now().microsecondsSinceEpoch,
       lastActiveId: business.id,
       text: message,
-      receiverId: int.parse(receiverId),
+      receiverId: receiverId,
       senderId: senderId,
       senderName: business.name,
       convoId: conversationId,
     );
 
-    ProxyService.api
-        .sendMessage(receiverId: int.parse(receiverId), message: kMessage);
+    ProxyService.api.sendMessage(
+      receiverId: receiverId,
+      message: kMessage,
+    );
 
     final textMessage = types.TextMessage(
       // author: types.User(id: receiverId),
