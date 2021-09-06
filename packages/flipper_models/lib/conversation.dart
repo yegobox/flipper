@@ -5,11 +5,16 @@ import 'message.dart';
 
 @Entity()
 class Conversation {
-  Conversation({
-    this.id = 0,
-    this.avatars,
-    this.initials,
-  });
+  Conversation(
+      {this.id = 0,
+      this.avatars,
+      this.initials,
+      this.lastMessage,
+      required this.receiverId,
+      required this.senderId,
+      required this.senderName,
+      required this.status,
+      required this.createdAt});
   @Id(assignable: true)
   int id;
 
@@ -23,6 +28,17 @@ class Conversation {
   /// a conversation has many messages
   @Backlink()
   final messages = ToMany<Message>();
+
+  String? lastMessage;
+
+  int receiverId;
+  int senderId;
+
+  String senderName;
+
+  String status;
+
+  int createdAt;
 
   String? get dbAvatars => avatars == null ? null : json.encode(avatars);
   set dbAvatars(String? value) {

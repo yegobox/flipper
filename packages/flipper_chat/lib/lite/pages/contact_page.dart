@@ -2,7 +2,7 @@ import 'package:flipper_chat/lite/common/index.dart';
 import 'package:flipper_chat/lite/pages/chat_page.dart';
 import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/message.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:azlistview/azlistview.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_services/proxy.dart';
@@ -58,24 +58,23 @@ class _ContactPageState extends State<ContactPage> {
   }
 
   Widget getListItem(BuildContext context, Contact contact,
-      {double susHeight = 40}) {
+      {double susHeight = 40, required MessageViewModel model}) {
     return ListTile(
       title: Text(contact.name),
       onTap: () {
         log.i(contact.id);
         String userId = ProxyService.box.read(key: 'userId');
-        Message chat = Message(
-          text: '',
+        Conversation conversation = Conversation(
           createdAt: DateTime.now().microsecondsSinceEpoch,
           receiverId: contact.id,
           senderId: int.parse(userId),
-          senderName: '',
-          type: 'text',
-          lastActiveId: int.parse(userId),
+          senderName: model.business!.name,
+          lastMessage: 'text',
+          status: 'online',
         );
         Navigator.of(context).push(
           RightToLeftRoute(
-            page: ChatPage(message: chat),
+            page: ChatPage(conversation: conversation),
           ),
         );
       },
@@ -155,7 +154,7 @@ class _ContactPageState extends State<ContactPage> {
                     itemCount: model.dataList.length,
                     itemBuilder: (BuildContext context, int index) {
                       Contact contact = model.dataList[index];
-                      return getListItem(context, contact);
+                      return getListItem(context, contact, model: model);
                     },
                     itemScrollController: model.itemScrollController,
                     susItemBuilder: (BuildContext context, int index) {

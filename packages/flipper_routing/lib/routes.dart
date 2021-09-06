@@ -139,3 +139,6 @@ class AppSetup {
 // %AppData%
 // This will not restart the server.!
 // docker-compose up -d --no-deps --build app-server  
+
+// TODO:when want to calculate distance between points
+// https://flutteragency.com/total-distance-from-latlng-list-in-flutter/

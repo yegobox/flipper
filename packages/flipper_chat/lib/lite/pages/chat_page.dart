@@ -4,13 +4,13 @@ import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' as ChatUi;
 import 'package:stacked/stacked.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flipper_models/message.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:flipper_routing/routes.logger.dart';
 
 // ignore: must_be_immutable
 class ChatPage extends StatefulWidget {
-  ChatPage({Key? key, this.message}) : super(key: key);
-  Message? message;
+  ChatPage({Key? key, this.conversation}) : super(key: key);
+  Conversation? conversation;
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -27,7 +27,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _handlePreviewDataFetched(types.TextMessage message,
       types.PreviewData previewData, MessageViewModel viewModel) {
-    final index = viewModel.conversations
+    final index = viewModel.conversationsList
         .indexWhere((element) => element.id == message.id);
     // final updatedMessage =
     //     viewModel.conversations[index].copyWith(previewData: previewData);
@@ -50,7 +50,7 @@ class _ChatPageState extends State<ChatPage> {
           body: ChatUi.Chat(
             disableImageGallery: true,
             isAttachmentUploading: false,
-            messages: model.conversations,
+            messages: model.conversationsList,
             showUserAvatars: false,
             showUserNames: true,
             onMessageTap: _handleMessageTap,
@@ -60,16 +60,17 @@ class _ChatPageState extends State<ChatPage> {
             onSendPressed: (message) {
               model.sendMessage(
                 message: message.text,
-                receiverId: widget.message!.receiverId.toString(),
+                receiverId: widget.conversation!.receiverId.toString(),
+                conversationId: widget.conversation!.id,
               );
             },
-            user: types.User(id: widget.message!.receiverId.toString()),
+            user: types.User(id: widget.conversation!.receiverId.toString()),
           ),
         );
       },
       onModelReady: (model) {
-        model.loadSenderBusiness(senderId: widget.message!.senderId);
-        model.getConversations(senderId: widget.message!.senderId);
+        model.loadSenderBusiness(senderId: widget.conversation!.senderId);
+        model.getConversations(conversationId: widget.conversation!.id);
       },
       viewModelBuilder: () => MessageViewModel(),
     );

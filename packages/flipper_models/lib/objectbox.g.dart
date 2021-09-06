@@ -803,7 +803,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(12, 917808743332577379),
       name: 'Message',
-      lastPropertyId: const IdUid(20, 2393751583070263733),
+      lastPropertyId: const IdUid(22, 115682919560546987),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -864,8 +864,18 @@ final _entities = <ModelEntity>[
             name: 'conversationId',
             type: 11,
             flags: 520,
-            indexId: const IdUid(3, 3253799497487419212),
-            relationTarget: 'Conversation')
+            indexId: const IdUid(4, 4090710537214135983),
+            relationTarget: 'Conversation'),
+        ModelProperty(
+            id: const IdUid(21, 5839353688525412021),
+            name: 'convoId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(22, 115682919560546987),
+            name: 'delivered',
+            type: 1,
+            flags: 0)
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[]),
@@ -1004,7 +1014,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(16, 1485111935930131080),
       name: 'Conversation',
-      lastPropertyId: const IdUid(7, 8408422868540398686),
+      lastPropertyId: const IdUid(15, 8694540896149095557),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -1021,6 +1031,36 @@ final _entities = <ModelEntity>[
             id: const IdUid(7, 8408422868540398686),
             name: 'dbInitials',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 3062323287516113608),
+            name: 'lastMessage',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 24616322612662045),
+            name: 'receiverId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(10, 4131698414439769805),
+            name: 'senderId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(11, 8534919517047473024),
+            name: 'senderName',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(12, 4533874225416609274),
+            name: 'status',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(15, 8694540896149095557),
+            name: 'createdAt',
+            type: 6,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1050,11 +1090,11 @@ ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
       lastEntityId: const IdUid(16, 1485111935930131080),
-      lastIndexId: const IdUid(3, 3253799497487419212),
+      lastIndexId: const IdUid(4, 4090710537214135983),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
-      retiredIndexUids: const [],
+      retiredIndexUids: const [3253799497487419212],
       retiredPropertyUids: const [
         1718505003743814710,
         938205566050096652,
@@ -1066,7 +1106,9 @@ ModelDefinition getObjectBoxModel() {
         7387474418444201850,
         819227061083687997,
         55405895619852984,
-        2670733005554439365
+        2670733005554439365,
+        8331604158242099606,
+        4796677840836439695
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -1832,7 +1874,7 @@ ModelDefinition getObjectBoxModel() {
               : fbb.writeString(object.dbAuthor!);
           final statusOffset = fbb.writeString(object.status);
           final dbIdOffset = fbb.writeString(object.dbId);
-          fbb.startTable(21);
+          fbb.startTable(23);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
           fbb.addInt64(6, object.lastActiveId);
@@ -1846,6 +1888,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(17, statusOffset);
           fbb.addOffset(18, dbIdOffset);
           fbb.addInt64(19, object.conversation.targetId);
+          fbb.addInt64(20, object.convoId);
+          fbb.addBool(21, object.delivered);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1872,7 +1916,11 @@ ModelDefinition getObjectBoxModel() {
               type:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
               lastActiveId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0))
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+              convoId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 44, 0),
+              delivered: const fb.BoolReader()
+                  .vTableGet(buffer, rootOffset, 46, false))
             ..dbAuthor = const fb.StringReader()
                 .vTableGetNullable(buffer, rootOffset, 34)
             ..dbId =
@@ -2037,10 +2085,21 @@ ModelDefinition getObjectBoxModel() {
           final dbInitialsOffset = object.dbInitials == null
               ? null
               : fbb.writeString(object.dbInitials!);
-          fbb.startTable(8);
+          final lastMessageOffset = object.lastMessage == null
+              ? null
+              : fbb.writeString(object.lastMessage!);
+          final senderNameOffset = fbb.writeString(object.senderName);
+          final statusOffset = fbb.writeString(object.status);
+          fbb.startTable(16);
           fbb.addInt64(0, object.id);
           fbb.addOffset(5, dbAvatarsOffset);
           fbb.addOffset(6, dbInitialsOffset);
+          fbb.addOffset(7, lastMessageOffset);
+          fbb.addInt64(8, object.receiverId);
+          fbb.addInt64(9, object.senderId);
+          fbb.addOffset(10, senderNameOffset);
+          fbb.addOffset(11, statusOffset);
+          fbb.addInt64(14, object.createdAt);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -2049,7 +2108,19 @@ ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
 
           final object = Conversation(
-              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0))
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              lastMessage: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 18),
+              receiverId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
+              senderId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
+              senderName:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
+              status:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 26, ''),
+              createdAt:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 32, 0))
             ..dbAvatars = const fb.StringReader()
                 .vTableGetNullable(buffer, rootOffset, 14)
             ..dbInitials = const fb.StringReader()
@@ -2648,6 +2719,14 @@ class Message_ {
   /// see [Message.conversation]
   static final conversation =
       QueryRelationToOne<Message, Conversation>(_entities[11].properties[12]);
+
+  /// see [Message.convoId]
+  static final convoId =
+      QueryIntegerProperty<Message>(_entities[11].properties[13]);
+
+  /// see [Message.delivered]
+  static final delivered =
+      QueryBooleanProperty<Message>(_entities[11].properties[14]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.
@@ -2753,4 +2832,28 @@ class Conversation_ {
   /// see [Conversation.dbInitials]
   static final dbInitials =
       QueryStringProperty<Conversation>(_entities[15].properties[2]);
+
+  /// see [Conversation.lastMessage]
+  static final lastMessage =
+      QueryStringProperty<Conversation>(_entities[15].properties[3]);
+
+  /// see [Conversation.receiverId]
+  static final receiverId =
+      QueryIntegerProperty<Conversation>(_entities[15].properties[4]);
+
+  /// see [Conversation.senderId]
+  static final senderId =
+      QueryIntegerProperty<Conversation>(_entities[15].properties[5]);
+
+  /// see [Conversation.senderName]
+  static final senderName =
+      QueryStringProperty<Conversation>(_entities[15].properties[6]);
+
+  /// see [Conversation.status]
+  static final status =
+      QueryStringProperty<Conversation>(_entities[15].properties[7]);
+
+  /// see [Conversation.createdAt]
+  static final createdAt =
+      QueryIntegerProperty<Conversation>(_entities[15].properties[8]);
 }

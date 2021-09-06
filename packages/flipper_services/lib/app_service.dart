@@ -81,11 +81,13 @@ class AppService with ReactiveServiceMixin {
   final _contacts = ReactiveValue<List<Business>>([]);
   List<Business> get contacts => _contacts.value;
 
-  ///contact are business in other words
+  /// contact are business in other words
   Future<void> loadContacts() async {
-    List<Business> contacts = await ProxyService.api.contacts();
-    // log.i(contacts.length);
-    _contacts.value = contacts;
+    Stream<List<Business>> contacts =
+        ProxyService.api.contacts().asBroadcastStream();
+    contacts.listen((event) {
+      _contacts.value = event;
+    });
   }
 
   AppService() {

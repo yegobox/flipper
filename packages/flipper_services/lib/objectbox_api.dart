@@ -12,6 +12,7 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/spenn.dart';
 import 'package:flipper_models/variants.dart';
@@ -45,7 +46,7 @@ import 'package:uuid/uuid.dart';
 
 // import 'api_result.dart';
 // import 'network_exceptions.dart';
-final socketUrl = 'https://apihub.yegobox.com/ws-message';
+final socketUrl = 'https://apihub.yegobox.com/stomp';
 late Store store;
 
 class ObjectBoxApi extends MobileUpload implements Api {
@@ -70,8 +71,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
       StreamController<Business>.broadcast();
   void onConnect(StompFrame frame) {
     /// for message
+    String? token = ProxyService.box.read(key: 'bearerToken');
     stompMessageClient?.subscribe(
         destination: '/topic/messages',
+        headers: {'Authorization': token!},
         callback: (StompFrame frame) {
           if (frame.body != null) {
             Message result = sMessageJson(frame.body!);
@@ -1063,57 +1066,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   late StreamSubscription<Message> messageSubscription;
-  @override
-  Stream<List<Message>> getChats({int? receiverId}) async* {
-    // if (kDebugMode.kDebugMode) {
-    //   List<Message> messages = [];
-    //   for (var i = 0; i < 1000; i++) {
-    //     messages.add(Message(
-    //       createdAt: new DateTime.now().toIso8601String(),
-    //       id: 2000,
-    //       message: randomAlpha(120),
-    //       receiverId: 1,
-    //       senderId: 1,
-    //       lastActiveId: 1,
-    //       senderName: 'Richie',
-    //       status: i % 2 == 0 ? true : false,
-    //       senderImage:
-    //           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-    //     ));
-    //   }
-    //   yield messages;
-    //   return;
-    // }
-    int? myBusinessId = ProxyService.box.read(key: 'businessId');
-    if (receiverId == null) {
-      receiverId = myBusinessId;
-    }
-    log.i(receiverId);
-    //first I have to listen to a socket
-    Stream<Message> stream = messageStreamController.stream;
-    messageSubscription = stream.listen((message) {
-      Message? kMessage = store.box<Message>().get(message.id);
-
-      log.i(message.receiverId == myBusinessId);
-      log.i(kMessage);
-      // ignore: unnecessary_null_comparison
-      if (kMessage == null &&
-          message.receiverId == myBusinessId &&
-          message.senderId != myBusinessId) {
-        log.i("now inserting new object");
-        final box = store.box<Message>();
-        box.put(message);
-      }
-    });
-
-    yield* store
-        .box<Message>()
-        .query(Message_.receiverId
-            .equals(myBusinessId ?? 0)
-            .or(Message_.senderId.equals(myBusinessId ?? 0)))
-        .watch(triggerImmediately: true)
-        .map((query) => query.find());
-  }
 
   @override
   Business getBusiness() {
@@ -1150,14 +1102,19 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  void sendMessage({required int receiverId, required Message message}) {
+  void sendMessage({required int receiverId, required Message message}) async {
     final box = store.box<Message>();
     int i = box.put(message, mode: PutMode.insert);
-    Message? kMessage = store.box<Message>().get(i);
-    log.i(kMessage ?? 'null');
-    // send the message to http server, for other users to listen to
-    // if the message is sent to the server but not received by the other user
-    // then keep the message in the local database
+    store.box<Message>().get(i);
+
+    final response = await client.post(Uri.parse("$apihub/v2/api/message"),
+        body: jsonEncode(message.toJson()),
+        headers: {'Content-Type': 'application/json'});
+    if (response.statusCode == 201) {
+      Message? kMessage = store.box<Message>().get(i);
+      kMessage!.delivered = true;
+      box.put(kMessage, mode: PutMode.update);
+    }
   }
 
   @override
@@ -1275,10 +1232,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
   ///is internet. because the method can take some time. it is advised to schedule it
   ///in cron so it can run in app backgroup like every hour.
   @override
-  Future<List<Business>> contacts() async {
+  Stream<List<Business>> contacts() async* {
     bool isInternetAvaible = await isInternetAvailable();
-    List<Business> businesses = store.box<Business>().getAll().toList();
+
+    yield* store
+        .box<Business>()
+        .query()
+        .watch(triggerImmediately: true)
+        .map((query) => query.find());
     if (isInternetAvaible) {
+      List<Business> businesses = store.box<Business>().getAll().toList();
       final response = await client.get(Uri.parse("$apihub/v2/api/users"));
 
       for (Business business in businessFromJson(response.body)) {
@@ -1288,16 +1251,80 @@ class ObjectBoxApi extends MobileUpload implements Api {
         }
       }
     }
-    return businesses;
   }
 
   @override
-  List<Message> getConversations({required int authorId}) {
-    return store
-        .box<Message>()
-        .getAll()
-        .where((business) => business.senderId == authorId)
-        .toList();
+  List<Message> conversationsFutureList({required int conversationId}) {
+    Conversation? conversation = store.box<Conversation>().get(conversationId);
+    return conversation!.messages;
+  }
+
+  @override
+  Stream<List<Conversation>> conversationStreamList({int? receiverId}) async* {
+    // if (kDebugMode.kDebugMode) {
+    //   List<Message> messages = [];
+    //   for (var i = 0; i < 1000; i++) {
+    //     messages.add(Message(
+    //       createdAt: new DateTime.now().toIso8601String(),
+    //       id: 2000,
+    //       message: randomAlpha(120),
+    //       receiverId: 1,
+    //       senderId: 1,
+    //       lastActiveId: 1,
+    //       senderName: 'Richie',
+    //       status: i % 2 == 0 ? true : false,
+    //       senderImage:
+    //           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
+    //     ));
+    //   }
+    //   yield messages;
+    //   return;
+    // }
+    int? myBusinessId = ProxyService.box.read(key: 'businessId');
+    if (receiverId == null) {
+      receiverId = myBusinessId;
+    }
+    log.i(receiverId);
+    //first I have to listen to a socket
+    Stream<Message> stream = messageStreamController.stream;
+    messageSubscription = stream.listen((message) {
+      Message? kMessage = store.box<Message>().get(message.id);
+
+      log.i(message.receiverId == myBusinessId);
+      log.i(kMessage);
+      // ignore: unnecessary_null_comparison
+      if (kMessage == null &&
+          message.receiverId == myBusinessId &&
+          message.senderId != myBusinessId) {
+        log.i("now inserting new object");
+        // if message.convoId does not exist in the store then we insert it then add the message on it.
+        Conversation? conversation =
+            store.box<Conversation>().get(message.convoId);
+        if (conversation == null) {
+          conversation = Conversation(
+            senderName: '',
+            id: message.convoId,
+            receiverId: message.receiverId,
+            senderId: message.senderId,
+            createdAt: message.createdAt,
+            status: 'online',
+          );
+          conversation.messages.add(message);
+          store.box<Conversation>().put(conversation);
+        } else {
+          conversation.messages.add(message);
+          store.box<Conversation>().put(conversation);
+        }
+      }
+    });
+
+    yield* store
+        .box<Conversation>()
+        .query(Conversation_.receiverId
+            .equals(myBusinessId ?? 0)
+            .or(Conversation_.senderId.equals(myBusinessId ?? 0)))
+        .watch(triggerImmediately: true)
+        .map((query) => query.find());
   }
 
   @override

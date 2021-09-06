@@ -4,6 +4,7 @@ import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/color.dart';
 import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/login.dart';
@@ -420,7 +421,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Stream<List<Message>> getChats({int? receiverId}) {
+  Stream<List<Conversation>> conversationStreamList({int? receiverId}) {
     // TODO: implement messages
     throw UnimplementedError();
   }
@@ -502,13 +503,13 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<Business>> contacts() {
+  Stream<List<Business>> contacts() {
     // TODO: implement contacts
     throw UnimplementedError();
   }
 
   @override
-  List<Message> getConversations({required int authorId}) {
+  List<Message> conversationsFutureList({required int conversationId}) {
     // TODO: implement getMessage
     throw UnimplementedError();
   }

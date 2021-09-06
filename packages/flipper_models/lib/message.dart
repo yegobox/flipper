@@ -19,6 +19,8 @@ class Message {
     this.author,
     required this.type,
     required this.lastActiveId,
+    required this.convoId,
+    this.delivered = false,
   });
   @Id(assignable: true)
   int id;
@@ -44,6 +46,10 @@ class Message {
 
   String type;
 
+  int convoId;
+
+  bool delivered;
+
   // a message belongs to a conversation
   final conversation = ToOne<Conversation>();
 
@@ -64,6 +70,8 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         id: json["id"],
         type: json["type"],
+        delivered: json["delivered"],
+        convoId: json["convoId"],
         text: json["text"],
         author: json["author"],
         createdAt: json["createdAt"],
@@ -77,6 +85,8 @@ class Message {
   Map<String, dynamic> toJson() => {
         "id": id.toString(),
         "text": text,
+        "convoId": convoId,
+        "delivered": delivered,
         "author": author,
         "type": type,
         "senderName": senderName,

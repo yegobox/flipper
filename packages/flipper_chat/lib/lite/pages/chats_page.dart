@@ -4,7 +4,8 @@ import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
-import 'package:flipper_models/message.dart';
+import 'package:flipper_models/avatar.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -20,14 +21,14 @@ class ChatsPage extends StatefulWidget {
 class _ChatsPageState extends State<ChatsPage> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Message>>(
-      stream: widget.model.getMessages(),
+    return StreamBuilder<List<Conversation>>(
+      stream: widget.model.conversations(),
       builder: (context, snapshot) {
         if (snapshot.data == null || snapshot.data!.length == 0)
           return Center(
             child: Text('No conversations'),
           );
-        List<Message> messages = snapshot.data!;
+        List<Conversation> messages = snapshot.data!;
 
         return Column(
           children: [
@@ -37,13 +38,13 @@ class _ChatsPageState extends State<ChatsPage> {
                 physics: const BouncingScrollPhysics(),
                 itemCount: messages.length,
                 itemBuilder: (BuildContext context, int index) {
-                  Message chat = messages[index];
+                  Conversation conversation = messages[index];
                   String senderName = messages[index].senderName;
                   return InkWell(
                     onTap: () {
                       Navigator.of(context).push(
                         RightToLeftRoute(
-                          page: ChatPage(message: chat),
+                          page: ChatPage(conversation: conversation),
                         ),
                       );
                     },
@@ -53,7 +54,7 @@ class _ChatsPageState extends State<ChatsPage> {
                         children: [
                           Container(
                             width: 5,
-                            color: chat.status == 'online'
+                            color: conversation.status == 'online'
                                 ? primary
                                 : Colors.transparent,
                             margin: const EdgeInsets.only(right: 3),
@@ -63,31 +64,27 @@ class _ChatsPageState extends State<ChatsPage> {
                             alignment: Alignment.center,
                             child: Stack(
                               children: [
-                                ///TODOwhen users are alowed to change avatar work on this;
-                                // chat.senderImage == null
-                                //     ?
                                 ClipOval(
                                   child: Container(
                                     width: 45,
                                     height: 45,
-                                    child: SvgPicture.network(chat
-                                            .senderImage ??
-                                        "https://avatars.dicebear.com/api/micah/$senderName.svg"),
+                                    child: SvgPicture.network(conversation
+                                                .avatars ==
+                                            null
+                                        ? conversation.avatars!.entries
+                                            .map((entry) =>
+                                                Avatar(entry.key, entry.value))
+                                            .toList()[0]
+                                            .url
+                                        : "https://avatars.dicebear.com/api/micah/$senderName.svg"),
                                   ),
                                 ),
-                                // : CircleAvatar(
-                                //     maxRadius: 25,
-                                //     minRadius: 25,
-                                //     backgroundImage:
-                                //         NetworkImage(chat.senderImage!),
-                                //     backgroundColor: Helpers.greyLigthColor,
-                                //   ),
                                 Positioned(
                                   right: 2,
                                   top: 0,
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: chat.status == 'online'
+                                      color: conversation.status == 'online'
                                           ? Helpers.greenColor
                                           : Colors.transparent,
                                       shape: BoxShape.circle,
@@ -114,7 +111,7 @@ class _ChatsPageState extends State<ChatsPage> {
                                         CrossAxisAlignment.center,
                                     children: [
                                       Text(
-                                        '${chat.senderName}',
+                                        '${conversation.senderName}',
                                         style: Helpers.txtDefault.copyWith(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 18,
@@ -123,7 +120,7 @@ class _ChatsPageState extends State<ChatsPage> {
                                       Text(
                                         timeago.format(DateTime.parse(
                                             DateTime.fromMillisecondsSinceEpoch(
-                                                    chat.createdAt,
+                                                    conversation.createdAt,
                                                     isUtc: true)
                                                 .toIso8601String())),
                                         style: Helpers.txtDefault,
@@ -131,7 +128,7 @@ class _ChatsPageState extends State<ChatsPage> {
                                     ],
                                   ),
                                   Text(
-                                    chat.text,
+                                    conversation.lastMessage ?? '',
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     softWrap: true,

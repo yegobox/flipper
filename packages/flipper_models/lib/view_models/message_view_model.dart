@@ -2,6 +2,7 @@ import 'package:flipper_models/business.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/message.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flipper_chat/lite/common/index.dart';
@@ -19,7 +20,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   final log = getLogger('MessageViewModel');
   Business? user = null;
   void messages() {
-    ProxyService.api.getChats();
+    ProxyService.api.conversationStreamList();
   }
 
   void onNewOrder() {
@@ -39,9 +40,10 @@ class MessageViewModel extends BusinessHomeViewModel {
   /// if no image then last online image will be null and the message is not empty
   /// then the Letter of people in the conversation will be shown, only top 3 people will be shown.
   /// TODOrename this to getConversations
-  Stream<List<Message>> getMessages() async* {
-    Stream<List<Message>> messages = await ProxyService.api.getChats();
-    yield* messages;
+  Stream<List<Conversation>> conversations() async* {
+    Stream<List<Conversation>> conversations =
+        await ProxyService.api.conversationStreamList();
+    yield* conversations;
   }
 
   void receiveOrder({required int chatId}) {}
@@ -50,8 +52,12 @@ class MessageViewModel extends BusinessHomeViewModel {
   final appService = locator<AppService>();
   List<Contact> dataList = [];
   final ItemScrollController itemScrollController = ItemScrollController();
-
+  Business? business = null;
   void loadData() async {
+    //get the current business as the sender!
+    int id = ProxyService.box.read(key: 'businessId');
+    business = ProxyService.api.getBusinessById(id: id);
+    notifyListeners();
     await appService.loadContacts();
     originList = appService.contacts.map((v) {
       Contact model = Contact.fromJson(v.toJson());
@@ -101,24 +107,27 @@ class MessageViewModel extends BusinessHomeViewModel {
   @override
   List<ReactiveServiceMixin> get reactiveServices => [appService];
 
-  List<types.Message> conversations = [];
+  List<types.Message> conversationsList = [];
 
   /// the method expect to return a list of [types.Message] yet we have it frm [Message]
   /// to [types.Message] thanks to types.Message.fromJson we can easily convert it
-  void getConversations({required int senderId}) async {
-    List<Message> messages =
-        ProxyService.api.getConversations(authorId: senderId);
+  void getConversations({required int conversationId}) async {
+    List<Message> messages = ProxyService.api
+        .conversationsFutureList(conversationId: conversationId);
     for (Message message in messages) {
-      conversations.add(types.Message.fromJson(message.toJson()));
+      conversationsList.add(types.Message.fromJson(message.toJson()));
     }
   }
 
   /// wait for database save, then insert the message in the conversation list
   /// one tick can be shown when the message has not been sent to http server
   /// but the message has been saved in the database
-  void sendMessage({required String message, required String receiverId}) {
-    // todo: create a new Object of message send it instead of a string.!
-    log.i(receiverId);
+  /// sending a message we need to know the conversation Id to send message to the right conversation
+  /// then if the conversation is null it create a conversation and insert the message in the conversation
+  void sendMessage(
+      {required String message,
+      required String receiverId,
+      required int conversationId}) async {
     int senderId = ProxyService.box.read(key: 'businessId');
     Business business = ProxyService.api.getBusinessById(id: senderId);
 
@@ -126,9 +135,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     Message kMessage = Message(
       status: 'online',
       senderImage: business.imageUrl,
-      // get type in best way!
       type: 'text',
-      //TODOadd more data in author object!.
       author: author,
       createdAt: DateTime.now().microsecondsSinceEpoch,
       lastActiveId: business.id,
@@ -136,10 +143,12 @@ class MessageViewModel extends BusinessHomeViewModel {
       receiverId: int.parse(receiverId),
       senderId: senderId,
       senderName: business.name,
+      convoId: conversationId,
     );
-    // log.i(kMessage.toJson());
+
     ProxyService.api
         .sendMessage(receiverId: int.parse(receiverId), message: kMessage);
+
     final textMessage = types.TextMessage(
       // author: types.User(id: receiverId),
       author: types.User(id: senderId.toString()),
@@ -147,7 +156,7 @@ class MessageViewModel extends BusinessHomeViewModel {
       id: const Uuid().v4(),
       text: message,
     );
-    conversations.insert(0, textMessage);
+    conversationsList.insert(0, textMessage);
     notifyListeners();
   }
 

@@ -4,6 +4,7 @@ import 'package:flipper_models/product.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/spenn.dart';
+import 'package:flipper_models/conversation.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/customer.dart';
@@ -78,9 +79,9 @@ abstract class Api<T> {
 
   Future<Setting?> createSetting(
       {required int userId, required Setting setting});
-  Stream<List<Message>> getChats({int? receiverId});
+  Stream<List<Conversation>> conversationStreamList({int? receiverId});
   void sendMessage({required int receiverId, required Message message});
-  List<Message> getConversations({required int authorId});
+  List<Message> conversationsFutureList({required int conversationId});
 
   /// we treat all business as users and as contact at the same time
   /// this is because a business act as point of contact for a user
@@ -91,7 +92,7 @@ abstract class Api<T> {
   Stream<List<Business>> users();
   //the method is not different from users, but users is for streaming users being added
   //to connected devices, while this method is for getting all users using List<Business>
-  Future<List<Business>> contacts();
+  Stream<List<Business>> contacts();
 
   Business getBusiness();
   Customer? addCustomer({required Map customer, required int orderId});
