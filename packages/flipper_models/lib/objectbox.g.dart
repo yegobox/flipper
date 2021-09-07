@@ -1015,7 +1015,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(16, 1485111935930131080),
       name: 'Conversation',
-      lastPropertyId: const IdUid(15, 8694540896149095557),
+      lastPropertyId: const IdUid(16, 2728016189115657858),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -1062,6 +1062,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(15, 8694540896149095557),
             name: 'createdAt',
             type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(16, 2728016189115657858),
+            name: 'delivered',
+            type: 1,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -2105,7 +2110,7 @@ ModelDefinition getObjectBoxModel() {
               : fbb.writeString(object.lastMessage!);
           final senderNameOffset = fbb.writeString(object.senderName);
           final statusOffset = fbb.writeString(object.status);
-          fbb.startTable(16);
+          fbb.startTable(17);
           fbb.addInt64(0, object.id);
           fbb.addOffset(5, dbAvatarsOffset);
           fbb.addOffset(6, dbInitialsOffset);
@@ -2115,6 +2120,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(10, senderNameOffset);
           fbb.addOffset(11, statusOffset);
           fbb.addInt64(14, object.createdAt);
+          fbb.addBool(15, object.delivered);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -2134,6 +2140,8 @@ ModelDefinition getObjectBoxModel() {
                   const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
               status:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 26, ''),
+              delivered: const fb.BoolReader()
+                  .vTableGet(buffer, rootOffset, 34, false),
               createdAt:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 32, 0))
             ..dbAvatars = const fb.StringReader()
@@ -2894,6 +2902,10 @@ class Conversation_ {
   /// see [Conversation.createdAt]
   static final createdAt =
       QueryIntegerProperty<Conversation>(_entities[15].properties[8]);
+
+  /// see [Conversation.delivered]
+  static final delivered =
+      QueryBooleanProperty<Conversation>(_entities[15].properties[9]);
 }
 
 /// [QueueItem] entity fields to define ObjectBox queries.

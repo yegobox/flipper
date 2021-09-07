@@ -92,6 +92,6 @@ class AppService with ReactiveServiceMixin {
 
   AppService() {
     listenToReactiveValues(
-        [_categories, _units, _colors, _currentColor, _businesses]);
+        [_categories, _units, _colors, _currentColor, _businesses, _contacts]);
   }
 }

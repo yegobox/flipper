@@ -6,8 +6,8 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_models/avatar.dart';
 import 'package:flipper_models/conversation.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:jovial_svg/jovial_svg.dart';
 
 // ignore: must_be_immutable
 class ChatsPage extends StatefulWidget {
@@ -54,7 +54,8 @@ class _ChatsPageState extends State<ChatsPage> {
                         children: [
                           Container(
                             width: 5,
-                            color: conversation.status == 'online'
+                            // TODOwill work on this to mark if message has unread message(s)
+                            color: conversation.status != 'online'
                                 ? primary
                                 : Colors.transparent,
                             margin: const EdgeInsets.only(right: 3),
@@ -68,15 +69,16 @@ class _ChatsPageState extends State<ChatsPage> {
                                   child: Container(
                                     width: 45,
                                     height: 45,
-                                    child: SvgPicture.network(conversation
-                                                .avatars !=
-                                            null
-                                        ? conversation.avatars!.entries
-                                            .map((entry) =>
-                                                Avatar(entry.key, entry.value))
-                                            .toList()[0]
-                                            .url
-                                        : "https://avatars.dicebear.com/api/micah/$senderName.svg"),
+                                    child: ScalableImageWidget.fromSISource(
+                                        si: ScalableImageSource.fromSvgHttpUrl(
+                                            Uri.parse(conversation.avatars !=
+                                                    null
+                                                ? conversation.avatars!.entries
+                                                    .map((entry) => Avatar(
+                                                        entry.key, entry.value))
+                                                    .toList()[0]
+                                                    .url
+                                                : "https://avatars.dicebear.com/api/avataaars/$senderName.svg"))),
                                   ),
                                 ),
                                 Positioned(

@@ -54,23 +54,26 @@ class MessageViewModel extends BusinessHomeViewModel {
   final ItemScrollController itemScrollController = ItemScrollController();
   Business? business = null;
   void loadData() async {
-    //get the current business as the sender!
     int id = ProxyService.box.read(key: 'businessId');
     business = ProxyService.api.getBusinessById(id: id);
+
+    Stream<List<Business>> contacts =
+        ProxyService.api.contacts().asBroadcastStream();
+    contacts.listen((event) {
+      originList = event.map((v) {
+        Contact model = Contact.fromJson(v.toJson());
+
+        String tag = model.name.substring(0, 1).toUpperCase();
+        if (RegExp("[A-Z]").hasMatch(tag)) {
+          model.tagIndex = tag;
+        } else {
+          model.tagIndex = "#";
+        }
+        return model;
+      }).toList();
+      _handleList(originList);
+    });
     notifyListeners();
-    await appService.loadContacts();
-    originList = appService.contacts.map((v) {
-      Contact model = Contact.fromJson(v.toJson());
-      log.i(model.id);
-      String tag = model.name.substring(0, 1).toUpperCase();
-      if (RegExp("[A-Z]").hasMatch(tag)) {
-        model.tagIndex = tag;
-      } else {
-        model.tagIndex = "#";
-      }
-      return model;
-    }).toList();
-    _handleList(originList);
   }
 
   void _handleList(List<Contact> list) {
@@ -104,9 +107,6 @@ class MessageViewModel extends BusinessHomeViewModel {
     notifyListeners();
   }
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [appService];
-
   List<types.Message> conversationsList = [];
 
   /// the method expect to return a list of [types.Message] yet we have it frm [Message]
@@ -116,6 +116,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     List<Message> messages = ProxyService.api
         .conversationsFutureList(conversationId: conversationId);
     for (Message message in messages) {
+      log.i(message);
       conversationsList.add(types.Message.fromJson(message.toJson()));
     }
   }
@@ -154,7 +155,6 @@ class MessageViewModel extends BusinessHomeViewModel {
     );
 
     final textMessage = types.TextMessage(
-      // author: types.User(id: receiverId),
       author: types.User(id: senderId.toString()),
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
@@ -171,4 +171,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     user = await ProxyService.api.getBusinessById(id: senderId);
     notifyListeners();
   }
+
+  @override
+  List<ReactiveServiceMixin> get reactiveServices => [appService];
 }

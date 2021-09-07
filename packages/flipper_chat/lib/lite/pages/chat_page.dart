@@ -64,7 +64,7 @@ class _ChatPageState extends State<ChatPage> {
                 conversationId: widget.conversation!.id,
               );
             },
-            user: types.User(id: widget.conversation!.receiverId.toString()),
+            user: types.User(id: widget.conversation!.senderId.toString()),
           ),
         );
       },

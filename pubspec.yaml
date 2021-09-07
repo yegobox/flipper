@@ -171,7 +171,8 @@ dependencies:
   #     url: git://github.com/Sky24n/github_language_colors.git
   random_string:
   upgrader: ^3.5.1
-  flutter_svg: ^0.22.0
+  # flutter_svg: ^0.22.0
+  jovial_svg: ^1.0.6
   # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:

@@ -1112,17 +1112,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   void sendMessage({required int receiverId, required Message message}) async {
-    final box = store.box<Message>();
-    int i = box.put(message, mode: PutMode.insert);
-    store.box<Message>().get(i);
+    final convo = store.box<Conversation>().get(message.convoId);
+    convo!.lastMessage = message.text;
+    final box = store.box<Conversation>();
 
+    convo.messages.add(message);
+
+    box.put(convo);
     final response = await client.post(Uri.parse("$apihub/v2/api/message"),
         body: jsonEncode(message.toJson()),
         headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 201) {
-      Message? kMessage = store.box<Message>().get(i);
-      kMessage!.delivered = true;
-      box.put(kMessage, mode: PutMode.update);
+      Conversation? kConvo = store.box<Conversation>().get(message.convoId);
+      kConvo!.delivered = true;
+      box.put(kConvo, mode: PutMode.update);
     }
   }
 
@@ -1263,7 +1266,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   List<Message> conversationsFutureList({required int conversationId}) {
     Conversation? conversation = store.box<Conversation>().get(conversationId);
-    return conversation!.messages;
+    log.i(conversation!.messages);
+    return conversation.messages;
   }
 
   @override

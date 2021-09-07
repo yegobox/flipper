@@ -14,6 +14,7 @@ class Conversation {
       required this.senderId,
       required this.senderName,
       required this.status,
+      this.delivered = false,
       required this.createdAt});
   @Id(assignable: true)
   int id;
@@ -39,6 +40,8 @@ class Conversation {
   String status;
 
   int createdAt;
+
+  bool delivered;
 
   String? get dbAvatars => avatars == null ? null : json.encode(avatars);
   set dbAvatars(String? value) {
