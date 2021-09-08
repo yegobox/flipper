@@ -357,7 +357,7 @@ class WindowsFirebaseAuthenticationImplementation implements LoginStandard {
           .authenticateWithOfflineDb(userId: login.id.toString());
 
       //then go startup logic
-      ProxyService.nav.navigateTo(Routes.startUpView);
+      ProxyService.nav.navigateTo(Routes.initial);
       ProxyService.box.write(key: 'userId', value: login.id.toString());
     } catch (e) {
       log.e(e);

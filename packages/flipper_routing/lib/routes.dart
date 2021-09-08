@@ -21,6 +21,7 @@ import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
+import 'package:flipper_dashboard/connection_failed_view.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/scanner_view.dart';
 import 'package:stacked/stacked_annotations.dart';
@@ -31,7 +32,7 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
 
 @StackedApp(
   routes: [
-    MaterialRoute(page: StartUpView, initial: true),
+    MaterialRoute(page: StartUpView, initial: true, name: 'initial'),
     // MaterialRoute(page: StartUpView),
     // MaterialRoute(page: FlipperChatApp, name: 'chat'),
     MaterialRoute(page: Lite, name: 'chat'),
@@ -58,6 +59,7 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
     MaterialRoute(page: SettingsScreen, name: 'settings'),
     MaterialRoute(page: Analytics, name: 'analytics'),
     MaterialRoute(page: ScannView, name: 'qrview'),
+    MaterialRoute(page: ConnectionFailedView, name: 'connectionState'),
 
     // chat routes
 

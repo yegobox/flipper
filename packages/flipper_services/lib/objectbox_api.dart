@@ -135,28 +135,23 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<List<Business>> businesses({required String userId}) async {
-    // List<Business> businessList = store
-    //     .box<Business>()
-    //     .getAll()
-    //     .where((business) => business.userId == userId)
-    //     .toList();
-    // if (businessList.isNotEmpty) {
-    //   return businessList;
-    // }
     return await loadingBusinesses("businesses");
   }
 
   /// this load the user business using the userId that is sent in header
   /// the userId is the userId of the user that is logged in
   Future<List<Business>> loadingBusinesses(String endPoint) async {
-    final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
+    try {
+      final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
 
-    for (Business business in businessFromJson(response.body)) {
-      final box = store.box<Business>();
-      box.put(business, mode: PutMode.put);
+      for (Business business in businessFromJson(response.body)) {
+        final box = store.box<Business>();
+        box.put(business, mode: PutMode.put);
+      }
+      return businessFromJson(response.body);
+    } catch (e) {
+      return throw e;
     }
-
-    return businessFromJson(response.body);
   }
 
   @override

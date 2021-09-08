@@ -136,7 +136,7 @@ class FlipperFirebaseAuthenticationService extends FirebaseAuthenticationService
         );
 
         //then go startup logic
-        ProxyService.nav.navigateTo(Routes.startUpView);
+        ProxyService.nav.navigateTo(Routes.initial);
         //this mark that we are logged in
         ProxyService.box.write(
           key: 'userId',

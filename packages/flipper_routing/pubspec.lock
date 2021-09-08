@@ -29,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  animated_toggle_switch:
+    dependency: transitive
+    description:
+      path: "../../open-sources/animated_toggle_switch"
+      relative: true
+    source: path
+    version: "0.2.0"
   animations:
     dependency: transitive
     description:
@@ -1068,6 +1075,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.1.0"
+  jovial_misc:
+    dependency: transitive
+    description:
+      name: jovial_misc
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.0"
+  jovial_svg:
+    dependency: transitive
+    description:
+      name: jovial_svg
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.6"
   js:
     dependency: transitive
     description:
@@ -1214,14 +1235,14 @@ packages:
       name: objectbox
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.1"
+    version: "1.2.0"
   objectbox_flutter_libs:
     dependency: transitive
     description:
       name: objectbox_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.1"
+    version: "1.2.0"
   observable_ish:
     dependency: transitive
     description:
@@ -1362,6 +1383,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.3.4"
   pool:
     dependency: transitive
     description:

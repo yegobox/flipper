@@ -259,7 +259,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             },
             onLogout: () async {
               await ProxyService.api.logOut();
-              ProxyService.nav.navigateTo(Routes.startUpView);
+              ProxyService.nav.navigateTo(Routes.initial);
             },
           ),
         ),

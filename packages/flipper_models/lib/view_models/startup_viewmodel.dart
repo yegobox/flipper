@@ -9,6 +9,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isWeb = UniversalPlatform.isWeb;
 
 class StartUpViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
@@ -21,9 +25,17 @@ class StartUpViewModel extends BaseViewModel {
 
     if (appService.isLoggedIn()) {
       String userId = ProxyService.box.read(key: 'userId');
-      List<Business>? businesses =
-          await ProxyService.api.businesses(userId: userId);
-
+      List<Business>? businesses = [];
+      bool internetAvailable = true;
+      if (!isWeb) {
+        internetAvailable = await InternetConnectionChecker().hasConnection;
+      }
+      if (internetAvailable) {
+        businesses = await ProxyService.api.businesses(userId: userId);
+      } else {
+        ProxyService.nav.navigateTo(Routes.connectionState);
+        return;
+      }
       isBusinessSet = (businesses.isNotEmpty) ? true : false;
 
       if (isBusinessSet) {

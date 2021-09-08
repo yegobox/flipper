@@ -226,7 +226,7 @@ class _DesktopViewState extends State<DesktopView> {
                         child: MenuItem(
                           onClick: () async {
                             await ProxyService.api.logOut();
-                            ProxyService.nav.navigateTo(Routes.startUpView);
+                            ProxyService.nav.navigateTo(Routes.initial);
                           },
                           itemIcon: Icons.logout,
                           itemText: "Logout",

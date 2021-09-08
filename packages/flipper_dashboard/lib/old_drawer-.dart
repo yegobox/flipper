@@ -82,7 +82,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     if (isSwitched) {
                       // TODOupdate the business online too for next login.
                       ProxyService.box.write(key: pageKey, value: 'social');
-                      ProxyService.nav.navigateTo(Routes.startUpView);
+                      ProxyService.nav.navigateTo(Routes.home);
                     }
                   });
                 },

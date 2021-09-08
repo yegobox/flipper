@@ -14,6 +14,7 @@ import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/business_home_view.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
+import 'package:flipper_dashboard/connection_failed_view.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -37,7 +38,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class Routes {
-  static const String startUpView = '/';
+  static const String initial = '/';
   static const String chat = '/Lite';
   static const String contacts = '/contact-page';
   static const String dashboard = '/dashboard-view';
@@ -60,9 +61,10 @@ class Routes {
   static const String settings = '/settings-screen';
   static const String analytics = '/Analytics';
   static const String qrview = '/scann-view';
+  static const String connectionState = '/connection-failed-view';
   static const String customers = '/Customers';
   static const all = <String>{
-    startUpView,
+    initial,
     chat,
     contacts,
     dashboard,
@@ -85,6 +87,7 @@ class Routes {
     settings,
     analytics,
     qrview,
+    connectionState,
     customers,
   };
 }
@@ -93,7 +96,7 @@ class StackedRouter extends RouterBase {
   @override
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
-    RouteDef(Routes.startUpView, page: StartUpView),
+    RouteDef(Routes.initial, page: StartUpView),
     RouteDef(Routes.chat, page: Lite),
     RouteDef(Routes.contacts, page: ContactPage),
     RouteDef(Routes.dashboard, page: DashboardView),
@@ -116,6 +119,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.settings, page: SettingsScreen),
     RouteDef(Routes.analytics, page: Analytics),
     RouteDef(Routes.qrview, page: ScannView),
+    RouteDef(Routes.connectionState, page: ConnectionFailedView),
     RouteDef(Routes.customers, page: Customers),
   ];
   @override
@@ -320,6 +324,12 @@ class StackedRouter extends RouterBase {
           key: args.key,
           intent: args.intent,
         ),
+        settings: data,
+      );
+    },
+    ConnectionFailedView: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => ConnectionFailedView(),
         settings: data,
       );
     },

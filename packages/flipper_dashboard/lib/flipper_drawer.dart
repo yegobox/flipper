@@ -111,7 +111,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
             onPressed: () {
               ProxyService.box.write(key: pageKey, value: 'social');
 
-              ProxyService.nav.navigateTo(Routes.startUpView);
+              ProxyService.nav.navigateTo(Routes.initial);
             },
           ),
           const Divider(height: 0),

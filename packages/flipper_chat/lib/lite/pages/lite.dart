@@ -204,7 +204,7 @@ class _LiteState extends State<Lite> {
                                                   value: 'business',
                                                 );
                                                 ProxyService.nav.navigateTo(
-                                                  Routes.startUpView,
+                                                  Routes.home,
                                                 );
                                               },
                                               icon: Icons.update_outlined,

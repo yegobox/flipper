@@ -173,6 +173,7 @@ dependencies:
   upgrader: ^3.5.1
   # flutter_svg: ^0.22.0
   jovial_svg: ^1.0.6
+  internet_connection_checker: ^0.0.1+2
   # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:
