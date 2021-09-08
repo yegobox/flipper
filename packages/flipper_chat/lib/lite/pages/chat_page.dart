@@ -60,11 +60,13 @@ class _ChatPageState extends State<ChatPage> {
             onSendPressed: (message) {
               model.sendMessage(
                 message: message.text,
-                receiverId: widget.conversation!.receiverId,
+
+                /// the case of group chat we need to loop through the members for receiverId
+                receiverId: widget.conversation!.senderId,
                 conversationId: widget.conversation!.id,
               );
             },
-            user: types.User(id: widget.conversation!.senderId.toString()),
+            user: types.User(id: widget.conversation!.receiverId.toString()),
           ),
         );
       },

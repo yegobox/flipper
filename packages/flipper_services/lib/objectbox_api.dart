@@ -45,6 +45,7 @@ import 'package:flipper_services/http_api.dart';
 import 'abstractions/api.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 // import 'api_result.dart';
 // import 'network_exceptions.dart';
@@ -1119,6 +1120,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           'type': message.type,
           'status': message.status,
           'createdAt': message.createdAt,
+          'senderName': message.senderName,
         }),
         headers: {'Content-Type': 'application/json'});
     // log.i(message.toJson());
@@ -1246,15 +1248,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
   ///in cron so it can run in app backgroup like every hour.
   @override
   Stream<List<Business>> contacts() async* {
-    List<Business> businesses = store.box<Business>().getAll().toList();
+    // List<Business> businesses = store.box<Business>().getAll().toList();
     final response = await client.get(Uri.parse("$apihub/v2/api/users"));
 
-    // log.i(response.body);
     for (Business business in businessFromJson(response.body)) {
-      if (!businesses.contains(business)) {
-        final box = store.box<Business>();
-        box.put(business);
-      }
+      final box = store.box<Business>();
+      box.put(business);
     }
 
     yield* store
@@ -1301,6 +1300,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
         QueueItem queueItem = QueueItem(
           id: message.id,
         );
+        Map<String, dynamic> author =
+            types.User(id: message.senderId.toString()).toJson();
         //save queue item in store
         store.box<QueueItem>().put(queueItem);
         if (conversation == null) {
@@ -1315,18 +1316,22 @@ class ObjectBoxApi extends MobileUpload implements Api {
           );
           Message? messageExist = store.box<Message>().get(message.id);
           if (messageExist == null) {
-            conversation.messages.add(message);
+            Message kmessage = messageBuilder(message, author);
+            conversation.messages.add(kmessage);
             store.box<Conversation>().put(conversation);
           }
           emptySentMessageQueue();
         } else {
           Message? messageExist = store.box<Message>().get(message.id);
           if (messageExist == null) {
-            conversation.messages.add(message);
+            Message kmessage = messageBuilder(message, author);
+            conversation.messages.add(kmessage);
             store.box<Conversation>().put(conversation);
           }
           emptySentMessageQueue();
         }
+        //load contacts just to update the list
+        contacts();
       }
     });
 
@@ -1337,6 +1342,21 @@ class ObjectBoxApi extends MobileUpload implements Api {
             .or(Conversation_.senderId.equals(myBusinessId ?? 0)))
         .watch(triggerImmediately: true)
         .map((query) => query.find());
+  }
+
+  Message messageBuilder(Message message, Map<String, dynamic> author) {
+    return Message(
+      id: message.id,
+      status: 'online',
+      type: message.type,
+      author: author,
+      createdAt: DateTime.now().microsecondsSinceEpoch,
+      text: message.text,
+      receiverId: message.receiverId,
+      senderId: message.senderId,
+      senderName: message.senderName,
+      convoId: message.convoId,
+    );
   }
 
   @override

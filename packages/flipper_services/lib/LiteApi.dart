@@ -847,7 +847,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  void emptyQueue() {
+  void emptySentMessageQueue() {
     // TODO: implement emptyQueue
   }
 }
