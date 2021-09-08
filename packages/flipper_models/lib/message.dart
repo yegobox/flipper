@@ -14,13 +14,11 @@ class Message {
     required this.receiverId,
     required this.senderId,
     this.status = 'offline',
-    this.senderImage,
-    required this.senderName,
     this.author,
     required this.type,
-    required this.lastActiveId,
     required this.convoId,
     this.delivered = false,
+    this.senderName,
   });
   @Id(assignable: true)
   int id;
@@ -29,12 +27,9 @@ class Message {
   @Property(uid: 1832585454190011486)
   int createdAt;
   int receiverId;
-  int lastActiveId;
-  @Property(uid: 2)
 
   /// this is a business Id from business table.
   int senderId;
-  String senderName;
   @Property(uid: 2033045415914865953)
   String status;
   String? senderImage;
@@ -49,6 +44,9 @@ class Message {
   int convoId;
 
   bool delivered;
+
+  //ignore this online
+  String? senderName;
 
   // a message belongs to a conversation
   final conversation = ToOne<Conversation>();
@@ -72,14 +70,11 @@ class Message {
         type: json["type"],
         delivered: json["delivered"],
         convoId: json["convoId"],
+        senderName: json["senderName"],
         text: json["text"],
-        author: json["author"],
         createdAt: json["createdAt"],
         receiverId: json["receiverId"],
-        lastActiveId: json["lastActiveId"],
-        senderName: json["senderName"],
         status: json["status"],
-        senderImage: json["senderImage"],
         senderId: json["senderId"],
       );
   Map<String, dynamic> toJson() => {
@@ -89,12 +84,11 @@ class Message {
         "delivered": delivered,
         "author": author,
         "type": type,
-        "senderName": senderName,
         "createdAt": createdAt,
         "receiverId": receiverId,
-        "lastActiveId": lastActiveId,
         "senderId": senderId,
         "status": status,
-        "senderImage": senderImage
+        "senderImage": senderImage,
+        "senderName": senderName
       };
 }

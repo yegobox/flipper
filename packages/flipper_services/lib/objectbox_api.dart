@@ -72,11 +72,11 @@ class ObjectBoxApi extends MobileUpload implements Api {
   StreamController<Business> usersStreamController =
       StreamController<Business>.broadcast();
   void onConnect(StompFrame frame) {
+    log.i('onConnect');
+
     /// for message
-    String? token = ProxyService.box.read(key: 'bearerToken');
     stompMessageClient?.subscribe(
         destination: '/topic/messages',
-        headers: {'Authorization': token!},
         callback: (StompFrame frame) {
           if (frame.body != null) {
             Message result = sMessageJson(frame.body!);
@@ -103,7 +103,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           config: StompConfig.SockJS(
         url: socketUrl,
         onConnect: onConnect,
-        onWebSocketError: (dynamic error) => print(error.toString()),
+        onWebSocketError: (dynamic error) => log.i(error.toString()),
       ));
 
       stompMessageClient?.activate();
@@ -134,39 +134,27 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<List<Business>> businesses({required String userId}) async {
-    List<Business> businessList = store
-        .box<Business>()
-        .getAll()
-        .where((business) => business.userId == userId)
-        .toList();
-    if (businessList.isNotEmpty) {
-      return businessList;
-    }
-    return await loadingBusinesses(businessList, "businesses");
-    // final response = await dioClient.get(
-    //   "$apihub/v2/api/businesses",
-    // );
-    // List<Business> businesses = [];
-    // try {
-    //   return businessFromJson(response);
-    // } catch (e) {
-    //   print(e);
+    // List<Business> businessList = store
+    //     .box<Business>()
+    //     .getAll()
+    //     .where((business) => business.userId == userId)
+    //     .toList();
+    // if (businessList.isNotEmpty) {
+    //   return businessList;
     // }
-    // return businesses;
+    return await loadingBusinesses("businesses");
   }
 
   /// this load the user business using the userId that is sent in header
   /// the userId is the userId of the user that is logged in
-  Future<List<Business>> loadingBusinesses(
-      List<Business> businessList, String endPoint) async {
+  Future<List<Business>> loadingBusinesses(String endPoint) async {
     List<Business> businesses = [];
     try {
       final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
-      if (businessList.isEmpty) {
-        for (Business business in businessFromJson(response.body)) {
-          final box = store.box<Business>();
-          box.put(business);
-        }
+
+      for (Business business in businessFromJson(response.body)) {
+        final box = store.box<Business>();
+        box.put(business, mode: PutMode.put);
       }
 
       return businessFromJson(response.body);
@@ -348,6 +336,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
         break;
       case 'message':
         store.box<Message>().remove(id);
+        break;
+      case 'business':
+        store.box<Business>().remove(id);
         break;
       case 'order':
         store.box<OrderF>().remove(id);
@@ -1120,8 +1111,18 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     box.put(convo);
     final response = await client.post(Uri.parse("$apihub/v2/api/message"),
-        body: jsonEncode(message.toJson()),
+        body: jsonEncode({
+          'receiverId': message.receiverId,
+          'text': message.text,
+          'convoId': message.convoId,
+          'senderId': message.senderId,
+          'type': message.type,
+          'status': message.status,
+          'createdAt': message.createdAt,
+        }),
         headers: {'Content-Type': 'application/json'});
+    // log.i(message.toJson());
+    log.i(response.statusCode);
     if (response.statusCode == 201) {
       Conversation? kConvo = store.box<Conversation>().get(message.convoId);
       kConvo!.delivered = true;
@@ -1272,25 +1273,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Stream<List<Conversation>> conversationStreamList({int? receiverId}) async* {
-    // if (kDebugMode.kDebugMode) {
-    //   List<Message> messages = [];
-    //   for (var i = 0; i < 1000; i++) {
-    //     messages.add(Message(
-    //       createdAt: new DateTime.now().toIso8601String(),
-    //       id: 2000,
-    //       message: randomAlpha(120),
-    //       receiverId: 1,
-    //       senderId: 1,
-    //       lastActiveId: 1,
-    //       senderName: 'Richie',
-    //       status: i % 2 == 0 ? true : false,
-    //       senderImage:
-    //           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxoBnq05850hAXAOcv0CciJtz3dASMTGcBQY38EssxzZkD7mpDlgUj1HUlhHaFJlo5gEk&usqp=CAU',
-    //     ));
-    //   }
-    //   yield messages;
-    //   return;
-    // }
     int? myBusinessId = ProxyService.box.read(key: 'businessId');
     if (receiverId == null) {
       receiverId = myBusinessId;
@@ -1299,15 +1281,21 @@ class ObjectBoxApi extends MobileUpload implements Api {
     //first I have to listen to a socket
     Stream<Message> stream = messageStreamController.stream;
     messageSubscription = stream.listen((message) async {
-      Message? kMessage = store.box<Message>().get(message.id);
-
-      log.i(message.receiverId == myBusinessId);
-      log.i(kMessage);
-      // ignore: unnecessary_null_comparison
-      if (kMessage == null &&
-          message.receiverId == myBusinessId &&
+      /// all messages will be streamed here
+      /// but not all message are of our intrest to use.
+      /// a couple things might happen
+      /// a message can be sent and the user is offline
+      /// this case the server will keep trying as much as it can
+      /// then once the user is online the message will be delivered
+      /// the client will send another request to delete the message
+      /// on success of the request an id of message  will be removed from queue item.
+      /// we need a service in cron to keep sending the delete request
+      /// until the queueItem is empty.
+      /// a message.receiverId == myBusinessId means that the message is sent to me
+      /// the message.convoId the conversation should exist in the store then should be created then
+      if (message.receiverId == myBusinessId &&
           message.senderId != myBusinessId) {
-        log.i("now inserting new object");
+        log.i("onNewMessage");
         Conversation? conversation =
             store.box<Conversation>().get(message.convoId);
         QueueItem queueItem = QueueItem(
@@ -1317,36 +1305,27 @@ class ObjectBoxApi extends MobileUpload implements Api {
         store.box<QueueItem>().put(queueItem);
         if (conversation == null) {
           conversation = Conversation(
-            senderName: message.senderName,
+            senderName: message.senderName!,
             id: message.convoId,
             receiverId: message.receiverId,
             senderId: message.senderId,
             createdAt: message.createdAt,
+            lastMessage: message.text,
             status: message.status,
           );
-          // find if this message exists in the store
-          // if it does not exist then insert it
           Message? messageExist = store.box<Message>().get(message.id);
           if (messageExist == null) {
             conversation.messages.add(message);
             store.box<Conversation>().put(conversation);
           }
+          emptySentMessageQueue();
         } else {
           Message? messageExist = store.box<Message>().get(message.id);
           if (messageExist == null) {
             conversation.messages.add(message);
             store.box<Conversation>().put(conversation);
           }
-        }
-        //get all queue items from store
-        List<QueueItem> queueItems = store.box<QueueItem>().getAll();
-        while (queueItems.isNotEmpty) {
-          int id = queueItems.first.id;
-          final response =
-              await client.delete(Uri.parse("$apihub/message/$id"));
-          if (response.statusCode == 200) {
-            store.box<QueueItem>().remove(queueItems.first.id);
-          }
+          emptySentMessageQueue();
         }
       }
     });
@@ -1433,18 +1412,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }) {
     List<DateTime> weekDates = getWeeksForRange(weekStartDate, weekEndDate);
     List<OrderF> pastOrders = [];
-
-    // store
-    //     .box<OrderF>()
-    //     .query(OrderF_.status
-    //         .equals(completeStatus)
-    //         .and(OrderF_.fbranchId.equals(branchId)).and(OrderF_.createdAt.oneOf(date.to)))
-
-    //     .build()
-    //     .findFirst();
-
-    // bad algo as this create dups and we remove the duplicates later.
-    // we can do better.!
     for (DateTime date in weekDates) {
       List<OrderF> orders = store
           .box<OrderF>()
@@ -1488,17 +1455,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
       forderId: data['forderId'],
     );
     order.orderItems.add(item);
-    // final box = store.box<OrderF>();
-    // final id = box.put(existOrder, mode: PutMode.update);
     final id = store.box<OrderF>().put(order);
-    // update(data: existOrder.toJson(), endPoint: 'order');
     return store.box<OrderF>().get(id)!;
   }
 
   @override
   Conversation createConversation({required Conversation conversation}) {
     int id = store.box<Conversation>().put(conversation);
-    //get the conversation from the store
     return store.box<Conversation>().get(id)!;
   }
 
@@ -1511,5 +1474,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
             .or(Conversation_.senderId.equals(contactId)))
         .build()
         .findFirst();
+  }
+
+  @override
+  void emptySentMessageQueue() async {
+    List<QueueItem> queueItems = store.box<QueueItem>().getAll();
+
+    for (var item in queueItems) {
+      int id = item.id;
+      final response =
+          await client.delete(Uri.parse("$apihub/v2/api/message/$id"));
+      if (response.statusCode == 200) {
+        log.i('emptied the queue');
+        store.box<QueueItem>().remove(item.id);
+      }
+    }
   }
 }

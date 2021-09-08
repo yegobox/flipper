@@ -47,6 +47,13 @@ class CronService {
     });
   }
 
+  deleteReceivedMessageFromServer() {
+    // cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+    //   log.i('scheduled delete message');
+    //   ProxyService.api.emptyQueue();
+    // });
+  }
+
   //the default file that will be generated and saved in known app folder
   //will be printed everytime a sales is complete for demo
   //after demo i.e that time we will be sure that bluethooth is working

@@ -815,11 +815,6 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(6, 2), name: 'senderId', type: 6, flags: 0),
         ModelProperty(
-            id: const IdUid(7, 1419114602383354089),
-            name: 'lastActiveId',
-            type: 6,
-            flags: 0),
-        ModelProperty(
             id: const IdUid(9, 8074429391081551579),
             name: 'receiverId',
             type: 6,
@@ -1128,7 +1123,8 @@ ModelDefinition getObjectBoxModel() {
         55405895619852984,
         2670733005554439365,
         8331604158242099606,
-        4796677840836439695
+        4796677840836439695,
+        1419114602383354089
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -1884,7 +1880,9 @@ ModelDefinition getObjectBoxModel() {
         },
         objectToFB: (Message object, fb.Builder fbb) {
           final textOffset = fbb.writeString(object.text);
-          final senderNameOffset = fbb.writeString(object.senderName);
+          final senderNameOffset = object.senderName == null
+              ? null
+              : fbb.writeString(object.senderName!);
           final senderImageOffset = object.senderImage == null
               ? null
               : fbb.writeString(object.senderImage!);
@@ -1897,7 +1895,6 @@ ModelDefinition getObjectBoxModel() {
           fbb.startTable(23);
           fbb.addInt64(0, object.id);
           fbb.addInt64(5, object.senderId);
-          fbb.addInt64(6, object.lastActiveId);
           fbb.addInt64(8, object.receiverId);
           fbb.addOffset(9, textOffset);
           fbb.addOffset(10, senderNameOffset);
@@ -1929,18 +1926,16 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
               status:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 38, ''),
-              senderImage: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              senderName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
               type:
                   const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
-              lastActiveId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
               convoId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 44, 0),
               delivered: const fb.BoolReader()
-                  .vTableGet(buffer, rootOffset, 46, false))
+                  .vTableGet(buffer, rootOffset, 46, false),
+              senderName: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 24))
+            ..senderImage = const fb.StringReader()
+                .vTableGetNullable(buffer, rootOffset, 28)
             ..dbAuthor = const fb.StringReader()
                 .vTableGetNullable(buffer, rootOffset, 34)
             ..dbId =
@@ -2724,55 +2719,51 @@ class Message_ {
   static final senderId =
       QueryIntegerProperty<Message>(_entities[11].properties[1]);
 
-  /// see [Message.lastActiveId]
-  static final lastActiveId =
-      QueryIntegerProperty<Message>(_entities[11].properties[2]);
-
   /// see [Message.receiverId]
   static final receiverId =
-      QueryIntegerProperty<Message>(_entities[11].properties[3]);
+      QueryIntegerProperty<Message>(_entities[11].properties[2]);
 
   /// see [Message.text]
-  static final text = QueryStringProperty<Message>(_entities[11].properties[4]);
+  static final text = QueryStringProperty<Message>(_entities[11].properties[3]);
 
   /// see [Message.senderName]
   static final senderName =
-      QueryStringProperty<Message>(_entities[11].properties[5]);
+      QueryStringProperty<Message>(_entities[11].properties[4]);
 
   /// see [Message.senderImage]
   static final senderImage =
-      QueryStringProperty<Message>(_entities[11].properties[6]);
+      QueryStringProperty<Message>(_entities[11].properties[5]);
 
   /// see [Message.type]
-  static final type = QueryStringProperty<Message>(_entities[11].properties[7]);
+  static final type = QueryStringProperty<Message>(_entities[11].properties[6]);
 
   /// see [Message.dbAuthor]
   static final dbAuthor =
-      QueryStringProperty<Message>(_entities[11].properties[8]);
+      QueryStringProperty<Message>(_entities[11].properties[7]);
 
   /// see [Message.createdAt]
   static final createdAt =
-      QueryIntegerProperty<Message>(_entities[11].properties[9]);
+      QueryIntegerProperty<Message>(_entities[11].properties[8]);
 
   /// see [Message.status]
   static final status =
-      QueryStringProperty<Message>(_entities[11].properties[10]);
+      QueryStringProperty<Message>(_entities[11].properties[9]);
 
   /// see [Message.dbId]
   static final dbId =
-      QueryStringProperty<Message>(_entities[11].properties[11]);
+      QueryStringProperty<Message>(_entities[11].properties[10]);
 
   /// see [Message.conversation]
   static final conversation =
-      QueryRelationToOne<Message, Conversation>(_entities[11].properties[12]);
+      QueryRelationToOne<Message, Conversation>(_entities[11].properties[11]);
 
   /// see [Message.convoId]
   static final convoId =
-      QueryIntegerProperty<Message>(_entities[11].properties[13]);
+      QueryIntegerProperty<Message>(_entities[11].properties[12]);
 
   /// see [Message.delivered]
   static final delivered =
-      QueryBooleanProperty<Message>(_entities[11].properties[14]);
+      QueryBooleanProperty<Message>(_entities[11].properties[13]);
 }
 
 /// [Setting] entity fields to define ObjectBox queries.

@@ -127,4 +127,5 @@ abstract class Api<T> {
   Conversation createConversation({required Conversation conversation});
 
   Conversation? getConversationByContactId({required int contactId});
+  void emptyQueue();
 }

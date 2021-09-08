@@ -137,11 +137,9 @@ class MessageViewModel extends BusinessHomeViewModel {
     Map<String, dynamic> author = types.User(id: senderId.toString()).toJson();
     Message kMessage = Message(
       status: 'online',
-      senderImage: business.imageUrl,
       type: 'text',
       author: author,
       createdAt: DateTime.now().microsecondsSinceEpoch,
-      lastActiveId: business.id,
       text: message,
       receiverId: receiverId,
       senderId: senderId,

@@ -16,7 +16,6 @@ import 'package:flipper_services/proxy.dart';
 import 'add_product_buttons.dart';
 import 'bottom_menu_bar.dart';
 import 'custom_rect_tween.dart';
-import 'desktop_view.dart';
 import 'flipper_drawer.dart';
 import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
@@ -129,6 +128,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ProxyService.cron.schedule();
         ProxyService.cron.loadNewContacts();
         ProxyService.cron.connectBlueToothPrinter();
+        ProxyService.cron.deleteReceivedMessageFromServer();
       },
       builder: (context, model, child) {
         // if (isWindows || isMacOs) {

@@ -845,4 +845,9 @@ class LiteApi<T> implements Api {
     // TODO: implement getConversationByContactId
     throw UnimplementedError();
   }
+
+  @override
+  void emptyQueue() {
+    // TODO: implement emptyQueue
+  }
 }
