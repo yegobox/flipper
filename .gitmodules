@@ -14,6 +14,3 @@
 [submodule "open-sources/animated_toggle_switch"]
 	path = open-sources/animated_toggle_switch
 	url = https://github.com/yegobox/animated_toggle_switch.git
-[submodule "open-sources/flutter_chat_types"]
-	path = open-sources/flutter_chat_types
-	url = https://github.com/flyerhq/flutter_chat_types.git
