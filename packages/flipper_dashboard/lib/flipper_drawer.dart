@@ -240,8 +240,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             ],
                           ),
                         ),
-                        ProxyService.remoteConfig.isChatAvailable() ||
-                                kDebugMode
+                        ProxyService.remoteConfig.isChatAvailable()
                             ? _footer(
                                 drawerViewmodel: model,
                                 context: context,
