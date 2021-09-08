@@ -27,7 +27,7 @@ class RemoteConfigService implements Remote {
   void fetch() async {
     await remoteConfig.setConfigSettings(RemoteConfigSettings(
       fetchTimeout: Duration(seconds: 10),
-      minimumFetchInterval: Duration(hours: 1),
+      minimumFetchInterval: Duration(minutes: 10),
     ));
     await remoteConfig.fetchAndActivate();
   }
