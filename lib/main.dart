@@ -12,6 +12,7 @@ import 'package:flipper/flipper_app.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/objectbox_api.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,8 +42,7 @@ final isMacOs = UniversalPlatform.isMacOS;
 final isAndroid = UniversalPlatform.isAndroid;
 final isWeb = UniversalPlatform.isWeb;
 Future<void> backgroundHandler(RemoteMessage message) async {
-  print(message.data.toString());
-  print(message.notification!.title);
+  ProxyService.notification.display(message);
 }
 
 // cd android && ./gradlew signingReport

@@ -64,6 +64,12 @@ class CronService {
     String? token = null;
     if (!isWindows) {
       token = await FirebaseMessaging.instance.getToken();
+      log.e(token);
+
+      Map updatedBusiness = business.toJson();
+      updatedBusiness['deviceToken'] = token.toString();
+      ProxyService.firestore
+          .saveTokenToDatabase(token: token!, business: updatedBusiness);
     }
 
     // we need to think when the devices change or app is uninstalled
@@ -71,12 +77,6 @@ class CronService {
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
     cron.schedule(Schedule.parse('*/1 * * * *'), () async {
-      if (business.deviceToken == null) {
-        Map updatedBusiness = business.toJson();
-        updatedBusiness['deviceToken'] = token.toString();
-        ProxyService.firestore
-            .saveTokenToDatabase(token: token!, business: updatedBusiness);
-      }
       if (settingService.enabledReport()) {
         List<OrderF> completed_orders =
             await ProxyService.api.getOrderByStatus(status: completeStatus);

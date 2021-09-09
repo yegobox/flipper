@@ -26,7 +26,6 @@ import 'keypad_head_view.dart';
 import 'keypad_view.dart';
 import 'package:flipper_chat/lite/pages/lite.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 final isWindows = UniversalPlatform.isWindows;
@@ -54,35 +53,27 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _setupAnimation();
     _sideOpenController = ValueNotifier<bool>(false);
     ProxyService.notification.initialize();
-    if (!isWindows) {
-      ///gives you the message on which user taps
-      ///and it opened the app from terminated state
+    ProxyService.notification.listen();
+    ProxyService.remoteConfig.setDefault();
+    ProxyService.remoteConfig.config();
+    ProxyService.remoteConfig.fetch();
+    //connect to anyy available printer
+    // ProxyService.printer.blueTooths();
+    ProxyService.analytics.recordUser();
+    ProxyService.forceDateEntry.caller();
+    // init the crashlytics
+    // ProxyService.crash.initializeFlutterFire();
+    // implement review system.
+    ProxyService.review.review();
+    // schedule the report
+    ProxyService.cron.schedule();
+    ProxyService.cron.loadNewContacts();
+    ProxyService.cron.connectBlueToothPrinter();
+    ProxyService.cron.deleteReceivedMessageFromServer();
 
-      FirebaseMessaging.instance.getInitialMessage().then((message) {
-        if (message != null) {
-          // final routeFromMessage = message.data["route"];
-          // Navigator.of(context).pushNamed(routeFromMessage);
-        }
-      });
-
-      ///forground work
-      FirebaseMessaging.onMessage.listen((message) {
-        if (message.notification != null) {
-          log.i(message.notification!.body);
-          log.i(message.notification!.title);
-        }
-        ProxyService.notification.display(message);
-      });
-
-      ///When the app is in background but opened and user taps
-      ///on the notification
-      FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        // TODO decide on creating notification that open page,this is for chat mainly etc...
-        // final routeFromMessage = message.data["route"];
-        // Navigator.of(context).pushNamed(routeFromMessage);
-      });
-      // FirebaseMessaging.subscribe()
-    }
+    /// to avoid receiving the message of the contact you don't have in your book
+    /// we need to load contacts when the app starts.
+    ProxyService.api.contacts().asBroadcastStream();
   }
 
   void _setupAnimation() {
@@ -111,38 +102,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       onModelReady: (model) {
         model.getOrders();
         model.registerLocation();
-        //register remote config
-        ProxyService.remoteConfig.setDefault();
-        ProxyService.remoteConfig.config();
-        ProxyService.remoteConfig.fetch();
-        //connect to anyy available printer
-        // ProxyService.printer.blueTooths();
-        ProxyService.analytics.recordUser();
-        ProxyService.forceDateEntry.caller();
-        // init the crashlytics
-        // ProxyService.crash.initializeFlutterFire();
         model.getTickets();
-        // implement review system.
-        ProxyService.review.review();
-        // schedule the report
-        ProxyService.cron.schedule();
-        ProxyService.cron.loadNewContacts();
-        ProxyService.cron.connectBlueToothPrinter();
-        ProxyService.cron.deleteReceivedMessageFromServer();
-
-        /// to avoid receiving the message of the contact you don't have in your book
-        /// we need to load contacts when the app starts.
-        ProxyService.api.contacts().asBroadcastStream();
+        //register remote config
       },
       builder: (context, model, child) {
-        // if (isWindows || isMacOs) {
-        //   return DesktopView(
-        //     model: model,
-        //     controller: controller,
-        //     userName: ProxyService.box.read(key: 'userName') ?? 'N/A',
-        //     userProfileImg: ProxyService.box.read(key: 'businessUrl'),
-        //   );
-        // } else {
         switch (ProxyService.box.read(key: 'page')) {
           case 'business':
             return BusinessWidget(model);
@@ -159,7 +122,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           default:
         }
         return BusinessWidget(model);
-        // }
       },
     );
   }
