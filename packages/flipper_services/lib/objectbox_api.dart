@@ -1241,7 +1241,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
   ///in cron so it can run in app backgroup like every hour.
   @override
   Stream<List<Business>> contacts() async* {
-    // List<Business> businesses = store.box<Business>().getAll().toList();
     final response = await client.get(Uri.parse("$apihub/v2/api/users"));
 
     for (Business business in businessFromJson(response.body)) {
@@ -1257,10 +1256,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  List<Message> conversationsFutureList({required int conversationId}) {
-    Conversation? conversation = store.box<Conversation>().get(conversationId);
-    log.i(conversation!.messages);
-    return conversation.messages;
+  Stream<List<Message>> messages({required int conversationId}) async* {
+    yield* store
+        .box<Message>()
+        .query(Message_.convoId.equals(conversationId))
+        .watch(triggerImmediately: true)
+        .map((query) => query.find());
   }
 
   @override
@@ -1309,16 +1310,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
           );
           Message? messageExist = store.box<Message>().get(message.id);
           if (messageExist == null) {
+            log.e("up");
             Message kmessage = messageBuilder(message, author);
             conversation.messages.add(kmessage);
+            conversation.lastMessage = message.text;
             store.box<Conversation>().put(conversation);
           }
           emptySentMessageQueue();
         } else {
           Message? messageExist = store.box<Message>().get(message.id);
           if (messageExist == null) {
+            log.e("down");
             Message kmessage = messageBuilder(message, author);
             conversation.messages.add(kmessage);
+            conversation.lastMessage = message.text;
             store.box<Conversation>().put(conversation);
           }
           emptySentMessageQueue();
@@ -1495,12 +1500,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     for (var item in queueItems) {
       int id = item.id;
-      final response =
-          await client.delete(Uri.parse("$apihub/v2/api/message/$id"));
-      if (response.statusCode == 200) {
-        log.i('emptied the queue');
-        store.box<QueueItem>().remove(item.id);
-      }
+      try {
+        final response =
+            await client.delete(Uri.parse("$apihub/v2/api/message/$id"));
+        if (response.statusCode == 200) {
+          log.i('emptied the queue');
+          store.box<QueueItem>().remove(item.id);
+        }
+      } catch (e) {}
     }
   }
 }

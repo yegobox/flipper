@@ -6,6 +6,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flipper_models/conversation.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_services/proxy.dart';
 
 // ignore: must_be_immutable
 class ChatPage extends StatefulWidget {
@@ -18,6 +19,13 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final log = getLogger('_ChatPageState');
+  int author = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    author = ProxyService.box.read(key: 'businessId');
+  }
 
   void _handleMessageTap(types.Message message) async {
     if (message is types.FileMessage) {
@@ -27,8 +35,8 @@ class _ChatPageState extends State<ChatPage> {
 
   void _handlePreviewDataFetched(types.TextMessage message,
       types.PreviewData previewData, MessageViewModel viewModel) {
-    final index = viewModel.conversationsList
-        .indexWhere((element) => element.id == message.id);
+    final index =
+        viewModel.messageList.indexWhere((element) => element.id == message.id);
     // final updatedMessage =
     //     viewModel.conversations[index].copyWith(previewData: previewData);
 
@@ -50,7 +58,7 @@ class _ChatPageState extends State<ChatPage> {
           body: ChatUi.Chat(
             disableImageGallery: true,
             isAttachmentUploading: false,
-            messages: model.conversationsList,
+            messages: model.messageList,
             showUserAvatars: false,
             showUserNames: true,
             onMessageTap: _handleMessageTap,
@@ -66,13 +74,15 @@ class _ChatPageState extends State<ChatPage> {
                 conversationId: widget.conversation!.id,
               );
             },
-            user: types.User(id: widget.conversation!.receiverId.toString()),
+
+            /// Represents current logged in user. Used to determine message's author.
+            user: types.User(id: author.toString()),
           ),
         );
       },
       onModelReady: (model) {
         model.loadSenderBusiness(senderId: widget.conversation!.senderId);
-        model.getConversations(conversationId: widget.conversation!.id);
+        model.getMessagesStream(conversationId: widget.conversation!.id);
       },
       viewModelBuilder: () => MessageViewModel(),
     );

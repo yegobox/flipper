@@ -107,18 +107,25 @@ class MessageViewModel extends BusinessHomeViewModel {
     notifyListeners();
   }
 
-  List<types.Message> conversationsList = [];
+  List<types.Message> messageList = [];
 
   /// the method expect to return a list of [types.Message] yet we have it frm [Message]
   /// to [types.Message] thanks to types.Message.fromJson we can easily convert it
-  void getConversations({required int conversationId}) async {
-    log.i(conversationId);
-    List<Message> messages = ProxyService.api
-        .conversationsFutureList(conversationId: conversationId);
-    for (Message message in messages) {
-      log.i(message);
-      conversationsList.add(types.Message.fromJson(message.toJson()));
-    }
+  getMessagesStream({required int conversationId}) {
+    ProxyService.api
+        .messages(conversationId: conversationId)
+        .listen((messages) {
+      for (Message message in messages) {
+        final textMessage = types.TextMessage(
+          author: types.User(id: message.senderId.toString()),
+          createdAt: message.createdAt,
+          id: message.id.toString(),
+          text: message.text,
+        );
+        messageList.add(textMessage);
+      }
+      notifyListeners();
+    });
   }
 
   /// wait for database save, then insert the message in the conversation list
@@ -158,7 +165,7 @@ class MessageViewModel extends BusinessHomeViewModel {
       id: const Uuid().v4(),
       text: message,
     );
-    conversationsList.insert(0, textMessage);
+    messageList.insert(0, textMessage);
     notifyListeners();
   }
 

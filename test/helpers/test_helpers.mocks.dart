@@ -300,11 +300,11 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               #sendMessage, [], {#receiverId: receiverId, #message: message}),
           returnValueForMissingStub: null);
   @override
-  List<_i23.Message> conversationsFutureList({int? conversationId}) =>
-      (super.noSuchMethod(
-          Invocation.method(
-              #conversationsFutureList, [], {#conversationId: conversationId}),
-          returnValue: <_i23.Message>[]) as List<_i23.Message>);
+  _i16.Stream<List<_i23.Message>> messages({int? conversationId}) => (super
+      .noSuchMethod(
+          Invocation.method(#messages, [], {#conversationId: conversationId}),
+          returnValue: Stream<List<_i23.Message>>.empty()) as _i16
+      .Stream<List<_i23.Message>>);
   @override
   _i16.Stream<List<_i9.Business>> users() =>
       (super.noSuchMethod(Invocation.method(#users, []),

@@ -777,7 +777,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  List<Message> conversationsFutureList({required int conversationId}) {
+  Stream<List<Message>> messages({required int conversationId}) {
     // TODO: implement getMessage
     throw UnimplementedError();
   }
