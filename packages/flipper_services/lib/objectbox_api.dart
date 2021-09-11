@@ -316,6 +316,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
       case 'orderItem':
         store.box<OrderItem>().remove(id);
         break;
+      case 'conversation':
+        store.box<Conversation>().remove(id);
+        break;
       case 'product':
         store.box<Product>().remove(id);
         break;

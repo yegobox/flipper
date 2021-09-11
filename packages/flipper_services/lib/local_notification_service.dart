@@ -100,6 +100,7 @@ class LocalNotificationService implements LNotification {
         }
       }
     });
+    int businessId = await ProxyService.box.read(key: 'businessId');
     String userId = ProxyService.box.read(key: 'userId');
 
     /// subscribe to general notification
@@ -107,6 +108,8 @@ class LocalNotificationService implements LNotification {
 
     /// only notification for this specific user
     await FirebaseMessaging.instance.subscribeToTopic(userId);
+
+    await FirebaseMessaging.instance.subscribeToTopic(businessId.toString());
   }
 
   @override

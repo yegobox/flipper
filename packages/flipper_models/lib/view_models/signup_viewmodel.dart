@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/category.dart';
@@ -64,10 +63,8 @@ class SignupViewModel extends FormViewModel {
   Future<void> signup({Locale? locale}) async {
     registerStart = true;
     notifyListeners();
-
     //set the startup app.
-    // TODOuncomment this when the social feature is out!
-    // ProxyService.box.write(key: pageKey, value: businessType);
+    ProxyService.box.write(key: pageKey, value: businessType);
     int okStatus = await ProxyService.api.signup(business: {
       'name': kName,
       'latitude': latitude,

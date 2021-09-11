@@ -100,7 +100,7 @@ class _LiteState extends State<Lite> {
                       listBtnTabs: [
                         BtnTab(
                           text: 'Chats',
-                          notications: 10,
+                          notications: 0,
                           status: (value == 0),
                           ontap: () => changePage(0),
                         ),

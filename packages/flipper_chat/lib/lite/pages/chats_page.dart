@@ -6,7 +6,9 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_models/avatar.dart';
 import 'package:flipper_models/conversation.dart';
+import 'package:flipper/localization.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
 // ignore: must_be_immutable
@@ -40,107 +42,122 @@ class _ChatsPageState extends State<ChatsPage> {
                 itemBuilder: (BuildContext context, int index) {
                   Conversation conversation = messages[index];
                   String senderName = messages[index].senderName;
-                  return InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        RightToLeftRoute(
-                          page: ChatPage(conversation: conversation),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 5),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 5,
-                            // TODOwill work on this to mark if message has unread message(s)
-                            color: conversation.status != 'online'
-                                ? primary
-                                : Colors.transparent,
-                            margin: const EdgeInsets.only(right: 3),
+                  return Slidable(
+                    secondaryActions: <Widget>[
+                      IconSlideAction(
+                        caption: Localization.of(context)!.delete,
+                        color: Colors.red,
+                        icon: Icons.delete,
+                        onTap: () {
+                          widget.model.deleteConversation(conversation);
+                        },
+                      ),
+                    ],
+                    actionPane: SlidableDrawerActionPane(),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          RightToLeftRoute(
+                            page: ChatPage(conversation: conversation),
                           ),
-                          Container(
-                            width: 60,
-                            alignment: Alignment.center,
-                            child: Stack(
-                              children: [
-                                ClipOval(
-                                  child: Container(
-                                    width: 45,
-                                    height: 45,
-                                    child: ScalableImageWidget.fromSISource(
-                                        si: ScalableImageSource.fromSvgHttpUrl(
-                                            Uri.parse(conversation.avatars !=
-                                                    null
-                                                ? conversation.avatars!.entries
-                                                    .map((entry) => Avatar(
-                                                        entry.key, entry.value))
-                                                    .toList()[0]
-                                                    .url
-                                                : "https://avatars.dicebear.com/api/avataaars/$senderName.svg"))),
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 2,
-                                  top: 0,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: conversation.status == 'online'
-                                          ? Helpers.greenColor
-                                          : Colors.transparent,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    width: 15,
-                                    height: 15,
-                                  ),
-                                ),
-                              ],
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 5),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 5,
+                              // TODOwill work on this to mark if message has unread message(s)
+                              color: conversation.status != 'online'
+                                  ? primary
+                                  : Colors.transparent,
+                              margin: const EdgeInsets.only(right: 3),
                             ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 7),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            Container(
+                              width: 60,
+                              alignment: Alignment.center,
+                              child: Stack(
                                 children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '${conversation.senderName}',
-                                        style: Helpers.txtDefault.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      Text(
-                                        timeago.format(DateTime.parse(
-                                            DateTime.fromMillisecondsSinceEpoch(
-                                                    conversation.createdAt,
-                                                    isUtc: true)
-                                                .toIso8601String())),
-                                        style: Helpers.txtDefault,
-                                      ),
-                                    ],
+                                  ClipOval(
+                                    child: Container(
+                                      width: 45,
+                                      height: 45,
+                                      child: ScalableImageWidget.fromSISource(
+                                          si: ScalableImageSource.fromSvgHttpUrl(
+                                              Uri.parse(conversation.avatars !=
+                                                      null
+                                                  ? conversation
+                                                      .avatars!.entries
+                                                      .map((entry) => Avatar(
+                                                          entry.key,
+                                                          entry.value))
+                                                      .toList()[0]
+                                                      .url
+                                                  : "https://avatars.dicebear.com/api/avataaars/$senderName.svg"))),
+                                    ),
                                   ),
-                                  Text(
-                                    conversation.lastMessage ?? '',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    softWrap: true,
-                                    style: Helpers.txtDefault,
+                                  Positioned(
+                                    right: 2,
+                                    top: 0,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: conversation.status == 'online'
+                                            ? Helpers.greenColor
+                                            : Colors.transparent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      width: 15,
+                                      height: 15,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                          )
-                        ],
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 7),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${conversation.senderName}',
+                                          style: Helpers.txtDefault.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        Text(
+                                          timeago.format(DateTime.parse(DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                      conversation.createdAt,
+                                                      isUtc: true)
+                                              .toIso8601String())),
+                                          style: Helpers.txtDefault,
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      conversation.lastMessage ?? '',
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      softWrap: true,
+                                      style: Helpers.txtDefault,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   );

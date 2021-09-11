@@ -170,6 +170,10 @@ class MessageViewModel extends BusinessHomeViewModel {
     notifyListeners();
   }
 
+  void deleteConversation(Conversation conversation) {
+    ProxyService.api.delete(id: conversation.id, endPoint: "conversation");
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices => [appService];
 }

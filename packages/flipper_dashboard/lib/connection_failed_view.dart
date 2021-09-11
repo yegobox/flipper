@@ -32,7 +32,7 @@ class ConnectionFailedView extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50)),
                 onPressed: () {
-                  ProxyService.nav.navigateTo(Routes.home);
+                  ProxyService.nav.navigateTo(Routes.initial);
                 },
                 child: Text(
                   "retry".toUpperCase(),
