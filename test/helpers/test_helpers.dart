@@ -161,6 +161,7 @@ MockRemote getAndRegisterRemoteConfig() {
   final service = MockRemote();
   //some mocking here
   when(service.isSubmitDeviceTokenEnabled()).thenAnswer((_) => false);
+  when(service.isChatAvailable()).thenAnswer((_) => false);
   locator.registerSingleton<Remote>(service);
   return service;
 }
@@ -182,6 +183,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
   //TODOrepace TOKEN   here
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
   when(service.read(key: 'branchId')).thenAnswer((_) => 11);
+  when(service.read(key: 'referralCode')).thenAnswer((_) => "11");
   when(service.read(key: 'businessId')).thenAnswer((_) => 10);
   when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
   when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);

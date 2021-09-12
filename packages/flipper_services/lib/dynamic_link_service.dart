@@ -46,7 +46,7 @@ class DynamicLinkService implements DynamicLink {
       if (isRefer) {
         var code = deepLink.queryParameters['code'];
         //save the code in localstorage to be used later
-        ProxyService.box.write(key: 'referralCode', value: code);
+        ProxyService.box.write(key: 'referralCode', value: code.toString());
         ProxyService.nav.navigateTo(Routes.initial);
       }
     }
