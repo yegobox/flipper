@@ -104,16 +104,17 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
       left: 0,
       child: Column(
         children: <Widget>[
-          _menuListRowButton(
-            'Flipper Social',
-            context: context,
-            icon: Ionicons.chatbox,
-            onPressed: () {
-              ProxyService.box.write(key: pageKey, value: 'social');
+          if (ProxyService.remoteConfig.isChatAvailable())
+            _menuListRowButton(
+              'Flipper Social',
+              context: context,
+              icon: Ionicons.chatbox,
+              onPressed: () {
+                ProxyService.box.write(key: pageKey, value: 'social');
 
-              ProxyService.nav.navigateTo(Routes.initial);
-            },
-          ),
+                ProxyService.nav.navigateTo(Routes.initial);
+              },
+            ),
           const Divider(height: 0),
           Row(
             children: <Widget>[
@@ -235,12 +236,10 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                             ],
                           ),
                         ),
-                        ProxyService.remoteConfig.isChatAvailable()
-                            ? _footer(
-                                drawerViewmodel: model,
-                                context: context,
-                              )
-                            : SizedBox.shrink()
+                        _footer(
+                          drawerViewmodel: model,
+                          context: context,
+                        )
                       ],
                     ),
                   )
