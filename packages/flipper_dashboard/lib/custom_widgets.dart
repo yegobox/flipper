@@ -50,44 +50,57 @@ Widget userImage(String path, {double height = 100}) {
   );
 }
 
-Widget customIcon(BuildContext context,
-    {int? icon,
-    bool isEnable = false,
-    double size = 18,
-    bool istwitterIcon = true,
-    bool isFontAwesomeRegular = false,
-    bool isFontAwesomeSolid = false,
-    Color? iconColor,
-    double paddingIcon = 0,
-    String text = ''}) {
+Widget customIcon(
+  BuildContext context, {
+  int? icon,
+  bool isEnable = false,
+  double size = 18,
+  bool istwitterIcon = true,
+  bool isFontAwesomeRegular = false,
+  bool isFontAwesomeSolid = false,
+  Color? iconColor,
+  double paddingIcon = 0,
+  String text = '',
+  Function? onPressed,
+}) {
   iconColor = iconColor ?? Theme.of(context).textTheme.caption!.color;
-  return Padding(
-    padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
-    child: Column(
-      children: [
-        Container(
-          height: 10,
-          child: Icon(
-            IconData(icon!,
+
+  return GestureDetector(
+    onTap: () {
+      if (onPressed != null) {
+        onPressed();
+      }
+    },
+    child: Padding(
+      padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
+      child: Column(
+        children: [
+          Container(
+            height: 10,
+            child: Icon(
+              IconData(
+                icon!,
                 fontFamily: istwitterIcon
                     ? 'TwitterIcon'
                     : isFontAwesomeRegular
                         ? 'AwesomeRegular'
                         : isFontAwesomeSolid
                             ? 'AwesomeSolid'
-                            : 'Fontello'),
-            size: size,
-            color: isEnable ? Theme.of(context).primaryColor : iconColor,
+                            : 'Fontello',
+              ),
+              size: size,
+              color: isEnable ? Theme.of(context).primaryColor : iconColor,
+            ),
           ),
-        ),
-        Container(
-          padding: EdgeInsetsDirectional.only(top: 10),
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.grey, fontSize: 12),
+          Container(
+            padding: EdgeInsetsDirectional.only(top: 10),
+            child: Text(
+              text,
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }

@@ -67,6 +67,7 @@ class SignupViewModel extends FormViewModel {
     if (ProxyService.remoteConfig.isChatAvailable()) {
       ProxyService.box.write(key: pageKey, value: businessType);
     }
+    String? referralCode = ProxyService.box.read(key: 'referralCode');
     int okStatus = await ProxyService.api.signup(business: {
       'name': kName,
       'latitude': latitude,
@@ -76,6 +77,7 @@ class SignupViewModel extends FormViewModel {
       'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.read(key: 'userId'),
       'type': businessType,
+      'referralCode': referralCode == null ? 'Organic' : referralCode,
       // ignore: todo
       //TODO: right now I am not sure locale!.countryCode can be reliable as sometime it need to test it on real-device
       'country': 'RW'

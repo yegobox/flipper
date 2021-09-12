@@ -3,6 +3,8 @@ library flipper_services;
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper_services/proxy.dart';
 import 'abstractions/dynamic_link.dart';
+import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
   @override
@@ -18,25 +20,35 @@ class UnSupportedDynamicLink implements DynamicLink {
 }
 
 class DynamicLinkService implements DynamicLink {
+  final log = getLogger('DynamicLinkService');
   Future handleDynamicLink() async {
-    // if the is opened with the link
+    // if the link is opened with the link
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
-    _handleDnamicLink(data!);
+    if (data != null) {
+      _handleDnamicLink(data);
+    }
     //app is opened from foreground
-    FirebaseDynamicLinks.instance.onLink(onSuccess: (dynamicLinkData) async {
-      _handleDnamicLink(dynamicLinkData!);
-    }, onError: (OnLinkErrorException exception) async {
-      print(
-          'error opening deepLinkhttps://flipper.page.link/jFcwPBWoU1r5yivT7');
-    });
+    FirebaseDynamicLinks.instance.onLink(
+        onSuccess: (dynamicLinkData) async {
+          _handleDnamicLink(dynamicLinkData!);
+        },
+        onError: (OnLinkErrorException exception) async {});
   }
 
   void _handleDnamicLink(PendingDynamicLinkData data) {
     final Uri? deepLink = data.link;
+
     if (deepLink != null) {
-      print('_deepLink: $deepLink');
+      log.i('_deepLink: $deepLink');
+      var isRefer = deepLink.pathSegments.contains('refer');
+      if (isRefer) {
+        var code = deepLink.queryParameters['code'];
+        //save the code in localstorage to be used later
+        ProxyService.box.write(key: 'referralCode', value: code);
+        ProxyService.nav.navigateTo(Routes.initial);
+      }
     }
   }
 
@@ -45,7 +57,7 @@ class DynamicLinkService implements DynamicLink {
     final userId = ProxyService.box.read(key: 'userId');
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://flipper.page.link',
-      link: Uri.parse('https://flipper.page.link/open/?userId=' + userId!),
+      link: Uri.parse("https://flipper.yegobox.com/refer?code=$userId"),
       androidParameters: AndroidParameters(
         packageName: 'rw.flipper',
         minimumVersion: 1,
@@ -56,12 +68,14 @@ class DynamicLinkService implements DynamicLink {
         source: 'app',
       ),
       socialMetaTagParameters: SocialMetaTagParameters(
-        title: 'flipper',
-        description: 'flipper open',
-      ),
+          title: 'flipper',
+          description: 'flipper referral system',
+          imageUrl:
+              Uri.parse('https://flipper.yegobox.com/referral-system.png')),
     );
     try {
       final shortLink = await parameters.buildShortLink();
+      log.i(shortLink.shortUrl.toString());
       return shortLink.shortUrl.toString(); //as ShortDynamicLink
     } catch (PlatformException) {
       return "https://play.google.com/store/apps/details?id=rw.flipper";

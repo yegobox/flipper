@@ -124,25 +124,20 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
               FutureBuilder<String>(
                 future: _link.createDynamicLink(),
                 builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final String uri = snapshot.data as String;
-                    return GestureDetector(
-                      onTap: () {
+                  final String? uri =
+                      snapshot.hasData ? snapshot.data as String : null;
+                  return customIcon(
+                    context,
+                    icon: 0xf066,
+                    istwitterIcon: true,
+                    size: 25,
+                    iconColor: Theme.of(context).colorScheme.secondary,
+                    onPressed: () {
+                      if (uri != null) {
                         ProxyService.share.share(uri.toString());
-                      },
-                      child: customIcon(context,
-                          icon: 0xf066,
-                          istwitterIcon: true,
-                          size: 25,
-                          iconColor: Theme.of(context).colorScheme.secondary),
-                    );
-                  } else {
-                    return customIcon(context,
-                        icon: 0xf066,
-                        istwitterIcon: true,
-                        size: 25,
-                        iconColor: Theme.of(context).colorScheme.secondary);
-                  }
+                      }
+                    },
+                  );
                 },
               ),
               const Spacer(),
