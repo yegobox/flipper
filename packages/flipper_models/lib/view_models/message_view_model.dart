@@ -122,6 +122,7 @@ class MessageViewModel extends BusinessHomeViewModel {
           id: message.id.toString(),
           text: message.text,
         );
+        log.i(textMessage.toJson());
         messageList.add(textMessage);
       }
       notifyListeners();
@@ -141,7 +142,10 @@ class MessageViewModel extends BusinessHomeViewModel {
     int senderId = ProxyService.box.read(key: 'businessId');
     Business business = ProxyService.api.getBusinessById(id: senderId);
 
-    Map<String, dynamic> author = types.User(id: senderId.toString()).toJson();
+    Map<String, dynamic> author = types.User(
+      id: senderId.toString(),
+      firstName: business.name,
+    ).toJson();
     Message kMessage = Message(
       status: 'online',
       type: 'text',

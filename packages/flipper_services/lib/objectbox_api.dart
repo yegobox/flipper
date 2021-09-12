@@ -1294,8 +1294,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
         QueueItem queueItem = QueueItem(
           id: message.id,
         );
-        Map<String, dynamic> author =
-            types.User(id: message.senderId.toString()).toJson();
+        Map<String, dynamic> author = types.User(
+                id: message.senderId.toString(), firstName: message.senderImage)
+            .toJson();
         //save queue item in store
         store.box<QueueItem>().put(queueItem);
         if (conversation == null) {

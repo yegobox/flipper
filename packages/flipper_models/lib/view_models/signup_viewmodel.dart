@@ -64,7 +64,9 @@ class SignupViewModel extends FormViewModel {
     registerStart = true;
     notifyListeners();
     //set the startup app.
-    ProxyService.box.write(key: pageKey, value: businessType);
+    if (ProxyService.remoteConfig.isChatAvailable()) {
+      ProxyService.box.write(key: pageKey, value: businessType);
+    }
     int okStatus = await ProxyService.api.signup(business: {
       'name': kName,
       'latitude': latitude,
