@@ -77,7 +77,7 @@ class SignupViewModel extends FormViewModel {
       'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.read(key: 'userId'),
       'type': businessType,
-      'referralCode': referralCode == null ? 'Organic' : referralCode,
+      'referredBy': referralCode == null ? 'Organic' : referralCode,
       // ignore: todo
       //TODO: right now I am not sure locale!.countryCode can be reliable as sometime it need to test it on real-device
       'country': 'RW'
