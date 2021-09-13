@@ -145,3 +145,5 @@ class AppSetup {
 // TODO:when want to calculate distance between points
 // https://flutteragency.com/total-distance-from-latlng-list-in-flutter/
 // git add . && git stash && git pull origin main && gradle build && docker-compose up --build -d
+
+// TODO: use repeat ionicons in chat's fload button.

@@ -45,6 +45,7 @@ class _FlipperAppState extends State<FlipperApp> {
               child: ScreenUtilInit(
                 designSize: const Size(360, 640),
                 builder: () => MaterialApp(
+                  restorationScopeId: 'flipper',
                   // themeMode: ThemeMode.system,
                   theme: ThemeData(
                     // This changes font for the entire app using the Google Fonts package
@@ -101,6 +102,7 @@ class _FlipperAppState extends State<FlipperApp> {
             child: ScreenUtilInit(
               designSize: const Size(360, 640),
               builder: () => MaterialApp(
+                restorationScopeId: 'flipper',
                 // themeMode: ThemeMode.system,
                 theme: ThemeData(
                   // This changes font for the entire app using the Google Fonts package

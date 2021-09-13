@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -507,42 +508,54 @@ class BuildProductsView extends StatelessWidget {
   final ProductViewModel model;
   @override
   Widget build(BuildContext context) {
-    return model.productService.products.length == 0
-        ? SizedBox.shrink()
-        : ListView(
-            shrinkWrap: true,
-            children: model.productService.products.map(
-              (product) {
-                //I need to add the the discount in the products list
-                //then on rendering the list here, I need to first check if the item is a product or a discount
-                //if first is a discount then some few things need to be done
-                //if is a product proceed with the normal rendering
-                return ProductRow(
-                  color: product.color,
-                  stocks: model.productService
-                      .loadStockByProductId(productId: product.id),
-                  model: model,
-                  hasImage: product.hasPicture,
-                  product: product,
-                  name: product.name,
-                  imageUrl: product.imageUrl,
-                  edit: (productId) {
-                    ProxyService.nav.navigateTo(
-                      Routes.product,
-                      arguments: AddProductViewArguments(
-                        productId: productId,
-                      ),
-                    );
-                  },
-                  addToMenu: (productId) {
-                    model.addToMenu(productId: productId);
-                  },
-                  delete: (productId) {
-                    model.deleteProduct(productId: productId);
-                  },
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        /// show the discounts..
+        if (ProxyService.remoteConfig.isDiscountAvailable())
+          ...model.productService.discounts.map((discount) {
+            return DiscountRow(
+              discount: discount,
+              name: discount.name,
+              model: model,
+              hasImage: false,
+              delete: (id) {},
+              edit: () {},
+            );
+          }).toList(),
+
+        /// show the products
+        ...model.productService.products.map(
+          (product) {
+            return ProductRow(
+              color: product.color,
+              stocks: model.productService
+                  .loadStockByProductId(productId: product.id),
+              model: model,
+              hasImage: product.hasPicture,
+              product: product,
+              name: product.name,
+              imageUrl: product.imageUrl,
+              edit: (productId) {
+                ProxyService.nav.navigateTo(
+                  Routes.product,
+                  arguments: AddProductViewArguments(
+                    productId: productId,
+                  ),
                 );
               },
-            ).toList(),
-          );
+              addToMenu: (productId) {
+                model.addToMenu(productId: productId);
+              },
+              delete: (productId) {
+                model.deleteProduct(productId: productId);
+              },
+            );
+          },
+        ).toList()
+
+        /// end of widgets
+      ],
+    );
   }
 }

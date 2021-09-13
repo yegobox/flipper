@@ -62,6 +62,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
   // late
   static getDir({required String dbName}) async {
     Directory dir = await getApplicationDocumentsDirectory();
+    // final log = getLogger('ObjectBoxAPi');
+    // log.i('Path' + dir.path + '/$dbName');
     store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
   }
 
@@ -141,17 +143,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
   /// this load the user business using the userId that is sent in header
   /// the userId is the userId of the user that is logged in
   Future<List<Business>> loadingBusinesses(String endPoint) async {
-    try {
-      final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
-
-      for (Business business in businessFromJson(response.body)) {
-        final box = store.box<Business>();
-        box.put(business, mode: PutMode.put);
-      }
-      return businessFromJson(response.body);
-    } catch (e) {
-      return throw e;
+    final response = await client.get(Uri.parse("$apihub/v2/api/$endPoint"));
+    log.i(response.statusCode);
+    if (response.statusCode == 403) {
+      return throw response.statusCode;
     }
+    for (Business business in businessFromJson(response.body)) {
+      final box = store.box<Business>();
+      box.put(business, mode: PutMode.put);
+    }
+    return businessFromJson(response.body);
   }
 
   @override
@@ -1510,5 +1511,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
         }
       } catch (e) {}
     }
+  }
+
+  @override
+  Future<List<Discount>> getDiscounts({required int branchId}) async {
+    return store
+        .box<Discount>()
+        .query(Discount_.branchId.equals(branchId))
+        .build()
+        .find()
+        .toList();
   }
 }

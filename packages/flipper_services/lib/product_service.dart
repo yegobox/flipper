@@ -1,5 +1,6 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -19,6 +20,9 @@ class ProductService with ReactiveServiceMixin {
 
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
+
+  final _discounts = ReactiveValue<List<Discount>>([]);
+  List<Discount> get discounts => _discounts.value;
 
   final _products = ReactiveValue<List<Product>>([]);
   List<Product> get products => _products.value
@@ -48,7 +52,17 @@ class ProductService with ReactiveServiceMixin {
   }
 
   Future<List<Product>> loadProducts({required int branchId}) async {
-    _products.value = await ProxyService.api.products(branchId: branchId);
+    //load discounts  in a list merge them with products make discount be at the top.
+    final List<Discount> _discountss =
+        await ProxyService.api.getDiscounts(branchId: branchId);
+    final List<Product> _productss =
+        await ProxyService.api.products(branchId: branchId);
+    _discounts.value = _discountss;
+    //merge _discounts with _products
+    // final List _merged = [];
+    // _merged.addAll(_discounts);
+    // _merged.addAll(_productss);
+    _products.value = _productss;
     return products;
   }
 

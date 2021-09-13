@@ -31,7 +31,18 @@ class StartUpViewModel extends BaseViewModel {
         internetAvailable = await InternetConnectionChecker().hasConnection;
       }
       if (internetAvailable) {
-        businesses = await ProxyService.api.businesses(userId: userId);
+        try {
+          businesses = await ProxyService.api.businesses(userId: userId);
+        } catch (e) {
+          log.i(e);
+          if (e == 403) {
+            // token expired.
+            await ProxyService.api.logOut();
+            ProxyService.nav.navigateTo(Routes.login);
+          }
+
+          return;
+        }
       } else {
         ProxyService.nav.navigateTo(Routes.connectionState);
         return;

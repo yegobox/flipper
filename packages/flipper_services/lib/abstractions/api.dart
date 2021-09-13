@@ -1,6 +1,7 @@
 import 'package:flipper_models/business.dart';
 import 'package:flipper_models/login.dart';
 import 'package:flipper_models/product.dart';
+import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/spenn.dart';
@@ -121,6 +122,8 @@ abstract class Api<T> {
   //save discount
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
+
+  Future<List<Discount>> getDiscounts({required int branchId});
 
   OrderF addOrderItem({required OrderF order, required Map data});
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/customer.dart';
+import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/setting.dart';
@@ -849,5 +850,11 @@ class LiteApi<T> implements Api {
   @override
   void emptySentMessageQueue() {
     // TODO: implement emptyQueue
+  }
+
+  @override
+  Future<List<Discount>> getDiscounts({required int branchId}) {
+    // TODO: implement getDiscounts
+    throw UnimplementedError();
   }
 }

@@ -5,6 +5,7 @@ import 'package:flipper_models/business.dart';
 import 'package:flipper_models/color.dart';
 import 'package:flipper_models/customer.dart';
 import 'package:flipper_models/conversation.dart';
+import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/message.dart';
 import 'package:flipper_models/order_item.dart';
 import 'package:flipper_models/login.dart';
@@ -581,5 +582,10 @@ class HttpApi<T> implements Api {
   @override
   void emptySentMessageQueue() {
     // TODO: implement emptyQueue
+  }
+
+  @override
+  Future<List<Discount>> getDiscounts({required int branchId}) {
+    return Future.value([]);
   }
 }
