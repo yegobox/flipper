@@ -77,29 +77,7 @@ void main() async {
   // done init in mobile.//done separation.
   setupLocator();
 
-  /// useful when dealing with debuging on windows and we need to start the app from the signup page.
-  // ProxyService.box.remove(key: 'userId');
   await ObjectBoxApi.getDir(dbName: 'db_1');
-  // AwesomeNotifications().initialize(
-  //     // set the icon to null if you want to use the default app icon
-  //     // 'resource://drawable/res_app_icon',
-  //     null,
-  //     [
-  //       NotificationChannel(
-  //         channelKey: 'flipper_channel',
-  //         channelName: 'Flipper notifications',
-  //         channelDescription: 'Notification channel for basi notification',
-  //         defaultColor: Color(0xFF9D50DD),
-  //         ledColor: Colors.white,
-  //       )
-  //     ]);
-  // AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-  //   if (!isAllowed) {
-  //     // Insert here your friendly dialog box before call the request method
-  //     // This is very important to not harm the user experience
-  //     AwesomeNotifications().requestPermissionToSendNotifications();
-  //   }
-  // });
 
   runZonedGuarded<Future<void>>(() async {
     SystemChrome.setSystemUIOverlayStyle(
@@ -108,6 +86,10 @@ void main() async {
         systemNavigationBarColor: AppColors.flipperMainColor,
         statusBarIconBrightness: Brightness.light,
       ),
+    );
+    //deal with full screen mode flutter 2.5
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.leanBack,
     );
     runApp(FlipperApp());
   }, (error, stack) {

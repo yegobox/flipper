@@ -122,24 +122,24 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 width: 10,
                 height: 45,
               ),
-              FutureBuilder<String>(
-                future: _link.createDynamicLink(),
-                builder: (context, snapshot) {
-                  final String? uri =
-                      snapshot.hasData ? snapshot.data as String : null;
-                  return customIcon(
-                    context,
-                    icon: 0xf066,
-                    istwitterIcon: true,
-                    size: 25,
-                    iconColor: Theme.of(context).colorScheme.secondary,
-                    onPressed: () {
-                      if (uri != null) {
-                        ProxyService.share.share(uri.toString());
-                      }
-                    },
-                  );
+              GestureDetector(
+                onTap: () async {
+                  String uri = await _link.createDynamicLink();
+                  ProxyService.share.share(uri.toString());
                 },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: CircleAvatar(
+                    child: Container(
+                      height: 10,
+                      child: Icon(
+                        IconData(0xf066, fontFamily: 'TwitterIcon'),
+                        size: 25,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                ),
               ),
               const Spacer(),
               GestureDetector(
