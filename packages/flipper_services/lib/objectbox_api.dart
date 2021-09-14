@@ -517,12 +517,25 @@ class ObjectBoxApi extends MobileUpload implements Api {
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
-    // final orderItemId = DateTime.now().millisecondsSinceEpoch;
     final ref = Uuid().v1();
     final orderNUmber = Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     int branchId = ProxyService.box.read(key: 'branchId');
     OrderF? existOrder = await pendingOrderExist(branchId: branchId);
+    String name = '';
+    if (variation.name == 'Regular') {
+      if (variation.productName != 'Custom Amount') {
+        name = variation.productName + '(Regular)';
+      } else {
+        name = variation.productName;
+      }
+    } else {
+      if (variation.productName != 'Custom Amount') {
+        name = variation.productName + '(${variation.name})';
+      } else {
+        name = variation.productName;
+      }
+    }
     if (existOrder == null) {
       final order = new OrderF(
         reference: ref,
@@ -542,12 +555,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         createdAt: DateTime.now().toIso8601String(),
       );
       log.i(quantity);
-      String name = '';
-      if (variation.name == 'Regular') {
-        name = variation.productName + '(Regular)';
-      } else {
-        name = variation.productName + '(${variation.name})';
-      }
+
       OrderItem orderItems = OrderItem(
         count: quantity,
         // name: useProductName ? variation.productName : variation.name,
@@ -563,7 +571,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     } else {
       OrderItem item = OrderItem(
         count: quantity,
-        name: useProductName ? variation.productName : variation.name,
+        name: name,
         fvariantId: variation.id,
         price: price,
         forderId: existOrder.id,
