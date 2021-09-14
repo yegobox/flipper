@@ -17,6 +17,7 @@ class DiscountRow extends StatelessWidget {
       this.addToMenu,
       required this.discount,
       required this.edit,
+      required this.applyDiscount,
       required this.model,
       required this.delete})
       : super(key: key);
@@ -25,6 +26,7 @@ class DiscountRow extends StatelessWidget {
   final String? imageUrl;
   final Discount discount;
   final Function delete;
+  final Function applyDiscount;
   final Function? addToMenu;
   final Function edit;
   final ProductViewModel model;
@@ -34,8 +36,7 @@ class DiscountRow extends StatelessWidget {
     return Slidable(
       child: GestureDetector(
         onTap: () {
-          /// add the discount to total amount of entire cart
-          /// show the notification that we have added discount to cart
+          applyDiscount(discount);
         },
         onLongPress: () {},
         child: Column(children: <Widget>[

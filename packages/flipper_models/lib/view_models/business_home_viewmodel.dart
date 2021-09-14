@@ -79,6 +79,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         if (orders.isNotEmpty) {
           keypad.setCount(count: orders[0].orderItems.length);
         }
+        getTotal();
         ProxyService.keypad.reset();
       }
     } else {
@@ -93,7 +94,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<void> getOrders() async {
     int branchId = ProxyService.box.read(key: 'branchId');
     List<OrderF> od = await ProxyService.keypad.getOrders(branchId: branchId);
-
+    keypad.setOrders(od);
     if (od.isNotEmpty && od[0].orderItems.isNotEmpty) {
       keypad.setCount(count: orders[0].orderItems.length);
     } else {
@@ -126,28 +127,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void reset() {
     ProxyService.keypad.reset();
-  }
-
-  /// if deleting OrderItem leaves order with no OrderItem
-  /// this function also delete the order
-  Future<bool> deleteOrderItem({required int id}) async {
-    OrderF order = orders[0];
-    if (order.orderItems.isNotEmpty) {
-      OrderItem? orderItem = await ProxyService.api.getOrderItem(id: id);
-      ProxyService.api.delete(id: orderItem!.id, endPoint: 'orderItem');
-
-      ProxyService.api.update(data: order.toJson(), endPoint: 'order');
-    }
-    getOrders();
-    log.i(orders[0].orderItems[0].name);
-    // since when crating an order we need to init orderItem with one default
-    //regular the orderItems will never be empty so we check if length is 1 instead
-    if (orders[0].orderItems.length == 1) {
-      //delete the order too!
-      ProxyService.api.delete(id: orders[0].id, endPoint: 'order');
-    }
-    await getOrders();
-    return false;
   }
 
   /// We take _variantsStocks[0] because we know
@@ -379,6 +358,55 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await keypad.getTickets();
     await keypad.getOrders(branchId: ProxyService.box.read(key: 'branchId'));
     await getOrders();
+  }
+
+  /// the method return total amount of the order to be used in the payment
+  /// @return num if there is discount applied to orderItem then it will return discount instead of price to be
+  /// considered in the total amount payable
+  // num? totalPayable = 0.0;
+  // num? totalDiscount = 0.0;
+
+  double get totalPayable => keypad.totalPayable;
+  double get totalDiscount => keypad.totalDiscount;
+  num? getTotal() {
+    keypad.setTotalPayable(amount: 0.0);
+    keypad.setTotalDiscount(amount: 0.0);
+
+    num? totalPayable =
+        keypad.orders[0].orderItems.fold(0, (a, b) => a! + (b.price));
+
+    num? totalDiscount = keypad.orders[0].orderItems
+        .fold(0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
+    keypad.setTotalPayable(amount: totalPayable!.toDouble());
+    keypad.setTotalDiscount(amount: totalDiscount!.toDouble());
+
+    notifyListeners();
+    return totalPayable;
+  }
+
+  /// if deleting OrderItem leaves order with no OrderItem
+  /// this function also delete the order
+  Future<bool> deleteOrderItem({required int id}) async {
+    getOrders();
+    OrderF order = keypad.orders[0];
+
+    if (order.orderItems.isNotEmpty) {
+      // OrderItem? orderItem = await ProxyService.api.getOrderItem(id: id);
+      await ProxyService.api.delete(id: id, endPoint: 'orderItem');
+
+      // ProxyService.api.update(data: order.toJson(), endPoint: 'order');
+      await getOrders();
+      getTotal();
+      if (keypad.orders[0].orderItems.isEmpty) {
+        keypad.setTotalPayable(amount: 0.0);
+        keypad.setTotalDiscount(amount: 0.0);
+
+        ProxyService.nav.back();
+      }
+      return true;
+    }
+
+    return false;
   }
 
   @override

@@ -76,6 +76,22 @@ class KeyPadService with ReactiveServiceMixin {
 
   List<OrderF> get orders => _orders.value;
 
+  final _totalPayable = ReactiveValue<double>(0.0);
+  double get totalPayable => _totalPayable.value;
+  void setTotalPayable({required double amount}) {
+    _totalPayable.value = amount;
+  }
+
+  final _totalDiscount = ReactiveValue<double>(0.0);
+  double get totalDiscount => _totalDiscount.value;
+  void setTotalDiscount({required double amount}) {
+    _totalDiscount.value = amount;
+  }
+
+  void setOrders(List<OrderF> orders) {
+    _orders.value = orders;
+  }
+
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
@@ -156,7 +172,9 @@ class KeyPadService with ReactiveServiceMixin {
       _quantity,
       _amountTotal,
       _check,
-      _cashReceived
+      _cashReceived,
+      _totalPayable,
+      _totalDiscount
     ]);
   }
 }

@@ -345,7 +345,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(5, 5013621342623573944),
       name: 'OrderItem',
-      lastPropertyId: const IdUid(7, 531175659311498591),
+      lastPropertyId: const IdUid(9, 3487905289932526524),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -384,7 +384,17 @@ final _entities = <ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const IdUid(1, 4465723091749037531),
-            relationTarget: 'OrderF')
+            relationTarget: 'OrderF'),
+        ModelProperty(
+            id: const IdUid(8, 7320600146768266036),
+            name: 'discount',
+            type: 8,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 3487905289932526524),
+            name: 'type',
+            type: 9,
+            flags: 0)
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[]),
@@ -1453,7 +1463,9 @@ ModelDefinition getObjectBoxModel() {
         },
         objectToFB: (OrderItem object, fb.Builder fbb) {
           final nameOffset = fbb.writeString(object.name);
-          fbb.startTable(8);
+          final typeOffset =
+              object.type == null ? null : fbb.writeString(object.type!);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addInt64(2, object.forderId);
@@ -1461,6 +1473,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addFloat64(4, object.count);
           fbb.addFloat64(5, object.price);
           fbb.addInt64(6, object.order.targetId);
+          fbb.addFloat64(7, object.discount);
+          fbb.addOffset(8, typeOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1479,7 +1493,11 @@ ModelDefinition getObjectBoxModel() {
               price:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 14, 0),
               forderId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0));
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+              discount: const fb.Float64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 18),
+              type: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 20));
           object.order.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0);
           object.order.attach(store);
@@ -2427,6 +2445,14 @@ class OrderItem_ {
   /// see [OrderItem.order]
   static final order =
       QueryRelationToOne<OrderItem, OrderF>(_entities[4].properties[6]);
+
+  /// see [OrderItem.discount]
+  static final discount =
+      QueryDoubleProperty<OrderItem>(_entities[4].properties[7]);
+
+  /// see [OrderItem.type]
+  static final type =
+      QueryStringProperty<OrderItem>(_entities[4].properties[8]);
 }
 
 /// [PColor] entity fields to define ObjectBox queries.

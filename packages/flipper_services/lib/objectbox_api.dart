@@ -537,24 +537,28 @@ class ObjectBoxApi extends MobileUpload implements Api {
       }
     }
     if (existOrder == null) {
-      final order = new OrderF(
-        reference: ref,
-        orderNumber: orderNUmber,
-        status: 'pending',
-        orderType: orderType,
-        active: true,
-        draft: true,
-        channels: [userId],
-        subTotal: customAmount,
-        table: AppTables.order,
-        cashReceived: customAmount,
-        updatedAt: DateTime.now().toIso8601String(),
-        customerChangeDue: 0.0, //fix this
-        paymentType: 'Cash',
-        fbranchId: branchId,
-        createdAt: DateTime.now().toIso8601String(),
+      final box = store.box<OrderF>();
+      final id = box.put(
+        OrderF(
+          reference: ref,
+          orderNumber: orderNUmber,
+          status: 'pending',
+          orderType: orderType,
+          active: true,
+          draft: true,
+          channels: [userId],
+          subTotal: customAmount,
+          table: AppTables.order,
+          cashReceived: customAmount,
+          updatedAt: DateTime.now().toIso8601String(),
+          customerChangeDue: 0.0, //fix this
+          paymentType: 'Cash',
+          fbranchId: branchId,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
       );
-      log.i(quantity);
+
+      OrderF ss = store.box<OrderF>().get(id)!;
 
       OrderItem orderItems = OrderItem(
         count: quantity,
@@ -562,12 +566,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
         name: name,
         fvariantId: variation.id,
         price: price,
-        forderId: order.id,
+        forderId: id,
       );
-      order.orderItems.add(orderItems);
-      final box = store.box<OrderF>();
-      final id = box.put(order);
-      return store.box<OrderF>().get(id)!;
+
+      ss.orderItems.add(orderItems);
+
+      box.put(ss);
+      return ss;
     } else {
       OrderItem item = OrderItem(
         count: quantity,
@@ -1034,6 +1039,27 @@ class ObjectBoxApi extends MobileUpload implements Api {
         );
         final box = store.box<Discount>();
         box.put(kDiscount, mode: PutMode.update);
+        break;
+      case 'orderItem':
+        OrderItem? orderItem = store.box<OrderItem>().get(id);
+        Map map = orderItem!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        log.i(data);
+
+        OrderItem kOrderItem = OrderItem(
+          forderId: map['forderId'],
+          fvariantId: map['fvariantId'],
+          count: map['count'],
+          price: map['price'],
+          id: map['id'],
+          name: map['name'],
+          discount: map['discount'],
+          type: map['type'],
+        );
+        final box = store.box<OrderItem>();
+        box.put(kOrderItem, mode: PutMode.update);
         break;
       default:
         return 200;

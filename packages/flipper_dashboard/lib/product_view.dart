@@ -11,6 +11,7 @@ import 'product_row.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -530,6 +531,14 @@ class BuildProductsView extends StatelessWidget {
                   arguments: AddDiscountArguments(
                     discount: discount,
                   ),
+                );
+              },
+              applyDiscount: (discount) {
+                model.applyDiscount(discount: discount);
+                showSimpleNotification(
+                  Text('Applied discount'),
+                  background: Colors.green,
+                  position: NotificationPosition.bottom,
                 );
               },
             );

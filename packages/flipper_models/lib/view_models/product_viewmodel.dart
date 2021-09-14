@@ -1,5 +1,9 @@
 library flipper_models;
 
+import 'package:flipper_models/discount.dart';
+import 'package:flipper_models/order.dart';
+import 'package:flipper_models/order_item.dart';
+import 'package:flipper_models/view_models/business_home_viewmodel.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/category.dart';
@@ -17,7 +21,7 @@ import 'package:flipper_services/product_service.dart';
 
 import 'package:flipper_services/constants.dart';
 
-class ProductViewModel extends ReactiveViewModel {
+class ProductViewModel extends BusinessHomeViewModel {
   final AppService _appService = locator<AppService>();
   final log = getLogger('ProductViewModel');
   final ProductService productService = locator<ProductService>();
@@ -390,6 +394,47 @@ class ProductViewModel extends ReactiveViewModel {
   void deleteDiscount({id}) {
     ProxyService.api.delete(id: id, endPoint: 'discount');
     loadProducts();
+  }
+
+  /// loop through order's items and update item with discount in consideration
+  /// a discount can not go beyond the item's price
+  void applyDiscount({required Discount discount}) async {
+    int branchId = ProxyService.box.read(key: 'branchId');
+    List<OrderF> orders =
+        await ProxyService.keypad.getOrders(branchId: branchId);
+    if (orders.isNotEmpty) {
+      // orders[0].orderItems.length
+      for (OrderItem item in orders[0].orderItems) {
+        // log.i(item.toJson());
+
+        // List<OrderF> ff =
+        //     await ProxyService.api.getOrderById(id: item.forderId);
+        // log.i(ff.length > 0 ? ff[0].toJson() : 'null');
+
+        /// if the item price is for example 10 and the discount is 200
+        if (item.price.toInt() < discount.amount!) {
+          /// then the discount can not go beyond the item's price
+          /// then the  item discount is the actual item price
+          item.discount = item.price;
+          //update the item in the order
+          int id = item.id;
+          ProxyService.api
+              .update(data: item.toJson(), endPoint: 'orderItem/$id');
+        } else {
+          int id = item.id;
+          item.discount = item.price - discount.amount!.toDouble();
+          ProxyService.api
+              .update(data: item.toJson(), endPoint: 'orderItem/$id');
+        }
+        getTotal();
+
+        /// then item's price will be 0 (10 - 200)  which is negative but should
+        /// transform any negative number to 0
+        /// create a new OrderItem with name to be discount, price to be 0, which is the final discount
+        /// and then add it to the order
+        /// this is to show the total discount at the bottom.
+      }
+    }
   }
 
   @override

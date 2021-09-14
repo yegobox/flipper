@@ -100,10 +100,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       key: Key('businessHomeView'),
       viewModelBuilder: () => BusinessHomeViewModel(),
-      onModelReady: (model) {
-        model.getOrders();
+      onModelReady: (model) async {
+        await model.getOrders();
         model.registerLocation();
         model.getTickets();
+        model.getTotal();
         //register remote config
       },
       builder: (context, model, child) {
@@ -153,7 +154,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     model.tickets.isEmpty ? 0 : model.tickets.length.toDouble(),
                 orders: model.orders.length,
                 duePay: model.orders.isNotEmpty
-                    ? model.orders[0].orderItems.fold(0, (a, b) => a + b.price)
+                    ? model.totalPayable!.toDouble()
                     : 0.00,
                 ticketHandler: () async {
                   log.i(model.orders.length);

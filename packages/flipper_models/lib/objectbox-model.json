@@ -316,7 +316,7 @@
     },
     {
       "id": "5:5013621342623573944",
-      "lastPropertyId": "7:531175659311498591",
+      "lastPropertyId": "9:3487905289932526524",
       "name": "OrderItem",
       "properties": [
         {
@@ -357,6 +357,16 @@
           "flags": 520,
           "indexId": "1:4465723091749037531",
           "relationTarget": "OrderF"
+        },
+        {
+          "id": "8:7320600146768266036",
+          "name": "discount",
+          "type": 8
+        },
+        {
+          "id": "9:3487905289932526524",
+          "name": "type",
+          "type": 9
         }
       ],
       "relations": []

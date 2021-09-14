@@ -36,7 +36,7 @@ class OrderSummary extends StatelessWidget {
           child: ListTile(
             contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
             trailing: Text(
-              display(item.price).toString() + ' RWF',
+              'RWF ' + display(item.price).toString(),
               style: const TextStyle(color: Colors.black),
             ),
             leading: Text(
@@ -69,6 +69,9 @@ class OrderSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
+      onModelReady: (model) {
+        model.getTotal();
+      },
       builder: (context, model, child) {
         if (model.orders.isEmpty) {
           return Scaffold(
@@ -93,17 +96,49 @@ class OrderSummary extends StatelessWidget {
             onPop: () {
               ProxyService.nav.back();
             },
-            title: 'Total: Frw' +
-                display(model.orders[0].orderItems
-                    .fold(0, (a, b) => a! + b.price)).toString(),
+            title: 'Total: Frw' + display(model.totalPayable).toString(),
             icon: Icons.close,
             multi: 3,
             bottomSpacer: 52,
           ),
           body: ListView(
-            children: buildItems(
-              model: model,
-            ),
+            children: [
+              ...buildItems(
+                model: model,
+              ),
+              if (model.totalDiscount! > 0)
+                ListTile(
+                  contentPadding:
+                      const EdgeInsets.only(left: 40.0, right: 40.0),
+                  trailing: Text(
+                    'RWF ' + display(model.totalDiscount).toString(),
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  leading: Text(
+                    'Discounts',
+                    style: const TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+                trailing: Text(
+                  'RWF ' +
+                      display(model.totalDiscount! > 0
+                              ? model.totalDiscount
+                              : model.totalPayable)
+                          .toString(),
+                  style: const TextStyle(color: Colors.black),
+                ),
+                leading: Text(
+                  'Total',
+                  style: const TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+              )
+            ],
           ),
         );
       },
