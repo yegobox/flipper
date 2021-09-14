@@ -5,9 +5,12 @@ import 'package:flipper_models/view_models/discount_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/discount.dart';
 
 class AddDiscount extends StatefulWidget {
-  AddDiscount({Key? key}) : super(key: key);
+  AddDiscount({Key? key, this.discount}) : super(key: key);
+
+  final Discount? discount;
 
   @override
   _AddDiscountState createState() => _AddDiscountState();
@@ -17,6 +20,16 @@ class _AddDiscountState extends State<AddDiscount> {
   TextEditingController nameController = TextEditingController();
   TextEditingController amountController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    // if we have a discount then start with inititializing the controllers
+    if (widget.discount != null) {
+      nameController.text = widget.discount!.name;
+      amountController.text = widget.discount!.amount.toString();
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +47,21 @@ class _AddDiscountState extends State<AddDiscount> {
                     title: 'Save',
                     onTap: () async {
                       if (_formKey.currentState!.validate()) {
-                        // If the form is valid, display a snackbar. In the real world,
-                        // you'd often call a server or save the information in a database.
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Saved discount')),
                         );
-                        await model.save(
-                          name: nameController.text,
-                          amount: double.parse(amountController.text),
-                        );
+                        if (widget.discount == null) {
+                          await model.save(
+                            name: nameController.text,
+                            amount: double.parse(amountController.text),
+                          );
+                        } else {
+                          await model.update(
+                            name: nameController.text,
+                            amount: double.parse(amountController.text),
+                            id: widget.discount!.id,
+                          );
+                        }
                         ProxyService.nav.back();
                       }
                     },

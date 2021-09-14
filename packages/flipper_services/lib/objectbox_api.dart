@@ -335,6 +335,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
       case 'business':
         store.box<Business>().remove(id);
         break;
+      case 'discount':
+        store.box<Discount>().remove(id);
+        break;
       case 'order':
         store.box<OrderF>().remove(id);
         break;
@@ -1008,7 +1011,22 @@ class ObjectBoxApi extends MobileUpload implements Api {
         final box = store.box<Customer>();
         box.put(kCustomer, mode: PutMode.update);
         break;
-      // case 'category'
+      case 'discount':
+        Discount? discount = store.box<Discount>().get(id);
+        Map map = discount!.toJson();
+        data.forEach((key, value) {
+          map[key] = value;
+        });
+        // 1.0.toInt();
+        Discount kDiscount = Discount(
+          branchId: map['branchId'],
+          amount: map['amount'].toInt(),
+          name: map['name'],
+          id: map['id'],
+        );
+        final box = store.box<Discount>();
+        box.put(kDiscount, mode: PutMode.update);
+        break;
       default:
         return 200;
     }

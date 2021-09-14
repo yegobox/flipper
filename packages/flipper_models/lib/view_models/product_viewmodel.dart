@@ -387,6 +387,11 @@ class ProductViewModel extends ReactiveViewModel {
     yield productService.product != null ? productService.product!.name : '';
   }
 
+  void deleteDiscount({id}) {
+    ProxyService.api.delete(id: id, endPoint: 'discount');
+    loadProducts();
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [_appService, productService];

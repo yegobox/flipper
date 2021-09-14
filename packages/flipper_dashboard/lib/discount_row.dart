@@ -1,9 +1,6 @@
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper/localization.dart';
-import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -61,7 +58,7 @@ class DiscountRow extends StatelessWidget {
               name,
               style: const TextStyle(color: Colors.black),
             ),
-            trailing: Text(discount.amount.toString() + ' off'),
+            trailing: Text(discount.amount.toString() + 'RWF off'),
           ),
           Container(
             height: 0.5.h,
@@ -69,32 +66,13 @@ class DiscountRow extends StatelessWidget {
           ),
         ]),
       ),
-      actions: [
-        IconSlideAction(
-          caption: Localization.of(context)!.addTomenu,
-          color: Colors.white,
-          icon: Icons.menu,
-          onTap: () {
-            // addToMenu(discount.id);
-          },
-        ),
-      ],
       secondaryActions: <Widget>[
-        if (ProxyService.remoteConfig.isMenuAvailable())
-          IconSlideAction(
-            caption: Localization.of(context)!.addTomenu,
-            color: Colors.white,
-            icon: Icons.menu,
-            onTap: () {
-              // addToMenu(discount.id);
-            },
-          ),
         IconSlideAction(
           caption: Localization.of(context)!.edit,
           color: Colors.white,
           icon: Icons.edit,
           onTap: () {
-            edit(discount.id);
+            edit(discount);
           },
         ),
         IconSlideAction(

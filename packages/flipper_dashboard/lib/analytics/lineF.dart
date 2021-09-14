@@ -88,8 +88,8 @@ class LineFState extends State<LineF> {
                             tooltipBgColor: Colors.grey,
                             getTooltipItem: (_a, _b, _c, _d) => null,
                           ),
-                          touchCallback: (response) {
-                            if (response.spot == null) {
+                          touchCallback: (FlTouchEvent event, response) {
+                            if (response == null || response.spot == null) {
                               setState(() {
                                 touchedGroupIndex = -1;
                                 showingBarGroups = List.of(rawBarGroups);
@@ -101,8 +101,7 @@ class LineFState extends State<LineF> {
                                 response.spot!.touchedBarGroupIndex;
 
                             setState(() {
-                              if (response.touchInput is PointerExitEvent ||
-                                  response.touchInput is PointerUpEvent) {
+                              if (!event.isInterestedForInteractions) {
                                 touchedGroupIndex = -1;
                                 showingBarGroups = List.of(rawBarGroups);
                               } else {
@@ -136,10 +135,11 @@ class LineFState extends State<LineF> {
                         show: true,
                         bottomTitles: SideTitles(
                           showTitles: true,
-                          getTextStyles: (value) => const TextStyle(
-                              color: Color(0xff7589a2),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
+                          getTextStyles: (context, value) => TextStyle(
+                            color: Color(0xff7589a2),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           margin: 20,
                           getTitles: (double value) {
                             switch (value.toInt()) {
@@ -164,10 +164,11 @@ class LineFState extends State<LineF> {
                         ),
                         leftTitles: SideTitles(
                           showTitles: true,
-                          getTextStyles: (value) => const TextStyle(
-                              color: Color(0xff7589a2),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
+                          getTextStyles: (context, value) => TextStyle(
+                            color: Color(0xff7589a2),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                           margin: 32,
                           reservedSize: 14,
                           getTitles: (value) {

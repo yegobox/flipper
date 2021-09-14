@@ -64,8 +64,8 @@ class _LineState extends State<Line> {
                     tooltipBgColor: Colors.grey,
                     getTooltipItem: (_a, _b, _c, _d) => null,
                   ),
-                  touchCallback: (response) {
-                    if (response.spot == null) {
+                  touchCallback: (FlTouchEvent event, response) {
+                    if (response == null || response.spot == null) {
                       setState(() {
                         touchedGroupIndex = -1;
                         showingBarGroups = List.of(rawBarGroups);
@@ -76,8 +76,7 @@ class _LineState extends State<Line> {
                     touchedGroupIndex = response.spot!.touchedBarGroupIndex;
 
                     setState(() {
-                      if (response.touchInput is PointerExitEvent ||
-                          response.touchInput is PointerUpEvent) {
+                      if (!event.isInterestedForInteractions) {
                         touchedGroupIndex = -1;
                         showingBarGroups = List.of(rawBarGroups);
                       } else {
@@ -109,7 +108,7 @@ class _LineState extends State<Line> {
                 show: true,
                 bottomTitles: SideTitles(
                   showTitles: true,
-                  getTextStyles: (value) => const TextStyle(
+                  getTextStyles: (context, value) => const TextStyle(
                     color: Color(0xff7589a2),
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -138,7 +137,7 @@ class _LineState extends State<Line> {
                 ),
                 leftTitles: SideTitles(
                   showTitles: true,
-                  getTextStyles: (value) => const TextStyle(
+                  getTextStyles: (context, value) => const TextStyle(
                       color: Color(0xff7589a2),
                       fontWeight: FontWeight.bold,
                       fontSize: 14),

@@ -31,11 +31,13 @@ import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
+import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/product.dart';
 // import 'package:flutter/foundation.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked/stacked_annotations.dart';
 
 class Routes {
   static const String initial = '/';
@@ -126,13 +128,13 @@ class StackedRouter extends RouterBase {
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
   final _pagesMap = <Type, StackedRouteFactory>{
     StartUpView: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => const StartUpView(),
         settings: data,
       );
     },
     Lite: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => const Lite(),
         settings: data,
       );
@@ -141,7 +143,7 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<ContactPageArguments>(
         orElse: () => ContactPageArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ContactPage(
           key: args.key,
           fromType: args.fromType,
@@ -150,7 +152,7 @@ class StackedRouter extends RouterBase {
       );
     },
     DashboardView: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => DashboardView(),
         settings: data,
       );
@@ -159,19 +161,19 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<SignUpFormViewArguments>(
         orElse: () => SignUpFormViewArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => SignUpFormView(key: args.key),
         settings: data,
       );
     },
     Home: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => const Home(),
         settings: data,
       );
     },
     Login: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => Login(),
         settings: data,
       );
@@ -180,7 +182,7 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<AddProductViewArguments>(
         orElse: () => AddProductViewArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => AddProductView(
           key: args.key,
           productId: args.productId,
@@ -192,14 +194,17 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<AddDiscountArguments>(
         orElse: () => AddDiscountArguments(),
       );
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => AddDiscount(key: args.key),
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
+        builder: (context) => AddDiscount(
+          key: args.key,
+          discount: args.discount,
+        ),
         settings: data,
       );
     },
     ListCategories: (data) {
       var args = data.getArgs<ListCategoriesArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ListCategories(
           key: args.key,
           categories: args.categories,
@@ -211,14 +216,14 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<ColorTileArguments>(
         orElse: () => ColorTileArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ColorTile(key: args.key),
         settings: data,
       );
     },
     ReceiveStock: (data) {
       var args = data.getArgs<ReceiveStockArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ReceiveStock(
           key: args.key,
           variantId: args.variantId,
@@ -230,14 +235,14 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<AddCategoryArguments>(
         orElse: () => AddCategoryArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => AddCategory(key: args.key),
         settings: data,
       );
     },
     AddVariation: (data) {
       var args = data.getArgs<AddVariationArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => AddVariation(
           key: args.key,
           productId: args.productId,
@@ -247,7 +252,7 @@ class StackedRouter extends RouterBase {
     },
     ListUnits: (data) {
       var args = data.getArgs<ListUnitsArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ListUnits(
           key: args.key,
           type: args.type,
@@ -259,14 +264,14 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<OrderSummaryArguments>(
         orElse: () => OrderSummaryArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => OrderSummary(key: args.key),
         settings: data,
       );
     },
     Sell: (data) {
       var args = data.getArgs<SellArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => Sell(
           key: args.key,
           product: args.product,
@@ -278,14 +283,14 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<PaymentsArguments>(
         orElse: () => PaymentsArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => Payments(key: args.key),
         settings: data,
       );
     },
     CollectCashView: (data) {
       var args = data.getArgs<CollectCashViewArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => CollectCashView(
           key: args.key,
           paymentType: args.paymentType,
@@ -295,7 +300,7 @@ class StackedRouter extends RouterBase {
     },
     AfterSale: (data) {
       var args = data.getArgs<AfterSaleArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => AfterSale(
           key: args.key,
           totalOrderAmount: args.totalOrderAmount,
@@ -304,13 +309,13 @@ class StackedRouter extends RouterBase {
       );
     },
     SettingsScreen: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => SettingsScreen(),
         settings: data,
       );
     },
     Analytics: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => Analytics(),
         settings: data,
       );
@@ -319,7 +324,7 @@ class StackedRouter extends RouterBase {
       var args = data.getArgs<ScannViewArguments>(
         orElse: () => ScannViewArguments(),
       );
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ScannView(
           key: args.key,
           intent: args.intent,
@@ -328,14 +333,14 @@ class StackedRouter extends RouterBase {
       );
     },
     ConnectionFailedView: (data) {
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ConnectionFailedView(),
         settings: data,
       );
     },
     Customers: (data) {
       var args = data.getArgs<CustomersArguments>(nullOk: false);
-      return MaterialPageRoute<dynamic>(
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => Customers(
           key: args.key,
           orderId: args.orderId,
@@ -373,7 +378,8 @@ class AddProductViewArguments {
 /// AddDiscount arguments holder class
 class AddDiscountArguments {
   final Key? key;
-  AddDiscountArguments({this.key});
+  final Discount? discount;
+  AddDiscountArguments({this.key, this.discount});
 }
 
 /// ListCategories arguments holder class

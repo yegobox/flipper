@@ -10,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'product_row.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:flipper_routing/routes.logger.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -501,6 +502,7 @@ class _onCreate extends State<ProductView> {
 }
 
 class BuildProductsView extends StatelessWidget {
+  final log = getLogger('_onCreate');
   BuildProductsView({
     Key? key,
     required this.model,
@@ -519,8 +521,17 @@ class BuildProductsView extends StatelessWidget {
               name: discount.name,
               model: model,
               hasImage: false,
-              delete: (id) {},
-              edit: () {},
+              delete: (id) {
+                model.deleteDiscount(id: id);
+              },
+              edit: (discount) {
+                ProxyService.nav.navigateTo(
+                  Routes.discount,
+                  arguments: AddDiscountArguments(
+                    discount: discount,
+                  ),
+                );
+              },
             );
           }).toList(),
 

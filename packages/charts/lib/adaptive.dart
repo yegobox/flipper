@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 
-///
 import 'package:adaptive_breakpoints/adaptive_breakpoints.dart';
 
 /// Returns a boolean value whether the window is considered medium or large size.
