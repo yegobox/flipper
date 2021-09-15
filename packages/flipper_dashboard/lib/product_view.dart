@@ -533,8 +533,8 @@ class BuildProductsView extends StatelessWidget {
                   ),
                 );
               },
-              applyDiscount: (discount) {
-                model.applyDiscount(discount: discount);
+              applyDiscount: (discount) async {
+                await model.applyDiscount(discount: discount);
                 showSimpleNotification(
                   Text('Applied discount'),
                   background: Colors.green,

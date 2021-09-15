@@ -398,26 +398,32 @@ class ProductViewModel extends BusinessHomeViewModel {
 
   /// loop through order's items and update item with discount in consideration
   /// a discount can not go beyond the item's price
-  void applyDiscount({required Discount discount}) async {
+  Future<bool> applyDiscount({required Discount discount}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    OrderF orders = await ProxyService.keypad.getOrder(branchId: branchId);
+    OrderF? order = await ProxyService.keypad.getOrder(branchId: branchId);
 
-    for (OrderItem item in orders.orderItems) {
-      /// if the item price is for example 10 and the discount is 200
-      if (item.price.toInt() < discount.amount! && item.discount == null) {
-        /// then the discount can not go beyond the item's price
-        /// then the  item discount is the actual item price
-        item.discount = item.price;
-        //update the item in the order
-        int id = item.id;
-        ProxyService.api.update(data: item.toJson(), endPoint: 'orderItem/$id');
-      } else if (item.discount == null) {
-        int id = item.id;
-        item.discount = item.price - discount.amount!.toDouble();
-        ProxyService.api.update(data: item.toJson(), endPoint: 'orderItem/$id');
+    if (order != null) {
+      for (OrderItem item in order.orderItems) {
+        /// if the item price is for example 10 and the discount is 200
+        if (item.price.toInt() < discount.amount! && item.discount == null) {
+          item.discount = item.price;
+
+          /// update the item in the order
+          int id = item.id;
+          await ProxyService.api
+              .update(data: item.toJson(), endPoint: 'orderItem/$id');
+        } else if (item.discount == null) {
+          int id = item.id;
+          item.discount = item.price - discount.amount!.toDouble();
+
+          await ProxyService.api
+              .update(data: item.toJson(), endPoint: 'orderItem/$id');
+        }
       }
-      getTotal();
+      updatePayable();
+      return true;
     }
+    return false;
   }
 
   @override

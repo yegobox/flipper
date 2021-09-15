@@ -43,7 +43,6 @@ class _CollectCashViewState extends State<CollectCashView> {
         callback: (StompFrame frame) {
           if (frame.body != null) {
             Map<String, dynamic> result = json.decode(frame.body!);
-            log.i(result);
             log.i(result['userId']);
             streamController.add(result['userId']);
           }
@@ -147,9 +146,10 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter Cash Received';
                                     }
-                                    double totalOrderAmount = model
-                                        .kOrder!.orderItems
-                                        .fold(0, (a, b) => a + b.price);
+                                    double totalOrderAmount =
+                                        model.totalDiscount != 0.0
+                                            ? model.totalDiscount
+                                            : model.totalPayable;
                                     if (double.parse(value) <
                                         totalOrderAmount) {
                                       return "Amount is less than amount payable";
@@ -179,9 +179,10 @@ class _CollectCashViewState extends State<CollectCashView> {
                               borderRadius: 20.0,
                               controller: _btnController,
                               onPressed: () async {
-                                double totalOrderAmount = model
-                                    .kOrder!.orderItems
-                                    .fold(0, (a, b) => a + b.price);
+                                double totalOrderAmount =
+                                    model.totalDiscount != 0.0
+                                        ? model.totalDiscount
+                                        : model.totalPayable;
 
                                 if (_formKey.currentState!.validate()) {
                                   model.keypad.setCashReceived(

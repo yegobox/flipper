@@ -97,19 +97,20 @@ class KeyPadService with ReactiveServiceMixin {
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
-  Future<OrderF> getOrder({required int branchId}) async {
-    OrderF order = await ProxyService.api.order(branchId: branchId);
-
-    _countOrderItems.value = order.orderItems.length;
+  Future<OrderF?> getOrder({required int branchId}) async {
+    OrderF? order = await ProxyService.api.order(branchId: branchId);
+    if (order != null) {
+      _countOrderItems.value = order.orderItems.length;
+    }
 
     _order.value = order;
-    notifyListeners();
-    return _order.value!;
+
+    return order != null ? order : null;
   }
 
   /// this function update _orders.value the same as getOrders but this takes id of the order we want
   /// it is very important to not fonfuse these functions. later on.
-  Future<OrderF> getOrderById({required int id}) async {
+  Future<OrderF?> getOrderById({required int id}) async {
     OrderF od = await ProxyService.api.getOrderById(id: id);
 
     _countOrderItems.value = od.orderItems.length;
@@ -170,6 +171,7 @@ class KeyPadService with ReactiveServiceMixin {
       _quantity,
       _amountTotal,
       _check,
+      _count,
       _cashReceived,
       _totalPayable,
       _totalDiscount

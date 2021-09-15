@@ -42,7 +42,7 @@ class _AfterSaleState extends State<AfterSale> {
                 useTransparentButton: true,
                 onPop: () {
                   // refresh orders
-                  model.getOrders();
+                  model.currentOrder();
                   ProxyService.nav.popUntil(ModalRoute.withName(Routes.home));
                 },
                 title: '',
@@ -134,7 +134,7 @@ class _AfterSaleState extends State<AfterSale> {
                                             title: 'No Receipt',
                                             onTap: () {
                                               // refresh orders
-                                              model.getOrders();
+                                              model.currentOrder();
                                               ProxyService.nav.popUntil(
                                                   ModalRoute.withName(
                                                       Routes.home));
@@ -177,7 +177,7 @@ class _AfterSaleState extends State<AfterSale> {
                                             title: 'No Receipt',
                                             onTap: () {
                                               // refresh orders
-                                              model.getOrders();
+                                              model.currentOrder();
                                               ProxyService.nav.popUntil(
                                                   ModalRoute.withName(
                                                       Routes.home));

@@ -704,12 +704,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderF> order({required int branchId}) async {
+  Future<OrderF?> order({required int branchId}) async {
     return store
         .box<OrderF>()
-        .getAll()
-        .where((v) => v.status == 'pending')
-        .firstWhere((v) => v.fbranchId == branchId);
+        .query(OrderF_.status
+            .equals('pending')
+            .and((OrderF_.fbranchId.equals(branchId))))
+        .build()
+        .findFirst();
   }
 
   @override
@@ -1056,27 +1058,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
           map[key] = value;
         });
 
-        ///
-
-        OrderItem kOrderItem = OrderItem(
-          forderId: map['forderId'],
-          fvariantId: map['fvariantId'],
-          count: map['count'],
-          price: map['price'],
-          id: map['id'],
-          name: map['name'],
-          discount: map['discount'],
-          type: map['type'],
-        );
-
-        store.box<OrderItem>().put(kOrderItem);
-
-        OrderItem? item = store.box<OrderItem>().get(map['id']);
-
-        OrderF? order = store.box<OrderF>().get(map['forderId']);
-        item!.order.target = order;
-
-        store.box<OrderF>().put(order!);
+        orderItem.forderId = map['forderId'];
+        orderItem.fvariantId = map['fvariantId'];
+        orderItem.count = map['count'];
+        orderItem.price = map['price'];
+        orderItem.id = map['id'];
+        orderItem.name = map['name'];
+        orderItem.discount = map['discount'];
+        orderItem.type = map['type'];
+        store.box<OrderItem>().put(orderItem);
         break;
       default:
         return 200;

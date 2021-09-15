@@ -68,7 +68,7 @@ abstract class Api<T> {
   });
 
   Future<List<OrderF>> orders({required int branchId});
-  Future<OrderF> order({required int branchId});
+  Future<OrderF?> order({required int branchId});
   Future<OrderItem?> getOrderItem({required int id});
 
   Future<Variant> getCustomProductVariant();

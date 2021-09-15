@@ -574,7 +574,7 @@ packages:
       name: fl_chart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.36.4"
+    version: "0.40.0"
   flipper:
     dependency: "direct main"
     description:

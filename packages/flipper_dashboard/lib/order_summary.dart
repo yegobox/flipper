@@ -70,7 +70,7 @@ class OrderSummary extends StatelessWidget {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
-        model.getTotal();
+        model.updatePayable();
       },
       builder: (context, model, child) {
         if (model.kOrder == null) {
