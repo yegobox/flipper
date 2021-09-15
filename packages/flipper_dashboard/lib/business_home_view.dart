@@ -140,7 +140,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               tab: model.tab,
               payable: PayableView(
                 onClick: () {
-                  if (model.orders.length > 0) {
+                  if (model.kOrder != null) {
                     ProxyService.nav.navigateTo(Routes.pay);
                   } else {
                     showSimpleNotification(
@@ -152,17 +152,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 },
                 tickets:
                     model.tickets.isEmpty ? 0 : model.tickets.length.toDouble(),
-                orders: model.orders.length,
-                duePay: model.orders.isNotEmpty
-                    ? model.totalPayable!.toDouble()
-                    : 0.00,
+                orders: model.kOrder!.orderItems.length,
+                duePay:
+                    model.kOrder != null ? model.totalPayable.toDouble() : 0.00,
                 ticketHandler: () async {
-                  log.i(model.orders.length);
                   log.i(model.tickets.length);
                   await model.keypad.getTickets();
-                  await model.keypad.getOrders(
+                  await model.keypad.getOrder(
                       branchId: ProxyService.box.read(key: 'branchId'));
-                  if (model.orders.isEmpty && model.tickets.isNotEmpty) {
+                  if (model.kOrder == null && model.tickets.isNotEmpty) {
                     //then we know we need to resume.
                     FlipperBottomSheet.showTicketsToSaleBottomSheet(
                       model: model,

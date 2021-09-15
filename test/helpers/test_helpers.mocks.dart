@@ -5,11 +5,11 @@
 import 'dart:async' as _i16;
 
 import 'package:firebase_core/firebase_core.dart' as _i11;
-import 'package:firebase_messaging/firebase_messaging.dart' as _i26;
+import 'package:firebase_messaging/firebase_messaging.dart' as _i27;
 import 'package:firebase_messaging_platform_interface/src/notification_settings.dart'
     as _i12;
 import 'package:firebase_messaging_platform_interface/src/remote_message.dart'
-    as _i27;
+    as _i28;
 import 'package:flipper/stack.dart' as _i14;
 import 'package:flipper_models/branch.dart' as _i17;
 import 'package:flipper_models/business.dart' as _i9;
@@ -17,6 +17,7 @@ import 'package:flipper_models/category.dart' as _i19;
 import 'package:flipper_models/color.dart' as _i18;
 import 'package:flipper_models/conversation.dart' as _i10;
 import 'package:flipper_models/customer.dart' as _i24;
+import 'package:flipper_models/discount.dart' as _i25;
 import 'package:flipper_models/login.dart' as _i2;
 import 'package:flipper_models/message.dart' as _i23;
 import 'package:flipper_models/order.dart' as _i6;
@@ -29,21 +30,21 @@ import 'package:flipper_models/sync.dart' as _i3;
 import 'package:flipper_models/unit.dart' as _i20;
 import 'package:flipper_models/variants.dart' as _i7;
 import 'package:flipper_services/abstractions/api.dart' as _i15;
-import 'package:flipper_services/abstractions/location.dart' as _i33;
-import 'package:flipper_services/abstractions/remote.dart' as _i25;
-import 'package:flipper_services/abstractions/storage.dart' as _i31;
-import 'package:flipper_services/app_service.dart' as _i32;
-import 'package:flipper_services/keypad_service.dart' as _i29;
-import 'package:flipper_services/product_service.dart' as _i28;
-import 'package:flipper_services/setting_service.dart' as _i30;
-import 'package:flutter/src/animation/curves.dart' as _i37;
-import 'package:flutter/src/widgets/framework.dart' as _i35;
-import 'package:flutter/src/widgets/navigator.dart' as _i36;
-import 'package:get/get_instance/src/bindings_interface.dart' as _i38;
-import 'package:get/get_navigation/src/routes/transitions_type.dart' as _i39;
+import 'package:flipper_services/abstractions/location.dart' as _i34;
+import 'package:flipper_services/abstractions/remote.dart' as _i26;
+import 'package:flipper_services/abstractions/storage.dart' as _i32;
+import 'package:flipper_services/app_service.dart' as _i33;
+import 'package:flipper_services/keypad_service.dart' as _i30;
+import 'package:flipper_services/product_service.dart' as _i29;
+import 'package:flipper_services/setting_service.dart' as _i31;
+import 'package:flutter/src/animation/curves.dart' as _i38;
+import 'package:flutter/src/widgets/framework.dart' as _i36;
+import 'package:flutter/src/widgets/navigator.dart' as _i37;
+import 'package:get/get_instance/src/bindings_interface.dart' as _i39;
+import 'package:get/get_navigation/src/routes/transitions_type.dart' as _i40;
 import 'package:logger/src/logger.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stacked_services/src/navigation_service.dart' as _i34;
+import 'package:stacked_services/src/navigation_service.dart' as _i35;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: comment_references
@@ -249,6 +250,11 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i16.Future<List<_i6.OrderF>>);
   @override
+  _i16.Future<_i6.OrderF> order({int? branchId}) =>
+      (super.noSuchMethod(Invocation.method(#order, [], {#branchId: branchId}),
+              returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
+          as _i16.Future<_i6.OrderF>);
+  @override
   _i16.Future<_i21.OrderItem?> getOrderItem({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderItem, [], {#id: id}),
               returnValue: Future<_i21.OrderItem?>.value())
@@ -341,10 +347,10 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Stream<_i24.Customer?>.empty())
       as _i16.Stream<_i24.Customer?>);
   @override
-  _i16.Future<List<_i6.OrderF>> getOrderById({int? id}) =>
+  _i16.Future<_i6.OrderF> getOrderById({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
-              returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
-          as _i16.Future<List<_i6.OrderF>>);
+              returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
+          as _i16.Future<_i6.OrderF>);
   @override
   _i16.Future<List<_i6.OrderF>> tickets() =>
       (super.noSuchMethod(Invocation.method(#tickets, []),
@@ -412,6 +418,12 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i16.Future<void>);
   @override
+  _i16.Future<List<_i25.Discount>> getDiscounts({int? branchId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getDiscounts, [], {#branchId: branchId}),
+              returnValue: Future<List<_i25.Discount>>.value(<_i25.Discount>[]))
+          as _i16.Future<List<_i25.Discount>>);
+  @override
   _i6.OrderF addOrderItem({_i6.OrderF? order, Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(
           Invocation.method(#addOrderItem, [], {#order: order, #data: data}),
@@ -436,7 +448,7 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
 /// A class which mocks [Remote].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockRemote extends _i1.Mock implements _i25.Remote {
+class MockRemote extends _i1.Mock implements _i26.Remote {
   @override
   void setDefault() => super.noSuchMethod(Invocation.method(#setDefault, []),
       returnValueForMissingStub: null);
@@ -499,7 +511,7 @@ class MockRemote extends _i1.Mock implements _i25.Remote {
 /// A class which mocks [FirebaseMessaging].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFirebaseMessaging extends _i1.Mock implements _i26.FirebaseMessaging {
+class MockFirebaseMessaging extends _i1.Mock implements _i27.FirebaseMessaging {
   @override
   _i11.FirebaseApp get app => (super.noSuchMethod(Invocation.getter(#app),
       returnValue: _FakeFirebaseApp()) as _i11.FirebaseApp);
@@ -520,10 +532,10 @@ class MockFirebaseMessaging extends _i1.Mock implements _i26.FirebaseMessaging {
       (super.noSuchMethod(Invocation.getter(#pluginConstants),
           returnValue: <dynamic, dynamic>{}) as Map<dynamic, dynamic>);
   @override
-  _i16.Future<_i27.RemoteMessage?> getInitialMessage() =>
+  _i16.Future<_i28.RemoteMessage?> getInitialMessage() =>
       (super.noSuchMethod(Invocation.method(#getInitialMessage, []),
-              returnValue: Future<_i27.RemoteMessage?>.value())
-          as _i16.Future<_i27.RemoteMessage?>);
+              returnValue: Future<_i28.RemoteMessage?>.value())
+          as _i16.Future<_i28.RemoteMessage?>);
   @override
   _i16.Future<void> deleteToken() =>
       (super.noSuchMethod(Invocation.method(#deleteToken, []),
@@ -615,7 +627,7 @@ class MockFirebaseMessaging extends _i1.Mock implements _i26.FirebaseMessaging {
 /// A class which mocks [ProductService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProductService extends _i1.Mock implements _i28.ProductService {
+class MockProductService extends _i1.Mock implements _i29.ProductService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -624,6 +636,10 @@ class MockProductService extends _i1.Mock implements _i28.ProductService {
   String get barCode =>
       (super.noSuchMethod(Invocation.getter(#barCode), returnValue: '')
           as String);
+  @override
+  List<_i25.Discount> get discounts =>
+      (super.noSuchMethod(Invocation.getter(#discounts),
+          returnValue: <_i25.Discount>[]) as List<_i25.Discount>);
   @override
   List<_i5.Product> get products =>
       (super.noSuchMethod(Invocation.getter(#products),
@@ -691,7 +707,7 @@ class MockProductService extends _i1.Mock implements _i28.ProductService {
 /// A class which mocks [KeyPadService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockKeyPadService extends _i1.Mock implements _i29.KeyPadService {
+class MockKeyPadService extends _i1.Mock implements _i30.KeyPadService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -723,8 +739,13 @@ class MockKeyPadService extends _i1.Mock implements _i29.KeyPadService {
       (super.noSuchMethod(Invocation.getter(#tickets),
           returnValue: <_i6.OrderF>[]) as List<_i6.OrderF>);
   @override
-  List<_i6.OrderF> get orders => (super.noSuchMethod(Invocation.getter(#orders),
-      returnValue: <_i6.OrderF>[]) as List<_i6.OrderF>);
+  double get totalPayable =>
+      (super.noSuchMethod(Invocation.getter(#totalPayable), returnValue: 0.0)
+          as double);
+  @override
+  double get totalDiscount =>
+      (super.noSuchMethod(Invocation.getter(#totalDiscount), returnValue: 0.0)
+          as double);
   @override
   void addKey(String? key) =>
       super.noSuchMethod(Invocation.method(#addKey, [key]),
@@ -748,16 +769,27 @@ class MockKeyPadService extends _i1.Mock implements _i29.KeyPadService {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i16.Future<List<_i6.OrderF>>);
   @override
-  _i16.Future<List<_i6.OrderF>> getOrders({int? branchId}) =>
-      (super.noSuchMethod(
-              Invocation.method(#getOrders, [], {#branchId: branchId}),
-              returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
-          as _i16.Future<List<_i6.OrderF>>);
+  void setTotalPayable({double? amount}) => super.noSuchMethod(
+      Invocation.method(#setTotalPayable, [], {#amount: amount}),
+      returnValueForMissingStub: null);
   @override
-  _i16.Future<List<_i6.OrderF>> getOrderById({int? id}) =>
+  void setTotalDiscount({double? amount}) => super.noSuchMethod(
+      Invocation.method(#setTotalDiscount, [], {#amount: amount}),
+      returnValueForMissingStub: null);
+  @override
+  void setOrder(_i6.OrderF? order) =>
+      super.noSuchMethod(Invocation.method(#setOrder, [order]),
+          returnValueForMissingStub: null);
+  @override
+  _i16.Future<_i6.OrderF> getOrder({int? branchId}) => (super.noSuchMethod(
+          Invocation.method(#getOrder, [], {#branchId: branchId}),
+          returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
+      as _i16.Future<_i6.OrderF>);
+  @override
+  _i16.Future<_i6.OrderF> getOrderById({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
-              returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
-          as _i16.Future<List<_i6.OrderF>>);
+              returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
+          as _i16.Future<_i6.OrderF>);
   @override
   void reset() => super.noSuchMethod(Invocation.method(#reset, []),
       returnValueForMissingStub: null);
@@ -796,7 +828,7 @@ class MockKeyPadService extends _i1.Mock implements _i29.KeyPadService {
 /// A class which mocks [SettingsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSettingsService extends _i1.Mock implements _i30.SettingsService {
+class MockSettingsService extends _i1.Mock implements _i31.SettingsService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -864,7 +896,7 @@ class MockSettingsService extends _i1.Mock implements _i30.SettingsService {
 /// A class which mocks [LocalStorage].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocalStorage extends _i1.Mock implements _i31.LocalStorage {
+class MockLocalStorage extends _i1.Mock implements _i32.LocalStorage {
   @override
   dynamic read({String? key}) =>
       super.noSuchMethod(Invocation.method(#read, [], {#key: key}));
@@ -880,7 +912,7 @@ class MockLocalStorage extends _i1.Mock implements _i31.LocalStorage {
 /// A class which mocks [AppService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAppService extends _i1.Mock implements _i32.AppService {
+class MockAppService extends _i1.Mock implements _i33.AppService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -963,7 +995,7 @@ class MockAppService extends _i1.Mock implements _i32.AppService {
 /// A class which mocks [FlipperLocation].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFlipperLocation extends _i1.Mock implements _i33.FlipperLocation {
+class MockFlipperLocation extends _i1.Mock implements _i34.FlipperLocation {
   @override
   _i16.Future<Map<String, String>> getLocation() => (super.noSuchMethod(
           Invocation.method(#getLocation, []),
@@ -978,7 +1010,7 @@ class MockFlipperLocation extends _i1.Mock implements _i33.FlipperLocation {
 /// A class which mocks [NavigationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
+class MockNavigationService extends _i1.Mock implements _i35.NavigationService {
   @override
   String get previousRoute =>
       (super.noSuchMethod(Invocation.getter(#previousRoute), returnValue: '')
@@ -988,9 +1020,9 @@ class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
       (super.noSuchMethod(Invocation.getter(#currentRoute), returnValue: '')
           as String);
   @override
-  _i35.GlobalKey<_i36.NavigatorState>? nestedNavigationKey(int? index) =>
+  _i36.GlobalKey<_i37.NavigatorState>? nestedNavigationKey(int? index) =>
       (super.noSuchMethod(Invocation.method(#nestedNavigationKey, [index]))
-          as _i35.GlobalKey<_i36.NavigatorState>?);
+          as _i36.GlobalKey<_i37.NavigatorState>?);
   @override
   void config(
           {bool? enableLog,
@@ -1010,17 +1042,17 @@ class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
           }),
           returnValueForMissingStub: null);
   @override
-  _i16.Future<T?>? navigateWithTransition<T>(_i35.Widget? page,
+  _i16.Future<T?>? navigateWithTransition<T>(_i36.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
           bool? popGesture,
           int? id,
-          _i37.Curve? curve,
-          _i38.Bindings? binding,
+          _i38.Curve? curve,
+          _i39.Bindings? binding,
           bool? fullscreenDialog = false,
           bool? preventDuplicates = true,
-          _i39.Transition? transitionClass}) =>
+          _i40.Transition? transitionClass}) =>
       (super.noSuchMethod(Invocation.method(#navigateWithTransition, [
         page
       ], {
@@ -1036,17 +1068,17 @@ class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
         #transitionClass: transitionClass
       })) as _i16.Future<T?>?);
   @override
-  _i16.Future<T?>? replaceWithTransition<T>(_i35.Widget? page,
+  _i16.Future<T?>? replaceWithTransition<T>(_i36.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
           bool? popGesture,
           int? id,
-          _i37.Curve? curve,
-          _i38.Bindings? binding,
+          _i38.Curve? curve,
+          _i39.Bindings? binding,
           bool? fullscreenDialog = false,
           bool? preventDuplicates = true,
-          _i39.Transition? transitionClass}) =>
+          _i40.Transition? transitionClass}) =>
       (super.noSuchMethod(Invocation.method(#replaceWithTransition, [
         page
       ], {
@@ -1066,7 +1098,7 @@ class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
       Invocation.method(#back, [], {#result: result, #id: id}),
       returnValue: false) as bool);
   @override
-  void popUntil(_i36.RoutePredicate? predicate) =>
+  void popUntil(_i37.RoutePredicate? predicate) =>
       super.noSuchMethod(Invocation.method(#popUntil, [predicate]),
           returnValueForMissingStub: null);
   @override
@@ -1088,17 +1120,17 @@ class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
         #parameters: parameters
       })) as _i16.Future<T?>?);
   @override
-  _i16.Future<T?>? navigateToView<T>(_i35.Widget? view,
+  _i16.Future<T?>? navigateToView<T>(_i36.Widget? view,
           {dynamic arguments,
           int? id,
           bool? opaque,
-          _i37.Curve? curve,
-          _i38.Bindings? binding,
+          _i38.Curve? curve,
+          _i39.Bindings? binding,
           Duration? duration,
           bool? fullscreenDialog = false,
           bool? popGesture,
           bool? preventDuplicates = true,
-          _i39.Transition? transition}) =>
+          _i40.Transition? transition}) =>
       (super.noSuchMethod(Invocation.method(#navigateToView, [
         view
       ], {
@@ -1152,13 +1184,13 @@ class MockNavigationService extends _i1.Mock implements _i34.NavigationService {
         #parameters: parameters
       })) as _i16.Future<T?>?);
   @override
-  _i16.Future<T?>? clearTillFirstAndShowView<T>(_i35.Widget? view,
+  _i16.Future<T?>? clearTillFirstAndShowView<T>(_i36.Widget? view,
           {dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#clearTillFirstAndShowView, [view],
           {#arguments: arguments, #id: id})) as _i16.Future<T?>?);
   @override
   _i16.Future<T?>? pushNamedAndRemoveUntil<T>(String? routeName,
-          {_i36.RoutePredicate? predicate, dynamic arguments, int? id}) =>
+          {_i37.RoutePredicate? predicate, dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#pushNamedAndRemoveUntil, [
         routeName
       ], {

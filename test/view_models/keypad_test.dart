@@ -39,7 +39,7 @@ void main() {
 
       model.addKey('+');
 
-      expect(mockedKeyPadService.orders, [orderMock]);
+      expect(mockedKeyPadService.order, orderMock);
     });
   });
 }

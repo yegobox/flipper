@@ -15,11 +15,11 @@ class OrderSummary extends StatelessWidget {
   OrderSummary({Key? key}) : super(key: key);
   List<Widget> buildItems({required BusinessHomeViewModel model}) {
     final List<Widget> list = [];
-    if (model.orders.isEmpty) {
+    if (model.kOrder == null) {
       list.add(Center(child: Text('There is no current order')));
       return list;
     }
-    for (OrderItem item in model.orders[0].orderItems) {
+    for (OrderItem item in model.kOrder!.orderItems) {
       list.add(
         Slidable(
           actionPane: const SlidableDrawerActionPane(),
@@ -73,7 +73,7 @@ class OrderSummary extends StatelessWidget {
         model.getTotal();
       },
       builder: (context, model, child) {
-        if (model.orders.isEmpty) {
+        if (model.kOrder == null) {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
@@ -106,7 +106,7 @@ class OrderSummary extends StatelessWidget {
               ...buildItems(
                 model: model,
               ),
-              if (model.totalDiscount! > 0)
+              if (model.totalDiscount > 0)
                 ListTile(
                   contentPadding:
                       const EdgeInsets.only(left: 40.0, right: 40.0),
@@ -125,7 +125,7 @@ class OrderSummary extends StatelessWidget {
                 contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
                 trailing: Text(
                   'RWF ' +
-                      display(model.totalDiscount! > 0
+                      display(model.totalDiscount > 0
                               ? model.totalDiscount
                               : model.totalPayable)
                           .toString(),

@@ -72,9 +72,11 @@ class KeyPadService with ReactiveServiceMixin {
     return _tickets.value;
   }
 
-  final _orders = ReactiveValue<List<OrderF>>([]);
+  /// all the time we have one order being processed at the time.
+  /// one order can have multiple order items.
+  final _order = ReactiveValue<OrderF?>(null);
 
-  List<OrderF> get orders => _orders.value;
+  OrderF? get order => _order.value;
 
   final _totalPayable = ReactiveValue<double>(0.0);
   double get totalPayable => _totalPayable.value;
@@ -88,36 +90,32 @@ class KeyPadService with ReactiveServiceMixin {
     _totalDiscount.value = amount;
   }
 
-  void setOrders(List<OrderF> orders) {
-    _orders.value = orders;
+  void setOrder(OrderF order) {
+    _order.value = order;
   }
 
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
-  Future<List<OrderF>> getOrders({required int branchId}) async {
-    List<OrderF> od = await ProxyService.api.orders(branchId: branchId);
-    //
-    //NOTE: we assume index[0] as pending order can not be more than one at the moment
-    if (od.isNotEmpty) {
-      _countOrderItems.value = od[0].orderItems.length;
-    }
-    _orders.value = od;
+  Future<OrderF> getOrder({required int branchId}) async {
+    OrderF order = await ProxyService.api.order(branchId: branchId);
+
+    _countOrderItems.value = order.orderItems.length;
+
+    _order.value = order;
     notifyListeners();
-    return _orders.value;
+    return _order.value!;
   }
 
   /// this function update _orders.value the same as getOrders but this takes id of the order we want
   /// it is very important to not fonfuse these functions. later on.
-  Future<List<OrderF>> getOrderById({required int id}) async {
-    List<OrderF> od = await ProxyService.api.getOrderById(id: id);
-    //
-    //NOTE: we assume index[0] as pending order can not be more than one at the moment
-    if (od.isNotEmpty) {
-      _countOrderItems.value = od[0].orderItems.length;
-    }
-    _orders.value = od;
-    return _orders.value;
+  Future<OrderF> getOrderById({required int id}) async {
+    OrderF od = await ProxyService.api.getOrderById(id: id);
+
+    _countOrderItems.value = od.orderItems.length;
+
+    _order.value = od;
+    return _order.value!;
   }
 
   void reset() {
@@ -167,7 +165,7 @@ class KeyPadService with ReactiveServiceMixin {
   KeyPadService() {
     listenToReactiveValues([
       _key,
-      _orders,
+      _order,
       _countOrderItems,
       _quantity,
       _amountTotal,

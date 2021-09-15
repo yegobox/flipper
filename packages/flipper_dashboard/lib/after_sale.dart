@@ -51,15 +51,14 @@ class _AfterSaleState extends State<AfterSale> {
                 showActionButton: true,
                 onPressedCallback: () async {
                   await model.getOrderById();
-                  log.i(model.orders[0].id);
+                  log.i(model.kOrder!.id);
                   ProxyService.nav.navigateTo(Routes.customers,
-                      arguments:
-                          CustomersArguments(orderId: model.orders[0].id));
+                      arguments: CustomersArguments(orderId: model.kOrder!.id));
                 },
-                leftActionButtonName: model.orders.isNotEmpty &&
-                        model.orders[0].customerId != null
-                    ? 'Remove Customer'
-                    : 'New Sale',
+                leftActionButtonName:
+                    model.kOrder != null && model.kOrder!.customerId != null
+                        ? 'Remove Customer'
+                        : 'New Sale',
                 rightActionButtonName: 'Add Customer',
                 // icon: Icons.close,
                 multi: 3,
@@ -101,9 +100,7 @@ class _AfterSaleState extends State<AfterSale> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                           stream: ProxyService.api.getCustomerByOrderId(
-                              id: model.orders.isEmpty
-                                  ? 0
-                                  : model.orders[0].id),
+                              id: model.kOrder == null ? 0 : model.kOrder!.id),
                           builder: (context, snapshot) {
                             return snapshot.data == null
                                 ? Column(

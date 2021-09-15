@@ -13,10 +13,11 @@ class Login extends StatelessWidget {
       body: UniversalPlatform.isWeb ||
               UniversalPlatform.isWindows ||
               UniversalPlatform.isMacOS
-          ? Container(
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-              child: DesktopLoginView())
+          ? SingleChildScrollView(child: MobileLogin())
+          // ? Container(
+          //     height: MediaQuery.of(context).size.height,
+          //     width: MediaQuery.of(context).size.width,
+          //     child: DesktopLoginView())
           : SingleChildScrollView(child: MobileLogin()),
     );
   }

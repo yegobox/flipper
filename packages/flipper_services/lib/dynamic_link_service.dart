@@ -13,9 +13,8 @@ class UnSupportedDynamicLink implements DynamicLink {
   }
 
   @override
-  Future handleDynamicLink() {
-    // TODO: implement handleDynamicLink
-    throw UnimplementedError();
+  Future handleDynamicLink() async {
+    
   }
 }
 

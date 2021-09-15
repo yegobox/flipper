@@ -1,7 +1,7 @@
 import 'order.dart';
 import 'order_item.dart';
 
-final orderMock = new OrderF(
+OrderF? orderMock = new OrderF(
   id: DateTime.now().millisecondsSinceEpoch,
   reference: 'caa5cbf1-b3c3-11',
   orderNumber: 'caa5cbf1-b3c3-',

@@ -704,6 +704,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
+  Future<OrderF> order({required int branchId}) async {
+    return store
+        .box<OrderF>()
+        .getAll()
+        .where((v) => v.status == 'pending')
+        .firstWhere((v) => v.fbranchId == branchId);
+  }
+
+  @override
   Future<Spenn> spennPayment(
       {required double amount, required phoneNumber}) async {
     String userId = ProxyService.box.read(key: 'userId');
@@ -1046,7 +1055,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
         data.forEach((key, value) {
           map[key] = value;
         });
-        log.i(data);
+
+        ///
 
         OrderItem kOrderItem = OrderItem(
           forderId: map['forderId'],
@@ -1058,8 +1068,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
           discount: map['discount'],
           type: map['type'],
         );
-        final box = store.box<OrderItem>();
-        box.put(kOrderItem, mode: PutMode.update);
+
+        store.box<OrderItem>().put(kOrderItem);
+
+        OrderItem? item = store.box<OrderItem>().get(map['id']);
+
+        OrderF? order = store.box<OrderF>().get(map['forderId']);
+        item!.order.target = order;
+
+        store.box<OrderF>().put(order!);
         break;
       default:
         return 200;
@@ -1234,8 +1251,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<OrderF>> getOrderById({required int id}) async {
-    return store.box<OrderF>().getAll().where((v) => v.id == id).toList();
+  Future<OrderF> getOrderById({required int id}) async {
+    return store.box<OrderF>().getAll().firstWhere((v) => v.id == id);
   }
 
   @override

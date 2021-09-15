@@ -25,7 +25,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   late String? longitude;
   late String? latitude;
 
-  List<OrderF> get orders => keypad.orders;
+  OrderF? get kOrder => keypad.order;
   List<OrderF> get tickets => keypad.tickets;
 
   int get countedOrderItems => keypad.count;
@@ -74,11 +74,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           //default on keypad
           quantity: 1,
         );
-        List<OrderF> orders =
-            await ProxyService.keypad.getOrders(branchId: branchId);
-        if (orders.isNotEmpty) {
-          keypad.setCount(count: orders[0].orderItems.length);
-        }
+        OrderF order = await ProxyService.keypad.getOrder(branchId: branchId);
+
+        keypad.setCount(count: order.orderItems.length);
+
         getTotal();
         ProxyService.keypad.reset();
       }
@@ -93,10 +92,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<void> getOrders() async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<OrderF> od = await ProxyService.keypad.getOrders(branchId: branchId);
-    keypad.setOrders(od);
-    if (od.isNotEmpty && od[0].orderItems.isNotEmpty) {
-      keypad.setCount(count: orders[0].orderItems.length);
+    OrderF? od = await ProxyService.keypad.getOrder(branchId: branchId);
+    keypad.setOrder(od);
+    if (od.orderItems.isNotEmpty) {
+      keypad.setCount(count: od.orderItems.length);
     } else {
       keypad.setCount(count: 0);
     }
@@ -223,8 +222,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             ProxyService.api.update(data: data, endPoint: 'order');
           }
         }
+
+        /// if is a new item to be added to the list then it will be added to the list
+        /// existOrderItem will return null which will go to adding item api.
         OrderItem? existOrderItem =
             ProxyService.api.getOrderItemByVariantId(variantId: variationId);
+        // log.i(existOrderItem);
         if (existOrderItem == null) {
           Map data = {
             'count': quantity.toDouble(),
@@ -246,11 +249,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         );
       }
 
-      List<OrderF> orders =
-          await ProxyService.keypad.getOrders(branchId: branchId);
-      if (orders.isNotEmpty) {
-        keypad.setCount(count: orders[0].orderItems.length);
-      }
+      OrderF order = await ProxyService.keypad.getOrder(branchId: branchId);
+
+      keypad.setCount(count: order.orderItems.length);
+
       return true;
     } else {
       return false;
@@ -259,7 +261,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future collectSPENNPayment(
       {required String phoneNumber, required double payableAmount}) async {
-    if (orders.isEmpty && amountTotal != 0.0) {
+    if (kOrder == null && amountTotal != 0.0) {
       //should show a global snack bar
       return;
     }
@@ -267,17 +269,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await ProxyService.api
         .spennPayment(amount: payableAmount, phoneNumber: phoneNumber);
     await ProxyService.api
-        .collectCashPayment(cashReceived: payableAmount, order: orders[0]);
+        .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
   }
 
   void collectCashPayment({required double payableAmount}) {
-    if (orders.isEmpty && amountTotal != 0.0) {
+    if (kOrder == null && amountTotal != 0.0) {
       //should show a global snack bar
       return;
     }
     log.i(payableAmount);
     ProxyService.api
-        .collectCashPayment(cashReceived: payableAmount, order: orders[0]);
+        .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
   }
 
   void registerLocation() async {
@@ -324,9 +326,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void addNoteToSale({required String note}) async {
-    log.i(orders[0].id);
-    List<OrderF?> order = await ProxyService.api.getOrderById(id: orders[0].id);
-    Map map = order[0]!.toJson();
+    OrderF? order = await ProxyService.api.getOrderById(id: kOrder!.id);
+    Map map = order.toJson();
     map['note'] = note;
     ProxyService.api.update(data: map, endPoint: 'order');
   }
@@ -337,10 +338,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///the note on order is served as display, therefore an order can not be parked without a note on it.
   void saveTicket(Function error) async {
     //get the current order
-    if (orders.isEmpty) return;
-    List<OrderF?> Korders =
-        await ProxyService.api.getOrderById(id: orders[0].id);
-    Map map = Korders[0]!.toJson();
+    if (kOrder == null) return;
+    OrderF? Korder = await ProxyService.api.getOrderById(id: kOrder!.id);
+    Map map = Korder.toJson();
     map['status'] = parkedStatus;
     if (map['note'] == null || map['note'] == '') {
       return error('error');
@@ -351,12 +351,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future resumeOrder({required int ticketId}) async {
-    List<OrderF?> Korders = await ProxyService.api.getOrderById(id: ticketId);
-    Map map = Korders[0]!.toJson();
+    OrderF? Korder = await ProxyService.api.getOrderById(id: ticketId);
+    Map map = Korder.toJson();
     map['status'] = pendingStatus;
     await ProxyService.api.update(data: map, endPoint: 'order');
     await keypad.getTickets();
-    await keypad.getOrders(branchId: ProxyService.box.read(key: 'branchId'));
+    await keypad.getOrder(branchId: ProxyService.box.read(key: 'branchId'));
     await getOrders();
   }
 
@@ -371,11 +371,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   num? getTotal() {
     keypad.setTotalPayable(amount: 0.0);
     keypad.setTotalDiscount(amount: 0.0);
-
+    if (keypad.order == null) return 0.0;
     num? totalPayable =
-        keypad.orders[0].orderItems.fold(0, (a, b) => a! + (b.price));
+        keypad.order!.orderItems.fold(0, (a, b) => a! + (b.price));
 
-    num? totalDiscount = keypad.orders[0].orderItems
+    num? totalDiscount = keypad.order!.orderItems
         .fold(0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
     keypad.setTotalPayable(amount: totalPayable!.toDouble());
     keypad.setTotalDiscount(amount: totalDiscount!.toDouble());
@@ -388,7 +388,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// this function also delete the order
   Future<bool> deleteOrderItem({required int id}) async {
     getOrders();
-    OrderF order = keypad.orders[0];
+    OrderF order = keypad.order!;
 
     if (order.orderItems.isNotEmpty) {
       // OrderItem? orderItem = await ProxyService.api.getOrderItem(id: id);
@@ -397,7 +397,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       // ProxyService.api.update(data: order.toJson(), endPoint: 'order');
       await getOrders();
       getTotal();
-      if (keypad.orders[0].orderItems.isEmpty) {
+      if (keypad.order!.orderItems.isEmpty) {
         keypad.setTotalPayable(amount: 0.0);
         keypad.setTotalDiscount(amount: 0.0);
 

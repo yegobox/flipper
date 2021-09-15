@@ -264,17 +264,17 @@ class _DesktopViewState extends State<DesktopView> {
                               tickets: widget.model.tickets.isEmpty
                                   ? 0
                                   : widget.model.tickets.length.toDouble(),
-                              orders: widget.model.orders.length,
-                              duePay: widget.model.orders.isNotEmpty
-                                  ? widget.model.orders[0].orderItems
+                              orders: widget.model.kOrder!.orderItems.length,
+                              duePay: widget.model.kOrder != null
+                                  ? widget.model.kOrder!.orderItems
                                       .fold(0, (a, b) => a + b.price)
                                   : 0.00,
                               ticketHandler: () async {
                                 widget.model.keypad.getTickets();
-                                widget.model.keypad.getOrders(
+                                widget.model.keypad.getOrder(
                                     branchId:
                                         ProxyService.box.read(key: 'branchId'));
-                                if (widget.model.orders.isEmpty &&
+                                if (widget.model.kOrder != null &&
                                     widget.model.tickets.isNotEmpty) {
                                   //then we know we need to resume.
                                   FlipperBottomSheet

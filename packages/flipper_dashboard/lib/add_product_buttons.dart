@@ -1,4 +1,5 @@
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -36,7 +37,8 @@ class AddProductButtons extends StatelessWidget {
                 ),
               ),
               if (isIos ||
-                  isAndroid && ProxyService.remoteConfig.isDiscountAvailable())
+                  isAndroid ||
+                  kDebugMode && ProxyService.remoteConfig.isDiscountAvailable())
                 Padding(
                   padding: EdgeInsets.all(8),
                   child: Container(

@@ -148,7 +148,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                       return 'Please enter Cash Received';
                                     }
                                     double totalOrderAmount = model
-                                        .orders[0].orderItems
+                                        .kOrder!.orderItems
                                         .fold(0, (a, b) => a + b.price);
                                     if (double.parse(value) <
                                         totalOrderAmount) {
@@ -180,7 +180,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                               controller: _btnController,
                               onPressed: () async {
                                 double totalOrderAmount = model
-                                    .orders[0].orderItems
+                                    .kOrder!.orderItems
                                     .fold(0, (a, b) => a + b.price);
 
                                 if (_formKey.currentState!.validate()) {
@@ -226,14 +226,14 @@ class _CollectCashViewState extends State<CollectCashView> {
         },
         onModelReady: (model) {
           // set the OrderId in object box for later use.
-          ProxyService.box.write(key: 'orderId', value: model.orders[0].id);
+          ProxyService.box.write(key: 'orderId', value: model.kOrder!.id);
           Stream<String> stream = streamController.stream;
           subscription = stream.listen((event) {
             String userId = ProxyService.box.read(key: 'userId');
             if (event == userId) {
               _btnController.success();
               double totalOrderAmount =
-                  model.orders[0].orderItems.fold(0, (a, b) => a + b.price);
+                  model.kOrder!.orderItems.fold(0, (a, b) => a + b.price);
               ProxyService.nav.navigateTo(Routes.afterSale,
                   arguments:
                       AfterSaleArguments(totalOrderAmount: totalOrderAmount));

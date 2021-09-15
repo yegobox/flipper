@@ -468,7 +468,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<List<OrderF>> getOrderById({required int id}) {
+  Future<OrderF> getOrderById({required int id}) {
     // TODO: implement getOrderById
     throw UnimplementedError();
   }
@@ -587,5 +587,11 @@ class HttpApi<T> implements Api {
   @override
   Future<List<Discount>> getDiscounts({required int branchId}) {
     return Future.value([]);
+  }
+
+  @override
+  Future<OrderF> order({required int branchId}) {
+    // TODO: implement order
+    throw UnimplementedError();
   }
 }

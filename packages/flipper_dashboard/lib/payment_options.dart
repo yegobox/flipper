@@ -41,10 +41,10 @@ class Payments extends StatelessWidget {
                       child: Column(
                         children: [
                           const SizedBox(height: 40),
-                          model.orders.length > 0
+                          model.kOrder != null
                               ? Text(
                                   'FRw ' +
-                                      display(model.orders[0].orderItems
+                                      display(model.kOrder!.orderItems
                                               .fold(0, (a, b) => a! + b.price))
                                           .toString(),
                                   style: const TextStyle(

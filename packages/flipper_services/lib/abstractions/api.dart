@@ -68,6 +68,7 @@ abstract class Api<T> {
   });
 
   Future<List<OrderF>> orders({required int branchId});
+  Future<OrderF> order({required int branchId});
   Future<OrderItem?> getOrderItem({required int id});
 
   Future<Variant> getCustomProductVariant();
@@ -100,7 +101,7 @@ abstract class Api<T> {
   Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<Customer?> getCustomer({required String key});
   Stream<Customer?> getCustomerByOrderId({required int id});
-  Future<List<OrderF>> getOrderById({required int id});
+  Future<OrderF> getOrderById({required int id});
   Future<List<OrderF>> tickets();
   List<Variant> getVariantByProductId({required int productId});
   Future<List<OrderF>> getOrderByStatus({required String status});

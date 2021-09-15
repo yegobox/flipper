@@ -62,8 +62,8 @@ Api getAndRegisterApi(
       .thenAnswer((_) async => variationMock);
   when(service.createOrder(
           customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
-      .thenAnswer((_) async => orderMock);
-  when(service.orders()).thenAnswer((_) async => [orderMock]);
+      .thenAnswer((_) async => Future.value(orderMock));
+  when(service.orders()).thenAnswer((_) async => [orderMock!]);
   when(service.stockByVariantId(variantId: variationMock.id))
       .thenAnswer((_) async => stockMock);
   if (data != null) {
@@ -113,7 +113,7 @@ KeyPadService getAndRegisterKeyPadServiceUnmocked() {
 
 KeyPadService getAndRegisterKeyPadService() {
   final service = MockKeyPadService();
-  when(service.orders).thenReturn([orderMock]);
+  when(service.order).thenReturn(orderMock);
 
   return service;
 }
