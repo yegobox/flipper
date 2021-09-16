@@ -53,10 +53,9 @@ class MessageViewModel extends BusinessHomeViewModel {
   List<Contact> dataList = [];
   final ItemScrollController itemScrollController = ItemScrollController();
   Business? business = null;
-  void loadData() async {
-    int id = ProxyService.box.read(key: 'businessId');
-    business = ProxyService.api.getBusinessById(id: id);
-
+  void loadContacts() async {
+    // int id = ProxyService.box.read(key: 'businessId');
+    // business = ProxyService.api.getBusinessById(id: id);
     Stream<List<Business>> contacts =
         ProxyService.api.contacts().asBroadcastStream();
     contacts.listen((event) {

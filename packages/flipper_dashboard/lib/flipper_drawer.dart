@@ -9,6 +9,7 @@ import 'package:flipper_services/abstractions/dynamic_link.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'business_widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'custom_widgets.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/constants.dart';
@@ -109,10 +110,26 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
               'Flipper Social',
               context: context,
               icon: Ionicons.chatbox,
-              onPressed: () {
+              onPressed: () async {
                 ProxyService.box.write(key: pageKey, value: 'social');
+                //first register the user in firestore db
+                //get the current firebase user
+                User? user = await ProxyService.auth.getCurrentUserId();
+                int businessId = ProxyService.box.read(key: 'businessId');
+                Business business =
+                    await ProxyService.api.getBusinessById(id: businessId);
+                //patch a business to add a chat uid
 
-                ProxyService.nav.navigateTo(Routes.initial);
+                ProxyService.firestore.createUserInFirestore(user: {
+                  'firstName': business.firstName,
+                  'lastName': business.lastName,
+                  'email': '  ',
+                  'uid': user!.uid,
+                  'imageUrl': 'https://dummyimage.com/300/09f.png/fff'
+                  // 'imageUrl':
+                  // "https://avatars.dicebear.com/api/micah/$name.svg",
+                });
+                ProxyService.nav.navigateTo(Routes.chat);
               },
             ),
           const Divider(height: 0),

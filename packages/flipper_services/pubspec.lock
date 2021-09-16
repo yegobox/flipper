@@ -672,7 +672,7 @@ packages:
       name: fl_chart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.36.3"
+    version: "0.40.0"
   flipper:
     dependency: "direct main"
     description:
@@ -778,6 +778,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.0"
+  flutter_firebase_chat_core:
+    dependency: transitive
+    description:
+      name: flutter_firebase_chat_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   flutter_hooks:
     dependency: transitive
     description:

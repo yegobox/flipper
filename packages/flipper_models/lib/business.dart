@@ -53,6 +53,7 @@ class Business {
       this.firstName,
       this.lastName,
       this.deviceToken,
+      this.chatUid,
       this.role});
   @Id(assignable: true)
   int id;
@@ -75,6 +76,7 @@ class Business {
   String? imageUrl;
   String type;
   bool? active;
+  String? chatUid;
 
   //@Transient() //even though this is needed for chat purpose, the objectbox db does not allow this type of data type
   /// Additional custom metadata or attributes related to the user
@@ -104,6 +106,7 @@ class Business {
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],
+        chatUid = json["chatUid"],
         deviceToken = json["deviceToken"],
         currency = json["currency"],
         // TODOwhen loading the fcategoryId it seems somehow fcategoryId is a string and we are expecting an int or maybe there is null returned!
@@ -131,6 +134,7 @@ class Business {
         "name": name,
         "deviceToken": deviceToken,
         "currency": currency,
+        "chatUid": chatUid,
         "fcategoryId": fcategoryId.toString(),
         "latitude": latitude,
         "longitude": longitude,

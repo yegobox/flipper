@@ -1,8 +1,9 @@
 import 'package:flipper_chat/lite/common/index.dart';
 import 'package:flipper_chat/lite/pages/chat_page.dart';
-import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/conversation.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
+import 'package:flipper_models/business.dart';
 import 'package:azlistview/azlistview.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_services/proxy.dart';
@@ -61,34 +62,27 @@ class _ContactPageState extends State<ContactPage> {
       {double susHeight = 40, required MessageViewModel model}) {
     return ListTile(
       title: Text(contact.name),
-      onTap: () {
-        //sender is the id of the current business
-        int senderId = ProxyService.box.read(key: 'businessId');
-        Conversation? conversation =
-            ProxyService.api.getConversationByContactId(contactId: contact.id);
-        if (conversation == null) {
-          conversation = Conversation(
-            createdAt: DateTime.now().microsecondsSinceEpoch,
-            receiverId: contact.id,
-            senderId: senderId,
-            senderName: model.business!.name,
-            lastMessage: 'text',
-            status: 'online',
-          );
-          Conversation convo =
-              ProxyService.api.createConversation(conversation: conversation);
-          Navigator.of(context).push(
-            RightToLeftRoute(
-              page: ChatPage(conversation: convo),
-            ),
-          );
-        } else {
-          Navigator.of(context).push(
-            RightToLeftRoute(
-              page: ChatPage(conversation: conversation),
-            ),
-          );
-        }
+      onTap: () async {
+        /// first add this business to firestore bd as user we are bout to chat with
+        Business business =
+            await ProxyService.api.getBusinessById(id: contact.id);
+
+        await ProxyService.firestore.createUserInFirestore(user: {
+          'firstName': business.firstName,
+          'lastName': business.lastName,
+          'email': '  ',
+          'uid': business.userId,
+          'imageUrl': 'https://dummyimage.com/300/09f.png/fff'
+        });
+        _handlePressed(
+          types.User(
+            firstName: business.firstName,
+            lastName: business.lastName,
+            id: business.chatUid!,
+            imageUrl: 'https://dummyimage.com/300/09f.png/fff',
+          ),
+          context,
+        );
       },
     );
   }
@@ -97,7 +91,7 @@ class _ContactPageState extends State<ContactPage> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<MessageViewModel>.reactive(
       onModelReady: (model) {
-        model.loadData();
+        model.loadContacts();
       },
       viewModelBuilder: () => MessageViewModel(),
       builder: (context, model, child) {
@@ -202,6 +196,19 @@ class _ContactPageState extends State<ContactPage> {
           ),
         );
       },
+    );
+  }
+
+  void _handlePressed(types.User otherUser, BuildContext context) async {
+    final room = await FirebaseChatCore.instance.createRoom(otherUser);
+
+    Navigator.of(context).pop();
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChatPage(
+          room: room,
+        ),
+      ),
     );
   }
 }

@@ -1297,8 +1297,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final response = await client.get(Uri.parse("$apihub/v2/api/users"));
 
     for (Business business in businessFromJson(response.body)) {
-      final box = store.box<Business>();
-      box.put(business);
+      /// a user mast have been opted in to the app. chat feature.
+      /// this is because there is old business that does not know about this feature
+      /// otherwise it won't required as this step is part of startup logic.
+      if (business.chatUid != null) {
+        final box = store.box<Business>();
+        box.put(business);
+      }
     }
 
     yield* store
@@ -1413,10 +1418,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Business getBusinessById({required int id}) {
-    // return store
-    //     .box<Business>()
-    //     .getAll()
-    //     .firstWhere((business) => business.id == id);
     return store
         .box<Business>()
         .query(Business_.id.equals(id))
@@ -1445,7 +1446,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future<void> updateBusiness({required int id, required Map business}) async {
     await client.patch(Uri.parse("$apihub/v2/api/business/$id"),
-        body: jsonEncode({'deviceToken': business['deviceToken']}),
+        body: jsonEncode({
+          'deviceToken': business['deviceToken'],
+          'chatUid': business['chatUid']
+        }),
         headers: {'Content-Type': 'application/json'});
   }
 

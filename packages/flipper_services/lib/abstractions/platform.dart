@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stacked_firebase_auth/stacked_firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class LoginStandard {
   Future<bool> createAccountWithPhone(
@@ -9,4 +9,5 @@ abstract class LoginStandard {
       {required String appleClientId, required String appleRedirectUri});
   confirmOtpForWeb({required String otp});
   Future<void> verifyWithOtp();
+  Future<User?> getCurrentUserId();
 }

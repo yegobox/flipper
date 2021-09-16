@@ -145,4 +145,13 @@ class FlipperFirebaseAuthenticationService extends FirebaseAuthenticationService
       }
     });
   }
+
+  @override
+  Future<User?> getCurrentUserId() async {
+    //get the current firebase user
+    if (firebaseAuth.currentUser != null) {
+      return firebaseAuth.currentUser;
+    }
+    return null;
+  }
 }

@@ -2,6 +2,7 @@
 // import 'dart:typed_data';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
@@ -363,5 +364,11 @@ class WindowsFirebaseAuthenticationImplementation implements LoginStandard {
       log.e(e);
       throw Exception(e);
     }
+  }
+
+  @override
+  Future<User?> getCurrentUserId() {
+    // TODO: implement getCurrentUserId
+    throw UnimplementedError();
   }
 }

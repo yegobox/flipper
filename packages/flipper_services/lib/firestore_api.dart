@@ -5,11 +5,14 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/proxy.dart';
 import 'exceptions/firestore_api_exception.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 
 abstract class Firestore {
   Future<void> createUser({required dynamic user, required String token});
   Future<void> getUser({required String userId});
   Future<void> saveTokenToDatabase({String? token, Map? business});
+  Future<void> createUserInFirestore({required Map user});
 }
 
 class UnSupportedFirestoreApi implements Firestore {
@@ -26,6 +29,12 @@ class UnSupportedFirestoreApi implements Firestore {
   @override
   Future<void> saveTokenToDatabase({String? token, Map? business}) async {
     // TODO: implement saveTokenToDatabase
+  }
+
+  @override
+  Future<void> createUserInFirestore({required Map user}) {
+    // TODO: implement createUserInFirestore
+    throw UnimplementedError();
   }
 }
 
@@ -78,14 +87,20 @@ class FirestoreApi implements Firestore {
   @override
   Future<void> saveTokenToDatabase({String? token, Map? business}) async {
     // String uid = FirebaseAuth.instance.currentUser!.uid;
-    String? userId = ProxyService.box.read(key: 'userId');
+    // String? userId = ProxyService.box.read(key: 'userId');
     log.i(business!['id']);
+    User? user = await ProxyService.auth.getCurrentUserId();
+
+    // await ProxyService.api.getBusinessById(id: business['id']);
+    //patch a business to add a chat uid
+    business['chatUid'] = user!.uid;
+    // log.i(business);
     if (business['id'] is int) {
       ProxyService.api.updateBusiness(id: business['id'], business: business);
 
       //this update local database
-      ProxyService.api
-          .update(data: business, endPoint: 'businesses/' + business['id'].toString());
+      ProxyService.api.update(
+          data: business, endPoint: 'businesses/' + business['id'].toString());
     }
 
     //old way!
@@ -95,5 +110,17 @@ class FirestoreApi implements Firestore {
     //     'tokens': FieldValue.arrayUnion([token]),
     //   });
     // } catch (e) {}
+  }
+
+  @override
+  Future<void> createUserInFirestore({required Map user}) async {
+    await FirebaseChatCore.instance.createUserInFirestore(
+      types.User(
+        firstName: user['firstName'],
+        id: user['uid'],
+        imageUrl: user['imageUrl'],
+        lastName: user['lastName'],
+      ),
+    );
   }
 }
