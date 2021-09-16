@@ -404,8 +404,7 @@ class ProductViewModel extends BusinessHomeViewModel {
 
     if (order != null) {
       for (OrderItem item in order.orderItems) {
-        /// if the item price is for example 10 and the discount is 200
-        if (item.price.toInt() < discount.amount! && item.discount == null) {
+        if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 
           /// update the item in the order
@@ -414,7 +413,7 @@ class ProductViewModel extends BusinessHomeViewModel {
               .update(data: item.toJson(), endPoint: 'orderItem/$id');
         } else if (item.discount == null) {
           int id = item.id;
-          item.discount = item.price - discount.amount!.toDouble();
+          item.discount = discount.amount!.toDouble();
 
           await ProxyService.api
               .update(data: item.toJson(), endPoint: 'orderItem/$id');

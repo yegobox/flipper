@@ -111,7 +111,7 @@ class OrderSummary extends StatelessWidget {
                   contentPadding:
                       const EdgeInsets.only(left: 40.0, right: 40.0),
                   trailing: Text(
-                    'RWF ' + display(model.totalDiscount).toString(),
+                    '- RWF ' + display(model.totalDiscount).toString(),
                     style: const TextStyle(color: Colors.black),
                   ),
                   leading: Text(
@@ -126,7 +126,7 @@ class OrderSummary extends StatelessWidget {
                 trailing: Text(
                   'RWF ' +
                       display(model.totalDiscount > 0
-                              ? model.totalDiscount
+                              ? (model.totalPayable)
                               : model.totalPayable)
                           .toString(),
                   style: const TextStyle(color: Colors.black),

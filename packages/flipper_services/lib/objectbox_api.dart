@@ -380,12 +380,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    // final response = await dioClient.get(
-    //   "$apihub/v2/api/branches/$businessId",
-    // );
-    // print(response);
-    // List<Branch> branches = branchFromJson(response);
-    // return branches;
     final response =
         await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
     return branchFromJson(response.body);
@@ -1051,21 +1045,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
         final box = store.box<Discount>();
         box.put(kDiscount, mode: PutMode.update);
         break;
+
+      /// when dealing with something that has a relationship
+      /// we need to update it as the following.!
       case 'orderItem':
         OrderItem? orderItem = store.box<OrderItem>().get(id);
-        Map map = orderItem!.toJson();
-        data.forEach((key, value) {
-          map[key] = value;
-        });
 
-        orderItem.forderId = map['forderId'];
-        orderItem.fvariantId = map['fvariantId'];
-        orderItem.count = map['count'];
-        orderItem.price = map['price'];
-        orderItem.id = map['id'];
-        orderItem.name = map['name'];
-        orderItem.discount = map['discount'];
-        orderItem.type = map['type'];
+        orderItem!.forderId = data['forderId'];
+        orderItem.fvariantId = data['fvariantId'];
+        orderItem.count = data['count'];
+        orderItem.price = data['price'];
+        orderItem.id = data['id'];
+        orderItem.name = data['name'];
+        orderItem.discount = data['discount'];
+        orderItem.type = data['type'];
         store.box<OrderItem>().put(orderItem);
         break;
       default:

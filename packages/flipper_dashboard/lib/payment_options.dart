@@ -44,10 +44,7 @@ class Payments extends StatelessWidget {
                           model.kOrder != null
                               ? Text(
                                   'FRw ' +
-                                      display(model.totalDiscount != 0.0
-                                              ? model.totalDiscount
-                                              : model.totalPayable)
-                                          .toString(),
+                                      display(model.totalPayable).toString(),
                                   style: const TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),

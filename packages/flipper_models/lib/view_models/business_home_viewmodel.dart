@@ -384,7 +384,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         .fold(0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
     keypad.setTotalPayable(
         amount: totalDiscount != 0.0
-            ? totalDiscount!.toDouble()
+            ? (totalPayable! - totalDiscount!.toDouble())
             : totalPayable!.toDouble());
     keypad.setTotalDiscount(amount: totalDiscount!.toDouble());
 
@@ -395,26 +395,18 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// if deleting OrderItem leaves order with no OrderItem
   /// this function also delete the order
   Future<bool> deleteOrderItem({required int id}) async {
-    currentOrder();
-    OrderF order = keypad.order!;
+    await ProxyService.api.delete(id: id, endPoint: 'orderItem');
 
-    if (order.orderItems.isNotEmpty) {
-      // OrderItem? orderItem = await ProxyService.api.getOrderItem(id: id);
-      await ProxyService.api.delete(id: id, endPoint: 'orderItem');
+    await currentOrder();
 
-      // ProxyService.api.update(data: order.toJson(), endPoint: 'order');
-      await currentOrder();
-      updatePayable();
-      if (keypad.order!.orderItems.isEmpty) {
-        keypad.setTotalPayable(amount: 0.0);
-        keypad.setTotalDiscount(amount: 0.0);
+    updatePayable();
 
-        ProxyService.nav.back();
-      }
-      return true;
+    /// if there is no orderItem left in the order then navigate back
+    if (keypad.order!.orderItems.isEmpty) {
+      ProxyService.nav.back();
     }
 
-    return false;
+    return true;
   }
 
   @override

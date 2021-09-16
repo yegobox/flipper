@@ -147,9 +147,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                       return 'Please enter Cash Received';
                                     }
                                     double totalOrderAmount =
-                                        model.totalDiscount != 0.0
-                                            ? model.totalDiscount
-                                            : model.totalPayable;
+                                        model.totalPayable;
                                     if (double.parse(value) <
                                         totalOrderAmount) {
                                       return "Amount is less than amount payable";
@@ -179,10 +177,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                               borderRadius: 20.0,
                               controller: _btnController,
                               onPressed: () async {
-                                double totalOrderAmount =
-                                    model.totalDiscount != 0.0
-                                        ? model.totalDiscount
-                                        : model.totalPayable;
+                                double totalOrderAmount = model.totalPayable;
 
                                 if (_formKey.currentState!.validate()) {
                                   model.keypad.setCashReceived(
