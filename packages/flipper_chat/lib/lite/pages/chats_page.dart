@@ -1,5 +1,6 @@
 import 'package:flipper_chat/lite/helpers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_chat/lite/pages/right_to_left_route.dart';
 import 'package:flipper_chat/lite/pages/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -12,6 +13,8 @@ import 'package:flipper/localization.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:jovial_svg/jovial_svg.dart';
+
+import 'chat_page.dart';
 
 // ignore: must_be_immutable
 /// chats is considered to be like a room as per flutter_firebase_chat_core terms
@@ -85,7 +88,7 @@ class _ChatsPageState extends State<ChatsPage> {
       child: CircleAvatar(
         backgroundColor: hasImage ? Colors.transparent : color,
         backgroundImage: hasImage ? NetworkImage(room.imageUrl!) : null,
-        radius: 20,
+        radius: 80,
         child: !hasImage
             ? Text(
                 name.isEmpty ? '' : name[0].toUpperCase(),
@@ -130,11 +133,11 @@ class _ChatsPageState extends State<ChatsPage> {
                     actionPane: SlidableDrawerActionPane(),
                     child: InkWell(
                       onTap: () {
-                        // Navigator.of(context).push(
-                        //   RightToLeftRoute(
-                        //     page: ChatPage(conversation: conversation),
-                        //   ),
-                        // );
+                        Navigator.of(context).push(
+                          RightToLeftRoute(
+                            page: ChatPage(room: room),
+                          ),
+                        );
                       },
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 5),
@@ -194,14 +197,14 @@ class _ChatsPageState extends State<ChatsPage> {
                                             fontSize: 18,
                                           ),
                                         ),
-                                        // Text(
-                                        //   timeago.format(DateTime.parse(DateTime
-                                        //           .fromMillisecondsSinceEpoch(
-                                        //               conversation.createdAt,
-                                        //               isUtc: true)
-                                        //       .toIso8601String())),
-                                        //   style: Helpers.txtDefault,
-                                        // ),
+                                        Text(
+                                          timeago.format(DateTime.parse(DateTime
+                                              .fromMillisecondsSinceEpoch(
+                                            room.createdAt!,
+                                            isUtc: true,
+                                          ).toIso8601String())),
+                                          style: Helpers.txtDefault,
+                                        ),
                                       ],
                                     ),
                                     // Text(
