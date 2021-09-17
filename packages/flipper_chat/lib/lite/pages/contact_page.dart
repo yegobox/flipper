@@ -69,16 +69,17 @@ class _ContactPageState extends State<ContactPage> {
 
         await ProxyService.firestore.createUserInFirestore(user: {
           'firstName': business.firstName,
-          'lastName': business.lastName,
+          'lastName': null,
           'email': '  ',
           'uid': business.userId,
           'imageUrl': 'https://dummyimage.com/300/09f.png/fff'
         });
+
         _handlePressed(
           types.User(
-            firstName: business.firstName,
-            lastName: business.lastName,
-            id: business.chatUid!,
+            firstName: business.name,
+            lastName: business.name,
+            id: business.chatUid == null ? business.userId! : business.chatUid!,
             imageUrl: 'https://dummyimage.com/300/09f.png/fff',
           ),
           context,

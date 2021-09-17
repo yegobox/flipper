@@ -725,9 +725,9 @@ packages:
   flutter_firebase_chat_core:
     dependency: transitive
     description:
-      name: flutter_firebase_chat_core
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/flutter_firebase_chat_core"
+      relative: true
+    source: path
     version: "1.4.2"
   flutter_hooks:
     dependency: transitive

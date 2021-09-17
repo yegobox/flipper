@@ -198,17 +198,20 @@ class _ChatsPageState extends State<ChatsPage> {
                                           ),
                                         ),
                                         Text(
-                                          timeago.format(DateTime.parse(DateTime
-                                              .fromMillisecondsSinceEpoch(
-                                            room.createdAt!,
-                                            isUtc: true,
-                                          ).toIso8601String())),
+                                          room.createdAt != null
+                                              ? timeago.format(DateTime.parse(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                  room.createdAt!,
+                                                  isUtc: true,
+                                                ).toIso8601String()))
+                                              : '',
                                           style: Helpers.txtDefault,
                                         ),
                                       ],
                                     ),
                                     // Text(
-                                    //   conversation.lastMessage ?? '',
+                                    //   room.lastMessages'',
                                     //   overflow: TextOverflow.ellipsis,
                                     //   maxLines: 1,
                                     //   softWrap: true,

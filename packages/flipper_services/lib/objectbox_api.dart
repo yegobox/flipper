@@ -1300,10 +1300,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
       /// a user mast have been opted in to the app. chat feature.
       /// this is because there is old business that does not know about this feature
       /// otherwise it won't required as this step is part of startup logic.
-      if (business.chatUid != null) {
-        final box = store.box<Business>();
-        box.put(business);
-      }
+      // if (business.chatUid != null) {
+      final box = store.box<Business>();
+      box.put(business);
+      // }
     }
 
     yield* store

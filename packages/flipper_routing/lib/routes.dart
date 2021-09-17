@@ -135,7 +135,7 @@ class AppSetup {
 
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/flyerhq/flutter_chat_types.git open-sources/flutter_chat_types
+// git submodule add https://github.com/flyerhq/flutter_firebase_chat_core.git open-sources/flutter_firebase_chat_core
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%

@@ -81,7 +81,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 2865100998343489519),
       name: 'Business',
-      lastPropertyId: const IdUid(23, 3713089851155268736),
+      lastPropertyId: const IdUid(24, 8392855964498574230),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -197,6 +197,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(23, 3713089851155268736),
             name: 'deviceToken',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(24, 8392855964498574230),
+            name: 'chatUid',
             type: 9,
             flags: 0)
       ],
@@ -1249,7 +1254,9 @@ ModelDefinition getObjectBoxModel() {
           final deviceTokenOffset = object.deviceToken == null
               ? null
               : fbb.writeString(object.deviceToken!);
-          fbb.startTable(24);
+          final chatUidOffset =
+              object.chatUid == null ? null : fbb.writeString(object.chatUid!);
+          fbb.startTable(25);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, currencyOffset);
@@ -1273,6 +1280,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(20, lastNameOffset);
           fbb.addOffset(21, createdAtOffset);
           fbb.addOffset(22, deviceTokenOffset);
+          fbb.addOffset(23, chatUidOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1315,6 +1323,7 @@ ModelDefinition getObjectBoxModel() {
               firstName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42),
               lastName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44),
               deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48),
+              chatUid: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 50),
               role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
             ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
 
@@ -2320,6 +2329,10 @@ class Business_ {
   /// see [Business.deviceToken]
   static final deviceToken =
       QueryStringProperty<Business>(_entities[1].properties[22]);
+
+  /// see [Business.chatUid]
+  static final chatUid =
+      QueryStringProperty<Business>(_entities[1].properties[23]);
 }
 
 /// [Category] entity fields to define ObjectBox queries.
