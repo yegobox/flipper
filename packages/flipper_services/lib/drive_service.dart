@@ -41,13 +41,19 @@ class GoogleDrive {
       log.i(credentials["type"]);
       //Already authenticated
       return authenticatedClient(
-          http.Client(),
-          AccessCredentials(
-              AccessToken(credentials["type"], credentials["data"],
-                  DateTime.tryParse(credentials["expiry"])!),
-              // credentials["refreshToken"],
-              null, // refreshToken can be null as it was not returned when logging in
-              _scopes));
+        http.Client(),
+        AccessCredentials(
+          AccessToken(
+            credentials["type"],
+            credentials["data"],
+            DateTime.tryParse(credentials["expiry"])!,
+          ),
+          // credentials["refreshToken"],
+          // refreshToken can be null as it was not returned when logging in
+          null,
+          _scopes,
+        ),
+      );
     }
   }
 
