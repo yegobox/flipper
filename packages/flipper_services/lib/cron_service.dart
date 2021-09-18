@@ -72,6 +72,15 @@ class CronService {
           .saveTokenToDatabase(token: token!, business: updatedBusiness);
     }
 
+    /// load new contacts i.e business every 5 minutes
+    /// this will be used to update the business model
+    /// TODOchange this to avoid multiple api calls to the server
+    /// load them when app start then do it later every 15 minutes
+    ProxyService.api.getContacts();
+    cron.schedule(Schedule.parse('*/15 * * * *'), () async {
+      ProxyService.api.getContacts();
+    });
+
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution

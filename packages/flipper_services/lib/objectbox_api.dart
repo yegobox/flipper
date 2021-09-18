@@ -1294,18 +1294,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
   ///in cron so it can run in app backgroup like every hour.
   @override
   Stream<List<Business>> contacts() async* {
-    final response = await client.get(Uri.parse("$apihub/v2/api/users"));
-
-    for (Business business in businessFromJson(response.body)) {
-      /// a user mast have been opted in to the app. chat feature.
-      /// this is because there is old business that does not know about this feature
-      /// otherwise it won't required as this step is part of startup logic.
-      // if (business.chatUid != null) {
-      final box = store.box<Business>();
-      box.put(business);
-      // }
-    }
-
     yield* store
         .box<Business>()
         .query()
@@ -1576,6 +1564,27 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .query(Discount_.branchId.equals(branchId))
         .build()
         .find()
+        .toList();
+  }
+
+  @override
+  Future<List<Business>> getContacts() async {
+    final response = await client.get(Uri.parse("$apihub/v2/api/users"));
+    log.i('now fetching new contacts business now');
+    for (Business business in businessFromJson(response.body)) {
+      /// a user mast have been opted in to the app. chat feature.
+      /// this is because there is old business that does not know about this feature
+      /// otherwise it won't required as this step is part of startup logic.
+      if (business.chatUid != null) {
+        final box = store.box<Business>();
+        box.put(business);
+      }
+    }
+    int businessId = ProxyService.box.read(key: 'businessId');
+    return store
+        .box<Business>()
+        .getAll()
+        .where((unit) => unit.id != businessId)
         .toList();
   }
 }

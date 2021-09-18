@@ -966,7 +966,7 @@ packages:
     source: hosted
     version: "0.6.0"
   flutter_svg:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_svg
       url: "https://pub.dartlang.org"
@@ -1237,20 +1237,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.1.0"
-  jovial_misc:
-    dependency: transitive
-    description:
-      name: jovial_misc
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0"
-  jovial_svg:
-    dependency: "direct main"
-    description:
-      name: jovial_svg
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.6"
   js:
     dependency: transitive
     description:
@@ -1580,13 +1566,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  pointycastle:
-    dependency: transitive
-    description:
-      name: pointycastle
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.3.4"
   pool:
     dependency: transitive
     description:

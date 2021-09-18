@@ -594,4 +594,10 @@ class HttpApi<T> implements Api {
     // TODO: implement order
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<Business>> getContacts() {
+    // TODO: implement getContacts
+    throw UnimplementedError();
+  }
 }

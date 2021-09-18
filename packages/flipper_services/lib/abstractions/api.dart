@@ -95,6 +95,7 @@ abstract class Api<T> {
   //the method is not different from users, but users is for streaming users being added
   //to connected devices, while this method is for getting all users using List<Business>
   Stream<List<Business>> contacts();
+  Future<List<Business>> getContacts();
 
   Business getBusiness();
   Customer? addCustomer({required Map customer, required int orderId});

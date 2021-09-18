@@ -7,12 +7,12 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
-import 'package:flipper_models/avatar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper/localization.dart';
+import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:jovial_svg/jovial_svg.dart';
 
 import 'chat_page.dart';
 
@@ -68,33 +68,16 @@ class _ChatsPageState extends State<ChatsPage> {
       }
     }
 
-    final hasImage = room.imageUrl != null;
+    // final hasImage = room.imageUrl != null;
     final name = room.name ?? '';
 
-// ScalableImageWidget.fromSISource(
-//   si: ScalableImageSource.fromSvgHttpUrl(
-//       Uri.parse(conversation.avatars !=
-//               null
-//           ? conversation
-//               .avatars!.entries
-//               .map((entry) => Avatar(
-//                   entry.key,
-//                   entry.value))
-//               .toList()[0]
-//               .url
-//           : "https://avatars.dicebear.com/api/avataaars/$senderName.svg")))
     return Container(
-      margin: const EdgeInsets.only(right: 16),
-      child: CircleAvatar(
-        backgroundColor: hasImage ? Colors.transparent : color,
-        backgroundImage: hasImage ? NetworkImage(room.imageUrl!) : null,
-        radius: 80,
-        child: !hasImage
-            ? Text(
-                name.isEmpty ? '' : name[0].toUpperCase(),
-                style: const TextStyle(color: Colors.white),
-              )
-            : null,
+      child: TextDrawable(
+        backgroundColor: color,
+        text: name,
+        isTappable: true,
+        onTap: null,
+        boxShape: BoxShape.rectangle,
       ),
     );
   }
@@ -146,7 +129,8 @@ class _ChatsPageState extends State<ChatsPage> {
                             Container(
                               width: 5,
                               // TODOwill work on this to mark if message has unread message(s)
-                              color: primary,
+                              // primary is used for unread message will implement later.
+                              color: Colors.transparent,
                               margin: const EdgeInsets.only(right: 3),
                             ),
                             Container(
@@ -156,8 +140,8 @@ class _ChatsPageState extends State<ChatsPage> {
                                 children: [
                                   ClipOval(
                                     child: Container(
-                                      width: 45,
-                                      height: 45,
+                                      width: 55,
+                                      height: 55,
                                       child: _buildAvatar(room),
                                     ),
                                   ),

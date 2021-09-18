@@ -33,6 +33,7 @@ class _LiteState extends State<Lite> {
   @override
   void initState() {
     super.initState();
+    ProxyService.cron.schedule();
   }
 
   void changePage(int index) {

@@ -51,6 +51,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await _deleteCacheDir();
   // await _deleteAppDir();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
