@@ -14,4 +14,5 @@ abstract class Remote {
   bool isMenuAvailable();
   bool isDiscountAvailable();
   bool isOrderAvailable();
+  bool isBackupAvailable();
 }

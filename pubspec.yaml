@@ -178,8 +178,14 @@ dependencies:
   flutter_chat_ui: ^1.4.1
   flutter_firebase_chat_core:
     path: "open-sources/flutter_firebase_chat_core"
-  file_picker: ^4.0.2
+  file_picker: ^4.0.3
   firebase_storage: ^10.0.3
+  googleapis: ^5.0.1
+  googleapis_auth: ^1.1.0
+  flutter_secure_storage: ^4.2.1
+  url_launcher: ^6.0.11
+  google_sign_in: ^5.1.0
+  extension_google_sign_in_as_googleapis_auth: ^2.0.3
   # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:

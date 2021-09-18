@@ -81,6 +81,16 @@ class CronService {
       ProxyService.api.getContacts();
     });
 
+    //backup the user db every day
+    cron.schedule(Schedule.parse('0 0 * * *'), () async {
+      // ProxyService.firestore.backup();
+      // select acccount (google drive account) for backup
+      //select gmail address for backup
+      // when selecting it goes to authenticate
+      // allow flipper to backup the data
+      // tap on allow button.
+    });
+
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution

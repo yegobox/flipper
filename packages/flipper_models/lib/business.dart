@@ -54,6 +54,7 @@ class Business {
       this.lastName,
       this.deviceToken,
       this.chatUid,
+      this.backUpEnabled = false,
       this.role});
   @Id(assignable: true)
   int id;
@@ -102,6 +103,7 @@ class Business {
   String? lastName;
   String? createdAt;
   String? deviceToken;
+  bool? backUpEnabled;
 
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -109,6 +111,7 @@ class Business {
         chatUid = json["chatUid"],
         deviceToken = json["deviceToken"],
         currency = json["currency"],
+        backUpEnabled = json["backUpEnabled"],
         // TODOwhen loading the fcategoryId it seems somehow fcategoryId is a string and we are expecting an int or maybe there is null returned!
         // fcategoryId = json["fcategoryId"],
         latitude = json["latitude"] ?? '1',
@@ -133,6 +136,7 @@ class Business {
         "id": int.parse(id.toString()),
         "name": name,
         "deviceToken": deviceToken,
+        "backUpEnabled": backUpEnabled,
         "currency": currency,
         "chatUid": chatUid,
         "fcategoryId": fcategoryId.toString(),

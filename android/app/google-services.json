@@ -31,6 +31,14 @@
           }
         },
         {
+          "client_id": "672237316015-a61ueto4qcl71le6fhecvbvmjmb3jkkt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "rw.flipper",
+            "certificate_hash": "d5a899b04970c883df90a0981e19512899d0cf17"
+          }
+        },
+        {
           "client_id": "672237316015-aa04jjuf60urf6m7rqs38je280mg5umo.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -39,11 +47,11 @@
           }
         },
         {
-          "client_id": "672237316015-i6i9lfi910esvpsddc4fni6g1d4v7b37.apps.googleusercontent.com",
+          "client_id": "672237316015-edmrr7ac1auhctifkovk0s23gbo98tqj.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "rw.flipper",
-            "certificate_hash": "d5a899b04970c883df90a0981e19512899d0cf17"
+            "certificate_hash": "460f9fde1fc66917e2f3e899c253fb7333fa76cd"
           }
         },
         {
@@ -68,7 +76,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "672237316015-lpi267mh18vgkdr8dk8esjubu1gtvcl5.apps.googleusercontent.com",
+              "client_id": "672237316015-h1lcpnn1kv3rock1nn37uen42knklvm0.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

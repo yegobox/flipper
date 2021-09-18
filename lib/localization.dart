@@ -1,10 +1,18 @@
+import 'dart:io';
+
+// import 'package:file_picker/file_picker.dart';
 import 'package:flipper_dashboard/loader.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
 import 'package:overlay_support/overlay_support.dart'; // Add this line.
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:flipper_routing/routes.logger.dart';
 
 class Localization {
   static AppLocalizations? of(BuildContext context) {
@@ -13,6 +21,57 @@ class Localization {
 }
 
 class FlipperBottomSheet {
+  static showAddPaymentMethod(
+      {required BusinessHomeViewModel model,
+      required BuildContext context}) async {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: SizedBox(
+            height: 180,
+            child: Container(
+                child: Column(children: <Widget>[
+              Padding(
+                key: Key('Enable backup'),
+                padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 10.h),
+                child: BoxButton(
+                  title: 'Enable backup',
+                  onTap: () async {
+                    final drive = GoogleDrive();
+                    Directory dir = await getApplicationDocumentsDirectory();
+                    // var file = await FilePicker.openFile();
+                    // dir.path + '/$dbName'
+                    // final log = getLogger('FlipperBottomSheet');
+                    // log.i(dir.path);
+                    // List<FileSystemEntity> es =
+                    //     Directory(dir.path + '/db_1/data.mdb').listSync();
+                    // for (FileSystemEntity e in es) {
+                    //   log.i(e.absolute);
+                    // }
+                    await drive.upload(File(path.context
+                        .canonicalize(dir.path + '/db_1/data.mdb')));
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Enabling backup will save your data on daily basis so you wont worry lossing data',
+                ),
+              ),
+            ])),
+          ),
+        );
+      },
+    );
+  }
+
   static showTicketsToSaleBottomSheet(
       {required BusinessHomeViewModel model,
       required BuildContext context}) async {

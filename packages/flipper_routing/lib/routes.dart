@@ -147,3 +147,11 @@ class AppSetup {
 // git add . && git stash && git pull origin main && gradle build && docker-compose up --build -d
 
 // TODO: use repeat ionicons in chat's fload button.
+
+// debug key: when debugging
+// https://stackoverflow.com/questions/12456491/i-dont-remember-my-android-debug-keystore-password
+// keytool -list -v -keystore ~/.android/debug.keystore
+
+//when prod: when prod
+// keytool -list -v -keystore
+

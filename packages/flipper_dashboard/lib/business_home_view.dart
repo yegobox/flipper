@@ -105,6 +105,54 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         model.registerLocation();
         model.getTickets();
         model.updatePayable();
+        // on component init then we check if business have enabled backup
+        // then if not it shows the bottom sheet to enable backup
+        // once the user click enable backup we check again if a user is on any plan
+        // if not pop the screen show the add card screen
+        // on adding card and on first payment success then we pop the screen and who backup screen again
+        // TODOwork in progress not uploading the backup need more debug.
+        if (ProxyService.remoteConfig.isBackupAvailable()) {
+          if (ProxyService.api.getBusiness().backUpEnabled == false) {
+            // await model.backUpEnabled();
+            //show the bottom sheet to add card
+            FlipperBottomSheet.showAddPaymentMethod(
+              model: model,
+              context: context,
+            );
+          }
+        }
+
+        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
+        //   if(ProxyService.api.getBusiness().onAnyPlan == false) {
+        //     await model.onAnyPlan();
+        //   }
+        // }
+        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
+        //   if(ProxyService.api.getBusiness().onAnyPlan == true) {
+        //     if(ProxyService.api.getBusiness().onAnyPlan.isCardAdded == false) {
+        //       await model.onAnyPlanCardAdded();
+        //     }
+        //   }
+        // }
+        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
+        //   if(ProxyService.api.getBusiness().onAnyPlan == true) {
+        //     if(ProxyService.api.getBusiness().onAnyPlan.isCardAdded == true) {
+        //       if(ProxyService.api.getBusiness().onAnyPlan.isPaymentSuccess == false) {
+        //         await model.onAnyPlanPaymentSuccess();
+        //       }
+        //     }
+        //   }
+        // }
+        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
+        //   if(ProxyService.api.getBusiness().onAnyPlan == true) {
+        //     if(ProxyService.api.getBusiness().onAnyPlan.isCardAdded == true) {
+        //       if(ProxyService.api.getBusiness().onAnyPlan.isPaymentSuccess == true) {
+        //         await model.onAnyPlanPaymentSuccess();
+        //       }
+        //     }
+        //   }
+        // }
+
         //register remote config
       },
       builder: (context, model, child) {

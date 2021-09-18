@@ -54,7 +54,7 @@
     },
     {
       "id": "2:2865100998343489519",
-      "lastPropertyId": "24:8392855964498574230",
+      "lastPropertyId": "25:4546554080487738070",
       "name": "Business",
       "properties": [
         {
@@ -177,6 +177,11 @@
           "id": "24:8392855964498574230",
           "name": "chatUid",
           "type": 9
+        },
+        {
+          "id": "25:4546554080487738070",
+          "name": "backUpEnabled",
+          "type": 1
         }
       ],
       "relations": []
