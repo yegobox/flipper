@@ -512,6 +512,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.1"
+  extension_google_sign_in_as_googleapis_auth:
+    dependency: transitive
+    description:
+      name: extension_google_sign_in_as_googleapis_auth
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.3"
   fake_async:
     dependency: transitive
     description:
@@ -963,6 +970,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fluttertoast:
+    dependency: transitive
+    description:
+      name: fluttertoast
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "8.0.8"
   font_awesome_flutter:
     dependency: transitive
     description:
@@ -1348,6 +1362,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.3"
+  nb_utils:
+    dependency: transitive
+    description:
+      name: nb_utils
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.4.8"
   nested:
     dependency: transitive
     description:

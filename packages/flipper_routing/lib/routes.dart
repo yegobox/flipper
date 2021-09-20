@@ -162,3 +162,13 @@ class AppSetup {
 // https://pub.dev/packages/nb_utils
 // TODO: when making 5M per month, will switch to fluent UI as core UI of flipper
 // https://pub.dev/packages/fluent_ui
+
+// var file = await FilePicker.openFile();
+                    // dir.path + '/$dbName'
+                    // final log = getLogger('FlipperBottomSheet');
+                    // log.i(dir.path);
+                    // List<FileSystemEntity> es =
+                    //     Directory(dir.path + '/db_1/data.mdb').listSync();
+                    // for (FileSystemEntity e in es) {
+                    //   log.i(e.absolute);
+                    // }

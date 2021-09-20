@@ -61,10 +61,23 @@ class GoogleDrive {
   Future upload(File file) async {
     var client = await getHttpClient();
     var drive = ga.DriveApi(client);
+    ga.File fileToUpload = ga.File();
+    // https://ko.stackfinder.net/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
+    // https://developers.google.com/drive/api/v3/appdata
+    fileToUpload.parents = ["appDataFolder"];
+    fileToUpload.name = "flipper";
     log.w("Uploading file");
+
+    /// can be nice to name the uploaded file after the original file flipper
     var response = await drive.files.create(
-        ga.File()..name = p.basename(file.absolute.path),
-        uploadMedia: ga.Media(file.openRead(), file.lengthSync()));
+      // ga.File()..name = p.basename(file.absolute.path),
+      // ga.File()..name = 'flipper',
+      fileToUpload,
+      uploadMedia: ga.Media(
+        file.openRead(),
+        file.lengthSync(),
+      ),
+    );
 
     log.w("Result ${response.toJson()}");
   }

@@ -54,7 +54,7 @@
     },
     {
       "id": "2:2865100998343489519",
-      "lastPropertyId": "25:4546554080487738070",
+      "lastPropertyId": "29:1233285787693282103",
       "name": "Business",
       "properties": [
         {
@@ -181,6 +181,26 @@
         {
           "id": "25:4546554080487738070",
           "name": "backUpEnabled",
+          "type": 1
+        },
+        {
+          "id": "26:3192194834539283051",
+          "name": "subscriptionPlan",
+          "type": 9
+        },
+        {
+          "id": "27:2803303694211390632",
+          "name": "nextBillingDate",
+          "type": 9
+        },
+        {
+          "id": "28:697434406173511171",
+          "name": "previousBillingDate",
+          "type": 9
+        },
+        {
+          "id": "29:1233285787693282103",
+          "name": "isLastSubscriptionPaymentSucceeded",
           "type": 1
         }
       ],

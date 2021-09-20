@@ -81,7 +81,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 2865100998343489519),
       name: 'Business',
-      lastPropertyId: const IdUid(25, 4546554080487738070),
+      lastPropertyId: const IdUid(29, 1233285787693282103),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -207,6 +207,26 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(25, 4546554080487738070),
             name: 'backUpEnabled',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(26, 3192194834539283051),
+            name: 'subscriptionPlan',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(27, 2803303694211390632),
+            name: 'nextBillingDate',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(28, 697434406173511171),
+            name: 'previousBillingDate',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(29, 1233285787693282103),
+            name: 'isLastSubscriptionPaymentSucceeded',
             type: 1,
             flags: 0)
       ],
@@ -1261,7 +1281,16 @@ ModelDefinition getObjectBoxModel() {
               : fbb.writeString(object.deviceToken!);
           final chatUidOffset =
               object.chatUid == null ? null : fbb.writeString(object.chatUid!);
-          fbb.startTable(26);
+          final subscriptionPlanOffset = object.subscriptionPlan == null
+              ? null
+              : fbb.writeString(object.subscriptionPlan!);
+          final nextBillingDateOffset = object.nextBillingDate == null
+              ? null
+              : fbb.writeString(object.nextBillingDate!);
+          final previousBillingDateOffset = object.previousBillingDate == null
+              ? null
+              : fbb.writeString(object.previousBillingDate!);
+          fbb.startTable(30);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, currencyOffset);
@@ -1287,6 +1316,10 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(22, deviceTokenOffset);
           fbb.addOffset(23, chatUidOffset);
           fbb.addBool(24, object.backUpEnabled);
+          fbb.addOffset(25, subscriptionPlanOffset);
+          fbb.addOffset(26, nextBillingDateOffset);
+          fbb.addOffset(27, previousBillingDateOffset);
+          fbb.addBool(28, object.isLastSubscriptionPaymentSucceeded);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1331,6 +1364,10 @@ ModelDefinition getObjectBoxModel() {
               deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48),
               chatUid: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 50),
               backUpEnabled: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 52),
+              subscriptionPlan: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 54),
+              nextBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 56),
+              previousBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 58),
+              isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
               role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
             ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
 
@@ -2344,6 +2381,22 @@ class Business_ {
   /// see [Business.backUpEnabled]
   static final backUpEnabled =
       QueryBooleanProperty<Business>(_entities[1].properties[24]);
+
+  /// see [Business.subscriptionPlan]
+  static final subscriptionPlan =
+      QueryStringProperty<Business>(_entities[1].properties[25]);
+
+  /// see [Business.nextBillingDate]
+  static final nextBillingDate =
+      QueryStringProperty<Business>(_entities[1].properties[26]);
+
+  /// see [Business.previousBillingDate]
+  static final previousBillingDate =
+      QueryStringProperty<Business>(_entities[1].properties[27]);
+
+  /// see [Business.isLastSubscriptionPaymentSucceeded]
+  static final isLastSubscriptionPaymentSucceeded =
+      QueryBooleanProperty<Business>(_entities[1].properties[28]);
 }
 
 /// [Category] entity fields to define ObjectBox queries.

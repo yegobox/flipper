@@ -55,6 +55,10 @@ class Business {
       this.deviceToken,
       this.chatUid,
       this.backUpEnabled = false,
+      this.subscriptionPlan,
+      this.nextBillingDate,
+      this.previousBillingDate,
+      this.isLastSubscriptionPaymentSucceeded,
       this.role});
   @Id(assignable: true)
   int id;
@@ -98,16 +102,25 @@ class Business {
 
   /// Remote image URL representing user's avatar
   // String? imageUrl;
-
   /// Last name of the user
   String? lastName;
   String? createdAt;
   String? deviceToken;
   bool? backUpEnabled;
+  String? subscriptionPlan;
+  String? nextBillingDate;
+  String? previousBillingDate;
+  @Property(uid: 1233285787693282103)
+  bool? isLastSubscriptionPaymentSucceeded;
 
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],
+        subscriptionPlan = json["subscriptionPlan"],
+        nextBillingDate = json["nextBillingDate"],
+        previousBillingDate = json["previousBillingDate"],
+        isLastSubscriptionPaymentSucceeded =
+            json["isLastSubscriptionPaymentSucceeded"],
         chatUid = json["chatUid"],
         deviceToken = json["deviceToken"],
         currency = json["currency"],
@@ -137,6 +150,11 @@ class Business {
         "name": name,
         "deviceToken": deviceToken,
         "backUpEnabled": backUpEnabled,
+        "subscriptionPlan": subscriptionPlan,
+        "nextBillingDate": nextBillingDate,
+        "previousBillingDate": previousBillingDate,
+        "isLastSubscriptionPaymentSucceeded":
+            isLastSubscriptionPaymentSucceeded,
         "currency": currency,
         "chatUid": chatUid,
         "fcategoryId": fcategoryId.toString(),

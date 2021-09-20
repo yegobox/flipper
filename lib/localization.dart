@@ -12,7 +12,6 @@ import 'package:overlay_support/overlay_support.dart'; // Add this line.
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:flipper_routing/routes.logger.dart';
 
 class Localization {
   static AppLocalizations? of(BuildContext context) {
@@ -43,17 +42,10 @@ class FlipperBottomSheet {
                 child: BoxButton(
                   title: 'Enable backup',
                   onTap: () async {
+                    //if the payment method is not enabled, enable it first!.
                     final drive = GoogleDrive();
                     Directory dir = await getApplicationDocumentsDirectory();
-                    // var file = await FilePicker.openFile();
-                    // dir.path + '/$dbName'
-                    // final log = getLogger('FlipperBottomSheet');
-                    // log.i(dir.path);
-                    // List<FileSystemEntity> es =
-                    //     Directory(dir.path + '/db_1/data.mdb').listSync();
-                    // for (FileSystemEntity e in es) {
-                    //   log.i(e.absolute);
-                    // }
+
                     await drive.upload(File(path.context
                         .canonicalize(dir.path + '/db_1/data.mdb')));
                     // TODOupdate the business local and online about the backup
