@@ -155,3 +155,10 @@ class AppSetup {
 //when prod: when prod
 // keytool -list -v -keystore
 
+// ongoing: twitter bot experiment.
+// https://www.socialseer.com/twitter-programming-in-java-with-twitter4j/authentication-with-twitter/pin-based-authentication-in-java-with-twitter4j/
+
+//TODO: before using this:check if it works for browser too
+// https://pub.dev/packages/nb_utils
+// TODO: when making 5M per month, will switch to fluent UI as core UI of flipper
+// https://pub.dev/packages/fluent_ui

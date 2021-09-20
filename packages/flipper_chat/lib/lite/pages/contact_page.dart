@@ -78,7 +78,7 @@ class _ContactPageState extends State<ContactPage> {
         _handlePressed(
           types.User(
             firstName: business.name,
-            lastName: business.name,
+            lastName: '',
             id: business.chatUid == null ? business.userId! : business.chatUid!,
             imageUrl: 'https://dummyimage.com/300/09f.png/fff',
           ),

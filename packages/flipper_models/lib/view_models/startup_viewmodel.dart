@@ -24,6 +24,17 @@ class StartUpViewModel extends BaseViewModel {
     await appInit();
 
     if (appService.isLoggedIn()) {
+      /// you added me to a business and I have not yet signed up to flipper
+      /// on signup the app need to check if there is an exisiting business that I am attached to
+      /// if it exists then it load it as usual with the branch in that business continue as usual
+      /// signup this user for him to have username aka business name but remember that
+      /// after sucess we will set his/her environment to the business assigned to him/her
+      /// the same rule will apply when switching from one business to another
+      ///
+      /// Restoring the app database will be done by going on a setting, it should be a deliberate choice
+      /// not something we suggest!
+      /// but backing up the database will be suggested,
+      /// follow algorithm there
       String userId = ProxyService.box.read(key: 'userId');
       List<Business>? businesses = [];
       bool internetAvailable = true;

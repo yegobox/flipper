@@ -121,8 +121,8 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 //patch a business to add a chat uid
 
                 ProxyService.firestore.createUserInFirestore(user: {
-                  'firstName': business.firstName,
-                  'lastName': business.lastName,
+                  'firstName': business.name,
+                  'lastName': '',
                   'email': '  ',
                   'uid': user!.uid,
                   'imageUrl': 'https://dummyimage.com/300/09f.png/fff'

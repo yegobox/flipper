@@ -56,6 +56,9 @@ class FlipperBottomSheet {
                     // }
                     await drive.upload(File(path.context
                         .canonicalize(dir.path + '/db_1/data.mdb')));
+                    // TODOupdate the business local and online about the backup
+                    // now since the backup is true backup every time using the saved credentials of google drive
+                    // I need to know when switching to another phone how I will decide what happen.
                   },
                 ),
               ),

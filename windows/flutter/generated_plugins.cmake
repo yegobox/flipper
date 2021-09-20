@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus_windows
+  nb_utils
   objectbox_flutter_libs
   printing
   url_launcher_windows
