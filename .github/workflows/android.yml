@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.34.0+1111019/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.35.0+1111020/g' pubspec.yaml
       - name: Update env URL
         run: sed -i 's/#{PUSHER_KEY}#/${{ secrets.PUSHER_KEY }}/g'  .env
       - uses: actions/setup-java@v1
@@ -72,7 +72,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: 1.34.0+1111019
+          tag: 1.35.0+1111020
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2
@@ -90,11 +90,11 @@ jobs:
         with:
           name: appbundle
       - name: Release app to internal track
-        uses: r0adkll/upload-google-play@v1.0.16
+        uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           packageName: rw.flipper
-          releaseFiles: app-release.aab
+          releaseFiles: build/app/outputs/bundle/release/*.aab
           # inAppUpdatePriority: 2
           # userFraction: 0.33
           track: internal
