@@ -11,6 +11,7 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 // const _clientSecret = "";
 // DriveScopes.DRIVE_METADATA_READONLY
 // https://developers.google.com/drive/api/v2/about-auth
+// https://developers.google.com/drive/api/v2/appdata
 final _scopes = [
   ga.DriveApi.driveFileScope,
   ga.DriveApi.driveMetadataScope,
