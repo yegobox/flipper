@@ -10,7 +10,8 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 
 // const _clientId = "";
 // const _clientSecret = "";
-final _scopes = [ga.DriveApi.driveFileScope];
+// DriveScopes.DRIVE_METADATA_READONLY
+final _scopes = [ga.DriveApi.driveFileScope, ga.DriveApi.driveMetadataScope];
 
 class GoogleDrive {
   final storage = SecureStorage();
