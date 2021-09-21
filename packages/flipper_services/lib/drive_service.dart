@@ -3,7 +3,6 @@ import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -11,7 +10,13 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 // const _clientId = "";
 // const _clientSecret = "";
 // DriveScopes.DRIVE_METADATA_READONLY
-final _scopes = [ga.DriveApi.driveFileScope, ga.DriveApi.driveMetadataScope];
+// https://developers.google.com/drive/api/v2/about-auth
+final _scopes = [
+  ga.DriveApi.driveFileScope,
+  ga.DriveApi.driveMetadataScope,
+  ga.DriveApi.driveAppdataScope,
+  ga.DriveApi.driveScope
+];
 
 class GoogleDrive {
   final storage = SecureStorage();
