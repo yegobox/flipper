@@ -22,7 +22,7 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> runStartupLogic() async {
     await appInit();
-
+    // if we are logged in, go to home we have business locally arleady!
     if (appService.isLoggedIn()) {
       /// you added me to a business and I have not yet signed up to flipper
       /// on signup the app need to check if there is an exisiting business that I am attached to
@@ -30,65 +30,32 @@ class StartUpViewModel extends BaseViewModel {
       /// signup this user for him to have username aka business name but remember that
       /// after sucess we will set his/her environment to the business assigned to him/her
       /// the same rule will apply when switching from one business to another
-      ///
       /// Restoring the app database will be done by going on a setting, it should be a deliberate choice
       /// not something we suggest!
       /// but backing up the database will be suggested,
       /// follow algorithm there
-      String userId = ProxyService.box.read(key: 'userId');
-      List<Business>? businesses = [];
-      bool internetAvailable = true;
-      if (!isWeb) {
-        internetAvailable = await InternetConnectionChecker().hasConnection;
-      }
-      if (internetAvailable) {
-        try {
-          businesses = await ProxyService.api.businesses(userId: userId);
-        } catch (e) {
-          log.i(e);
-          if (e == 403) {
-            // token expired.
-            await ProxyService.api.logOut();
-            ProxyService.nav.navigateTo(Routes.login);
-          }
-
-          return;
-        }
-      } else {
-        ProxyService.nav.navigateTo(Routes.connectionState);
-        return;
-      }
-      isBusinessSet = (businesses.isNotEmpty) ? true : false;
-
-      if (isBusinessSet) {
-        if (!isWindows) {
-          String? token = await FirebaseMessaging.instance.getToken();
-          ProxyService.firestore.saveTokenToDatabase(
-              token: token!, business: businesses[0].toJson());
-        }
-
-        ProxyService.appService.setBusiness(businesses: businesses);
-        ProxyService.box.write(key: 'userName', value: businesses[0].name);
-        String name = businesses[0].name;
-        ProxyService.box.write(
-            key: 'businessUrl',
-            value: businesses[0].businessUrl ??
-                "https://avatars.dicebear.com/api/initials/$name.svg");
-
-        switch (ProxyService.box.read(key: pageKey)) {
-          case 'social':
-            _navigationService.replaceWith(Routes.chat);
-            break;
-          default:
-            _navigationService.replaceWith(Routes.home);
-        }
-        //TODOWhen we add the possiblity to add multiple users to log in on one system then we need to change this
-        //TODOWe need to add a way to get the current user's name and id
-      } else {
-        _navigationService.replaceWith(Routes.signup);
-      }
+      Business business = ProxyService.api.getBusiness();
+      navigateToDashboard(business);
     } else {
       _navigationService.replaceWith(Routes.login);
+    }
+  }
+
+  void navigateToDashboard(Business businesses) {
+    ProxyService.appService.setBusiness(businesses: [businesses]);
+    ProxyService.box.write(key: 'userName', value: businesses.name);
+    String name = businesses.name;
+    ProxyService.box.write(
+        key: 'businessUrl',
+        value: businesses.businessUrl ??
+            "https://avatars.dicebear.com/api/initials/$name.svg");
+
+    switch (ProxyService.box.read(key: pageKey)) {
+      case 'social':
+        _navigationService.replaceWith(Routes.chat);
+        break;
+      default:
+        _navigationService.replaceWith(Routes.home);
     }
   }
 

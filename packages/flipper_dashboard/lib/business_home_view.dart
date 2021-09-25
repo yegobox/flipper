@@ -2,9 +2,11 @@ library flipper_dashboard;
 
 import 'package:flutter/cupertino.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:flipper_services/drive_service.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_models/business.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -111,48 +113,30 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         // if not pop the screen show the add card screen
         // on adding card and on first payment success then we pop the screen and who backup screen again
         // TODOwork in progress not uploading the backup need more debug.
+        // get the business
+        Business business = await ProxyService.api.getBusiness();
         if (ProxyService.remoteConfig.isBackupAvailable()) {
-          if (ProxyService.api.getBusiness().backUpEnabled == false) {
-            // await model.backUpEnabled();
-            //show the bottom sheet to add card
-            FlipperBottomSheet.showAddPaymentMethod(
-              model: model,
-              context: context,
-            );
+          final drive = GoogleDrive();
+          if (business.backupFileId != null) {
+            drive.downloadGoogleDriveFile('data', business.backupFileId!);
           }
+          // if (ProxyService.api.getBusiness().backUpEnabled == true &&
+          //     ProxyService.api.getBusiness().backupFileId != null) {
+          //   // await model.backUpEnabled();
+          //   //show the bottom sheet to add card
+          //   FlipperBottomSheet.showAddPaymentMethod(
+          //     model: model,
+          //     context: context,
+          //   );
+          // }
+          // if (business.backUpEnabled == true && business.backupFileId != null) {
+          //   // and is no data sugges restore the backup.
+          // }
+          // if (business.backUpEnabled == false &&
+          //     business.backupFileId == null) {
+          //   // add payment method first to enable backup.
+          // }
         }
-
-        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
-        //   if(ProxyService.api.getBusiness().onAnyPlan == false) {
-        //     await model.onAnyPlan();
-        //   }
-        // }
-        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
-        //   if(ProxyService.api.getBusiness().onAnyPlan == true) {
-        //     if(ProxyService.api.getBusiness().onAnyPlan.isCardAdded == false) {
-        //       await model.onAnyPlanCardAdded();
-        //     }
-        //   }
-        // }
-        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
-        //   if(ProxyService.api.getBusiness().onAnyPlan == true) {
-        //     if(ProxyService.api.getBusiness().onAnyPlan.isCardAdded == true) {
-        //       if(ProxyService.api.getBusiness().onAnyPlan.isPaymentSuccess == false) {
-        //         await model.onAnyPlanPaymentSuccess();
-        //       }
-        //     }
-        //   }
-        // }
-        // if(ProxyService.api.getBusiness().backUpEnabled == true) {
-        //   if(ProxyService.api.getBusiness().onAnyPlan == true) {
-        //     if(ProxyService.api.getBusiness().onAnyPlan.isCardAdded == true) {
-        //       if(ProxyService.api.getBusiness().onAnyPlan.isPaymentSuccess == true) {
-        //         await model.onAnyPlanPaymentSuccess();
-        //       }
-        //     }
-        //   }
-        // }
-
         //register remote config
       },
       builder: (context, model, child) {

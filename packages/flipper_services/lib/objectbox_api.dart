@@ -876,6 +876,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
           hexColor: map['hexColor'],
           type: map['type'],
           deviceToken: map['deviceToken'],
+          backUpEnabled: map['backUpEnabled'],
+          backupFileId: map['backupFileId'],
+          isLastSubscriptionPaymentSucceeded:
+              map['isLastSubscriptionPaymentSucceeded'],
+          previousBillingDate: map['previousBillingDate'],
+          nextBillingDate: map['nextBillingDate'],
           timeZone: map['timeZone'],
           typeId: map['typeId'],
           metadata: map['metadata'],
@@ -1436,6 +1442,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     await client.patch(Uri.parse("$apihub/v2/api/business/$id"),
         body: jsonEncode({
           'deviceToken': business['deviceToken'],
+          'backupFileId': business['backupFileId'],
           'chatUid': business['chatUid']
         }),
         headers: {'Content-Type': 'application/json'});
@@ -1586,5 +1593,11 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .getAll()
         .where((unit) => unit.id != businessId)
         .toList();
+  }
+
+  @override
+  bool suggestRestore() {
+    // TODO: implement suggestRestore
+    throw UnimplementedError();
   }
 }

@@ -89,9 +89,9 @@ void main() async {
       ),
     );
     //deal with full screen mode flutter 2.5
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.leanBack,
-    );
+    // SystemChrome.setEnabledSystemUIMode(
+    //   SystemUiMode.leanBack,
+    // );
     runApp(FlipperApp());
   }, (error, stack) {
     if (!isWindows) {

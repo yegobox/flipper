@@ -869,4 +869,10 @@ class LiteApi<T> implements Api {
     // TODO: implement getContacts
     throw UnimplementedError();
   }
+
+  @override
+  bool suggestRestore() {
+    // TODO: implement suggestRestore
+    throw UnimplementedError();
+  }
 }

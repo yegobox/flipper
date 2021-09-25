@@ -40,7 +40,7 @@ class FlipperBottomSheet {
                 key: Key('EnableBackup'),
                 padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 10.h),
                 child: BoxButton(
-                  title: 'Add Google Auth',
+                  title: 'Add Backup',
                   onTap: () async {
                     //if the payment method is not enabled, enable it first!.
                     final drive = GoogleDrive();

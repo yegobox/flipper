@@ -59,6 +59,7 @@ class Business {
       this.nextBillingDate,
       this.previousBillingDate,
       this.isLastSubscriptionPaymentSucceeded,
+      this.backupFileId,
       this.role});
   @Id(assignable: true)
   int id;
@@ -113,6 +114,8 @@ class Business {
   @Property(uid: 1233285787693282103)
   bool? isLastSubscriptionPaymentSucceeded;
 
+  String? backupFileId;
+
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],
@@ -121,6 +124,7 @@ class Business {
         previousBillingDate = json["previousBillingDate"],
         isLastSubscriptionPaymentSucceeded =
             json["isLastSubscriptionPaymentSucceeded"],
+        backupFileId = json["backupFileId"],
         chatUid = json["chatUid"],
         deviceToken = json["deviceToken"],
         currency = json["currency"],
@@ -155,6 +159,7 @@ class Business {
         "previousBillingDate": previousBillingDate,
         "isLastSubscriptionPaymentSucceeded":
             isLastSubscriptionPaymentSucceeded,
+        "backupFileId": backupFileId,
         "currency": currency,
         "chatUid": chatUid,
         "fcategoryId": fcategoryId.toString(),

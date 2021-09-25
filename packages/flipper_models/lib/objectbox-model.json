@@ -54,7 +54,7 @@
     },
     {
       "id": "2:2865100998343489519",
-      "lastPropertyId": "29:1233285787693282103",
+      "lastPropertyId": "30:5778787744536565425",
       "name": "Business",
       "properties": [
         {
@@ -202,6 +202,11 @@
           "id": "29:1233285787693282103",
           "name": "isLastSubscriptionPaymentSucceeded",
           "type": 1
+        },
+        {
+          "id": "30:5778787744536565425",
+          "name": "backupFileId",
+          "type": 9
         }
       ],
       "relations": []
