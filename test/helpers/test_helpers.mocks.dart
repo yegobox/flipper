@@ -109,10 +109,21 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<List<_i9.Business>>.value(<_i9.Business>[]))
           as _i16.Future<List<_i9.Business>>);
   @override
+  _i16.Future<List<_i9.Business>> lBusinesses({String? userId}) => (super
+          .noSuchMethod(Invocation.method(#lBusinesses, [], {#userId: userId}),
+              returnValue: Future<List<_i9.Business>>.value(<_i9.Business>[]))
+      as _i16.Future<List<_i9.Business>>);
+  @override
   _i16.Future<List<_i17.Branch>> branches({int? businessId}) => (super
       .noSuchMethod(Invocation.method(#branches, [], {#businessId: businessId}),
           returnValue: Future<List<_i17.Branch>>.value(<_i17.Branch>[])) as _i16
       .Future<List<_i17.Branch>>);
+  @override
+  _i16.Future<List<_i17.Branch>> lbranches({int? businessId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#lbranches, [], {#businessId: businessId}),
+              returnValue: Future<List<_i17.Branch>>.value(<_i17.Branch>[]))
+          as _i16.Future<List<_i17.Branch>>);
   @override
   List<_i4.Stock> stocks({int? productId}) => (super.noSuchMethod(
       Invocation.method(#stocks, [], {#productId: productId}),
@@ -250,10 +261,9 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i16.Future<List<_i6.OrderF>>);
   @override
-  _i16.Future<_i6.OrderF> order({int? branchId}) =>
-      (super.noSuchMethod(Invocation.method(#order, [], {#branchId: branchId}),
-              returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
-          as _i16.Future<_i6.OrderF>);
+  _i16.Future<_i6.OrderF?> order({int? branchId}) => (super.noSuchMethod(
+      Invocation.method(#order, [], {#branchId: branchId}),
+      returnValue: Future<_i6.OrderF?>.value()) as _i16.Future<_i6.OrderF?>);
   @override
   _i16.Future<_i21.OrderItem?> getOrderItem({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderItem, [], {#id: id}),
@@ -322,6 +332,11 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Stream<List<_i9.Business>>.empty())
           as _i16.Stream<List<_i9.Business>>);
   @override
+  _i16.Future<List<_i9.Business>> getContacts() =>
+      (super.noSuchMethod(Invocation.method(#getContacts, []),
+              returnValue: Future<List<_i9.Business>>.value(<_i9.Business>[]))
+          as _i16.Future<List<_i9.Business>>);
+  @override
   _i9.Business getBusiness() =>
       (super.noSuchMethod(Invocation.method(#getBusiness, []),
           returnValue: _FakeBusiness()) as _i9.Business);
@@ -369,10 +384,10 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i16.Future<List<_i6.OrderF>>);
   @override
-  _i16.Future<void> sendReport({List<_i6.OrderItem>? orderItems}) => (super
-      .noSuchMethod(Invocation.method(#sendReport, [], {#orders: orderItems}),
-          returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future.value()) as _i16.Future<void>);
+  _i16.Future<int> sendReport({List<_i21.OrderItem>? orderItems}) =>
+      (super.noSuchMethod(
+          Invocation.method(#sendReport, [], {#orderItems: orderItems}),
+          returnValue: Future<int>.value(0)) as _i16.Future<int>);
   @override
   _i16.Future<void> createGoogleSheetDoc() =>
       (super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
@@ -443,6 +458,10 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
   void emptySentMessageQueue() =>
       super.noSuchMethod(Invocation.method(#emptySentMessageQueue, []),
           returnValueForMissingStub: null);
+  @override
+  bool suggestRestore() =>
+      (super.noSuchMethod(Invocation.method(#suggestRestore, []),
+          returnValue: false) as bool);
 }
 
 /// A class which mocks [Remote].
@@ -505,6 +524,10 @@ class MockRemote extends _i1.Mock implements _i26.Remote {
   @override
   bool isOrderAvailable() =>
       (super.noSuchMethod(Invocation.method(#isOrderAvailable, []),
+          returnValue: false) as bool);
+  @override
+  bool isBackupAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isBackupAvailable, []),
           returnValue: false) as bool);
 }
 
@@ -781,15 +804,13 @@ class MockKeyPadService extends _i1.Mock implements _i30.KeyPadService {
       super.noSuchMethod(Invocation.method(#setOrder, [order]),
           returnValueForMissingStub: null);
   @override
-  _i16.Future<_i6.OrderF> getOrder({int? branchId}) => (super.noSuchMethod(
-          Invocation.method(#getOrder, [], {#branchId: branchId}),
-          returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
-      as _i16.Future<_i6.OrderF>);
+  _i16.Future<_i6.OrderF?> getOrder({int? branchId}) => (super.noSuchMethod(
+      Invocation.method(#getOrder, [], {#branchId: branchId}),
+      returnValue: Future<_i6.OrderF?>.value()) as _i16.Future<_i6.OrderF?>);
   @override
-  _i16.Future<_i6.OrderF> getOrderById({int? id}) =>
-      (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
-              returnValue: Future<_i6.OrderF>.value(_FakeOrderF()))
-          as _i16.Future<_i6.OrderF>);
+  _i16.Future<_i6.OrderF?> getOrderById({int? id}) => (super.noSuchMethod(
+      Invocation.method(#getOrderById, [], {#id: id}),
+      returnValue: Future<_i6.OrderF?>.value()) as _i16.Future<_i6.OrderF?>);
   @override
   void reset() => super.noSuchMethod(Invocation.method(#reset, []),
       returnValueForMissingStub: null);
@@ -867,9 +888,10 @@ class MockSettingsService extends _i1.Mock implements _i31.SettingsService {
       super.noSuchMethod(Invocation.method(#enablePrint, [], {#bool: bool}),
           returnValueForMissingStub: null);
   @override
-  void createGoogleSheetDoc() =>
-      super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
-          returnValueForMissingStub: null);
+  _i16.Future<void> createGoogleSheetDoc() =>
+      (super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i16.Future<void>);
   @override
   void toggleSettings() =>
       super.noSuchMethod(Invocation.method(#toggleSettings, []),
