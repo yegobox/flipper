@@ -1,5 +1,6 @@
 import 'package:cron/cron.dart';
 import 'package:flipper_models/order.dart';
+import 'package:flipper_models/order_item.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/business.dart';
@@ -99,16 +100,16 @@ class CronService {
       if (settingService.enabledReport()) {
         List<OrderF> completed_orders =
             await ProxyService.api.getOrderByStatus(status: completeStatus);
-        log.i(completed_orders);
-        // loop all completed orders and and change each with reported = true
+
         for (OrderF completed_order in completed_orders) {
           completed_order.reported = true;
-          ProxyService.api
-              .update(data: completed_order.toJson(), endPoint: 'order');
-        }
-        if (completed_orders.isNotEmpty) {
-          log.i('raport processed..1/2');
-          ProxyService.api.sendReport(orders: completed_orders);
+          log.i('now sending the report to mail...');
+          final response = await ProxyService.api
+              .sendReport(orderItems: completed_order.orderItems);
+          if (response == 200) {
+            ProxyService.api
+                .update(data: completed_order.toJson(), endPoint: 'order');
+          }
         }
       }
     });

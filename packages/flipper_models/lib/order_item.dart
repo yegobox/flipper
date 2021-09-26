@@ -12,6 +12,8 @@ class OrderItem {
       required this.price,
       required this.forderId,
       this.discount,
+      this.reported = false,
+      this.remainingStock = 0,
       this.type = 'item'});
   @Id(assignable: true)
   int id;
@@ -26,12 +28,17 @@ class OrderItem {
   /// (e.g. 'item', 'subscription', 'shipping', 'tax', 'discount')
   /// @return the type of the item
   String? type;
+  bool reported;
+
+  int remainingStock;
 
   final order = ToOne<OrderF>();
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
         id: int.parse(json["id"]),
         type: json["type"],
+        reported: json["reported"],
+        remainingStock: json["remainingStock"],
         name: json["name"],
         discount: json["discount"],
         fvariantId: int.parse(json["fvariantId"].toString()),
@@ -44,6 +51,8 @@ class OrderItem {
         "id": int.parse(id.toString()),
         "name": name,
         "type": type == null ? 'item' : type,
+        "reported": reported,
+        "remainingStock": remainingStock,
         "discount": discount,
         "fvariantId": int.parse(fvariantId.toString()),
         "count": count,

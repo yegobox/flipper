@@ -380,7 +380,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(5, 5013621342623573944),
       name: 'OrderItem',
-      lastPropertyId: const IdUid(9, 3487905289932526524),
+      lastPropertyId: const IdUid(11, 2397737952779016538),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -429,6 +429,16 @@ final _entities = <ModelEntity>[
             id: const IdUid(9, 3487905289932526524),
             name: 'type',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(10, 8344108078880967040),
+            name: 'reported',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(11, 2397737952779016538),
+            name: 'remainingStock',
+            type: 6,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1528,7 +1538,7 @@ ModelDefinition getObjectBoxModel() {
           final nameOffset = fbb.writeString(object.name);
           final typeOffset =
               object.type == null ? null : fbb.writeString(object.type!);
-          fbb.startTable(10);
+          fbb.startTable(12);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addInt64(2, object.forderId);
@@ -1538,6 +1548,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addInt64(6, object.order.targetId);
           fbb.addFloat64(7, object.discount);
           fbb.addOffset(8, typeOffset);
+          fbb.addBool(9, object.reported);
+          fbb.addInt64(10, object.remainingStock);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1559,6 +1571,10 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
               discount: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 18),
+              reported: const fb.BoolReader()
+                  .vTableGet(buffer, rootOffset, 22, false),
+              remainingStock:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0),
               type: const fb.StringReader()
                   .vTableGetNullable(buffer, rootOffset, 20));
           object.order.targetId =
@@ -2544,6 +2560,14 @@ class OrderItem_ {
   /// see [OrderItem.type]
   static final type =
       QueryStringProperty<OrderItem>(_entities[4].properties[8]);
+
+  /// see [OrderItem.reported]
+  static final reported =
+      QueryBooleanProperty<OrderItem>(_entities[4].properties[9]);
+
+  /// see [OrderItem.remainingStock]
+  static final remainingStock =
+      QueryIntegerProperty<OrderItem>(_entities[4].properties[10]);
 }
 
 /// [PColor] entity fields to define ObjectBox queries.

@@ -1273,13 +1273,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<void> sendReport({required List<OrderF> orders}) async {
+  Future<int> sendReport({required List<OrderItem> orderItems}) async {
     final response = await client.post(Uri.parse("$apihub/v2/api/report"),
-        body: jsonEncode(orders),
+        body: jsonEncode(orderItems),
         headers: {'Content-Type': 'application/json'});
     log.i(response.body);
-    log.i(orders);
-    log.i(jsonEncode(orders));
+    log.i(orderItems);
+    log.i(jsonEncode(orderItems));
+    return response.statusCode;
   }
 
   @override

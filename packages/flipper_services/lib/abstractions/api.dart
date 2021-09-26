@@ -106,7 +106,7 @@ abstract class Api<T> {
   Future<List<OrderF>> tickets();
   List<Variant> getVariantByProductId({required int productId});
   Future<List<OrderF>> getOrderByStatus({required String status});
-  Future<void> sendReport({required List<OrderF> orders});
+  Future<int> sendReport({required List<OrderItem> orderItems});
   Future<void> createGoogleSheetDoc();
   Business getBusinessById({required int id});
   OrderItem? getOrderItemByVariantId({required int variantId});

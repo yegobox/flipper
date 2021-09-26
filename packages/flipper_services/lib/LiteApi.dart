@@ -766,7 +766,7 @@ class LiteApi<T> implements Api {
   }
 
   @override
-  Future<void> sendReport({required List<OrderF> orders}) {
+  Future<int> sendReport({required List<OrderItem> orderItems}) {
     // TODO: implement sendReport
     throw UnimplementedError();
   }

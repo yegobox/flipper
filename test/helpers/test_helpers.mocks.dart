@@ -369,8 +369,8 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<List<_i6.OrderF>>.value(<_i6.OrderF>[]))
           as _i16.Future<List<_i6.OrderF>>);
   @override
-  _i16.Future<void> sendReport({List<_i6.OrderF>? orders}) =>
-      (super.noSuchMethod(Invocation.method(#sendReport, [], {#orders: orders}),
+  _i16.Future<void> sendReport({List<_i6.OrderItem>? orderItems}) => (super
+      .noSuchMethod(Invocation.method(#sendReport, [], {#orders: orderItems}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i16.Future<void>);
   @override
