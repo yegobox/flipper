@@ -382,6 +382,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
   Future<List<Branch>> branches({required int businessId}) async {
     final response =
         await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
+    for (Branch branch in branchFromJson(response.body)) {
+      final box = store.box<Branch>();
+      box.put(branch, mode: PutMode.put);
+    }
     return branchFromJson(response.body);
   }
 
@@ -1600,5 +1604,24 @@ class ObjectBoxApi extends MobileUpload implements Api {
   bool suggestRestore() {
     // TODO: implement suggestRestore
     throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Business>> lBusinesses({required String userId}) async {
+    String? userId = ProxyService.box.read(key: 'userId');
+    return store
+        .box<Business>()
+        .getAll()
+        .where((unit) => unit.userId == userId)
+        .toList();
+  }
+
+  @override
+  Future<List<Branch>> lbranches({required int businessId}) async {
+    return store
+        .box<Branch>()
+        .getAll()
+        .where((unit) => unit.fbusinessId == businessId)
+        .toList();
   }
 }

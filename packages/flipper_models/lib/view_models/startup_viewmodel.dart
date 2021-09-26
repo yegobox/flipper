@@ -9,7 +9,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 final isWeb = UniversalPlatform.isWeb;
@@ -66,13 +65,24 @@ class StartUpViewModel extends BaseViewModel {
     if (appService.isLoggedIn()) {
       String userId = ProxyService.box.read(key: 'userId');
 
-      List<Business>? businesses =
-          await ProxyService.api.businesses(userId: userId);
+      List<Business>? businesses = [];
+
+      businesses = await ProxyService.api.lBusinesses(userId: userId);
+      if (businesses.isEmpty) {
+        //time to go to internet to fetch them
+        businesses = await ProxyService.api.businesses(userId: userId);
+      }
 
       if (businesses.isNotEmpty) {
-        log.i(businesses[0].id);
-        List<Branch> branches =
-            await ProxyService.api.branches(businessId: businesses[0].id);
+        List<Branch> branches = [];
+        branches =
+            await ProxyService.api.lbranches(businessId: businesses[0].id);
+        if (branches.isEmpty) {
+          //time to go to internet to fetch them
+          branches =
+              await ProxyService.api.branches(businessId: businesses[0].id);
+        }
+
         log.i(branches[0].id);
         log.i(businesses[0].id);
         ProxyService.box.write(key: 'branchId', value: branches[0].id);
