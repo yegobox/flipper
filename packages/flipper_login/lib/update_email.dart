@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -36,10 +37,14 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                 child: BoxInputField(
                   leading: Icon(Icons.email),
                   validatorFunc: (email) {
+                    // validate if is a gmail email regex
                     if (!RegExp(
                             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                         .hasMatch(email)) {
                       return "Invalid Email";
+                    }
+                    if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(email)) {
+                      return "Gmail Email is required";
                     }
                   },
                   controller: emailController,
@@ -73,6 +78,11 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                     map: {'email': emailController.value.text},
                                   );
                                   if (updated) {
+                                    showSimpleNotification(
+                                      Text('Email added'),
+                                      background: Colors.green,
+                                      position: NotificationPosition.bottom,
+                                    );
                                     ProxyService.nav.back();
                                   }
                                 }

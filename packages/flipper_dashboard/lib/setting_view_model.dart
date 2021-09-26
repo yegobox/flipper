@@ -66,14 +66,19 @@ class SettingViewModel extends ReactiveViewModel {
     if (settings()['email'] != null && settings()['email'].length > 0) {
       await settingService.enableDailyReport(
           bool: !settingService.sendDailReport);
-      if (settings()['googleSheetDocCreated'] == null ||
-          settings()['googleSheetDocCreated'] == false) {
-        settingService.createGoogleSheetDoc();
-        ProxyService.api.createGoogleSheetDoc();
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(settings()['email'])) {
+        // the added email is not gmail
+        callback('Added email is not gmail');
+      } else {
+        // if (settings()['googleSheetDocCreated'] == null ||
+        //     settings()['googleSheetDocCreated'] == false) {
+        await settingService.createGoogleSheetDoc();
+        await ProxyService.api.createGoogleSheetDoc();
+        // }
+        toggleSettings();
       }
-      toggleSettings();
     } else {
-      callback();
+      callback('You need to add email first');
     }
   }
 

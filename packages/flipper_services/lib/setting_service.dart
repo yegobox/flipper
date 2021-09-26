@@ -75,7 +75,7 @@ class SettingsService with ReactiveServiceMixin {
     await updateSettings(map: {'autoPrint': bool});
   }
 
-  void createGoogleSheetDoc() async {
+  Future<void> createGoogleSheetDoc() async {
     await updateSettings(map: {'googleSheetDocCreated': true});
   }
 

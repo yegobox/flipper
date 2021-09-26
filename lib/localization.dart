@@ -83,11 +83,14 @@ class FlipperBottomSheet {
             child: Wrap(
               children: model.tickets
                   .map((ticket) => SizedBox(
-                        height: 90,
+                        height: 120,
                         width: double.infinity,
                         child: Column(children: <Widget>[
                           ListTile(
-                            subtitle: Text(ticket.note!),
+                            subtitle: Text(
+                              ticket.note!,
+                              style: TextStyle(color: Colors.black),
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[

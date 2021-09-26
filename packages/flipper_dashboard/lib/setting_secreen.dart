@@ -99,9 +99,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Icon(Icons.analytics),
               switchValue: model.settingService.sendDailReport,
               onToggle: (bool value) {
-                model.enableDailyReport(() {
+                model.enableDailyReport((message) {
                   showSimpleNotification(
-                    Text('You need to add email first'),
+                    Text(message),
                     background: Colors.red,
                     position: NotificationPosition.bottom,
                   );
