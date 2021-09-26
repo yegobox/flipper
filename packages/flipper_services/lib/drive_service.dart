@@ -62,46 +62,66 @@ final _scopes = [
 class GoogleDrive {
   final storage = SecureStorage();
   final log = getLogger('GoogleDrive');
-  //Get Authenticated Http Client
-  Future<http.Client> getHttpClient() async {
-    //Get Credentials
-    // var credentials = await storage.getCredentials();
-    // if (credentials == null) {
-    //Needs user authentication
-    // var authClient = await clientViaUserConsent(
-    //     ClientId(_clientId, _clientSecret), _scopes, (url) {
-    //   //Open Url in Browser
-    //   launch(url);
-    // });
+
+  /// if the  var credentials = await storage.getCredentials();
+  /// has some data i.e we authenticated and we have some token,
+  /// the problem is that at the time of using it it might have expired
+  /// then we call this method first to refresh the token
+  /// for this time we use silent authentication
+  /// to avoid user to be prompted for authentication again
+  Future<http.Client> refreshToken() async {
+    print("Token Refresh");
     final _googleSignIn = new GoogleSignIn(scopes: _scopes);
-    await _googleSignIn.signIn();
+    await _googleSignIn.signInSilently();
+    // New refreshed token
     var httpClient = (await _googleSignIn.authenticatedClient())!;
     //Save Credentials
     // log.i(httpClient.credentials.accessToken);
     log.i(httpClient.credentials.refreshToken);
+    // TODOlearn if the refresher token is given.
+    log.i(httpClient.credentials.accessToken);
     await storage.saveCredentials(httpClient.credentials.accessToken,
         httpClient.credentials.refreshToken ?? '');
     return httpClient;
-    // }
-    // else {
-    //   log.i(credentials["expiry"]);
-    //   log.i(credentials["data"]);
-    //   log.i(credentials["type"]);
-    //   return authenticatedClient(
-    //     http.Client(),
-    //     AccessCredentials(
-    //       AccessToken(
-    //         credentials["type"],
-    //         credentials["data"],
-    //         DateTime.tryParse(credentials["expiry"])!,
-    //       ),
-    //       // credentials["refreshToken"],
-    //       // refreshToken can be null as it was not returned when logging in
-    //       null,
-    //       _scopes,
-    //     ),
-    //   );
-    // }
+  }
+
+  /// Get Authenticated Http Client
+  /// the method will check if the token is expired or not
+  /// if it is expired it will call refreshToken()
+  /// if is the first time it will call the authentication with normal prompt flow
+  /// if the token is not expired it will return the http client
+  Future<http.Client> getHttpClient() async {
+    //Get Credentials
+    var credentials = await storage.getCredentials();
+    if (credentials == null) {
+      final _googleSignIn = new GoogleSignIn(scopes: _scopes);
+      await _googleSignIn.signIn();
+      var httpClient = (await _googleSignIn.authenticatedClient())!;
+      log.i(httpClient.credentials.refreshToken);
+      log.i(httpClient.credentials.accessToken);
+      await storage.saveCredentials(httpClient.credentials.accessToken,
+          httpClient.credentials.refreshToken ?? '');
+      return httpClient;
+    } else {
+      await refreshToken();
+      // log.i(credentials["expiry"]);
+      // log.i(credentials["data"]);
+      // log.i(credentials["type"]);
+      return authenticatedClient(
+        http.Client(),
+        AccessCredentials(
+          AccessToken(
+            credentials["type"],
+            credentials["data"],
+            DateTime.tryParse(credentials["expiry"])!,
+          ),
+          // credentials["refreshToken"],
+          // refreshToken can be null as it was not returned when logging in
+          null,
+          _scopes,
+        ),
+      );
+    }
   }
 
   //Upload File

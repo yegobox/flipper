@@ -116,10 +116,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         // get the business
         Business business = await ProxyService.api.getBusiness();
         if (ProxyService.remoteConfig.isBackupAvailable()) {
-          final drive = GoogleDrive();
-          if (business.backupFileId != null) {
-            drive.downloadGoogleDriveFile('data', business.backupFileId!);
-          }
+          // final drive = GoogleDrive();
+          // TODOshould immplement the refresher token for it to not show popup everytime!
+          //TODObecause the the google auth require either to be in testing and or published app
+          // to continue working on this feature, the app will need to be verified.
+          // if (business.backupFileId != null) {
+          //   drive.downloadGoogleDriveFile('data', business.backupFileId!);
+          // }
           // if (ProxyService.api.getBusiness().backUpEnabled == true &&
           //     ProxyService.api.getBusiness().backupFileId != null) {
           //   // await model.backUpEnabled();

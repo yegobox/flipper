@@ -62,19 +62,20 @@ class SettingViewModel extends ReactiveViewModel {
     toggleSettings();
   }
 
+  /// enable report on user's email
+  /// the email have to be gmail for now, in future release we might add other email providers
+  /// if for some reason the report is not shared to user's email but the report google sheet document has been created.
+  /// a user can toggle the report on/off from the settings page. the report will be sent to the user's email.
+  /// the backend is built in a way to reshare the report to the user's email.
   void enableDailyReport(Function callback) async {
     if (settings()['email'] != null && settings()['email'].length > 0) {
       await settingService.enableDailyReport(
           bool: !settingService.sendDailReport);
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(settings()['email'])) {
-        // the added email is not gmail
         callback('Added email is not gmail');
       } else {
-        // if (settings()['googleSheetDocCreated'] == null ||
-        //     settings()['googleSheetDocCreated'] == false) {
         await settingService.createGoogleSheetDoc();
         await ProxyService.api.createGoogleSheetDoc();
-        // }
         toggleSettings();
       }
     } else {
