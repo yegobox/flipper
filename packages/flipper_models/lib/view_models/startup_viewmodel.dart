@@ -2,7 +2,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_models/branch.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_services/proxy.dart';
@@ -21,8 +20,16 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> runStartupLogic() async {
     await appInit();
+    List<Business>? businesses = [];
+
     // if we are logged in, go to home we have business locally arleady!
     if (appService.isLoggedIn()) {
+      String? userId = ProxyService.box.read(key: 'userId');
+      businesses = await ProxyService.api.lBusinesses(userId: userId ?? '0');
+      if (businesses.isEmpty) {
+        _navigationService.replaceWith(Routes.signup);
+      }
+
       /// you added me to a business and I have not yet signed up to flipper
       /// on signup the app need to check if there is an exisiting business that I am attached to
       /// if it exists then it load it as usual with the branch in that business continue as usual
