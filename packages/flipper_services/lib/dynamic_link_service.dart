@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'abstractions/dynamic_link.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
   @override
@@ -13,15 +14,13 @@ class UnSupportedDynamicLink implements DynamicLink {
   }
 
   @override
-  Future handleDynamicLink() async {
-    
-  }
+  Future handleDynamicLink() async {}
 }
 
 class DynamicLinkService implements DynamicLink {
   final log = getLogger('DynamicLinkService');
   Future handleDynamicLink() async {
-    // if the link is opened with the link
+    // if the app is opened with the link
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
@@ -37,17 +36,18 @@ class DynamicLinkService implements DynamicLink {
   }
 
   void _handleDnamicLink(PendingDynamicLinkData data) {
-    final Uri? deepLink = data.link;
+    final Uri deepLink = data.link;
 
-    if (deepLink != null) {
-      log.i('_deepLink: $deepLink');
-      var isRefer = deepLink.pathSegments.contains('refer');
-      if (isRefer) {
-        var code = deepLink.queryParameters['code'];
-        //save the code in localstorage to be used later
-        ProxyService.box.write(key: 'referralCode', value: code.toString());
-        ProxyService.nav.navigateTo(Routes.initial);
+    log.i('_deepLink: $deepLink');
+    bool isRefer = deepLink.pathSegments.contains('refer');
+    if (isRefer) {
+      String? code = deepLink.queryParameters['code'];
+      if (ProxyService.remoteConfig.isRemoteLoggingDynamicLinkEnabled()) {
+        FirebaseChatCore.instance.logDynamicLink(code!);
       }
+      //save the code in localstorage to be used later
+      ProxyService.box.write(key: 'referralCode', value: code.toString());
+      ProxyService.nav.navigateTo(Routes.initial);
     }
   }
 

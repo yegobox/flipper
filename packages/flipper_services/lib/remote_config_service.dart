@@ -22,6 +22,7 @@ class RemoteConfigService implements Remote {
       'is_discount_available': false,
       'is_order_available': false,
       'is_backup_available': false,
+      'isRemoteLoggingDynamicLinkEnabled': true,
     });
   }
 
@@ -122,6 +123,14 @@ class RemoteConfigService implements Remote {
     }
     return remoteConfig.getBool('is_backup_available');
   }
+
+  @override
+  bool isRemoteLoggingDynamicLinkEnabled() {
+    if (kDebugMode) {
+      return true;
+    }
+    return remoteConfig.getBool('isRemoteLoggingDynamicLinkEnabled');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -209,5 +218,11 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isBackupAvailable() {
     return false;
+  }
+
+  @override
+  bool isRemoteLoggingDynamicLinkEnabled() {
+    // TODO: implement isRemoteLoggingDynamicLinkEnabled
+    throw UnimplementedError();
   }
 }

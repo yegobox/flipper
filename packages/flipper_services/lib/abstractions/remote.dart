@@ -15,4 +15,5 @@ abstract class Remote {
   bool isDiscountAvailable();
   bool isOrderAvailable();
   bool isBackupAvailable();
+  bool isRemoteLoggingDynamicLinkEnabled();
 }
