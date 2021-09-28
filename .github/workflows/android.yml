@@ -48,7 +48,7 @@ jobs:
       - run: ./install.sh
       - run: flutter test
   windows:
-    name: Build
+    name: windowsInstaller
     # needs: [testing]
     runs-on: windows-latest
     steps:
@@ -58,10 +58,11 @@ jobs:
           java-version: "8.x"
       - uses: subosito/flutter-action@master
         with:
-          # flutter-version: '1.22.3'
+          flutter-version: "2.5"
           channel: "stable"
       - run: git submodule update --init
       - run: flutter pub get
+      - run: flutter config --enable-windows-desktop
       - run: flutter build windows
       - run: flutter pub run msix:create
       - name: Create a Release in GitHub
