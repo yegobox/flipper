@@ -70,7 +70,7 @@ jobs:
         with:
           artifacts: "build/windows/runner/Release/flipper.msix"
           token: ${{ secrets.GH_TOKEN }}
-          commit: ${{ github.sha }}
+          # commit: ${{ github.sha }}
       - name: Upload  windows installer
         uses: actions/upload-artifact@v2
         with:
