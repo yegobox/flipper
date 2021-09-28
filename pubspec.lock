@@ -799,6 +799,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  fluent_ui:
+    dependency: "direct main"
+    description:
+      name: fluent_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.0"
   flutter:
     dependency: "direct main"
     description: flutter

@@ -875,4 +875,16 @@ class LiteApi<T> implements Api {
     // TODO: implement suggestRestore
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<Business>> lBusinesses({required String userId}) {
+    // TODO: implement lBusinesses
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Branch>> lbranches({required int businessId}) {
+    // TODO: implement lbranches
+    throw UnimplementedError();
+  }
 }

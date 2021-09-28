@@ -135,7 +135,7 @@ class AppSetup {
 
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/flyerhq/flutter_firebase_chat_core.git open-sources/flutter_firebase_chat_core
+// git submodule add https://github.com/yegobox/flutter_landing_page.git open-sources/landing
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%

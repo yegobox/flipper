@@ -187,6 +187,7 @@ dependencies:
   google_sign_in: ^5.1.0
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   nb_utils: ^4.4.8
+  fluent_ui: ^3.2.0
   # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:

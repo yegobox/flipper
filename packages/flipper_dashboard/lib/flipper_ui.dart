@@ -29,7 +29,7 @@ class FLipperButton extends StatelessWidget {
         color: !_transparent
             ? _disableButton
                 ? HexColor('#b2bec3')
-                : HexColor('#0984e3')
+                : Colors.blueAccent
             : Colors.transparent,
         child: FlatButton(
           onPressed: _disableButton ? null : onPressedCallback,

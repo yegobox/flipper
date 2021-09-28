@@ -49,9 +49,9 @@ class Sell extends StatelessWidget {
               Divider(
                 color: Colors.grey[400],
               ),
-              SizedBox(
-                height: 20.h,
-              ),
+              // SizedBox(
+              //   height: 20.h,
+              // ),
               Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -62,18 +62,19 @@ class Sell extends StatelessWidget {
                       'QUANTITY',
                       style: GoogleFonts.lato(
                         textStyle: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 10.sp,
-                            color: Colors.grey[900]),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 10.sp,
+                          color: Colors.grey[900],
+                        ),
                       ),
                     ),
                   ),
                   const Expanded(flex: 2, child: Text('')),
                 ],
               ),
-              const SizedBox(
-                height: 20.0,
-              ),
+              // const SizedBox(
+              //   height: 20.0,
+              // ),
               Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -160,19 +161,9 @@ class Sell extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(
-                height: 3.h,
-              ),
               Divider(
                 color: Colors.grey[400],
               ),
-              const SizedBox(
-                height: 15.0,
-              ),
-
-              ///TODOfeature to implements in near future
-              // see sell_example for this part design
-              // end of future to implement in near future
             ],
           ),
         ),
@@ -266,45 +257,46 @@ class Sell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-        onModelReady: (model) async {
-          ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
-          model.clearPreviousSaleCounts();
-          model.toggleCheckbox(variantId: -1);
-          await model.getVariants(productId: product.id);
-        },
-        viewModelBuilder: () => BusinessHomeViewModel(),
-        builder: (context, model, child) {
-          return Container(
-            child: Scaffold(
-              backgroundColor: Colors.white,
-              appBar: CustomAppBar(
-                onPop: () {
-                  ProxyService.nav.back();
-                },
-                title: buildTitle(model),
-                rightActionButtonName: 'Save',
-                disableButton: false,
-                showActionButton: true,
-                onPressedCallback: () async {
-                  bool saved = await model.saveOrder(
-                    variationId: model.checked,
-                    amount: model.amountTotal,
-                  );
-                  if (!saved) {
-                    showSimpleNotification(Text('No item selected'),
-                        background: Colors.red);
-                  }
-                  ProxyService.nav.back();
-                },
-                icon: Icons.close,
-                multi: 1,
-                bottomSpacer: 49.w,
-              ),
-              body: Container(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
-                    child: Column(
+      onModelReady: (model) async {
+        ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
+        model.clearPreviousSaleCounts();
+        model.toggleCheckbox(variantId: -1);
+        await model.getVariants(productId: product.id);
+      },
+      viewModelBuilder: () => BusinessHomeViewModel(),
+      builder: (context, model, child) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: CustomAppBar(
+            onPop: () {
+              ProxyService.nav.back();
+            },
+            title: buildTitle(model),
+            rightActionButtonName: 'Save',
+            disableButton: false,
+            showActionButton: true,
+            onPressedCallback: () async {
+              bool saved = await model.saveOrder(
+                variationId: model.checked,
+                amount: model.amountTotal,
+              );
+              if (!saved) {
+                showSimpleNotification(Text('No item selected'),
+                    background: Colors.red);
+              }
+              ProxyService.nav.back();
+            },
+            icon: Icons.close,
+            multi: 1,
+            bottomSpacer: 49.w,
+          ),
+          body: Container(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
+              child: CustomScrollView(slivers: [
+                SliverList(
+                  delegate: SliverChildListDelegate([
+                    Column(
                       children: [
                         Row(
                           children: [
@@ -329,21 +321,37 @@ class Sell extends StatelessWidget {
                             )
                           ],
                         ),
-
-                        ListView(
-                          shrinkWrap: true,
-                          children: Variants(model: model),
+                        Container(
+                          height: 410.h,
+                          child: ListView(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
+                            shrinkWrap: true,
+                            children: Variants(model: model),
+                          ),
                         ),
-
-                        // endloop  == start/and discounts
-                        Quantity(context: context, model: model),
                       ],
+                    )
+                  ]),
+                ),
+                // endloop  == start/and discounts
+                // Quantity(context: context, model: model),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: double.infinity,
+                      child: Quantity(context: context, model: model),
                     ),
                   ),
-                ),
-              ),
+                )
+              ]),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 }
