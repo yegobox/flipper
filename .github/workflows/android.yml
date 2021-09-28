@@ -69,6 +69,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/windows/runner/Release/flipper.msix"
+          tag: v1.0.0.5
           token: ${{ secrets.GH_TOKEN }}
           # commit: ${{ github.sha }}
       - name: Upload  windows installer
