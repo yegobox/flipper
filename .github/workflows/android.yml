@@ -47,6 +47,34 @@ jobs:
       - run: flutter pub get
       - run: ./install.sh
       - run: flutter test
+  windows:
+    name: Build
+    # needs: [testing]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "8.x"
+      - uses: subosito/flutter-action@master
+        with:
+          # flutter-version: '1.22.3'
+          channel: "stable"
+      - run: git submodule update --init
+      - run: flutter pub get
+      - run: flutter build windows
+      - run: flutter pub run msix:create
+      - name: Create a Release in GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/windows/runner/Release/flipper.msix"
+          token: ${{ secrets.GH_TOKEN }}
+          commit: ${{ github.sha }}
+      - name: Upload  windows installer
+        uses: actions/upload-artifact@v2
+        with:
+          name: winInstaller
+          path: build/windows/runner/Release/flipper.msix
   build:
     name: Build APK and Create release
     needs: [testing, version]
