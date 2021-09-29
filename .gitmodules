@@ -17,6 +17,6 @@
 [submodule "open-sources/flutter_firebase_chat_core"]
 	path = open-sources/flutter_firebase_chat_core
 	url = https://github.com/yegobox/flutter_firebase_chat_core.git
-[submodule "open-sources/landing"]
-	path = open-sources/landing
-	url = https://github.com/yegobox/flutter_landing_page.git
+# [submodule "open-sources/landing"]
+# 	path = open-sources/landing
+# 	url = https://github.com/yegobox/flutter_landing_page.git
