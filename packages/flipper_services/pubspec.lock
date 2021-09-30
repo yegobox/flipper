@@ -288,6 +288,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.15.0"
+  common_codes:
+    dependency: transitive
+    description:
+      path: "../common_codes"
+      relative: true
+    source: path
+    version: "0.0.1"
   common_utils:
     dependency: transitive
     description:
@@ -764,6 +771,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  fluent_ui:
+    dependency: transitive
+    description:
+      name: fluent_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -963,6 +977,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fluttertoast:
+    dependency: transitive
+    description:
+      name: fluttertoast
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "8.0.8"
   font_awesome_flutter:
     dependency: transitive
     description:
@@ -1341,6 +1362,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.3"
+  nb_utils:
+    dependency: transitive
+    description:
+      name: nb_utils
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.4.9"
   nested:
     dependency: transitive
     description:
@@ -1607,6 +1635,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   rounded_loading_button:
     dependency: transitive
     description:

@@ -1,7 +1,7 @@
 name: flipper_models
 description: flipper models scaffold.
 version: 0.0.1
-author:
+
 # homepage:
 publish_to: "none"
 
@@ -23,4 +23,3 @@ dev_dependencies:
   injectable_generator:
   objectbox_generator: any
   freezed:
-  
