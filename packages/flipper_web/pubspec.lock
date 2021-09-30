@@ -827,6 +827,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flipper_view_models:
+    dependency: "direct main"
+    description:
+      path: "../flipper_view_models"
+      relative: true
+    source: path
+    version: "0.0.1"
   fluent_ui:
     dependency: "direct main"
     description:
@@ -911,6 +918,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.17.0"
+  flutter_icons:
+    dependency: transitive
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "0831af6f0f239d20fb9578612d7a893e2a53d044"
+      url: "https://github.com/adarsh-technocrat/flutter-icons"
+    source: git
+    version: "1.1.1-nullsafety.0"
   flutter_link_previewer:
     dependency: transitive
     description:
