@@ -23,4 +23,3 @@ dev_dependencies:
   injectable_generator:
   objectbox_generator: any
   freezed:
-  

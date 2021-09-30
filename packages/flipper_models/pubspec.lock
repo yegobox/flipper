@@ -771,6 +771,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  fluent_ui:
+    dependency: transitive
+    description:
+      name: fluent_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -841,15 +848,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.17.0"
-  flutter_icons:
-    dependency: transitive
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "0831af6f0f239d20fb9578612d7a893e2a53d044"
-      url: "https://github.com/adarsh-technocrat/flutter-icons"
-    source: git
-    version: "1.1.1-nullsafety.0"
   flutter_link_previewer:
     dependency: transitive
     description:
@@ -1635,6 +1633,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   rounded_loading_button:
     dependency: transitive
     description:
