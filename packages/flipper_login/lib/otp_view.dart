@@ -1,6 +1,6 @@
 library flipper_login;
 
-import 'package:common_codes/src/login_viewmodel.dart';
+import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';

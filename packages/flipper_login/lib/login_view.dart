@@ -2,7 +2,6 @@ library flipper_login;
 
 import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'desktop_login_view.dart';
 import 'mobile.dart';
 
 class Login extends StatelessWidget {

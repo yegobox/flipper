@@ -3,7 +3,7 @@ library flipper_login;
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:common_codes/src/login_viewmodel.dart';
+import 'package:flipper_models/view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/otp_view.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -13,6 +13,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class PhoneNumberView extends StatefulWidget {
+
   @override
   _PhoneNumberViewState createState() => _PhoneNumberViewState();
 }
@@ -145,7 +146,9 @@ class _PhoneNumberViewState extends State<PhoneNumberView> {
                                     key: Key('signIn'),
                                     title: 'SIGN IN',
                                     onTap: () async {
-                                      if (_formKey.currentState!.validate()) {
+
+                                      if (_formKey.currentState!
+                                          .validate()) {
                                         //TODO:more phone validation to come!
                                         model.setPhoneNumber(
                                             phone: phoneController.value.text);

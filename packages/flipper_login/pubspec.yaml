@@ -1,6 +1,8 @@
 name: flipper_login
 description: flipper models scaffold.
 version: 0.0.1
+author:
+
 publish_to: "none"
 
 environment:

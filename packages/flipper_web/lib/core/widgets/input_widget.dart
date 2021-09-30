@@ -36,7 +36,7 @@ class InputWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(this.topLabel!, style: TextStyle(color: Colors.white)),
+        Text(this.topLabel!),
         SizedBox(height: 4.0),
         Container(
           height: 50,

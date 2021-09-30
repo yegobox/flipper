@@ -168,5 +168,3 @@ class AppSetup {
 // for (FileSystemEntity e in es) {
 // print(e.absolute);
 // }
-// posting on behalf of a user.
-// https://developer.twitter.com/en/docs/authentication/oauth-1-0a/obtaining-user-access-tokens

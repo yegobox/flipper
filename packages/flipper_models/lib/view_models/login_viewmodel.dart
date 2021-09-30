@@ -1,5 +1,3 @@
-library common_codes;
-
 import 'package:country_code_picker/country_code.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/proxy.dart';
