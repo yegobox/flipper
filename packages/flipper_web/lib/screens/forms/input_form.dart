@@ -1,5 +1,5 @@
 import 'package:flipper_web/core/constants/color_constants.dart';
-import 'package:flipper_web/screens/forms/components/add_new_widget.dart';
+// import 'package:flipper_web/screens/forms/components/add_new_widget.dart';
 import 'package:flutter/material.dart';
 
 class FormMaterial extends StatefulWidget {
@@ -27,7 +27,7 @@ class _FormMaterialState extends State<FormMaterial> {
                     Center(
                       child: Text("What you want to add? Select from below?"),
                     ),
-                    SelectionSection(),
+                    // SelectionSection(),
                   ],
                 )),
           ),

@@ -49,7 +49,7 @@ import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 // import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
-// import 'objectbox_api.dart';
+import 'objectbox_api.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -178,9 +178,8 @@ abstract class ThirdPartyServicesModule {
         UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {
       // apiService = LiteApi(database: db); //lite app
-
-      // apiService = ObjectBoxApi(); //pro app
-      apiService = HttpApi(); //lite app
+      apiService = ObjectBoxApi(); //pro app
+      // apiService = HttpApi(); //lite app
     } else {
       apiService = HttpApi();
     }

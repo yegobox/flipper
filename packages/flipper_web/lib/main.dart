@@ -129,6 +129,12 @@ class _DashBoardState extends State<DashBoard> {
   Widget build(BuildContext context) {
     final appTheme = context.watch<AppTheme>();
     return NavigationView(
+      contentShape: RoundedRectangleBorder(
+        side: BorderSide(width: 0.8, color: Colors.white),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(0.0),
+        ),
+      ),
       pane: NavigationPane(
         selected: index,
         onChanged: (i) => setState(() => index = i),

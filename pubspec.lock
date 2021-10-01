@@ -799,6 +799,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flipper_view_models:
+    dependency: "direct main"
+    description:
+      path: "packages/flipper_view_models"
+      relative: true
+    source: path
+    version: "0.0.1"
   fluent_ui:
     dependency: "direct main"
     description:

@@ -45,10 +45,14 @@ dependencies:
   system_theme: ^1.0.1
   bitsdojo_window: ^0.1.1+1
   flutter_acrylic: ^0.0.3
-  flipper_view_models:
-    path: ../flipper_view_models
-  flipper_services:
-    path: ../flipper_services
+  # flutter_icons:
+  #   git:
+  #     url: https://github.com/adarsh-technocrat/flutter-icons
+  #     ref: master
+  # flipper_view_models:
+  #   path: ../flipper_view_models
+  # flipper_services:
+  #   path: ../flipper_services
 
 dev_dependencies:
   flutter_test:
