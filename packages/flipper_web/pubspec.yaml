@@ -51,8 +51,8 @@ dependencies:
   #     ref: master
   # flipper_view_models:
   #   path: ../flipper_view_models
-  # flipper_services:
-  #   path: ../flipper_services
+  flipper_services:
+    path: ../flipper_services
 
 dev_dependencies:
   flutter_test:
