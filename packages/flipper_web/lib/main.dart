@@ -12,6 +12,9 @@ import 'package:url_strategy/url_strategy.dart';
 import 'screens/settings.dart';
 
 import 'theme.dart';
+// import 'package:flipper_services/locator.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 const String appTitle = '';
 
@@ -29,6 +32,11 @@ bool get isDesktop {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await GetStorage.init();
+  await Firebase.initializeApp();
+  // done init in mobile.//done separation.
+  // setupLocator();
 
   setPathUrlStrategy();
 

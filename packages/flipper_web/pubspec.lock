@@ -828,7 +828,7 @@ packages:
     source: path
     version: "0.0.1"
   flipper_view_models:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../flipper_view_models"
       relative: true

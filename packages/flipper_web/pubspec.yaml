@@ -49,8 +49,8 @@ dependencies:
   #   git:
   #     url: https://github.com/adarsh-technocrat/flutter-icons
   #     ref: master
-  # flipper_view_models:
-  #   path: ../flipper_view_models
+  flipper_view_models:
+    path: ../flipper_view_models
   flipper_services:
     path: ../flipper_services
 
