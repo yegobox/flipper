@@ -168,3 +168,6 @@ class AppSetup {
 // for (FileSystemEntity e in es) {
 // print(e.absolute);
 // }
+// more about fluent.
+// https://itnext.io/flutter-building-beautiful-windows-apps-fluent-design-structure-and-navigation-e53a394988d2
+// https://morioh.com/p/4993f57bd08f

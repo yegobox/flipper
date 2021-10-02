@@ -10,6 +10,21 @@
       <action android:name="android.media.action.IMAGE_CAPTURE" />
     </intent>
   </queries>
+  <queries>
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="https" />
+    </intent>
+    <intent>
+        <action android:name="android.intent.action.DIAL" />
+        <data android:scheme="tel" />
+    </intent>
+    <intent>
+        <action android:name="android.intent.action.SEND" />
+        <data android:mimeType="*/*" />
+    </intent>
+</queries>
+
   <!-- TODO:for now we do not need permission -->
   <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> -->
 

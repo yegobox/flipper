@@ -1,11 +1,14 @@
 library flipper_dashboard;
 
+import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:rubber/rubber.dart';
 import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:settings_ui/settings_ui.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:flipper_services/drive_service.dart';
+import 'package:ant_icons/ant_icons.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -51,10 +54,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TextEditingController controller = TextEditingController();
   final log = getLogger('KeyPadHead');
 
-  late RubberAnimationController _controller;
-
-  ScrollController _scrollController = ScrollController();
-
   @override
   void initState() {
     // super.initState();
@@ -82,12 +81,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
     ProxyService.api.contacts().asBroadcastStream();
-    _controller = RubberAnimationController(
-      vsync: this,
-      upperBoundValue: AnimationControllerValue(percentage: 0.9),
-      duration: Duration(milliseconds: 200),
-      dismissable: true,
-    );
+
     super.initState();
   }
 
@@ -150,34 +144,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {
           case 'business':
-            return RubberBottomSheet(
-              header: header(),
-              onDragEnd: () {
-                print("onDragEnd");
-              },
-              headerHeight: 60,
-              scrollController: _scrollController,
-              lowerLayer: BusinessWidget(model), // The underlying page (Widget)
-              upperLayer: _getUpperLayer(), // The bottomsheet content (Widget)
-              animationController: _controller, // The one we created earlier
-            );
+            return BusinessWidget(model);
           case 'social':
             if (ProxyService.remoteConfig.isChatAvailable()) {
               return Lite();
             } else {
-              return RubberBottomSheet(
-                header: header(),
-                onDragEnd: () {
-                  print("onDragEnd");
-                },
-                headerHeight: 60,
-                scrollController: _scrollController,
-                lowerLayer:
-                    BusinessWidget(model), // The underlying page (Widget)
-                upperLayer:
-                    _getUpperLayer(), // The bottomsheet content (Widget)
-                animationController: _controller, // The one we created earlier
-              );
+              return BusinessWidget(model);
             }
           case 'openBusiness':
             return Text('open business');
@@ -185,17 +157,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             return Text('closed business');
           default:
         }
-        return RubberBottomSheet(
-          header: header(),
-          onDragEnd: () {
-            print("onDragEnd");
-          },
-          headerHeight: 60,
-          scrollController: _scrollController,
-          lowerLayer: BusinessWidget(model), // The underlying page (Widget)
-          upperLayer: _getUpperLayer(), // The bottomsheet content (Widget)
-          animationController: _controller, // The one we created earlier
-        );
+        return BusinessWidget(model);
       },
     );
   }
@@ -363,12 +325,143 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
         ),
         drawer: FlipperDrawer(
-          controller: () {
-            // _controller.expand(); // was using rubber but honestly it's not needed use built in bottom sheet
-            showPrefrenceBottomSheet(
-              // model: model,
-              header: header(),
+          businesses: model.businesses,
+          addWorkSpace: () {
+            bottomSheetBuilder(
+              header: header(title: Localization.of(context)!.addWorkSpace),
               context: context,
+              body: Column(children: [
+                ListTile(
+                  leading: Icon(Ionicons.search),
+                  title: Text('Accessibility'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                ),
+                ListTile(
+                  leading: Icon(Ionicons.language),
+                  title: Text('Language'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    ;
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Ionicons.keypad),
+                  title: Text('Enable report'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {},
+                ),
+              ]),
+            );
+          },
+          preferenceController: () {
+            // _controller.expand(); // was using rubber but honestly it's not needed use built in bottom sheet
+            bottomSheetBuilder(
+              header: header(title: 'Preferences'),
+              context: context,
+              body: Column(children: [
+                ListTile(
+                  leading: Icon(Ionicons.search),
+                  title: Text('Accessibility'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                ),
+                ListTile(
+                  leading: Icon(Ionicons.language),
+                  title: Text('Language'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    bottomSheetBuilder(
+                      context: context,
+                      header: header(title: 'Language'),
+                      body: ViewModelBuilder<SettingViewModel>.reactive(
+                        viewModelBuilder: () => SettingViewModel(),
+                        onModelReady: (model) {
+                          model.getSetting();
+                          log.i(model.getSetting());
+                        },
+                        builder: (context, model, child) {
+                          return Column(
+                            children: [
+                              SettingsTile(
+                                title: "English",
+                                trailing: trailingWidget(
+                                    model.defaultLanguage == 'en'),
+                                onPressed: (BuildContext context) {
+                                  model.setLanguage('en');
+                                  model.updateSettings(
+                                      map: {'defaultLanguage': 'en'});
+                                },
+                              ),
+                              SettingsTile(
+                                title: "Ikinyarwanda",
+                                trailing: trailingWidget(
+                                    model.defaultLanguage == 'fr'),
+                                onPressed: (BuildContext context) {
+                                  model.setLanguage('fr');
+                                  model.updateSettings(
+                                      map: {'defaultLanguage': 'fr'});
+                                },
+                              ),
+                              SettingsTile(
+                                title: "Swahili",
+                                trailing: trailingWidget(
+                                    model.defaultLanguage == 'sw'),
+                                onPressed: (BuildContext context) {
+                                  model.setLanguage('sw');
+                                  model.updateSettings(
+                                      map: {'defaultLanguage': 'sw'});
+                                },
+                              )
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Ionicons.keypad),
+                  title: Text('Reports'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    bottomSheetBuilder(
+                      header: header(title: 'Reports'),
+                      context: context,
+                      body: ViewModelBuilder<SettingViewModel>.reactive(
+                        viewModelBuilder: () => SettingViewModel(),
+                        onModelReady: (model) {
+                          model.getSetting();
+                          log.i(model.getSetting());
+                        },
+                        builder: (context, model, child) {
+                          return Column(
+                            children: [
+                              SettingsTile.switchTile(
+                                title: 'Enable Report',
+                                switchValue:
+                                    model.settingService.sendDailReport,
+                                onToggle: (bool value) {
+                                  model.enableDailyReport((message) {
+                                    showSimpleNotification(
+                                      Text(message),
+                                      background: Colors.red,
+                                      position: NotificationPosition.bottom,
+                                    );
+                                  });
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Ionicons.sync),
+                  title: Text('BackUps'),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                )
+              ]),
             );
           },
         ),
@@ -376,47 +469,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _getUpperLayer() {
-    return Container(
-      // color: Colors.white,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.1),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: Offset(0, -10),
-          ),
-        ],
-      ),
-      width: double.infinity,
-      child: Material(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 18.0),
-              child: Text('Not the workspances you\'re working for?'),
-            ),
-            ListTile(
-              contentPadding: const EdgeInsets.fromLTRB(20.0, 0.0, 5.0, 0.0),
-              title: const Text('Preferences'),
-              leading: Icon(Ionicons.close),
-              onTap: () {},
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget header() {
+  Widget header({required String title}) {
     return Material(
       child: Container(
         child: ListTile(
-          leading: Icon(Ionicons.close),
-          title: Text('Add Workspace'),
+          leading: Icon(Icons.arrow_back_ios),
+          title: Text(title),
+          onTap: () {
+            //navigation back
+            ProxyService.nav.back();
+          },
         ),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -427,5 +489,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  Widget trailingWidget(bool checked) {
+    return (checked) ? Icon(Icons.check, color: Colors.blue) : Icon(null);
   }
 }

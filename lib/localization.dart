@@ -19,9 +19,10 @@ class Localization {
   }
 }
 
-showPrefrenceBottomSheet({
+bottomSheetBuilder({
   required BuildContext context,
   required Widget header,
+  required Widget body,
 }) {
   showModalBottomSheet(
     context: context,
@@ -37,15 +38,28 @@ showPrefrenceBottomSheet({
         ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height - 120,
-          child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(18.0),
-                  topRight: Radius.circular(18.0),
-                ),
+          child: AnimatedContainer(
+            alignment: AlignmentDirectional.topCenter,
+            duration: const Duration(seconds: 2),
+            curve: Curves.elasticOut,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(18.0),
+                topRight: Radius.circular(18.0),
               ),
-              child: Column(children: <Widget>[header])),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                header,
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: body,
+                )
+              ],
+            ),
+          ),
         ),
       );
     },

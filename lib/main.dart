@@ -18,25 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
-// import 'package:path_provider/path_provider.dart';
 
-// Future<void> _deleteCacheDir() async {
-//   final cacheDir = await getTemporaryDirectory();
-
-//   if (cacheDir.existsSync()) {
-//     cacheDir.deleteSync(recursive: true);
-//   }
-// }
-
-// Future<void> _deleteAppDir() async {
-//   final appDir = await getApplicationSupportDirectory();
-
-//   if (appDir.existsSync()) {
-//     appDir.deleteSync(recursive: true);
-//   }
-// }
-
-///
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
 final isAndroid = UniversalPlatform.isAndroid;
@@ -49,9 +31,6 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 void main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
   WidgetsFlutterBinding.ensureInitialized();
-  // await _deleteCacheDir();
-  // await _deleteAppDir();
-
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

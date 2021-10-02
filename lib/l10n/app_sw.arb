@@ -62,5 +62,9 @@
     "edit": "Edit",
     "@edit": {
         "description": "Ongeraho kuri menu"
+    },
+    "addWorkSpace": "Add WorkSpace",
+    "@addWorkSpace": {
+        "description": "Add WorkSpace"
     }
 }

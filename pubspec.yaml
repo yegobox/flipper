@@ -185,7 +185,7 @@ dependencies:
   googleapis: ^5.0.1
   googleapis_auth: ^1.1.0
   flutter_secure_storage: ^4.2.1
-  url_launcher: ^6.0.11
+  url_launcher: ^6.0.12
   google_sign_in: ^5.1.0
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   nb_utils: ^4.4.8
