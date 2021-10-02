@@ -529,6 +529,10 @@ class MockRemote extends _i1.Mock implements _i26.Remote {
   bool isBackupAvailable() =>
       (super.noSuchMethod(Invocation.method(#isBackupAvailable, []),
           returnValue: false) as bool);
+  @override
+  bool isRemoteLoggingDynamicLinkEnabled() => (super.noSuchMethod(
+      Invocation.method(#isRemoteLoggingDynamicLinkEnabled, []),
+      returnValue: false) as bool);
 }
 
 /// A class which mocks [FirebaseMessaging].

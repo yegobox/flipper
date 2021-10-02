@@ -14,6 +14,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/drive_service.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   final log = getLogger('BusinessHomeViewModel');
@@ -412,4 +413,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [keypad, _app, productService];
+  void downloadBackup() {}
+
+  void uploadBackup() async {
+    Business business = await ProxyService.api.getBusiness();
+    if (ProxyService.remoteConfig.isBackupAvailable()) {
+      final drive = GoogleDrive();
+      if (business.backupFileId != null) {
+        drive.downloadGoogleDriveFile('data', business.backupFileId!);
+      } else {
+        drive.authenticate();
+      }
+    }
+  }
 }

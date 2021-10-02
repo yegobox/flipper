@@ -90,43 +90,44 @@ class GoogleDrive {
   /// if it is expired it will call refreshToken()
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
-  Future<http.Client> getHttpClient() async {
+  Future<http.Client> authenticate() async {
     //Get Credentials
-    var credentials = await storage.getCredentials();
-    if (credentials == null) {
-      final _googleSignIn = new GoogleSignIn(scopes: _scopes);
-      await _googleSignIn.signIn();
-      var httpClient = (await _googleSignIn.authenticatedClient())!;
-      log.i(httpClient.credentials.refreshToken);
-      log.i(httpClient.credentials.accessToken);
-      await storage.saveCredentials(httpClient.credentials.accessToken,
-          httpClient.credentials.refreshToken ?? '');
-      return httpClient;
-    } else {
-      await refreshToken();
-      // log.i(credentials["expiry"]);
-      // log.i(credentials["data"]);
-      // log.i(credentials["type"]);
-      return authenticatedClient(
-        http.Client(),
-        AccessCredentials(
-          AccessToken(
-            credentials["type"],
-            credentials["data"],
-            DateTime.tryParse(credentials["expiry"])!,
-          ),
-          // credentials["refreshToken"],
-          // refreshToken can be null as it was not returned when logging in
-          null,
-          _scopes,
-        ),
-      );
-    }
+    // var credentials = await storage.getCredentials();
+    // if (credentials == null) {
+    final _googleSignIn = new GoogleSignIn(scopes: _scopes);
+    await _googleSignIn.signIn();
+    var httpClient = (await _googleSignIn.authenticatedClient())!;
+    log.i(httpClient.credentials.refreshToken);
+    log.i(httpClient.credentials.accessToken);
+    await storage.saveCredentials(httpClient.credentials.accessToken,
+        httpClient.credentials.refreshToken ?? '');
+    return httpClient;
+    // }
+    //  else {
+    //   await refreshToken();
+    //   // log.i(credentials["expiry"]);
+    //   // log.i(credentials["data"]);
+    //   // log.i(credentials["type"]);
+    //   return authenticatedClient(
+    //     http.Client(),
+    //     AccessCredentials(
+    //       AccessToken(
+    //         credentials["type"],
+    //         credentials["data"],
+    //         DateTime.tryParse(credentials["expiry"])!,
+    //       ),
+    //       // credentials["refreshToken"],
+    //       // refreshToken can be null as it was not returned when logging in
+    //       null,
+    //       _scopes,
+    //     ),
+    //   );
+    // }
   }
 
   //Upload File
   Future upload(File file) async {
-    var client = await getHttpClient();
+    var client = await authenticate();
     var drive = ga.DriveApi(client);
     ga.File fileToUpload = ga.File();
     // https://ko.stackfinder.net/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
@@ -159,7 +160,7 @@ class GoogleDrive {
 
   // https://stackoverflow.com/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
   Future<void> downloadGoogleDriveFile(String fName, String gdID) async {
-    var client = await getHttpClient();
+    var client = await authenticate();
 
     var drive = ga.DriveApi(client);
 

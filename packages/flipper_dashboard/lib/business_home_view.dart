@@ -460,6 +460,29 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   leading: Icon(Ionicons.sync),
                   title: Text('BackUps'),
                   trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    bottomSheetBuilder(
+                        context: context,
+                        header: header(title: 'Add Backup'),
+                        body: Column(children: [
+                          ListTile(
+                            leading: Icon(Ionicons.cloud_download),
+                            title: Text('Download Backup'),
+                            trailing: Icon(Ionicons.happy),
+                            onTap: () {
+                              model.downloadBackup();
+                            },
+                          ),
+                          ListTile(
+                            leading: Icon(Ionicons.cloud_upload),
+                            title: Text('Backup now'),
+                            trailing: Icon(Ionicons.file_tray),
+                            onTap: () {
+                              model.uploadBackup();
+                            },
+                          ),
+                        ]));
+                  },
                 )
               ]),
             );
