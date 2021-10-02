@@ -117,7 +117,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                   Icons.help,
                 ),
                 onTap: () async {
-                  const url = 'https://yegobox.com/terms';
+                  const url = 'https://blog.yegobox.com';
                   if (await canLaunch(url)) {
                     await launch(url, forceSafariVC: false, forceWebView: true);
                   } else {

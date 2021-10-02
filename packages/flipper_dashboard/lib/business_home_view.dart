@@ -2,7 +2,6 @@ library flipper_dashboard;
 
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:rubber/rubber.dart';
 import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:settings_ui/settings_ui.dart';
