@@ -135,7 +135,7 @@ class AppSetup {
 
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/flutter_landing_page.git open-sources/landing
+// git submodule add https://github.com/yegobox/rubber.git open-sources/rubber
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%

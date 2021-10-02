@@ -1,5 +1,8 @@
 library flipper_dashboard;
 
+import 'package:ionicons/ionicons.dart';
+import 'package:rubber/rubber.dart';
+import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -18,7 +21,7 @@ import 'package:flipper_services/proxy.dart';
 import 'add_product_buttons.dart';
 import 'bottom_menu_bar.dart';
 import 'custom_rect_tween.dart';
-import 'flipper_drawer.dart';
+// import 'flipper_drawer_v2.dart';
 import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
 import 'package:stacked/stacked.dart';
@@ -44,15 +47,17 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   late ValueNotifier<bool> _sideOpenController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late Animation<double> _fadeAnimation;
-  late AnimationController _fadeController;
+
   TextEditingController controller = TextEditingController();
   final log = getLogger('KeyPadHead');
 
+  late RubberAnimationController _controller;
+
+  ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
-    super.initState();
-    _setupAnimation();
+    // super.initState();
     _sideOpenController = ValueNotifier<bool>(false);
     ProxyService.notification.initialize();
     ProxyService.dynamicLink.handleDynamicLink();
@@ -77,20 +82,20 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
     ProxyService.api.contacts().asBroadcastStream();
-  }
-
-  void _setupAnimation() {
-    _fadeController = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_fadeController);
-    _fadeController.forward(from: 1);
+    _controller = RubberAnimationController(
+      vsync: this,
+      upperBoundValue: AnimationControllerValue(percentage: 0.9),
+      duration: Duration(milliseconds: 200),
+      dismissable: true,
+    );
+    super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
     _sideOpenController.dispose();
-    _fadeController.dispose();
+    // _fadeController.dispose();
   }
 
   Future<bool> _onWillPop() async {
@@ -145,12 +150,34 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       builder: (context, model, child) {
         switch (ProxyService.box.read(key: 'page')) {
           case 'business':
-            return BusinessWidget(model);
+            return RubberBottomSheet(
+              header: header(),
+              onDragEnd: () {
+                print("onDragEnd");
+              },
+              headerHeight: 60,
+              scrollController: _scrollController,
+              lowerLayer: BusinessWidget(model), // The underlying page (Widget)
+              upperLayer: _getUpperLayer(), // The bottomsheet content (Widget)
+              animationController: _controller, // The one we created earlier
+            );
           case 'social':
             if (ProxyService.remoteConfig.isChatAvailable()) {
               return Lite();
             } else {
-              return BusinessWidget(model);
+              return RubberBottomSheet(
+                header: header(),
+                onDragEnd: () {
+                  print("onDragEnd");
+                },
+                headerHeight: 60,
+                scrollController: _scrollController,
+                lowerLayer:
+                    BusinessWidget(model), // The underlying page (Widget)
+                upperLayer:
+                    _getUpperLayer(), // The bottomsheet content (Widget)
+                animationController: _controller, // The one we created earlier
+              );
             }
           case 'openBusiness':
             return Text('open business');
@@ -158,83 +185,90 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             return Text('closed business');
           default:
         }
-        return BusinessWidget(model);
+        return RubberBottomSheet(
+          header: header(),
+          onDragEnd: () {
+            print("onDragEnd");
+          },
+          headerHeight: 60,
+          scrollController: _scrollController,
+          lowerLayer: BusinessWidget(model), // The underlying page (Widget)
+          upperLayer: _getUpperLayer(), // The bottomsheet content (Widget)
+          animationController: _controller, // The one we created earlier
+        );
       },
     );
   }
 
   Widget BodyWidget(BusinessHomeViewModel model) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideOutScreen(
-        sideOpenController: _sideOpenController,
-        side: const Text('Side'),
-        main: Column(
-          children: [
-            KeyPadHead(
-              tab: model.tab,
-              payable: PayableView(
-                onClick: () {
-                  if (model.kOrder != null) {
-                    ProxyService.nav.navigateTo(Routes.pay);
-                  } else {
+    return SlideOutScreen(
+      sideOpenController: _sideOpenController,
+      side: const Text('Side'),
+      main: Column(
+        children: [
+          KeyPadHead(
+            tab: model.tab,
+            payable: PayableView(
+              onClick: () {
+                if (model.kOrder != null) {
+                  ProxyService.nav.navigateTo(Routes.pay);
+                } else {
+                  showSimpleNotification(
+                    Text(Localization.of(context)!.noPayable),
+                    background: Colors.green,
+                    position: NotificationPosition.bottom,
+                  );
+                }
+              },
+              tickets:
+                  model.tickets.isEmpty ? 0 : model.tickets.length.toDouble(),
+              orders:
+                  model.kOrder != null ? model.kOrder!.orderItems.length : 0,
+              duePay:
+                  model.kOrder != null ? model.totalPayable.toDouble() : 0.00,
+              ticketHandler: () async {
+                log.i(model.tickets.length);
+                await model.keypad.getTickets();
+                await model.keypad
+                    .getOrder(branchId: ProxyService.box.read(key: 'branchId'));
+                if (model.kOrder == null && model.tickets.isNotEmpty) {
+                  //then we know we need to resume.
+                  FlipperBottomSheet.showTicketsToSaleBottomSheet(
+                    model: model,
+                    context: context,
+                  );
+                }
+                model.saveTicket((handle) {
+                  if (handle == 'error') {
+                    //show the modal to add a not to a ticket here
+                    FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                      model: model,
+                      context: context,
+                    );
+                  } else if (handle == 'saved') {
                     showSimpleNotification(
-                      Text(Localization.of(context)!.noPayable),
+                      Text('Note added'),
                       background: Colors.green,
                       position: NotificationPosition.bottom,
                     );
                   }
-                },
-                tickets:
-                    model.tickets.isEmpty ? 0 : model.tickets.length.toDouble(),
-                orders:
-                    model.kOrder != null ? model.kOrder!.orderItems.length : 0,
-                duePay:
-                    model.kOrder != null ? model.totalPayable.toDouble() : 0.00,
-                ticketHandler: () async {
-                  log.i(model.tickets.length);
-                  await model.keypad.getTickets();
-                  await model.keypad.getOrder(
-                      branchId: ProxyService.box.read(key: 'branchId'));
-                  if (model.kOrder == null && model.tickets.isNotEmpty) {
-                    //then we know we need to resume.
-                    FlipperBottomSheet.showTicketsToSaleBottomSheet(
-                      model: model,
-                      context: context,
-                    );
-                  }
-                  model.saveTicket((handle) {
-                    if (handle == 'error') {
-                      //show the modal to add a not to a ticket here
-                      FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                        model: model,
-                        context: context,
-                      );
-                    } else if (handle == 'saved') {
-                      showSimpleNotification(
-                        Text('Note added'),
-                        background: Colors.green,
-                        position: NotificationPosition.bottom,
-                      );
-                    }
-                  });
-                },
-              ),
-              onClick: () {
-                FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                  model: model,
-                  context: context,
-                );
+                });
               },
-              controller: controller,
-              amount: double.parse(model.key),
             ),
-            model.tab == 0
-                ? KeyPadView(model: model)
-                // show a list of products and on click handle different scenarios
-                : Flexible(child: ProductView(userId: '1', items: true)),
-          ],
-        ),
+            onClick: () {
+              FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                model: model,
+                context: context,
+              );
+            },
+            controller: controller,
+            amount: double.parse(model.key),
+          ),
+          model.tab == 0
+              ? KeyPadView(model: model)
+              // show a list of products and on click handle different scenarios
+              : Flexible(child: ProductView(userId: '1', items: true)),
+        ],
       ),
     );
   }
@@ -329,7 +363,37 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
         ),
         drawer: FlipperDrawer(
-          businesses: model.businesses,
+          controller: () {
+            _controller.expand();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _getUpperLayer() {
+    return Container(
+      color: Colors.white,
+      width: double.infinity,
+      child: Column(
+        children: [Text('I am visible')],
+      ),
+    );
+  }
+
+  Widget header() {
+    return Scaffold(
+      body: Container(
+        child: ListTile(
+          leading: Icon(Ionicons.close),
+          title: Text('Add Workspace'),
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.0),
+            topRight: Radius.circular(20.0),
+          ),
         ),
       ),
     );

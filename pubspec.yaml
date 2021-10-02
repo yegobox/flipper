@@ -150,7 +150,7 @@ dependencies:
   open_file: ^3.2.1
   firebase_performance: "^0.7.1+1"
   share_plus: ^2.1.4
-  # rubber: ^1.0.0
+
   overlay_support: ^1.2.1
   flutter_screenutil: ^5.0.0+2
   flutter_local_notifications: ^6.0.0
@@ -190,6 +190,9 @@ dependencies:
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   nb_utils: ^4.4.8
   fluent_ui: ^3.2.0
+  # rubber: ^1.0.1
+  rubber:
+    path: "open-sources/rubber"
   # flutter_qr_reader: 1.0.5
   # end remove
   # flutter_chat_ui:
