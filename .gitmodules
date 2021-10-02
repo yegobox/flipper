@@ -20,3 +20,6 @@
 # [submodule "open-sources/landing"]
 # 	path = open-sources/landing
 # 	url = https://github.com/yegobox/flutter_landing_page.git
+[submodule "open-sources/rubber"]
+	path = open-sources/rubber
+	url = https://github.com/yegobox/rubber.git

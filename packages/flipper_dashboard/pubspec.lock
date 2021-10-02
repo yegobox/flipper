@@ -1666,9 +1666,9 @@ packages:
   rubber:
     dependency: transitive
     description:
-      name: rubber
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/rubber"
+      relative: true
+    source: path
     version: "1.0.1"
   rxdart:
     dependency: transitive

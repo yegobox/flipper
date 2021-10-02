@@ -132,10 +132,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           //     ProxyService.api.getBusiness().backupFileId != null) {
           //   // await model.backUpEnabled();
           //   //show the bottom sheet to add card
-          //   FlipperBottomSheet.showAddPaymentMethod(
-          //     model: model,
-          //     context: context,
-          //   );
+          // FlipperBottomSheet.showAddPaymentMethod(
+          //   model: model,
+          //   context: context,
+          // );
           // }
           // if (business.backUpEnabled == true && business.backupFileId != null) {
           //   // and is no data sugges restore the backup.
@@ -364,7 +364,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
         drawer: FlipperDrawer(
           controller: () {
-            _controller.expand();
+            // _controller.expand(); // was using rubber but honestly it's not needed use built in bottom sheet
+            showPrefrenceBottomSheet(
+              // model: model,
+              header: header(),
+              context: context,
+            );
           },
         ),
       ),
@@ -373,17 +378,42 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   Widget _getUpperLayer() {
     return Container(
-      color: Colors.white,
+      // color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(0.1),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: Offset(0, -10),
+          ),
+        ],
+      ),
       width: double.infinity,
-      child: Column(
-        children: [Text('I am visible')],
+      child: Material(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 18.0),
+              child: Text('Not the workspances you\'re working for?'),
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(20.0, 0.0, 5.0, 0.0),
+              title: const Text('Preferences'),
+              leading: Icon(Ionicons.close),
+              onTap: () {},
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget header() {
-    return Scaffold(
-      body: Container(
+    return Material(
+      child: Container(
         child: ListTile(
           leading: Icon(Ionicons.close),
           title: Text('Add Workspace'),
@@ -391,8 +421,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.0),
-            topRight: Radius.circular(20.0),
+            topLeft: Radius.circular(18.0),
+            topRight: Radius.circular(18.0),
           ),
         ),
       ),

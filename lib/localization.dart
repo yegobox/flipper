@@ -19,6 +19,39 @@ class Localization {
   }
 }
 
+showPrefrenceBottomSheet({
+  required BuildContext context,
+  required Widget header,
+}) {
+  showModalBottomSheet(
+    context: context,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10.0),
+    ),
+    backgroundColor: Colors.white,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.transparent,
+        ),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height - 120,
+          child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(18.0),
+                  topRight: Radius.circular(18.0),
+                ),
+              ),
+              child: Column(children: <Widget>[header])),
+        ),
+      );
+    },
+  );
+}
+
 class FlipperBottomSheet {
   static showAddPaymentMethod(
       {required BusinessHomeViewModel model,

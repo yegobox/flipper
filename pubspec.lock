@@ -1737,9 +1737,9 @@ packages:
   rubber:
     dependency: "direct main"
     description:
-      name: rubber
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "open-sources/rubber"
+      relative: true
+    source: path
     version: "1.0.1"
   rxdart:
     dependency: "direct main"
