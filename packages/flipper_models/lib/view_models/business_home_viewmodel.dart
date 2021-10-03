@@ -410,9 +410,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return true;
   }
 
-  @override
-  List<ReactiveServiceMixin> get reactiveServices =>
-      [keypad, _app, productService];
   void downloadBackup() {}
 
   void uploadBackup() async {
@@ -426,4 +423,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       }
     }
   }
+  
+  @override
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [keypad, _app, productService];
 }

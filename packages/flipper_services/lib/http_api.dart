@@ -492,7 +492,7 @@ class HttpApi<T> implements Api {
   }
 
   @override
-  Future<void> createGoogleSheetDoc() {
+  Future<void> createGoogleSheetDoc({required String email}) {
     // TODO: implement createGoogleSheetDoc
     throw UnimplementedError();
   }

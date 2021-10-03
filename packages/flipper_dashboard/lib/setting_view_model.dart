@@ -74,8 +74,8 @@ class SettingViewModel extends ReactiveViewModel {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(settings()['email'])) {
         callback('Added email is not gmail');
       } else {
+        await ProxyService.api.createGoogleSheetDoc(email: settings()['email']);
         await settingService.createGoogleSheetDoc();
-        await ProxyService.api.createGoogleSheetDoc();
         toggleSettings();
       }
     } else {

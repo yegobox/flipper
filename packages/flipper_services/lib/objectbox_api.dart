@@ -1292,15 +1292,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<void> createGoogleSheetDoc() async {
+  Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
     Business? business = getBusiness();
     String docName = business.name + '- Report';
-    int id = int.parse(ProxyService.box.read(key: 'userId'));
-    Setting? setting = getSetting(userId: id);
+
     final response = await client.post(
         Uri.parse("$apihub/v2/api/createSheetDocument"),
-        body: jsonEncode({"title": docName, "shareToEmail": setting!.email}),
+        body: jsonEncode({"title": docName, "shareToEmail": email}),
         headers: {'Content-Type': 'application/json'});
     log.i(response.body);
   }
