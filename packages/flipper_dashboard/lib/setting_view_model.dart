@@ -70,7 +70,8 @@ class SettingViewModel extends ReactiveViewModel {
   void enableDailyReport(Function callback) async {
     if (settings()['email'] != null && settings()['email'].length > 0) {
       await settingService.enableDailyReport(
-          bool: !settingService.sendDailReport);
+        bool: !settingService.sendDailReport,
+      );
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(settings()['email'])) {
         callback('Added email is not gmail');
       } else {

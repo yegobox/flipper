@@ -22,7 +22,9 @@ environment:
 
 dependencies:
   country_code_picker: ^2.0.1
-  flutter_country_picker: ^0.1.6
+  # flutter_country_picker: ^0.1.6
+  flutter_country_picker:
+    path: "open-sources/flutter_country_picker"
   flutter:
     sdk: flutter
   flutter_localizations:

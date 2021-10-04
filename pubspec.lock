@@ -849,9 +849,9 @@ packages:
   flutter_country_picker:
     dependency: "direct main"
     description:
-      name: flutter_country_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "open-sources/flutter_country_picker"
+      relative: true
+    source: path
     version: "0.1.6"
   flutter_datetime_picker:
     dependency: "direct main"
