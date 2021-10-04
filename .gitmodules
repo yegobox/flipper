@@ -20,6 +20,3 @@
 # [submodule "open-sources/landing"]
 # 	path = open-sources/landing
 # 	url = https://github.com/yegobox/flutter_landing_page.git
-[submodule "open-sources/flutter_country_picker"]
-	path = open-sources/flutter_country_picker
-	url = https://github.com/yegobox/flutter_country_picker.git
