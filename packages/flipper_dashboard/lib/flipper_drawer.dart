@@ -14,9 +14,9 @@ class FlipperDrawer extends StatefulWidget {
       required this.addWorkSpace})
       : super(key: key);
 
-  Function preferenceController;
-  Function addWorkSpace;
-  List<Business> businesses;
+  final Function preferenceController;
+  final Function addWorkSpace;
+  final List<Business> businesses;
 
   @override
   State<FlipperDrawer> createState() => _FlipperDrawerState();
@@ -33,102 +33,108 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
   Widget _getLowerLayer() {
     final Color _circleColor =
         Theme.of(context).copyWith(canvasColor: Colors.cyan).canvasColor;
-    return Stack(
-      children: [
-        ListView(
-          physics: const BouncingScrollPhysics(),
-          children: <Widget>[
-            const SizedBox(
-              height: 60,
-              child: DrawerHeader(
-                padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-                child: Text('Workspaces'),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            ...widget.businesses
-                .map(
-                  (business) => ListTile(
-                    contentPadding:
-                        const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 0.0),
-                    title: Text(business.name),
-                    subtitle: Text(business.businessUrl ?? ''),
-                    leading: CachedNetworkImage(
-                      /// if business.businessUrl then pass fake url to fallback to default.
-                      imageUrl: business.businessUrl ?? 'https://yegobox.com',
-                      placeholder: (context, url) => avatar(
-                        color: _circleColor,
-                        text: business.name.substring(0, 2),
-                        action: () {
-                          // onPressedCircle(business);
-                        },
-                        updateIndicatorVisible: true,
-                        isSquareShape: true,
-                        userIcon: null, //set to true by default
-                      ),
-                      errorWidget: (context, url, error) => avatar(
-                        color: _circleColor,
-                        text: business.name.substring(0, 2),
-                        action: () {
-                          // onPressedCircle(business);
-                        },
-                        updateIndicatorVisible: true,
-                        isSquareShape: true,
-                        userIcon: null, //set to true by default
-                      ),
-                    ),
-                    trailing: const Icon(
-                      Ionicons.people_outline,
-                    ),
-                    onTap: () {},
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+      ),
+      child: Stack(
+        children: [
+          ListView(
+            physics: const BouncingScrollPhysics(),
+            children: <Widget>[
+              const SizedBox(
+                height: 60,
+                child: DrawerHeader(
+                  padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                  child: Text('Workspaces'),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                   ),
-                )
-                .toList(),
-          ],
-        ),
-        Positioned(
-          bottom: 0.0,
-          left: 20.0,
-          right: 0.0,
-          child: Column(
-            children: [
-              ListTile(
-                contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
-                title: const Text('Add a Workspace'),
-                leading: const Icon(Icons.add),
-                onTap: () {
-                  widget.addWorkSpace();
-                },
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
-                title: const Text('Preferences'),
-                leading: const Icon(Icons.settings),
-                onTap: () {
-                  widget.preferenceController();
-                },
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
-                title: const Text('help'),
-                leading: Icon(
-                  Icons.help,
                 ),
-                onTap: () async {
-                  const url = 'https://blog.yegobox.com';
-                  if (await canLaunch(url)) {
-                    await launch(url, forceSafariVC: false, forceWebView: true);
-                  } else {
-                    throw 'Could not launch $url';
-                  }
-                },
               ),
+              ...widget.businesses
+                  .map(
+                    (business) => ListTile(
+                      contentPadding:
+                          const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 0.0),
+                      title: Text(business.name),
+                      subtitle: Text(business.businessUrl ?? ''),
+                      leading: CachedNetworkImage(
+                        /// if business.businessUrl then pass fake url to fallback to default.
+                        imageUrl: business.businessUrl ?? 'https://yegobox.com',
+                        placeholder: (context, url) => avatar(
+                          color: _circleColor,
+                          text: business.name.substring(0, 2),
+                          action: () {
+                            // onPressedCircle(business);
+                          },
+                          updateIndicatorVisible: true,
+                          isSquareShape: true,
+                          userIcon: null, //set to true by default
+                        ),
+                        errorWidget: (context, url, error) => avatar(
+                          color: _circleColor,
+                          text: business.name.substring(0, 2),
+                          action: () {
+                            // onPressedCircle(business);
+                          },
+                          updateIndicatorVisible: true,
+                          isSquareShape: true,
+                          userIcon: null, //set to true by default
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Ionicons.people_outline,
+                      ),
+                      onTap: () {},
+                    ),
+                  )
+                  .toList(),
             ],
           ),
-        )
-      ],
+          Positioned(
+            bottom: 0.0,
+            left: 20.0,
+            right: 0.0,
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
+                  title: const Text('Add a Workspace'),
+                  leading: const Icon(Icons.add),
+                  onTap: () {
+                    widget.addWorkSpace();
+                  },
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
+                  title: const Text('Preferences'),
+                  leading: const Icon(Icons.settings),
+                  onTap: () {
+                    widget.preferenceController();
+                  },
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
+                  title: const Text('help'),
+                  leading: Icon(
+                    Icons.help,
+                  ),
+                  onTap: () async {
+                    const url = 'https://blog.yegobox.com';
+                    if (await canLaunch(url)) {
+                      await launch(url,
+                          forceSafariVC: false, forceWebView: true);
+                    } else {
+                      throw 'Could not launch $url';
+                    }
+                  },
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 

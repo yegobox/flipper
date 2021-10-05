@@ -6,25 +6,25 @@ import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:upgrader/upgrader.dart';
-import 'package:flipper_services/drive_service.dart';
-import 'package:ant_icons/ant_icons.dart';
+// import 'package:flipper_services/drive_service.dart';
+// import 'package:ant_icons/ant_icons.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_dashboard/payable_view.dart';
-import 'package:flipper_dashboard/popup_modal.dart';
+// import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/sale_indicator.dart';
 import 'package:flipper_dashboard/slide_out_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'add_product_buttons.dart';
+// import 'add_product_buttons.dart';
 import 'bottom_menu_bar.dart';
-import 'custom_rect_tween.dart';
+// import 'custom_rect_tween.dart';
 // import 'flipper_drawer_v2.dart';
-import 'hero_dialog_route.dart';
+// import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
@@ -267,15 +267,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         // FloatingActionButtonLocation.miniCenterDocked,
         // floatingActionButton: GestureDetector(
         //   onTap: () {
-        //     Navigator.of(context).push(
-        //       HeroDialogRoute(
-        //         builder: (context) {
-        //           return const OptionModal(
-        //             child: AddProductButtons(),
-        //           );
-        //         },
-        //       ),
-        //     );
+        // Navigator.of(context).push(
+        //   HeroDialogRoute(
+        //     builder: (context) {
+        //       return const OptionModal(
+        //         child: AddProductButtons(),
+        //       );
+        //     },
+        //   ),
+        // );
         //   },
         //   child: Hero(
         //     tag: addProductHero,
