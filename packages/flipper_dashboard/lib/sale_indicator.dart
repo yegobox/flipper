@@ -29,84 +29,73 @@ class SaleIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context)
-          .copyWith(canvasColor: Colors.transparent)
-          .canvasColor,
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: 60,
-        child: ListTile(
-          trailing: SizedBox(
-            width: 80,
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    goToFlipperChat();
-                  },
-                  child: Icon(Ionicons.chatbox_sharp),
-                ),
-                Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      HeroDialogRoute(
-                        builder: (context) {
-                          return const OptionModal(
-                            child: AddProductButtons(),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  child: Icon(CupertinoIcons.add),
-                ),
-              ],
-            ),
-          ),
-          // leading: Icon(Ionicons.chatbox),
-          title: Expanded(
-            child: TextButton(
-              style: TextButton.styleFrom(primary: Colors.black),
-              onPressed: () {
-                onClick();
+    return ListTile(
+      trailing: SizedBox(
+        width: 80,
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                goToFlipperChat();
               },
-              child: counts == 0
-                  ? Row(
-                      children: [
-                        Text(
-                          'No Sale',
-                          style:
-                              Theme.of(context).textTheme.headline4!.copyWith(
-                                    fontSize: 16,
-                                    color: const Color(0xff363f47),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(Localization.of(context)!.currentSale),
-                        Stack(
-                          alignment: isAndroid
-                              ? AlignmentDirectional.bottomCenter
-                              : AlignmentDirectional.center,
-                          children: [
-                            Text(counts.toString()),
-                            const IconButton(
-                              icon: FaIcon(FontAwesomeIcons.clone),
-                              onPressed: null,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+              child: Icon(Ionicons.chatbox_sharp),
             ),
-          ),
+            Spacer(),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  HeroDialogRoute(
+                    builder: (context) {
+                      return const OptionModal(
+                        child: AddProductButtons(),
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Icon(CupertinoIcons.add),
+            ),
+          ],
         ),
+      ),
+      // leading: Icon(Ionicons.chatbox),
+      title: TextButton(
+        style: TextButton.styleFrom(primary: Colors.black),
+        onPressed: () {
+          onClick();
+        },
+        child: counts == 0
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'No Sale',
+                    style: Theme.of(context).textTheme.headline4!.copyWith(
+                          fontSize: 16,
+                          color: const Color(0xff363f47),
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(Localization.of(context)!.currentSale),
+                  Stack(
+                    alignment: isAndroid
+                        ? AlignmentDirectional.bottomCenter
+                        : AlignmentDirectional.center,
+                    children: [
+                      Text(counts.toString()),
+                      const IconButton(
+                        icon: FaIcon(FontAwesomeIcons.clone),
+                        onPressed: null,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
       ),
     );
   }

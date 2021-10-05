@@ -8,6 +8,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:upgrader/upgrader.dart';
 // import 'package:flipper_services/drive_service.dart';
 // import 'package:ant_icons/ant_icons.dart';
+import 'package:flipper_login/update_email.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -330,27 +331,33 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             bottomSheetBuilder(
               header: header(title: Localization.of(context)!.addWorkSpace),
               context: context,
-              body: Column(children: [
-                ListTile(
-                  leading: Icon(Ionicons.search),
-                  title: Text('Accessibility'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                ),
-                ListTile(
-                  leading: Icon(Ionicons.language),
-                  title: Text('Language'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    ;
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Ionicons.keypad),
-                  title: Text('Enable report'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  onTap: () {},
-                ),
-              ]),
+              body: ViewModelBuilder<SettingViewModel>.reactive(
+                  viewModelBuilder: () => SettingViewModel(),
+                  builder: (context, model, child) {
+                    return Column(children: [
+                      if (ProxyService.remoteConfig
+                          .isAccessiblityFeatureAvailable())
+                        ListTile(
+                          leading: Icon(Ionicons.search),
+                          title: Text('Accessibility'),
+                          trailing: Icon(Icons.arrow_forward_ios),
+                        ),
+                      ListTile(
+                        leading: Icon(Ionicons.language),
+                        title: Text('Language'),
+                        trailing: Icon(Icons.arrow_forward_ios),
+                        onTap: () {},
+                      ),
+                      ListTile(
+                        leading: Icon(Ionicons.keypad),
+                        title: Text('Enable report'),
+                        trailing: Icon(Icons.arrow_forward_ios),
+                        onTap: () {
+                          print('here');
+                        },
+                      ),
+                    ]);
+                  }),
             );
           },
           preferenceController: () {
@@ -359,11 +366,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               header: header(title: 'Preferences'),
               context: context,
               body: Column(children: [
-                ListTile(
-                  leading: Icon(Ionicons.search),
-                  title: Text('Accessibility'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                ),
+                if (ProxyService.remoteConfig.isAccessiblityFeatureAvailable())
+                  ListTile(
+                    leading: Icon(Ionicons.search),
+                    title: Text('Accessibility'),
+                    trailing: Icon(Icons.arrow_forward_ios),
+                  ),
                 ListTile(
                   leading: Icon(Ionicons.language),
                   title: Text('Language'),
@@ -441,11 +449,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                     model.settingService.sendDailReport,
                                 onToggle: (bool value) {
                                   model.enableDailyReport((message) {
-                                    showSimpleNotification(
-                                      Text(message),
-                                      background: Colors.red,
-                                      position: NotificationPosition.bottom,
-                                    );
+                                    if (message == 1) {
+                                      showSimpleNotification(
+                                        Text('Added email is not gmail'),
+                                        background: Colors.red,
+                                        position: NotificationPosition.bottom,
+                                      );
+                                    }
+                                    if (message == 2) {
+                                      // You need to add email first
+                                      bottomSheetBuilder(
+                                        context: context,
+                                        body: UpdateEmailSetting(),
+                                        header: header(title: 'Add Email'),
+                                      );
+                                    }
                                   });
                                 },
                               ),
@@ -456,34 +474,35 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     );
                   },
                 ),
-                ListTile(
-                  leading: Icon(Ionicons.sync),
-                  title: Text('BackUps'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    bottomSheetBuilder(
-                        context: context,
-                        header: header(title: 'Add Backup'),
-                        body: Column(children: [
-                          ListTile(
-                            leading: Icon(Ionicons.cloud_download),
-                            title: Text('Download Backup'),
-                            trailing: Icon(Ionicons.happy),
-                            onTap: () {
-                              model.downloadBackup();
-                            },
-                          ),
-                          ListTile(
-                            leading: Icon(Ionicons.cloud_upload),
-                            title: Text('Backup now'),
-                            trailing: Icon(Ionicons.file_tray),
-                            onTap: () {
-                              model.uploadBackup();
-                            },
-                          ),
-                        ]));
-                  },
-                )
+                if (ProxyService.remoteConfig.isBackupAvailable())
+                  ListTile(
+                    leading: Icon(Ionicons.sync),
+                    title: Text('BackUps'),
+                    trailing: Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      bottomSheetBuilder(
+                          context: context,
+                          header: header(title: 'Add Backup'),
+                          body: Column(children: [
+                            ListTile(
+                              leading: Icon(Ionicons.cloud_download),
+                              title: Text('Download Backup'),
+                              trailing: Icon(Ionicons.happy),
+                              onTap: () {
+                                model.downloadBackup();
+                              },
+                            ),
+                            ListTile(
+                              leading: Icon(Ionicons.cloud_upload),
+                              title: Text('Backup now'),
+                              trailing: Icon(Ionicons.file_tray),
+                              onTap: () {
+                                model.uploadBackup();
+                              },
+                            ),
+                          ]));
+                    },
+                  )
               ]),
             );
           },

@@ -194,6 +194,7 @@ dependencies:
   system_theme: ^1.0.1
   flutter_acrylic: ^0.0.3
   flutter_form_bloc: ^0.20.6
+  flutter_inappwebview: ^5.3.2
 
   # flutter_qr_reader: 1.0.5
   # end remove

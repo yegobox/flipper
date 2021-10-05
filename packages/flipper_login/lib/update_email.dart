@@ -55,7 +55,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
               const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Text(
-                  'After entering your email number, click on update settings',
+                  'After entering your email, click on add email',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),
@@ -71,7 +71,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                       height: 60,
                       child: !model.updateStart
                           ? BoxButton(
-                              title: 'Update Settings',
+                              title: 'Add Email',
                               onTap: () async {
                                 if (_formKey.currentState!.validate()) {
                                   bool updated = await model.updateSettings(

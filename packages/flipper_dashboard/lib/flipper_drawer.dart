@@ -9,6 +9,8 @@ import 'package:ionicons/ionicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_models/business.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_routing/routes.router.dart';
 
 class FlipperDrawer extends StatefulWidget {
   FlipperDrawer(
@@ -142,18 +144,21 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                               Padding(
                                                 padding: const EdgeInsets.only(
                                                     top: 40.0),
-                                                child: BoxButton.outline(
-                                                  onTap: null,
-                                                  borderRadius: 2,
-                                                  title: 'Log out',
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    await ProxyService.api
+                                                        .logOut();
+                                                    ProxyService.nav.navigateTo(
+                                                      Routes.initial,
+                                                    );
+                                                  },
+                                                  child: BoxButton.outline(
+                                                    onTap: null,
+                                                    borderRadius: 2,
+                                                    title: 'Log out',
+                                                  ),
                                                 ),
                                               )
-                                              // ButtonCircle(
-                                              //   onPressed: () {},
-                                              //   icon: CupertinoIcons.person_2,
-                                              //   size: 70,
-                                              //   iconSize: 32,
-                                              // )
                                             ],
                                           )
                                         ],
@@ -194,6 +199,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     widget.preferenceController();
                   },
                 ),
+                //TODOhttps://pub.dev/packages/flutter_inappwebview
                 ListTile(
                   contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
                   title: const Text('help'),

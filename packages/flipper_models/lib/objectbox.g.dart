@@ -81,7 +81,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 2865100998343489519),
       name: 'Business',
-      lastPropertyId: const IdUid(30, 5778787744536565425),
+      lastPropertyId: const IdUid(31, 7089179496554694098),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -232,6 +232,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(30, 5778787744536565425),
             name: 'backupFileId',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(31, 7089179496554694098),
+            name: 'email',
             type: 9,
             flags: 0)
       ],
@@ -1308,7 +1313,9 @@ ModelDefinition getObjectBoxModel() {
           final backupFileIdOffset = object.backupFileId == null
               ? null
               : fbb.writeString(object.backupFileId!);
-          fbb.startTable(31);
+          final emailOffset =
+              object.email == null ? null : fbb.writeString(object.email!);
+          fbb.startTable(32);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, currencyOffset);
@@ -1339,6 +1346,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(27, previousBillingDateOffset);
           fbb.addBool(28, object.isLastSubscriptionPaymentSucceeded);
           fbb.addOffset(29, backupFileIdOffset);
+          fbb.addOffset(30, emailOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1388,6 +1396,7 @@ ModelDefinition getObjectBoxModel() {
               previousBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 58),
               isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
               backupFileId: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 62),
+              email: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 64),
               role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
             ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
 
@@ -2427,6 +2436,10 @@ class Business_ {
   /// see [Business.backupFileId]
   static final backupFileId =
       QueryStringProperty<Business>(_entities[1].properties[29]);
+
+  /// see [Business.email]
+  static final email =
+      QueryStringProperty<Business>(_entities[1].properties[30]);
 }
 
 /// [Category] entity fields to define ObjectBox queries.

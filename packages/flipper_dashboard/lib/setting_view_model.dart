@@ -6,6 +6,7 @@ import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_models/business.dart';
 
 class SettingViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
@@ -73,14 +74,22 @@ class SettingViewModel extends ReactiveViewModel {
         bool: !settingService.sendDailReport,
       );
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(settings()['email'])) {
-        callback('Added email is not gmail');
+        callback(1);
       } else {
         await ProxyService.api.createGoogleSheetDoc(email: settings()['email']);
         await settingService.createGoogleSheetDoc();
+        //patch the business with the email.
+        Business business = ProxyService.api.getBusiness();
+        business.email = settings()['email'];
+        await ProxyService.api
+            .updateBusiness(id: business.id, business: business.toJson());
+        ProxyService.api.update(
+            data: business.toJson(),
+            endPoint: 'businesses/' + business.id.toString());
         toggleSettings();
       }
     } else {
-      callback('You need to add email first');
+      callback(2);
     }
   }
 

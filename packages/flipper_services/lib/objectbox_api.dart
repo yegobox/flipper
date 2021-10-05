@@ -884,6 +884,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           hexColor: map['hexColor'],
           type: map['type'],
           deviceToken: map['deviceToken'],
+          email: map['email'],
           backUpEnabled: map['backUpEnabled'],
           backupFileId: map['backupFileId'],
           isLastSubscriptionPaymentSucceeded:
@@ -1453,6 +1454,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     await client.patch(Uri.parse("$apihub/v2/api/business/$id"),
         body: jsonEncode({
           'deviceToken': business['deviceToken'],
+          'email': business['email'],
           'backupFileId': business['backupFileId'],
           'chatUid': business['chatUid']
         }),
