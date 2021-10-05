@@ -389,8 +389,9 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
           Invocation.method(#sendReport, [], {#orderItems: orderItems}),
           returnValue: Future<int>.value(0)) as _i16.Future<int>);
   @override
-  _i16.Future<void> createGoogleSheetDoc() =>
-      (super.noSuchMethod(Invocation.method(#createGoogleSheetDoc, []),
+  _i16.Future<void> createGoogleSheetDoc({String? email}) =>
+      (super.noSuchMethod(
+          Invocation.method(#createGoogleSheetDoc, [], {#email: email}),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i16.Future<void>);
   @override
