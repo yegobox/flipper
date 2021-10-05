@@ -4,31 +4,31 @@ on:
   push:
     branches: [main, mobile]
 jobs:
-  version:
-    name: Create version number
-    # needs: [integrationTest]
-    runs-on: windows-latest
+  # version:
+  #   name: Create version number
+  #   # needs: [integrationTest]
+  #   runs-on: windows-latest
 
-    steps:
-      - uses: actions/checkout@v1
-      - name: Fetch all history for all tags and branches
-        run: |
-          git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-          git fetch --prune --depth=10
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.5
-        with:
-          versionSpec: "5.5.x"
-      - name: Use GitVersion
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.9.5
-      - name: Create version.txt with nuGetVersion
-        run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
-      - name: Upload version.txt
-        uses: actions/upload-artifact@v2
-        with:
-          name: gitversion
-          path: version.txt
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - name: Fetch all history for all tags and branches
+  #       run: |
+  #         git config remote.origin.url https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
+  #         git fetch --prune --depth=10
+  #     - name: Install GitVersion
+  #       uses: gittools/actions/gitversion/setup@v0.9.5
+  #       with:
+  #         versionSpec: "5.5.x"
+  #     - name: Use GitVersion
+  #       id: gitversion
+  #       uses: gittools/actions/gitversion/execute@v0.9.5
+  #     - name: Create version.txt with nuGetVersion
+  #       run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
+  #     - name: Upload version.txt
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: gitversion
+  #         path: version.txt
   testing:
     name: Unit Testing
     # needs: [integrationTest]
@@ -49,7 +49,7 @@ jobs:
       - run: flutter test
   windows:
     name: windowsInstaller
-    # needs: [testing]
+    needs: [testing]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
@@ -69,7 +69,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/windows/runner/Release/flipper.msix"
-          tag: v1.0.0.7
+          tag: v1.0.0.8
           token: ${{ secrets.GH_TOKEN }}
           # commit: ${{ github.sha }}
       - name: Upload  windows installer
@@ -80,12 +80,12 @@ jobs:
           # TODO: https://github.com/marketplace/actions/windows-store-publish use this to also publish to windows store.
   build:
     name: Build APK and Create release
-    needs: [testing, version]
+    needs: [testing]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.45.0+1111030/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.46.0+1111031/g' pubspec.yaml
       - name: Update env URL
         run: sed -i 's/#{PUSHER_KEY}#/${{ secrets.PUSHER_KEY }}/g'  .env
       - uses: actions/setup-java@v1
@@ -103,7 +103,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: 1.45.0+1111030
+          tag: 1.46.0+1111031
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2

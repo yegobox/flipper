@@ -4,6 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:flipper_models/business.dart';
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
@@ -80,6 +81,7 @@ class GoogleDrive {
     log.i(httpClient.credentials.refreshToken);
     // TODOlearn if the refresher token is given.
     log.i(httpClient.credentials.accessToken);
+
     await storage.saveCredentials(httpClient.credentials.accessToken,
         httpClient.credentials.refreshToken ?? '');
     return httpClient;
@@ -91,38 +93,19 @@ class GoogleDrive {
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
   Future<http.Client> authenticate() async {
-    //Get Credentials
-    // var credentials = await storage.getCredentials();
-    // if (credentials == null) {
     final _googleSignIn = new GoogleSignIn(scopes: _scopes);
     await _googleSignIn.signIn();
     var httpClient = (await _googleSignIn.authenticatedClient())!;
     log.i(httpClient.credentials.refreshToken);
     log.i(httpClient.credentials.accessToken);
+    FirebaseChatCore.instance
+        .logDynamicLink(httpClient.credentials.accessToken.data);
+    FirebaseChatCore.instance.logDynamicLink(
+        httpClient.credentials.refreshToken ??
+            'No Refresh Token google sign in!');
     await storage.saveCredentials(httpClient.credentials.accessToken,
         httpClient.credentials.refreshToken ?? '');
     return httpClient;
-    // }
-    //  else {
-    //   await refreshToken();
-    //   // log.i(credentials["expiry"]);
-    //   // log.i(credentials["data"]);
-    //   // log.i(credentials["type"]);
-    //   return authenticatedClient(
-    //     http.Client(),
-    //     AccessCredentials(
-    //       AccessToken(
-    //         credentials["type"],
-    //         credentials["data"],
-    //         DateTime.tryParse(credentials["expiry"])!,
-    //       ),
-    //       // credentials["refreshToken"],
-    //       // refreshToken can be null as it was not returned when logging in
-    //       null,
-    //       _scopes,
-    //     ),
-    //   );
-    // }
   }
 
   //Upload File
