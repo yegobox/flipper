@@ -56,8 +56,8 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     title: Text(business.name),
                     subtitle: Text(business.businessUrl ?? ''),
                     leading: CachedNetworkImage(
-                      imageUrl: business.businessUrl ??
-                          'http://via.placeholder.com/350x150',
+                      /// if business.businessUrl then pass fake url to fallback to default.
+                      imageUrl: business.businessUrl ?? 'https://yegobox.com',
                       placeholder: (context, url) => avatar(
                         color: _circleColor,
                         text: business.name.substring(0, 2),

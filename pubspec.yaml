@@ -22,7 +22,6 @@ environment:
 
 dependencies:
   country_code_picker: ^2.0.1
-  # flutter_country_picker: ^0.1.6
   flutter_country_picker:
     path: "open-sources/flutter_country_picker"
   flutter:
@@ -192,6 +191,8 @@ dependencies:
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   nb_utils: ^4.4.8
   fluent_ui: ^3.2.0
+  system_theme: ^1.0.1
+  flutter_acrylic: ^0.0.3
 
   # flutter_qr_reader: 1.0.5
   # end remove

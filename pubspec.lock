@@ -818,6 +818,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_acrylic:
+    dependency: "direct main"
+    description:
+      name: flutter_acrylic
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.3"
   flutter_blurhash:
     dependency: transitive
     description:
@@ -852,7 +859,7 @@ packages:
       path: "open-sources/flutter_country_picker"
       relative: true
     source: path
-    version: "0.1.6"
+    version: "0.0.1"
   flutter_datetime_picker:
     dependency: "direct main"
     description:
@@ -2012,6 +2019,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+  system_theme:
+    dependency: "direct main"
+    description:
+      name: system_theme
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
+  system_theme_web:
+    dependency: transitive
+    description:
+      name: system_theme_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   term_glyph:
     dependency: transitive
     description:

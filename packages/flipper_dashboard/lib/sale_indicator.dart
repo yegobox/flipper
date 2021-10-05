@@ -18,16 +18,15 @@ class SaleIndicator extends StatelessWidget {
   final Function onLogout;
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
-      title: Container(
-        color: Theme.of(context)
-            .copyWith(canvasColor: Colors.transparent)
-            .canvasColor,
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 60,
-          child: Row(children: <Widget>[
+    return Container(
+      color: Theme.of(context)
+          .copyWith(canvasColor: Colors.transparent)
+          .canvasColor,
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: 60,
+        child: Row(
+          children: <Widget>[
             Expanded(
               child: TextButton(
                 style: TextButton.styleFrom(primary: Colors.black),
@@ -64,22 +63,28 @@ class SaleIndicator extends StatelessWidget {
               ),
             ),
             GestureDetector(
-              onTap: () {
-                onLogout();
-              },
-              child: Container(
-                margin: const EdgeInsets.only(right: 10),
-                child: Text(
-                  'Log Out',
-                  textAlign: TextAlign.end,
-                  style: Theme.of(context).textTheme.headline4!.copyWith(
-                      fontSize: 15,
-                      color: const Color(0xff363f47),
-                      fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ]),
+                onTap: () {
+                  // onLogout();
+                },
+                child: Icon(Icons.add)
+                // child: ExpansionPanelList(
+                //   animationDuration: const Duration(milliseconds: 1000),
+                //   dividerColor: Colors.white,
+                //   elevation: 1,
+                //   children: [
+                //     ExpansionPanel(
+                //       headerBuilder: (context, expanded) {
+                //         return Icon(Icons.add);
+                //       },
+                //       body: Column(
+                //         children: [Text('item 1')],
+                //       ),
+                //     )
+                //   ],
+                //   expansionCallback: (int index, bool isExpanded) {},
+                // ),
+                )
+          ],
         ),
       ),
     );

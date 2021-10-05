@@ -10,12 +10,14 @@ import 'package:flipper_login/otp_view.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/login.dart';
 import 'abstractions/platform.dart';
+import 'package:flipper_routing/routes.logger.dart';
 
 class FlipperFirebaseAuthenticationService extends FirebaseAuthenticationService
     implements LoginStandard {
   verifyOtp({required String otpCode}) {}
   final box = GetStorage();
   ConfirmationResult? confirmationResult;
+  final log = getLogger('Auth');
 
   @override
   Future<bool> createAccountWithPhone(
@@ -126,22 +128,27 @@ class FlipperFirebaseAuthenticationService extends FirebaseAuthenticationService
     } catch (e) {}
     FirebaseAuth.instance.authStateChanges().listen((event) async {
       if (event != null) {
-        Login login = await ProxyService.api.login(phone: phone!);
+        try {
+          Login login = await ProxyService.api.login(phone: phone!);
 
-        ///call api to sync! start by syncing
-        ///so that we cover the case when a user synced and deleted app
-        ///and come again in this case the API will have sync!
-        await ProxyService.api.authenticateWithOfflineDb(
-          userId: login.id.toString(),
-        );
+          ///call api to sync! start by syncing
+          ///so that we cover the case when a user synced and deleted app
+          ///and come again in this case the API will have sync!
+          await ProxyService.api.authenticateWithOfflineDb(
+            userId: login.id.toString(),
+          );
 
-        //then go startup logic
-        ProxyService.nav.navigateTo(Routes.initial);
-        //this mark that we are logged in
-        ProxyService.box.write(
-          key: 'userId',
-          value: login.id.toString(),
-        );
+          //then go startup logic
+          ProxyService.nav.navigateTo(Routes.initial);
+          //this mark that we are logged in
+          ProxyService.box.write(
+            key: 'userId',
+            value: login.id.toString(),
+          );
+        } catch (e) {
+          log!.i(phone!);
+          log!.i(e);
+        }
       }
     });
   }

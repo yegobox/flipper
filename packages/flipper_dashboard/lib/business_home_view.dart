@@ -260,60 +260,61 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             ? UpgradeAlert(
                 durationToAlertAgain: Duration(days: 1),
                 dialogStyle: UpgradeDialogStyle.cupertino,
-                child: BodyWidget(model))
+                child: BodyWidget(model),
+              )
             : BodyWidget(model),
-        floatingActionButtonLocation:
-            FloatingActionButtonLocation.miniCenterDocked,
-        floatingActionButton: GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              HeroDialogRoute(
-                builder: (context) {
-                  return const OptionModal(
-                    child: AddProductButtons(),
-                  );
-                },
-              ),
-            );
-          },
-          child: Hero(
-            tag: addProductHero,
-            createRectTween: (begin, end) {
-              return CustomRectTween(begin: begin, end: end);
-            },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.symmetric(horizontal: 10.0),
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.all(Radius.circular(50)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    flex: 1,
-                    child: Icon(
-                      CupertinoIcons.add,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: Text(
-                      Localization.of(context)!.addProduct,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),
+        // floatingActionButtonLocation:
+        // FloatingActionButtonLocation.miniCenterDocked,
+        // floatingActionButton: GestureDetector(
+        //   onTap: () {
+        //     Navigator.of(context).push(
+        //       HeroDialogRoute(
+        //         builder: (context) {
+        //           return const OptionModal(
+        //             child: AddProductButtons(),
+        //           );
+        //         },
+        //       ),
+        //     );
+        //   },
+        //   child: Hero(
+        //     tag: addProductHero,
+        //     createRectTween: (begin, end) {
+        //       return CustomRectTween(begin: begin, end: end);
+        //     },
+        //     child: Container(
+        //       padding: const EdgeInsets.all(10),
+        //       margin: const EdgeInsets.symmetric(horizontal: 10.0),
+        //       decoration: const BoxDecoration(
+        //         color: Colors.blue,
+        //         borderRadius: BorderRadius.all(Radius.circular(50)),
+        //       ),
+        //       child: Row(
+        //         mainAxisAlignment: MainAxisAlignment.center,
+        //         mainAxisSize: MainAxisSize.min,
+        //         children: [
+        //           Flexible(
+        //             flex: 1,
+        //             child: Icon(
+        //               CupertinoIcons.add,
+        //               color: Colors.white,
+        //             ),
+        //           ),
+        //           Flexible(
+        //             flex: 1,
+        //             child: Text(
+        //               Localization.of(context)!.addProduct,
+        //               textAlign: TextAlign.center,
+        //               style: TextStyle(
+        //                 color: Colors.white,
+        //               ),
+        //             ),
+        //           )
+        //         ],
+        //       ),
+        //     ),
+        //   ),
+        // ),
         bottomNavigationBar: SafeArea(
           child: BottomMenuBar(
             switchTab: (index) {

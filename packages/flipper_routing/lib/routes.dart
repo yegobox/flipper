@@ -171,3 +171,7 @@ class AppSetup {
 // more about fluent.
 // https://itnext.io/flutter-building-beautiful-windows-apps-fluent-design-structure-and-navigation-e53a394988d2
 // https://morioh.com/p/4993f57bd08f
+
+// certbot certonly --manual --preferred-challenges=dns --email yegobox@gmail.com --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d flipper.yegobox.com
+// https://stackoverflow.com/questions/32209897/class-illuminate-html-htmlserviceprovider-not-found
+// https://medium.com/@saurabh6790/generate-wildcard-ssl-certificate-using-lets-encrypt-certbot-273e432794d7
