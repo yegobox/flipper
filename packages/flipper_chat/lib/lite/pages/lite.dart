@@ -8,6 +8,7 @@ import 'package:flipper_chat/lite/widgets/chat_app_bar.dart';
 import 'package:flipper_chat/lite/widgets/button_circle.dart';
 import 'package:flipper_chat/lite/widgets/tabsw.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -237,7 +238,7 @@ class _LiteState extends State<Lite> {
                 alignment: Alignment.center,
                 padding: EdgeInsets.zero,
                 icon: Icon(
-                  CupertinoIcons.add,
+                  Ionicons.swap_horizontal,
                   color: Colors.white,
                 ),
               ),

@@ -8,6 +8,7 @@ import 'package:flipper_models/view_models/drawer_viewmodel.dart';
 import 'package:flipper_services/abstractions/dynamic_link.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
+import 'atoms_widgets.dart';
 import 'business_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'custom_widgets.dart';
@@ -28,74 +29,6 @@ class _FlipperDrawerV2State extends State<FlipperDrawerV2> {
   final DynamicLink _link = locator<DynamicLink>();
   bool isSwitched = false;
 
-  ListTile _menuListRowButton(String title,
-      {Function? onPressed,
-      IconData? icon,
-      bool isEnable = true,
-      required BuildContext context}) {
-    return ListTile(
-      onTap: () {
-        if (onPressed != null) {
-          onPressed();
-        }
-      },
-      title: icon == Ionicons.chatbox
-          ? Stack(
-              children: [
-                IconButton(
-                  icon: Icon(icon ?? Icons.settings),
-                  tooltip: 'Chat',
-                  onPressed: () {
-                    onPressed!();
-                  },
-                ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '0',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            )
-          : IconButton(
-              icon: Icon(icon ?? Icons.settings),
-              tooltip: 'Settings',
-              onPressed: () {
-                onPressed!();
-              },
-            ),
-      leading: customText(
-        //was title when leading was not commented out.
-        title,
-        style: TextStyle(
-          fontSize: 20,
-          color: isEnable
-              ? Theme.of(context)
-                  .copyWith(canvasColor: Colors.black)
-                  .canvasColor
-              : Theme.of(context)
-                  .copyWith(canvasColor: const Color(0xffe2e8ea))
-                  .canvasColor,
-        ),
-        context: context,
-      ),
-    );
-  }
-
   Widget _footer(
       {required DrawerViewModel drawerViewmodel,
       required BuildContext context}) {
@@ -106,7 +39,7 @@ class _FlipperDrawerV2State extends State<FlipperDrawerV2> {
       child: Column(
         children: <Widget>[
           if (ProxyService.remoteConfig.isChatAvailable())
-            _menuListRowButton(
+            menuListRowButton(
               'Flipper Social',
               context: context,
               icon: Ionicons.chatbox,
@@ -229,7 +162,7 @@ class _FlipperDrawerV2State extends State<FlipperDrawerV2> {
                             physics: const BouncingScrollPhysics(),
                             children: <Widget>[
                               const Divider(),
-                              _menuListRowButton(
+                              menuListRowButton(
                                 Localization.of(context)!.flipperSetting,
                                 context: context,
                                 icon: AntIcons.setting,
@@ -240,7 +173,7 @@ class _FlipperDrawerV2State extends State<FlipperDrawerV2> {
                               const Divider(),
                               if (ProxyService.remoteConfig
                                   .isAnalyticFeatureAvailable())
-                                _menuListRowButton(
+                                menuListRowButton(
                                   'Analytics',
                                   context: context,
                                   icon: Ionicons.analytics,

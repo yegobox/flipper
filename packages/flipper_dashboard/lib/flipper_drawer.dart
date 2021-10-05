@@ -84,7 +84,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                         ),
                       ),
                       trailing: const Icon(
-                        Ionicons.people_outline,
+                        Ionicons.swap_horizontal,
                       ),
                       onTap: () {},
                     ),
@@ -98,14 +98,15 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
             right: 0.0,
             child: Column(
               children: [
-                ListTile(
-                  contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
-                  title: const Text('Add a Workspace'),
-                  leading: const Icon(Icons.add),
-                  onTap: () {
-                    widget.addWorkSpace();
-                  },
-                ),
+                // TODOpause on working on adding additional business, this will come in v2 paid feature
+                // ListTile(
+                //   contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
+                //   title: const Text('Add a Workspace'),
+                //   leading: const Icon(Icons.add),
+                //   onTap: () {
+                //     widget.addWorkSpace();
+                //   },
+                // ),
                 ListTile(
                   contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
                   title: const Text('Preferences'),
