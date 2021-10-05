@@ -1,6 +1,14 @@
 name: App PlayStore Release
 # https://medium.com/codechai/flutter-app-couldnt-find-libflutter-so-c95ad81cbccd
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Manual trigger"
+        required: true
+        default: "warning"
+    tags:
+      description: "manual trigger"
   push:
     branches: [main, mobile]
 jobs:
