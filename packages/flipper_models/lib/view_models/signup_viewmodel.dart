@@ -60,7 +60,7 @@ class SignupViewModel extends FormViewModel {
     }
   }
 
-  Future<void> signup({Locale? locale}) async {
+  Future<void> signup() async {
     registerStart = true;
     notifyListeners();
     //set the startup app.
@@ -68,6 +68,8 @@ class SignupViewModel extends FormViewModel {
       ProxyService.box.write(key: pageKey, value: businessType);
     }
     String? referralCode = ProxyService.box.read(key: 'referralCode');
+    //if name containts space replace them with _
+    // final String? name = kName?.replaceAll(' ', '_');
     int okStatus = await ProxyService.api.signup(business: {
       'name': kName,
       'latitude': latitude,

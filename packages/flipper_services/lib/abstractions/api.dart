@@ -136,4 +136,6 @@ abstract class Api<T> {
   Conversation? getConversationByContactId({required int contactId});
   void emptySentMessageQueue();
   bool suggestRestore();
+
+  Future<int> userNameAvailable({required String name});
 }

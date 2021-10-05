@@ -1630,4 +1630,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .where((unit) => unit.fbusinessId == businessId)
         .toList();
   }
+
+  @override
+  Future<int> userNameAvailable({required String name}) async {
+    final response = await client.get(Uri.parse("$apihub/search?name=$name"));
+    return response.statusCode;
+  }
 }

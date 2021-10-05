@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_dashboard/loader.dart';
 
 class BoxButton extends StatelessWidget {
   final String title;
@@ -49,13 +51,13 @@ class BoxButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(borderRadius),
               )
             : BoxDecoration(
-                color: Colors.transparent,
+                color: HexColor('#F1F1F1'),
                 borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
-                  color: kcMediumGreyColor,
-                  // color: kcPrimaryColor,
+                  color: HexColor('#8A8886'),
                   width: 1,
-                )),
+                ),
+              ),
         child: !busy
             ? Row(
                 mainAxisSize: MainAxisSize.min,

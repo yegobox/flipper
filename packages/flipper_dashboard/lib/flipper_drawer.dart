@@ -1,5 +1,9 @@
+import 'dart:ui';
+
 import 'package:flipper_dashboard/loader.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -84,9 +88,84 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                         ),
                       ),
                       trailing: const Icon(
-                        Ionicons.swap_horizontal,
+                        Ionicons.ellipsis_horizontal,
                       ),
-                      onTap: () {},
+                      onTap: () {
+                        showCupertinoModalPopup(
+                          barrierColor: Colors.black.withOpacity(0.5),
+                          context: context,
+                          builder: (context) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                  left: 10, right: 10, bottom: 20),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                      sigmaX: 0.9, sigmaY: 0.9),
+                                  child: Material(
+                                    // color: Colors.transparent,
+                                    child: Container(
+                                      height: 200,
+                                      width: double.infinity,
+                                      color: Colors.white.withOpacity(0.8),
+                                      padding: EdgeInsets.all(20),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 8,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          // Padding(
+                                          //   padding: const EdgeInsets.symmetric(
+                                          //       vertical: 12),
+                                          //   child: Text(
+                                          //     'Invite members',
+                                          //     style:
+                                          //         Helpers.txtDefault.copyWith(
+                                          //       fontSize: 18,
+                                          //       fontWeight: FontWeight.bold,
+                                          //     ),
+                                          //   ),
+                                          // ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 40.0),
+                                                child: BoxButton.outline(
+                                                  onTap: null,
+                                                  borderRadius: 2,
+                                                  title: 'Log out',
+                                                ),
+                                              )
+                                              // ButtonCircle(
+                                              //   onPressed: () {},
+                                              //   icon: CupertinoIcons.person_2,
+                                              //   size: 70,
+                                              //   iconSize: 32,
+                                              // )
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                   )
                   .toList(),

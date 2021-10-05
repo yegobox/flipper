@@ -618,4 +618,10 @@ class HttpApi<T> implements Api {
     // TODO: implement lbranches
     throw UnimplementedError();
   }
+
+  @override
+  Future<int> userNameAvailable({required String name}) {
+    // TODO: implement userNameAvailable
+    throw UnimplementedError();
+  }
 }

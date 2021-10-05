@@ -182,43 +182,25 @@ class _LiteState extends State<Lite> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       children: [
-                                        Column(
-                                          children: [
-                                            ButtonCircle(
-                                              onPressed: () {},
-                                              icon: CupertinoIcons.person_2,
-                                              size: 70,
-                                              iconSize: 32,
-                                            ),
-                                            const SizedBox(height: 5),
-                                            const Text(
-                                              'Connet',
-                                              style: Helpers.txtDefault,
-                                            ),
-                                          ],
+                                        ButtonCircle(
+                                          onPressed: () {},
+                                          icon: CupertinoIcons.person_2,
+                                          size: 70,
+                                          iconSize: 32,
                                         ),
-                                        Column(
-                                          children: [
-                                            ButtonCircle(
-                                              onPressed: () {
-                                                ProxyService.box.write(
-                                                  key: pageKey,
-                                                  value: 'business',
-                                                );
-                                                ProxyService.nav.navigateTo(
-                                                  Routes.home,
-                                                );
-                                              },
-                                              icon: Icons.update_outlined,
-                                              size: 70,
-                                              iconSize: 32,
-                                            ),
-                                            const SizedBox(height: 5),
-                                            const Text(
-                                              'POS',
-                                              style: Helpers.txtDefault,
-                                            ),
-                                          ],
+                                        ButtonCircle(
+                                          onPressed: () {
+                                            ProxyService.box.write(
+                                              key: pageKey,
+                                              value: 'business',
+                                            );
+                                            ProxyService.nav.navigateTo(
+                                              Routes.home,
+                                            );
+                                          },
+                                          icon: Icons.update_outlined,
+                                          size: 70,
+                                          iconSize: 32,
                                         ),
                                       ],
                                     )
