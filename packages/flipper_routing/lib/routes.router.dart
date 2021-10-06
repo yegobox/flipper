@@ -23,6 +23,7 @@ import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/customers.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
+import 'package:flipper_dashboard/inapp_browser.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/scanner_view.dart';
@@ -64,6 +65,7 @@ class Routes {
   static const String analytics = '/Analytics';
   static const String qrview = '/scann-view';
   static const String connectionState = '/connection-failed-view';
+  static const String inappBrowser = '/in-app-browser';
   static const String customers = '/Customers';
   static const all = <String>{
     initial,
@@ -90,6 +92,7 @@ class Routes {
     analytics,
     qrview,
     connectionState,
+    inappBrowser,
     customers,
   };
 }
@@ -122,6 +125,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.analytics, page: Analytics),
     RouteDef(Routes.qrview, page: ScannView),
     RouteDef(Routes.connectionState, page: ConnectionFailedView),
+    RouteDef(Routes.inappBrowser, page: InAppBrowser),
     RouteDef(Routes.customers, page: Customers),
   ];
   @override
@@ -336,6 +340,13 @@ class StackedRouter extends RouterBase {
       return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => ConnectionFailedView(),
         settings: data,
+      );
+    },
+    InAppBrowser: (data) {
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
+        builder: (context) => const InAppBrowser(),
+        settings: data,
+        fullscreenDialog: true,
       );
     },
     Customers: (data) {

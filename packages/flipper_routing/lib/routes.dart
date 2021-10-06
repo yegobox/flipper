@@ -24,6 +24,7 @@ import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/connection_failed_view.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/scanner_view.dart';
+import 'package:flipper_dashboard/inapp_browser.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper_chat/flipper_chat_app.dart';
@@ -60,6 +61,8 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
     MaterialRoute(page: Analytics, name: 'analytics'),
     MaterialRoute(page: ScannView, name: 'qrview'),
     MaterialRoute(page: ConnectionFailedView, name: 'connectionState'),
+    MaterialRoute(
+        page: InAppBrowser, name: 'inappBrowser', fullscreenDialog: true),
 
     // chat routes
 

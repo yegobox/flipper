@@ -30,6 +30,11 @@ class FlipperDrawer extends StatefulWidget {
 
 class _FlipperDrawerState extends State<FlipperDrawer> {
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Drawer(
       child: _getLowerLayer(),
@@ -199,7 +204,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     widget.preferenceController();
                   },
                 ),
-                //TODOhttps://pub.dev/packages/flutter_inappwebview
+
                 ListTile(
                   contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
                   title: const Text('help'),
@@ -207,13 +212,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     Icons.help,
                   ),
                   onTap: () async {
-                    const url = 'https://blog.yegobox.com';
-                    if (await canLaunch(url)) {
-                      await launch(url,
-                          forceSafariVC: false, forceWebView: true);
-                    } else {
-                      throw 'Could not launch $url';
-                    }
+                    ProxyService.nav.navigateTo(Routes.inappBrowser);
                   },
                 ),
               ],
@@ -276,19 +275,8 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
 }
 
 class _Style {
-  static const double circleHighlightBorderRadius = 10.0;
-  static const double circleHighlightWidth = 4.0;
   static const double circleUnreadIndicatorWidth = 14.0;
-  static Padding defaultPadding =
-      Padding(padding: EdgeInsets.only(top: padding));
-
   // ignore: unused_field
   static const double firstSectionHeight = 100.0;
   static const double flipperButtonWidth = 44.0;
-  static const double fourthSectionHeight = 180.0;
-  static const double itemHeight = 52.0;
-  static double padding = 8.w;
-  static const double separatorHeight = 2.0;
-  static const double separatorWidth = 48.0;
-  static const double thirdSectionHeight = 60.0;
 }
