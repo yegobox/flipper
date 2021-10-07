@@ -138,7 +138,7 @@ class AppSetup {
 
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/flutter_country_picker.git open-sources/flutter_country_picker
+// git submodule add https://github.com/yegobox/flutter_chat_ui.git open-sources/flutter_chat_ui
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%

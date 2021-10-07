@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_chat/lite/pages/custom_input_chat.dart';
 import 'package:flipper_chat/lite/widgets/chat_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/message_view_model.dart';
@@ -187,6 +188,34 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final roundedContainer = ClipRRect(
+      borderRadius: BorderRadius.circular(20.0),
+      child: Container(
+        color: Colors.white,
+        child: Row(
+          children: <Widget>[
+            SizedBox(width: 8.0),
+            Icon(Icons.insert_emoticon,
+                size: 30.0, color: Theme.of(context).hintColor),
+            SizedBox(width: 8.0),
+            Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Type a message',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            // Icon(Icons.attach_file,
+            //     size: 30.0, color: Theme.of(context).hintColor),
+            SizedBox(width: 8.0),
+            Icon(Icons.send, size: 30.0, color: Theme.of(context).hintColor),
+            SizedBox(width: 8.0),
+          ],
+        ),
+      ),
+    );
+
     return ViewModelBuilder<MessageViewModel>.reactive(
       builder: (context, model, child) {
         return Scaffold(
@@ -203,7 +232,42 @@ class _ChatPageState extends State<ChatPage> {
                 builder: (context, snapshot) {
                   return SafeArea(
                     bottom: false,
-                    child: Text('hellommm'),
+                    child: Chat(
+                        isAttachmentUploading: _isAttachmentUploading,
+                        messages: snapshot.data ?? [],
+                        onAttachmentPressed: _handleAtachmentPressed,
+                        onMessageTap: _handleMessageTap,
+                        onPreviewDataFetched: _handlePreviewDataFetched,
+                        onSendPressed: _handleSendPressed,
+                        user: types.User(
+                          id: FirebaseChatCore.instance.firebaseUser?.uid ?? '',
+                        ),
+                        customBottomWidget: FInput(
+                          onAttachmentPressed: _handleAtachmentPressed,
+                          onSendPressed: _handleSendPressed,
+                          sendButtonVisibilityMode:
+                              SendButtonVisibilityMode.always,
+                        )
+                        // customBottomWidget: Padding(
+                        //   padding: EdgeInsets.all(8.0),
+                        //   child: Row(
+                        //     children: <Widget>[
+                        //       Expanded(
+                        //         child: roundedContainer,
+                        //       ),
+                        //       SizedBox(
+                        //         width: 5.0,
+                        //       ),
+                        //       GestureDetector(
+                        //         onTap: () {},
+                        //         child: CircleAvatar(
+                        //           child: Icon(Icons.send),
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                        ),
                   );
                 },
               );

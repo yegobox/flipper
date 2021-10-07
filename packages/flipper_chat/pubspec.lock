@@ -754,14 +754,14 @@ packages:
       name: flutter_chat_types
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.2"
+    version: "3.1.4"
   flutter_chat_ui:
     dependency: transitive
     description:
       path: "../../open-sources/flutter_chat_ui"
       relative: true
     source: path
-    version: "1.1.9"
+    version: "1.4.4"
   flutter_country_picker:
     dependency: transitive
     description:
