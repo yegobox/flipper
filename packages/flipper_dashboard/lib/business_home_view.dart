@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 // import 'package:flipper_services/drive_service.dart';
 // import 'package:ant_icons/ant_icons.dart';
 import 'package:flipper_login/update_email.dart';
@@ -38,6 +39,8 @@ import 'package:universal_platform/universal_platform.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
+final isAndroid = UniversalPlatform.isAndroid;
+final isWeb = UniversalPlatform.isWeb;
 
 @FormView(fields: [FormTextField(name: 'note')])
 class Home extends StatefulWidget {
@@ -54,9 +57,24 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TextEditingController controller = TextEditingController();
   final log = getLogger('KeyPadHead');
 
+  Future<void> startNFC() async {
+    bool isAvailable = await NfcManager.instance.isAvailable();
+    log.i('NFC is available: $isAvailable');
+    if (!isWindows && !isMacOs && !isWeb && isAvailable) {
+      // Start Session
+      NfcManager.instance.startSession(
+        onDiscovered: (NfcTag tag) async {
+          // Do something with an NfcTag instance.
+        },
+      );
+    }
+  }
+
   @override
   void initState() {
     // super.initState();
+    // Check availability
+    startNFC();
     _sideOpenController = ValueNotifier<bool>(false);
     ProxyService.notification.initialize();
     ProxyService.dynamicLink.handleDynamicLink();

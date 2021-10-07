@@ -195,6 +195,7 @@ dependencies:
   flutter_acrylic: ^0.0.3
   flutter_form_bloc: ^0.20.6
   flutter_inappwebview: ^5.3.2
+  nfc_manager: ^3.1.0
 
   # flutter_qr_reader: 1.0.5
   # end remove

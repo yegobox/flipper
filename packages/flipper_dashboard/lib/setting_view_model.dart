@@ -70,22 +70,25 @@ class SettingViewModel extends ReactiveViewModel {
   /// the backend is built in a way to reshare the report to the user's email.
   void enableDailyReport(Function callback) async {
     if (settings()['email'] != null && settings()['email'].length > 0) {
-      await settingService.enableDailyReport(
-        bool: !settingService.sendDailReport,
-      );
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(settings()['email'])) {
         callback(1);
       } else {
+        await settingService.enableDailyReport(
+          bool: true,
+        );
         await ProxyService.api.createGoogleSheetDoc(email: settings()['email']);
         await settingService.createGoogleSheetDoc();
         //patch the business with the email.
         Business business = ProxyService.api.getBusiness();
         business.email = settings()['email'];
-        await ProxyService.api
-            .updateBusiness(id: business.id, business: business.toJson());
+        await ProxyService.api.updateBusiness(
+          id: business.id,
+          business: business.toJson(),
+        );
         ProxyService.api.update(
-            data: business.toJson(),
-            endPoint: 'businesses/' + business.id.toString());
+          data: business.toJson(),
+          endPoint: 'businesses/' + business.id.toString(),
+        );
         toggleSettings();
       }
     } else {
