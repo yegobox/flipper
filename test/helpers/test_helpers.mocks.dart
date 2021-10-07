@@ -463,6 +463,10 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
   bool suggestRestore() =>
       (super.noSuchMethod(Invocation.method(#suggestRestore, []),
           returnValue: false) as bool);
+  @override
+  _i16.Future<int> userNameAvailable({String? name}) => (super.noSuchMethod(
+      Invocation.method(#userNameAvailable, [], {#name: name}),
+      returnValue: Future<int>.value(0)) as _i16.Future<int>);
 }
 
 /// A class which mocks [Remote].
@@ -533,6 +537,10 @@ class MockRemote extends _i1.Mock implements _i26.Remote {
   @override
   bool isRemoteLoggingDynamicLinkEnabled() => (super.noSuchMethod(
       Invocation.method(#isRemoteLoggingDynamicLinkEnabled, []),
+      returnValue: false) as bool);
+  @override
+  bool isAccessiblityFeatureAvailable() => (super.noSuchMethod(
+      Invocation.method(#isAccessiblityFeatureAvailable, []),
       returnValue: false) as bool);
 }
 
