@@ -22,7 +22,6 @@ import 'package:flipper_dashboard/create/list_categories.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/customers.dart';
-import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/inapp_browser.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/payment_options.dart';
@@ -34,7 +33,7 @@ import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/discount.dart';
 import 'package:flipper_models/product.dart';
-// import 'package:flutter/foundation.dart';
+// wimport 'package:flutter/foundation.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -44,7 +43,6 @@ class Routes {
   static const String initial = '/';
   static const String chat = '/Lite';
   static const String contacts = '/contact-page';
-  static const String dashboard = '/dashboard-view';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
   static const String login = '/Login';
@@ -71,7 +69,6 @@ class Routes {
     initial,
     chat,
     contacts,
-    dashboard,
     signup,
     home,
     login,
@@ -104,7 +101,6 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.initial, page: StartUpView),
     RouteDef(Routes.chat, page: Lite),
     RouteDef(Routes.contacts, page: ContactPage),
-    RouteDef(Routes.dashboard, page: DashboardView),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
     RouteDef(Routes.login, page: Login),
@@ -152,12 +148,6 @@ class StackedRouter extends RouterBase {
           key: args.key,
           fromType: args.fromType,
         ),
-        settings: data,
-      );
-    },
-    DashboardView: (data) {
-      return MaterialPageRoute<MaterialRoute<dynamic>>(
-        builder: (context) => DashboardView(),
         settings: data,
       );
     },

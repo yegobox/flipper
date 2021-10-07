@@ -67,6 +67,7 @@ dependencies:
   get_it: #to match with the stacked version I leave it empty
   stacked_hooks:
   stacked_services:
+  stacked_themes:
   cached_network_image: ^3.0.0
   flutter_dotenv: ^5.0.0
   mailer:

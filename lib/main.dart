@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:stacked_themes/stacked_themes.dart';
 // import 'package:awesome_notifications/awesome_notifications.dart';
 // import 'package:flipper_services/proxy.dart';
 import 'package:flipper/flipper_app.dart';
@@ -31,6 +32,7 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 void main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
   WidgetsFlutterBinding.ensureInitialized();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -56,7 +58,7 @@ void main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
-
+  await ThemeManager.initialise();
   await ObjectBoxApi.getDir(dbName: 'db_1');
 
   runZonedGuarded<Future<void>>(() async {

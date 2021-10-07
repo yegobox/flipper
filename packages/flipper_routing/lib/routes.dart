@@ -8,7 +8,6 @@ import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/list_categories.dart';
 
-import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
@@ -39,7 +38,7 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
     MaterialRoute(page: Lite, name: 'chat'),
     MaterialRoute(page: ContactPage, name: 'contacts'),
     // MaterialRoute(page: FlipperChatApp, initial: true),
-    MaterialRoute(page: DashboardView, name: 'dashboard'),
+    // MaterialRoute(page: DashboardView, name: 'dashboard'),
 
     MaterialRoute(page: SignUpFormView, name: 'signup'),
     MaterialRoute(page: Home, name: 'home'),

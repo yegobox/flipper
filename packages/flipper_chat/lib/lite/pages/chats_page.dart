@@ -18,7 +18,7 @@ import 'chat_page.dart';
 /// chats is considered to be like a room as per flutter_firebase_chat_core terms
 class ChatsPage extends StatefulWidget {
   ChatsPage({Key? key, required this.model}) : super(key: key);
-  MessageViewModel model;
+  final MessageViewModel model;
 
   @override
   _ChatsPageState createState() => _ChatsPageState();
@@ -26,8 +26,7 @@ class ChatsPage extends StatefulWidget {
 
 class _ChatsPageState extends State<ChatsPage> {
   User? _user;
-  bool _error = false;
-  bool _initialized = false;
+
   @override
   void initState() {
     initializeFlutterFire();
@@ -41,14 +40,7 @@ class _ChatsPageState extends State<ChatsPage> {
       setState(() {
         _user = user;
       });
-      setState(() {
-        _initialized = true;
-      });
-    } catch (e) {
-      setState(() {
-        _error = true;
-      });
-    }
+    } catch (e) {}
   }
 
   Widget _buildAvatar(types.Room room) {
@@ -177,6 +169,10 @@ class _ChatsPageState extends State<ChatsPage> {
                                           style: Helpers.txtDefault.copyWith(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 18,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .headline6!
+                                                .color,
                                           ),
                                         ),
                                         Text(

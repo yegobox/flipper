@@ -32,13 +32,13 @@ class ButtonCircle extends StatelessWidget {
         onPressed: onPressed,
         color: Helpers.principalColor,
         splashRadius: 19,
-        splashColor: Colors.grey,
+        // splashColor: Colors.grey,
         alignment: Alignment.center,
         padding: EdgeInsets.zero,
         icon: Icon(
           icon,
           size: iconSize,
-          color: iconColor,
+          // color: iconColor,
         ),
       ),
     );

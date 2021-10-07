@@ -99,6 +99,7 @@ class _LiteState extends State<Lite> {
                   valueListenable: pageIndex,
                   builder: (_, value, __) {
                     return Tabs(
+                      color: Theme.of(context).scaffoldBackgroundColor,
                       listBtnTabs: [
                         BtnTab(
                           text: 'Chats',
@@ -153,7 +154,10 @@ class _LiteState extends State<Lite> {
                               child: Container(
                                 height: 200,
                                 width: double.infinity,
-                                color: Colors.white.withOpacity(0.8),
+                                // color: Colors.white.withOpacity(0.8),
+                                color: Theme.of(context)
+                                    .scaffoldBackgroundColor
+                                    .withOpacity(0.8),
                                 padding: EdgeInsets.all(20),
                                 child: Column(
                                   children: [
@@ -221,7 +225,7 @@ class _LiteState extends State<Lite> {
                 padding: EdgeInsets.zero,
                 icon: Icon(
                   Ionicons.swap_horizontal,
-                  color: Colors.white,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
             ),
