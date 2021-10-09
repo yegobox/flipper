@@ -177,3 +177,17 @@ class AppSetup {
 // certbot certonly --manual --preferred-challenges=dns --email yegobox@gmail.com --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d flipper.yegobox.com
 // https://stackoverflow.com/questions/32209897/class-illuminate-html-htmlserviceprovider-not-found
 // https://medium.com/@saurabh6790/generate-wildcard-ssl-certificate-using-lets-encrypt-certbot-273e432794d7
+
+
+// whatsapp bot
+// https://www.facebook.com/business/help/456220311516626?id=2129163877102343
+// https://developers.facebook.com/docs/whatsapp/api/account
+// https://developers.facebook.com/docs/whatsapp/api/account
+
+// Development
+// https://developers.facebook.com/docs/whatsapp/installation/dev-single-instance
+
+// https://github.com/FilledStacks/stacked/issues/449
+
+// TODOuse backdrop the front will show the tickets instead of using the bottom sheet.
+// https://pub.dev/packages/backdrop

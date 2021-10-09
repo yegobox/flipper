@@ -1,35 +1,27 @@
 library flipper_dashboard;
 
-import 'package:flipper_dashboard/setting_view_model.dart';
-import 'package:ionicons/ionicons.dart';
+import 'package:flipper_dashboard/bottom_sheet.dart';
+
 import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:settings_ui/settings_ui.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-// import 'package:flipper_services/drive_service.dart';
-// import 'package:ant_icons/ant_icons.dart';
-import 'package:flipper_login/update_email.dart';
+
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/business.dart';
 import 'package:flipper_dashboard/payable_view.dart';
-// import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/sale_indicator.dart';
 import 'package:flipper_dashboard/slide_out_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-// import 'add_product_buttons.dart';
 import 'bottom_menu_bar.dart';
-// import 'custom_rect_tween.dart';
-// import 'flipper_drawer_v2.dart';
-// import 'hero_dialog_route.dart';
 import 'home_app_bar.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_models/flipper_models.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
@@ -346,212 +338,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         drawer: FlipperDrawer(
           businesses: model.businesses,
           addWorkSpace: () {
-            bottomSheetBuilder(
-              header: header(title: Localization.of(context)!.addWorkSpace),
-              context: context,
-              body: ViewModelBuilder<SettingViewModel>.reactive(
-                  viewModelBuilder: () => SettingViewModel(),
-                  builder: (context, model, child) {
-                    return Column(children: [
-                      if (ProxyService.remoteConfig
-                          .isAccessiblityFeatureAvailable())
-                        ListTile(
-                          leading: Icon(Ionicons.search),
-                          title: Text('Accessibility'),
-                          trailing: Icon(Icons.arrow_forward_ios),
-                        ),
-                      ListTile(
-                        leading: Icon(Ionicons.language),
-                        title: Text('Language'),
-                        trailing: Icon(Icons.arrow_forward_ios),
-                        onTap: () {},
-                      ),
-                      ListTile(
-                        leading: Icon(Ionicons.keypad),
-                        title: Text('Enable report'),
-                        trailing: Icon(Icons.arrow_forward_ios),
-                        onTap: () {
-                          print('here');
-                        },
-                      ),
-                    ]);
-                  }),
-            );
+            addWorkSpace(context: context);
           },
           preferenceController: () {
-            // _controller.expand(); // was using rubber but honestly it's not needed use built in bottom sheet
-            bottomSheetBuilder(
-              header: header(title: 'Preferences'),
-              context: context,
-              body: Column(children: [
-                if (ProxyService.remoteConfig.isAccessiblityFeatureAvailable())
-                  ListTile(
-                    leading: Icon(Ionicons.search),
-                    title: Text('Accessibility'),
-                    trailing: Icon(Icons.arrow_forward_ios),
-                  ),
-                ListTile(
-                  leading: Icon(Ionicons.language),
-                  title: Text('Language'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    bottomSheetBuilder(
-                      context: context,
-                      header: header(title: 'Language'),
-                      body: ViewModelBuilder<SettingViewModel>.reactive(
-                        viewModelBuilder: () => SettingViewModel(),
-                        onModelReady: (model) {
-                          model.getSetting();
-                          log.i(model.getSetting());
-                        },
-                        builder: (context, model, child) {
-                          return Column(
-                            children: [
-                              SettingsTile(
-                                title: "English",
-                                trailing: trailingWidget(
-                                    model.defaultLanguage == 'en'),
-                                onPressed: (BuildContext context) {
-                                  model.setLanguage('en');
-                                  model.updateSettings(
-                                      map: {'defaultLanguage': 'en'});
-                                },
-                              ),
-                              SettingsTile(
-                                title: "Ikinyarwanda",
-                                trailing: trailingWidget(
-                                    model.defaultLanguage == 'fr'),
-                                onPressed: (BuildContext context) {
-                                  model.setLanguage('fr');
-                                  model.updateSettings(
-                                      map: {'defaultLanguage': 'fr'});
-                                },
-                              ),
-                              SettingsTile(
-                                title: "Swahili",
-                                trailing: trailingWidget(
-                                    model.defaultLanguage == 'sw'),
-                                onPressed: (BuildContext context) {
-                                  model.setLanguage('sw');
-                                  model.updateSettings(
-                                      map: {'defaultLanguage': 'sw'});
-                                },
-                              )
-                            ],
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Ionicons.keypad),
-                  title: Text('Reports'),
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    bottomSheetBuilder(
-                      header: header(title: 'Reports'),
-                      context: context,
-                      body: ViewModelBuilder<SettingViewModel>.reactive(
-                        viewModelBuilder: () => SettingViewModel(),
-                        onModelReady: (model) {
-                          model.getSetting();
-                          log.i(model.getSetting());
-                        },
-                        builder: (context, model, child) {
-                          return Column(
-                            children: [
-                              SettingsTile.switchTile(
-                                title: 'Enable Report',
-                                switchValue:
-                                    model.settingService.sendDailReport,
-                                onToggle: (bool value) {
-                                  model.enableDailyReport((message) {
-                                    if (message == 1) {
-                                      showSimpleNotification(
-                                        Text('Added email is not gmail'),
-                                        background: Colors.red,
-                                        position: NotificationPosition.bottom,
-                                      );
-                                    }
-                                    if (message == 2) {
-                                      // You need to add email first
-                                      bottomSheetBuilder(
-                                        context: context,
-                                        body: UpdateEmailSetting(),
-                                        header: header(title: 'Add Email'),
-                                      );
-                                    }
-                                  });
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-                if (ProxyService.remoteConfig.isBackupAvailable())
-                  ListTile(
-                    leading: Icon(Ionicons.sync),
-                    title: Text('BackUps'),
-                    trailing: Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      bottomSheetBuilder(
-                          context: context,
-                          header: header(title: 'Add Backup'),
-                          body: Column(children: [
-                            ListTile(
-                              leading: Icon(Ionicons.cloud_download),
-                              title: Text('Download Backup'),
-                              trailing: Icon(Ionicons.happy),
-                              onTap: () {
-                                model.downloadBackup();
-                              },
-                            ),
-                            ListTile(
-                              leading: Icon(Ionicons.cloud_upload),
-                              title: Text('Backup now'),
-                              trailing: Icon(Ionicons.file_tray),
-                              onTap: () {
-                                model.uploadBackup();
-                              },
-                            ),
-                          ]));
-                    },
-                  )
-              ]),
-            );
+            preferences(context: context, model: model);
           },
         ),
       ),
     );
-  }
-
-  Widget header({required String title}) {
-    return Material(
-      child: Container(
-        child: ListTile(
-          leading: Icon(Icons.arrow_back_ios),
-          title: Text(title),
-          onTap: () {
-            //navigation back
-            ProxyService.nav.back();
-          },
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(18.0),
-            topRight: Radius.circular(18.0),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget trailingWidget(bool checked) {
-    return (checked) ? Icon(Icons.check, color: Colors.blue) : Icon(null);
   }
 }
