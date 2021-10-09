@@ -8,6 +8,7 @@ import 'package:flipper_models/flipper_models.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
+import 'package:flipper_routing/routes.router.dart';
 
 Widget header({required String title}) {
   return Material(
@@ -149,9 +150,10 @@ void preferences(
           trailing: Icon(Icons.arrow_forward_ios),
           onTap: () {
             bottomSheetBuilder(
-                context: context,
-                header: header(title: 'Add Backup'),
-                body: Column(children: [
+              context: context,
+              header: header(title: 'Add Backup'),
+              body: Column(
+                children: [
                   ListTile(
                     leading: Icon(Ionicons.cloud_download),
                     title: Text('Download Backup'),
@@ -168,9 +170,19 @@ void preferences(
                       model.uploadBackup();
                     },
                   ),
-                ]));
+                ],
+              ),
+            );
           },
-        )
+        ),
+      ListTile(
+        leading: Icon(Ionicons.analytics),
+        title: Text('Analytics'),
+        trailing: Icon(Icons.arrow_forward_ios),
+        onTap: () {
+          ProxyService.nav.navigateTo(Routes.analytics);
+        },
+      )
     ]),
   );
 }

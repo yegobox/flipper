@@ -199,7 +199,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               duePay:
                   model.kOrder != null ? model.totalPayable.toDouble() : 0.00,
               ticketHandler: () async {
-                log.i(model.tickets.length);
                 await model.keypad.getTickets();
                 await model.keypad
                     .getOrder(branchId: ProxyService.box.read(key: 'branchId'));
@@ -212,14 +211,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 }
                 model.saveTicket((handle) {
                   if (handle == 'error') {
-                    //show the modal to add a not to a ticket here
                     FlipperBottomSheet.showAddNoteToSaleBottomSheet(
                       model: model,
                       context: context,
                     );
                   } else if (handle == 'saved') {
                     showSimpleNotification(
-                      Text('Note added'),
+                      Text('Ticket $handle'),
                       background: Colors.green,
                       position: NotificationPosition.bottom,
                     );

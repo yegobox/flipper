@@ -20,7 +20,7 @@ class KeyPadHead extends StatelessWidget {
   final Function onClick;
   final TextEditingController controller;
   final Widget? payable;
-  int tab;
+  final int tab;
   final log = getLogger('KeyPadHead');
 
   @override

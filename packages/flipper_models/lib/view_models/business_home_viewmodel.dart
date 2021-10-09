@@ -94,12 +94,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<void> currentOrder() async {
     int branchId = ProxyService.box.read(key: 'branchId');
     OrderF? od = await ProxyService.keypad.getOrder(branchId: branchId);
+    keypad.setCount(count: 0);
     if (od != null) {
       keypad.setOrder(od);
       if (od.orderItems.isNotEmpty) {
         keypad.setCount(count: od.orderItems.length);
-      } else {
-        keypad.setCount(count: 0);
       }
     }
     notifyListeners();
@@ -342,18 +341,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///change status to parked, this allow the cashier to take another order of different client
   ///and resume this when he feel like he wants to,
   ///the note on order is served as display, therefore an order can not be parked without a note on it.
-  void saveTicket(Function error) async {
+  void saveTicket(Function callBack) async {
     //get the current order
     if (kOrder == null) return;
     OrderF? Korder = await ProxyService.api.getOrderById(id: kOrder!.id);
     Map map = Korder.toJson();
     map['status'] = parkedStatus;
     if (map['note'] == null || map['note'] == '') {
-      return error('error');
+      callBack('error');
     }
     ProxyService.api.update(data: map, endPoint: 'order');
+
     //refresh order afterwards
     await currentOrder();
+    callBack('saved');
   }
 
   Future resumeOrder({required int ticketId}) async {
@@ -423,7 +424,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       }
     }
   }
-  
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [keypad, _app, productService];

@@ -52,6 +52,8 @@ class KeyPadService with ReactiveServiceMixin {
     _check.value = variantId;
   }
 
+  // keypad.count
+
   setCount({required int count}) {
     _count.value = count;
   }
