@@ -70,30 +70,41 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                           const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 0.0),
                       title: Text(business.name),
                       subtitle: Text(business.businessUrl ?? ''),
-                      leading: CachedNetworkImage(
-                        /// if business.businessUrl then pass fake url to fallback to default.
-                        imageUrl: business.businessUrl ?? 'https://yegobox.com',
-                        placeholder: (context, url) => avatar(
-                          color: _circleColor,
-                          text: business.name.substring(0, 2),
-                          action: () {
-                            // onPressedCircle(business);
-                          },
-                          updateIndicatorVisible: true,
-                          isSquareShape: true,
-                          userIcon: null, //set to true by default
-                        ),
-                        errorWidget: (context, url, error) => avatar(
-                          color: _circleColor,
-                          text: business.name.substring(0, 2),
-                          action: () {
-                            // onPressedCircle(business);
-                          },
-                          updateIndicatorVisible: true,
-                          isSquareShape: true,
-                          userIcon: null, //set to true by default
-                        ),
-                      ),
+                      leading: business.businessUrl == null
+                          ? avatar(
+                              color: _circleColor,
+                              text: business.name.substring(0, 2),
+                              action: () {
+                                // onPressedCircle(business);
+                              },
+                              updateIndicatorVisible: true,
+                              isSquareShape: true,
+                              userIcon: null, //set to true by default
+                            )
+                          : CachedNetworkImage(
+                              /// if business.businessUrl then pass fake url to fallback to default.
+                              imageUrl: business.businessUrl!,
+                              placeholder: (context, url) => avatar(
+                                color: _circleColor,
+                                text: business.name.substring(0, 2),
+                                action: () {
+                                  // onPressedCircle(business);
+                                },
+                                updateIndicatorVisible: true,
+                                isSquareShape: true,
+                                userIcon: null, //set to true by default
+                              ),
+                              errorWidget: (context, url, error) => avatar(
+                                color: _circleColor,
+                                text: business.name.substring(0, 2),
+                                action: () {
+                                  // onPressedCircle(business);
+                                },
+                                updateIndicatorVisible: true,
+                                isSquareShape: true,
+                                userIcon: null, //set to true by default
+                              ),
+                            ),
                       trailing: const Icon(
                         Ionicons.ellipsis_horizontal,
                       ),

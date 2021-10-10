@@ -121,34 +121,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         // once the user click enable backup we check again if a user is on any plan
         // if not pop the screen show the add card screen
         // on adding card and on first payment success then we pop the screen and who backup screen again
-        // TODOwork in progress not uploading the backup need more debug.
-        // get the business
-        Business business = await ProxyService.api.getBusiness();
-        if (ProxyService.remoteConfig.isBackupAvailable()) {
-          // final drive = GoogleDrive();
-          // TODOshould immplement the refresher token for it to not show popup everytime!
-          //TODObecause the the google auth require either to be in testing and or published app
-          // to continue working on this feature, the app will need to be verified.
-          // if (business.backupFileId != null) {
-          //   drive.downloadGoogleDriveFile('data', business.backupFileId!);
-          // }
-          // if (ProxyService.api.getBusiness().backUpEnabled == true &&
-          //     ProxyService.api.getBusiness().backupFileId != null) {
-          //   // await model.backUpEnabled();
-          //   //show the bottom sheet to add card
-          // FlipperBottomSheet.showAddPaymentMethod(
-          //   model: model,
-          //   context: context,
-          // );
-          // }
-          // if (business.backUpEnabled == true && business.backupFileId != null) {
-          //   // and is no data sugges restore the backup.
-          // }
-          // if (business.backUpEnabled == false &&
-          //     business.backupFileId == null) {
-          //   // add payment method first to enable backup.
-          // }
-        }
         //register remote config
       },
       builder: (context, model, child) {

@@ -1455,6 +1455,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         body: jsonEncode({
           'deviceToken': business['deviceToken'],
           'email': business['email'],
+          'backUpEnabled': business['backUpEnabled'],
           'backupFileId': business['backupFileId'],
           'chatUid': business['chatUid']
         }),

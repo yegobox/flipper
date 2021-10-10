@@ -5,10 +5,11 @@ import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:flipper_models/business.dart';
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
-import 'package:googleapis_auth/auth_io.dart';
+import 'package:path/path.dart' as path;
+// import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart';
-import 'dart:io';
+// import 'package:path/path.dart';
+// import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 // import 'package:path';
 import 'package:flipper_routing/routes.logger.dart';
@@ -70,8 +71,10 @@ class GoogleDrive {
   /// then we call this method first to refresh the token
   /// for this time we use silent authentication
   /// to avoid user to be prompted for authentication again
-  Future<http.Client> refreshToken() async {
-    print("Token Refresh");
+  /// because there is known issue https://stackoverflow.com/questions/27890737/firebase-google-auth-offline-access-type-in-order-to-get-a-token-refresh
+  /// we silently authenticate and get the token using the silent authentication
+  /// for the second time
+  Future<http.Client> silentLogin() async {
     final _googleSignIn = new GoogleSignIn(scopes: _scopes);
     await _googleSignIn.signInSilently();
     // New refreshed token
@@ -92,25 +95,42 @@ class GoogleDrive {
   /// if it is expired it will call refreshToken()
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
-  Future<http.Client> authenticate() async {
+  Future<http.Client> backUpNow() async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    File file = File(path.context.canonicalize(dir.path + '/db_1/data.mdb'));
+    Business business = await ProxyService.api.getBusiness();
+    if (business.backUpEnabled!) {
+      final http = await silentLogin();
+      await upload(file);
+      return http;
+    }
     final _googleSignIn = new GoogleSignIn(scopes: _scopes);
     await _googleSignIn.signIn();
     var httpClient = (await _googleSignIn.authenticatedClient())!;
-    log.i(httpClient.credentials.refreshToken);
-    log.i(httpClient.credentials.accessToken);
-    FirebaseChatCore.instance
-        .logDynamicLink(httpClient.credentials.accessToken.data);
-    FirebaseChatCore.instance.logDynamicLink(
-        httpClient.credentials.refreshToken ??
-            'No Refresh Token google sign in!');
+
     await storage.saveCredentials(httpClient.credentials.accessToken,
         httpClient.credentials.refreshToken ?? '');
+
+    business.backUpEnabled = true;
+    log.i(business.toJson());
+
+    /// notify the online that user has enabled the backup
+    /// also update the property locally.
+    int id = business.id;
+    await ProxyService.api.updateBusiness(id: id, business: business.toJson());
+    ProxyService.api.update(data: business.toJson(), endPoint: "business/$id");
+
+    await upload(file);
     return httpClient;
   }
 
-  //Upload File
+  /// Upload File to user's Google Drive appData folder
+  /// https://developers.google.com/drive/api/v3/appdata
+  /// before that we first silently authenticate the user
+  /// because the first login will prompt the user to login
+  /// and the second login will not prompt the user to login
   Future upload(File file) async {
-    var client = await authenticate();
+    var client = await silentLogin();
     var drive = ga.DriveApi(client);
     ga.File fileToUpload = ga.File();
     // https://ko.stackfinder.net/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
@@ -143,7 +163,7 @@ class GoogleDrive {
 
   // https://stackoverflow.com/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
   Future<void> downloadGoogleDriveFile(String fName, String gdID) async {
-    var client = await authenticate();
+    var client = await silentLogin();
 
     var drive = ga.DriveApi(client);
 

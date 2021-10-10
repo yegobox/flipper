@@ -411,17 +411,27 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return true;
   }
 
-  void downloadBackup() {}
-
-  void uploadBackup() async {
-    Business business = await ProxyService.api.getBusiness();
+  /// this method is used to restore database from backup
+  /// it return [1] if the restore was successful
+  /// it return [2] if the restore was not successful and pass it for callback
+  /// the UI can notify the user based on the return value
+  void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
+      Business business = await ProxyService.api.getBusiness();
       final drive = GoogleDrive();
       if (business.backupFileId != null) {
-        drive.downloadGoogleDriveFile('data', business.backupFileId!);
+        await drive.downloadGoogleDriveFile('data', business.backupFileId!);
+        callback(1);
       } else {
-        drive.authenticate();
+        callback(2);
       }
+    }
+  }
+
+  void backUpNow() async {
+    if (ProxyService.remoteConfig.isBackupAvailable()) {
+      final drive = GoogleDrive();
+      drive.backUpNow();
     }
   }
 

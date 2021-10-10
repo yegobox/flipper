@@ -156,10 +156,25 @@ void preferences(
                 children: [
                   ListTile(
                     leading: Icon(Ionicons.cloud_download),
-                    title: Text('Download Backup'),
+                    title: Text('Restore Data'),
                     trailing: Icon(Ionicons.happy),
                     onTap: () {
-                      model.downloadBackup();
+                      model.restoreBackUp((callback) {
+                        if (callback == 1) {
+                          showSimpleNotification(
+                            Text('Data restored'),
+                            background: Colors.green,
+                            position: NotificationPosition.bottom,
+                          );
+                        }
+                        if (callback == 2) {
+                          showSimpleNotification(
+                            Text('Error Restoring backup'),
+                            background: Colors.red,
+                            position: NotificationPosition.bottom,
+                          );
+                        }
+                      });
                     },
                   ),
                   ListTile(
@@ -167,7 +182,7 @@ void preferences(
                     title: Text('Backup now'),
                     trailing: Icon(Ionicons.file_tray),
                     onTap: () {
-                      model.uploadBackup();
+                      model.backUpNow();
                     },
                   ),
                 ],
