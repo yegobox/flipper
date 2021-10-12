@@ -34,6 +34,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -71,6 +72,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -100,14 +102,15 @@
         "lastName": null,
         "reported": "true",
         "phoneNumber": null,
-        "deviceToken": null,
-        "chatUid": null,
+        "deviceToken": "fx-xc1neR7WNtKyi8mui32:APA91bGwC29USc5jqjS6_aDdHRaJ-cvBb3pj_cyz81f5dMZt67rlC9E4uL9jpFCtRODHBlC1YmzSZHEDBs7_gUH8hUkCawz6FJpl-IZ-hqvDTF8tyn0i2iYIgkmpxrXpUQXvK80MTRp_",
+        "chatUid": "ArJvPa6nHcRgVndCAKaE6Rfy0YJ2",
         "backUpEnabled": false,
         "subscriptionPlan": null,
         "nextBillingDate": null,
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -145,6 +148,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -182,6 +186,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -219,6 +224,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -256,6 +262,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -293,6 +300,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -330,6 +338,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -359,7 +368,7 @@
         "lastName": null,
         "reported": "true",
         "phoneNumber": null,
-        "deviceToken": "dw_fF9k8TzK9pUPX4G55IK:APA91bGFrhy732whORPfS4TmiGH2aYlWqdpoka7A3wfoRgIYf7KyWZNlcoR-_gyVso1K-BjSko5pFldQai5zesng4JEKNDnLkIJ88p8pSRuhrPh6AsjDNWy2zL8M5Uf6TXlb1F4Aktwr",
+        "deviceToken": "fvOMw7TzTBayC6xp1--NVA:APA91bEKWwqhvKyOGdWGD64twwKJoZ2sE-E5vuQZQGZyj0rfccCnmBKVgImtaCcV-27rAu6djRMWHb2P3nuEsZMqq1jbYVuEGsFZcJJTXkT7I6MAsdpSGFfe6Ubz9EJjLW3d-dLEK_M1",
         "chatUid": "28rzAhjqrRYmFBXNH98I0na9Z6H2",
         "backUpEnabled": false,
         "subscriptionPlan": null,
@@ -367,6 +376,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -404,6 +414,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -441,6 +452,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -478,6 +490,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -515,6 +528,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -552,6 +566,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -589,6 +604,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -626,6 +642,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -663,6 +680,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -700,6 +718,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -737,6 +756,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -774,6 +794,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -811,6 +832,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -848,6 +870,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -885,6 +908,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -922,6 +946,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -959,6 +984,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -996,6 +1022,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1033,6 +1060,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1070,6 +1098,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1107,6 +1136,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1144,6 +1174,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1181,6 +1212,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1218,6 +1250,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1255,6 +1288,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1292,6 +1326,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1329,6 +1364,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1366,6 +1402,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1403,6 +1440,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1440,43 +1478,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
-        "lastSubscriptionPaymentSucceeded": false
-    },
-    {
-        "id": 54,
-        "name": "Richard",
-        "currency": "RW",
-        "categoryId": null,
-        "latitude": "37.4219483",
-        "longitude": "-122.0840039",
-        "userId": "300",
-        "typeId": null,
-        "timeZone": null,
-        "channels": null,
-        "table": null,
-        "country": "RW",
-        "businessUrl": null,
-        "hexColor": null,
-        "imageUrl": null,
-        "type": "social",
-        "referredBy": "Organic",
-        "createdAt": "2021-09-18T18:40:59.906688",
-        "updatedAt": null,
-        "metadata": null,
-        "role": null,
-        "lastSeen": 0,
-        "firstName": null,
-        "lastName": null,
-        "reported": "true",
-        "phoneNumber": "+250783054874",
-        "deviceToken": "c0ancXAtSImiGSm8wLpfJC:APA91bGpH-cXBjChpy0T8Mp7INVv4zciBwBTHrNjg906oO5GBjXD4WTFJ0Wt08qCXIt3m9zEkX5TGsxfZuMtSxLasHgo6NtHYGcZSDtzi8mUJbz5xJP3vcLLSpDzGS4f74xVuvu69EJg",
-        "chatUid": "Pcogz3xcQNd6Ub95ZaMP4H3dC5I3",
-        "backUpEnabled": false,
-        "subscriptionPlan": null,
-        "nextBillingDate": null,
-        "previousBillingDate": null,
-        "isLastSubscriptionPaymentSucceeded": false,
-        "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1514,6 +1516,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1551,6 +1554,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1588,6 +1592,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1625,6 +1630,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1662,6 +1668,7 @@
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     },
     {
@@ -1691,14 +1698,243 @@
         "lastName": null,
         "reported": "true",
         "phoneNumber": "+250788223058",
-        "deviceToken": null,
-        "chatUid": null,
+        "deviceToken": "c1ZR5hp8R0SXTk8sEh59p6:APA91bGT4_KQHuz3RdYkJuUZO8MAEQ5XVjQQE2KbYyK6R7LeKDfEd98cvgoeA6hq2kY9Sz8_I_FLf0F0QGObgt_vcjXTZdfjBpQjedZ40e5j7eM0OwTxCFcUh5KcJnEbLuGq023wKGxU",
+        "chatUid": "oGHsdTs8G6VEzQbRV1twPEg86Il1",
         "backUpEnabled": false,
         "subscriptionPlan": null,
         "nextBillingDate": null,
         "previousBillingDate": null,
         "isLastSubscriptionPaymentSucceeded": false,
         "backupFileId": null,
+        "email": null,
+        "lastSubscriptionPaymentSucceeded": false
+    },
+    {
+        "id": 63,
+        "name": "Mama Alice",
+        "currency": "RW",
+        "categoryId": null,
+        "latitude": "-1.9687176",
+        "longitude": "30.1082645",
+        "userId": "368",
+        "typeId": null,
+        "timeZone": null,
+        "channels": null,
+        "table": null,
+        "country": "RW",
+        "businessUrl": null,
+        "hexColor": null,
+        "imageUrl": null,
+        "type": "business",
+        "referredBy": "Organic",
+        "createdAt": "2021-10-02T12:23:53.223752",
+        "updatedAt": null,
+        "metadata": null,
+        "role": null,
+        "lastSeen": 0,
+        "firstName": null,
+        "lastName": null,
+        "reported": "true",
+        "phoneNumber": "+250787172374",
+        "deviceToken": "epaq3A40S_CNQU5YY4P0mc:APA91bEzaGvpZYTAq_9EG7smPKAf1Aflat-vYnXTH08027ddb-6KPxAriMSi3b-SHWcrLTRb9Axf3BryK7F5Vy52-oJo5JH2To0di6Y00BYsxBmdrtzGVDpIQydkBnRn0UDvcblXF0PZ",
+        "chatUid": "pL1VAPT3oAQqJNugvsPaco1yeUk1",
+        "backUpEnabled": false,
+        "subscriptionPlan": null,
+        "nextBillingDate": null,
+        "previousBillingDate": null,
+        "isLastSubscriptionPaymentSucceeded": false,
+        "backupFileId": null,
+        "email": null,
+        "lastSubscriptionPaymentSucceeded": false
+    },
+    {
+        "id": 64,
+        "name": "Patrice",
+        "currency": "RW",
+        "categoryId": null,
+        "latitude": "-1.9698815",
+        "longitude": "30.1062121",
+        "userId": "369",
+        "typeId": null,
+        "timeZone": null,
+        "channels": null,
+        "table": null,
+        "country": "RW",
+        "businessUrl": null,
+        "hexColor": null,
+        "imageUrl": null,
+        "type": "business",
+        "referredBy": "Organic",
+        "createdAt": "2021-10-02T13:04:33.220081",
+        "updatedAt": null,
+        "metadata": null,
+        "role": null,
+        "lastSeen": 0,
+        "firstName": null,
+        "lastName": null,
+        "reported": "true",
+        "phoneNumber": "+250788720304",
+        "deviceToken": "eHenlv_GSbObmo0gUI0KAA:APA91bGzEJacZpDD9uyIRh-tY_x6SqcQPoi37SospivnPRdsOpBaWULTWQGH2461tr6-1cmfpj2OLiw1qE_4seb8Q9mb4KDb1hZ4DHGt608l2CaTc681ScgrsfopJnb5EPImiaLrHQdQ",
+        "chatUid": "oPrM76CXgoQ7WcyJevuEbzQfwMM2",
+        "backUpEnabled": false,
+        "subscriptionPlan": null,
+        "nextBillingDate": null,
+        "previousBillingDate": null,
+        "isLastSubscriptionPaymentSucceeded": false,
+        "backupFileId": null,
+        "email": null,
+        "lastSubscriptionPaymentSucceeded": false
+    },
+    {
+        "id": 65,
+        "name": "LIZA SHOP",
+        "currency": "RW",
+        "categoryId": null,
+        "latitude": "-2.1415766",
+        "longitude": "30.0877815",
+        "userId": "370",
+        "typeId": null,
+        "timeZone": null,
+        "channels": null,
+        "table": null,
+        "country": "RW",
+        "businessUrl": null,
+        "hexColor": null,
+        "imageUrl": null,
+        "type": "business",
+        "referredBy": "Organic",
+        "createdAt": "2021-10-05T13:12:43.076691",
+        "updatedAt": null,
+        "metadata": null,
+        "role": null,
+        "lastSeen": 0,
+        "firstName": null,
+        "lastName": null,
+        "reported": "true",
+        "phoneNumber": "+250789727836",
+        "deviceToken": "ecVNU8dJSD2EGaFx-vsJQD:APA91bEwO3kSICHtzPRMFO4rXvg9Va_Dwv9m4aS_lrSbJ_KFhPcIJNbE-8D6gEHte4tgvS9ljd0oTw2haW2vVxEn5IcdNWJiS8-YQg5_Gjp0BBD8hA6rnnZzTy35Ow3RhaqeDXg6vxZ9",
+        "chatUid": "RyjW5duYAmSKO2t3imaFRFkOdk92",
+        "backUpEnabled": false,
+        "subscriptionPlan": null,
+        "nextBillingDate": null,
+        "previousBillingDate": null,
+        "isLastSubscriptionPaymentSucceeded": false,
+        "backupFileId": null,
+        "email": null,
+        "lastSubscriptionPaymentSucceeded": false
+    },
+    {
+        "id": 68,
+        "name": "Richard",
+        "currency": "RW",
+        "categoryId": null,
+        "latitude": "-1.9303428",
+        "longitude": "30.1352767",
+        "userId": "300",
+        "typeId": null,
+        "timeZone": null,
+        "channels": null,
+        "table": null,
+        "country": "RW",
+        "businessUrl": null,
+        "hexColor": null,
+        "imageUrl": null,
+        "type": "business",
+        "referredBy": "Organic",
+        "createdAt": "2021-10-05T19:28:08.612022",
+        "updatedAt": null,
+        "metadata": null,
+        "role": null,
+        "lastSeen": 0,
+        "firstName": null,
+        "lastName": null,
+        "reported": "true",
+        "phoneNumber": "+250783054874",
+        "deviceToken": "f1Ss_OGOQjmsmjzxWMKz10:APA91bHgt4xl84B5LxJqonr-g6xWPoOevgZEhND0VVjvxhOLsX0T-Ma7QEX5lux3SJeV3E0ujdLrAGXhDFV6mhg3UIcXdTRG70SCpYNmhET4Vc94F2vDy5oRGjk_nEMVpxxFN4lhCYYz",
+        "chatUid": "Pcogz3xcQNd6Ub95ZaMP4H3dC5I3",
+        "backUpEnabled": true,
+        "subscriptionPlan": null,
+        "nextBillingDate": null,
+        "previousBillingDate": null,
+        "isLastSubscriptionPaymentSucceeded": false,
+        "backupFileId": null,
+        "email": null,
+        "lastSubscriptionPaymentSucceeded": false
+    },
+    {
+        "id": 69,
+        "name": "Irembo shop",
+        "currency": "RW",
+        "categoryId": null,
+        "latitude": "-1.9698393",
+        "longitude": "30.1071398",
+        "userId": "372",
+        "typeId": null,
+        "timeZone": null,
+        "channels": null,
+        "table": null,
+        "country": "RW",
+        "businessUrl": null,
+        "hexColor": null,
+        "imageUrl": null,
+        "type": "business",
+        "referredBy": "Organic",
+        "createdAt": "2021-10-06T23:34:23.849763",
+        "updatedAt": null,
+        "metadata": null,
+        "role": null,
+        "lastSeen": 0,
+        "firstName": null,
+        "lastName": null,
+        "reported": "true",
+        "phoneNumber": "+250788784905",
+        "deviceToken": "fT2hu2RiQseHydcTaffmwR:APA91bGEgAF7Tfc4MyM4ZkTL_BuOYvfNm1BK3_SFZi6r2uLiz1kYXDgW44KdF4qYQdMO_1MaS2QQGaZUs43VBzTNfDgZJehZGWni7RiCNt6um9oNye0zpHQ4tYIam7fI8mab9SVdd1Fm",
+        "chatUid": "orlCnwGSRVg1ne5pjjcNblo06OT2",
+        "backUpEnabled": false,
+        "subscriptionPlan": null,
+        "nextBillingDate": null,
+        "previousBillingDate": null,
+        "isLastSubscriptionPaymentSucceeded": false,
+        "backupFileId": null,
+        "email": null,
+        "lastSubscriptionPaymentSucceeded": false
+    },
+    {
+        "id": 70,
+        "name": "bobo",
+        "currency": "RW",
+        "categoryId": null,
+        "latitude": "-1.970077",
+        "longitude": "30.1085838",
+        "userId": "373",
+        "typeId": null,
+        "timeZone": null,
+        "channels": null,
+        "table": null,
+        "country": "RW",
+        "businessUrl": null,
+        "hexColor": null,
+        "imageUrl": null,
+        "type": "business",
+        "referredBy": "Organic",
+        "createdAt": "2021-10-08T09:43:18.334700",
+        "updatedAt": null,
+        "metadata": null,
+        "role": null,
+        "lastSeen": 0,
+        "firstName": null,
+        "lastName": null,
+        "reported": "true",
+        "phoneNumber": "+250787525342",
+        "deviceToken": "dbK1FcTVTJ6Hw-NEuT1yJl:APA91bG9gj27wHNTGx4Td6_cPLVZBxhy-KmqYJQMi4lvrqqu--hAPBkt5BmPP9HTHs6TWY7ztIZ4yERtZzoxDYOSBMfcM_TlKwG6W3Nc3DM7NVvcSH818OBKZnswTd9B39pQlPwB7jV_",
+        "chatUid": "sm0oLGbuBIPJVXGX3ktVjRzFPYw1",
+        "backUpEnabled": false,
+        "subscriptionPlan": null,
+        "nextBillingDate": null,
+        "previousBillingDate": null,
+        "isLastSubscriptionPaymentSucceeded": false,
+        "backupFileId": null,
+        "email": null,
         "lastSubscriptionPaymentSucceeded": false
     }
 ]

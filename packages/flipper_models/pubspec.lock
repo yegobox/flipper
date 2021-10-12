@@ -845,14 +845,14 @@ packages:
       name: flutter_chat_types
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.2"
+    version: "3.1.4"
   flutter_chat_ui:
     dependency: transitive
     description:
-      name: flutter_chat_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.4.2"
+      path: "../../open-sources/flutter_chat_ui"
+      relative: true
+    source: path
+    version: "1.4.4"
   flutter_country_picker:
     dependency: transitive
     description:
@@ -1023,6 +1023,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.0"
+  flutter_statusbarcolor_ns:
+    dependency: transitive
+    description:
+      name: flutter_statusbarcolor_ns
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0-nullsafety"
   flutter_svg:
     dependency: transitive
     description:
@@ -1467,6 +1474,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  nfc_manager:
+    dependency: transitive
+    description:
+      name: nfc_manager
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   nm:
     dependency: transitive
     description:
@@ -1941,6 +1955,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.8.6"
+  stacked_themes:
+    dependency: transitive
+    description:
+      name: stacked_themes
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.6"
   stomp_dart_client:
     dependency: transitive
     description:

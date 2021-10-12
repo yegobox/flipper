@@ -61,6 +61,7 @@ class Business {
       this.isLastSubscriptionPaymentSucceeded,
       this.backupFileId,
       this.email,
+      this.lastDbBackup,
       this.role});
   @Id(assignable: true)
   int id;
@@ -118,7 +119,7 @@ class Business {
   String? backupFileId;
 
   String? email;
-
+  String? lastDbBackup;
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],
@@ -129,6 +130,7 @@ class Business {
             json["isLastSubscriptionPaymentSucceeded"],
         backupFileId = json["backupFileId"],
         email = json["email"],
+        lastDbBackup = json["lastDbBackup"],
         chatUid = json["chatUid"],
         deviceToken = json["deviceToken"],
         currency = json["currency"],
@@ -165,6 +167,7 @@ class Business {
             isLastSubscriptionPaymentSucceeded,
         "backupFileId": backupFileId,
         "email": email,
+        "lastDbBackup": lastDbBackup,
         "currency": currency,
         "chatUid": chatUid,
         "fcategoryId": fcategoryId.toString(),

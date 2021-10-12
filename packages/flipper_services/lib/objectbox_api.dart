@@ -885,6 +885,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           type: map['type'],
           deviceToken: map['deviceToken'],
           email: map['email'],
+          lastDbBackup: map['lastDbBackup'],
           backUpEnabled: map['backUpEnabled'],
           backupFileId: map['backupFileId'],
           isLastSubscriptionPaymentSucceeded:
@@ -1456,6 +1457,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           'deviceToken': business['deviceToken'],
           'email': business['email'],
           'backUpEnabled': business['backUpEnabled'],
+          'lastDbBackup': business['lastDbBackup'],
           'backupFileId': business['backupFileId'],
           'chatUid': business['chatUid']
         }),

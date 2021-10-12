@@ -8,6 +8,7 @@ import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
 import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
 import 'package:objectbox/objectbox.dart';
 
+import 'attendance.dart';
 import 'branch.dart';
 import 'business.dart';
 import 'category.dart';
@@ -15,6 +16,8 @@ import 'color.dart';
 import 'conversation.dart';
 import 'customer.dart';
 import 'discount.dart';
+import 'menu.dart';
+import 'menu_item.dart';
 import 'message.dart';
 import 'order.dart';
 import 'order_item.dart';
@@ -81,7 +84,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 2865100998343489519),
       name: 'Business',
-      lastPropertyId: const IdUid(31, 7089179496554694098),
+      lastPropertyId: const IdUid(32, 6547666586400288120),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -237,6 +240,11 @@ final _entities = <ModelEntity>[
         ModelProperty(
             id: const IdUid(31, 7089179496554694098),
             name: 'email',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(32, 6547666586400288120),
+            name: 'lastDbBackup',
             type: 9,
             flags: 0)
       ],
@@ -1141,6 +1149,63 @@ final _entities = <ModelEntity>[
             flags: 129)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(18, 5247681858792538860),
+      name: 'Attendance',
+      lastPropertyId: const IdUid(1, 8845395444952707951),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 8845395444952707951),
+            name: 'id',
+            type: 6,
+            flags: 129)
+      ],
+      relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(19, 4060796004711362923),
+      name: 'Menu',
+      lastPropertyId: const IdUid(3, 8373755108464158209),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 7033523545742115010),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 9216256072430743771),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 8373755108464158209),
+            name: 'branchId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(20, 6437110131636401532),
+      name: 'MenuItem',
+      lastPropertyId: const IdUid(2, 4059165841206996481),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 5787688085998986886),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 4059165841206996481),
+            name: 'variantId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -1164,7 +1229,7 @@ Store openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(17, 2390185527754733161),
+      lastEntityId: const IdUid(20, 6437110131636401532),
       lastIndexId: const IdUid(4, 4090710537214135983),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
@@ -1315,7 +1380,10 @@ ModelDefinition getObjectBoxModel() {
               : fbb.writeString(object.backupFileId!);
           final emailOffset =
               object.email == null ? null : fbb.writeString(object.email!);
-          fbb.startTable(32);
+          final lastDbBackupOffset = object.lastDbBackup == null
+              ? null
+              : fbb.writeString(object.lastDbBackup!);
+          fbb.startTable(33);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, currencyOffset);
@@ -1347,6 +1415,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addBool(28, object.isLastSubscriptionPaymentSucceeded);
           fbb.addOffset(29, backupFileIdOffset);
           fbb.addOffset(30, emailOffset);
+          fbb.addOffset(31, lastDbBackupOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1397,6 +1466,7 @@ ModelDefinition getObjectBoxModel() {
               isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
               backupFileId: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 62),
               email: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 64),
+              lastDbBackup: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 66),
               role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
             ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46);
 
@@ -2279,6 +2349,85 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0));
 
           return object;
+        }),
+    Attendance: EntityDefinition<Attendance>(
+        model: _entities[17],
+        toOneRelations: (Attendance object) => [],
+        toManyRelations: (Attendance object) => {},
+        getId: (Attendance object) => object.id,
+        setId: (Attendance object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Attendance object, fb.Builder fbb) {
+          fbb.startTable(2);
+          fbb.addInt64(0, object.id);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Attendance(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0));
+
+          return object;
+        }),
+    Menu: EntityDefinition<Menu>(
+        model: _entities[18],
+        toOneRelations: (Menu object) => [],
+        toManyRelations: (Menu object) => {},
+        getId: (Menu object) => object.id,
+        setId: (Menu object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Menu object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          fbb.startTable(4);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addInt64(2, object.branchId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Menu(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              name:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              branchId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0));
+
+          return object;
+        }),
+    MenuItem: EntityDefinition<MenuItem>(
+        model: _entities[19],
+        toOneRelations: (MenuItem object) => [],
+        toManyRelations: (MenuItem object) => {},
+        getId: (MenuItem object) => object.id,
+        setId: (MenuItem object, int id) {
+          object.id = id;
+        },
+        objectToFB: (MenuItem object, fb.Builder fbb) {
+          fbb.startTable(3);
+          fbb.addInt64(0, object.id);
+          fbb.addInt64(1, object.variantId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = MenuItem(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              variantId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0));
+
+          return object;
         })
   };
 
@@ -2440,6 +2589,10 @@ class Business_ {
   /// see [Business.email]
   static final email =
       QueryStringProperty<Business>(_entities[1].properties[30]);
+
+  /// see [Business.lastDbBackup]
+  static final lastDbBackup =
+      QueryStringProperty<Business>(_entities[1].properties[31]);
 }
 
 /// [Category] entity fields to define ObjectBox queries.
@@ -3058,4 +3211,34 @@ class QueueItem_ {
   /// see [QueueItem.id]
   static final id =
       QueryIntegerProperty<QueueItem>(_entities[16].properties[0]);
+}
+
+/// [Attendance] entity fields to define ObjectBox queries.
+class Attendance_ {
+  /// see [Attendance.id]
+  static final id =
+      QueryIntegerProperty<Attendance>(_entities[17].properties[0]);
+}
+
+/// [Menu] entity fields to define ObjectBox queries.
+class Menu_ {
+  /// see [Menu.id]
+  static final id = QueryIntegerProperty<Menu>(_entities[18].properties[0]);
+
+  /// see [Menu.name]
+  static final name = QueryStringProperty<Menu>(_entities[18].properties[1]);
+
+  /// see [Menu.branchId]
+  static final branchId =
+      QueryIntegerProperty<Menu>(_entities[18].properties[2]);
+}
+
+/// [MenuItem] entity fields to define ObjectBox queries.
+class MenuItem_ {
+  /// see [MenuItem.id]
+  static final id = QueryIntegerProperty<MenuItem>(_entities[19].properties[0]);
+
+  /// see [MenuItem.variantId]
+  static final variantId =
+      QueryIntegerProperty<MenuItem>(_entities[19].properties[1]);
 }

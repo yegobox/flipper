@@ -54,7 +54,7 @@
     },
     {
       "id": "2:2865100998343489519",
-      "lastPropertyId": "31:7089179496554694098",
+      "lastPropertyId": "32:6547666586400288120",
       "name": "Business",
       "properties": [
         {
@@ -211,6 +211,11 @@
         {
           "id": "31:7089179496554694098",
           "name": "email",
+          "type": 9
+        },
+        {
+          "id": "32:6547666586400288120",
+          "name": "lastDbBackup",
           "type": 9
         }
       ],
@@ -1119,9 +1124,66 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "18:5247681858792538860",
+      "lastPropertyId": "1:8845395444952707951",
+      "name": "Attendance",
+      "properties": [
+        {
+          "id": "1:8845395444952707951",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "19:4060796004711362923",
+      "lastPropertyId": "3:8373755108464158209",
+      "name": "Menu",
+      "properties": [
+        {
+          "id": "1:7033523545742115010",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:9216256072430743771",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:8373755108464158209",
+          "name": "branchId",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "20:6437110131636401532",
+      "lastPropertyId": "2:4059165841206996481",
+      "name": "MenuItem",
+      "properties": [
+        {
+          "id": "1:5787688085998986886",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:4059165841206996481",
+          "name": "variantId",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "17:2390185527754733161",
+  "lastEntityId": "20:6437110131636401532",
   "lastIndexId": "4:4090710537214135983",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

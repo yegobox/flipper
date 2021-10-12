@@ -102,6 +102,7 @@ class GoogleDrive {
     if (business.backUpEnabled!) {
       final http = await silentLogin();
       await upload(file);
+      await updateBusiness(business);
       return http;
     }
     final _googleSignIn = new GoogleSignIn(scopes: _scopes);
@@ -110,8 +111,16 @@ class GoogleDrive {
 
     await storage.saveCredentials(httpClient.credentials.accessToken,
         httpClient.credentials.refreshToken ?? '');
+    await upload(file);
 
+    await updateBusiness(business);
+
+    return httpClient;
+  }
+
+  Future<void> updateBusiness(Business business) async {
     business.backUpEnabled = true;
+    business.lastDbBackup = DateTime.now().toIso8601String();
     log.i(business.toJson());
 
     /// notify the online that user has enabled the backup
@@ -119,9 +128,6 @@ class GoogleDrive {
     int id = business.id;
     await ProxyService.api.updateBusiness(id: id, business: business.toJson());
     ProxyService.api.update(data: business.toJson(), endPoint: "business/$id");
-
-    await upload(file);
-    return httpClient;
   }
 
   /// Upload File to user's Google Drive appData folder
