@@ -4,7 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:flipper_models/business.dart';
-import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
+// import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:path/path.dart' as path;
 // import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;

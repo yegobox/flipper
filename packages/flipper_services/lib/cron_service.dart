@@ -4,6 +4,7 @@ import 'package:flipper_models/order_item.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/business.dart';
+import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -78,18 +79,17 @@ class CronService {
     /// TODOchange this to avoid multiple api calls to the server
     /// load them when app start then do it later every 15 minutes
     ProxyService.api.getContacts();
-    cron.schedule(Schedule.parse('*/15 * * * *'), () async {
+    cron.schedule(Schedule.parse('*/45 * * * *'), () async {
       ProxyService.api.getContacts();
     });
 
-    //backup the user db every day
+    /// backup the user db every day
     cron.schedule(Schedule.parse('0 0 * * *'), () async {
-      // ProxyService.firestore.backup();
-      // select acccount (google drive account) for backup
-      //select gmail address for backup
-      // when selecting it goes to authenticate
-      // allow flipper to backup the data
-      // tap on allow button.
+      Business business = await ProxyService.api.getBusiness();
+      if (business.backUpEnabled!) {
+        final drive = GoogleDrive();
+        drive.backUpNow();
+      }
     });
 
     // we need to think when the devices change or app is uninstalled
