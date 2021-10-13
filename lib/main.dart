@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 // import 'package:cbl/cbl.dart';
 // import 'package:cbl_flutter/cbl_flutter.dart';
@@ -28,11 +29,21 @@ Future<void> backgroundHandler(RemoteMessage message) async {
   ProxyService.notification.display(message);
 }
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 // cd android && ./gradlew signingReport
 void main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
   WidgetsFlutterBinding.ensureInitialized();
-
+  // https://stackoverflow.com/questions/54285172/how-to-solve-flutter-certificate-verify-failed-error-while-performing-a-post-req
+  HttpOverrides.global = MyHttpOverrides();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

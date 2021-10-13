@@ -66,7 +66,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     // super.initState();
     // Check availability
-    startNFC();
+    ///TODOuse the interface instead not his anymore!
+    if (!isWeb && !isWindows && !isMacOs) {
+      startNFC();
+    }
     _sideOpenController = ValueNotifier<bool>(false);
     ProxyService.notification.initialize();
     ProxyService.dynamicLink.handleDynamicLink();

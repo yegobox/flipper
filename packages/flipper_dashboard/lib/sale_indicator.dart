@@ -14,6 +14,7 @@ import 'add_product_buttons.dart';
 import 'hero_dialog_route.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
+final isIos = UniversalPlatform.isIOS;
 
 class SaleIndicator extends StatelessWidget {
   const SaleIndicator(
@@ -34,12 +35,13 @@ class SaleIndicator extends StatelessWidget {
         width: 80,
         child: Row(
           children: [
-            GestureDetector(
-              onTap: () {
-                goToFlipperChat();
-              },
-              child: Icon(Ionicons.chatbox_sharp),
-            ),
+            if (isAndroid && isIos)
+              GestureDetector(
+                onTap: () {
+                  goToFlipperChat();
+                },
+                child: Icon(Ionicons.chatbox_sharp),
+              ),
             Spacer(),
             GestureDetector(
               onTap: () {
