@@ -29,7 +29,7 @@ Future<void> backgroundHandler(RemoteMessage message) async {
   ProxyService.notification.display(message);
 }
 
-class MyHttpOverrides extends HttpOverrides {
+class FlipperHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
@@ -43,7 +43,9 @@ void main() async {
   // CouchbaseLite.initialize(libraries: flutterLibraries())
   WidgetsFlutterBinding.ensureInitialized();
   // https://stackoverflow.com/questions/54285172/how-to-solve-flutter-certificate-verify-failed-error-while-performing-a-post-req
-  HttpOverrides.global = MyHttpOverrides();
+  // https://api.flutter.dev/flutter/dart-io/SecurityContext/setTrustedCertificates.html
+  // https://github.com/flutter/flutter/issues/19588
+  HttpOverrides.global = FlipperHttpOverrides();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
