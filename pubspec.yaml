@@ -233,23 +233,24 @@ flutter_icons:
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/icon.png"
-msix_config:
-  display_name: Flipper
-  publisher_display_name: Yegobox
-  identity_name: Yegobox.Flipper
-  msix_version: 1.0.0.4
-  # cert will not be needed when deployed on microsoft.
-  certificate_path: ./certs/CERTIFICATE.pfx
-  certificate_password: "::flipper::"
-  # TODO: when ready for prod see publisher here https://partner.microsoft.com/en-us/dashboard > Product > Product identity > Package/Identity/Publisher
-  publisher: CN=My Company, O=My Company, L=Berlin, S=Berlin, C=DE
-  logo_path: .\assets\icon\icon.png
-  start_menu_icon_path: .\assets\icon\icon.png
-  tile_icon_path: .\assets\icon\icon.png
-  icons_background_color: transparent
-  architecture: x64
-  capabilities: "internetClient,location,microphone,webcam"
-  store: true
+# While developing comment the following lines
+# msix_config:
+#   display_name: Flipper
+#   publisher_display_name: Yegobox
+#   identity_name: Yegobox.Flipper
+#   msix_version: 1.0.0.4
+#   # cert will not be needed when deployed on microsoft.
+#   certificate_path: ./certs/CERTIFICATE.pfx
+#   certificate_password: "::flipper::"
+#   # TODO: when ready for prod see publisher here https://partner.microsoft.com/en-us/dashboard > Product > Product identity > Package/Identity/Publisher
+#   publisher: CN=My Company, O=My Company, L=Berlin, S=Berlin, C=DE
+#   logo_path: .\assets\icon\icon.png
+#   start_menu_icon_path: .\assets\icon\icon.png
+#   tile_icon_path: .\assets\icon\icon.png
+#   icons_background_color: transparent
+#   architecture: x64
+#   capabilities: "internetClient,location,microphone,webcam"
+#   store: true
 # ::flipper::
 # https://www.codestories.gr/index.php/2019/03/17/generate-a-pfx-certificate-using-the-windows-certificate-store/
 # https://www.codestories.gr/index.php/2019/03/22/generate-a-pfx-certificate-using-openssl/
