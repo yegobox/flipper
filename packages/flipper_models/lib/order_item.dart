@@ -12,6 +12,8 @@ class OrderItem {
       required this.price,
       required this.forderId,
       this.discount,
+      required this.createdAt,
+      required this.updatedAt,
       this.reported = false,
       this.remainingStock = 0,
       this.type = 'item'});
@@ -31,6 +33,8 @@ class OrderItem {
   bool reported;
 
   int remainingStock;
+  String createdAt;
+  String updatedAt;
 
   final order = ToOne<OrderF>();
 
@@ -41,6 +45,8 @@ class OrderItem {
         remainingStock: json["remainingStock"],
         name: json["name"],
         discount: json["discount"],
+        createdAt: json["createdAt"],
+        updatedAt: json["updatedAt"],
         fvariantId: int.parse(json["fvariantId"].toString()),
         count: json["count"],
         price: json["price"].toDouble(),
@@ -54,6 +60,8 @@ class OrderItem {
         "reported": reported,
         "remainingStock": remainingStock,
         "discount": discount,
+        "createdAt": createdAt,
+        "updatedAt": updatedAt,
         "fvariantId": int.parse(fvariantId.toString()),
         "count": count,
         "price": price,

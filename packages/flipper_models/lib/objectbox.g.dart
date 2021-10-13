@@ -393,7 +393,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(5, 5013621342623573944),
       name: 'OrderItem',
-      lastPropertyId: const IdUid(11, 2397737952779016538),
+      lastPropertyId: const IdUid(13, 1390259137585875989),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -452,6 +452,16 @@ final _entities = <ModelEntity>[
             id: const IdUid(11, 2397737952779016538),
             name: 'remainingStock',
             type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(12, 4566951035167016343),
+            name: 'createdAt',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(13, 1390259137585875989),
+            name: 'updatedAt',
+            type: 9,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -1617,7 +1627,9 @@ ModelDefinition getObjectBoxModel() {
           final nameOffset = fbb.writeString(object.name);
           final typeOffset =
               object.type == null ? null : fbb.writeString(object.type!);
-          fbb.startTable(12);
+          final createdAtOffset = fbb.writeString(object.createdAt);
+          final updatedAtOffset = fbb.writeString(object.updatedAt);
+          fbb.startTable(14);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addInt64(2, object.forderId);
@@ -1629,6 +1641,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(8, typeOffset);
           fbb.addBool(9, object.reported);
           fbb.addInt64(10, object.remainingStock);
+          fbb.addOffset(11, createdAtOffset);
+          fbb.addOffset(12, updatedAtOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1650,6 +1664,10 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
               discount: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 18),
+              createdAt:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 26, ''),
+              updatedAt:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 28, ''),
               reported: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 22, false),
               remainingStock:
@@ -2734,6 +2752,14 @@ class OrderItem_ {
   /// see [OrderItem.remainingStock]
   static final remainingStock =
       QueryIntegerProperty<OrderItem>(_entities[4].properties[10]);
+
+  /// see [OrderItem.createdAt]
+  static final createdAt =
+      QueryStringProperty<OrderItem>(_entities[4].properties[11]);
+
+  /// see [OrderItem.updatedAt]
+  static final updatedAt =
+      QueryStringProperty<OrderItem>(_entities[4].properties[12]);
 }
 
 /// [PColor] entity fields to define ObjectBox queries.

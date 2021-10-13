@@ -191,3 +191,8 @@ class AppSetup {
 
 // TODOuse backdrop the front will show the tickets instead of using the bottom sheet.
 // https://pub.dev/packages/backdrop
+// Integrate local report as option
+  // https://pub.dev/packages/excel
+
+// dart define in case we need to use it.
+// https://itnext.io/flutter-1-17-no-more-flavors-no-more-ios-schemas-command-argument-that-solves-everything-8b145ed4285d

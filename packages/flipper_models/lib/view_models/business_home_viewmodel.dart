@@ -188,6 +188,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<bool> saveOrder(
       {required int variationId, required double amount}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
+    Stock stock =
+        await ProxyService.api.stockByVariantId(variantId: variationId);
     if (amountTotal != 0.0) {
       Variant? variation = await ProxyService.api.variant(
         variantId: variationId,
@@ -217,6 +219,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
               'fvariantId': variationId,
               'id': exist_orders[0].id,
               'name': name,
+              'createdAt': item.createdAt,
+              'updatedAt': item.updatedAt,
+              'remainingStock': stock.currentStock.toInt(),
             };
             ProxyService.api.update(data: data, endPoint: 'order');
           }
@@ -235,6 +240,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             'fvariantId': variationId,
             'name': name,
             'forderId': exist_orders[0].id,
+            'createdAt': DateTime.now().toString(),
+            'updatedAt': DateTime.now().toString(),
+            'remainingStock': stock.currentStock.toInt(),
           };
           ProxyService.api.addOrderItem(order: exist_orders[0], data: data);
         }

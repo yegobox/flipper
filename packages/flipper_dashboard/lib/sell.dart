@@ -72,9 +72,7 @@ class Sell extends StatelessWidget {
                   const Expanded(flex: 2, child: Text('')),
                 ],
               ),
-              // const SizedBox(
-              //   height: 20.0,
-              // ),
+
               Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,

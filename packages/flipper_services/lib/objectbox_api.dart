@@ -561,7 +561,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       );
 
       OrderF ss = store.box<OrderF>().get(id)!;
-
+      Stock stock = await stockByVariantId(variantId: variation.id);
       OrderItem orderItems = OrderItem(
         count: quantity,
         // name: useProductName ? variation.productName : variation.name,
@@ -569,6 +569,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
         fvariantId: variation.id,
         price: price,
         forderId: id,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+        remainingStock: stock.currentStock.toInt(),
       );
 
       ss.orderItems.add(orderItems);
@@ -576,12 +579,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
       box.put(ss);
       return ss;
     } else {
+      Stock stock = await stockByVariantId(variantId: variation.id);
       OrderItem item = OrderItem(
         count: quantity,
         name: name,
         fvariantId: variation.id,
         price: price,
         forderId: existOrder.id,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+        remainingStock: stock.currentStock.toInt(),
       );
       existOrder.orderItems.add(item);
       // final box = store.box<OrderF>();
@@ -1540,6 +1547,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
       fvariantId: data['fvariantId'],
       price: data['price'],
       forderId: data['forderId'],
+      createdAt: data['createdAt'],
+      updatedAt: data['updatedAt'],
+      remainingStock: data['remainingStock'],
     );
     order.orderItems.add(item);
     final id = store.box<OrderF>().put(order);

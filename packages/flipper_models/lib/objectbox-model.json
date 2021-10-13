@@ -361,7 +361,7 @@
     },
     {
       "id": "5:5013621342623573944",
-      "lastPropertyId": "11:2397737952779016538",
+      "lastPropertyId": "13:1390259137585875989",
       "name": "OrderItem",
       "properties": [
         {
@@ -422,6 +422,16 @@
           "id": "11:2397737952779016538",
           "name": "remainingStock",
           "type": 6
+        },
+        {
+          "id": "12:4566951035167016343",
+          "name": "createdAt",
+          "type": 9
+        },
+        {
+          "id": "13:1390259137585875989",
+          "name": "updatedAt",
+          "type": 9
         }
       ],
       "relations": []
