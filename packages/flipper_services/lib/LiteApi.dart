@@ -568,6 +568,8 @@ class LiteApi<T> implements Api {
         id: orderItemId,
         price: price,
         forderId: existOrder.id,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
       );
       existOrder.orderItems.add(item);
       update(data: existOrder.toJson(), endPoint: 'order');
