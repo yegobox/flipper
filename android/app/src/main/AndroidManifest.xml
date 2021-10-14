@@ -33,6 +33,9 @@
   <application android:extractNativeLibs="true" tools:replace="android:extractNativeLibs" android:label="flipper" android:icon="@mipmap/launcher_icon">
     <provider android:name="androidx.work.impl.WorkManagerInitializer" android:authorities="${applicationId}.workmanager-init" android:enabled="false" android:exported="false" />
 
+    <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyBq1-prPYQu5MGZerFN2h7OaRYiteSg9e4"/>
+
     <provider android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer" android:authorities="${applicationId}.flutter-upload-init" android:exported="false">
       <!-- changes this number to configure the maximum number of concurrent tasks -->
       <meta-data android:name="com.bluechilli.flutterupload.MAX_CONCURRENT_TASKS" android:value="3" />

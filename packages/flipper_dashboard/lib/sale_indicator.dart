@@ -32,10 +32,21 @@ class SaleIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       trailing: SizedBox(
-        width: 80,
+        width: 120,
         child: Row(
           children: [
             if (isAndroid && isIos)
+              GestureDetector(
+                onTap: () {
+                  /// in Flipper business, business will be able to setup geo fence
+                  /// when users are near they will receive notification of business advertizing their service.
+                  /// if a pro user you can call a business from directly from the map marker long press.
+                  ProxyService.nav.navigateTo(Routes.map);
+                },
+                child: Icon(Ionicons.map),
+              ),
+            Spacer(),
+            if (isAndroid || isIos)
               GestureDetector(
                 onTap: () {
                   goToFlipperChat();

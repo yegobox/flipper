@@ -50,7 +50,17 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  (!isWindows) ? await Firebase.initializeApp() : '';
+  (!isWindows)
+      ? await Firebase.initializeApp(
+          options: const FirebaseOptions(
+            appId: '1:672237316015:web:e289bfb5c92506c1c2715a',
+            apiKey: 'AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA',
+            messagingSenderId: '672237316015',
+            projectId: 'yegobox-2ee43',
+            authDomain: 'flipper.rw',
+          ),
+        )
+      : '';
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.
     // Temporarily toggle this to true if you want to test crash reporting in your app.

@@ -4,6 +4,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class LNotification {
   void initialize();
@@ -108,6 +109,11 @@ class LocalNotificationService implements LNotification {
 
     /// only notification for this specific user
     await FirebaseMessaging.instance.subscribeToTopic(userId);
+
+    /// use firebase authId to subscribe to message send to user.
+    User? user = await ProxyService.auth.getCurrentUserId();
+
+    await FirebaseMessaging.instance.subscribeToTopic(user!.uid);
 
     await FirebaseMessaging.instance.subscribeToTopic(businessId.toString());
   }

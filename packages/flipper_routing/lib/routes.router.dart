@@ -23,12 +23,14 @@ import 'package:flipper_dashboard/create/list_units.dart';
 import 'package:flipper_dashboard/create/receive_stock.dart';
 import 'package:flipper_dashboard/customers.dart';
 import 'package:flipper_dashboard/inapp_browser.dart';
+import 'package:flipper_dashboard/map_view.dart';
 import 'package:flipper_dashboard/order_summary.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/scanner_view.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
+import 'package:flipper_dashboard/subcategory.dart';
 import 'package:flipper_login/login_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/discount.dart';
@@ -64,6 +66,7 @@ class Routes {
   static const String qrview = '/scann-view';
   static const String connectionState = '/connection-failed-view';
   static const String inappBrowser = '/in-app-browser';
+  static const String map = '/map-view';
   static const String customers = '/Customers';
   static const all = <String>{
     initial,
@@ -90,6 +93,7 @@ class Routes {
     qrview,
     connectionState,
     inappBrowser,
+    map,
     customers,
   };
 }
@@ -122,6 +126,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.qrview, page: ScannView),
     RouteDef(Routes.connectionState, page: ConnectionFailedView),
     RouteDef(Routes.inappBrowser, page: InAppBrowser),
+    RouteDef(Routes.map, page: MapView),
     RouteDef(Routes.customers, page: Customers),
   ];
   @override
@@ -339,6 +344,18 @@ class StackedRouter extends RouterBase {
         fullscreenDialog: true,
       );
     },
+    MapView: (data) {
+      var args = data.getArgs<MapViewArguments>(
+        orElse: () => MapViewArguments(),
+      );
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
+        builder: (context) => MapView(
+          key: args.key,
+          subCategory: args.subCategory,
+        ),
+        settings: data,
+      );
+    },
     Customers: (data) {
       var args = data.getArgs<CustomersArguments>(nullOk: false);
       return MaterialPageRoute<MaterialRoute<dynamic>>(
@@ -461,6 +478,13 @@ class ScannViewArguments {
   final Key? key;
   final String intent;
   ScannViewArguments({this.key, this.intent = 'selling'});
+}
+
+/// MapView arguments holder class
+class MapViewArguments {
+  final Key? key;
+  final SubCategory? subCategory;
+  MapViewArguments({this.key, this.subCategory});
 }
 
 /// Customers arguments holder class
