@@ -377,6 +377,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await keypad.getTickets();
     await keypad.getOrder(branchId: ProxyService.box.read(key: 'branchId'));
     await currentOrder();
+    await updatePayable();
   }
 
   /// the method return total amount of the order to be used in the payment
