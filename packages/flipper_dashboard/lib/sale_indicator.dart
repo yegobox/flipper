@@ -121,7 +121,7 @@ class SaleIndicator extends StatelessWidget {
     int businessId = ProxyService.box.read(key: 'businessId');
     Business business = await ProxyService.api.getBusinessById(id: businessId);
     //patch a business to add a chat uid
-
+    ProxyService.firestore.addContact(business: business);
     ProxyService.firestore.createUserInFirestore(user: {
       'firstName': business.name,
       'lastName': '',

@@ -86,13 +86,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     ProxyService.review.review();
     // schedule the report
     ProxyService.cron.schedule();
-    ProxyService.cron.loadNewContacts();
     ProxyService.cron.connectBlueToothPrinter();
     ProxyService.cron.deleteReceivedMessageFromServer();
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
-    ProxyService.api.contacts().asBroadcastStream();
+    // ProxyService.api.contacts().asBroadcastStream();
 
     super.initState();
   }

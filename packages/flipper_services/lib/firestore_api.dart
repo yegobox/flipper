@@ -7,12 +7,16 @@ import 'package:flipper_services/proxy.dart';
 import 'exceptions/firestore_api_exception.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
+import 'package:flipper_models/business.dart';
 
 abstract class Firestore {
   Future<void> createUser({required dynamic user, required String token});
   Future<void> getUser({required String userId});
   Future<void> saveTokenToDatabase({String? token, Map? business});
   Future<void> createUserInFirestore({required Map user});
+  Stream<List<Business>> contacts();
+  void addContact({required Business business});
+  void deleteRoom({required String roomId});
 }
 
 class UnSupportedFirestoreApi implements Firestore {
@@ -35,6 +39,22 @@ class UnSupportedFirestoreApi implements Firestore {
   Future<void> createUserInFirestore({required Map user}) {
     // TODO: implement createUserInFirestore
     throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Business>> contacts() {
+    // TODO: implement contacts
+    throw UnimplementedError();
+  }
+
+  @override
+  void addContact({required Business business}) {
+    // TODO: implement addContact
+  }
+
+  @override
+  void deleteRoom({required String roomId}) {
+    // TODO: implement deleteRoom
   }
 }
 
@@ -123,5 +143,20 @@ class FirestoreApi implements Firestore {
         // phoneNumber: user['phoneNumber'],
       ),
     );
+  }
+
+  @override
+  Stream<List<Business>> contacts() {
+    return FirebaseChatCore.instance.contacts();
+  }
+
+  @override
+  void addContact({required Business business}) {
+    return FirebaseChatCore.instance.addContact(contact: business);
+  }
+
+  @override
+  void deleteRoom({required String roomId}) {
+    return FirebaseChatCore.instance.deleteRoom(roomId: roomId);
   }
 }

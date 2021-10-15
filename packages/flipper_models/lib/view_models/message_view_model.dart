@@ -56,8 +56,12 @@ class MessageViewModel extends BusinessHomeViewModel {
   void loadContacts() async {
     // int id = ProxyService.box.read(key: 'businessId');
     // business = ProxyService.api.getBusinessById(id: id);
-    Stream<List<Business>> contacts =
-        ProxyService.api.contacts().asBroadcastStream();
+
+    // Stream<List<Business>> contacts =
+    //     ProxyService.api.contacts().asBroadcastStream();
+
+    Stream<List<Business>> contacts = ProxyService.firestore.contacts();
+
     contacts.listen((event) {
       originList = event.map((v) {
         Contact model = Contact.fromJson(v.toJson());
@@ -180,8 +184,9 @@ class MessageViewModel extends BusinessHomeViewModel {
     notifyListeners();
   }
 
-  void deleteConversation(Conversation conversation) {
-    ProxyService.api.delete(id: conversation.id, endPoint: "conversation");
+  void deleteConversation(String roomId) {
+    // ProxyService.api.delete(id: conversation.id, endPoint: "conversation");
+    ProxyService.firestore.deleteRoom(roomId: roomId);
   }
 
   @override

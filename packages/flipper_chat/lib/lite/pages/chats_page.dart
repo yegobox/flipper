@@ -11,7 +11,7 @@ import 'package:flipper/localization.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter_slidable/flutter_slidable.dart';
-
+import 'package:flipper_routing/routes.logger.dart';
 import 'chat_page.dart';
 
 // ignore: must_be_immutable
@@ -26,6 +26,7 @@ class ChatsPage extends StatefulWidget {
 
 class _ChatsPageState extends State<ChatsPage> {
   User? _user;
+  final log = getLogger('_ChatsPageState');
 
   @override
   void initState() {
@@ -54,12 +55,16 @@ class _ChatsPageState extends State<ChatsPage> {
 
         color = getUserAvatarNameColor(otherUser);
       } catch (e) {
+        /// case where a user is chatting with himself
+        /// for this case, we will add our bot's iD in the room
+        /// this way we can be able to integract with the user's message
+        color = getUserAvatarNameColor(room.users.first);
         // Do nothing if other user is not found
       }
     }
 
     // final hasImage = room.imageUrl != null;
-    final name = room.name ?? '';
+    final name = room.name ?? 'MeOwner';
 
     return Container(
       child: TextDrawable(
@@ -99,7 +104,7 @@ class _ChatsPageState extends State<ChatsPage> {
                         color: Colors.red,
                         icon: Icons.delete,
                         onTap: () {
-                          // widget.model.deleteConversation(conversation);
+                          widget.model.deleteConversation(room.id);
                         },
                       ),
                     ],

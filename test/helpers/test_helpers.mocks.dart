@@ -399,10 +399,9 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
       (super.noSuchMethod(Invocation.method(#getBusinessById, [], {#id: id}),
           returnValue: _FakeBusiness()) as _i9.Business);
   @override
-  _i21.OrderItem? getOrderItemByVariantId({int? variantId}) =>
-      (super.noSuchMethod(Invocation.method(
-              #getOrderItemByVariantId, [], {#variantId: variantId}))
-          as _i21.OrderItem?);
+  _i21.OrderItem? getOrderItemByVariantId({int? variantId, int? orderId}) =>
+      (super.noSuchMethod(Invocation.method(#getOrderItemByVariantId, [],
+          {#variantId: variantId, #orderId: orderId})) as _i21.OrderItem?);
   @override
   _i16.Future<void> updateBusiness(
           {int? id, Map<dynamic, dynamic>? business}) =>

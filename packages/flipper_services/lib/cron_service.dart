@@ -43,12 +43,6 @@ class CronService {
     });
   }
 
-  loadNewContacts() {
-    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
-      ProxyService.api.contacts().asBroadcastStream();
-    });
-  }
-
   deleteReceivedMessageFromServer() {
     // cron.schedule(Schedule.parse('*/1 * * * *'), () async {
     //   log.i('scheduled delete message');
@@ -78,10 +72,10 @@ class CronService {
     /// this will be used to update the business model
     /// TODOchange this to avoid multiple api calls to the server
     /// load them when app start then do it later every 15 minutes
-    ProxyService.api.getContacts();
-    cron.schedule(Schedule.parse('*/45 * * * *'), () async {
-      ProxyService.api.getContacts();
-    });
+    // ProxyService.api.getContacts();
+    // cron.schedule(Schedule.parse('*/45 * * * *'), () async {
+    //   ProxyService.api.getContacts();
+    // });
 
     /// backup the user db every day
     cron.schedule(Schedule.parse('0 0 * * *'), () async {
