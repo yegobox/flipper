@@ -22,14 +22,11 @@ const db = admin.firestore();
 exports.onMessageScheduled = functions.firestore
     .document('rooms/{roomId}/messages/{messageId}')
     .onCreate(async (snapshot, context) => {
-        /// console.log('Sent the notification to all!!', snapshot.data().roomId);
-        /// get all the users in the room
         const roomId = snapshot.data().roomId;
         const authorId = snapshot.data().authorId;
         const text = snapshot.data().text;
 
         return db.collection("rooms").doc(roomId).get().then((snapshot: any) => {
-            // console.log("log ::", snapshot.data());
             snapshot.data().userIds.forEach((topic: string) => {
                 if (topic != authorId) {
                     /// send notification to all the users in the room except the author
@@ -45,6 +42,7 @@ exports.onMessageScheduled = functions.firestore
                     return admin.messaging().sendToTopic(topic, payload);
                 }
             });
+            //dummy return for a function to be happy no idea of better way!
             return 22;
         }).catch((e: any) => {
             console.error('got error', e);

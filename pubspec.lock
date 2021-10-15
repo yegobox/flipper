@@ -778,6 +778,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flipper_map:
+    dependency: "direct main"
+    description:
+      path: "packages/flipper_map"
+      relative: true
+    source: path
+    version: "0.0.1"
   flipper_models:
     dependency: "direct main"
     description:

@@ -21,11 +21,10 @@ import 'package:flipper_dashboard/collect_cash.dart';
 import 'package:flipper_dashboard/payment_options.dart';
 import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/connection_failed_view.dart';
-import 'package:flipper_dashboard/map_view.dart';
+import 'package:flipper_map/flipper_map.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/scanner_view.dart';
 import 'package:flipper_dashboard/inapp_browser.dart';
-import 'package:flutter/material.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper_chat/flipper_chat_app.dart';
@@ -199,3 +198,17 @@ class AppSetup {
 
 // dart define in case we need to use it.
 // https://itnext.io/flutter-1-17-no-more-flavors-no-more-ios-schemas-command-argument-that-solves-everything-8b145ed4285d
+
+// Back to testing shoule use this mock!
+// https://github.com/VeryGoodOpenSource/mockingjay
+
+// learn more about
+// https://github.com/felangel/flow_builder/issues/36
+
+// Read more about flank
+// https://medium.com/swlh/scalable-gitlab-android-tests-configs-with-flank-for-firebase-test-lab-a1d743fc12c5
+// https://github.com/Flank/flank/blob/master/docs/flank-github-action/store_documentation.md
+
+// Read more about sylph suitable for flutter ui test.
+// https://github.com/mmcc007/sylph
+// https://blog.bitrise.io/post/5-tips-tricks-for-mobile-testing?utm_source=website&utm_medium=email&utm_campaign=MEP-ebook

@@ -109,6 +109,8 @@ dependencies:
     path: "packages/flipper_routing"
   flipper_chat:
     path: "packages/flipper_chat"
+  flipper_map:
+    path: "packages/flipper_map"
   google_fonts:
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: ^1.0.0

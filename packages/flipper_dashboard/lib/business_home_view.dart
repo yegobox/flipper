@@ -10,7 +10,6 @@ import 'package:nfc_manager/nfc_manager.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_models/business.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/sale_indicator.dart';
@@ -67,9 +66,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     // super.initState();
     // Check availability
     ///TODOuse the interface instead not his anymore!
-    if (!isWeb && !isWindows && !isMacOs) {
-      startNFC();
-    }
+    // if (!isWeb && !isWindows && !isMacOs) {
+    //   startNFC();
+    // }
     _sideOpenController = ValueNotifier<bool>(false);
     ProxyService.notification.initialize();
     ProxyService.dynamicLink.handleDynamicLink();
