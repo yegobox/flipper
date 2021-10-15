@@ -229,9 +229,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
         /// if is a new item to be added to the list then it will be added to the list
         /// existOrderItem will return null which will go to adding item api.
-        OrderItem? existOrderItem =
-            ProxyService.api.getOrderItemByVariantId(variantId: variationId);
-        // log.i(existOrderItem);
+        OrderItem? existOrderItem = ProxyService.api.getOrderItemByVariantId(
+            variantId: variationId, orderId: exist_orders[0].id);
+        // log.w(exist_orders.length);
         if (existOrderItem == null) {
           Map data = {
             'count': quantity.toDouble(),
@@ -338,11 +338,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.customQtyIncrease(qty: 1);
   }
 
-  void addNoteToSale({required String note}) async {
+  void addNoteToSale({required String note, required Function callback}) async {
+    if (kOrder == null) {
+      return;
+    }
     OrderF? order = await ProxyService.api.getOrderById(id: kOrder!.id);
     Map map = order.toJson();
     map['note'] = note;
     ProxyService.api.update(data: map, endPoint: 'order');
+    callback(1);
   }
 
   ///save ticket, this method take any existing pending order
@@ -357,12 +361,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     map['status'] = parkedStatus;
     if (map['note'] == null || map['note'] == '') {
       callBack('error');
+    } else {
+      ProxyService.api.update(data: map, endPoint: 'order');
+      //refresh order afterwards
+      await currentOrder();
+      callBack('saved');
     }
-    ProxyService.api.update(data: map, endPoint: 'order');
-
-    //refresh order afterwards
-    await currentOrder();
-    callBack('saved');
   }
 
   Future resumeOrder({required int ticketId}) async {
@@ -383,7 +387,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   double get totalPayable => keypad.totalPayable;
   double get totalDiscount => keypad.totalDiscount;
-  num? updatePayable() {
+  Future<num?> updatePayable() async {
     keypad.setTotalPayable(amount: 0.0);
     keypad.setTotalDiscount(amount: 0.0);
     if (keypad.order == null) return 0.0;
@@ -398,6 +402,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             : totalPayable!.toDouble());
     keypad.setTotalDiscount(amount: totalDiscount!.toDouble());
 
+    await keypad.getTickets();
     notifyListeners();
     return totalPayable;
   }

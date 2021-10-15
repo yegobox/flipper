@@ -135,7 +135,7 @@ class FlipperBottomSheet {
                         child: Column(children: <Widget>[
                           ListTile(
                             subtitle: Text(
-                              ticket.note!,
+                              ticket.note ?? 'No Name',
                               style: TextStyle(color: Colors.black),
                             ),
                             trailing: Row(
@@ -224,7 +224,16 @@ class FlipperBottomSheet {
                     title: Localization.of(context)!.save,
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
-                        model.addNoteToSale(note: _controller.text);
+                        model.addNoteToSale(
+                          note: _controller.text,
+                          callback: (callback) {
+                            if (callback == 1) {
+                              showSimpleNotification(Text('Note added!'),
+                                  background: Colors.green);
+                              ProxyService.nav.back();
+                            }
+                          },
+                        );
                         ProxyService.nav.back();
                       }
                     },

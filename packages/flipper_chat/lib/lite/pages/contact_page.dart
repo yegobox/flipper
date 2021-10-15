@@ -9,6 +9,7 @@ import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ContactPage extends StatefulWidget {
   const ContactPage({

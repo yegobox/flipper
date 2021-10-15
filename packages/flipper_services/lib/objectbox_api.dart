@@ -1261,8 +1261,21 @@ class ObjectBoxApi extends MobileUpload implements Api {
     return store.box<OrderF>().getAll().firstWhere((v) => v.id == id);
   }
 
+  /// tickets return [OrderF] as tickets if we have
+  /// order with parked status then they are tickets
+  /// if first there is norder with [parkedStatus]
+  /// then return [] empty list of tickets to signal that we can show save button
+  /// for new ticket i.e order
   @override
   Future<List<OrderF>> tickets() async {
+    List<OrderF> tickets = store
+        .box<OrderF>()
+        .getAll()
+        .where((v) => v.status == pendingStatus)
+        .toList();
+    if (tickets.isNotEmpty) {
+      return [];
+    }
     return store
         .box<OrderF>()
         .getAll()
@@ -1439,13 +1452,23 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .findFirst()!;
   }
 
+  /// take the current [OrderF] and find related [OrderItem]
+  /// if the [OrderItem] is not found then return null else return the [OrderItem]
+  /// when fail to find an element it then throw StateError which means it failed to find the element in the list
+  /// then this is the reason why we need to return null as there is no such item which current order.
   @override
-  OrderItem? getOrderItemByVariantId({required int variantId}) {
-    return store
-        .box<OrderItem>()
-        .query(OrderItem_.fvariantId.equals(variantId))
+  OrderItem? getOrderItemByVariantId(
+      {required int variantId, required int orderId}) {
+    OrderF? o = store
+        .box<OrderF>()
+        .query(OrderF_.id.equals(orderId))
         .build()
         .findFirst();
+    try {
+      return o!.orderItems.where((item) => item.fvariantId == variantId).first;
+    } catch (e) {
+      return null;
+    }
   }
 
   @override

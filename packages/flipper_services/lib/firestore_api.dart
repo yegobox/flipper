@@ -120,6 +120,7 @@ class FirestoreApi implements Firestore {
         id: user['uid'],
         imageUrl: user['imageUrl'],
         lastName: user['lastName'],
+        // phoneNumber: user['phoneNumber'],
       ),
     );
   }

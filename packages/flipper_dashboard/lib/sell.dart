@@ -49,9 +49,6 @@ class Sell extends StatelessWidget {
               Divider(
                 color: Colors.grey[400],
               ),
-              // SizedBox(
-              //   height: 20.h,
-              // ),
               Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -72,7 +69,6 @@ class Sell extends StatelessWidget {
                   const Expanded(flex: 2, child: Text('')),
                 ],
               ),
-
               Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,

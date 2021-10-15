@@ -111,7 +111,8 @@ abstract class Api<T> {
   Future<int> sendReport({required List<OrderItem> orderItems});
   Future<void> createGoogleSheetDoc({required String email});
   Business getBusinessById({required int id});
-  OrderItem? getOrderItemByVariantId({required int variantId});
+  OrderItem? getOrderItemByVariantId(
+      {required int variantId, required int orderId});
   //abstract method to update business
   Future<void> updateBusiness({required int id, required Map business});
 
