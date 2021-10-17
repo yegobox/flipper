@@ -1,0 +1,3 @@
+E:/demos/experiments/flipper/buildd/CMakeFiles/cmake_hello.dir
+E:/demos/experiments/flipper/buildd/CMakeFiles/ALL_BUILD.dir
+E:/demos/experiments/flipper/buildd/CMakeFiles/ZERO_CHECK.dir

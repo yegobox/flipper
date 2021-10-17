@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="E:\demos\experiments\flipper\buildd\CMakeFiles\19a16afcc29541a4f87260233ff809f8\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{CF0B111B-018B-32AA-A6FB-797D84462EE4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
