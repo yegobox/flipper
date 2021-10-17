@@ -30,6 +30,7 @@ import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper_chat/flipper_chat_app.dart';
 import 'package:flipper_chat/lite/pages/lite.dart';
 import 'package:flipper_chat/lite/pages/contact_page.dart';
+import 'package:flipper_chat/flipper_chat.dart';
 
 @StackedApp(
   routes: [
@@ -37,6 +38,7 @@ import 'package:flipper_chat/lite/pages/contact_page.dart';
     // MaterialRoute(page: StartUpView),
     // MaterialRoute(page: FlipperChatApp, name: 'chat'),
     MaterialRoute(page: Lite, name: 'chat'),
+    MaterialRoute(page: ChatPage, name: 'singleChat'),
     MaterialRoute(page: ContactPage, name: 'contacts'),
     // MaterialRoute(page: FlipperChatApp, initial: true),
     // MaterialRoute(page: DashboardView, name: 'dashboard'),

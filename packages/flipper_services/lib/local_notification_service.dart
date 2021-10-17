@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_services/constants.dart';
+// import 'package:flipper_services/constants.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -51,6 +53,7 @@ class LocalNotificationService implements LNotification {
         "flipper",
         "channel",
         "channel",
+        // icon: "ic_launcher",
         importance: Importance.max,
         priority: Priority.high,
       ));
@@ -60,7 +63,7 @@ class LocalNotificationService implements LNotification {
         message.notification!.title,
         message.notification!.body,
         notificationDetails,
-        payload: message.data["route"],
+        payload: message.data["roomId"],
       );
     } on Exception catch (e) {
       print(e);
@@ -69,7 +72,6 @@ class LocalNotificationService implements LNotification {
 
   @override
   Future<void> initialize() async {
-    log.i('getting token');
     // get permission
     // getting permission on android does not matter!
     await messaging.requestPermission(
@@ -88,17 +90,12 @@ class LocalNotificationService implements LNotification {
     );
 
     _notificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: (String? route) async {
-      log.i(route);
-      if (route != null) {
-        switch (route) {
-          case 'message':
-            ProxyService.box.write(key: pageKey, value: 'social');
-            ProxyService.nav.navigateTo(Routes.chat);
-            break;
-          default:
-            log.i('routes point to nowhere!');
-        }
+        onSelectNotification: (String? roomId) async {
+      if (roomId != null) {
+        // get room given roomId
+        types.Room? room = await FirebaseChatCore.instance.roomFromId(roomId);
+        ProxyService.nav.navigateTo(Routes.singleChat,
+            arguments: ChatPageArguments(room: room!));
       }
     });
     int businessId = await ProxyService.box.read(key: 'businessId');
@@ -129,23 +126,30 @@ class LocalNotificationService implements LNotification {
       FirebaseMessaging.instance.getInitialMessage().then((message) {
         if (message != null) {
           // final routeFromMessage = message.data["route"];
+          log.i(message.data);
           handleTheMessage(message);
         }
       });
 
       ///forground work
       FirebaseMessaging.onMessage.listen((message) {
-        if (message.notification != null) {
-          handleTheMessage(message);
-        }
+        log.d(message.data);
+        handleTheMessage(message);
+        // if (message.notification != null) {
+        //   handleTheMessage(message);
+        // }
       });
 
       ///When the app is in background but opened and user taps
       ///on the notification
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        if (message.data["route"] != null) {
-          handleTheMessage(message);
-        }
+        log.w(message.data);
+        handleTheMessage(message);
+        // if (message.data["room"] != null) {
+        //   // we know we want to go to the chat page
+        //   ProxyService.nav.navigateTo(Routes.singleChat,
+        //       arguments: ChatPageArguments(room: message.data['roomId']));
+        // }
       });
     }
   }

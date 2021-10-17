@@ -571,7 +571,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         forderId: id,
         createdAt: DateTime.now().toIso8601String(),
         updatedAt: DateTime.now().toIso8601String(),
-        remainingStock: stock.currentStock.toInt(),
+        remainingStock: stock.currentStock.toInt() - quantity.toInt(),
       );
 
       ss.orderItems.add(orderItems);
@@ -588,7 +588,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         forderId: existOrder.id,
         createdAt: DateTime.now().toIso8601String(),
         updatedAt: DateTime.now().toIso8601String(),
-        remainingStock: stock.currentStock.toInt(),
+        remainingStock: stock.currentStock.toInt() - quantity.toInt(),
       );
       existOrder.orderItems.add(item);
       // final box = store.box<OrderF>();

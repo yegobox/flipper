@@ -221,7 +221,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
               'name': name,
               'createdAt': item.createdAt,
               'updatedAt': item.updatedAt,
-              'remainingStock': stock.currentStock.toInt(),
+              'remainingStock': stock.currentStock.toInt() - quantity,
             };
             ProxyService.api.update(data: data, endPoint: 'order');
           }
@@ -242,7 +242,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             'forderId': exist_orders[0].id,
             'createdAt': DateTime.now().toString(),
             'updatedAt': DateTime.now().toString(),
-            'remainingStock': stock.currentStock.toInt(),
+            'remainingStock': stock.currentStock.toInt() - quantity,
           };
           ProxyService.api.addOrderItem(order: exist_orders[0], data: data);
         }

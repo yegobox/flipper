@@ -36,7 +36,15 @@ exports.onMessageScheduled = functions.firestore
                             title: text,
                             body: text,
                             icon: 'https://placeimg.com/100/100/any',
-                            click_action: 'https://yegobox.com'
+                            // click_action: 'https://yegobox.com',
+                            sound: 'default',
+                            click_action: "FLUTTER_NOTIFICATION_CLICK",
+                            data: {
+                                roomId: roomId,
+                                authorId: authorId,
+                                text: text,
+                                route: 'room'
+                            }
                         }
                     };
                     return admin.messaging().sendToTopic(topic, payload);

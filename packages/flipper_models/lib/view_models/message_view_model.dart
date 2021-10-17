@@ -65,7 +65,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     contacts.listen((event) {
       originList = event.map((v) {
         Contact model = Contact.fromJson(v.toJson());
-
+        log.i(v.toJson());
         String tag = model.name.substring(0, 1).toUpperCase();
         if (RegExp("[A-Z]").hasMatch(tag)) {
           model.tagIndex = tag;

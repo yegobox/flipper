@@ -6,6 +6,7 @@
 
 // ignore_for_file: public_member_api_docs
 
+import 'package:flipper_chat/flipper_chat.dart';
 import 'package:flipper_chat/lite/pages/contact_page.dart';
 import 'package:flipper_chat/lite/pages/lite.dart';
 import 'package:flipper_dashboard/add_discount.dart';
@@ -38,12 +39,14 @@ import 'package:flipper_models/product.dart';
 // wimport 'package:flutter/foundation.dart';
 import 'package:flipper_models/category.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 
 class Routes {
   static const String initial = '/';
   static const String chat = '/Lite';
+  static const String singleChat = '/chat-page';
   static const String contacts = '/contact-page';
   static const String signup = '/sign-up-form-view';
   static const String home = '/Home';
@@ -71,6 +74,7 @@ class Routes {
   static const all = <String>{
     initial,
     chat,
+    singleChat,
     contacts,
     signup,
     home,
@@ -104,6 +108,7 @@ class StackedRouter extends RouterBase {
   final _routes = <RouteDef>[
     RouteDef(Routes.initial, page: StartUpView),
     RouteDef(Routes.chat, page: Lite),
+    RouteDef(Routes.singleChat, page: ChatPage),
     RouteDef(Routes.contacts, page: ContactPage),
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: Home),
@@ -141,6 +146,16 @@ class StackedRouter extends RouterBase {
     Lite: (data) {
       return MaterialPageRoute<MaterialRoute<dynamic>>(
         builder: (context) => const Lite(),
+        settings: data,
+      );
+    },
+    ChatPage: (data) {
+      var args = data.getArgs<ChatPageArguments>(nullOk: false);
+      return MaterialPageRoute<MaterialRoute<dynamic>>(
+        builder: (context) => ChatPage(
+          key: args.key,
+          room: args.room,
+        ),
         settings: data,
       );
     },
@@ -372,6 +387,13 @@ class StackedRouter extends RouterBase {
 /// ************************************************************************
 /// Arguments holder classes
 /// *************************************************************************
+
+/// ChatPage arguments holder class
+class ChatPageArguments {
+  final Key? key;
+  final Room room;
+  ChatPageArguments({this.key, required this.room});
+}
 
 /// ContactPage arguments holder class
 class ContactPageArguments {
