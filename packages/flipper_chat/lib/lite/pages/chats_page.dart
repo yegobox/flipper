@@ -185,7 +185,7 @@ class _ChatsPageState extends State<ChatsPage> {
                                               ? timeago.format(DateTime.parse(
                                                   DateTime
                                                       .fromMillisecondsSinceEpoch(
-                                                  room.createdAt!,
+                                                  room.updatedAt!,
                                                   isUtc: true,
                                                 ).toIso8601String()))
                                               : '',

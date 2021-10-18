@@ -49,7 +49,7 @@ class _MapViewState extends State<MapView> {
   }
 
   void setSourceAndDestinationMarkerIcons(BuildContext context) async {
-    String parentCat = widget.subCategory!.imgName!.split("_")[0];
+    // String parentCat = widget.subCategory!.imgName!.split("_")[0];
 
     sourceIcon = await BitmapDescriptor.fromAssetImage(
         const ImageConfiguration(devicePixelRatio: 2.0),
@@ -57,7 +57,7 @@ class _MapViewState extends State<MapView> {
 
     destinationIcon = await BitmapDescriptor.fromAssetImage(
         const ImageConfiguration(devicePixelRatio: 2.0),
-        'assets/images/destination_pin_$parentCat${Utils.deviceSuffix(context)}.png');
+        'assets/images/destination_pin_ios${Utils.deviceSuffix(context)}.png');
   }
 
   void setInitialLocation() {

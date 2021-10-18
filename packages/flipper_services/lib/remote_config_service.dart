@@ -24,6 +24,7 @@ class RemoteConfigService implements Remote {
       'is_backup_available': false,
       'isRemoteLoggingDynamicLinkEnabled': true,
       'isAccessiblityFeatureAvailable': false,
+      'isMapAvailable': false,
     });
   }
 
@@ -140,6 +141,14 @@ class RemoteConfigService implements Remote {
     }
     return remoteConfig.getBool('isAccessiblityFeatureAvailable');
   }
+
+  @override
+  bool isMapAvailable() {
+    if (kDebugMode) {
+      return true;
+    }
+    return remoteConfig.getBool('isMapAvailable');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -236,6 +245,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isAccessiblityFeatureAvailable() {
+    return false;
+  }
+
+  @override
+  bool isMapAvailable() {
     return false;
   }
 }

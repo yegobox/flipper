@@ -1,6 +1,6 @@
 import 'package:flipper_map/subcategory.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 
 class MapBottomPill extends StatelessWidget {
   SubCategory? subCategory;
@@ -32,11 +32,8 @@ class MapBottomPill extends StatelessWidget {
                       clipBehavior: Clip.none,
                       children: [
                         ClipOval(
-                          child: Image.asset(
-                              'assets/imgs/${this.subCategory!.imgName}.png',
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover),
+                          child: Image.asset('assets/imgages/.png',
+                              width: 60, height: 60, fit: BoxFit.cover),
                         ),
                         // Positioned(
                         //   bottom: -10,
@@ -50,30 +47,32 @@ class MapBottomPill extends StatelessWidget {
                         // )
                       ],
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(this.subCategory!.name!,
+                          Text('Name',
                               style: TextStyle(
                                   color: Colors.grey[700],
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15)),
-                          Text('Venta por Libra'),
-                          Text('2km de distancia',
-                              style: TextStyle(color: this.subCategory!.color))
+                          const Text('Venta por Libra'),
+                          const Text('2km de distancia',
+                              style: TextStyle(color: Colors.black))
                         ],
                       ),
                     ),
-                    Icon(Icons.location_pin,
-                        color: this.subCategory!.color, size: 50)
+                    const Icon(
+                      Icons.location_pin,
+                      color: Colors.black,
+                      size: 50,
+                    )
                   ],
                 )),
-            Container(
-                child: Column(
+            Column(
               children: [
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   children: [
                     Container(
@@ -81,16 +80,15 @@ class MapBottomPill extends StatelessWidget {
                       height: 50,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
-                          image: DecorationImage(
-                              image: AssetImage('assets/imgs/farmer.jpeg'),
+                          image: const DecorationImage(
+                              image: AssetImage('assets/images/farmer.jpeg'),
                               fit: BoxFit.cover),
-                          border: Border.all(
-                              color: this.subCategory!.color!, width: 4)),
+                          border: Border.all(color: Colors.black, width: 4)),
                     ),
-                    SizedBox(width: 20),
+                    const SizedBox(width: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: const [
                         Text('Jose Gonzalez',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         Text('Autopista Duarte\nCarretera Duarte Vieja #225')
@@ -99,7 +97,7 @@ class MapBottomPill extends StatelessWidget {
                   ],
                 )
               ],
-            ))
+            )
           ],
         ));
   }

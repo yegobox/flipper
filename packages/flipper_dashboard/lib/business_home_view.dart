@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/flipper_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper/localization.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -21,6 +21,7 @@ import 'bottom_menu_bar.dart';
 import 'home_app_bar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/flipper_models.dart';
+import 'package:flipper_models/business.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'keypad_head_view.dart';
 import 'keypad_view.dart';
@@ -61,6 +62,18 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
   }
 
+  chatAuth() async {
+    Business business = ProxyService.api.getBusiness();
+    User? user = await ProxyService.auth.getCurrentUserId();
+    await ProxyService.firestore.createUserInFirestore(user: {
+      'firstName': business.firstName,
+      'lastName': null,
+      'email': '  ',
+      'uid': user!.uid,
+      'imageUrl': 'https://dummyimage.com/300/09f.png/fff'
+    });
+  }
+
   @override
   void initState() {
     // super.initState();
@@ -88,6 +101,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     ProxyService.cron.schedule();
     ProxyService.cron.connectBlueToothPrinter();
     ProxyService.cron.deleteReceivedMessageFromServer();
+    if (!isWeb && !isWindows && !isMacOs) {
+      chatAuth();
+    }
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.

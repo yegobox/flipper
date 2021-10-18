@@ -228,7 +228,9 @@ class _ChatPageState extends State<ChatPage> {
             builder: (context, snapshot) {
               return StreamBuilder<List<types.Message>>(
                 initialData: const [],
-                stream: FirebaseChatCore.instance.messages(snapshot.data!),
+                stream: snapshot.hasData
+                    ? FirebaseChatCore.instance.messages(snapshot.data!)
+                    : null,
                 builder: (context, snapshot) {
                   return SafeArea(
                     bottom: false,

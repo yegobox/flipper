@@ -96,6 +96,7 @@ class StartUpViewModel extends BaseViewModel {
 
         log.i(branches[0].id);
         log.w(businesses[0].id);
+
         ProxyService.box.write(key: 'branchId', value: branches[0].id);
         ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       }

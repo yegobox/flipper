@@ -35,14 +35,9 @@ import 'package:flipper_chat/flipper_chat.dart';
 @StackedApp(
   routes: [
     MaterialRoute(page: StartUpView, initial: true, name: 'initial'),
-    // MaterialRoute(page: StartUpView),
-    // MaterialRoute(page: FlipperChatApp, name: 'chat'),
     MaterialRoute(page: Lite, name: 'chat'),
     MaterialRoute(page: ChatPage, name: 'singleChat'),
     MaterialRoute(page: ContactPage, name: 'contacts'),
-    // MaterialRoute(page: FlipperChatApp, initial: true),
-    // MaterialRoute(page: DashboardView, name: 'dashboard'),
-
     MaterialRoute(page: SignUpFormView, name: 'signup'),
     MaterialRoute(page: Home, name: 'home'),
     MaterialRoute(page: Login, name: 'login'),
@@ -65,11 +60,7 @@ import 'package:flipper_chat/flipper_chat.dart';
     MaterialRoute(page: ConnectionFailedView, name: 'connectionState'),
     MaterialRoute(
         page: InAppBrowser, name: 'inappBrowser', fullscreenDialog: true),
-
     MaterialRoute(page: MapView, name: 'map'),
-    // chat routes
-
-    // customer
     MaterialRoute(page: Customers, name: 'customers'),
   ],
   dependencies: [

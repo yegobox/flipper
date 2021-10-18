@@ -35,7 +35,8 @@ class SaleIndicator extends StatelessWidget {
         width: 120,
         child: Row(
           children: [
-            if (isAndroid && isIos)
+            if (isAndroid ||
+                isIos && ProxyService.remoteConfig.isMapAvailable())
               GestureDetector(
                 onTap: () {
                   /// in Flipper business, business will be able to setup geo fence
@@ -46,7 +47,8 @@ class SaleIndicator extends StatelessWidget {
                 child: Icon(Ionicons.map),
               ),
             Spacer(),
-            if (isAndroid || isIos)
+            if (isAndroid ||
+                isIos && ProxyService.remoteConfig.isChatAvailable())
               GestureDetector(
                 onTap: () {
                   goToFlipperChat();
@@ -117,20 +119,10 @@ class SaleIndicator extends StatelessWidget {
     ProxyService.box.write(key: pageKey, value: 'social');
     //first register the user in firestore db
     //get the current firebase user
-    User? user = await ProxyService.auth.getCurrentUserId();
     int businessId = ProxyService.box.read(key: 'businessId');
     Business business = await ProxyService.api.getBusinessById(id: businessId);
     //patch a business to add a chat uid
     ProxyService.firestore.addContact(business: business);
-    ProxyService.firestore.createUserInFirestore(user: {
-      'firstName': business.name,
-      'lastName': '',
-      'email': '  ',
-      'uid': user!.uid,
-      'imageUrl': 'https://dummyimage.com/300/09f.png/fff'
-      // 'imageUrl':
-      // "https://avatars.dicebear.com/api/micah/$name.svg",
-    });
     ProxyService.nav.navigateTo(Routes.chat);
   }
 }

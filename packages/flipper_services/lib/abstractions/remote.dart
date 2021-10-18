@@ -17,4 +17,5 @@ abstract class Remote {
   bool isBackupAvailable();
   bool isRemoteLoggingDynamicLinkEnabled();
   bool isAccessiblityFeatureAvailable();
+  bool isMapAvailable();
 }

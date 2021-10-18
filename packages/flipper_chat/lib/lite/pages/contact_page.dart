@@ -9,7 +9,7 @@ import 'package:flipper_models/view_models/message_view_model.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 
 class ContactPage extends StatefulWidget {
   const ContactPage({
@@ -68,15 +68,9 @@ class _ContactPageState extends State<ContactPage> {
         Business business =
             await ProxyService.api.getBusinessById(id: contact.id);
 
-        await ProxyService.firestore.createUserInFirestore(user: {
-          'firstName': business.firstName,
-          'lastName': null,
-          'email': '  ',
-          'uid': business.userId,
-          'imageUrl': 'https://dummyimage.com/300/09f.png/fff'
-        });
-
         _handlePressed(
+          business.userId!,
+          business.name,
           types.User(
             firstName: business.name,
             lastName: '',
@@ -201,7 +195,8 @@ class _ContactPageState extends State<ContactPage> {
     );
   }
 
-  void _handlePressed(types.User otherUser, BuildContext context) async {
+  void _handlePressed(String userId, String name, types.User otherUser,
+      BuildContext context) async {
     final room = await FirebaseChatCore.instance.createRoom(otherUser);
 
     Navigator.of(context).pop();
