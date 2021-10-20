@@ -1,9 +1,0 @@
-language: dart
-dart:
-- dev
-- stable
-branches:
-  only:
-    - master
-    - develop
-script: "./tool/travis.sh"
