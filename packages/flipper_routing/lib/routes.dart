@@ -205,3 +205,5 @@ class AppSetup {
 // Read more about sylph suitable for flutter ui test.
 // https://github.com/mmcc007/sylph
 // https://blog.bitrise.io/post/5-tips-tricks-for-mobile-testing?utm_source=website&utm_medium=email&utm_campaign=MEP-ebook
+// Contact service
+// https://pub.dev/packages/contacts_service
