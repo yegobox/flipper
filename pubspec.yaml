@@ -3,7 +3,7 @@ description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
+# publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -15,15 +15,13 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 99.99.99+99
+version: 1.0.0+1
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   country_code_picker: ^2.0.1
-  flutter_country_picker:
-    path: "open-sources/flutter_country_picker"
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -89,6 +87,8 @@ dependencies:
 
   # TODO: start moving some packages into differed dependencies see gallery for case study!
   # custom packages locally built
+  flutter_country_picker:
+    path: "open-sources/flutter_country_picker"
   flipper_dashboard:
     path: "packages/flipper_dashboard"
   flipper_login:
@@ -111,6 +111,21 @@ dependencies:
     path: "packages/flipper_chat"
   flipper_map:
     path: "packages/flipper_map"
+  flutter_icons:
+    git:
+      url: https://github.com/adarsh-technocrat/flutter-icons
+      ref: master
+  flutter_datetime_picker:
+    git:
+      url: https://github.com/Realank/flutter_datetime_picker.git
+      ref: master
+  animated_toggle_switch:
+    path: "open-sources/animated_toggle_switch"
+  flutter_chat_ui:
+    path: "open-sources/flutter_chat_ui"
+  # flutter_chat_ui: ^1.4.1
+  flutter_firebase_chat_core:
+    path: "open-sources/flutter_firebase_chat_core"
   google_fonts:
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: ^1.0.0
@@ -131,26 +146,20 @@ dependencies:
   # https://www.advancedinstaller.com/msix-publish-microsoft-store.html
   msix: ^2.1.3
   image_picker: ^0.8.0+4
-  flutter_icons:
-    git:
-      url: https://github.com/adarsh-technocrat/flutter-icons
-      ref: master
+
   intl: ^0.17.0
   provider: ^5.0.0
   rounded_loading_button: ^2.0.4
   hive_flutter: ^1.0.0
   path_provider: ^2.0.3
   objectbox: ^1.2.0
-  objectbox_flutter_libs: any
+  objectbox_flutter_libs: 1.2.0
   dio: ^4.0.0
   # freezed: ^0.14.2
   firebase_remote_config: ^0.10.0+2
   settings_ui: ^1.0.0
   # flutter_datetime_picker: ^1.5.1 (this had a warning! need to check in future if thre is update but for now use it directly from git)
-  flutter_datetime_picker:
-    git:
-      url: https://github.com/Realank/flutter_datetime_picker.git
-      ref: master
+
   open_file: ^3.2.1
   firebase_performance: "^0.7.1+1"
   share_plus: ^2.1.4
@@ -159,8 +168,6 @@ dependencies:
   flutter_screenutil: ^5.0.0+2
   flutter_local_notifications: ^6.0.0
 
-  animated_toggle_switch:
-    path: "open-sources/animated_toggle_switch"
   qr_code_scanner: ^0.5.2
   feather_icons: ^1.1.0-nullsafety.0
   ionicons: ^0.1.2
@@ -179,11 +186,7 @@ dependencies:
   # jovial_svg: ^1.0.6
   internet_connection_checker: ^0.0.1+2
   connectivity_plus: "^1.1.0"
-  flutter_chat_ui:
-    path: "open-sources/flutter_chat_ui"
-  # flutter_chat_ui: ^1.4.1
-  flutter_firebase_chat_core:
-    path: "open-sources/flutter_firebase_chat_core"
+
   file_picker: ^4.0.3
   firebase_storage: ^10.0.3
   googleapis: ^5.0.1
