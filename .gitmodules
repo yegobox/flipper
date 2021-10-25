@@ -22,3 +22,6 @@
 [submodule "open-sources/flutter_chat_ui"]
 	path = open-sources/flutter_chat_ui
 	url = https://github.com/yegobox/flutter_chat_ui.git
+[submodule "open-sources/flutter_chat_types"]
+	path = open-sources/flutter_chat_types
+	url = https://github.com/yegobox/flutter_chat_types.git

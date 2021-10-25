@@ -18,6 +18,18 @@ const db = admin.firestore();
 //     .catch(function () {
 //         console.log('Failed to send notification');
 //     });
+/// get current time
+// const time = new Date().getTime();
+//update room where room updatedAt with new date
+// const roomRef = db.collection('rooms').doc(roomId);
+// const roomSnapshot = await roomRef.get();
+// const roomData = roomSnapshot.data();
+// const roomUpdatedAt = roomData.updatedAt;
+// if (time > roomUpdatedAt) {
+// await roomRef.update({
+//     updatedAt: admin.database.ServerValue.TIMESTAMP
+// });
+// }
 
 exports.onMessageScheduled = functions.firestore
     .document('rooms/{roomId}/messages/{messageId}')
@@ -25,18 +37,7 @@ exports.onMessageScheduled = functions.firestore
         const roomId = snapshot.data().roomId;
         const authorId = snapshot.data().authorId;
         const text = snapshot.data().text;
-        /// get current time
-        // const time = new Date().getTime();
-        //update room where room updatedAt with new date
-        const roomRef = db.collection('rooms').doc(roomId);
-        // const roomSnapshot = await roomRef.get();
-        // const roomData = roomSnapshot.data();
-        // const roomUpdatedAt = roomData.updatedAt;
-        // if (time > roomUpdatedAt) {
-        await roomRef.update({
-            updatedAt: admin.database.ServerValue.TIMESTAMP
-        });
-        // }
+
         return db.collection("rooms").doc(roomId).get().then((snapshot: any) => {
             snapshot.data().userIds.forEach((topic: string) => {
                 if (topic != authorId) {
