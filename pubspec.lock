@@ -838,14 +838,14 @@ packages:
       name: flutter_chat_types
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.4"
+    version: "3.2.0"
   flutter_chat_ui:
     dependency: "direct main"
     description:
       path: "open-sources/flutter_chat_ui"
       relative: true
     source: path
-    version: "1.4.4"
+    version: "1.5.0"
   flutter_country_picker:
     dependency: "direct main"
     description:
@@ -945,7 +945,7 @@ packages:
       name: flutter_link_previewer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.5.2"
+    version: "2.6.0"
   flutter_linkify:
     dependency: transitive
     description:
@@ -1376,7 +1376,7 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.1.0"
+    version: "4.3.0"
   line_icons:
     dependency: transitive
     description:
@@ -1691,7 +1691,7 @@ packages:
       name: photo_view
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.0"
+    version: "0.13.0"
   platform:
     dependency: transitive
     description:
