@@ -66,5 +66,9 @@
     "addWorkSpace": "Add WorkSpace",
     "@addWorkSpace": {
         "description": "Add WorkSpace"
+    },
+    "addMembers": "Add Members",
+    "@addMembers": {
+        "description": "Add Members"
     }
 }
