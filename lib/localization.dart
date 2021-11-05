@@ -32,35 +32,40 @@ bottomSheetBuilder({
     backgroundColor: Colors.white,
     isScrollControlled: true,
     builder: (BuildContext context) {
-      return Theme(
-        data: Theme.of(context).copyWith(
-          canvasColor: Colors.transparent,
-        ),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height - 120,
-          child: AnimatedContainer(
-            alignment: AlignmentDirectional.topCenter,
-            duration: const Duration(seconds: 2),
-            curve: Curves.elasticOut,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18.0),
-                topRight: Radius.circular(18.0),
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              canvasColor: Colors.transparent,
+            ),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height - 120,
+              //  height: MediaQuery.of(context).size.height * 0.8,
+              child: AnimatedContainer(
+                alignment: AlignmentDirectional.topCenter,
+                duration: const Duration(seconds: 2),
+                curve: Curves.elasticOut,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(18.0),
+                    topRight: Radius.circular(18.0),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    header,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20.0),
+                      child: body,
+                    )
+                  ],
+                ),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                header,
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0),
-                  child: body,
-                )
-              ],
-            ),
-          ),
-        ),
+          );
+        },
       );
     },
   );
