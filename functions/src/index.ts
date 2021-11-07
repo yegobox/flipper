@@ -2,34 +2,6 @@ import * as functions from "firebase-functions";
 const admin = require('firebase-admin');
 admin.initializeApp();
 const db = admin.firestore();
-/// const axios = require('axios');
-/// const cors = require('cors')({ origin: true });
-///  Start writing Firebase Functions
-///  https://firebase.google.com/docs/functions/typescript
-// axios.post('https://apihub.yegobox.com/v2/api/sendToAll', {
-//     title: snapshot.data().title,
-//     message: snapshot.data().message,
-//     userId: snapshot.id
-// })
-//     .then((r: any) => {
-//         console.log(r);
-//         console.log('Sent the notification to all', snapshot.data().title, snapshot.data().message);
-//     })
-//     .catch(function () {
-//         console.log('Failed to send notification');
-//     });
-/// get current time
-// const time = new Date().getTime();
-//update room where room updatedAt with new date
-// const roomRef = db.collection('rooms').doc(roomId);
-// const roomSnapshot = await roomRef.get();
-// const roomData = roomSnapshot.data();
-// const roomUpdatedAt = roomData.updatedAt;
-// if (time > roomUpdatedAt) {
-// await roomRef.update({
-//     updatedAt: admin.database.ServerValue.TIMESTAMP
-// });
-// }
 
 exports.onMessageScheduled = functions.firestore
     .document('rooms/{roomId}/messages/{messageId}')
@@ -69,3 +41,38 @@ exports.onMessageScheduled = functions.firestore
             console.error('got error', e);
         })
     });
+
+
+
+// second
+
+exports.changeLastMessage = functions.firestore
+    .document('rooms/{roomId}/messages/{messageId}')
+    .onUpdate((change, context) => {
+        const message = change.after.data()
+        if (message) {
+            return db.doc('rooms/' + context.params.roomId).update({
+                lastMessages: [message],
+            })
+        } else {
+            return null
+        }
+    })
+
+// third
+exports.changeMessageStatus = functions.firestore
+    .document('rooms/{roomId}/messages/{messageId}')
+    .onWrite((change): any => {
+        const message = change.after.data()
+        if (message) {
+            if (['delivered', 'seen', 'sent'].includes(message.status)) {
+                return null
+            } else {
+                return change.after.ref.update({
+                    status: 'delivered',
+                })
+            }
+        } else {
+            return null
+        }
+    })

@@ -233,13 +233,14 @@ class FlipperBottomSheet {
                           note: _controller.text,
                           callback: (callback) {
                             if (callback == 1) {
-                              showSimpleNotification(Text('Note added!'),
-                                  background: Colors.green);
+                              showSimpleNotification(
+                                Text('Note added!'),
+                                background: Colors.green,
+                              );
                               ProxyService.nav.back();
                             }
                           },
                         );
-                        ProxyService.nav.back();
                       }
                     },
                   ),

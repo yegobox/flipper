@@ -729,6 +729,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
+  firestore_cache:
+    dependency: "direct main"
+    description:
+      path: "open-sources/firestore_cache"
+      relative: true
+    source: path
+    version: "2.1.1"
   fixnum:
     dependency: transitive
     description:

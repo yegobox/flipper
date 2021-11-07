@@ -25,3 +25,6 @@
 [submodule "open-sources/flutter_chat_types"]
 	path = open-sources/flutter_chat_types
 	url = https://github.com/yegobox/flutter_chat_types.git
+[submodule "open-sources/firestore_cache"]
+	path = open-sources/firestore_cache
+	url = https://github.com/yegobox/firestore_cache.git
