@@ -52,18 +52,7 @@ void main() async {
   ]);
   if (!isWindows) {
     try {
-      await Firebase.initializeApp(
-          // options: const FirebaseOptions(
-          //   appId: '1:672237316015:web:e289bfb5c92506c1c2715a',
-          //   apiKey: 'AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA',
-          //   databaseURL: "https://yegobox-2ee43.firebaseio.com",
-          //   storageBucket: 'yegobox-2ee43.appspot.com',
-          //   messagingSenderId: '672237316015',
-          //   projectId: 'yegobox-2ee43',
-          //   authDomain: 'auth.flipper.rw',
-          //   measurementId: "G-88GKL70K3K",
-          // ),
-          );
+      await Firebase.initializeApp();
     } catch (e) {}
   }
 
