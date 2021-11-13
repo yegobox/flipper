@@ -50,11 +50,11 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  if (!isWindows) {
-    try {
-      await Firebase.initializeApp();
-    } catch (e) {}
-  }
+
+  /// not using try and catch since there is some work need to be done in firebase desktop package
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {}
 
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.
