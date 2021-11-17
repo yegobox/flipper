@@ -1,6 +1,4 @@
-import 'package:flipper/app_view_model.dart';
 import 'package:flipper/flipper_options.dart';
-import 'package:flipper/theme_setup.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +25,7 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp> {
   final log = getLogger('FlipperApp');
+
   @override
   Widget build(BuildContext context) {
     if (!isWindows && !isMacOs) {

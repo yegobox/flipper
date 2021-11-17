@@ -205,6 +205,7 @@ dependencies:
   nfc_manager: ^3.1.0
   google_maps_flutter: ^2.0.11
   flutter_polyline_points: ^1.0.0
+  sentry_flutter: ^6.1.2
 
   # flutter_qr_reader: 1.0.5
   # end remove

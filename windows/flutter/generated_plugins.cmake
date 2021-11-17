@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   nb_utils
   objectbox_flutter_libs
   printing
+  sentry_flutter
   system_theme
   url_launcher_windows
 )
