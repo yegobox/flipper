@@ -34,3 +34,6 @@
 [submodule "open-sources/flutter_list_drag_and_drop"]
 	path = open-sources/flutter_list_drag_and_drop
 	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
+[submodule "open-sources/money_formatter"]
+	path = open-sources/money_formatter
+	url = https://github.com/yegobox/money_formatter.git
