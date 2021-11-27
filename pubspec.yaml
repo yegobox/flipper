@@ -99,7 +99,7 @@ dependencies:
   flipper_services:
     path: "packages/flipper_services"
   money_formatter:
-    path: "open-sources/flutter_money_formatter"
+    path: "open-sources/money_formatter"
   loading:
     path: "packages/loading"
   flipper_ui:

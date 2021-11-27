@@ -1513,7 +1513,7 @@ packages:
   money_formatter:
     dependency: "direct main"
     description:
-      path: "open-sources/flutter_money_formatter"
+      path: "open-sources/money_formatter"
       relative: true
     source: path
     version: "0.0.3"
