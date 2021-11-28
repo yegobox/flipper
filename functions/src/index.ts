@@ -46,18 +46,18 @@ exports.onMessageScheduled = functions.firestore
 
 // second
 
-exports.changeLastMessage = functions.firestore
-    .document('rooms/{roomId}/messages/{messageId}')
-    .onUpdate((change, context) => {
-        const message = change.after.data()
-        if (message) {
-            return db.doc('rooms/' + context.params.roomId).update({
-                lastMessages: [message],
-            })
-        } else {
-            return null
-        }
-    })
+// exports.changeLastMessage = functions.firestore
+//     .document('rooms/{roomId}/messages/{messageId}')
+//     .onUpdate((change, context) => {
+//         const message = change.after.data()
+//         if (message) {
+//             return db.doc('rooms/' + context.params.roomId).update({
+//                 lastMessages: [message],
+//             })
+//         } else {
+//             return null
+//         }
+//     })
 
 // third
 exports.changeMessageStatus = functions.firestore

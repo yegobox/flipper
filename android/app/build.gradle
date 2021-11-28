@@ -35,7 +35,8 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 android {
-    compileSdkVersion 30
+    // https://github.com/Baseflow/flutter-geolocator/issues/866 before was 30
+    compileSdkVersion 31
     ndkVersion '21.3.6528147'
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
