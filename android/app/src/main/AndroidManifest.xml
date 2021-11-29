@@ -33,6 +33,10 @@
   <application android:extractNativeLibs="true" tools:replace="android:extractNativeLibs" android:label="flipper" android:icon="@mipmap/launcher_icon">
     <provider android:name="androidx.work.impl.WorkManagerInitializer" android:authorities="${applicationId}.workmanager-init" android:enabled="false" android:exported="false" />
 
+    <meta-data
+      android:name="firebase_performance_logcat_enabled"
+      android:value="true" />
+      
     <meta-data android:name="com.google.android.geo.API_KEY"
                android:value="AIzaSyBq1-prPYQu5MGZerFN2h7OaRYiteSg9e4"/>
 
