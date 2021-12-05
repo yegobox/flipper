@@ -50,9 +50,8 @@ void main() async {
   ]);
 
   /// not using try and catch since there is some work need to be done in firebase desktop package
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {}
+
+  (!isWindows) ? await Firebase.initializeApp() : '';
 
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.
