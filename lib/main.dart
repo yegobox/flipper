@@ -74,6 +74,8 @@ void main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
+
+  ProxyService.notification.initialize();
   await ThemeManager.initialise();
   await ObjectBoxApi.getDir(dbName: 'db_1');
 

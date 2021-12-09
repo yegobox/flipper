@@ -24,10 +24,10 @@ exports.onMessageScheduled = functions.firestore
                             click_action: "FLUTTER_NOTIFICATION_CLICK",
                         },
                         data: {
-                            roomId: roomId,
+                            id: roomId,
                             authorId: authorId,
                             text: text,
-                            route: "room",
+                            route: "chat",
                         },
                         topic: topic,
                     };

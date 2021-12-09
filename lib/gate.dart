@@ -218,8 +218,8 @@ const FlexSubThemesData _subThemesData = FlexSubThemesData(
   // Widgets that use outline borders can be easily adjusted via these
   // properties, they affect the outline input decorator, outlined button and
   // toggle buttons.
-  thickBorderWidth: 2, // Default is 2.0.
-  thinBorderWidth: 1.5, // Default is 1.5.
+  thickBorderWidth: 0, // Default is 2.0.
+  thinBorderWidth: 0.0, // Default is 1.5.
 );
 
 // If true, the top part of the Android AppBar has no scrim, it then becomes
