@@ -199,14 +199,15 @@ const FlexSubThemesData _subThemesData = FlexSubThemesData(
   //
   // Set global corner radius. Default is null, resulting in M3 styles, but make
   // it whatever you like, even 0 for a hip to be square style.
-  defaultRadius: null,
+  defaultRadius: 0,
   // You can also override individual corner radius for each sub-theme to make
   // it different from the global `cornerRadius`. Here eg. the bottom sheet
   // radius is defined to always be 24:
   bottomSheetRadius: 24,
   // Select input decorator type, only SDK options outline and underline
   // supported no, but custom ones may be added later.
-  inputDecoratorBorderType: FlexInputBorderType.outline,
+  // TODOcommented this out, as it is causing me issue within app
+  // inputDecoratorBorderType: FlexInputBorderType.underline,
   // For a primary color tinted background on the input decorator set to true.
   inputDecoratorIsFilled: true,
   // If you do not want any underline/outline on the input decorator when it is
