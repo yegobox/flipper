@@ -405,7 +405,7 @@ class _GateState extends State<Gate> {
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: model.languageService
-                    .locale, //french == rwanda language in our app
+                    .getLocale(), //french == rwanda language in our app
                 themeMode: model.settingService.themeMode.value,
                 localeResolutionCallback: (locale, supportedLocales) {
                   deviceLocale = locale!;
