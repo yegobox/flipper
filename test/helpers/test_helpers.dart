@@ -14,6 +14,7 @@ import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/keypad_service.dart';
+import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:mockito/annotations.dart';
@@ -25,6 +26,7 @@ import 'package:flipper_services/locator.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<Api>(returnNullOnMissingStub: true),
+  MockSpec<Language>(returnNullOnMissingStub: true),
   MockSpec<Remote>(returnNullOnMissingStub: true),
   MockSpec<FirebaseMessaging>(returnNullOnMissingStub: true),
   MockSpec<ProductService>(returnNullOnMissingStub: true),
@@ -156,6 +158,13 @@ MockFlipperLocation getAndRegisterLocationService() {
   return service;
 }
 
+MockLanguage getAndRegisterLanguageService() {
+  _removeRegistrationIfExists<Language>();
+  final service = MockLanguage();
+  locator.registerSingleton<Language>(service);
+  return service;
+}
+
 MockRemote getAndRegisterRemoteConfig() {
   _removeRegistrationIfExists<Remote>();
   final service = MockRemote();
@@ -212,10 +221,12 @@ void registerServices() {
   getAndRegisterKeyPadService();
   getFirebaseMessaging();
   getAndRegisterRemoteConfig();
+  getAndRegisterLanguageService();
 }
 
 void unregisterServices() {
   locator.unregister<Api>();
+  locator.unregister<Language>();
   locator.unregister<NavigationService>();
   locator.unregister<SettingsService>();
   locator.unregister<LocalStorage>();

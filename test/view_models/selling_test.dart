@@ -1,4 +1,4 @@
-import 'package:flipper_services/keypad_service.dart';
+// import 'package:flipper_services/keypad_service.dart';
 import 'package:test/test.dart';
 import '../helpers/test_helpers.dart';
 import 'package:flipper_models/view_models/business_home_viewmodel.dart';
@@ -7,11 +7,11 @@ BusinessHomeViewModel _getModel() => BusinessHomeViewModel();
 
 void main() {
   group('Test When sellign a product', () {
-    late KeyPadService keypadService;
+    // late KeyPadService keypadService;
     late BusinessHomeViewModel model;
     setUp(() {
       registerServices();
-      keypadService = getAndRegisterKeyPadServiceUnmocked();
+      // keypadService = getAndRegisterKeyPadServiceUnmocked();
       model = _getModel();
     });
     tearDown(() => unregisterServices());

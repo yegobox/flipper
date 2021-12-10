@@ -5,11 +5,11 @@
 import 'dart:async' as _i17;
 
 import 'package:firebase_core/firebase_core.dart' as _i11;
-import 'package:firebase_messaging/firebase_messaging.dart' as _i29;
+import 'package:firebase_messaging/firebase_messaging.dart' as _i30;
 import 'package:firebase_messaging_platform_interface/src/notification_settings.dart'
     as _i12;
 import 'package:firebase_messaging_platform_interface/src/remote_message.dart'
-    as _i30;
+    as _i31;
 import 'package:flipper/stack.dart' as _i14;
 import 'package:flipper_models/branch.dart' as _i18;
 import 'package:flipper_models/business.dart' as _i9;
@@ -31,24 +31,25 @@ import 'package:flipper_models/tenant.dart' as _i27;
 import 'package:flipper_models/unit.dart' as _i21;
 import 'package:flipper_models/variants.dart' as _i7;
 import 'package:flipper_services/abstractions/api.dart' as _i16;
-import 'package:flipper_services/abstractions/location.dart' as _i37;
-import 'package:flipper_services/abstractions/remote.dart' as _i28;
-import 'package:flipper_services/abstractions/storage.dart' as _i35;
-import 'package:flipper_services/app_service.dart' as _i36;
-import 'package:flipper_services/keypad_service.dart' as _i32;
-import 'package:flipper_services/product_service.dart' as _i31;
-import 'package:flipper_services/setting_service.dart' as _i33;
-import 'package:flutter/src/animation/curves.dart' as _i41;
-import 'package:flutter/src/material/app.dart' as _i34;
-import 'package:flutter/src/widgets/framework.dart' as _i39;
-import 'package:flutter/src/widgets/navigator.dart' as _i40;
-import 'package:get/get_instance/src/bindings_interface.dart' as _i42;
-import 'package:get/get_navigation/src/routes/transitions_type.dart' as _i43;
+import 'package:flipper_services/abstractions/location.dart' as _i38;
+import 'package:flipper_services/abstractions/remote.dart' as _i29;
+import 'package:flipper_services/abstractions/storage.dart' as _i36;
+import 'package:flipper_services/app_service.dart' as _i37;
+import 'package:flipper_services/keypad_service.dart' as _i33;
+import 'package:flipper_services/language_service.dart' as _i28;
+import 'package:flipper_services/product_service.dart' as _i32;
+import 'package:flipper_services/setting_service.dart' as _i34;
+import 'package:flutter/src/animation/curves.dart' as _i42;
+import 'package:flutter/src/material/app.dart' as _i35;
+import 'package:flutter/src/widgets/framework.dart' as _i40;
+import 'package:flutter/src/widgets/navigator.dart' as _i41;
+import 'package:get/get_instance/src/bindings_interface.dart' as _i43;
+import 'package:get/get_navigation/src/routes/transitions_type.dart' as _i44;
 import 'package:logger/src/logger.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stacked/src/reactive/reactive_value/reactive_value.dart'
     as _i15;
-import 'package:stacked_services/src/navigation_service.dart' as _i38;
+import 'package:stacked_services/src/navigation_service.dart' as _i39;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: comment_references
@@ -500,10 +501,24 @@ class MockApi<T> extends _i1.Mock implements _i16.Api<T> {
           returnValueForMissingStub: Future.value()) as _i17.Future<void>);
 }
 
+/// A class which mocks [Language].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLanguage extends _i1.Mock implements _i28.Language {
+  @override
+  _i17.Future<String?> getCountryName() =>
+      (super.noSuchMethod(Invocation.method(#getCountryName, []),
+          returnValue: Future<String?>.value()) as _i17.Future<String?>);
+  @override
+  void setLocale({String? lang}) =>
+      super.noSuchMethod(Invocation.method(#setLocale, [], {#lang: lang}),
+          returnValueForMissingStub: null);
+}
+
 /// A class which mocks [Remote].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockRemote extends _i1.Mock implements _i28.Remote {
+class MockRemote extends _i1.Mock implements _i29.Remote {
   @override
   void setDefault() => super.noSuchMethod(Invocation.method(#setDefault, []),
       returnValueForMissingStub: null);
@@ -590,7 +605,7 @@ class MockRemote extends _i1.Mock implements _i28.Remote {
 /// A class which mocks [FirebaseMessaging].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFirebaseMessaging extends _i1.Mock implements _i29.FirebaseMessaging {
+class MockFirebaseMessaging extends _i1.Mock implements _i30.FirebaseMessaging {
   @override
   _i11.FirebaseApp get app => (super.noSuchMethod(Invocation.getter(#app),
       returnValue: _FakeFirebaseApp()) as _i11.FirebaseApp);
@@ -611,10 +626,10 @@ class MockFirebaseMessaging extends _i1.Mock implements _i29.FirebaseMessaging {
       (super.noSuchMethod(Invocation.getter(#pluginConstants),
           returnValue: <dynamic, dynamic>{}) as Map<dynamic, dynamic>);
   @override
-  _i17.Future<_i30.RemoteMessage?> getInitialMessage() =>
+  _i17.Future<_i31.RemoteMessage?> getInitialMessage() =>
       (super.noSuchMethod(Invocation.method(#getInitialMessage, []),
-              returnValue: Future<_i30.RemoteMessage?>.value())
-          as _i17.Future<_i30.RemoteMessage?>);
+              returnValue: Future<_i31.RemoteMessage?>.value())
+          as _i17.Future<_i31.RemoteMessage?>);
   @override
   _i17.Future<void> deleteToken() =>
       (super.noSuchMethod(Invocation.method(#deleteToken, []),
@@ -706,7 +721,7 @@ class MockFirebaseMessaging extends _i1.Mock implements _i29.FirebaseMessaging {
 /// A class which mocks [ProductService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProductService extends _i1.Mock implements _i31.ProductService {
+class MockProductService extends _i1.Mock implements _i32.ProductService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -786,7 +801,7 @@ class MockProductService extends _i1.Mock implements _i31.ProductService {
 /// A class which mocks [KeyPadService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockKeyPadService extends _i1.Mock implements _i32.KeyPadService {
+class MockKeyPadService extends _i1.Mock implements _i33.KeyPadService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -905,16 +920,16 @@ class MockKeyPadService extends _i1.Mock implements _i32.KeyPadService {
 /// A class which mocks [SettingsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSettingsService extends _i1.Mock implements _i33.SettingsService {
+class MockSettingsService extends _i1.Mock implements _i34.SettingsService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
           as _i13.Logger);
   @override
-  _i15.ReactiveValue<_i34.ThemeMode> get themeMode =>
+  _i15.ReactiveValue<_i35.ThemeMode> get themeMode =>
       (super.noSuchMethod(Invocation.getter(#themeMode),
-              returnValue: _FakeReactiveValue<_i34.ThemeMode>())
-          as _i15.ReactiveValue<_i34.ThemeMode>);
+              returnValue: _FakeReactiveValue<_i35.ThemeMode>())
+          as _i15.ReactiveValue<_i35.ThemeMode>);
   @override
   bool get enablePrinter =>
       (super.noSuchMethod(Invocation.getter(#enablePrinter), returnValue: false)
@@ -924,7 +939,7 @@ class MockSettingsService extends _i1.Mock implements _i33.SettingsService {
           .noSuchMethod(Invocation.getter(#sendDailReport), returnValue: false)
       as bool);
   @override
-  void setThemeMode(_i34.ThemeMode? mode) =>
+  void setThemeMode(_i35.ThemeMode? mode) =>
       super.noSuchMethod(Invocation.method(#setThemeMode, [mode]),
           returnValueForMissingStub: null);
   @override
@@ -983,7 +998,7 @@ class MockSettingsService extends _i1.Mock implements _i33.SettingsService {
 /// A class which mocks [LocalStorage].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocalStorage extends _i1.Mock implements _i35.LocalStorage {
+class MockLocalStorage extends _i1.Mock implements _i36.LocalStorage {
   @override
   dynamic read({String? key}) =>
       super.noSuchMethod(Invocation.method(#read, [], {#key: key}));
@@ -999,7 +1014,7 @@ class MockLocalStorage extends _i1.Mock implements _i35.LocalStorage {
 /// A class which mocks [AppService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAppService extends _i1.Mock implements _i36.AppService {
+class MockAppService extends _i1.Mock implements _i37.AppService {
   @override
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
@@ -1082,7 +1097,7 @@ class MockAppService extends _i1.Mock implements _i36.AppService {
 /// A class which mocks [FlipperLocation].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFlipperLocation extends _i1.Mock implements _i37.FlipperLocation {
+class MockFlipperLocation extends _i1.Mock implements _i38.FlipperLocation {
   @override
   _i17.Future<Map<String, String>> getLocation() => (super.noSuchMethod(
           Invocation.method(#getLocation, []),
@@ -1097,7 +1112,7 @@ class MockFlipperLocation extends _i1.Mock implements _i37.FlipperLocation {
 /// A class which mocks [NavigationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
+class MockNavigationService extends _i1.Mock implements _i39.NavigationService {
   @override
   String get previousRoute =>
       (super.noSuchMethod(Invocation.getter(#previousRoute), returnValue: '')
@@ -1107,9 +1122,9 @@ class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
       (super.noSuchMethod(Invocation.getter(#currentRoute), returnValue: '')
           as String);
   @override
-  _i39.GlobalKey<_i40.NavigatorState>? nestedNavigationKey(int? index) =>
+  _i40.GlobalKey<_i41.NavigatorState>? nestedNavigationKey(int? index) =>
       (super.noSuchMethod(Invocation.method(#nestedNavigationKey, [index]))
-          as _i39.GlobalKey<_i40.NavigatorState>?);
+          as _i40.GlobalKey<_i41.NavigatorState>?);
   @override
   void config(
           {bool? enableLog,
@@ -1129,17 +1144,17 @@ class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
           }),
           returnValueForMissingStub: null);
   @override
-  _i17.Future<T?>? navigateWithTransition<T>(_i39.Widget? page,
+  _i17.Future<T?>? navigateWithTransition<T>(_i40.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
           bool? popGesture,
           int? id,
-          _i41.Curve? curve,
-          _i42.Bindings? binding,
+          _i42.Curve? curve,
+          _i43.Bindings? binding,
           bool? fullscreenDialog = false,
           bool? preventDuplicates = true,
-          _i43.Transition? transitionClass}) =>
+          _i44.Transition? transitionClass}) =>
       (super.noSuchMethod(Invocation.method(#navigateWithTransition, [
         page
       ], {
@@ -1155,17 +1170,17 @@ class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
         #transitionClass: transitionClass
       })) as _i17.Future<T?>?);
   @override
-  _i17.Future<T?>? replaceWithTransition<T>(_i39.Widget? page,
+  _i17.Future<T?>? replaceWithTransition<T>(_i40.Widget? page,
           {bool? opaque,
           String? transition = r'',
           Duration? duration,
           bool? popGesture,
           int? id,
-          _i41.Curve? curve,
-          _i42.Bindings? binding,
+          _i42.Curve? curve,
+          _i43.Bindings? binding,
           bool? fullscreenDialog = false,
           bool? preventDuplicates = true,
-          _i43.Transition? transitionClass}) =>
+          _i44.Transition? transitionClass}) =>
       (super.noSuchMethod(Invocation.method(#replaceWithTransition, [
         page
       ], {
@@ -1185,7 +1200,7 @@ class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
       Invocation.method(#back, [], {#result: result, #id: id}),
       returnValue: false) as bool);
   @override
-  void popUntil(_i40.RoutePredicate? predicate) =>
+  void popUntil(_i41.RoutePredicate? predicate) =>
       super.noSuchMethod(Invocation.method(#popUntil, [predicate]),
           returnValueForMissingStub: null);
   @override
@@ -1207,17 +1222,17 @@ class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
         #parameters: parameters
       })) as _i17.Future<T?>?);
   @override
-  _i17.Future<T?>? navigateToView<T>(_i39.Widget? view,
+  _i17.Future<T?>? navigateToView<T>(_i40.Widget? view,
           {dynamic arguments,
           int? id,
           bool? opaque,
-          _i41.Curve? curve,
-          _i42.Bindings? binding,
+          _i42.Curve? curve,
+          _i43.Bindings? binding,
           Duration? duration,
           bool? fullscreenDialog = false,
           bool? popGesture,
           bool? preventDuplicates = true,
-          _i43.Transition? transition}) =>
+          _i44.Transition? transition}) =>
       (super.noSuchMethod(Invocation.method(#navigateToView, [
         view
       ], {
@@ -1271,13 +1286,13 @@ class MockNavigationService extends _i1.Mock implements _i38.NavigationService {
         #parameters: parameters
       })) as _i17.Future<T?>?);
   @override
-  _i17.Future<T?>? clearTillFirstAndShowView<T>(_i39.Widget? view,
+  _i17.Future<T?>? clearTillFirstAndShowView<T>(_i40.Widget? view,
           {dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#clearTillFirstAndShowView, [view],
           {#arguments: arguments, #id: id})) as _i17.Future<T?>?);
   @override
   _i17.Future<T?>? pushNamedAndRemoveUntil<T>(String? routeName,
-          {_i40.RoutePredicate? predicate, dynamic arguments, int? id}) =>
+          {_i41.RoutePredicate? predicate, dynamic arguments, int? id}) =>
       (super.noSuchMethod(Invocation.method(#pushNamedAndRemoveUntil, [
         routeName
       ], {
