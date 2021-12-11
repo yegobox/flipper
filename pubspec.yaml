@@ -212,6 +212,7 @@ dependencies:
   material_design_icons_flutter: ^5.0.6295
   firebase_messaging: ^11.2.3
   flutter_settings_ui: ^2.0.1
+  auto_size_text: ^3.0.0
 
   # ffi: 1.0.0
   # flutter_qr_reader: 1.0.5

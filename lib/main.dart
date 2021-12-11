@@ -89,13 +89,13 @@ void main() async {
         options.tracesSampleRate = 1.0;
       },
     );
-    SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.black,
-        systemNavigationBarColor: AppColors.flipperMainColor,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
+    // SystemChrome.setSystemUIOverlayStyle(
+    //   SystemUiOverlayStyle(
+    //     statusBarColor: Colors.black,
+    //     systemNavigationBarColor: AppColors.flipperMainColor,
+    //     statusBarIconBrightness: Brightness.light,
+    //   ),
+    // );
     //deal with full screen mode flutter 2.5
     // SystemChrome.setEnabledSystemUIMode(
     //   SystemUiMode.leanBack,
