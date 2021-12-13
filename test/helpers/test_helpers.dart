@@ -27,6 +27,7 @@ import 'package:flipper_services/locator.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<Api>(returnNullOnMissingStub: true),
   MockSpec<Language>(returnNullOnMissingStub: true),
+  MockSpec<LanguageService>(returnNullOnMissingStub: true),
   MockSpec<Remote>(returnNullOnMissingStub: true),
   MockSpec<FirebaseMessaging>(returnNullOnMissingStub: true),
   MockSpec<ProductService>(returnNullOnMissingStub: true),
@@ -165,6 +166,13 @@ MockLanguage getAndRegisterLanguageService() {
   return service;
 }
 
+MockLanguageService getAndRegisterLanguageServiceMock() {
+  _removeRegistrationIfExists<LanguageService>();
+  final service = MockLanguageService();
+  locator.registerSingleton<LanguageService>(service);
+  return service;
+}
+
 MockRemote getAndRegisterRemoteConfig() {
   _removeRegistrationIfExists<Remote>();
   final service = MockRemote();
@@ -222,6 +230,7 @@ void registerServices() {
   getFirebaseMessaging();
   getAndRegisterRemoteConfig();
   getAndRegisterLanguageService();
+  getAndRegisterLanguageServiceMock();
 }
 
 void unregisterServices() {
@@ -230,6 +239,7 @@ void unregisterServices() {
   locator.unregister<NavigationService>();
   locator.unregister<SettingsService>();
   locator.unregister<LocalStorage>();
+  locator.unregister<LanguageService>();
 }
 
 void _removeRegistrationIfExists<T extends Object>() {
