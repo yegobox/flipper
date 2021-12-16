@@ -9,7 +9,7 @@
 #include <connectivity_plus_windows/connectivity_plus_windows_plugin.h>
 #include <flutter_acrylic/flutter_acrylic_plugin.h>
 #include <nb_utils/nb_utils_plugin.h>
-#include <objectbox_sync_flutter_libs/objectbox_sync_flutter_libs_plugin.h>
+#include <objectbox_flutter_libs/objectbox_flutter_libs_plugin.h>
 #include <printing/printing_plugin.h>
 #include <sentry_flutter/sentry_flutter_plugin.h>
 #include <system_theme/system_theme_plugin.h>
@@ -22,8 +22,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("FlutterAcrylicPlugin"));
   NbUtilsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("NbUtilsPlugin"));
-  ObjectboxSyncFlutterLibsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("ObjectboxSyncFlutterLibsPlugin"));
+  ObjectboxFlutterLibsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ObjectboxFlutterLibsPlugin"));
   PrintingPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PrintingPlugin"));
   SentryFlutterPluginRegisterWithRegistrar(
