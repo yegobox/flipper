@@ -151,7 +151,8 @@ dependencies:
   hive_flutter: ^1.0.0
   path_provider: ^2.0.7
   objectbox: ^1.3.0
-  objectbox_flutter_libs: any
+  # objectbox_flutter_libs: any
+  objectbox_sync_flutter_libs: any
   dio: ^4.0.0
   file_picker: ^4.2.7
   firebase_remote_config: ^0.10.0+2

@@ -7,10 +7,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/gate.dart';
+import 'package:flipper_models/objectbox.g.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_themes/stacked_themes.dart';
 // import 'package:flipper/flipper_app_legacy.dart';
-import 'package:flipper_login/colors.dart';
+// import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/objectbox_api.dart';
 import 'package:flipper_services/proxy.dart';
@@ -77,7 +78,18 @@ void main() async {
 
   ProxyService.notification.initialize();
   await ThemeManager.initialise();
+
   await ObjectBoxApi.getDir(dbName: 'db_1');
+
+  // TODOhttps://sync.objectbox.io/sync-client (should migrate to sync safely without breaking anyone)
+  if (Sync.isAvailable()) {
+    SyncClient syncClient = Sync.client(
+      store,
+      'wss://sync.yegobox.com', // wss for SSL, ws for unencrypted traffic
+      SyncCredentials.none(),
+    );
+    syncClient.start();
+  }
 
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
