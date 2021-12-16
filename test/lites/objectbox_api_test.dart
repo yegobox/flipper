@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flipper_models/category.dart';
 import 'package:flipper_models/color.dart';
 import 'package:flipper_models/order.dart';
-import 'package:flipper_models/product.dart';
+import 'package:flipper_models/product_sync.dart';
 import 'package:flipper_models/product_mock.dart';
 import 'package:flipper_models/stock.dart';
 import 'package:flipper_models/setting.dart';
@@ -132,7 +132,7 @@ void main() {
     // FIXME
     // Directory dir = await getApplicationDocumentsDirectory();
     // ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    // Product product = await api.createProduct(product: productMock);
+    // ProductSync product = await api.createProduct(product: productMock);
 
     // expect(product.name, 'temp');
 
@@ -141,7 +141,7 @@ void main() {
     // final date = DateTime.now().toIso8601String();
     // kProduct['expiryDate'] = date;
     // api.update(data: kProduct, endPoint: 'product');
-    // Product? fProduct = await api.getProduct(id: product.id);
+    // ProductSync? fProduct = await api.getProduct(id: product.id);
     // expect(fProduct!.expiryDate, date);
     // //load variants too just!
     // List<Variant> variants =
@@ -151,8 +151,8 @@ void main() {
   test('create a custom product', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    Product product = await api.createProduct(product: customProductMock);
-    Product? getProduct = await api.getProduct(id: product.id);
+    ProductSync product = await api.createProduct(product: customProductMock);
+    ProductSync? getProduct = await api.getProduct(id: product.id);
     expect(getProduct!.name, 'Custom Amount');
     expect(product.name, 'Custom Amount');
   });
@@ -165,7 +165,7 @@ void main() {
   test('get list of products', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    List<Product> products = await api.products(branchId: 11);
+    List<ProductSync> products = await api.products(branchId: 11);
     expect(products.isEmpty, false);
   });
   test('get list of stocks for specific productId', () async {
@@ -192,18 +192,18 @@ void main() {
     // FIXME
     // Directory dir = await getApplicationDocumentsDirectory();
     // ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    // List<Product> products = await api.isTempProductExist(branchId: 11);
+    // List<ProductSync> products = await api.isTempProductExist(branchId: 11);
     // final Map data = products[0].toJson();
     // data['unit'] = 'updated';
 
     // await api.update(data: data, endPoint: 'product');
-    // List<Product> kProduct = await api.isTempProductExist(branchId: 11);
+    // List<ProductSync> kProduct = await api.isTempProductExist(branchId: 11);
     // expect(kProduct[0].unit, 'updated');
   });
   test('test temporal product  exist', () async {
     // Directory dir = await getApplicationDocumentsDirectory();
     // ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    // List<Product> products = await api.isTempProductExist(branchId: 11);
+    // List<ProductSync> products = await api.isTempProductExist(branchId: 11);
     // expect(products.isEmpty, false);
     expect(false, false);
   });

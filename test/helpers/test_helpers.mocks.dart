@@ -23,7 +23,7 @@ import 'package:flipper_models/login.dart' as _i2;
 import 'package:flipper_models/message.dart' as _i25;
 import 'package:flipper_models/order.dart' as _i6;
 import 'package:flipper_models/order_item.dart' as _i23;
-import 'package:flipper_models/product.dart' as _i5;
+import 'package:flipper_models/product_sync.dart' as _i5;
 import 'package:flipper_models/setting.dart' as _i24;
 import 'package:flipper_models/spenn.dart' as _i8;
 import 'package:flipper_models/stock.dart' as _i4;
@@ -64,7 +64,7 @@ class _FakeSyncF extends _i1.Fake implements _i3.SyncF {}
 
 class _FakeStock extends _i1.Fake implements _i4.Stock {}
 
-class _FakeProduct extends _i1.Fake implements _i5.Product {}
+class _FakeProductSync extends _i1.Fake implements _i5.ProductSync {}
 
 class _FakeOrderF extends _i1.Fake implements _i6.OrderF {}
 
@@ -99,10 +99,11 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
               returnValue: Future<_i2.Login>.value(_FakeLogin()))
           as _i18.Future<_i2.Login>);
   @override
-  _i18.Future<List<_i5.Product>> products({int? branchId}) => (super
+  _i18.Future<List<_i5.ProductSync>> products({int? branchId}) => (super
           .noSuchMethod(Invocation.method(#products, [], {#branchId: branchId}),
-              returnValue: Future<List<_i5.Product>>.value(<_i5.Product>[]))
-      as _i18.Future<List<_i5.Product>>);
+              returnValue:
+                  Future<List<_i5.ProductSync>>.value(<_i5.ProductSync>[]))
+      as _i18.Future<List<_i5.ProductSync>>);
   @override
   _i18.Future<int> signup({Map<dynamic, dynamic>? business}) =>
       (super.noSuchMethod(Invocation.method(#signup, [], {#business: business}),
@@ -145,11 +146,11 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
               #stockByVariantIdStream, [], {#variantId: variantId}),
           returnValue: Stream<_i4.Stock>.empty()) as _i18.Stream<_i4.Stock>);
   @override
-  _i18.Stream<List<_i5.Product>> productStreams({int? branchId}) =>
+  _i18.Stream<List<_i5.ProductSync>> productStreams({int? branchId}) =>
       (super.noSuchMethod(
               Invocation.method(#productStreams, [], {#branchId: branchId}),
-              returnValue: Stream<List<_i5.Product>>.empty())
-          as _i18.Stream<List<_i5.Product>>);
+              returnValue: Stream<List<_i5.ProductSync>>.empty())
+          as _i18.Stream<List<_i5.ProductSync>>);
   @override
   _i18.Future<_i4.Stock> stockByVariantId({int? variantId}) =>
       (super.noSuchMethod(
@@ -227,27 +228,29 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
           }),
           returnValue: Future<int>.value(0)) as _i18.Future<int>);
   @override
-  _i18.Future<_i5.Product?> getProduct({int? id}) => (super.noSuchMethod(
-      Invocation.method(#getProduct, [], {#id: id}),
-      returnValue: Future<_i5.Product?>.value()) as _i18.Future<_i5.Product?>);
+  _i18.Future<_i5.ProductSync?> getProduct({int? id}) =>
+      (super.noSuchMethod(Invocation.method(#getProduct, [], {#id: id}),
+              returnValue: Future<_i5.ProductSync?>.value())
+          as _i18.Future<_i5.ProductSync?>);
   @override
-  _i18.Future<_i5.Product?> getProductByBarCode({String? barCode}) =>
+  _i18.Future<_i5.ProductSync?> getProductByBarCode({String? barCode}) =>
       (super.noSuchMethod(
               Invocation.method(#getProductByBarCode, [], {#barCode: barCode}),
-              returnValue: Future<_i5.Product?>.value())
-          as _i18.Future<_i5.Product?>);
+              returnValue: Future<_i5.ProductSync?>.value())
+          as _i18.Future<_i5.ProductSync?>);
   @override
-  _i18.Future<_i5.Product> createProduct({_i5.Product? product}) =>
+  _i18.Future<_i5.ProductSync> createProduct({_i5.ProductSync? product}) =>
       (super.noSuchMethod(
               Invocation.method(#createProduct, [], {#product: product}),
-              returnValue: Future<_i5.Product>.value(_FakeProduct()))
-          as _i18.Future<_i5.Product>);
+              returnValue: Future<_i5.ProductSync>.value(_FakeProductSync()))
+          as _i18.Future<_i5.ProductSync>);
   @override
-  _i18.Future<List<_i5.Product>> isTempProductExist({int? branchId}) =>
+  _i18.Future<List<_i5.ProductSync>> isTempProductExist({int? branchId}) =>
       (super.noSuchMethod(
               Invocation.method(#isTempProductExist, [], {#branchId: branchId}),
-              returnValue: Future<List<_i5.Product>>.value(<_i5.Product>[]))
-          as _i18.Future<List<_i5.Product>>);
+              returnValue:
+                  Future<List<_i5.ProductSync>>.value(<_i5.ProductSync>[]))
+          as _i18.Future<List<_i5.ProductSync>>);
   @override
   _i18.Future<bool> logOut() =>
       (super.noSuchMethod(Invocation.method(#logOut, []),
@@ -496,7 +499,7 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
           as _i18.Future<_i9.Business>);
   @override
   _i18.Future<void> syncProduct(
-          {_i5.Product? product, _i7.Variant? variant, _i4.Stock? stock}) =>
+          {_i5.ProductSync? product, _i7.Variant? variant, _i4.Stock? stock}) =>
       (super.noSuchMethod(
           Invocation.method(#syncProduct, [],
               {#product: product, #variant: variant, #stock: stock}),
@@ -764,9 +767,9 @@ class MockProductService extends _i1.Mock implements _i33.ProductService {
       (super.noSuchMethod(Invocation.getter(#discounts),
           returnValue: <_i27.Discount>[]) as List<_i27.Discount>);
   @override
-  List<_i5.Product> get products =>
+  List<_i5.ProductSync> get products =>
       (super.noSuchMethod(Invocation.getter(#products),
-          returnValue: <_i5.Product>[]) as List<_i5.Product>);
+          returnValue: <_i5.ProductSync>[]) as List<_i5.ProductSync>);
   @override
   List<_i4.Stock> get stocks => (super.noSuchMethod(Invocation.getter(#stocks),
       returnValue: <_i4.Stock>[]) as List<_i4.Stock>);
@@ -778,7 +781,7 @@ class MockProductService extends _i1.Mock implements _i33.ProductService {
   dynamic setProductUnit({String? unit}) =>
       super.noSuchMethod(Invocation.method(#setProductUnit, [], {#unit: unit}));
   @override
-  dynamic setCurrentProduct({_i5.Product? product}) => super.noSuchMethod(
+  dynamic setCurrentProduct({_i5.ProductSync? product}) => super.noSuchMethod(
       Invocation.method(#setCurrentProduct, [], {#product: product}));
   @override
   _i18.Future<void> variantsProduct({int? productId}) => (super.noSuchMethod(
@@ -786,11 +789,11 @@ class MockProductService extends _i1.Mock implements _i33.ProductService {
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future.value()) as _i18.Future<void>);
   @override
-  _i18.Future<List<_i5.Product>> loadProducts({int? branchId}) =>
-      (super.noSuchMethod(
-              Invocation.method(#loadProducts, [], {#branchId: branchId}),
-              returnValue: Future<List<_i5.Product>>.value(<_i5.Product>[]))
-          as _i18.Future<List<_i5.Product>>);
+  _i18.Future<List<_i5.ProductSync>> loadProducts({int? branchId}) => (super
+      .noSuchMethod(Invocation.method(#loadProducts, [], {#branchId: branchId}),
+          returnValue:
+              Future<List<_i5.ProductSync>>.value(<_i5.ProductSync>[])) as _i18
+      .Future<List<_i5.ProductSync>>);
   @override
   _i18.Future<void> filtterProduct({String? searchKey, int? branchId}) =>
       (super.noSuchMethod(
@@ -799,11 +802,11 @@ class MockProductService extends _i1.Mock implements _i33.ProductService {
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i18.Future<void>);
   @override
-  _i18.Future<_i5.Product?> getProductByBarCode({String? code}) =>
+  _i18.Future<_i5.ProductSync?> getProductByBarCode({String? code}) =>
       (super.noSuchMethod(
               Invocation.method(#getProductByBarCode, [], {#code: code}),
-              returnValue: Future<_i5.Product?>.value())
-          as _i18.Future<_i5.Product?>);
+              returnValue: Future<_i5.ProductSync?>.value())
+          as _i18.Future<_i5.ProductSync?>);
   @override
   List<_i4.Stock> loadStockByProductId({int? productId}) => (super.noSuchMethod(
       Invocation.method(#loadStockByProductId, [], {#productId: productId}),
