@@ -1,5 +1,5 @@
 // import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_models/variants.dart';
+import 'package:flipper_models/variant_sync.dart';
 import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
@@ -28,8 +28,8 @@ void main() {
     test('test adding variant ...', () async {
       final model = _getModel();
 
-      List<Variant> ls = [];
-      Variant v = new Variant(
+      List<VariantSync> ls = [];
+      VariantSync v = new VariantSync(
         name: 'name',
         sku: 'N/A',
         fproductId: 2,
@@ -66,7 +66,8 @@ void main() {
       expect(model.lock, true);
     });
 
-    test('When name and price is given lock should be removed to enable save', () async {
+    test('When name and price is given lock should be removed to enable save',
+        () async {
       final model = _getModel();
       model.setName(name: 'richie');
       model.isPriceSet(true);

@@ -5,11 +5,11 @@ import 'package:flipper_models/color.dart';
 import 'package:flipper_models/order.dart';
 import 'package:flipper_models/product_sync.dart';
 import 'package:flipper_models/product_mock.dart';
-import 'package:flipper_models/stock.dart';
+import 'package:flipper_models/stock_sync.dart';
 import 'package:flipper_models/setting.dart';
 import 'package:flipper_models/unit.dart';
 import 'package:flipper_models/unit_mock.dart';
-import 'package:flipper_models/variants.dart';
+import 'package:flipper_models/variant_sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/objectbox_api.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,9 +18,9 @@ import 'package:test/test.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
-  List<Variant> variations = [];
+  List<VariantSync> variations = [];
   String dbName = 'test02';
-  Variant data = new Variant(
+  VariantSync data = new VariantSync(
     name: 'Regular',
     sku: 'a',
     fproductId: 2,
@@ -104,7 +104,8 @@ void main() {
         data: variations, retailPrice: 0.0, supplyPrice: 0.0);
     expect(response, 200);
 
-    List<Variant> variationss = await api.variants(branchId: 11, productId: 2);
+    List<VariantSync> variationss =
+        await api.variants(branchId: 11, productId: 2);
     expect(variationss.isEmpty, false);
   });
   test('test create order', () async {
@@ -115,7 +116,8 @@ void main() {
         data: variations, retailPrice: 0.0, supplyPrice: 0.0);
     expect(response, 200);
 
-    List<Variant> variationss = await api.variants(branchId: 11, productId: 2);
+    List<VariantSync> variationss =
+        await api.variants(branchId: 11, productId: 2);
     //the first test fall in firs if
     OrderF order = await api.createOrder(
         customAmount: 2, variation: variationss[0], price: 300);
@@ -144,7 +146,7 @@ void main() {
     // ProductSync? fProduct = await api.getProduct(id: product.id);
     // expect(fProduct!.expiryDate, date);
     // //load variants too just!
-    // List<Variant> variants =
+    // List<VariantSync> variants =
     //     await api.variants(branchId: 11, productId: product.id);
     // expect(variants.isEmpty, false);
   });
@@ -159,7 +161,7 @@ void main() {
   test('get custom amount product variant', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    Variant variant = await api.getCustomProductVariant();
+    VariantSync variant = await api.getCustomProductVariant();
     expect(variant.name, 'Regular');
   });
   test('get list of products', () async {
@@ -171,20 +173,20 @@ void main() {
   test('get list of stocks for specific productId', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    List<Stock> stocks = await api.stocks(productId: 2);
+    List<StockSync> stocks = await api.stocks(productId: 2);
     expect(stocks.isEmpty, false);
   });
   test('update a stock', () async {
     Directory dir = await getApplicationDocumentsDirectory();
     ObjectBoxApi api = new ObjectBoxApi(dir: dir);
-    Variant variant = await api.getCustomProductVariant();
-    Stock stock = await api.stockByVariantId(variantId: variant.id);
+    VariantSync variant = await api.getCustomProductVariant();
+    StockSync stock = await api.stockByVariantId(variantId: variant.id);
     Map data = stock.toJson();
     data['retailPrice'] = 300.0;
     int id = data['id'];
     await api.update(data: data, endPoint: 'stock/$id');
 
-    Stock stokUpdated = await api.stockByVariantId(variantId: variant.id);
+    StockSync stokUpdated = await api.stockByVariantId(variantId: variant.id);
     expect(stokUpdated.retailPrice, 300.0);
   });
   test('update a product', () async {
