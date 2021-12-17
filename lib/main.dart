@@ -81,16 +81,6 @@ void main() async {
 
   await ObjectBoxApi.getDir(dbName: 'db_1');
 
-  // TODOhttps://sync.objectbox.io/sync-client (should migrate to sync safely without breaking anyone)
-  if (Sync.isAvailable()) {
-    SyncClient syncClient = Sync.client(
-      store,
-      'wss://sync.yegobox.com', // wss for SSL, ws for unencrypted traffic
-      SyncCredentials.none(),
-    );
-    syncClient.start();
-  }
-
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
       (options) {
