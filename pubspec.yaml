@@ -257,12 +257,15 @@ msix_config:
   display_name: Flipper
   publisher_display_name: Yegobox
   identity_name: Yegobox.Flipper
+  msix_version: 1.26.0.0
   # TODO: when ready for prod see publisher here https://partner.microsoft.com/en-us/dashboard > Product > Product identity > Package/Identity/Publisher
+  # https://www.youtube.com/watch?v=FEs6ucKhIgs
+  # TODO: integrate this when improving --vs-generated-images-path https://github.com/YehudaKremer/msix/issues/19
   publisher: CN=yegobox, O=yegobox, L=Kigali, S=Kigali, C=RW
   logo_path: .\assets\icon\icon.png
   start_menu_icon_path: .\assets\icon\icon.png
   tile_icon_path: .\assets\icon\icon.png
-  icons_background_color: transparent
+  icons_background_color: #ffffff
   architecture: x64
   capabilities: "internetClient,location,microphone,webcam"
 #   store: true
