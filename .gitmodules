@@ -37,3 +37,6 @@
 [submodule "open-sources/money_formatter"]
 	path = open-sources/money_formatter
 	url = https://github.com/yegobox/money_formatter.git
+[submodule "open-sources/system_time_check"]
+	path = open-sources/system_time_check
+	url = https://github.com/yegobox/system_time_check.git
