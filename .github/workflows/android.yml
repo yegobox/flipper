@@ -68,7 +68,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/windows/runner/Release/flipper.msix"
-          tag: v1.29.0.0
+          tag: v1.30.0.0
           token: ${{ secrets.GH_TOKEN }}
           # commit: ${{ github.sha }}
       - name: Upload  windows installer
@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.89.0+1111079/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.90.0+1111080/g' pubspec.yaml
       - name: Update env URL
         run: sed -i 's/#{PUSHER_KEY}#/${{ secrets.PUSHER_KEY }}/g'  .env
       - uses: actions/setup-java@v1
@@ -103,7 +103,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: 1.89.0+1111079
+          tag: 1.90.0+1111080
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2
