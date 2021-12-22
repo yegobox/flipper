@@ -57,7 +57,7 @@ jobs:
           java-version: "8.x"
       - uses: subosito/flutter-action@master
         with:
-          flutter-version: "2.8.0"
+          flutter-version: "2.8.1"
           channel: "stable"
       - run: git submodule update --init
       - run: flutter pub get
@@ -68,7 +68,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/windows/runner/Release/flipper.msix"
-          tag: v1.30.0.0
+          tag: v1.31.0.0
           token: ${{ secrets.GH_TOKEN }}
           # commit: ${{ github.sha }}
       - name: Upload  windows installer
@@ -77,7 +77,6 @@ jobs:
           name: winInstaller
           path: build/windows/runner/Release/flipper.msix
           # TODO: https://github.com/marketplace/actions/windows-store-publish use this to also publish to windows store.
-          #
   build:
     name: Build APK and Create release
     needs: [testing]
@@ -85,7 +84,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.90.0+1111080/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.91.0+1111081/g' pubspec.yaml
       - name: Update env URL
         run: sed -i 's/#{PUSHER_KEY}#/${{ secrets.PUSHER_KEY }}/g'  .env
       - uses: actions/setup-java@v1
@@ -103,7 +102,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: 1.90.0+1111080
+          tag: 1.91.0+1111081
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2
