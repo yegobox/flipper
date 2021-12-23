@@ -125,16 +125,18 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
               returnValue: Future<List<_i9.Business>>.value(<_i9.Business>[]))
       as _i18.Future<List<_i9.Business>>);
   @override
-  _i18.Future<List<_i19.Branch>> branches({int? businessId}) => (super
+  _i18.Future<List<_i19.BranchSync>> branches({int? businessId}) => (super
       .noSuchMethod(Invocation.method(#branches, [], {#businessId: businessId}),
-          returnValue: Future<List<_i19.Branch>>.value(<_i19.Branch>[])) as _i18
-      .Future<List<_i19.Branch>>);
+          returnValue:
+              Future<List<_i19.BranchSync>>.value(<_i19.BranchSync>[])) as _i18
+      .Future<List<_i19.BranchSync>>);
   @override
-  _i18.Future<List<_i19.Branch>> lbranches({int? businessId}) =>
+  _i18.Future<List<_i19.BranchSync>> lbranches({int? businessId}) =>
       (super.noSuchMethod(
               Invocation.method(#lbranches, [], {#businessId: businessId}),
-              returnValue: Future<List<_i19.Branch>>.value(<_i19.Branch>[]))
-          as _i18.Future<List<_i19.Branch>>);
+              returnValue:
+                  Future<List<_i19.BranchSync>>.value(<_i19.BranchSync>[]))
+          as _i18.Future<List<_i19.BranchSync>>);
   @override
   List<_i4.StockSync> stocks({int? productId}) => (super.noSuchMethod(
       Invocation.method(#stocks, [], {#productId: productId}),
@@ -319,11 +321,9 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
       (super.noSuchMethod(Invocation.method(#getSetting, [], {#userId: userId}))
           as _i24.Setting?);
   @override
-  _i18.Future<_i24.Setting?> createSetting(
-          {int? userId, _i24.Setting? setting}) =>
+  _i18.Future<_i24.Setting?> createSetting({_i24.Setting? setting}) =>
       (super.noSuchMethod(
-              Invocation.method(
-                  #createSetting, [], {#userId: userId, #setting: setting}),
+              Invocation.method(#createSetting, [], {#setting: setting}),
               returnValue: Future<_i24.Setting?>.value())
           as _i18.Future<_i24.Setting?>);
   @override
@@ -492,11 +492,11 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
       Invocation.method(#userNameAvailable, [], {#name: name}),
       returnValue: Future<int>.value(0)) as _i18.Future<int>);
   @override
-  _i18.Future<_i28.Tenant?> isTenant({String? phoneNumber}) => (super
-          .noSuchMethod(
+  _i18.Future<_i28.TenantSync?> isTenant({String? phoneNumber}) =>
+      (super.noSuchMethod(
               Invocation.method(#isTenant, [], {#phoneNumber: phoneNumber}),
-              returnValue: Future<_i28.Tenant?>.value())
-      as _i18.Future<_i28.Tenant?>);
+              returnValue: Future<_i28.TenantSync?>.value())
+          as _i18.Future<_i28.TenantSync?>);
   @override
   _i18.Future<_i9.Business> getBusinessFromOnlineGivenId({int? id}) =>
       (super.noSuchMethod(
@@ -517,6 +517,30 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
   void migrateToSync() =>
       super.noSuchMethod(Invocation.method(#migrateToSync, []),
           returnValueForMissingStub: null);
+  @override
+  bool isSubscribed({String? feature, int? businessId}) => (super.noSuchMethod(
+      Invocation.method(
+          #isSubscribed, [], {#feature: feature, #businessId: businessId}),
+      returnValue: false) as bool);
+  @override
+  bool subscribe({String? feature, int? businessId, int? agentCode}) =>
+      (super.noSuchMethod(
+          Invocation.method(#subscribe, [], {
+            #feature: feature,
+            #businessId: businessId,
+            #agentCode: agentCode
+          }),
+          returnValue: false) as bool);
+  @override
+  _i18.Future<bool> checkIn({String? checkInCode}) => (super.noSuchMethod(
+      Invocation.method(#checkIn, [], {#checkInCode: checkInCode}),
+      returnValue: Future<bool>.value(false)) as _i18.Future<bool>);
+  @override
+  _i18.Future<bool> enableAttendance({int? businessId, String? email}) =>
+      (super.noSuchMethod(
+          Invocation.method(
+              #enableAttendance, [], {#businessId: businessId, #email: email}),
+          returnValue: Future<bool>.value(false)) as _i18.Future<bool>);
 }
 
 /// A class which mocks [Language].
@@ -993,17 +1017,13 @@ class MockSettingsService extends _i1.Mock implements _i35.SettingsService {
       (super.noSuchMethod(Invocation.method(#updateSettings, [], {#map: map}),
           returnValue: Future<bool>.value(false)) as _i18.Future<bool>);
   @override
-  Map<String, dynamic> settings() =>
-      (super.noSuchMethod(Invocation.method(#settings, []),
-          returnValue: <String, dynamic>{}) as Map<String, dynamic>);
-  @override
   _i18.Future<void> enableDailyReport({bool? bool}) => (super.noSuchMethod(
       Invocation.method(#enableDailyReport, [], {#bool: bool}),
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future.value()) as _i18.Future<void>);
   @override
-  bool enabledReport() =>
-      (super.noSuchMethod(Invocation.method(#enabledReport, []),
+  bool isDailyReportEnabled() =>
+      (super.noSuchMethod(Invocation.method(#isDailyReportEnabled, []),
           returnValue: false) as bool);
   @override
   bool enabledPrint() =>
@@ -1019,9 +1039,15 @@ class MockSettingsService extends _i1.Mock implements _i35.SettingsService {
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i18.Future<void>);
   @override
-  void toggleSettings() =>
+  void toggleDailyReportSetting() =>
       super.noSuchMethod(Invocation.method(#toggleSettings, []),
           returnValueForMissingStub: null);
+  @override
+  _i18.Future<Function?> enableAttendance({bool? bool, Function? callback}) =>
+      (super.noSuchMethod(
+          Invocation.method(
+              #enableAttendance, [], {#bool: bool, #callback: callback}),
+          returnValue: Future<Function?>.value()) as _i18.Future<Function?>);
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(

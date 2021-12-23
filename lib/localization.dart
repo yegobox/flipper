@@ -57,7 +57,7 @@ bottomSheetBuilder({
                   children: <Widget>[
                     header,
                     Padding(
-                      padding: const EdgeInsets.only(left: 20.0),
+                      padding: const EdgeInsets.only(left: 8.0),
                       child: body,
                     )
                   ],
