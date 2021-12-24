@@ -35,12 +35,12 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   injectable: ^1.2.0
   http: 0.13.4
-  firebase_auth: ^3.1.5
+  firebase_auth: ^3.3.4
   firebase_auth_desktop: ^0.1.1-dev.0
-  firebase_core: 1.10.0
-  firebase_core_desktop: ^0.1.1-dev.0
+  firebase_core: ^1.10.2
+  # firebase_core_desktop: ^0.1.1-dev.0
   stacked_firebase_auth: ^0.2.10
-  cloud_firestore: 3.1.0
+  cloud_firestore: ^3.1.5
   camera: 0.9.4+5
   awesome_notifications: ^0.0.6+10
   location: ^4.3.0
@@ -129,12 +129,12 @@ dependencies:
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: ^1.0.0
   moor_flutter: ^4.0.0
-  firebase_dynamic_links: ^2.0.1
+  firebase_dynamic_links: ^4.0.3
   firebase_analytics: ^8.0.3
 
   # flutter_blue: ^0.8.0 //I do not know how this can be used.
   esc_pos_utils_plus: ^2.0.1+3
-  printing: ^5.2.1
+  # printing: ^5.6.6
   couchbase_lite_dart: ^0.5.0-nullsafety.3
 
   flutter_native_splash: ^1.1.8+4
@@ -179,7 +179,7 @@ dependencies:
   #     url: git://github.com/Sky24n/github_language_colors.git
   random_string:
   upgrader: ^3.5.1
-  flutter_svg: ^0.22.0
+  flutter_svg: ^1.0.0
   # jovial_svg: ^1.0.6
   internet_connection_checker: ^0.0.1+2
   connectivity_plus: "^1.1.0"
@@ -189,7 +189,6 @@ dependencies:
   googleapis_auth: ^1.1.0
   flutter_secure_storage: ^4.2.1
   url_launcher: ^6.0.12
-  google_sign_in: ^5.1.0
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   nb_utils: ^4.4.8
   fluent_ui: ^3.2.0
@@ -216,7 +215,12 @@ dependencies:
 
   bluetooth_thermal_printer: ^0.0.6
   system_time_check: ^1.0.0
-  flutterfire_ui: ^0.1.0-dev.2
+  flutterfire_ui: ^0.3.0
+  sign_in_with_apple: ^3.3.0
+  twitter_login: ^4.0.1
+  flutter_facebook_auth: ^3.5.7
+  desktop_webview_auth: ^0.0.2
+  google_sign_in: ^5.2.1
   # FIXME:switch to the bellow bluethooth package
   # blue_thermal_printer: ^1.1.8
   # ffi: 1.0.0

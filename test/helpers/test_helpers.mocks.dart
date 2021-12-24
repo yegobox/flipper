@@ -109,9 +109,9 @@ class MockApi<T> extends _i1.Mock implements _i17.Api<T> {
       (super.noSuchMethod(Invocation.method(#signup, [], {#business: business}),
           returnValue: Future<int>.value(0)) as _i18.Future<int>);
   @override
-  _i18.Future<_i3.SyncF> authenticateWithOfflineDb({String? userId}) =>
+  _i18.Future<_i3.SyncF> authenticateWithOfflineDb({String? authId}) =>
       (super.noSuchMethod(
-          Invocation.method(#authenticateWithOfflineDb, [], {#userId: userId}),
+          Invocation.method(#authenticateWithOfflineDb, [], {#userId: authId}),
           returnValue:
               Future<_i3.SyncF>.value(_FakeSyncF())) as _i18.Future<_i3.SyncF>);
   @override

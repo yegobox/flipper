@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_acrylic
   nb_utils
   objectbox_sync_flutter_libs
-  printing
   sentry_flutter
   system_theme
   url_launcher_windows
