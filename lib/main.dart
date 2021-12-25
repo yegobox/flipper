@@ -1,24 +1,22 @@
 import 'dart:async';
 import 'dart:io';
-
-// import 'package:cbl/cbl.dart';
-// import 'package:cbl_flutter/cbl_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/gate.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_themes/stacked_themes.dart';
-// import 'package:flipper/flipper_app_legacy.dart';
-// import 'package:flipper_login/colors.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/objectbox_api.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'init.dart'
+    if (dart.library.html) 'web_init.dart'
+    if (dart.library.io) 'io_init.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -77,9 +75,7 @@ void main() async {
 
   ProxyService.notification.initialize();
   await ThemeManager.initialise();
-
-  await ObjectBoxApi.getDir(dbName: 'db_1');
-
+  await initDb();
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
       (options) {
