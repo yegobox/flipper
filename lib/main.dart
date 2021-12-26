@@ -48,10 +48,13 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  /// not using try and catch since there is some work need to be done in firebase desktop package
+  await GetStorage.init();
+  // done init in mobile.//done separation.
+  setupLocator();
 
-  (!isWindows) ? await Firebase.initializeApp() : '';
-
+  ProxyService.notification.initialize();
+  await ThemeManager.initialise();
+  await initDb();
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.
     // Temporarily toggle this to true if you want to test crash reporting in your app.
@@ -67,15 +70,6 @@ void main() async {
     }
   }
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
-  // (isAndroid|| isWeb||isMacOs)
-  // (isWindows) ? Cbl.init() : ''; //paused for now as couchbase is not supported on some platforms
-  await GetStorage.init();
-  // done init in mobile.//done separation.
-  setupLocator();
-
-  ProxyService.notification.initialize();
-  await ThemeManager.initialise();
-  await initDb();
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
       (options) {
