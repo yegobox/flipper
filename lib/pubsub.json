@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "yegobox-2ee43",
+  "private_key_id": "99a34dfb173a7be5ecf299961f8f5c3c7d2419b1",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDVAWthFjkj41th\nLFM9Fu7dlNZQNK11xc9BrzEEkGxrsVFQUmzRmgKFHFb6nvtcc+D8LDxlukSD74Zq\n5l7Bb1HodwibYIqkGxLqi+dGC4o7LiLk13GCyEAHVU7SCUnJu3XiZdcNSOBjjkAT\n5KYaMNYOSF0TL1y1YFmPpk9IXde9SzGxvHgSavAOJLi3Zrmzm0BKqqeRjy/DautE\nc8GSR43h9G4EzAaDEzCcRZRYzwqxEDBVAwTcws3HBI+/aQ4LRgl+Zl7lzn0PLPwZ\nyFL2ZDO1ebEUvr/y8DYiD73LhGlw9EkU33vXBQCpYlODpCOA8ZrMToZF/NJ2fXy7\nd+hoJYsfAgMBAAECggEAYWBXPxiiQapYJZnWadiYlZrLyPn0DKHEKKKXFZ+SuT7k\nTgSIc9/k5AZ7KvLQNclR4ua0K8tWNDylpiwvyF2EQ/Ja8HFXoEMySCByN77h0EE8\nuYJWhbPXNaMFuBZ/8aXt8/SbthqJXmnzGEUQvGt0CC6DwlgGGXL1LqsYlpw0Gvg1\nr+lFD9Khq6WvUNQovzlNeKPB800u7dGryYVsx3RKTigO0sYp438Inihv8Edw6gwg\njoDGZ31y4VQg93+yp9gKisPy+oFFG+QJAQJ22G9AMaC0W+lPwu+zf4vUjHnr2p8T\nfU2RuFr0UWDjn4ZqyVv9aQT9bSTHURybRk3+wcRG7QKBgQD6yKiGGyoNBPYpndpU\n5GV+csL5bSfjRa3ZP3JAWxzwklIGlnS1K2/XHTBZjG13zwiaUppxx4GW3aoKaquR\nf+I5xtvC0mJEKMaW1/bfLhIeg5ulh2FzKQyxLtv7VVukHRmGxZ8FHGL9itM1lQFU\nlzyELLEoMOLFhUV7dwBcJCUgPQKBgQDZb5qtKOeF/LvQZ+tnlmARfOlp/Xb2nAqD\naKe/98uC1PTqO6IkKm8CPvw6NynxThEml1inCnkFMUglvvX00mxxQQPscCV9PhMh\nJMEI/A/BHfwoBqqKoMBMkzNzgcnn8PkR6o2rDWySqDBtA1W6qx7GJojYCKrqb5bs\nZedmd2fSiwKBgQDNX6JTIM/RFa0Z68GvH9PWN9lgNnoh7yAt931zIqqSgOFXr8Mn\n0simW6sKyqujIBMlflworX98s07bdPvIDfiP5EB4TZ5XvyTSx03O+4WvI4xFhJbT\nnlxchcl1DDQeNA6BhjlyEAspI5VQHhSW17uhapAyH8a2hyudrpjG3Hri6QKBgFBc\n3VAulBODa28FWY35mBwejK5tzbArz/7tiUJ8NS1vw+1miPDQ9iJgYRyrEsdq0Q/w\nVAW46y2uHzpEL+eCdi4Nl4Oll1WIwc04JlhJwRDhIjcw74s5CpnCtft09sjQ2V1z\n0VRtK7mwi+VenCrX4BHgYCdoXLM09xT8POA0NZ0tAoGBAOBDaH7xzrU9TERJi7u+\nzGmICGw/uOIAuTR6ild+ak8fiLvhyI6zK9NdBsjQSmjGw9UTeV0fvDcVhPHO1WxD\nHydpxct2CfTO8LAiKqM4LwNFk+P1SEUUu2bYH8fFpJLx2n1r5FUDof2oLznUd8Ck\noH64DEvjg0yW0emGrgsyowGn\n-----END PRIVATE KEY-----\n",
+  "client_email": "pubsubmessaging@yegobox-2ee43.iam.gserviceaccount.com",
+  "client_id": "118119694932401913070",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/pubsubmessaging%40yegobox-2ee43.iam.gserviceaccount.com"
+}

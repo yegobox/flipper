@@ -217,6 +217,7 @@ dependencies:
   bluetooth_thermal_printer: ^0.0.6
   system_time_check: ^1.0.0
   flutterfire_ui: ^0.1.0-dev.2
+  mqtt_client: ^9.6.3
   # FIXME:switch to the bellow bluethooth package
   # blue_thermal_printer: ^1.1.8
   # ffi: 1.0.0
@@ -256,21 +257,18 @@ flutter_icons:
   image_path: "assets/icon/icon.png"
 # While developing comment the following lines
 msix_config:
-  display_name: Flipper
-  publisher_display_name: Yegobox
-  identity_name: Yegobox.Flipper
+  display_name: yegobox/flipper
+  publisher_display_name: yegobox
+  identity_name: yegobox.yegoboxflipper
   msix_version: 1.26.0.0
-  # TODO: when ready for prod see publisher here https://partner.microsoft.com/en-us/dashboard > Product > Product identity > Package/Identity/Publisher
-  # https://www.youtube.com/watch?v=FEs6ucKhIgs
-  # TODO: integrate this when improving --vs-generated-images-path https://github.com/YehudaKremer/msix/issues/19
-  publisher: CN=yegobox, O=yegobox, L=Kigali, S=Kigali, C=RW
+  publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: .\assets\icon\icon.png
   start_menu_icon_path: .\assets\icon\icon.png
   tile_icon_path: .\assets\icon\icon.png
   icons_background_color: #ffffff
   architecture: x64
   capabilities: "internetClient,location,microphone,webcam"
-#   store: true
+  store: true
 
 #TODO:learn more... ::flipper::
 # https://www.codestories.gr/index.php/2019/03/17/generate-a-pfx-certificate-using-the-windows-certificate-store/
@@ -306,9 +304,7 @@ flutter:
   # openssl req -new -key windows.key -out csr.csr
   # openssl x509 -in csr.csr -out crt.crt -req -signkey windows.key -days 365
   # openssl pkcs12 -export -out CERTIFICATE.pfx -inkey windows.key -in crt.crt
-  # update version.
-  # update version.
-  # update version.
-  # update version.
-  # update version.
-  # update version.
+  #  TODO: when ready for prod see publisher here https://partner.microsoft.com/en-us/dashboard > Product > Product identity > Package/Identity/Publisher
+  # Remember I use yegobox@outlook.com: password saved in googlechrome
+  # https://www.youtube.com/watch?v=FEs6ucKhIgs
+  # TODO: integrate this when improving --vs-generated-images-path https://github.com/YehudaKremer/msix/issues/19

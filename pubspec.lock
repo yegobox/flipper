@@ -526,6 +526,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1+6"
+  event_bus:
+    dependency: transitive
+    description:
+      name: event_bus
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   expandable:
     dependency: "direct main"
     description:
@@ -1664,6 +1671,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
+  mqtt_client:
+    dependency: "direct main"
+    description:
+      name: mqtt_client
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "9.6.3"
   msix:
     dependency: "direct dev"
     description:
