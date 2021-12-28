@@ -538,6 +538,10 @@ class MockApi<T> extends _i1.Mock implements _i16.Api<T> {
               #enableAttendance, [], {#businessId: businessId, #email: email}),
           returnValue: Future<bool>.value(false)) as _i17.Future<bool>);
   @override
+  _i29.Profile? profile({int? businessId}) => (super.noSuchMethod(
+          Invocation.method(#profile, [], {#businessId: businessId}))
+      as _i29.Profile?);
+  @override
   _i29.Profile? updateProfile({_i29.Profile? profile}) => (super.noSuchMethod(
           Invocation.method(#updateProfile, [], {#profile: profile}))
       as _i29.Profile?);
