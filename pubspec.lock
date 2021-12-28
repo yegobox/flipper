@@ -78,6 +78,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.0"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.3"
   async:
     dependency: "direct main"
     description:
@@ -253,6 +260,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.1+1"
+  cbor:
+    dependency: transitive
+    description:
+      name: cbor
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.0"
   characters:
     dependency: transitive
     description:
@@ -512,6 +526,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  encrypt:
+    dependency: transitive
+    description:
+      name: encrypt
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.1"
   equatable:
     dependency: transitive
     description:
@@ -526,13 +547,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1+6"
-  event_bus:
-    dependency: transitive
-    description:
-      name: event_bus
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   expandable:
     dependency: "direct main"
     description:
@@ -1220,6 +1234,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.20.6"
+  form_data:
+    dependency: transitive
+    description:
+      name: form_data
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0-nullsafety.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1671,13 +1692,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  mqtt_client:
-    dependency: "direct main"
-    description:
-      name: mqtt_client
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "9.6.3"
   msix:
     dependency: "direct dev"
     description:
@@ -1937,6 +1951,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.4.0"
   pool:
     dependency: transitive
     description:
@@ -1972,6 +1993,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  pubnub:
+    dependency: "direct main"
+    description:
+      name: pubnub
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.0"
   pubspec_parse:
     dependency: transitive
     description:
