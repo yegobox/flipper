@@ -78,6 +78,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.0"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.3"
   async:
     dependency: "direct main"
     description:
@@ -246,6 +253,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.1+1"
+  cbor:
+    dependency: transitive
+    description:
+      name: cbor
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.0"
   characters:
     dependency: transitive
     description:
@@ -457,7 +471,7 @@ packages:
     source: hosted
     version: "1.5.0"
   desktop_webview_auth:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: desktop_webview_auth
       url: "https://pub.dartlang.org"
@@ -505,6 +519,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  encrypt:
+    dependency: transitive
+    description:
+      name: encrypt
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.1"
   equatable:
     dependency: transitive
     description:
@@ -631,6 +652,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.10.6"
+  firebase_core_desktop:
+    dependency: "direct main"
+    description:
+      name: firebase_core_desktop
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1-dev.0"
   firebase_core_platform_interface:
     dependency: transitive
     description:
@@ -952,7 +980,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_facebook_auth:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_facebook_auth
       url: "https://pub.dartlang.org"
@@ -1227,6 +1255,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.20.6"
+  form_data:
+    dependency: transitive
+    description:
+      name: form_data
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0-nullsafety.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1930,6 +1965,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.4.0"
   pool:
     dependency: transitive
     description:
@@ -1958,6 +2000,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  pubnub:
+    dependency: "direct main"
+    description:
+      name: pubnub
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.0"
   pubspec_parse:
     dependency: transitive
     description:
@@ -1978,7 +2027,7 @@ packages:
       name: qr_code_scanner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.2"
+    version: "0.6.1"
   qr_flutter:
     dependency: "direct main"
     description:
@@ -2176,7 +2225,7 @@ packages:
     source: hosted
     version: "1.0.1"
   sign_in_with_apple:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: sign_in_with_apple
       url: "https://pub.dartlang.org"
@@ -2419,7 +2468,7 @@ packages:
     source: hosted
     version: "1.0.0"
   twitter_login:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: twitter_login
       url: "https://pub.dartlang.org"
