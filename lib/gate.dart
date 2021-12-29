@@ -1,6 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'package:flipper_dashboard/flipper_app.dart';
-import 'package:flipper_models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
 import 'package:flipper/flipper_options.dart';
 // import 'package:flipper_dashboard/setting_view_model.dart';
