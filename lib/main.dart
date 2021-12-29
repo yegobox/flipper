@@ -51,10 +51,11 @@ void main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   setupLocator();
+  await initDb();
 
   ProxyService.notification.initialize();
   await ThemeManager.initialise();
-  await initDb();
+
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.
     // Temporarily toggle this to true if you want to test crash reporting in your app.
