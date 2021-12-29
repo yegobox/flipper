@@ -28,15 +28,15 @@ void main() {
       c.add(businessMockData);
       final api = getAndRegisterApi(businesses: c);
       getAndRegisterLocalStorage();
-      final appService = getAndRegisterAppService(hasLoggedInUser: true);
-      final navigationService = getAndRegisterNavigationService();
-      final model = _getModel();
+      // final appService = getAndRegisterAppService(hasLoggedInUser: true);
+      // final navigationService = getAndRegisterNavigationService();
+      // final model = _getModel();
 
-      appService.isLoggedIn();
-      model.runStartupLogic();
-      await Future.delayed(Duration(microseconds: 50));
+      // appService.isLoggedIn();
+      // model.runStartupLogic();
+      // await Future.delayed(Duration(microseconds: 50));
 
-      await api.getOnlineBusiness(userId: "300");
+      // await api.getOnlineBusiness(userId: "300");
 
       // expect(model.isBusinessSet, true);
 
