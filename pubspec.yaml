@@ -216,7 +216,7 @@ dependencies:
 
   bluetooth_thermal_printer: ^0.0.6
   system_time_check: ^1.0.0
-  flutterfire_ui: ^0.1.0-dev.2
+  # flutterfire_ui: ^0.3.0
   pubnub: ^4.1.0
   # FIXME:switch to the bellow bluethooth package
   # blue_thermal_printer: ^1.1.8
