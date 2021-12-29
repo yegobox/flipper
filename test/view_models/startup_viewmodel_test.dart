@@ -27,6 +27,7 @@ void main() {
       List<BusinessSync> c = [];
       c.add(businessMockData);
       final api = getAndRegisterApi(businesses: c);
+      getAndRegisterLocalStorage();
       final appService = getAndRegisterAppService(hasLoggedInUser: true);
       final navigationService = getAndRegisterNavigationService();
       final model = _getModel();

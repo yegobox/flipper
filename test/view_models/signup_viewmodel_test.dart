@@ -17,6 +17,7 @@ void main() {
     test('signup with a new user', () async {
       final model = _getModel();
       final navigationService = getAndRegisterNavigationService();
+      getAndRegisterLocalStorage();
 
       Random _rnd = Random();
       String getRandomString(int length) =>
@@ -26,7 +27,6 @@ void main() {
       model.setName(name: _name);
       model.setCountry(country: _name);
       expect(model.kName, _name);
-      expect(model.kCountry, _name);
 
       model.registerLocation();
       //delay 2 seconds
