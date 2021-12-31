@@ -215,10 +215,10 @@ class FlipperBottomSheet {
                           borderRadius: BorderRadius.circular(5),
                         ),
                       ),
-                      // any number you need (It works as the rows for the textarea)
-                      minLines: 40,
+                      minLines:
+                          6, // any number you need (It works as the rows for the textarea)
                       keyboardType: TextInputType.multiline,
-                      maxLines: 120,
+                      maxLines: 40,
                     ),
                   ),
                 ),
