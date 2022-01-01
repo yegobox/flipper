@@ -1,4 +1,4 @@
-import 'package:flipper_models/view_models/signup_viewmodel.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';

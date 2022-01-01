@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flipper_services/objectbox_api.dart';
+import 'package:flipper_models/models/models.dart';
 
 Future<void> initDb() async {
   await ObjectBoxApi.getDir(dbName: 'db_1');

@@ -1,6 +1,6 @@
 // import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_models/variant_sync.dart';
-import 'package:flipper_models/view_models/product_viewmodel.dart';
+import 'package:flipper_models/models/models.dart';
+
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flutter_test/flutter_test.dart';
