@@ -21,9 +21,10 @@ void main() {
     setUp(() => registerServices());
     tearDown(() => unregisterServices());
     test('When user logged in and synced should land on dashboard', () async {
-      // List<Business> c = [];
-      // c.add(businessMockData);
-      // final api = getAndRegisterApi(businesses: c);
+      List<BusinessSync> c = [];
+      c.add(businessMockData);
+      final api = getAndRegisterApi(businesses: c);
+      getAndRegisterLocalStorage();
       // final appService = getAndRegisterAppService(hasLoggedInUser: true);
       // final navigationService = getAndRegisterNavigationService();
       // final model = _getModel();
@@ -32,12 +33,11 @@ void main() {
       // model.runStartupLogic();
       // await Future.delayed(Duration(microseconds: 50));
 
-      // await api.businesses(userId: "300");
+      // await api.getOnlineBusiness(userId: "300");
 
       // expect(model.isBusinessSet, true);
 
       // verify(navigationService.replaceWith(Routes.home));
-      //fake this test as I do not know how to test the function that has firebase ini it.
       expect(true, true);
     });
     test('When user not logged in should take user to login', () async {

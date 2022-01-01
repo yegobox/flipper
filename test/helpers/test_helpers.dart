@@ -190,7 +190,9 @@ MockSettingsService getAndRegisterSettingsService() {
 MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
-  when(service.read(key: 'userId')).thenAnswer((_) => '300');
+  when(service.getUserId()).thenAnswer((_) => '300');
+  when(service.getBusinessId()).thenAnswer((_) => 10);
+  when(service.getBranchId()).thenAnswer((_) => 11);
   //TODOrepace TOKEN   here
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
   when(service.read(key: 'branchId')).thenAnswer((_) => 11);
