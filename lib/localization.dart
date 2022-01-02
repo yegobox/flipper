@@ -2,7 +2,7 @@ import 'dart:io';
 
 // import 'package:file_picker/file_picker.dart';
 import 'package:flipper_dashboard/loader.dart';
-import 'package:flipper_models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -218,7 +218,7 @@ class FlipperBottomSheet {
                       minLines:
                           6, // any number you need (It works as the rows for the textarea)
                       keyboardType: TextInputType.multiline,
-                      maxLines: null,
+                      maxLines: 40,
                     ),
                   ),
                 ),

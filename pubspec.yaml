@@ -51,7 +51,7 @@ dependencies:
   expandable: ^5.0.1
   timezone: ^0.7.0
   cupertino_icons:
-  get_storage: ^2.0.2
+  get_storage: ^2.0.3
   country_picker:
 
   rxdart:
@@ -123,8 +123,8 @@ dependencies:
   # flutter_chat_ui: ^1.4.1
   flutter_firebase_chat_core:
     path: "open-sources/flutter_firebase_chat_core"
-  firestore_cache:
-    path: "open-sources/firestore_cache"
+  # firestore_cache:
+  #   path: "open-sources/firestore_cache"
   google_fonts: ^2.1.0
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: ^1.0.0

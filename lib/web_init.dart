@@ -1,7 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 
-import 'firebase_options.dart';
+// import 'package:flipper_models/models/models.dart';
+Future<void> initDb() async {
+  await Firebase.initializeApp();
+}
 
-Future<void> initializeFirebase() {
-  return Firebase.initializeApp(options: firebaseOptions);
+void recordBug(dynamic error, dynamic stack) {
+  throw UnimplementedError('this does not work on web');
 }

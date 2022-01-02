@@ -3,13 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/business.dart';
-import 'package:flipper_models/login.dart';
-import 'package:flipper_models/product_mock.dart';
-import 'package:flipper_models/variation_mock.dart';
-import 'package:flipper_models/stock_mock.dart';
-import 'package:flipper_models/order_mock.dart';
-import 'package:flipper_models/variant_sync.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
@@ -40,7 +34,7 @@ import 'package:flipper_services/locator.dart';
 ])
 Api getAndRegisterApi(
     {bool hasLoggedInUser = false,
-    List<Business>? businesses,
+    List<BusinessSync>? businesses,
     Map? data,
     String? uri,
     List<VariantSync>? variations}) {
@@ -57,7 +51,7 @@ Api getAndRegisterApi(
     ),
   );
 
-  when(service.businesses(userId: '300'))
+  when(service.getLocalOrOnlineBusiness(userId: '300'))
       .thenAnswer((_) async => [businessMockData]);
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
@@ -196,7 +190,9 @@ MockSettingsService getAndRegisterSettingsService() {
 MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
-  when(service.read(key: 'userId')).thenAnswer((_) => '300');
+  when(service.getUserId()).thenAnswer((_) => '300');
+  when(service.getBusinessId()).thenAnswer((_) => 10);
+  when(service.getBranchId()).thenAnswer((_) => 11);
   //TODOrepace TOKEN   here
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
   when(service.read(key: 'branchId')).thenAnswer((_) => 11);
