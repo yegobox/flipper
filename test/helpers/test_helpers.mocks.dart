@@ -114,6 +114,16 @@ class MockApi<T> extends _i1.Mock implements _i16.Api<T> {
           returnValue:
               Future<_i3.SyncF>.value(_FakeSyncF())) as _i17.Future<_i3.SyncF>);
   @override
+  _i17.Future<List<_i8.BusinessSync>> getOnlineBusiness({String? userId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getOnlineBusiness, [], {#userId: userId}),
+              returnValue:
+                  Future<List<_i8.BusinessSync>>.value(<_i8.BusinessSync>[]))
+          as _i17.Future<List<_i8.BusinessSync>>);
+  @override
+  _i17.Future<List<_i8.BusinessSync>> getLocalOrOnlineBusiness(
+          {String? userId}) =>
+      (super.noSuchMethod(
           Invocation.method(#getLocalOrOnlineBusiness, [], {#userId: userId}),
           returnValue: Future<List<_i8.BusinessSync>>.value(
               <_i8.BusinessSync>[])) as _i17.Future<List<_i8.BusinessSync>>);
