@@ -51,7 +51,7 @@ dependencies:
   expandable: ^5.0.1
   timezone: ^0.7.0
   cupertino_icons:
-  get_storage: ^2.0.2
+  get_storage: ^2.0.3
   country_picker:
 
   rxdart:
