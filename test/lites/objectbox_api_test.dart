@@ -1,18 +1,6 @@
-import 'dart:io';
+import 'package:flipper_models/models/models.dart';
 
-import 'package:flipper_models/category.dart';
-import 'package:flipper_models/color.dart';
-import 'package:flipper_models/order.dart';
-import 'package:flipper_models/product_sync.dart';
-import 'package:flipper_models/product_mock.dart';
-import 'package:flipper_models/stock_sync.dart';
-import 'package:flipper_models/setting.dart';
-import 'package:flipper_models/unit.dart';
-import 'package:flipper_models/unit_mock.dart';
-import 'package:flipper_models/variant_sync.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/objectbox_api.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:test/test.dart';
 
 import '../helpers/test_helpers.dart';

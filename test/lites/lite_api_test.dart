@@ -5,7 +5,6 @@
 // import 'package:flipper_models/color.dart';
 // import 'package:flipper_models/order.dart';
 // import 'package:flipper_models/product.dart';
-// import 'package:flipper_models/product_mock.dart';
 // import 'package:flipper_models/unit.dart';
 // import 'package:flipper_models/unit_mock.dart';
 // import 'package:flipper_models/variant_stock.dart';

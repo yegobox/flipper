@@ -3,13 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/business.dart';
-import 'package:flipper_models/login.dart';
-import 'package:flipper_models/product_mock.dart';
-import 'package:flipper_models/variation_mock.dart';
-import 'package:flipper_models/stock_mock.dart';
-import 'package:flipper_models/order_mock.dart';
-import 'package:flipper_models/variant_sync.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/abstractions/api.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
@@ -56,9 +50,6 @@ Api getAndRegisterApi(
       token: 't',
     ),
   );
-
-  when(service.getOnlineBusiness(userId: '300'))
-      .thenAnswer((_) => Future.value([businessMockData]));
 
   when(service.getLocalOrOnlineBusiness(userId: '300'))
       .thenAnswer((_) async => [businessMockData]);

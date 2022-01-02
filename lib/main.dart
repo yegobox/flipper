@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-// import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper/gate.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -9,7 +7,6 @@ import 'package:stacked_themes/stacked_themes.dart';
 import 'package:flipper_services/locator.dart';
 
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
@@ -56,20 +53,6 @@ void main() async {
   ProxyService.notification.initialize();
   await ThemeManager.initialise();
 
-  if (kDebugMode) {
-    // Force disable Crashlytics collection while doing every day development.
-    // Temporarily toggle this to true if you want to test crash reporting in your app.
-    if (!isWindows) {
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
-    }
-  } else {
-    // Handle Crashlytics enabled status when not in Debug,
-    // e.g. allow your users to opt-in to crash reporting.
-    // Pass all uncaught errors from the framework to Crashlytics.
-    if (!isWindows) {
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-    }
-  }
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
@@ -97,7 +80,7 @@ void main() async {
   }, (error, stack) async {
     await Sentry.captureException(error, stackTrace: stack);
     if (!isWindows) {
-      FirebaseCrashlytics.instance.recordError(error, stack);
+      recordBug(error, stack);
     }
   });
 }
