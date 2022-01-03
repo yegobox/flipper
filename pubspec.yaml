@@ -173,7 +173,10 @@ dependencies:
   ant_icons: ^2.0.0-nullsafety.0
   fl_chart: ^0.40.0
   azlistview: ^2.0.0-nullsafety.0
-  common_utils: ^2.0.2
+  # common_utils: 2.0.0
+  common_utils:
+    git:
+      url: https://github.com/jinfagang/common_utils
   # remove after flutter_chat is updated
   # lpinyin: ^2.0.3
   # github_language_colors:
@@ -194,9 +197,9 @@ dependencies:
   google_sign_in: ^5.1.0
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   nb_utils: ^4.4.8
-  fluent_ui: ^3.2.0
+  # fluent_ui: ^3.2.0
   system_theme: ^1.0.1
-  flutter_acrylic: ^0.0.3
+  # flutter_acrylic: ^0.0.3
   flutter_form_bloc: ^0.20.6
   flutter_inappwebview: ^5.3.2
   nfc_manager: ^3.1.0
@@ -219,6 +222,8 @@ dependencies:
   bluetooth_thermal_printer: ^0.0.6
   system_time_check: ^1.0.0
   pubnub: ^4.1.0
+  localize:
+    path: "./lib/localize"
   # FIXME:switch to the bellow bluethooth package
   # blue_thermal_printer: ^1.1.8
   # ffi: 1.0.0
