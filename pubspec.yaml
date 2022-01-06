@@ -115,10 +115,8 @@ dependencies:
     git:
       url: https://github.com/adarsh-technocrat/flutter-icons
       ref: master
-  flutter_datetime_picker:
-    git:
-      url: https://github.com/Realank/flutter_datetime_picker.git
-      ref: master
+  # flutter_datetime_picker
+  flutter_datetime_picker: ^1.5.1
   animated_toggle_switch:
     path: "open-sources/animated_toggle_switch"
   flutter_chat_ui:
@@ -185,7 +183,7 @@ dependencies:
   #     url: git://github.com/Sky24n/github_language_colors.git
   random_string:
   upgrader: ^3.5.1
-  flutter_svg: ^1.0.0
+  flutter_svg:
   # jovial_svg: ^1.0.6
   internet_connection_checker: ^0.0.1+2
   connectivity_plus: "^1.1.0"

@@ -851,11 +851,9 @@ packages:
   flutter_datetime_picker:
     dependency: transitive
     description:
-      path: "."
-      ref: master
-      resolved-ref: eb66486c47d50bf550950c196486121ffcea8885
-      url: "https://github.com/Realank/flutter_datetime_picker.git"
-    source: git
+      name: flutter_datetime_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "1.5.1"
   flutter_dotenv:
     dependency: transitive
@@ -2006,13 +2004,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.7"
-  stacked_firebase_auth:
-    dependency: transitive
-    description:
-      name: stacked_firebase_auth
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.10+2"
   stacked_hooks:
     dependency: transitive
     description:
