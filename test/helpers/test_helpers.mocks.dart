@@ -960,8 +960,8 @@ class MockKeyPadService extends _i1.Mock implements _i35.KeyPadService {
       Invocation.method(#setTotalDiscount, [], {#amount: amount}),
       returnValueForMissingStub: null);
   @override
-  void setOrder(_i6.OrderFSync? order) =>
-      super.noSuchMethod(Invocation.method(#setOrder, [order]),
+  void setOrderInProgress(_i6.OrderFSync? order) =>
+      super.noSuchMethod(Invocation.method(#setOrderInProgress, [order]),
           returnValueForMissingStub: null);
   @override
   _i17.Future<_i6.OrderFSync?> getOrder({int? branchId}) => (super.noSuchMethod(

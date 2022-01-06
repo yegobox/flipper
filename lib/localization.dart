@@ -129,24 +129,27 @@ class FlipperBottomSheet {
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: model.tickets
-                  .map((ticket) => SizedBox(
-                        height: 120,
-                        width: double.infinity,
-                        child: Column(children: <Widget>[
-                          ListTile(
-                            subtitle: Text(
-                              ticket.note ?? 'No Name',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextButton(
+        return SizedBox(
+          height: MediaQuery.of(context).size.height - 120,
+          child: Padding(
+            padding: MediaQuery.of(context).viewInsets,
+            child: AnimatedContainer(
+              alignment: AlignmentDirectional.topCenter,
+              duration: const Duration(seconds: 2),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListView(
+                  children: model.tickets
+                      .map((ticket) => SizedBox(
+                            height: 120,
+                            width: double.infinity,
+                            child: Column(children: <Widget>[
+                              ListTile(
+                                title: Text(
+                                  ticket.note ?? 'No Name',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                trailing: TextButton(
                                   child: Text(
                                     'Resume',
                                   ),
@@ -159,13 +162,13 @@ class FlipperBottomSheet {
                                     ProxyService.nav.back();
                                   },
                                 ),
-                              ],
-                            ),
-                            dense: true,
-                          )
-                        ]),
-                      ))
-                  .toList(),
+                                dense: true,
+                              )
+                            ]),
+                          ))
+                      .toList(),
+                ),
+              ),
             ),
           ),
         );
