@@ -333,9 +333,11 @@ packages:
   common_utils:
     dependency: "direct main"
     description:
-      name: common_utils
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "35981a0126fdb976ebfcbcc877703a447ab05c9e"
+      url: "https://github.com/jinfagang/common_utils"
+    source: git
     version: "2.0.2"
   connectivity_plus:
     dependency: "direct main"
@@ -890,25 +892,11 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  fluent_ui:
-    dependency: "direct main"
-    description:
-      name: fluent_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.4.1"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_acrylic:
-    dependency: "direct main"
-    description:
-      name: flutter_acrylic
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.3"
   flutter_bloc:
     dependency: transitive
     description:
@@ -973,7 +961,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_facebook_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_facebook_auth
       url: "https://pub.dartlang.org"
@@ -1601,6 +1589,13 @@ packages:
       relative: true
     source: path
     version: "2.0.0"
+  localize:
+    dependency: "direct main"
+    description:
+      path: "lib/localize"
+      relative: true
+    source: path
+    version: "0.0.1"
   location:
     dependency: "direct main"
     description:
@@ -2313,13 +2308,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.7"
-  stacked_firebase_auth:
-    dependency: "direct main"
-    description:
-      name: stacked_firebase_auth
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.10+2"
   stacked_generator:
     dependency: "direct dev"
     description:
