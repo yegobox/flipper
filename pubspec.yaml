@@ -36,12 +36,13 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   injectable: ^1.2.0
   http: 0.13.4
-  firebase_auth: ^3.1.4
+  firebase_auth: ^3.3.4
   desktop_webview_auth: ^0.0.2
   firebase_auth_desktop: ^0.1.1-dev.0
   firebase_core: ^1.10.6
+  flutter_facebook_auth: "^3.5.0"
   firebase_core_desktop: ^0.1.1-dev.0
-  stacked_firebase_auth: ^0.2.10
+  # stacked_firebase_auth: ^0.2.10+2
   cloud_firestore: ^3.1.5
   camera: 0.9.4+5
   awesome_notifications: ^0.0.6+10

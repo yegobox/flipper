@@ -961,7 +961,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_facebook_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_facebook_auth
       url: "https://pub.dartlang.org"
@@ -2308,13 +2308,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.7"
-  stacked_firebase_auth:
-    dependency: "direct main"
-    description:
-      name: stacked_firebase_auth
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.10+2"
   stacked_generator:
     dependency: "direct dev"
     description:
