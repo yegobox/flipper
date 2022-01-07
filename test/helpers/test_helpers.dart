@@ -98,6 +98,8 @@ Api getAndRegisterApi(
   when(service.getOnlineBusiness(userId: anyNamed("userId")))
       .thenAnswer((realInvocation) async => [businessMockData!]);
 
+  when(service.getBusiness()).thenReturn(businessMockData!);
+
   locator.registerSingleton<Api>(service);
   return service;
 }
