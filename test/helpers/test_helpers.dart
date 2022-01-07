@@ -58,33 +58,46 @@ Api getAndRegisterApi(
       .thenAnswer((_) => Future.value(1));
 
   when(service.getLocalOrOnlineBusiness(userId: '300'))
-      .thenAnswer((_) async => [businessMockData]);
+      .thenAnswer((_) async => [businessMockData!]);
+
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
   when(service.getCustomProductVariant())
       .thenAnswer((_) async => variationMock);
+
   when(service.createOrder(
           customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
       .thenAnswer((_) async => Future.value(orderMock));
+
   when(service.orders()).thenAnswer((_) async => [orderMock!]);
+
   when(service.stockByVariantId(variantId: variationMock.id))
       .thenAnswer((_) async => stockMock);
+
   if (data != null) {
     when(service.update(data: data, endPoint: uri))
         .thenAnswer((_) async => 200);
   }
   when(service.branches(businessId: anyNamed('businessId')))
       .thenAnswer((_) async => [branchMock]);
+
   when(service.create(data: anyNamed('data'), endPoint: 'category'))
       .thenAnswer((realInvocation) async => 200);
+
   when(service.create(data: anyNamed('data'), endPoint: 'color'))
       .thenAnswer((_) async => 200);
 
   when(service.addUnits(data: anyNamed('data'))).thenAnswer((_) async => 200);
+
   when(service.createProduct(product: anyNamed('product')))
       .thenAnswer((_) async => customProductMock);
+
   when(service.signup(business: anyNamed('business')))
       .thenAnswer((_) async => 200);
+
+  when(service.getOnlineBusiness(userId: anyNamed("userId")))
+      .thenAnswer((realInvocation) async => [businessMockData!]);
+
   locator.registerSingleton<Api>(service);
   return service;
 }
