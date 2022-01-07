@@ -329,13 +329,6 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
               returnValue: Future<_i23.Setting?>.value())
           as _i16.Future<_i23.Setting?>);
   @override
-  _i16.Stream<List<dynamic>> conversationStreamList({int? receiverId}) =>
-      (super.noSuchMethod(
-              Invocation.method(
-                  #conversationStreamList, [], {#receiverId: receiverId}),
-              returnValue: Stream<List<dynamic>>.empty())
-          as _i16.Stream<List<dynamic>>);
-  @override
   void sendMessage({int? receiverId, _i24.Message? message}) =>
       super.noSuchMethod(
           Invocation.method(
@@ -473,10 +466,6 @@ class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
       (super.noSuchMethod(
           Invocation.method(#addOrderItem, [], {#order: order, #data: data}),
           returnValue: _FakeOrderFSync()) as _i6.OrderFSync);
-  @override
-  dynamic getConversationByContactId({int? contactId}) =>
-      super.noSuchMethod(Invocation.method(
-          #getConversationByContactId, [], {#contactId: contactId}));
   @override
   void emptySentMessageQueue() =>
       super.noSuchMethod(Invocation.method(#emptySentMessageQueue, []),
@@ -802,10 +791,6 @@ class MockProductService extends _i1.Mock implements _i33.ProductService {
   _i12.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
           as _i12.Logger);
-  @override
-  String get barCode =>
-      (super.noSuchMethod(Invocation.getter(#barCode), returnValue: '')
-          as String);
   @override
   List<_i26.DiscountSync> get discounts =>
       (super.noSuchMethod(Invocation.getter(#discounts),

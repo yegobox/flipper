@@ -51,6 +51,12 @@ Api getAndRegisterApi(
     ),
   );
 
+  when(service.getVariantByProductId(productId: anyNamed('productId')))
+      .thenAnswer((_) => [variationMock]);
+
+  when(service.update(data: anyNamed('data'), endPoint: anyNamed('endPoint')))
+      .thenAnswer((_) => Future.value(1));
+
   when(service.getLocalOrOnlineBusiness(userId: '300'))
       .thenAnswer((_) async => [businessMockData]);
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
