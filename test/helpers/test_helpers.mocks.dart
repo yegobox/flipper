@@ -90,8 +90,8 @@ class _FakeReactiveValue<T> extends _i1.Fake implements _i14.ReactiveValue<T> {}
 /// See the documentation for Mockito's code generation for more information.
 class MockApi<T> extends _i1.Mock implements _i15.Api<T> {
   @override
-  _i16.Future<_i2.Login> login({String? phone}) =>
-      (super.noSuchMethod(Invocation.method(#login, [], {#phone: phone}),
+  _i16.Future<_i2.Login> login({String? identifier}) =>
+      (super.noSuchMethod(Invocation.method(#login, [], {#phone: identifier}),
               returnValue: Future<_i2.Login>.value(_FakeLogin()))
           as _i16.Future<_i2.Login>);
   @override
