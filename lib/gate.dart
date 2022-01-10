@@ -1,6 +1,6 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
-import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
+import 'package:flipper/localize/lib/gen_l10n/flipper_localizations.dart';
 import 'package:flipper/flipper_options.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/foundation.dart';
