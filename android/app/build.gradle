@@ -39,7 +39,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     // https://github.com/Baseflow/flutter-geolocator/issues/866 before was 30
     compileSdkVersion 31
-    ndkVersion '21.3.6528147'
+    ndkVersion '23.1.7779620'
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
@@ -47,7 +47,7 @@ android {
     defaultConfig {
         applicationId "rw.flipper"
         minSdkVersion 24 //android 7 and up
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -81,25 +81,25 @@ flutter {
 }
 
 dependencies {
+    implementation platform('com.google.firebase:firebase-bom:29.0.3')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
-    implementation platform('com.google.firebase:firebase-bom:29.0.0')
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-messaging:20.2.4'
-    implementation "androidx.browser:browser:1.2.0"
-    implementation 'com.google.android.gms:play-services-basement:17.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics'
-    implementation "com.google.android.play:core:1.10.0"
-    // implementation 'com.google.android.gms:play-services-auth:17.0.0'
-    // implementation 'com.google.android.gms:play-services-auth-api-phone:17.4.0'
-    // unit testing
-    testImplementation 'junit:junit:4.12'
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
+    // implementation platform('com.google.firebase:firebase-bom:29.0.0')
+    // implementation 'com.google.firebase:firebase-analytics'
+    // implementation 'com.google.firebase:firebase-messaging:20.2.4'
+    // implementation "androidx.browser:browser:1.2.0"
+    // implementation 'com.google.android.gms:play-services-basement:17.5.0'
+    // implementation 'com.google.firebase:firebase-crashlytics'
+    // implementation "com.google.android.play:core:1.10.0"
+    // testImplementation 'junit:junit:4.12'
+    // androidTestImplementation 'androidx.test:runner:1.2.0'
+    // androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation 'com.google.firebase:firebase-perf'
+    // implementation 'com.google.firebase:firebase-perf'
+    // // avoid crash when redirecting when auth: https://github.com/FirebaseExtended/flutterfire/issues/4651
+    // implementation 'androidx.browser:browser:1.3.0'
 }
 
 
