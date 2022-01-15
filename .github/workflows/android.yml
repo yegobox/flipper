@@ -1,8 +1,8 @@
-name: App PlayStore Release
+name: PlayStore Release
 # https://medium.com/codechai/flutter-app-couldnt-find-libflutter-so-c95ad81cbccd
 on:
   push:
-    branches: [main, mobile]
+    branches: [main, mobile, "feature/payments"]
 jobs:
   # version:
   #   name: Create version number
@@ -46,37 +46,7 @@ jobs:
       - run: flutter pub get
       - run: ./install.sh
       - run: flutter test
-  windows:
-    name: windowsInstaller
-    needs: [testing]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-java@v1
-        with:
-          java-version: "8.x"
-      - uses: subosito/flutter-action@master
-        with:
-          flutter-version: "2.8.1"
-          channel: "stable"
-      - run: git submodule update --init
-      - run: flutter pub get
-      - run: flutter config --enable-windows-desktop
-      - run: flutter build windows
-      - run: flutter pub run msix:create
-      - name: Create a Release in GitHub
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "build/windows/runner/Release/flipper.msix"
-          tag: v1.43.0.0
-          token: ${{ secrets.GH_TOKEN }}
-          # commit: ${{ github.sha }}
-      - name: Upload  windows installer
-        uses: actions/upload-artifact@v2
-        with:
-          name: winInstaller
-          path: build/windows/runner/Release/flipper.msix
-          # TODO: https://github.com/marketplace/actions/windows-store-publish use this to also publish to windows store.
+
   build:
     name: Build APK and Create release
     needs: [testing]
@@ -84,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.103.0+11110103/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.111.0+111101011/g' pubspec.yaml
       - name: Update env URL
         run: sed -i 's/#{PUSHER_KEY}#/${{ secrets.PUSHER_KEY }}/g'  .env
       - uses: actions/setup-java@v1
@@ -102,7 +72,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*.apk,build/app/outputs/bundle/release/app-release.aab"
           token: ${{ secrets.GH_TOKEN }}
-          tag: 1.103.0+11110103
+          tag: 1.111.0+111101011
           commit: ${{ github.sha }}
       - name: Upload app bundle
         uses: actions/upload-artifact@v2
