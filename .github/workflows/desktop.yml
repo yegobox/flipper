@@ -2,7 +2,7 @@ name: Windows Store app
 # https://medium.com/codechai/flutter-app-couldnt-find-libflutter-so-c95ad81cbccd
 on:
   push:
-    branches: [mobile, "feature/payments"]
+    branches: [mobile, feature/payments]
 jobs:
   testing:
     name: Unit Testing
