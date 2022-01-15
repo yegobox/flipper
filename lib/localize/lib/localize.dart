@@ -7,7 +7,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
 import 'package:overlay_support/overlay_support.dart'; // Add this line.
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
@@ -47,7 +46,7 @@ bottomSheetBuilder({
                 alignment: AlignmentDirectional.topCenter,
                 duration: const Duration(seconds: 2),
                 curve: Curves.elasticOut,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(18.0),
@@ -130,41 +129,47 @@ class FlipperBottomSheet {
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Wrap(
-            children: model.tickets
-                .map((ticket) => SizedBox(
-                      height: 120,
-                      width: double.infinity,
-                      child: Column(children: <Widget>[
-                        ListTile(
-                          subtitle: Text(
-                            ticket.note ?? 'No Name',
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              TextButton(
-                                child: const Text(
-                                  'Resume',
+        return SizedBox(
+          height: MediaQuery.of(context).size.height - 120,
+          child: Padding(
+            padding: MediaQuery.of(context).viewInsets,
+            child: AnimatedContainer(
+              alignment: AlignmentDirectional.topCenter,
+              duration: const Duration(seconds: 2),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListView(
+                  children: model.tickets
+                      .map((ticket) => SizedBox(
+                            height: 120,
+                            width: double.infinity,
+                            child: Column(children: <Widget>[
+                              ListTile(
+                                title: Text(
+                                  ticket.note ?? 'No Name',
+                                  style: const TextStyle(color: Colors.black),
                                 ),
-                                onPressed: () async {
-                                  await model.resumeOrder(ticketId: ticket.id);
-                                  showSimpleNotification(
-                                      const Text('Order Restored!'),
-                                      background: Colors.green);
-                                  ProxyService.nav.back();
-                                },
-                              ),
-                            ],
-                          ),
-                          dense: true,
-                        )
-                      ]),
-                    ))
-                .toList(),
+                                trailing: TextButton(
+                                  child: const Text(
+                                    'Resume',
+                                  ),
+                                  onPressed: () async {
+                                    await model.resumeOrder(
+                                        ticketId: ticket.id);
+                                    showSimpleNotification(
+                                        const Text('Order Restored!'),
+                                        background: Colors.green);
+                                    ProxyService.nav.back();
+                                  },
+                                ),
+                                dense: true,
+                              )
+                            ]),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -231,7 +236,7 @@ class FlipperBottomSheet {
                         callback: (callback) {
                           if (callback == 1) {
                             showSimpleNotification(
-                              Text('Note added!'),
+                              const Text('Note added!'),
                               background: Colors.green,
                             );
                             ProxyService.nav.back();
