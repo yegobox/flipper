@@ -76,7 +76,7 @@ void main() async {
     //   SystemUiMode.leanBack,
     // );
     // runApp(FlipperAppLegacy());
-    runApp(Gate());
+    runApp(const Gate());
   }, (error, stack) async {
     await Sentry.captureException(error, stackTrace: stack);
     if (!isWindows) {

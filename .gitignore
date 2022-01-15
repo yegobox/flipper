@@ -44,11 +44,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-/test/lite/
-# lite
-index.local.html
-main_01.cblite2
-db.cblite2
-_tmp
-node_modules
-node-modules

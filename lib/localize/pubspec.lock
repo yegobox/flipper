@@ -304,13 +304,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
-  country_picker:
-    dependency: transitive
-    description:
-      name: country_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.9"
   cron:
     dependency: transitive
     description:
@@ -402,13 +395,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.4"
-  drift:
-    dependency: transitive
-    description:
-      name: drift
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
   email_validator:
     dependency: transitive
     description:
@@ -1495,20 +1481,6 @@ packages:
       relative: true
     source: path
     version: "0.0.3"
-  moor:
-    dependency: transitive
-    description:
-      name: moor
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.6.1+1"
-  moor_flutter:
-    dependency: transitive
-    description:
-      name: moor_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.0.0"
   nb_utils:
     dependency: transitive
     description:
@@ -1990,13 +1962,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  sqlite3:
-    dependency: transitive
-    description:
-      name: sqlite3
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.4.0"
   stack_trace:
     dependency: transitive
     description:
