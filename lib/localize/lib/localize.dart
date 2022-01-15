@@ -126,49 +126,46 @@ class FlipperBottomSheet {
       required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: model.tickets
-                  .map((ticket) => SizedBox(
-                        height: 120,
-                        width: double.infinity,
-                        child: Column(children: <Widget>[
-                          ListTile(
-                            subtitle: Text(
-                              ticket.note ?? 'No Name',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextButton(
-                                  child: Text(
-                                    'Resume',
-                                  ),
-                                  onPressed: () async {
-                                    await model.resumeOrder(
-                                        ticketId: ticket.id);
-                                    showSimpleNotification(
-                                        Text('Order Restored!'),
-                                        background: Colors.green);
-                                    ProxyService.nav.back();
-                                  },
+          child: Wrap(
+            children: model.tickets
+                .map((ticket) => SizedBox(
+                      height: 120,
+                      width: double.infinity,
+                      child: Column(children: <Widget>[
+                        ListTile(
+                          subtitle: Text(
+                            ticket.note ?? 'No Name',
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              TextButton(
+                                child: const Text(
+                                  'Resume',
                                 ),
-                              ],
-                            ),
-                            dense: true,
-                          )
-                        ]),
-                      ))
-                  .toList(),
-            ),
+                                onPressed: () async {
+                                  await model.resumeOrder(ticketId: ticket.id);
+                                  showSimpleNotification(
+                                      const Text('Order Restored!'),
+                                      background: Colors.green);
+                                  ProxyService.nav.back();
+                                },
+                              ),
+                            ],
+                          ),
+                          dense: true,
+                        )
+                      ]),
+                    ))
+                .toList(),
           ),
         );
       },
@@ -178,77 +175,75 @@ class FlipperBottomSheet {
   static showAddNoteToSaleBottomSheet(
       {required BusinessHomeViewModel model,
       required BuildContext context}) async {
-    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-    TextEditingController _controller = new TextEditingController();
+    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    TextEditingController _controller = TextEditingController();
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: [
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                  child: Form(
-                    key: _formKey,
-                    child: TextFormField(
-                      textAlign: TextAlign.center,
-                      autofocus: true,
-                      controller: _controller,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Note is required';
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Add note',
-                        fillColor: Theme.of(context)
-                            .copyWith(canvasColor: Colors.cyan[50])
-                            .canvasColor,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      minLines:
-                          6, // any number you need (It works as the rows for the textarea)
-                      keyboardType: TextInputType.multiline,
-                      maxLines: 40,
-                    ),
-                  ),
-                ),
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: BoxButton(
-                    title: Localization.of(context)!.save,
-                    onTap: () {
-                      if (_formKey.currentState!.validate()) {
-                        model.addNoteToSale(
-                          note: _controller.text,
-                          callback: (callback) {
-                            if (callback == 1) {
-                              showSimpleNotification(
-                                Text('Note added!'),
-                                background: Colors.green,
-                              );
-                              ProxyService.nav.back();
-                            }
-                          },
-                        );
+          child: Wrap(
+            children: [
+              verticalSpaceSmall,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                child: Form(
+                  key: _formKey,
+                  child: TextFormField(
+                    textAlign: TextAlign.center,
+                    autofocus: true,
+                    controller: _controller,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Note is required';
                       }
                     },
+                    decoration: InputDecoration(
+                      hintText: 'Add note',
+                      fillColor: Theme.of(context)
+                          .copyWith(canvasColor: Colors.cyan[50])
+                          .canvasColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: HexColor('#D0D7E3')),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    minLines:
+                        6, // any number you need (It works as the rows for the textarea)
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 40,
                   ),
-                )
-              ],
-            ),
+                ),
+              ),
+              verticalSpaceSmall,
+              Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: BoxButton(
+                  title: Localization.of(context)!.save,
+                  onTap: () {
+                    if (_formKey.currentState!.validate()) {
+                      model.addNoteToSale(
+                        note: _controller.text,
+                        callback: (callback) {
+                          if (callback == 1) {
+                            showSimpleNotification(
+                              Text('Note added!'),
+                              background: Colors.green,
+                            );
+                            ProxyService.nav.back();
+                          }
+                        },
+                      );
+                    }
+                  },
+                ),
+              )
+            ],
           ),
         );
       },
