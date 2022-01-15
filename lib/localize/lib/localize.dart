@@ -79,7 +79,7 @@ class FlipperBottomSheet {
       required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
@@ -88,10 +88,9 @@ class FlipperBottomSheet {
           padding: MediaQuery.of(context).viewInsets,
           child: SizedBox(
             height: 180,
-            child: Container(
-                child: Column(children: <Widget>[
+            child: Column(children: <Widget>[
               Padding(
-                key: Key('EnableBackup'),
+                key: const Key('EnableBackup'),
                 padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 10.h),
                 child: BoxButton(
                   title: 'Add Backup',
@@ -108,13 +107,13 @@ class FlipperBottomSheet {
                   },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
                 child: Text(
                   'Enabling backup will save your data on daily basis so you wont worry lossing data',
                 ),
               ),
-            ])),
+            ]),
           ),
         );
       },
