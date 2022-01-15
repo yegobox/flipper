@@ -41,13 +41,11 @@ Api getAndRegisterApi(
   _removeRegistrationIfExists<Api>();
   final service = MockApi();
   when(service.login()).thenAnswer(
-    (_) async => Login(
+    (_) async => SyncF(
       id: 1,
-      email: 'email',
-      synced: 1,
-      name: 'ric',
-      newUser: false,
+      phoneNumber: '0783054870',
       token: 't',
+      channels: [],
     ),
   );
 
