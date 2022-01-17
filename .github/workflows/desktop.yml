@@ -55,7 +55,7 @@ jobs:
           # TODO: https://github.com/marketplace/actions/windows-store-publish use this to also publish to windows store.
   slackNotification:
     name: Slack Notification
-    needs: [release-internal]
+    needs: [windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
