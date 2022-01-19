@@ -5,7 +5,7 @@ import '../helpers/test_helpers.dart';
 // import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 // import 'api_test.dart';
 
-StartUpViewModel _getModel() => StartUpViewModel();
+// StartUpViewModel _getModel() => StartUpViewModel();
 final BusinessSync businessMockData = new BusinessSync(
   id: 1,
   name: 'name',

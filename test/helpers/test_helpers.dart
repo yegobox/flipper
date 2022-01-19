@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/abstractions/remote.dart';
+import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/abstractions/api.dart';
@@ -30,6 +31,7 @@ import 'package:flipper_services/locator.dart';
   MockSpec<LocalStorage>(returnNullOnMissingStub: true),
   MockSpec<AppService>(returnNullOnMissingStub: true),
   MockSpec<FlipperLocation>(returnNullOnMissingStub: true),
+  MockSpec<BillingService>(returnNullOnMissingStub: true),
   MockSpec<NavigationService>(returnNullOnMissingStub: true),
 ])
 Api getAndRegisterApi(
@@ -55,9 +57,7 @@ Api getAndRegisterApi(
       .thenAnswer((_) async => 200);
   when(service.getCustomProductVariant())
       .thenAnswer((_) async => variationMock);
-  when(service.createOrder(
-          customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
-      .thenAnswer((_) async => Future.value(orderMock));
+
   when(service.orders()).thenAnswer((_) async => [orderMock!]);
   when(service.stockByVariantId(variantId: variationMock.id))
       .thenAnswer((_) async => stockMock);
@@ -77,7 +77,51 @@ Api getAndRegisterApi(
       .thenAnswer((_) async => customProductMock);
   when(service.signup(business: anyNamed('business')))
       .thenAnswer((_) async => 200);
+
+  when(service.consumeVoucher(voucherCode: 1)).thenAnswer(
+    (_) async => Voucher(
+      id: DateTime.now().millisecondsSinceEpoch,
+      value: 1,
+      interval: 1,
+      used: false,
+      createdAt: 111,
+      usedAt: 111,
+      features: [],
+    ),
+  );
+
+  when(service.createOrder(
+          customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
+      .thenAnswer((_) async => Future.value(orderMock));
+
   locator.registerSingleton<Api>(service);
+  return service;
+}
+
+BillingService getAndRegisterBillingService() {
+  _removeRegistrationIfExists<BillingService>();
+  final service = MockBillingService();
+  locator.registerSingleton<BillingService>(service);
+  when(service.useVoucher(userId: 1, voucher: 1)).thenAnswer(
+    (_) async => Future.value(
+      new Voucher(
+        id: DateTime.now().millisecondsSinceEpoch,
+        value: 1,
+        interval: 1,
+        used: false,
+        createdAt: 111,
+        usedAt: 111,
+        features: [],
+      ),
+    ),
+  );
+
+  when(service.useVoucher(userId: 1, voucher: 2))
+      .thenThrow(VoucherException(term:'Voucher not found'));
+
+  when(service.addPoints(
+          points: anyNamed('points'), userId: anyNamed('userId')))
+      .thenAnswer((_) => true);
   return service;
 }
 
@@ -225,6 +269,7 @@ void registerServices() {
   getAndRegisterRemoteConfig();
   getAndRegisterLanguageService();
   getAndRegisterLanguageServiceMock();
+  getAndRegisterBillingService();
 }
 
 void unregisterServices() {
@@ -234,6 +279,7 @@ void unregisterServices() {
   locator.unregister<SettingsService>();
   locator.unregister<LocalStorage>();
   locator.unregister<LanguageService>();
+  locator.unregister<BillingService>();
 }
 
 void _removeRegistrationIfExists<T extends Object>() {
