@@ -1,3 +1,4 @@
+import 'package:flipper/dialogs/main.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -62,6 +63,24 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                           width: double.infinity,
                           height: 60,
                           child: BoxButton(
+                            onTap: () {
+                              if (_formKey.currentState!.validate()) {
+                                model.activateFlipperPro(
+                                  _phoneNumber.text,
+                                  (success) {
+                                    if (success==0) {
+                                      FlipperDialogs.showSuccessDialog(
+                                          context,
+                                          'Success',
+                                          'Your flipper pro has been activated');
+                                    } else {
+                                      FlipperDialogs.showErrorDialog(context,
+                                          'Error', 'Something went wrong');
+                                    }
+                                  },
+                                );
+                              }
+                            },
                             title: 'Update Profile',
                             busy: true,
                           ),

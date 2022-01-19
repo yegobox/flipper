@@ -87,6 +87,7 @@ Api getAndRegisterApi(
       createdAt: 111,
       usedAt: 111,
       features: [],
+      descriptor: 'Daily',
     ),
   );
 
@@ -112,16 +113,24 @@ BillingService getAndRegisterBillingService() {
         createdAt: 111,
         usedAt: 111,
         features: [],
+        descriptor: 'Daily',
       ),
     ),
   );
 
   when(service.useVoucher(userId: 1, voucher: 2))
-      .thenThrow(VoucherException(term:'Voucher not found'));
+      .thenThrow(VoucherException(term: 'Voucher not found'));
+
+  when(service.addPoints(userId: 1, points: 2))
+      .thenThrow(VoucherException(term: 'Voucher not found'));
 
   when(service.addPoints(
           points: anyNamed('points'), userId: anyNamed('userId')))
-      .thenAnswer((_) => true);
+      .thenAnswer((_) => Points(
+            id: DateTime.now().millisecondsSinceEpoch,
+            value: 2,
+            userId: 1,
+          ));
   return service;
 }
 
