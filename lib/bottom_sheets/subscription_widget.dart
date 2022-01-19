@@ -68,11 +68,15 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                                 model.activateFlipperPro(
                                   _phoneNumber.text,
                                   (success) {
-                                    if (success==0) {
+                                    if (success == 0) {
                                       FlipperDialogs.showSuccessDialog(
                                           context,
                                           'Success',
                                           'Your flipper pro has been activated');
+                                      // wait 5 seconds and pop navigation
+                                      Future.delayed(Duration(seconds: 5), () {
+                                        Navigator.pop(context);
+                                      });
                                     } else {
                                       FlipperDialogs.showErrorDialog(context,
                                           'Error', 'Something went wrong');
@@ -81,8 +85,8 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                                 );
                               }
                             },
-                            title: 'Update Profile',
-                            busy: true,
+                            title: 'Upgrade to Pro',
+                            busy: model.isProcessing,
                           ),
                         ),
                       ),
