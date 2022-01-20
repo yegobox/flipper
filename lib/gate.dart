@@ -204,12 +204,13 @@ const FlexSubThemesData _subThemesData = FlexSubThemesData(
   // Select input decorator type, only SDK options outline and underline
   // supported no, but custom ones may be added later.
   // TODOcommented this out, as it is causing me issue within app
-  // inputDecoratorBorderType: FlexInputBorderType.underline,
+  // inputDecoratorBorderType: FlexInputBorderType.outline,
   // For a primary color tinted background on the input decorator set to true.
   inputDecoratorIsFilled: true,
   // If you do not want any underline/outline on the input decorator when it is
   // not in focus, then set this to false.
   inputDecoratorUnfocusedHasBorder: true,
+  // inputDecorationTheme:
   // Elevations have easy override values as well.
   elevatedButtonElevation: 1,
   // Widgets that use outline borders can be easily adjusted via these
