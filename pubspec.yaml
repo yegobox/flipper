@@ -199,12 +199,12 @@ dependencies:
   flutter_lints: ^1.0.0
   cloud_firestore: ^3.1.5
   crypto: ^3.0.1
-  firebase_auth: ^3.3.4
+  firebase_auth: ^3.3.5
   firebase_core: ^1.10.3
   firebase_database: ^9.0.4
   firebase_dynamic_links: ^4.0.3
   # flutter_facebook_auth: "^3.5.0"
-  flutterfire_ui:
+  flutterfire_ui: 0.3.1
   # FIXME:switch to the bellow bluethooth package
   # blue_thermal_printer: ^1.1.8
   # ffi: 1.0.0
@@ -245,7 +245,7 @@ flutter_icons:
 # While developing comment the following lines
 msix_config:
   display_name: yegobox/flipper
-  publisher_display_name: yegobox
+  publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   msix_version: 1.26.0.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
@@ -254,7 +254,7 @@ msix_config:
   tile_icon_path: .\assets\icon\icon.png
   icons_background_color: #ffffff
   architecture: x64
-  capabilities: "internetClient,location,microphone,webcam"
+  # capabilities: "internetClient,location,microphone,webcam"
   store: true
 
 #TODO:learn more... ::flipper::

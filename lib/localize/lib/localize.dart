@@ -7,7 +7,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
 import 'package:overlay_support/overlay_support.dart'; // Add this line.
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
@@ -47,7 +46,7 @@ bottomSheetBuilder({
                 alignment: AlignmentDirectional.topCenter,
                 duration: const Duration(seconds: 2),
                 curve: Curves.elasticOut,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(18.0),
@@ -79,7 +78,7 @@ class FlipperBottomSheet {
       required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
@@ -88,10 +87,9 @@ class FlipperBottomSheet {
           padding: MediaQuery.of(context).viewInsets,
           child: SizedBox(
             height: 180,
-            child: Container(
-                child: Column(children: <Widget>[
+            child: Column(children: <Widget>[
               Padding(
-                key: Key('EnableBackup'),
+                key: const Key('EnableBackup'),
                 padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 10.h),
                 child: BoxButton(
                   title: 'Add Backup',
@@ -108,13 +106,13 @@ class FlipperBottomSheet {
                   },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
                 child: Text(
                   'Enabling backup will save your data on daily basis so you wont worry lossing data',
                 ),
               ),
-            ])),
+            ]),
           ),
         );
       },
@@ -126,48 +124,51 @@ class FlipperBottomSheet {
       required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: model.tickets
-                  .map((ticket) => SizedBox(
-                        height: 120,
-                        width: double.infinity,
-                        child: Column(children: <Widget>[
-                          ListTile(
-                            subtitle: Text(
-                              ticket.note ?? 'No Name',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextButton(
-                                  child: Text(
+        return SizedBox(
+          height: MediaQuery.of(context).size.height - 120,
+          child: Padding(
+            padding: MediaQuery.of(context).viewInsets,
+            child: AnimatedContainer(
+              alignment: AlignmentDirectional.topCenter,
+              duration: const Duration(seconds: 2),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListView(
+                  children: model.tickets
+                      .map((ticket) => SizedBox(
+                            height: 120,
+                            width: double.infinity,
+                            child: Column(children: <Widget>[
+                              ListTile(
+                                title: Text(
+                                  ticket.note ?? 'No Name',
+                                  style: const TextStyle(color: Colors.black),
+                                ),
+                                trailing: TextButton(
+                                  child: const Text(
                                     'Resume',
                                   ),
                                   onPressed: () async {
                                     await model.resumeOrder(
                                         ticketId: ticket.id);
                                     showSimpleNotification(
-                                        Text('Order Restored!'),
+                                        const Text('Order Restored!'),
                                         background: Colors.green);
                                     ProxyService.nav.back();
                                   },
                                 ),
-                              ],
-                            ),
-                            dense: true,
-                          )
-                        ]),
-                      ))
-                  .toList(),
+                                dense: true,
+                              )
+                            ]),
+                          ))
+                      .toList(),
+                ),
+              ),
             ),
           ),
         );
@@ -178,77 +179,75 @@ class FlipperBottomSheet {
   static showAddNoteToSaleBottomSheet(
       {required BusinessHomeViewModel model,
       required BuildContext context}) async {
-    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-    TextEditingController _controller = new TextEditingController();
+    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    TextEditingController _controller = TextEditingController();
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: [
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                  child: Form(
-                    key: _formKey,
-                    child: TextFormField(
-                      textAlign: TextAlign.center,
-                      autofocus: true,
-                      controller: _controller,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Note is required';
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Add note',
-                        fillColor: Theme.of(context)
-                            .copyWith(canvasColor: Colors.cyan[50])
-                            .canvasColor,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      minLines:
-                          6, // any number you need (It works as the rows for the textarea)
-                      keyboardType: TextInputType.multiline,
-                      maxLines: 40,
-                    ),
-                  ),
-                ),
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: BoxButton(
-                    title: Localization.of(context)!.save,
-                    onTap: () {
-                      if (_formKey.currentState!.validate()) {
-                        model.addNoteToSale(
-                          note: _controller.text,
-                          callback: (callback) {
-                            if (callback == 1) {
-                              showSimpleNotification(
-                                Text('Note added!'),
-                                background: Colors.green,
-                              );
-                              ProxyService.nav.back();
-                            }
-                          },
-                        );
+          child: Wrap(
+            children: [
+              verticalSpaceSmall,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                child: Form(
+                  key: _formKey,
+                  child: TextFormField(
+                    textAlign: TextAlign.center,
+                    autofocus: true,
+                    controller: _controller,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Note is required';
                       }
                     },
+                    decoration: InputDecoration(
+                      hintText: 'Add note',
+                      fillColor: Theme.of(context)
+                          .copyWith(canvasColor: Colors.cyan[50])
+                          .canvasColor,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: HexColor('#D0D7E3')),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    minLines:
+                        6, // any number you need (It works as the rows for the textarea)
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 40,
                   ),
-                )
-              ],
-            ),
+                ),
+              ),
+              verticalSpaceSmall,
+              Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: BoxButton(
+                  title: Localization.of(context)!.save,
+                  onTap: () {
+                    if (_formKey.currentState!.validate()) {
+                      model.addNoteToSale(
+                        note: _controller.text,
+                        callback: (callback) {
+                          if (callback == 1) {
+                            showSimpleNotification(
+                              const Text('Note added!'),
+                              background: Colors.green,
+                            );
+                            ProxyService.nav.back();
+                          }
+                        },
+                      );
+                    }
+                  },
+                ),
+              )
+            ],
           ),
         );
       },

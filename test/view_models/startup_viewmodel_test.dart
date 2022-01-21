@@ -8,7 +8,7 @@ import '../helpers/test_helpers.dart';
 // import 'api_test.dart';
 
 StartUpViewModel _getModel() => StartUpViewModel();
-final BusinessSync? businessMockData = new BusinessSync(
+final BusinessSync businessMockData = new BusinessSync(
   id: 1,
   name: 'name',
   latitude: '1',
