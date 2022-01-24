@@ -402,9 +402,10 @@ class _GateState extends State<Gate> {
                 visualDensity: _visualDensity,
                 platform: _platform,
               ),
-              localizationsDelegates: const [
-                FireLocalizationsDelegate(),
-                FlipperLocalizationsDelegate(),
+              localizationsDelegates: [
+                FlutterFireUILocalizations.withDefaultOverrides(
+                    const LabelOverrides()),
+                const FlipperLocalizationsDelegate(),
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
               ],
@@ -412,13 +413,13 @@ class _GateState extends State<Gate> {
                 Locale('en', ''),
                 Locale('es', ''),
               ],
-              locale: model.languageService
-                  .locale, //french == rwanda language in our app
-              // themeMode: model.settingService.themeMode.value,
-              localeResolutionCallback: (locale, supportedLocales) {
-                deviceLocale = locale!;
-                return locale;
-              },
+              // locale: model.languageService
+              //     .locale, //french == rwanda language in our app
+              // // themeMode: model.settingService.themeMode.value,
+              // localeResolutionCallback: (locale, supportedLocales) {
+              //   deviceLocale = locale!;
+              //   return locale;
+              // },
               navigatorKey: StackedService.navigatorKey,
               onGenerateRoute: StackedRouter().onGenerateRoute,
             ),

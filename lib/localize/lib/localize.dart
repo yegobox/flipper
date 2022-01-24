@@ -211,26 +211,6 @@ class FLocalization {
   }
 }
 
-// #docregion Delegate
-class FireLocalizationsDelegate
-    extends LocalizationsDelegate<FlutterFireUILocalizations> {
-  const FireLocalizationsDelegate();
-
-  @override
-  bool isSupported(Locale locale) =>
-      FLocalization.languages().contains(locale.languageCode);
-
-  @override
-  bool shouldReload(FireLocalizationsDelegate old) => false;
-
-  @override
-  Future<FlutterFireUILocalizations<FlutterFireUILocalizationLabels>> load(
-      Locale locale) {
-    return SynchronousFuture<FlutterFireUILocalizations>(
-        FlutterFireUILocalizations(locale, const LabelOverrides()));
-  }
-}
-
 class FlipperLocalizationsDelegate
     extends LocalizationsDelegate<FLocalization> {
   const FlipperLocalizationsDelegate();
