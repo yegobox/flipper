@@ -58,7 +58,7 @@ Api getAndRegisterApi(
       .thenAnswer((_) => Future.value(1));
 
   when(service.getLocalOrOnlineBusiness(userId: '300'))
-      .thenAnswer((_) async => [businessMockData!]);
+      .thenAnswer((_) async => [businessMockData]);
 
   when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);

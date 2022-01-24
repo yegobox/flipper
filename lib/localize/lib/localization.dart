@@ -12,13 +12,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import 'gen_l10n/flipper_localizations.dart';
-
-class LocalizationO {
-  static AppLocalizations? of(BuildContext context) {
-    return AppLocalizations.of(context);
-  }
-}
+import 'localize.dart';
 
 bottomSheetBuilder({
   required BuildContext context,
@@ -228,7 +222,7 @@ class FlipperBottomSheet {
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: BoxButton(
-                  title: LocalizationO.of(context)!.save,
+                  title: FLocalization.of(context).save,
                   onTap: () {
                     if (_formKey.currentState!.validate()) {
                       model.addNoteToSale(

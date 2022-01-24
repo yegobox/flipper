@@ -1,4 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flipper/flipper_options.dart';
 import 'package:flutterfire_ui/i10n.dart';
 import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 
@@ -400,6 +401,7 @@ class _GateState extends State<Gate> {
           ),
           localizationsDelegates: const [
             FireLocalizationsDelegate(),
+            FlipperLocalizationsDelegate(),
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
@@ -407,13 +409,13 @@ class _GateState extends State<Gate> {
             Locale('en', ''),
             Locale('es', ''),
           ],
-          // locale: model
-          //     .languageService.locale, //french == rwanda language in our app
+          locale: model
+              .languageService.locale, //french == rwanda language in our app
           // themeMode: model.settingService.themeMode.value,
-          // localeResolutionCallback: (locale, supportedLocales) {
-          //   deviceLocale = locale!;
-          //   return locale;
-          // },
+          localeResolutionCallback: (locale, supportedLocales) {
+            deviceLocale = locale!;
+            return locale;
+          },
           navigatorKey: StackedService.navigatorKey,
           onGenerateRoute: StackedRouter().onGenerateRoute,
         );

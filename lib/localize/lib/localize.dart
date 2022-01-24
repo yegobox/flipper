@@ -13,13 +13,14 @@ class LabelOverrides extends DefaultLocalizations {
   String get passwordInputLabel => 'Enter your password';
 }
 
-class Localization {
-  Localization(this.locale);
+// TODOrefactor this codes to make more sense
+class FLocalization {
+  FLocalization(this.locale);
 
   final Locale locale;
 
-  static Localization of(BuildContext context) {
-    return Localizations.of<Localization>(context, Localization)!;
+  static FLocalization of(BuildContext context) {
+    return Localizations.of<FLocalization>(context, FLocalization)!;
   }
 
   static const _productName = <String, Map<String, String>>{
@@ -217,14 +218,7 @@ class FireLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      Localization.languages().contains(locale.languageCode);
-
-  // @override
-  // Future<Localization> load(Locale locale) {
-  //   // Returning a SynchronousFuture here because an async "load" operation
-  //   // isn't needed to produce an instance of Localization.
-  //   return SynchronousFuture<Localization>(Localization(locale));
-  // }
+      FLocalization.languages().contains(locale.languageCode);
 
   @override
   bool shouldReload(FireLocalizationsDelegate old) => false;
@@ -235,4 +229,23 @@ class FireLocalizationsDelegate
     return SynchronousFuture<FlutterFireUILocalizations>(
         FlutterFireUILocalizations(locale, const LabelOverrides()));
   }
+}
+
+class FlipperLocalizationsDelegate
+    extends LocalizationsDelegate<FLocalization> {
+  const FlipperLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) =>
+      FLocalization.languages().contains(locale.languageCode);
+
+  @override
+  Future<FLocalization> load(Locale locale) {
+    // Returning a SynchronousFuture here because an async "load" operation
+    // isn't needed to produce an instance of DemoLocalizations.
+    return SynchronousFuture<FLocalization>(FLocalization(locale));
+  }
+
+  @override
+  bool shouldReload(LocalizationsDelegate old) => false;
 }
