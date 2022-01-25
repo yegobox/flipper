@@ -33,7 +33,7 @@
 
   <!-- android:name="io.flutter.app.FlutterPlayStoreSplitApplication" -->
   <application android:extractNativeLibs="true" tools:replace="android:extractNativeLibs" android:label="flipper" android:icon="@mipmap/launcher_icon">
-    <provider android:name="androidx.work.impl.WorkManagerInitializer" android:authorities="${applicationId}.workmanager-init" android:enabled="false" android:exported="false" />
+    <provider android:name="androidx.work.impl.WorkManagerInitializer" android:authorities="${applicationId}.workmanager-init" android:enabled="false" android:exported="true" />
 
     <meta-data
       android:name="firebase_performance_logcat_enabled"
@@ -42,14 +42,14 @@
     <meta-data android:name="com.google.android.geo.API_KEY"
                android:value="AIzaSyBq1-prPYQu5MGZerFN2h7OaRYiteSg9e4"/>
 
-    <provider android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer" android:authorities="${applicationId}.flutter-upload-init" android:exported="false">
+    <provider android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer" android:authorities="${applicationId}.flutter-upload-init" android:exported="true">
       <!-- changes this number to configure the maximum number of concurrent tasks -->
       <meta-data android:name="com.bluechilli.flutterupload.MAX_CONCURRENT_TASKS" android:value="3" />
 
       <!-- changes this number to configure connection timeout for the upload http request -->
       <meta-data android:name="com.bluechilli.flutteruploader.UPLOAD_CONNECTION_TIMEOUT_IN_SECONDS" android:value="3600" />
     </provider>
-    <activity android:name=".MainActivity" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
+    <activity android:name=".MainActivity" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize" android:exported="true">
       <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
