@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus_windows
+  flutter_secure_storage_windows
   nb_utils
   objectbox_sync_flutter_libs
   sentry_flutter
