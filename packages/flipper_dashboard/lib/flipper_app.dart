@@ -107,7 +107,7 @@ class _FlipperAppState extends State<FlipperApp> {
           activateSubscription(
             context: context,
             body: <Widget>[SubscriptionWidget()],
-            header: header(title: 'Activate flipper subscription'),
+            header: header(title: 'Activate flipper pro'),
           );
         }
       });

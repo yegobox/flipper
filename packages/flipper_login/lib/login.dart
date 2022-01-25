@@ -68,10 +68,11 @@ class LoginView extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           auth();
-          return const StartUpView();
+          return const SizedBox.shrink();
         } else {
           return isWindows || isWeb
-              ? Scaffold(body: SingleChildScrollView(child: DesktopLoginView()))
+              ? const Scaffold(
+                  body: SingleChildScrollView(child: DesktopLoginView()))
               : Scaffold(
                   body: Theme(
                     data: ThemeData(
@@ -107,15 +108,19 @@ class LoginView extends StatelessWidget {
                           ),
                         );
                       },
-                      providerConfigs: const [
-                        PhoneProviderConfiguration(),
-                        EmailProviderConfiguration(),
-                      ],
+                      providerConfigs: providers(),
                     ),
                   ),
                 );
         }
       },
     );
+  }
+
+  List<ProviderConfiguration> providers() {
+    return const [
+      PhoneProviderConfiguration(),
+      // EmailProviderConfiguration(),
+    ];
   }
 }

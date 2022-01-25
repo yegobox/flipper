@@ -6,6 +6,7 @@ import 'abstractions/remote.dart';
 class RemoteConfigService implements Remote {
   RemoteConfig remoteConfig = RemoteConfig.instance;
 
+  @override
   void setDefault() {
     remoteConfig.setDefaults(<String, dynamic>{
       'welcome_message': 'Welcome to flipper',
@@ -17,7 +18,7 @@ class RemoteConfigService implements Remote {
       'force_remote_add_data': true,
       'is_submit_device_token_enabled': false,
       'analytic_feature_available': true,
-      'scann_selling': true,
+      'scannSelling': true,
       'is_menu_available': false,
       'is_discount_available': false,
       'is_order_available': false,
@@ -92,7 +93,7 @@ class RemoteConfigService implements Remote {
   }
 
   @override
-  bool scann_selling() {
+  bool scannSelling() {
     if (kDebugMode) {
       return true;
     }
@@ -229,7 +230,7 @@ class RemoteConfigWindows implements Remote {
   }
 
   @override
-  bool scann_selling() {
+  bool scannSelling() {
     return true;
   }
 

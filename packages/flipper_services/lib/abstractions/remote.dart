@@ -9,7 +9,7 @@ abstract class Remote {
   bool forceDateEntry();
   bool isAnalyticFeatureAvailable();
   bool isSubmitDeviceTokenEnabled();
-  bool scann_selling();
+  bool scannSelling();
   void config();
   bool isMenuAvailable();
   bool isDiscountAvailable();

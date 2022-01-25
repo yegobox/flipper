@@ -285,8 +285,8 @@ class _onCreate extends State<ProductView> {
                     flex: 1,
                     // ignore: prefer_const_literals_to_create_immutables
                     child: Row(
-                      children: [
-                        const Expanded(
+                      children: const [
+                        Expanded(
                           child: Icon(
                             FontAwesomeIcons.chevronRight,
                             size: 20,
@@ -322,10 +322,9 @@ class _onCreate extends State<ProductView> {
                   ),
                   Expanded(
                     flex: 1,
-                    // ignore: prefer_const_literals_to_create_immutables
                     child: Row(
-                      children: [
-                        const Expanded(
+                      children: const [
+                        Expanded(
                           child: Icon(
                             FontAwesomeIcons.chevronRight,
                             size: 20,
@@ -352,134 +351,125 @@ class _onCreate extends State<ProductView> {
       {required ProductViewModel model, required BuildContext context}) {
     if (search == false) {
       _dropDownMenuItems = getDropDownMenuItems();
-      return Container(
-        child: Column(children: [
-          Container(
-            decoration: const BoxDecoration(
-                border: Border(
-              bottom: BorderSide(color: Color(0xffc1c6cb)),
-            )),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () {
-                      spinner = true;
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: CustomDropdownButton(
-                        value: _currentItems,
-                        items: _dropDownMenuItems,
-                        onChanged: changedDropDownItem,
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 48,
-                  color: Colors.black26,
-                ),
-                Container(
-                  // padding: EdgeInsets.only(top: 12, bottom: 12, left: 12),
-                  child: InkWell(
-                    onTap: () {
-                      search = true;
-                      setState(() {});
-                    },
-                    child: Image.asset(
-                      'assets/ic_search.png',
-                      alignment: Alignment.center,
-                      width: 45,
-                      height: 30,
-                    ),
-                  ),
-                ),
-                if (ProxyService.remoteConfig.scann_selling() &&
-                    !isWindows &&
-                    !isMacOs)
-                  Container(
-                    child: GestureDetector(
-                      onTap: () {
-                        ProxyService.nav.navigateTo(Routes.qrview);
-                      },
-                      child: CircleAvatar(
-                        backgroundColor: Colors.transparent,
-                        child: Icon(
-                          Icons.center_focus_weak,
-                          color: primary,
-                        ),
-                      ),
-                    ),
-                  )
-              ],
-            ),
-          ),
-          // Text('up here..'),
-          Flexible(child: BuildProductsView(model: model)),
-        ]),
-      );
-    } else {
-      return Container(
-        child: Column(children: [
-          Container(
-            decoration: const BoxDecoration(
+      return Column(children: [
+        Container(
+          decoration: const BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: Color(0xffc1c6cb)),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
+            bottom: BorderSide(color: Color(0xffc1c6cb)),
+          )),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    spinner = true;
+                  },
                   child: Container(
                     padding: const EdgeInsets.only(left: 12),
-                    child: TextFormField(
-                      keyboardType: TextInputType.text,
-                      cursorColor: Colors.black26,
-                      controller: etSearch,
-                      // onChanged: (value) => strSearch = value,
-                      onChanged: (searchKey) {
-                        model.filterProduct(searchKey: searchKey);
-                      },
-                      style: const TextStyle(
-                        color: Color(0xff3d454c),
-                        fontSize: 15,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Search All Items',
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(
-                          color: Colors.black26,
-                          fontSize: 15,
-                        ),
-                      ),
+                    child: CustomDropdownButton(
+                      value: _currentItems,
+                      items: _dropDownMenuItems,
+                      onChanged: changedDropDownItem,
                     ),
                   ),
                 ),
-                Container(
-                  child: InkWell(
-                    onTap: () {
-                      search = false;
-
-                      setState(() {});
-                    },
-                    child: Image.asset(
-                      'assets/ic_cancel.png',
-                      alignment: Alignment.center,
-                      width: 50,
-                      height: 30,
-                    ),
+              ),
+              Container(
+                width: 1,
+                height: 48,
+                color: Colors.black26,
+              ),
+              Container(
+                // padding: EdgeInsets.only(top: 12, bottom: 12, left: 12),
+                child: InkWell(
+                  onTap: () {
+                    search = true;
+                    setState(() {});
+                  },
+                  child: Image.asset(
+                    'assets/ic_search.png',
+                    alignment: Alignment.center,
+                    width: 45,
+                    height: 30,
                   ),
                 ),
-              ],
+              ),
+              if (ProxyService.remoteConfig.scannSelling() &&
+                  !isWindows &&
+                  !isMacOs)
+                GestureDetector(
+                  onTap: () {
+                    ProxyService.nav.navigateTo(Routes.qrview);
+                  },
+                  child: const CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: Icon(
+                      Icons.center_focus_weak,
+                      color: primary,
+                    ),
+                  ),
+                )
+            ],
+          ),
+        ),
+        Flexible(child: BuildProductsView(model: model)),
+      ]);
+    } else {
+      return Column(children: [
+        Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Color(0xffc1c6cb)),
             ),
           ),
-          Flexible(child: BuildProductsView(model: model)),
-        ]),
-      );
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: TextFormField(
+                    keyboardType: TextInputType.text,
+                    cursorColor: Colors.black26,
+                    controller: etSearch,
+                    // onChanged: (value) => strSearch = value,
+                    onChanged: (searchKey) {
+                      model.filterProduct(searchKey: searchKey);
+                    },
+                    style: const TextStyle(
+                      color: Color(0xff3d454c),
+                      fontSize: 15,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Search All Items',
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(
+                        color: Colors.black26,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  search = false;
+
+                  setState(() {});
+                },
+                child: Image.asset(
+                  'assets/ic_cancel.png',
+                  alignment: Alignment.center,
+                  width: 50,
+                  height: 30,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Flexible(child: BuildProductsView(model: model)),
+      ]);
     }
   }
 
@@ -537,7 +527,7 @@ class BuildProductsView extends StatelessWidget {
               applyDiscount: (discount) async {
                 await model.applyDiscount(discount: discount);
                 showSimpleNotification(
-                  Text('Applied discount'),
+                  const Text('Apply discount'),
                   background: Colors.green,
                   position: NotificationPosition.bottom,
                 );
@@ -574,8 +564,6 @@ class BuildProductsView extends StatelessWidget {
             );
           },
         ).toList()
-
-        /// end of widgets
       ],
     );
   }
