@@ -1,9 +1,6 @@
 import 'package:country_code_picker/country_code.dart';
-import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/abstractions/platform.dart';
 import 'package:universal_platform/universal_platform.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -16,16 +13,6 @@ class LoginViewModel extends FormViewModel {
 
   bool loginStart = false;
   bool otpStart = false;
-  final fb = locator<LoginStandard>();
-  Future<bool> login({required BuildContext context}) async {
-    loginStart = true;
-    notifyListeners();
-    ProxyService.box.write(key: 'userPhone', value: dialCode + phoneNumber!);
-    return await fb.createAccountWithPhone(
-      phone: dialCode + phoneNumber!,
-      context: context,
-    );
-  }
 
   void navigateBack() => ProxyService.nav.back();
 

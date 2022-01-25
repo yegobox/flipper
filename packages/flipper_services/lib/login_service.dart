@@ -77,7 +77,10 @@ class LoginService {
         ProxyService.box.write(key: 'businessId', value: loginData.businessId);
         ProxyService.box.write(key: 'branchId', value: loginData.branchId);
         ProxyService.box.write(key: 'userId', value: loginData.userId);
-        await ProxyService.box.write(key: 'userPhone', value: loginData.phone);
+        ProxyService.box.write(key: 'userPhone', value: loginData.phone);
+        await ProxyService.api.login(
+          userPhone: loginData.phone,
+        );
         ProxyService.nav.navigateTo(Routes.initial);
       }
     });

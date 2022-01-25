@@ -1,4 +1,3 @@
-import 'package:flipper_login/phone_number_view.dart';
 import 'package:flipper_view_models/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -24,10 +23,10 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
-          key: Key('loginForm'),
+          key: const Key('loginForm'),
           padding: MediaQuery.of(context).viewInsets,
           child: Container(
-            child: PhoneNumberView(),
+            child: const SizedBox(),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(

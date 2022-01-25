@@ -33,7 +33,6 @@ import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
 import 'package:flipper_login/login.dart';
-import 'package:flipper_login/otp_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_map/flipper_map.dart';
 import 'package:flipper_map/subcategory.dart';
@@ -51,7 +50,6 @@ class Routes {
   static const String signup = '/sign-up-form-view';
   static const String home = '/flipper-app';
   static const String login = '/login';
-  static const String otp = '/otp-view';
   static const String product = '/add-product-view';
   static const String discount = '/add-discount';
   static const String categories = '/list-categories';
@@ -82,7 +80,6 @@ class Routes {
     signup,
     home,
     login,
-    otp,
     product,
     discount,
     categories,
@@ -119,7 +116,6 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.signup, page: SignUpFormView),
     RouteDef(Routes.home, page: FlipperApp),
     RouteDef(Routes.login, page: LoginView),
-    RouteDef(Routes.otp, page: OtpView),
     RouteDef(Routes.product, page: AddProductView),
     RouteDef(Routes.discount, page: AddDiscount),
     RouteDef(Routes.categories, page: ListCategories),
@@ -199,12 +195,6 @@ class StackedRouter extends RouterBase {
     LoginView: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => const LoginView(),
-        settings: data,
-      );
-    },
-    OtpView: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => OtpView(),
         settings: data,
       );
     },

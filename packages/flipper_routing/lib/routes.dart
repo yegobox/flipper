@@ -26,7 +26,6 @@ import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
-import 'package:flipper_login/otp_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_map/flipper_map.dart';
 import 'package:stacked/stacked_annotations.dart';
@@ -44,7 +43,6 @@ import 'package:stacked_services/stacked_services.dart';
     // MaterialRoute(page: Home, name: 'home'),
     MaterialRoute(page: FlipperApp, name: 'home'),
     MaterialRoute(page: LoginView, name: 'login', path: '/login'),
-    MaterialRoute(page: OtpView, name: 'otp'),
     MaterialRoute(page: AddProductView, name: 'product'),
     MaterialRoute(page: AddDiscount, name: 'discount'),
     MaterialRoute(page: ListCategories, name: 'categories'),
