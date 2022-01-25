@@ -31,7 +31,6 @@ def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
-
 android {
     // compileSdkVersion flutter.compileSdkVersion
     compileSdkVersion 31
@@ -60,13 +59,13 @@ android {
         versionName flutterVersionName
     }
     signingConfigs {
-        firebaseCrashlytics {
-              // Enable processing and uploading of native symbols to Crashlytics servers.
-              // By default, this is disabled to improve build speeds.
-              // This flag must be enabled to see properly-symbolicated native
-              // stack traces in the Crashlytics dashboard.
-              nativeSymbolUploadEnabled true
-        }
+        // firebaseCrashlytics {
+        //       // Enable processing and uploading of native symbols to Crashlytics servers.
+        //       // By default, this is disabled to improve build speeds.
+        //       // This flag must be enabled to see properly-symbolicated native
+        //       // stack traces in the Crashlytics dashboard.
+        //       nativeSymbolUploadEnabled true
+        // }
         release {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
