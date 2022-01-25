@@ -1,7 +1,3 @@
-[submodule "packages"]
-	path = packages
-	url =https://github.com/yegobox/packages.git
-	branch = main
 [submodule "Features"]
 	path = Features
 	url =https://github.com/yegobox/designDocs.git

@@ -6,5 +6,5 @@ Future<void> initDb() async {
 }
 
 void recordBug(dynamic error, dynamic stack) {
-  throw UnimplementedError('this does not work on web');
+  // throw UnimplementedError('this does not work on web');
 }

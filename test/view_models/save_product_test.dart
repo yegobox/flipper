@@ -25,16 +25,14 @@ void main() {
     tearDown(() => unregisterServices());
     test('should save a product when a name is given temp product is not null',
         () async {
-      // FIXME: this test case is broken
-      // final model = _getModel();
+      final model = _getModel();
 
-      // model.setName(name: 'product name');
-      // expect(model.product, isA<Product>());
+      model.setName(name: 'product name');
+      expect(model.product, isA<ProductSync>());
 
-      // expect(model.name, 'product name');
+      expect(model.name, 'product name');
 
-      // expect(await model.addProduct(mproduct: data), true);
-      expect(1, 1);
+      expect(await model.addProduct(mproduct: data, name: model.name), true);
     });
   });
 }

@@ -1,6 +1,0 @@
-arb-dir: lib/l10n
-template-arb-file: app_en.arb
-output-localization-file: flipper_localizations.dart
-# new congis
-# synthetic-package: false
-#output-dir: lib/localize

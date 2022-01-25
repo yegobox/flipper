@@ -1,257 +1,231 @@
-import 'dart:io';
-
-// import 'package:file_picker/file_picker.dart';
-import 'package:flipper_dashboard/loader.dart';
-import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
-import 'package:flipper_services/drive_service.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
-import 'package:overlay_support/overlay_support.dart'; // Add this line.
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
+import 'package:flutter/foundation.dart' show SynchronousFuture;
+import 'dart:async';
+import 'package:flutterfire_ui/i10n.dart';
 
-import 'gen_l10n/flipper_localizations.dart';
+class LabelOverrides extends DefaultLocalizations {
+  const LabelOverrides();
 
-class Localization {
-  static AppLocalizations? of(BuildContext context) {
-    return AppLocalizations.of(context);
-  }
+  @override
+  String get emailInputLabel => 'Enter your email';
+
+  @override
+  String get passwordInputLabel => 'Enter your password';
 }
 
-bottomSheetBuilder({
-  required BuildContext context,
-  required Widget header,
-  required Widget body,
-}) {
-  showModalBottomSheet(
-    context: context,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.0),
-    ),
-    backgroundColor: Colors.white,
-    isScrollControlled: true,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              canvasColor: Colors.transparent,
-            ),
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height - 120,
-              //  height: MediaQuery.of(context).size.height * 0.8,
-              child: AnimatedContainer(
-                alignment: AlignmentDirectional.topCenter,
-                duration: const Duration(seconds: 2),
-                curve: Curves.elasticOut,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(18.0),
-                    topRight: Radius.circular(18.0),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    header,
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: body,
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
+// TODOrefactor this codes to make more sense
+class FLocalization {
+  FLocalization(this.locale);
+
+  final Locale locale;
+
+  static FLocalization of(BuildContext context) {
+    return Localizations.of<FLocalization>(context, FLocalization)!;
+  }
+
+  static const _productName = <String, Map<String, String>>{
+    'en': {
+      'productName': 'Name of the product',
     },
-  );
+    'es': {
+      'productName': 'Name of the product',
+    },
+  };
+  static const _save = <String, Map<String, String>>{
+    'en': {
+      'save': 'Save',
+    },
+    'es': {
+      'save': 'Save',
+    },
+  };
+  static const _retailPrice = <String, Map<String, String>>{
+    'en': {
+      'retailPrice': 'Price',
+    },
+    'es': {
+      'retailPrice': 'Price',
+    },
+  };
+  static const _supplyPrice = <String, Map<String, String>>{
+    'en': {
+      'supplyPrice': 'Supplier Price',
+    },
+    'es': {
+      'supplyPrice': 'Supplier Price',
+    },
+  };
+  static const _currentSale = <String, Map<String, String>>{
+    'en': {
+      'currentSale': 'Current Sale',
+    },
+    'es': {
+      'currentSale': 'Current Sale',
+    },
+  };
+
+  static const _currentStock = <String, Map<String, String>>{
+    'en': {
+      'currentStock': 'Current Stock',
+    },
+    'es': {
+      'currentStock': 'Current Stock',
+    },
+  };
+  static const _addProduct = <String, Map<String, String>>{
+    'en': {
+      'addProduct': 'Add Product',
+    },
+    'es': {
+      'addProduct': 'Add Product',
+    },
+  };
+  static const _ticket = <String, Map<String, String>>{
+    'en': {
+      'tickets': 'Ticket',
+    },
+    'es': {
+      'tickets': 'Ticket',
+    },
+  };
+  static const _charge = <String, Map<String, String>>{
+    'en': {
+      'charge': 'Charge',
+    },
+    'es': {
+      'charge': 'Charge',
+    },
+  };
+  static const _flipperSetting = <String, Map<String, String>>{
+    'en': {
+      'flipperSetting': 'Setting',
+    },
+    'es': {
+      'flipperSetting': 'Setting',
+    },
+  };
+  static const _options = <String, Map<String, String>>{
+    'en': {
+      'options': 'Options',
+    },
+    'es': {
+      'options': 'Options',
+    },
+  };
+  static const _saveTicket = <String, Map<String, String>>{
+    'en': {
+      'saveTicket': 'Save Ticket',
+    },
+    'es': {
+      'saveTicket': 'Save Ticket',
+    },
+  };
+  static const _productNotFound = <String, Map<String, String>>{
+    'en': {
+      'productNotFound': 'Product not found',
+    },
+    'es': {
+      'productNotFound': 'Product not found',
+    },
+  };
+  static const _noPayable = <String, Map<String, String>>{
+    'en': {
+      'noPayable': 'No payable',
+    },
+    'es': {
+      'noPayable': 'No payable',
+    },
+  };
+  static const _delete = <String, Map<String, String>>{
+    'en': {
+      'delete': 'Delete',
+    },
+    'es': {
+      'delete': 'Delete',
+    },
+  };
+  static const _addTomenu = <String, Map<String, String>>{
+    'en': {
+      'addTomenu': 'Menu',
+    },
+    'es': {
+      'addTomenu': 'Menu',
+    },
+  };
+  static const _edit = <String, Map<String, String>>{
+    'en': {
+      'edit': 'Edit',
+    },
+    'es': {
+      'edit': 'Edit',
+    },
+  };
+  static const _addWorkSpace = <String, Map<String, String>>{
+    'en': {
+      'addWorkSpace': 'Add WorkSpace',
+    },
+    'es': {
+      'addWorkSpace': 'Add WorkSpace',
+    },
+  };
+  static const _addMembers = <String, Map<String, String>>{
+    'en': {
+      'addMembers': 'Add Members',
+    },
+    'es': {
+      'addMembers': 'Add Members',
+    },
+  };
+  static List<String> languages() => _productName.keys.toList();
+
+  String get supplyPrice => _supplyPrice[locale.languageCode]!['supplyPrice']!;
+  String get currentSale => _currentSale[locale.languageCode]!['currentSale']!;
+  String get currentStock =>
+      _currentStock[locale.languageCode]!['currentStock']!;
+  String get addProduct => _addProduct[locale.languageCode]!['addProduct']!;
+  String get tickets => _ticket[locale.languageCode]!['tickets']!;
+  String get charge => _charge[locale.languageCode]!['charge']!;
+  String get flipperSetting =>
+      _flipperSetting[locale.languageCode]!['flipperSetting']!;
+  String get options => _options[locale.languageCode]!['options']!;
+  String get saveTicket => _saveTicket[locale.languageCode]!['saveTicket']!;
+  String get productNotFound =>
+      _productNotFound[locale.languageCode]!['productNotFound']!;
+  String get noPayable => _noPayable[locale.languageCode]!['noPayable']!;
+  String get delete => _delete[locale.languageCode]!['delete']!;
+  String get addTomenu => _addTomenu[locale.languageCode]!['addTomenu']!;
+  String get edit => _edit[locale.languageCode]!['edit']!;
+  String get addWorkSpace =>
+      _addWorkSpace[locale.languageCode]!['addWorkSpace']!;
+  String get addMembers => _addMembers[locale.languageCode]!['addMembers']!;
+  String get retailPrice {
+    return _retailPrice[locale.languageCode]!['save']!;
+  }
+
+  String get save {
+    return _save[locale.languageCode]!['save']!;
+  }
+
+  String get productName {
+    return _productName[locale.languageCode]!['productName']!;
+  }
 }
 
-class FlipperBottomSheet {
-  static showAddPaymentMethod(
-      {required BusinessHomeViewModel model,
-      required BuildContext context}) async {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: SizedBox(
-            height: 180,
-            child: Container(
-                child: Column(children: <Widget>[
-              Padding(
-                key: Key('EnableBackup'),
-                padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 10.h),
-                child: BoxButton(
-                  title: 'Add Backup',
-                  onTap: () async {
-                    //if the payment method is not enabled, enable it first!.
-                    final drive = GoogleDrive();
-                    Directory dir = await getApplicationDocumentsDirectory();
+class FlipperLocalizationsDelegate
+    extends LocalizationsDelegate<FLocalization> {
+  const FlipperLocalizationsDelegate();
 
-                    await drive.upload(File(path.context
-                        .canonicalize(dir.path + '/db_1/data.mdb')));
-                    // TODOupdate the business local and online about the backup
-                    // now since the backup is true backup every time using the saved credentials of google drive
-                    // I need to know when switching to another phone how I will decide what happen.
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Enabling backup will save your data on daily basis so you wont worry lossing data',
-                ),
-              ),
-            ])),
-          ),
-        );
-      },
-    );
+  @override
+  bool isSupported(Locale locale) =>
+      FLocalization.languages().contains(locale.languageCode);
+
+  @override
+  Future<FLocalization> load(Locale locale) {
+    // Returning a SynchronousFuture here because an async "load" operation
+    // isn't needed to produce an instance of DemoLocalizations.
+    return SynchronousFuture<FLocalization>(FLocalization(locale));
   }
 
-  static showTicketsToSaleBottomSheet(
-      {required BusinessHomeViewModel model,
-      required BuildContext context}) async {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: model.tickets
-                  .map((ticket) => SizedBox(
-                        height: 120,
-                        width: double.infinity,
-                        child: Column(children: <Widget>[
-                          ListTile(
-                            subtitle: Text(
-                              ticket.note ?? 'No Name',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextButton(
-                                  child: Text(
-                                    'Resume',
-                                  ),
-                                  onPressed: () async {
-                                    await model.resumeOrder(
-                                        ticketId: ticket.id);
-                                    showSimpleNotification(
-                                        Text('Order Restored!'),
-                                        background: Colors.green);
-                                    ProxyService.nav.back();
-                                  },
-                                ),
-                              ],
-                            ),
-                            dense: true,
-                          )
-                        ]),
-                      ))
-                  .toList(),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  static showAddNoteToSaleBottomSheet(
-      {required BusinessHomeViewModel model,
-      required BuildContext context}) async {
-    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-    TextEditingController _controller = new TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: Wrap(
-              children: [
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                  child: Form(
-                    key: _formKey,
-                    child: TextFormField(
-                      textAlign: TextAlign.center,
-                      autofocus: true,
-                      controller: _controller,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Note is required';
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Add note',
-                        fillColor: Theme.of(context)
-                            .copyWith(canvasColor: Colors.cyan[50])
-                            .canvasColor,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      minLines:
-                          6, // any number you need (It works as the rows for the textarea)
-                      keyboardType: TextInputType.multiline,
-                      maxLines: 40,
-                    ),
-                  ),
-                ),
-                verticalSpaceSmall,
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: BoxButton(
-                    title: Localization.of(context)!.save,
-                    onTap: () {
-                      if (_formKey.currentState!.validate()) {
-                        model.addNoteToSale(
-                          note: _controller.text,
-                          callback: (callback) {
-                            if (callback == 1) {
-                              showSimpleNotification(
-                                Text('Note added!'),
-                                background: Colors.green,
-                              );
-                              ProxyService.nav.back();
-                            }
-                          },
-                        );
-                      }
-                    },
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  @override
+  bool shouldReload(LocalizationsDelegate old) => false;
 }

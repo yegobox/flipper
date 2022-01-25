@@ -3,19 +3,14 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter/foundation.dart';
+import 'firebase_options.dart';
 
 Future<void> initDb() async {
   await ObjectBoxApi.getDir(dbName: 'db_1');
-  if (Platform.isWindows) {
-    await Firebase.initializeApp(
-        options: const FirebaseOptions(
-      apiKey: 'AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA',
-      appId: '1:672237316015:web:e289bfb5c92506c1c2715a',
-      messagingSenderId: 'G-88GKL70K3K',
-      projectId: 'yegobox-2ee43',
-    ));
-  } else {
+  if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
     await Firebase.initializeApp();
+  } else {
+    await Firebase.initializeApp(options: firebaseOptions);
   }
   if (kDebugMode) {
     // Force disable Crashlytics collection while doing every day development.

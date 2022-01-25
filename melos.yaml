@@ -1,4 +1,0 @@
-name: flipper_package
-
-packages:
-  - packages/**

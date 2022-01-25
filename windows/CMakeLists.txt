@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.15)
-project(flipper LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.14)
+project(flipper_auth LANGUAGES CXX)
 
-set(BINARY_NAME "flipper")
+set(BINARY_NAME "flipper_auth")
 
 cmake_policy(SET CMP0063 NEW)
 

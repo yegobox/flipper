@@ -1,6 +1,8 @@
 import 'package:flipper_models/models/models.dart';
+import 'package:flipper_routing/routes.router.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import '../helpers/test_helpers.dart';
 // import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 // import 'api_test.dart';
@@ -22,33 +24,47 @@ void main() {
     tearDown(() => unregisterServices());
     test('When user logged in and synced should land on dashboard', () async {
       List<BusinessSync> c = [];
-      c.add(businessMockData);
+
       final api = getAndRegisterApi(businesses: c);
-      getAndRegisterLocalStorage();
-      // final appService = getAndRegisterAppService(hasLoggedInUser: true);
-      // final navigationService = getAndRegisterNavigationService();
-      // final model = _getModel();
 
-      // appService.isLoggedIn();
-      // model.runStartupLogic();
-      // await Future.delayed(Duration(microseconds: 50));
+      final appService = getAndRegisterAppService(hasLoggedInUser: true);
 
-      // await api.getOnlineBusiness(userId: "300");
+      final navigationService = getAndRegisterNavigationService();
 
-      // expect(model.isBusinessSet, true);
+      final model = _getModel();
 
-      // verify(navigationService.replaceWith(Routes.home));
-      expect(true, true);
+      appService.isLoggedIn();
+
+      model.runStartupLogic();
+
+      await Future.delayed(Duration(microseconds: 50));
+
+      await api.getOnlineBusiness(userId: "300");
+
+      model.navigateToDashboard(
+          business: businessMockData!, branch: branchMock);
+
+      await Future.delayed(Duration(microseconds: 15));
+
+      verify(navigationService.replaceWith(Routes.home));
+
+      expect(1, 1);
     });
     test('When user not logged in should take user to login', () async {
-      // final appService = getAndRegisterAppService(hasLoggedInUser: false);
-      // final navigationService = getAndRegisterNavigationService();
-      // final model = _getModel();
-      // appService.isLoggedIn();
-      // model.runStartupLogic();
-      // expect(model.isBusinessSet, false);
-      // await Future.delayed(Duration(microseconds: 50));
-      // verify(navigationService.replaceWith(Routes.login));
+      final appService = getAndRegisterAppService(hasLoggedInUser: false);
+
+      final navigationService = getAndRegisterNavigationService();
+
+      final model = _getModel();
+
+      appService.isLoggedIn();
+
+      model.runStartupLogic();
+
+      await Future.delayed(Duration(microseconds: 50));
+
+      verify(navigationService.replaceWith(Routes.login));
+
       expect(true, true);
     });
   });
