@@ -703,14 +703,6 @@ class MockRemote extends _i1.Mock implements _i33.Remote {
   bool isSyncAvailable() =>
       (super.noSuchMethod(Invocation.method(#isSyncAvailable, []),
           returnValue: false) as bool);
-  @override
-  bool isSignInWithGoogleAvailable() =>
-      (super.noSuchMethod(Invocation.method(#isSignInWithGoogleAvailable, []),
-          returnValue: false) as bool);
-  @override
-  bool isEmailSignInAvailable() =>
-      (super.noSuchMethod(Invocation.method(#isEmailSignInAvailable, []),
-          returnValue: false) as bool);
 }
 
 /// A class which mocks [FirebaseMessaging].
@@ -837,6 +829,10 @@ class MockProductService extends _i1.Mock implements _i36.ProductService {
   _i13.Logger get log =>
       (super.noSuchMethod(Invocation.getter(#log), returnValue: _FakeLogger())
           as _i13.Logger);
+  @override
+  String get barCode =>
+      (super.noSuchMethod(Invocation.getter(#barCode), returnValue: '')
+          as String);
   @override
   List<_i28.DiscountSync> get discounts =>
       (super.noSuchMethod(Invocation.getter(#discounts),
@@ -980,8 +976,8 @@ class MockKeyPadService extends _i1.Mock implements _i37.KeyPadService {
       Invocation.method(#setTotalDiscount, [], {#amount: amount}),
       returnValueForMissingStub: null);
   @override
-  void setOrderInProgress(_i5.OrderFSync? order) =>
-      super.noSuchMethod(Invocation.method(#setOrderInProgress, [order]),
+  void setOrder(_i5.OrderFSync? order) =>
+      super.noSuchMethod(Invocation.method(#setOrder, [order]),
           returnValueForMissingStub: null);
   @override
   _i17.Future<_i5.OrderFSync?> getOrder({int? branchId}) => (super.noSuchMethod(

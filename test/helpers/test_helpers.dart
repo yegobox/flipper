@@ -34,12 +34,7 @@ import 'package:flipper_services/locator.dart';
   MockSpec<BillingService>(returnNullOnMissingStub: true),
   MockSpec<NavigationService>(returnNullOnMissingStub: true),
 ])
-Api getAndRegisterApi(
-    {bool hasLoggedInUser = false,
-    List<BusinessSync>? businesses,
-    Map? data,
-    String? uri,
-    List<VariantSync>? variations}) {
+Api getAndRegisterApi() {
   _removeRegistrationIfExists<Api>();
   final service = MockApi();
   when(service.login()).thenAnswer(
@@ -60,7 +55,8 @@ Api getAndRegisterApi(
   when(service.getLocalOrOnlineBusiness(userId: '300'))
       .thenAnswer((_) async => [businessMockData]);
 
-  when(service.addVariant(data: variations, retailPrice: 0.0, supplyPrice: 0.0))
+  when(service.addVariant(
+          data: [variationMock], retailPrice: 0.0, supplyPrice: 0.0))
       .thenAnswer((_) async => 200);
   when(service.getCustomProductVariant())
       .thenAnswer((_) async => variationMock);
@@ -70,10 +66,10 @@ Api getAndRegisterApi(
   when(service.stockByVariantId(variantId: variationMock.id))
       .thenAnswer((_) async => stockMock);
 
-  if (data != null) {
-    when(service.update(data: data, endPoint: uri!))
-        .thenAnswer((_) async => 200);
-  }
+  when(service.update(
+          data: variationMock.toJson(), endPoint: anyNamed('endPoint')))
+      .thenAnswer((_) async => 200);
+
   when(service.branches(businessId: anyNamed('businessId')))
       .thenAnswer((_) async => [branchMock]);
 
@@ -179,13 +175,12 @@ KeyPadService getAndRegisterKeyPadService() {
   return service;
 }
 
-ProductService getAndRegisterProductService(
-    {String currentUnit = 'kg', int branchId = 11, String userId = 'UID'}) {
+ProductService getAndRegisterProductService() {
   _removeRegistrationIfExists<ProductService>();
   final service = MockProductService();
-  when(service.currentUnit).thenReturn(currentUnit);
-  when(service.branchId).thenReturn(branchId);
-  when(service.userId).thenReturn(userId);
+  when(service.currentUnit).thenReturn('kg');
+  when(service.branchId).thenReturn(10);
+  when(service.userId).thenReturn("300");
   when(service.product).thenReturn(productMock);
   locator.registerSingleton<ProductService>(service);
   return service;

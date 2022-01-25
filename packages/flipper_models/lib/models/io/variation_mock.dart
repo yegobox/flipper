@@ -1,8 +1,6 @@
-import 'package:flipper_models/models/html/feature.dart';
-
 import './variant_sync.dart';
 
-final variationMock = new VariantSync(
+final variationMock = VariantSync(
   id: DateTime.now().millisecondsSinceEpoch,
   name: 'Regular',
   sku: 'sku',

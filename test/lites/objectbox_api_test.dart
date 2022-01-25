@@ -8,7 +8,7 @@ import '../helpers/test_helpers.dart';
 void main() {
   List<VariantSync> variations = [];
   String dbName = 'test02';
-  VariantSync data = new VariantSync(
+  VariantSync data = VariantSync(
     name: 'Regular',
     sku: 'a',
     fproductId: 2,

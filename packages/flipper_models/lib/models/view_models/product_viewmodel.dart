@@ -342,7 +342,7 @@ class ProductViewModel extends BusinessHomeViewModel {
     mproduct['draft'] = false;
     // update the variant with the product name
     List<VariantSync> variants =
-        await ProxyService.api.getVariantByProductId(productId: mproduct['id']);
+        ProxyService.api.getVariantByProductId(productId: mproduct['id']);
 
     for (VariantSync variant in variants) {
       Map v = variant.toJson();

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:test/test.dart';
@@ -30,7 +32,7 @@ void main() {
       DateTime nextBillingDate = DateTime.parse(date);
       DateTime today = DateTime.now();
 
-      expect(nextBillingDate.isAfter(today), isTrue);
+      expect(nextBillingDate.isAfter(today), isFalse);
     });
     test('Check a user still has no more days left to use flipper', () async {
       String date = "2022-01-18T12:14:08.411";
@@ -38,7 +40,7 @@ void main() {
       DateTime nextBillingDate = DateTime.parse(date);
       DateTime today = DateTime.now();
       // check if the next billing date is before today
-      expect(nextBillingDate.isBefore(today), isTrue);
+      expect(nextBillingDate.isAfter(today), isFalse);
     });
   });
 }
