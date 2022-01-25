@@ -20,7 +20,7 @@ jobs:
       # pause test on server for now
       - run: git submodule update --init
       - run: flutter pub get
-      - run: ./install.sh
+      # - run: ./install.sh
       - run: flutter test
   windows:
     name: windowsInstaller
@@ -44,7 +44,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/windows/runner/Release/flipper.msix"
-          tag: v1.51.0.0
+          tag: v1.52.0.0
           token: ${{ secrets.GH_TOKEN }}
           # commit: ${{ github.sha }}
       - name: Upload  windows installer
