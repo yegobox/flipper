@@ -5,12 +5,14 @@ import 'package:flipper_view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 
 class DesktopLoginView extends StatefulWidget {
+  const DesktopLoginView({Key? key}) : super(key: key);
+
   @override
   State<DesktopLoginView> createState() => _DesktopLoginViewState();
 }
 
 class _DesktopLoginViewState extends State<DesktopLoginView> {
-  String? loginCode = null;
+  String? loginCode;
   @override
   void initState() {
     DateTime now = DateTime.now();
@@ -44,7 +46,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                   size: 200.0,
                 ),
               ),
-              Text('Use mobile app to scan and log in')
+              const Text('Use mobile app to scan and log in')
             ],
           ),
         );

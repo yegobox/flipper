@@ -6,6 +6,12 @@ import 'package:flipper_routing/routes.router.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/startup_view.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+import 'desktop_login_view.dart';
+
+final isWindows = UniversalPlatform.isWindows;
+final isWeb = UniversalPlatform.isWeb;
 
 // Overrides a label for en locale
 // To add localization for a custom language follow the guide here:
@@ -64,48 +70,50 @@ class LoginView extends StatelessWidget {
           auth();
           return const StartUpView();
         } else {
-          return Scaffold(
-            body: Theme(
-              data: ThemeData(
-                inputDecorationTheme: InputDecorationTheme(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              child: SignInScreen(
-                headerBuilder: headerImage('assets/logo.png'),
-                sideBuilder: sideImage('assets/logo.png'),
-                subtitleBuilder: (context, action) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      action == AuthAction.signIn
-                          ? 'Welcome to Flipper Please sign in to continue.'
-                          : 'Welcome to Flipper Please create an account to continue',
-                    ),
-                  );
-                },
-                footerBuilder: (context, action) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Text(
-                        action == AuthAction.signIn
-                            ? 'By signing in, you agree to our terms and conditions.'
-                            : 'By registering, you agree to our terms and conditions.',
-                        style: const TextStyle(color: Colors.grey),
+          return isWindows || isWeb
+              ? Scaffold(body: SingleChildScrollView(child: DesktopLoginView()))
+              : Scaffold(
+                  body: Theme(
+                    data: ThemeData(
+                      inputDecorationTheme: InputDecorationTheme(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
-                  );
-                },
-                providerConfigs: const [
-                  PhoneProviderConfiguration(),
-                  EmailProviderConfiguration(),
-                ],
-              ),
-            ),
-          );
+                    child: SignInScreen(
+                      headerBuilder: headerImage('assets/logo.png'),
+                      sideBuilder: sideImage('assets/logo.png'),
+                      subtitleBuilder: (context, action) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            action == AuthAction.signIn
+                                ? 'Welcome to Flipper Please sign in to continue.'
+                                : 'Welcome to Flipper Please create an account to continue',
+                          ),
+                        );
+                      },
+                      footerBuilder: (context, action) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text(
+                              action == AuthAction.signIn
+                                  ? 'By signing in, you agree to our terms and conditions.'
+                                  : 'By registering, you agree to our terms and conditions.',
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        );
+                      },
+                      providerConfigs: const [
+                        PhoneProviderConfiguration(),
+                        EmailProviderConfiguration(),
+                      ],
+                    ),
+                  ),
+                );
         }
       },
     );
