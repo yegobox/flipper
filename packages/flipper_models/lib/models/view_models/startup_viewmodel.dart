@@ -52,7 +52,9 @@ class StartUpViewModel extends BaseViewModel {
           ProxyService.api.saveTenant(phoneNumber: phoneNumber);
         }
         tenant = ProxyService.api.isTenant(phoneNumber: phoneNumber);
-        if (tenant != null && tenant.permissions.contains('admin')) {
+        // FIXMEthis is a hack to get the tenant to work
+        if (tenant != null &&
+            tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
           /// if we only have one branch no need to switch from branches go straight to business.
           if (tenant.branches.length == 1) {
             BusinessSync business = await ProxyService.api
