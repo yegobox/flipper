@@ -51,7 +51,6 @@ class LoginView extends StatelessWidget {
     await ProxyService.api.login(
       userPhone: phone!,
     );
-    //sign out
     //then go startup logic
     ProxyService.nav.navigateTo(Routes.initial);
   }
@@ -62,6 +61,7 @@ class LoginView extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          auth();
           return const StartUpView();
         } else {
           return Scaffold(
