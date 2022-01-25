@@ -52,9 +52,10 @@ class LoginService {
   final log = getLogger('LoginService');
   late PubNub pubnub;
   final keySet = Keyset(
-      subscribeKey: 'sub-c-9d0df480-67d5-11ec-a4f8-fa616d2d2ecf',
-      publishKey: 'pub-c-ca33a9a4-b6c5-42fc-9edc-f15947d3178b',
-      uuid: UUID('5d012092-29c4-45fc-a37b-5776e64d4355'));
+    subscribeKey: 'sub-c-9d0df480-67d5-11ec-a4f8-fa616d2d2ecf',
+    publishKey: 'pub-c-ca33a9a4-b6c5-42fc-9edc-f15947d3178b',
+    uuid: const UUID('5d012092-29c4-45fc-a37b-5776e64d4355'),
+  );
   void connect() {
     pubnub = PubNub(defaultKeyset: keySet);
   }
