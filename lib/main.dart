@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'helpers/utils.dart';
 import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
@@ -27,8 +28,12 @@ class FlipperHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
+      // If there is a bad certificate callback, override it if the host is part of
+      // your server URL
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) {
+        String serverUrl = getServerAddress() ?? "";
+        return serverUrl.contains(host);
+      };
   }
 }
 

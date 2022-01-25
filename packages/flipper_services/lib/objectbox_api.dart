@@ -39,8 +39,8 @@ class ExtendedClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     String? token = ProxyService.box.read(key: 'bearerToken');
     String? userId = ProxyService.box.read(key: 'userId');
-    request.headers['Authorization'] = token == null ? '' : token;
-    request.headers['userId'] = userId == null ? '' : userId;
+    request.headers['Authorization'] = token ?? '';
+    request.headers['userId'] = userId ?? '';
     request.headers['Content-Type'] = 'application/json';
     // request.headers['Connection'] = "Keep-Alive";
     // request.headers['Keep-Alive'] = "timeout=5, max=1000";
