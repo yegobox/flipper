@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_login/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flutterfire_ui/i10n.dart';
@@ -129,6 +130,7 @@ class LoginView extends StatelessWidget {
     return const [
       PhoneProviderConfiguration(),
       // EmailProviderConfiguration(),
+      // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
     ];
   }
 }

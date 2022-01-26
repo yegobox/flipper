@@ -25,8 +25,8 @@ class KeyPadHead extends StatelessWidget {
     return Column(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(left: 0.0, right: 0.0),
-          child: payable ?? SizedBox.shrink(),
+          padding: const EdgeInsets.only(left: 0.0, right: 0.0),
+          child: payable ?? const SizedBox.shrink(),
         ),
         tab == 0
             ? InkWell(
@@ -49,7 +49,7 @@ class KeyPadHead extends StatelessWidget {
                             alignment: Alignment.center,
                             child: Container(
                               padding: const EdgeInsets.only(right: 10),
-                              child: TextButton(
+                              child: const TextButton(
                                 onPressed: null,
                                 child: Text(
                                   'AddNote',
@@ -77,7 +77,7 @@ class KeyPadHead extends StatelessWidget {
                   ),
                 ),
               )
-            : SizedBox.shrink()
+            : const SizedBox.shrink()
       ],
     );
   }

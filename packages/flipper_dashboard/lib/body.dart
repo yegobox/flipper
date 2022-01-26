@@ -11,7 +11,7 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 class BodyWidget extends StatefulWidget {
-  BodyWidget(
+  const BodyWidget(
       {Key? key,
       required this.model,
       required this.sideOpenController,
@@ -92,8 +92,7 @@ class _BodyWidgetState extends State<BodyWidget> {
         ),
         widget.model.tab == 0
             ? KeyPadView(model: widget.model)
-            // show a list of products and on click handle different scenarios
-            : Flexible(child: ProductView(userId: '1', items: true)),
+            : const Flexible(child: ProductView(userId: '1', items: true)),
       ],
     );
   }

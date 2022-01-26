@@ -243,3 +243,5 @@ class AppSetup {
 // Display name: info
 // Username:info@yegobox.com
 // Password: :Love:is:good::
+
+// https://verygood.ventures/blog/configuring-workflows-for-your-flutter-projects?utm_source=twitter&utm_medium=social&utm_campaign=workflows

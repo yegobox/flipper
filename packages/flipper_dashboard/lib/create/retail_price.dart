@@ -1,5 +1,5 @@
 import 'package:localize/localize.dart';
-import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 
 class RetailPrice extends StatelessWidget {

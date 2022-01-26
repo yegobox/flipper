@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flipper_models/models/models.dart';

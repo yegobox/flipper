@@ -28,6 +28,7 @@ class RemoteConfigService implements Remote {
       'isMapAvailable': false,
       'isAInvitingMembersAvailable': false,
       'isSyncAvailable': false,
+      'isChatAvailable': false,
     });
   }
 
@@ -39,11 +40,12 @@ class RemoteConfigService implements Remote {
     await remoteConfig.fetchAndActivate();
   }
 
+  @override
   bool isChatAvailable() {
     if (kDebugMode) {
       return true;
     }
-    return remoteConfig.getBool('chat_feature');
+    return remoteConfig.getBool('isChatAvailable');
   }
 
   @override
@@ -51,11 +53,12 @@ class RemoteConfigService implements Remote {
     return remoteConfig.getBool('is_submit_device_token_enabled');
   }
 
+  @override
   void config() async {
     await remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: Duration(seconds: 10),
+      fetchTimeout: const Duration(seconds: 10),
       minimumFetchInterval:
-          kDebugMode ? Duration(hours: 0) : Duration(hours: 4),
+          kDebugMode ? const Duration(hours: 0) : const Duration(hours: 4),
     ));
   }
 

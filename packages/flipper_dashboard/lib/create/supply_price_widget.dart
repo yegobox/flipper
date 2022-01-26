@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
 import 'package:localize/localize.dart';

@@ -4,19 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class HexColor extends Color {
-  HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
-  static int _getColorFromHex(String hexColor) {
-    hexColor = hexColor.toUpperCase().replaceAll('#', '');
-    if (hexColor.length == 6) {
-      hexColor = 'FF' + hexColor;
-    }
-    return int.parse(hexColor, radix: 16);
-  }
-}
-
 class PayableView extends StatelessWidget {
-  PayableView(
+  const PayableView(
       {Key? key,
       this.tickets = 0,
       this.duePay = 0,
@@ -64,10 +53,14 @@ class PayableView extends StatelessWidget {
                 width: MediaQuery.of(context).size.width,
                 color: Theme.of(context).primaryColor,
                 child: GestureDetector(
-                    onTap: () {
-                      onClick();
-                    },
-                    child: callCharge(payable: duePay, context: context)),
+                  onTap: () {
+                    onClick();
+                  },
+                  child: callCharge(
+                    payable: duePay,
+                    context: context,
+                  ),
+                ),
               ),
             ),
           ),
@@ -92,38 +85,31 @@ class PayableView extends StatelessWidget {
       );
     } else if (orders > 0) {
       return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Container(
-              child: Container(
-                child: Text(
-                  FLocalization.of(context).save,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 19.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            FLocalization.of(context).save,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 19.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
-            Container(
-              child: Container(
-                child: Text(
-                  orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            )
-          ]);
+          ),
+          Text(
+            orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
+          )
+        ],
+      );
     } else {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
@@ -144,32 +130,26 @@ class PayableView extends StatelessWidget {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Container(
-            child: Container(
-              child: Text(
-                FLocalization.of(context).charge,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 19.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
+          Text(
+            FLocalization.of(context).charge,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 19.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
           ),
           Flexible(
             child: Container(
-              child: Container(
-                padding: EdgeInsets.only(left: 10.w),
-                child: Text(
-                  'FRw' + display(payable).toString(),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
-                  ),
+              padding: EdgeInsets.only(left: 10.w),
+              child: Text(
+                'FRw' + display(payable).toString(),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
                 ),
               ),
             ),

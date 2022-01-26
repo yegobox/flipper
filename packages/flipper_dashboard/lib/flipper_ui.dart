@@ -1,6 +1,6 @@
 library ui;
 
-import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
