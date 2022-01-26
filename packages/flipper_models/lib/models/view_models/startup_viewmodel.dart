@@ -31,9 +31,11 @@ class StartUpViewModel extends BaseViewModel {
       businesses = await appInit();
     } catch (e) {
       if (e is SessionException) {
-        ProxyService.api.logOut();
-        ProxyService.nav.navigateTo(Routes.login);
-        return;
+        // time to re-login
+        String? userPhone = ProxyService.box.getUserPhone();
+        await ProxyService.api.login(
+          userPhone: userPhone ?? '',
+        );
       }
     }
 
