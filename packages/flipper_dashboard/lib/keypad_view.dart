@@ -1,9 +1,9 @@
 library pos;
 
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:universal_platform/universal_platform.dart';
+
+import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -31,401 +31,371 @@ class KeyPadView extends StatelessWidget {
 
 // ignore: must_be_immutable
 class Keyboard extends StatelessWidget {
-  Keyboard({Key? key, required this.model}) : super(key: key);
+  const Keyboard({Key? key, required this.model}) : super(key: key);
   final BusinessHomeViewModel model;
-  var myDynamicAspectRatio = 1000 / 1;
-  OverlayEntry? sticky;
-  double maxHeight = 0;
-  double maxWidth = 0;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Padding(
-        padding: (isWindows || isMacOs) ? EdgeInsets.all(0) : EdgeInsets.all(0),
-        child: Container(
-          child: Column(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
+        padding: (isWindows || isMacOs)
+            ? const EdgeInsets.all(0)
+            : const EdgeInsets.all(0),
+        child: Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('1');
+                      },
                       child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('1');
-                          },
-                          child: Container(
-                              height: MediaQuery.of(context).size.height.h,
-                              width: MediaQuery.of(context).size.width.w,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).canvasColor,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '1',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(
-                                        fontSize: 30.sp.sp,
-                                        color: const Color(0xff3d454c),
-                                        fontWeight: FontWeight.normal),
-                              )),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('2');
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.height.h.h,
-                            width: MediaQuery.of(context).size.width.w.w,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).canvasColor,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '2',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(
-                                      fontSize: 30.sp.sp,
-                                      color: const Color(0xff3d454c),
-                                      fontWeight: FontWeight.normal),
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).canvasColor,
                             ),
                           ),
-                        ),
-                      ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '1',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
+                          )),
                     ),
-                    Expanded(
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('2');
+                      },
                       child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('3');
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.height.h,
-                            width: MediaQuery.of(context).size.width.w,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).canvasColor,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '3',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(
-                                      fontSize: 30.sp,
-                                      color: const Color(0xff3d454c),
-                                      fontWeight: FontWeight.normal),
-                            ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
                           ),
                         ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '2',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
+                                  fontWeight: FontWeight.normal),
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('3');
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '3',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
+                                  fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('4');
+                      },
                       child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('4');
-                          },
-                          child: Container(
-                              height: MediaQuery.of(context).size.height.h,
-                              width: MediaQuery.of(context).size.width.w,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).canvasColor,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '4',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(
-                                        fontSize: 30.sp,
-                                        color: const Color(0xff3d454c),
-                                        fontWeight: FontWeight.normal),
-                              )),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('5');
-                          },
-                          child: Container(
-                              height: MediaQuery.of(context).size.height.h,
-                              width: MediaQuery.of(context).size.width.w,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).canvasColor,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '5',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(
-                                        fontSize: 30.sp,
-                                        color: const Color(0xff3d454c),
-                                        fontWeight: FontWeight.normal),
-                              )),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('6');
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.height.h,
-                            width: MediaQuery.of(context).size.width.w,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).canvasColor,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '6',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(
-                                      fontSize: 30.sp,
-                                      color: const Color(0xff3d454c),
-                                      fontWeight: FontWeight.normal),
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).canvasColor,
                             ),
                           ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '4',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
+                          )),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('5');
+                      },
+                      child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).canvasColor,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '5',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
+                          )),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('6');
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '6',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
+                                  fontWeight: FontWeight.normal),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('7');
+                      },
                       child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('7');
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.height.h,
-                            width: MediaQuery.of(context).size.width.w,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).canvasColor,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '7',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(
-                                      fontSize: 30.sp,
-                                      color: const Color(0xff3d454c),
-                                      fontWeight: FontWeight.normal),
-                            ),
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
                           ),
                         ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('8');
-                          },
-                          child: Container(
-                              height: MediaQuery.of(context).size.height.h,
-                              width: MediaQuery.of(context).size.width.w,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).canvasColor,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '8',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(
-                                        fontSize: 30.sp,
-                                        color: const Color(0xff3d454c),
-                                        fontWeight: FontWeight.normal),
-                              )),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '7',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
+                                  fontWeight: FontWeight.normal),
                         ),
                       ),
                     ),
-                    Expanded(
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('8');
+                      },
                       child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('9');
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.height.h,
-                            width: MediaQuery.of(context).size.width.w,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).canvasColor,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '9',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(
-                                      fontSize: 30.sp,
-                                      color: const Color(0xff3d454c),
-                                      fontWeight: FontWeight.normal),
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).canvasColor,
                             ),
                           ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '8',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
+                          )),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('9');
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '9',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
+                                  fontWeight: FontWeight.normal),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('C');
+                      },
                       child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('C');
-                          },
-                          child: Container(
-                              height: MediaQuery.of(context).size.height.h,
-                              width: MediaQuery.of(context).size.width.w,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).canvasColor,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                'C',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(
-                                        fontSize: 30.sp,
-                                        color: const Color(0xff3d454c),
-                                        fontWeight: FontWeight.normal),
-                              )),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('0');
-                          },
-                          child: Container(
-                              height: MediaQuery.of(context).size.height.h,
-                              width: MediaQuery.of(context).size.width.w,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).canvasColor,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '0',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(
-                                        fontSize: 30.sp,
-                                        color: const Color(0xff3d454c),
-                                        fontWeight: FontWeight.normal),
-                              )),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        child: InkWell(
-                          onTap: () {
-                            model.addKey('+');
-                          },
-                          child: Container(
-                            height: MediaQuery.of(context).size.height.h,
-                            width: MediaQuery.of(context).size.width.w,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).canvasColor,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '+',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .copyWith(
-                                      fontSize: 40,
-                                      color: const Color(0xff2996cc),
-                                      fontWeight: FontWeight.normal),
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).canvasColor,
                             ),
                           ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'C',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
+                          )),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('0');
+                      },
+                      child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).canvasColor,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '0',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(
+                                    fontSize: 30,
+                                    color: const Color(0xff3d454c),
+                                    fontWeight: FontWeight.normal),
+                          )),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        model.addKey('+');
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '+',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 40,
+                                  color: const Color(0xff2996cc),
+                                  fontWeight: FontWeight.normal),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -433,34 +403,35 @@ class Keyboard extends StatelessWidget {
 }
 
 class KeyboardKey extends StatelessWidget {
-  const KeyboardKey(this._keyValue, this.model);
-
+  const KeyboardKey({
+    Key? key,
+    required this.model,
+    this.keyValue,
+  }) : super(key: key);
+  final keyValue;
   final BusinessHomeViewModel model;
-  final _keyValue;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: SizedBox(
-        width: 100.w,
-        height: MediaQuery.of(context).size.height.h,
-        child: InkWell(
-          onTap: () => {model.addKey(_keyValue)},
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.2),
-                width: 0.w,
-              ),
+    return SizedBox(
+      width: 100,
+      height: MediaQuery.of(context).size.height,
+      child: InkWell(
+        onTap: () => {model.addKey(keyValue)},
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
+              width: 0,
             ),
-            child: Center(
-              child: Text(
-                _keyValue,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText1!
-                    .copyWith(fontSize: 30.sp, fontWeight: FontWeight.normal),
-              ),
+          ),
+          child: Center(
+            child: Text(
+              keyValue,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText1!
+                  .copyWith(fontSize: 30, fontWeight: FontWeight.normal),
             ),
           ),
         ),

@@ -55,8 +55,9 @@ class LoginView extends StatelessWidget {
     User? user = FirebaseAuth.instance.currentUser;
 
     String? phone = user?.phoneNumber;
+    if (phone == null) return;
     await ProxyService.api.login(
-      userPhone: phone!,
+      userPhone: phone,
     );
     //then go startup logic
     ProxyService.nav.navigateTo(Routes.initial);

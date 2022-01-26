@@ -75,6 +75,7 @@ class LoginService {
 
       /// login anonymous user so we know this desktop! come online.
       if (auth.currentUser != null) {
+        // log.d(loginData.toMap());
         ProxyService.box.write(key: 'businessId', value: loginData.businessId);
         ProxyService.box.write(key: 'branchId', value: loginData.branchId);
         ProxyService.box.write(key: 'userId', value: loginData.userId);

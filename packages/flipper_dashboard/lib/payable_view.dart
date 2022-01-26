@@ -2,7 +2,7 @@
 import 'package:localize/localize.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class PayableView extends StatelessWidget {
   const PayableView(
@@ -22,7 +22,7 @@ class PayableView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity.w,
+      width: double.infinity,
       color: Theme.of(context).primaryColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -34,8 +34,8 @@ class PayableView extends StatelessWidget {
               },
               child: Container(
                 alignment: Alignment.center,
-                height: 60.h,
-                width: MediaQuery.of(context).size.width.w,
+                height: 60,
+                width: MediaQuery.of(context).size.width,
                 color: Theme.of(context).primaryColor,
                 child: ticketText(
                     tickets: tickets.toInt(), orders: orders, context: context),
@@ -49,7 +49,7 @@ class PayableView extends StatelessWidget {
               },
               child: Container(
                 alignment: Alignment.center,
-                height: 60.h,
+                height: 60,
                 width: MediaQuery.of(context).size.width,
                 color: Theme.of(context).primaryColor,
                 child: GestureDetector(
@@ -77,8 +77,8 @@ class PayableView extends StatelessWidget {
       return Text(
         FLocalization.of(context).tickets,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 19.sp,
+        style: const TextStyle(
+          fontSize: 19,
           fontWeight: FontWeight.w500,
           color: Colors.white,
         ),
@@ -90,8 +90,8 @@ class PayableView extends StatelessWidget {
           Text(
             FLocalization.of(context).save,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 19.sp,
+            style: const TextStyle(
+              fontSize: 19,
               fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
@@ -100,8 +100,8 @@ class PayableView extends StatelessWidget {
             orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 15.sp,
+            style: const TextStyle(
+              fontSize: 15,
               fontWeight: FontWeight.w400,
               color: Colors.white,
             ),
@@ -121,8 +121,8 @@ class PayableView extends StatelessWidget {
     if (payable == 0.0) {
       return Text(
         FLocalization.of(context).charge + ' FRw ' + payable.toString(),
-        style: TextStyle(
-          fontSize: 19.sp,
+        style: const TextStyle(
+          fontSize: 19,
           color: Colors.white,
         ),
       );
@@ -133,21 +133,21 @@ class PayableView extends StatelessWidget {
           Text(
             FLocalization.of(context).charge,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 19.sp,
+            style: const TextStyle(
+              fontSize: 19,
               fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
           ),
           Flexible(
             child: Container(
-              padding: EdgeInsets.only(left: 10.w),
+              padding: const EdgeInsets.only(left: 10),
               child: Text(
                 'FRw' + display(payable).toString(),
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15.sp,
+                style: const TextStyle(
+                  fontSize: 15,
                   fontWeight: FontWeight.w400,
                   color: Colors.white,
                 ),
