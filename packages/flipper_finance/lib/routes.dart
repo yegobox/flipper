@@ -1,0 +1,8 @@
+// Copyright 2019 The Flutter team. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// @dart=2.9
+
+const String loginRoute = '/rally/login';
+const String homeRoute = '/rally';
