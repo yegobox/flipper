@@ -269,6 +269,11 @@ msix_config:
 
 # The following section is specific to Flutter.
 flutter:
+  deferred-components:
+    - name: finance
+      libraries:
+        # Only one library from the loading unit is necessary.
+        - package:flipper_finance/app.dart
   uses-material-design: true
   assets:
     - assets/fliper-logo.png

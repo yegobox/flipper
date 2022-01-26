@@ -22,6 +22,15 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.evaluationDependsOn(':app')
+    /// this below dependencyLocking  copied from google gallery example app
+    dependencyLocking {
+        ignoredDependencies.add('io.flutter:*')
+        lockFile = file("${rootProject.projectDir}/project-${project.name}.lockfile")
+        if (!project.hasProperty('local-engine-repo')) {
+            lockAllConfigurations()
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(':app')

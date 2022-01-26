@@ -245,3 +245,6 @@ class AppSetup {
 // Password: :Love:is:good::
 
 // https://verygood.ventures/blog/configuring-workflows-for-your-flutter-projects?utm_source=twitter&utm_medium=social&utm_campaign=workflows
+// FIXMELaunching lib\main.dart on Android SDK built for x86 in debug mode...
+// lib\main.dart:1
+// Shrinking has been disabled for this build due to deferred components. Shrinking is not available for multi-apk applications. This limitation is expected to be removed when Gradle plugin 4.2+ is available in Flutter.
