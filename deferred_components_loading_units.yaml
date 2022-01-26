@@ -23,6 +23,3 @@
 # deferred imports should be reviewed. Third party plugins and packages may
 # also introduce deferred imports that result in unexpected loading units.
 loading-units:
-  - id: 2
-    libraries:
-      - package:flipper_finance/app.dart
