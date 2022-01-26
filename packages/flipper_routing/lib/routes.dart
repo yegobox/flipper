@@ -40,7 +40,6 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: OmniConversation, name: 'convo', path: '/convo'),
     MaterialRoute(page: OmniContacts, name: 'contacts', path: '/contacts'),
     MaterialRoute(page: SignUpFormView, name: 'signup'),
-    // MaterialRoute(page: Home, name: 'home'),
     MaterialRoute(page: FlipperApp, name: 'home'),
     MaterialRoute(page: LoginView, name: 'login', path: '/login'),
     MaterialRoute(page: AddProductView, name: 'product'),
@@ -177,19 +176,6 @@ class AppSetup {
 // https://stackoverflow.com/questions/32209897/class-illuminate-html-htmlserviceprovider-not-found
 // https://medium.com/@saurabh6790/generate-wildcard-ssl-certificate-using-lets-encrypt-certbot-273e432794d7
 
-// Firebase.initializeApp(
-// options: const FirebaseOptions(
-//   appId: '1:672237316015:web:e289bfb5c92506c1c2715a',
-//   apiKey: 'AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA',
-//   databaseURL: "https://yegobox-2ee43.firebaseio.com",
-//   storageBucket: 'yegobox-2ee43.appspot.com',
-//   messagingSenderId: '672237316015',
-//   projectId: 'yegobox-2ee43',
-//   authDomain: 'auth.flipper.rw',
-//   measurementId: "G-88GKL70K3K",
-// ),
-// );
-
 // whatsapp bot
 // https://www.facebook.com/business/help/456220311516626?id=2129163877102343
 // https://developers.facebook.com/docs/whatsapp/api/account
@@ -233,7 +219,7 @@ class AppSetup {
 // Customer support feature
 // ability to auto record a call: https://pub.dev/packages/record
 
-//TODO firebase performance
+//TODOFirebase performance
 // adb logcat -s FirebasePerformance
 // FiXME: !D/, !I/
 // https://pub.dev/packages/toggle_switch

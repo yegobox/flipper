@@ -67,8 +67,16 @@ class LoginView extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          auth();
-          return const SizedBox.shrink();
+          return FutureBuilder(
+            future: auth(),
+            builder: (context, snapshot) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+          );
         } else {
           return isWindows || isWeb
               ? const Scaffold(
