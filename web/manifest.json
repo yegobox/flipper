@@ -1,6 +1,6 @@
 {
-    "name": "flipper_auth",
-    "short_name": "flipper_auth",
+    "name": "flipper",
+    "short_name": "flipper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
