@@ -14,7 +14,6 @@ import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
-import 'package:flipper_dashboard/connection_failed_view.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -67,7 +66,6 @@ class Routes {
   static const String analytics = '/Analytics';
   static const String qrview = '/scann-view';
   static const String switchBranch = '/switch-branch-view';
-  static const String connectionState = '/connection-failed-view';
   static const String order = '/order-view';
   static const String inappBrowser = '/in-app-browser';
   static const String map = '/map-view';
@@ -97,7 +95,6 @@ class Routes {
     analytics,
     qrview,
     switchBranch,
-    connectionState,
     order,
     inappBrowser,
     map,
@@ -133,7 +130,6 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.analytics, page: Analytics),
     RouteDef(Routes.qrview, page: ScannView),
     RouteDef(Routes.switchBranch, page: SwitchBranchView),
-    RouteDef(Routes.connectionState, page: ConnectionFailedView),
     RouteDef(Routes.order, page: OrderView),
     RouteDef(Routes.inappBrowser, page: InAppBrowser),
     RouteDef(Routes.map, page: MapView),
@@ -358,12 +354,6 @@ class StackedRouter extends RouterBase {
       );
       return MaterialPageRoute<dynamic>(
         builder: (context) => SwitchBranchView(key: args.key),
-        settings: data,
-      );
-    },
-    ConnectionFailedView: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => ConnectionFailedView(),
         settings: data,
       );
     },

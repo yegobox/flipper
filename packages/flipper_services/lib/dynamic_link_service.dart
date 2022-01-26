@@ -20,6 +20,7 @@ class UnSupportedDynamicLink implements DynamicLink {
 class DynamicLinkService implements DynamicLink {
   final log = getLogger('DynamicLinkService');
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
+  @override
   Future handleDynamicLink() async {
     // if the app is opened with the link
     final PendingDynamicLinkData? data =
@@ -53,17 +54,18 @@ class DynamicLinkService implements DynamicLink {
     }
   }
 
+  @override
   Future<String> createDynamicLink() async {
     // get minimum version from firestore to keep up with update
     final userId = ProxyService.box.read(key: 'userId');
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://flipper.page.link',
       link: Uri.parse("https://flipper.yegobox.com/refer?code=$userId"),
-      androidParameters: AndroidParameters(
+      androidParameters: const AndroidParameters(
         packageName: 'rw.flipper',
         minimumVersion: 1,
       ),
-      googleAnalyticsParameters: GoogleAnalyticsParameters(
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
         campaign: 'referral',
         medium: 'social',
         source: 'app',
@@ -79,7 +81,7 @@ class DynamicLinkService implements DynamicLink {
           await dynamicLinks.buildShortLink(parameters);
       log.d(shortLink.shortUrl.toString());
       return shortLink.shortUrl.toString(); //as ShortDynamicLink
-    } catch (PlatformException) {
+    } catch (e) {
       return "https://play.google.com/store/apps/details?id=rw.flipper";
     }
   }

@@ -8,7 +8,6 @@ import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
-import 'package:flipper_dashboard/connection_failed_view.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -59,7 +58,6 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: Analytics, name: 'analytics'),
     MaterialRoute(page: ScannView, name: 'qrview'),
     MaterialRoute(page: SwitchBranchView, name: 'switchBranch'),
-    MaterialRoute(page: ConnectionFailedView, name: 'connectionState'),
     MaterialRoute(page: OrderView, name: 'order'),
     MaterialRoute(
         page: InAppBrowser, name: 'inappBrowser', fullscreenDialog: true),

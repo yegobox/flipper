@@ -4,7 +4,7 @@
 
     <dist:module
         dist:instant="false"
-        dist:title="finance">
+        dist:title="@string/financeName">
         <dist:delivery>
             <dist:on-demand />
         </dist:delivery>
