@@ -272,6 +272,9 @@ class _GateState extends State<Gate> {
       builder: (context, model, child) {
         return OverlaySupport.global(
           child: ScreenUtilInit(
+            designSize: const Size(360, 690),
+            minTextAdapt: true,
+            splitScreenMode: true,
             builder: () => MaterialApp(
               debugShowCheckedModeBanner: false,
               title: 'flipper',
