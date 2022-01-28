@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flutter/material.dart';
 
 class VerticalFractionBar extends StatelessWidget {
-  const VerticalFractionBar({Key key, this.color, this.fraction})
+  const VerticalFractionBar({Key? key, this.color, this.fraction})
       : super(key: key);
 
-  final Color color;
-  final double fraction;
+  final Color? color;
+  final double? fraction;
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +22,13 @@ class VerticalFractionBar extends StatelessWidget {
         child: Column(
           children: [
             SizedBox(
-              height: (1 - fraction) * constraints.maxHeight,
+              height: (1 - fraction!) * constraints.maxHeight,
               child: Container(
                 color: Colors.black,
               ),
             ),
             SizedBox(
-              height: fraction * constraints.maxHeight,
+              height: fraction! * constraints.maxHeight,
               child: Container(color: color),
             ),
           ],

@@ -20,6 +20,7 @@ apply plugin: "com.android.dynamic-feature"
 
 android {
     compileSdkVersion 31
+    // 
 
     sourceSets {
         applicationVariants.all { variant ->
@@ -36,8 +37,10 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        // sourceCompatibility 1.8
+        // targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 

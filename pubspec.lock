@@ -21,7 +21,7 @@ packages:
       name: adaptive_breakpoints
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.5"
+    version: "0.1.1"
   analyzer:
     dependency: transitive
     description:
@@ -875,6 +875,13 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/flipper_dashboard"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_finance:
+    dependency: "direct main"
+    description:
+      path: "packages/flipper_finance"
       relative: true
     source: path
     version: "0.0.1"

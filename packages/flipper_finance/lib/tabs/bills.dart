@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flutter/widgets.dart';
 
@@ -14,7 +14,7 @@ import 'package:flipper_finance/tabs/sidebar.dart';
 
 /// A page that shows a summary of bills.
 class BillsView extends StatefulWidget {
-  const BillsView({Key key}) : super(key: key);
+  const BillsView({Key? key}) : super(key: key);
 
   @override
   _BillsViewState createState() => _BillsViewState();

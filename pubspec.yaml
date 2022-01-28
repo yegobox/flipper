@@ -67,7 +67,7 @@ dependencies:
   # bitsdojo_window:
   observable_ish:
   qr_flutter: ^4.0.0
-  adaptive_breakpoints: ^0.0.4
+  adaptive_breakpoints: ^0.1.0
 
   # TODO: start moving some packages into differed dependencies see gallery for case study!
   # custom packages locally built
@@ -99,6 +99,8 @@ dependencies:
     git:
       url: https://github.com/adarsh-technocrat/flutter-icons
       ref: master
+  flipper_finance:
+    path: "packages/flipper_finance"
   # flutter_datetime_picker
   flutter_datetime_picker: ^1.5.1
   animated_toggle_switch:
@@ -269,11 +271,11 @@ msix_config:
 
 # The following section is specific to Flutter.
 flutter:
-  deferred-components:
-    - name: finance
-      libraries:
-        # Only one library from the loading unit is necessary.
-        - package:flipper_finance/app.dart
+  # deferred-components:
+  #   - name: finance
+  #     libraries:
+  #       # Only one library from the loading unit is necessary.
+  #       - package:flipper_finance/app.dart
   uses-material-design: true
   assets:
     - assets/fliper-logo.png

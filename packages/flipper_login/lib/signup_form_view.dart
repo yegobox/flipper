@@ -1,8 +1,12 @@
+import 'package:flipper/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper/bottom_sheets/link_phone.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
+import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,13 +19,13 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       FieldBlocValidators.required,
       _min4Char,
     ],
-    asyncValidatorDebounceTime: Duration(milliseconds: 300),
+    asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
   final fullName = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,
     ],
-    asyncValidatorDebounceTime: Duration(milliseconds: 300),
+    asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
   TextFieldBloc countryName = TextFieldBloc(
     initialValue: 'Kenya',
@@ -62,14 +66,14 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   void onSubmitting() async {
     try {
       showSimpleNotification(
-        Text("Signup in progress"),
+        const Text("Signup in progress"),
         background: Colors.green,
       );
       // If the form is valid, display a snackbar. In the real world,
       // you'd often call a server or save the information in a database.
-      signupViewModel.setName(name: username.value!);
-      signupViewModel.setFullName(name: fullName.value!);
-      signupViewModel.setCountry(country: countryName.value!);
+      signupViewModel.setName(name: username.value);
+      signupViewModel.setFullName(name: fullName.value);
+      signupViewModel.setCountry(country: countryName.value);
       signupViewModel.signup();
       emitSuccess();
     } catch (e) {
@@ -92,6 +96,16 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
       onModelReady: (model) {
         listenToFormUpdated(model);
         model.registerLocation();
+        SchedulerBinding.instance?.addPostFrameCallback((_) {
+          // if (ProxyService.box.getNeedAccountLinkWithPhone()) {
+          //   bottomSheetBuilderProfile(
+          //     isDismissible: false,
+          //     context: context,
+          //     body: <Widget>[const LinkPhone()],
+          //     header: header(title: 'Link your phone'),
+          //   );
+          // }
+        });
       },
       viewModelBuilder: () => SignupViewModel(),
       builder: (context, model, child) {
@@ -112,7 +126,7 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                     ),
                     child: Column(
                       children: [
-                        Text('Welcome to flipper, please signup.'),
+                        const Text('Welcome to flipper, please signup.'),
                         Padding(
                           padding: const EdgeInsets.only(
                               left: 0.0, right: 0.0, top: 20.0),
@@ -121,7 +135,7 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                             textFieldBloc: formBloc.username,
                             suffixButton: SuffixButton.asyncValidating,
                             keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Username',
                               prefixIcon: Icon(Icons.person),
                             ),
@@ -135,7 +149,7 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                             textFieldBloc: formBloc.fullName,
                             suffixButton: SuffixButton.asyncValidating,
                             keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'First name, Last name',
                               prefixIcon: Icon(Icons.person),
                             ),
@@ -148,13 +162,13 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                             readOnly: true,
                             textFieldBloc: formBloc.countryName,
                             keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'country',
                               border: OutlineInputBorder(),
                             ),
                           ),
                         ),
-                        Text('How do you want to use flipper?'),
+                        const Text('How do you want to use flipper?'),
                         DropdownButton<String>(
                           value: model.businessType,
                           icon: const Icon(Icons.arrow_downward),
@@ -185,9 +199,9 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                                 ),
                               )
                             : Padding(
-                                key: Key('busyButon'),
+                                key: const Key('busyButon'),
                                 padding: EdgeInsets.only(left: 0.w, right: 0.w),
-                                child: SizedBox(
+                                child: const SizedBox(
                                   width: double.infinity,
                                   height: 60,
                                   child: BoxButton(

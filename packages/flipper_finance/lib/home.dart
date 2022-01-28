@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flutter/material.dart';
 // import 'package:flutter_gen/gen_l10n/gallery_localizations.dart';
@@ -20,7 +20,7 @@ const int turnsToRotateRight = 1;
 const int turnsToRotateLeft = 3;
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key key}) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -28,16 +28,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin, RestorationMixin {
-  TabController _tabController;
+  TabController? _tabController;
   RestorableInt tabIndex = RestorableInt(0);
 
   @override
   String get restorationId => 'home_page';
 
   @override
-  void restoreState(RestorationBucket oldBucket, bool initialRestore) {
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(tabIndex, 'tab_index');
-    _tabController.index = tabIndex.value;
+    _tabController!.index = tabIndex.value;
   }
 
   @override
@@ -47,14 +47,14 @@ class _HomePageState extends State<HomePage>
       ..addListener(() {
         // Set state to make sure that the [_RallyTab] widgets get updated when changing tabs.
         setState(() {
-          tabIndex.value = _tabController.index;
+          tabIndex.value = _tabController!.index;
         });
       });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController!.dispose();
     tabIndex.dispose();
     super.dispose();
   }
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage>
     Widget tabBarView;
     if (isDesktop) {
       final isTextDirectionRtl =
-          GalleryOptions.of(context).resolvedTextDirection() ==
+          GalleryOptions.of(context)!.resolvedTextDirection() ==
               TextDirection.rtl;
       final verticalRotation =
           isTextDirectionRtl ? turnsToRotateLeft : turnsToRotateRight;
@@ -174,14 +174,14 @@ class _HomePageState extends State<HomePage>
   }
 
   List<Widget> _buildTabs(
-      {BuildContext context, ThemeData theme, bool isVertical = false}) {
+      {BuildContext? context, required ThemeData theme, bool isVertical = false}) {
     return [
       _RallyTab(
         theme: theme,
         iconData: Icons.pie_chart,
         title: "OVERVIEW",
         tabIndex: 0,
-        tabController: _tabController,
+        tabController: _tabController!,
         isVertical: isVertical,
       ),
       _RallyTab(
@@ -189,7 +189,7 @@ class _HomePageState extends State<HomePage>
         iconData: Icons.attach_money,
         title: "ACCOUNTS",
         tabIndex: 1,
-        tabController: _tabController,
+        tabController: _tabController!,
         isVertical: isVertical,
       ),
       _RallyTab(
@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage>
         iconData: Icons.money_off,
         title: "BILLS",
         tabIndex: 2,
-        tabController: _tabController,
+        tabController: _tabController!,
         isVertical: isVertical,
       ),
       _RallyTab(
@@ -205,7 +205,7 @@ class _HomePageState extends State<HomePage>
         iconData: Icons.table_chart,
         title: "BUDGETS",
         tabIndex: 3,
-        tabController: _tabController,
+        tabController: _tabController!,
         isVertical: isVertical,
       ),
       _RallyTab(
@@ -213,7 +213,7 @@ class _HomePageState extends State<HomePage>
         iconData: Icons.settings,
         title: "SETTINGS",
         tabIndex: 4,
-        tabController: _tabController,
+        tabController: _tabController!,
         isVertical: isVertical,
       ),
     ];
@@ -231,11 +231,11 @@ class _HomePageState extends State<HomePage>
 }
 
 class _RallyTabBar extends StatelessWidget {
-  const _RallyTabBar({Key key, this.tabs, this.tabController})
+  const _RallyTabBar({Key? key, this.tabs, this.tabController})
       : super(key: key);
 
-  final List<Widget> tabs;
-  final TabController tabController;
+  final List<Widget>? tabs;
+  final TabController? tabController;
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +247,7 @@ class _RallyTabBar extends StatelessWidget {
         // flexible sizes and size animations among tabs.
         isScrollable: true,
         labelPadding: EdgeInsets.zero,
-        tabs: tabs,
+        tabs: tabs!,
         controller: tabController,
         // This hides the tab indicator.
         indicatorColor: Colors.transparent,
@@ -258,11 +258,11 @@ class _RallyTabBar extends StatelessWidget {
 
 class _RallyTab extends StatefulWidget {
   _RallyTab({
-    ThemeData theme,
-    IconData iconData,
-    String title,
-    int tabIndex,
-    TabController tabController,
+    required ThemeData theme,
+    IconData? iconData,
+    required String title,
+    int? tabIndex,
+    required TabController tabController,
     this.isVertical,
   })  : titleText = Text(title, style: theme.textTheme.button),
         isExpanded = tabController.index == tabIndex,
@@ -271,7 +271,7 @@ class _RallyTab extends StatefulWidget {
   final Text titleText;
   final Icon icon;
   final bool isExpanded;
-  final bool isVertical;
+  final bool? isVertical;
 
   @override
   _RallyTabState createState() => _RallyTabState();
@@ -279,10 +279,10 @@ class _RallyTab extends StatefulWidget {
 
 class _RallyTabState extends State<_RallyTab>
     with SingleTickerProviderStateMixin {
-  Animation<double> _titleSizeAnimation;
-  Animation<double> _titleFadeAnimation;
-  Animation<double> _iconFadeAnimation;
-  AnimationController _controller;
+  late Animation<double> _titleSizeAnimation;
+  late Animation<double> _titleFadeAnimation;
+  late Animation<double> _iconFadeAnimation;
+  late AnimationController _controller;
 
   @override
   void initState() {
@@ -311,7 +311,7 @@ class _RallyTabState extends State<_RallyTab>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isVertical) {
+    if (widget.isVertical!) {
       return Column(
         children: [
           const SizedBox(height: 18),

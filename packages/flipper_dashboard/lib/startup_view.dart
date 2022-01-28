@@ -7,20 +7,23 @@ import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 
 class StartUpView extends StatelessWidget {
-  const StartUpView({Key? key}) : super(key: key);
-
+  const StartUpView({Key? key, this.invokeLogin}) : super(key: key);
+  final bool? invokeLogin;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<StartUpViewModel>.reactive(
       fireOnModelReadyOnce: true,
       onModelReady: (model) =>
           SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
-        model.runStartupLogic();
+        model.runStartupLogic(invokeLogin: invokeLogin);
       }),
       viewModelBuilder: () => StartUpViewModel(),
       builder: (context, model, child) {
-        // return LoadingWithPercentage();
-        return const CircularProgressIndicator();
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       },
     );
   }

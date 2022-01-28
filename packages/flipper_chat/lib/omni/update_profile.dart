@@ -10,7 +10,7 @@ import 'package:flipper_models/models/models.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class UpdateProfile extends StatefulWidget {
-  UpdateProfile({Key? key}) : super(key: key);
+  const UpdateProfile({Key? key}) : super(key: key);
 
   @override
   _UpdateProfileState createState() => _UpdateProfileState();

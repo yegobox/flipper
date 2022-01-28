@@ -1025,7 +1025,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           map[key] = value;
         });
 
-        Setting Ksetting = Setting(
+        Setting kSetting = Setting(
             email: map['email'],
             hasPin: map['hasPin'],
             defaultLanguage: map['defaultLanguage'],
@@ -1038,7 +1038,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
             autoPrint: map['autoPrint'],
             id: map['id']);
         final box = store.box<Setting>();
-        box.put(Ksetting, mode: PutMode.update);
+        box.put(kSetting, mode: PutMode.update);
         break;
       case 'customer':
         CustomerSync? customer = store.box<CustomerSync>().get(id);
@@ -1106,10 +1106,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(
-        <String, String>{'phoneNumber': userPhone},
+        <String, String>{
+          'phoneNumber': userPhone,
+          // if it is the first time the server will take this time as userId
+          'id': DateTime.now().microsecondsSinceEpoch.toString()
+        },
       ),
     );
-
     if (response.statusCode == 200) {
       ProxyService.box.write(
         key: 'bearerToken',
@@ -1125,8 +1128,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       );
       return syncFromJson(response.body);
     } else {
-      log.e('error');
-      throw Exception('403 Error');
+      throw Exception('HTTP Error ${response.statusCode}');
     }
   }
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'dart:math' as math;
 
@@ -22,20 +22,20 @@ import 'package:flipper_finance/formatters.dart';
 
 class FinancialEntityView extends StatelessWidget {
   const FinancialEntityView({
-    Key key,
+    Key? key,
     this.heroLabel,
     this.heroAmount,
     this.wholeAmount,
-    this.segments,
-    this.financialEntityCards,
+    required this.segments,
+    required this.financialEntityCards,
   })  : assert(segments.length == financialEntityCards.length),
         super(key: key);
 
   /// The amounts to assign each item.
   final List<RallyPieChartSegment> segments;
-  final String heroLabel;
-  final double heroAmount;
-  final double wholeAmount;
+  final String? heroLabel;
+  final double? heroAmount;
+  final double? wholeAmount;
   final List<FinancialEntityCategoryView> financialEntityCards;
 
   @override
@@ -83,20 +83,20 @@ class FinancialEntityView extends StatelessWidget {
 /// A reusable widget to show balance information of a single entity as a card.
 class FinancialEntityCategoryView extends StatelessWidget {
   const FinancialEntityCategoryView({
-    Key key,
-    @required this.indicatorColor,
-    @required this.indicatorFraction,
-    @required this.title,
-    @required this.subtitle,
-    @required this.semanticsLabel,
-    @required this.amount,
-    @required this.suffix,
+    Key? key,
+    required this.indicatorColor,
+    required this.indicatorFraction,
+    required this.title,
+    required this.subtitle,
+    required this.semanticsLabel,
+    required this.amount,
+    required this.suffix,
   }) : super(key: key);
 
   final Color indicatorColor;
   final double indicatorFraction;
-  final String title;
-  final String subtitle;
+  final String? title;
+  final String? subtitle;
   final String semanticsLabel;
   final String amount;
   final Widget suffix;
@@ -150,20 +150,20 @@ class FinancialEntityCategoryView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  title,
-                                  style: textTheme.bodyText2
+                                  title!,
+                                  style: textTheme.bodyText2!
                                       .copyWith(fontSize: 16),
                                 ),
                                 Text(
-                                  subtitle,
-                                  style: textTheme.bodyText2
+                                  subtitle!,
+                                  style: textTheme.bodyText2!
                                       .copyWith(color: RallyColors.gray60),
                                 ),
                               ],
                             ),
                             Text(
                               amount,
-                              style: textTheme.bodyText1.copyWith(
+                              style: textTheme.bodyText1!.copyWith(
                                 fontSize: 20,
                                 color: RallyColors.gray,
                               ),
@@ -219,7 +219,7 @@ FinancialEntityCategoryView buildFinancialEntityFromAccountData(
   BuildContext context,
 ) {
   final amount = usdWithSignFormat(context).format(model.primaryAmount);
-  final shortAccountNumber = model.accountNumber.substring(6);
+  final shortAccountNumber = model.accountNumber!.substring(6);
   return FinancialEntityCategoryView(
     suffix: const Icon(Icons.chevron_right, color: Colors.grey),
     title: model.name,
@@ -266,7 +266,7 @@ FinancialEntityCategoryView buildFinancialEntityFromBudgetData(
   final amountUsed = usdWithSignFormat(context).format(model.amountUsed);
   final primaryAmount = usdWithSignFormat(context).format(model.primaryAmount);
   final amount =
-      usdWithSignFormat(context).format(model.primaryAmount - model.amountUsed);
+      usdWithSignFormat(context).format(model.primaryAmount! - model.amountUsed!);
 
   return FinancialEntityCategoryView(
     suffix: Text("Left"
@@ -287,7 +287,7 @@ FinancialEntityCategoryView buildFinancialEntityFromBudgetData(
     //   amount,
     // ),
     indicatorColor: RallyColors.budgetColor(budgetDataIndex),
-    indicatorFraction: model.amountUsed / model.primaryAmount,
+    indicatorFraction: model.amountUsed! / model.primaryAmount!,
     amount: amount,
   );
 }
@@ -323,7 +323,7 @@ List<FinancialEntityCategoryView> buildBudgetDataListViews(
 }
 
 class FinancialEntityCategoryDetailsPage extends StatelessWidget {
-  FinancialEntityCategoryDetailsPage({Key key}) : super(key: key);
+  FinancialEntityCategoryDetailsPage({Key? key}) : super(key: key);
 
   final List<DetailedEventData> items =
       DummyDataService.getDetailedEventItems();
@@ -339,7 +339,7 @@ class FinancialEntityCategoryDetailsPage extends StatelessWidget {
           centerTitle: true,
           title: Text(
             "Current",
-            style: Theme.of(context).textTheme.bodyText2.copyWith(fontSize: 18),
+            style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 18),
           ),
         ),
         body: Column(
@@ -374,14 +374,14 @@ class FinancialEntityCategoryDetailsPage extends StatelessWidget {
 
 class _DetailedEventCard extends StatelessWidget {
   const _DetailedEventCard({
-    @required this.title,
-    @required this.date,
-    @required this.amount,
+    required this.title,
+    required this.date,
+    required this.amount,
   });
 
-  final String title;
-  final DateTime date;
-  final double amount;
+  final String? title;
+  final DateTime? date;
+  final double? amount;
 
   @override
   Widget build(BuildContext context) {
@@ -442,16 +442,16 @@ class _DetailedEventCard extends StatelessWidget {
 }
 
 class _EventAmount extends StatelessWidget {
-  const _EventAmount({Key key, @required this.amount}) : super(key: key);
+  const _EventAmount({Key? key, required this.amount}) : super(key: key);
 
-  final double amount;
+  final double? amount;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Text(
       usdWithSignFormat(context).format(amount),
-      style: textTheme.bodyText1.copyWith(
+      style: textTheme.bodyText1!.copyWith(
         fontSize: 20,
         color: RallyColors.gray,
       ),
@@ -460,32 +460,32 @@ class _EventAmount extends StatelessWidget {
 }
 
 class _EventDate extends StatelessWidget {
-  const _EventDate({Key key, @required this.date}) : super(key: key);
+  const _EventDate({Key? key, required this.date}) : super(key: key);
 
-  final DateTime date;
+  final DateTime? date;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Text(
-      shortDateFormat(context).format(date),
-      semanticsLabel: longDateFormat(context).format(date),
-      style: textTheme.bodyText2.copyWith(color: RallyColors.gray60),
+      shortDateFormat(context).format(date!),
+      semanticsLabel: longDateFormat(context).format(date!),
+      style: textTheme.bodyText2!.copyWith(color: RallyColors.gray60),
     );
   }
 }
 
 class _EventTitle extends StatelessWidget {
-  const _EventTitle({Key key, @required this.title}) : super(key: key);
+  const _EventTitle({Key? key, required this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Text(
-      title,
-      style: textTheme.bodyText2.copyWith(fontSize: 16),
+      title!,
+      style: textTheme.bodyText2!.copyWith(fontSize: 16),
     );
   }
 }

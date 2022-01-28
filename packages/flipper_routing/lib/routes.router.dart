@@ -41,6 +41,8 @@ import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 
+import 'finance_app.dart';
+
 class Routes {
   static const String initial = '/';
   static const String chat = 'omni';
@@ -70,6 +72,7 @@ class Routes {
   static const String inappBrowser = '/in-app-browser';
   static const String map = '/map-view';
   static const String customers = '/Customers';
+  static const String finance = '/finance-app';
   static const all = <String>{
     initial,
     chat,
@@ -99,6 +102,7 @@ class Routes {
     inappBrowser,
     map,
     customers,
+    finance,
   };
 }
 
@@ -134,6 +138,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.inappBrowser, page: InAppBrowser),
     RouteDef(Routes.map, page: MapView),
     RouteDef(Routes.customers, page: Customers),
+    RouteDef(Routes.finance, page: FinanceApp),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -189,8 +194,11 @@ class StackedRouter extends RouterBase {
       );
     },
     LoginView: (data) {
+      var args = data.getArgs<LoginViewArguments>(
+        orElse: () => LoginViewArguments(),
+      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const LoginView(),
+        builder: (context) => LoginView(key: args.key),
         settings: data,
       );
     },
@@ -395,6 +403,12 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    FinanceApp: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const FinanceApp(),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -421,6 +435,12 @@ class SignUpFormViewArguments {
   final Key? key;
   final String countryNm;
   SignUpFormViewArguments({this.key, required this.countryNm});
+}
+
+/// LoginView arguments holder class
+class LoginViewArguments {
+  final Key? key;
+  LoginViewArguments({this.key});
 }
 
 /// AddProductView arguments holder class

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flutter/widgets.dart';
 
@@ -13,7 +13,7 @@ import 'package:flipper_finance/finance.dart';
 import 'package:flipper_finance/tabs/sidebar.dart';
 
 class BudgetsView extends StatefulWidget {
-  const BudgetsView({Key key}) : super(key: key);
+  const BudgetsView({Key? key}) : super(key: key);
 
   @override
   _BudgetsViewState createState() => _BudgetsViewState();

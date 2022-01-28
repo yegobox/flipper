@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flipper/bottom_sheets/update_profile.dart';
+import 'package:flipper/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_chat/omni/omni_conversations.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';

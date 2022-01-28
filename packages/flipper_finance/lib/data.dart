@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flutter/material.dart';
 
@@ -34,10 +34,10 @@ double sumBudgetDataAmountUsed(List<BudgetData> items) =>
     sumOf<BudgetData>(items, (item) => item.amountUsed);
 
 /// Utility function to sum up values in a list.
-double sumOf<T>(List<T> list, double Function(T elt) getValue) {
+double sumOf<T>(List<T> list, double? Function(T elt) getValue) {
   var sum = 0.0;
   for (var elt in list) {
-    sum += getValue(elt);
+    sum += getValue(elt)!;
   }
   return sum;
 }
@@ -49,13 +49,13 @@ class AccountData {
   const AccountData({this.name, this.primaryAmount, this.accountNumber});
 
   /// The display name of this entity.
-  final String name;
+  final String? name;
 
   /// The primary amount or value of this entity.
-  final double primaryAmount;
+  final double? primaryAmount;
 
   /// The full displayable account number.
-  final String accountNumber;
+  final String? accountNumber;
 }
 
 /// A data model for a bill.
@@ -70,13 +70,13 @@ class BillData {
   });
 
   /// The display name of this entity.
-  final String name;
+  final String? name;
 
   /// The primary amount or value of this entity.
-  final double primaryAmount;
+  final double? primaryAmount;
 
   /// The due date of this bill.
-  final String dueDate;
+  final String? dueDate;
 
   /// If this bill has been paid.
   final bool isPaid;
@@ -89,13 +89,13 @@ class BudgetData {
   const BudgetData({this.name, this.primaryAmount, this.amountUsed});
 
   /// The display name of this entity.
-  final String name;
+  final String? name;
 
   /// The primary amount or value of this entity.
-  final double primaryAmount;
+  final double? primaryAmount;
 
   /// Amount of the budget that is consumed or used.
-  final double amountUsed;
+  final double? amountUsed;
 }
 
 /// A data model for an alert.
@@ -103,10 +103,10 @@ class AlertData {
   AlertData({this.message, this.iconData});
 
   /// The alert message to display.
-  final String message;
+  final String? message;
 
   /// The icon to display with the alert.
-  final IconData iconData;
+  final IconData? iconData;
 }
 
 class DetailedEventData {
@@ -116,9 +116,9 @@ class DetailedEventData {
     this.amount,
   });
 
-  final String title;
-  final DateTime date;
-  final double amount;
+  final String? title;
+  final DateTime? date;
+  final double? amount;
 }
 
 /// A data model for data displayed to the user.
@@ -126,10 +126,10 @@ class UserDetailData {
   UserDetailData({this.title, this.value});
 
   /// The display name of this entity.
-  final String title;
+  final String? title;
 
   /// The value of this entity.
-  final String value;
+  final String? value;
 }
 
 /// Class to return dummy data lists.
@@ -263,7 +263,7 @@ class DummyDataService {
   }
 
   static List<UserDetailData> getBillDetailList(BuildContext context,
-      {double dueTotal, double paidTotal}) {
+      {required double dueTotal, required double paidTotal}) {
     return <UserDetailData>[
       UserDetailData(
         title: "Total amount",
@@ -306,7 +306,7 @@ class DummyDataService {
   }
 
   static List<UserDetailData> getBudgetDetailList(BuildContext context,
-      {double capTotal, double usedTotal}) {
+      {required double capTotal, required double usedTotal}) {
     return <UserDetailData>[
       UserDetailData(
         title: "Total cap",

@@ -29,13 +29,15 @@ class RemoteConfigService implements Remote {
       'isAInvitingMembersAvailable': false,
       'isSyncAvailable': false,
       'isChatAvailable': false,
+      'isGoogleLoginAvailable': true,
     });
   }
 
+  @override
   void fetch() async {
     await remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: Duration(seconds: 10),
-      minimumFetchInterval: Duration(minutes: 10),
+      fetchTimeout: const Duration(seconds: 10),
+      minimumFetchInterval: const Duration(minutes: 10),
     ));
     await remoteConfig.fetchAndActivate();
   }
@@ -171,6 +173,14 @@ class RemoteConfigService implements Remote {
     }
     return remoteConfig.getBool('isSyncAvailable');
   }
+
+  @override
+  bool isGoogleLoginAvailable() {
+    if (kDebugMode) {
+      return true;
+    }
+    return remoteConfig.getBool('isGoogleLoginAvailable');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -282,6 +292,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isSyncAvailable() {
+    return false;
+  }
+
+  @override
+  bool isGoogleLoginAvailable() {
     return false;
   }
 }

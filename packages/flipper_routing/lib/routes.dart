@@ -27,6 +27,8 @@ import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_map/flipper_map.dart';
+import 'package:flipper_routing/finance_app.dart';
+
 import 'package:stacked/stacked_annotations.dart';
 import 'package:flipper_login/login.dart';
 
@@ -63,6 +65,7 @@ import 'package:stacked_services/stacked_services.dart';
         page: InAppBrowser, name: 'inappBrowser', fullscreenDialog: true),
     MaterialRoute(page: MapView, name: 'map'),
     MaterialRoute(page: Customers, name: 'customers'),
+    MaterialRoute(page: FinanceApp, name: 'finance'),
   ],
   dependencies: [
     LazySingleton(classType: NavigationService),

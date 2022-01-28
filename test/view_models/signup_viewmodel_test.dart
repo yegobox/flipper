@@ -1,14 +1,11 @@
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'dart:math';
 
 import '../helpers/test_helpers.dart';
 
 SignupViewModel _getModel() => SignupViewModel();
-const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+// const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
 
 void main() {
   group('signup viewmodel ...', () {

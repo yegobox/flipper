@@ -22,7 +22,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 class AddProductView extends StatefulWidget {
-  AddProductView({Key? key, this.productId}) : super(key: key);
+  const AddProductView({Key? key, this.productId}) : super(key: key);
   final int? productId;
 
   @override

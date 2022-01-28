@@ -20,4 +20,5 @@ abstract class Remote {
   bool isMapAvailable();
   bool isAInvitingMembersAvailable();
   bool isSyncAvailable();
+  bool isGoogleLoginAvailable();
 }

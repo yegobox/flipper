@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -19,7 +20,11 @@ class StartUpViewModel extends BaseViewModel {
   bool isBusinessSet = false;
   final log = getLogger('StartUpViewModel');
 
-  Future<void> runStartupLogic() async {
+  Future<void> runStartupLogic({bool? invokeLogin}) async {
+    if (!appService.isLoggedIn()) {
+      await login(invokeLogin);
+    }
+
     // ProxyService.api.logOut();
     // fake login
     // ProxyService.box.write(key: 'userId', value: "300");
@@ -100,6 +105,21 @@ class StartUpViewModel extends BaseViewModel {
       }
     } else {
       _navigationService.replaceWith(Routes.login);
+    }
+  }
+
+  Future<void> login(bool? invokeLogin) async {
+    if (invokeLogin != null && invokeLogin == true) {
+      User? user = FirebaseAuth.instance.currentUser;
+
+      String? phone = user?.phoneNumber;
+      if (phone == null && user?.email != null) {
+        ProxyService.box.write(key: 'needLinkPhoneNumber', value: true);
+        phone = user?.email;
+      }
+      await ProxyService.api.login(
+        userPhone: phone!,
+      );
     }
   }
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'dart:math' as math;
 
@@ -19,8 +19,8 @@ import 'package:flipper_finance/formatters.dart';
 class RallyPieChartSegment {
   const RallyPieChartSegment({this.color, this.value});
 
-  final Color color;
-  final double value;
+  final Color? color;
+  final double? value;
 }
 
 /// The max height and width of the [RallyPieChart].
@@ -58,7 +58,7 @@ List<RallyPieChartSegment> buildSegmentsFromBudgetItems(
     (i) {
       return RallyPieChartSegment(
         color: RallyColors.budgetColor(i),
-        value: items[i].primaryAmount - items[i].amountUsed,
+        value: items[i].primaryAmount! - items[i].amountUsed!,
       );
     },
   );
@@ -68,17 +68,17 @@ List<RallyPieChartSegment> buildSegmentsFromBudgetItems(
 /// have empty space.
 class RallyPieChart extends StatefulWidget {
   const RallyPieChart({
-    Key key,
+    Key? key,
     this.heroLabel,
     this.heroAmount,
     this.wholeAmount,
     this.segments,
   }) : super(key: key);
 
-  final String heroLabel;
-  final double heroAmount;
-  final double wholeAmount;
-  final List<RallyPieChartSegment> segments;
+  final String? heroLabel;
+  final double? heroAmount;
+  final double? wholeAmount;
+  final List<RallyPieChartSegment>? segments;
 
   @override
   _RallyPieChartState createState() => _RallyPieChartState();
@@ -86,8 +86,8 @@ class RallyPieChart extends StatefulWidget {
 
 class _RallyPieChartState extends State<RallyPieChart>
     with SingleTickerProviderStateMixin {
-  AnimationController controller;
-  Animation<double> animation;
+  late AnimationController controller;
+  late Animation<double> animation;
 
   @override
   void initState() {
@@ -133,8 +133,8 @@ class _RallyPieChartState extends State<RallyPieChart>
 
 class _AnimatedRallyPieChart extends AnimatedWidget {
   const _AnimatedRallyPieChart({
-    Key key,
-    this.animation,
+    Key? key,
+    required this.animation,
     this.centerLabel,
     this.centerAmount,
     this.total,
@@ -142,15 +142,15 @@ class _AnimatedRallyPieChart extends AnimatedWidget {
   }) : super(key: key, listenable: animation);
 
   final Animation<double> animation;
-  final String centerLabel;
-  final double centerAmount;
-  final double total;
-  final List<RallyPieChartSegment> segments;
+  final String? centerLabel;
+  final double? centerAmount;
+  final double? total;
+  final List<RallyPieChartSegment>? segments;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final labelTextStyle = textTheme.bodyText2.copyWith(
+    final labelTextStyle = textTheme.bodyText2!.copyWith(
       fontSize: 14,
       letterSpacing: letterSpacingOrNone(0.5),
     );
@@ -158,13 +158,13 @@ class _AnimatedRallyPieChart extends AnimatedWidget {
     return LayoutBuilder(builder: (context, constraints) {
       // When the widget is larger, we increase the font size.
       var headlineStyle = constraints.maxHeight >= pieChartMaxSize
-          ? textTheme.headline5.copyWith(fontSize: 70)
+          ? textTheme.headline5!.copyWith(fontSize: 70)
           : textTheme.headline5;
 
       // With a large text scale factor, we set a max font size.
-      if (GalleryOptions.of(context).textScaleFactor(context) > 1.0) {
-        headlineStyle = headlineStyle.copyWith(
-          fontSize: (headlineStyle.fontSize / reducedTextScale(context)),
+      if (GalleryOptions.of(context)!.textScaleFactor(context)! > 1.0) {
+        headlineStyle = headlineStyle!.copyWith(
+          fontSize: (headlineStyle.fontSize! / reducedTextScale(context)),
         );
       }
 
@@ -181,7 +181,7 @@ class _AnimatedRallyPieChart extends AnimatedWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                centerLabel,
+                centerLabel!,
                 style: labelTextStyle,
               ),
               SelectableText(
@@ -200,12 +200,12 @@ class _RallyPieChartOutlineDecoration extends Decoration {
   const _RallyPieChartOutlineDecoration(
       {this.maxFraction, this.total, this.segments});
 
-  final double maxFraction;
-  final double total;
-  final List<RallyPieChartSegment> segments;
+  final double? maxFraction;
+  final double? total;
+  final List<RallyPieChartSegment>? segments;
 
   @override
-  BoxPainter createBoxPainter([VoidCallback onChanged]) {
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) {
     return _RallyPieChartOutlineBoxPainter(
       maxFraction: maxFraction,
       wholeAmount: total,
@@ -218,9 +218,9 @@ class _RallyPieChartOutlineBoxPainter extends BoxPainter {
   _RallyPieChartOutlineBoxPainter(
       {this.maxFraction, this.wholeAmount, this.segments});
 
-  final double maxFraction;
-  final double wholeAmount;
-  final List<RallyPieChartSegment> segments;
+  final double? maxFraction;
+  final double? wholeAmount;
+  final List<RallyPieChartSegment>? segments;
   static const double wholeRadians = 2 * math.pi;
   static const double spaceRadians = wholeRadians / 180;
 
@@ -230,37 +230,37 @@ class _RallyPieChartOutlineBoxPainter extends BoxPainter {
     // inner bg arc.
     const strokeWidth = 4.0;
     final outerRadius = math.min(
-          configuration.size.width,
-          configuration.size.height,
+          configuration.size!.width,
+          configuration.size!.height,
         ) /
         2;
     final outerRect = Rect.fromCircle(
-      center: configuration.size.center(offset),
+      center: configuration.size!.center(offset),
       radius: outerRadius - strokeWidth * 3,
     );
     final innerRect = Rect.fromCircle(
-      center: configuration.size.center(offset),
+      center: configuration.size!.center(offset),
       radius: outerRadius - strokeWidth * 4,
     );
 
     // Paint each arc with spacing.
     var cumulativeSpace = 0.0;
     var cumulativeTotal = 0.0;
-    for (final segment in segments) {
-      final paint = Paint()..color = segment.color;
+    for (final segment in segments!) {
+      final paint = Paint()..color = segment.color!;
       final startAngle = _calculateStartAngle(cumulativeTotal, cumulativeSpace);
-      final sweepAngle = _calculateSweepAngle(segment.value, 0);
+      final sweepAngle = _calculateSweepAngle(segment.value!, 0);
       canvas.drawArc(outerRect, startAngle, sweepAngle, true, paint);
-      cumulativeTotal += segment.value;
+      cumulativeTotal += segment.value!;
       cumulativeSpace += spaceRadians;
     }
 
     // Paint any remaining space black (e.g. budget amount remaining).
-    final remaining = wholeAmount - cumulativeTotal;
+    final remaining = wholeAmount! - cumulativeTotal;
     if (remaining > 0) {
       final paint = Paint()..color = Colors.black;
       final startAngle =
-          _calculateStartAngle(cumulativeTotal, spaceRadians * segments.length);
+          _calculateStartAngle(cumulativeTotal, spaceRadians * segments!.length);
       final sweepAngle = _calculateSweepAngle(remaining, -spaceRadians);
       canvas.drawArc(outerRect, startAngle, sweepAngle, true, paint);
     }
@@ -273,9 +273,9 @@ class _RallyPieChartOutlineBoxPainter extends BoxPainter {
 
   double _calculateAngle(double amount, double offset) {
     final wholeMinusSpacesRadians =
-        wholeRadians - (segments.length * spaceRadians);
-    return maxFraction *
-        (amount / wholeAmount * wholeMinusSpacesRadians + offset);
+        wholeRadians - (segments!.length * spaceRadians);
+    return maxFraction! *
+        (amount / wholeAmount! * wholeMinusSpacesRadians + offset);
   }
 
   double _calculateStartAngle(double total, double offset) =>

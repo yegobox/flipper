@@ -3,12 +3,11 @@ import 'package:flipper_login/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flutterfire_ui/i10n.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_dashboard/startup_view.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_dashboard/startup_view.dart';
+import 'package:flipper_routing/routes.logger.dart';
 import 'package:universal_platform/universal_platform.dart';
-
 import 'desktop_login_view.dart';
 
 final isWindows = UniversalPlatform.isWindows;
@@ -50,18 +49,9 @@ final providerConfigs = [
 ];
 
 class LoginView extends StatelessWidget {
-  const LoginView({Key? key}) : super(key: key);
-  Future<void> auth() async {
-    User? user = FirebaseAuth.instance.currentUser;
+  final log = getLogger('LoginView');
 
-    String? phone = user?.phoneNumber;
-    if (phone == null) return;
-    await ProxyService.api.login(
-      userPhone: phone,
-    );
-    //then go startup logic
-    ProxyService.nav.navigateTo(Routes.initial);
-  }
+  LoginView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -69,18 +59,11 @@ class LoginView extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return FutureBuilder(
-            future: auth(),
-            builder: (context, snapshot) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            },
+          return const StartUpView(
+            invokeLogin: true,
           );
         } else {
-          return isWindows || isWeb
+          return isWindows
               ? const Scaffold(
                   body: SingleChildScrollView(child: DesktopLoginView()))
               : Scaffold(
@@ -128,10 +111,18 @@ class LoginView extends StatelessWidget {
   }
 
   List<ProviderConfiguration> providers() {
-    return const [
-      PhoneProviderConfiguration(),
-      // EmailProviderConfiguration(),
-      // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
-    ];
+    if (ProxyService.remoteConfig.isGoogleLoginAvailable()) {
+      return const [
+        PhoneProviderConfiguration(),
+        // EmailProviderConfiguration(),
+        GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
+      ];
+    } else {
+      return const [
+        PhoneProviderConfiguration(),
+        // EmailProviderConfiguration(),
+        // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
+      ];
+    }
   }
 }

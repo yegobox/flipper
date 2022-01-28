@@ -1,4 +1,5 @@
-include ':app', ':finance'
+// include ':app', ':finance'
+include ':app'
 
 enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')
 

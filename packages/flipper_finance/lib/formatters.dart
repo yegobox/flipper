@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flutter/material.dart';
 // import 'package:gallery/data/gallery_options.dart';
@@ -12,7 +12,7 @@ import 'gallery_options.dart';
 
 /// Get the locale string for the context.
 String locale(BuildContext context) =>
-    GalleryOptions.of(context).locale.toString();
+    GalleryOptions.of(context)!.locale.toString();
 
 /// Currency formatter for USD.
 NumberFormat usdWithSignFormat(BuildContext context, {int decimalDigits = 2}) {

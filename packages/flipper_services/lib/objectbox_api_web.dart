@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/mobile_upload.dart';
-
+import 'package:flipper_services/proxy.dart';
+import 'package:http/http.dart' as http;
 import 'abstractions/api.dart';
 
 class ObjectBoxApi extends MobileUpload implements Api {
+  String apihub = "https://apihub.yegobox.com";
   @override
   CustomerSync? addCustomer({required Map customer, required int orderId}) {
     // TODO: implement addCustomer
@@ -39,9 +43,35 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<SyncF> login({required String userPhone}) {
-    // TODO: implement authenticateWithOfflineDb
-    throw UnimplementedError();
+  Future<SyncF> login({required String userPhone}) async {
+    final response = await http.post(
+      Uri.parse(apihub + '/v2/api/user'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(
+        <String, String>{'phoneNumber': userPhone},
+      ),
+    );
+    log.d(response.body);
+    if (response.statusCode == 200) {
+      ProxyService.box.write(
+        key: 'bearerToken',
+        value: syncFromJson(response.body).token,
+      );
+      ProxyService.box.write(
+        key: 'userId',
+        value: syncFromJson(response.body).id.toString(),
+      );
+      ProxyService.box.write(
+        key: 'userPhone',
+        value: userPhone,
+      );
+      return syncFromJson(response.body);
+    } else {
+      log.e('error');
+      throw Exception('403 Error');
+    }
   }
 
   @override

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
+
 
 import 'package:flipper_finance/gallery_options.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ import 'package:flipper_finance/formatters.dart';
 import 'package:intl/intl.dart' as intl;
 
 class RallyLineChart extends StatelessWidget {
-  const RallyLineChart({Key key, this.events = const <DetailedEventData>[]})
+  const RallyLineChart({Key? key, this.events = const <DetailedEventData>[]})
       : assert(events != null),
         super(key: key);
 
@@ -31,7 +31,7 @@ class RallyLineChart extends StatelessWidget {
         numberFormat: usdWithSignFormat(context),
         events: events,
         labelStyle: Theme.of(context).textTheme.bodyText2,
-        textDirection: GalleryOptions.of(context).resolvedTextDirection(),
+        textDirection: GalleryOptions.of(context)!.resolvedTextDirection(),
         textScaleFactor: reducedTextScale(context),
         padding: isDisplayDesktop(context)
             ? const EdgeInsets.symmetric(vertical: 22)
@@ -43,20 +43,20 @@ class RallyLineChart extends StatelessWidget {
 
 class RallyLineChartPainter extends CustomPainter {
   RallyLineChartPainter({
-    @required this.dateFormat,
-    @required this.numberFormat,
-    @required this.events,
-    @required this.labelStyle,
-    @required this.textDirection,
-    @required this.textScaleFactor,
-    @required this.padding,
+    required this.dateFormat,
+    required this.numberFormat,
+    required this.events,
+    required this.labelStyle,
+    required this.textDirection,
+    required this.textScaleFactor,
+    required this.padding,
   });
 
   // The style for the labels.
-  final TextStyle labelStyle;
+  final TextStyle? labelStyle;
 
   // The text direction for the text.
-  final TextDirection textDirection;
+  final TextDirection? textDirection;
 
   // The text scale factor for the text.
   final double textScaleFactor;
@@ -178,8 +178,8 @@ class RallyLineChartPainter extends CustomPainter {
       final endMillis = startMillis + millisInDay * 1;
       final filteredEvents = events.where(
         (e) {
-          return startMillis <= e.date.millisecondsSinceEpoch &&
-              e.date.millisecondsSinceEpoch < endMillis;
+          return startMillis <= e.date!.millisecondsSinceEpoch &&
+              e.date!.millisecondsSinceEpoch < endMillis;
         },
       ).toList();
       lastAmount += sumOf<DetailedEventData>(filteredEvents, (e) => e.amount);
@@ -245,14 +245,14 @@ class RallyLineChartPainter extends CustomPainter {
 
   /// Set X-axis labels under the X-axis increment markers.
   void _drawXAxisLabels(Canvas canvas, Rect rect) {
-    final selectedLabelStyle = labelStyle.copyWith(
+    final selectedLabelStyle = labelStyle!.copyWith(
       fontWeight: FontWeight.w700,
-      fontSize: labelStyle.fontSize * textScaleFactor,
+      fontSize: labelStyle!.fontSize! * textScaleFactor,
     );
-    final unselectedLabelStyle = labelStyle.copyWith(
+    final unselectedLabelStyle = labelStyle!.copyWith(
       fontWeight: FontWeight.w700,
       color: RallyColors.gray25,
-      fontSize: labelStyle.fontSize * textScaleFactor,
+      fontSize: labelStyle!.fontSize! * textScaleFactor,
     );
 
     // We use toUpperCase to format the dates. This function uses the language

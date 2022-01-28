@@ -26,17 +26,17 @@ class SignupViewModel extends FormViewModel {
   String? latitude = '1';
 
   String? kName;
-  void setName({required String name}) {
+  void setName({String? name}) {
     kName = name;
   }
 
   String? kFullName;
-  void setFullName({required String name}) {
+  void setFullName({String? name}) {
     kFullName = name;
   }
 
   String? kCountry;
-  void setCountry({required String country}) {
+  void setCountry({String? country}) {
     kCountry = country;
   }
 
