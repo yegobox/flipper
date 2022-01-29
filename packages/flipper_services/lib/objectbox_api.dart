@@ -55,6 +55,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   late DioClient dioClient;
   // String apihub = "https://turbo.yegobox.com";
   String apihub = "https://apihub.yegobox.com";
+  // ignore: annotate_overrides, overridden_fields
   final log = getLogger('ObjectBoxAPi');
   // late
   static getDir({required String dbName}) async {
@@ -62,8 +63,19 @@ class ObjectBoxApi extends MobileUpload implements Api {
     // final log = getLogger('ObjectBoxAPi');
     // log.i('Path' + dir.path + '/$dbName');
     store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
+    ProxyService.api.migrateToSync();
+    if (!Platform.isWindows) {
+      // this is to say that we are on a device mobile then where all subs are activated
+      if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
+        sync();
+      }
+    } else {
+      // on desktop sync should be activated by default.
+      sync();
+    }
+  }
 
-    // if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
+  static void sync() {
     SyncClient syncClient = Sync.client(
       store,
       'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic
@@ -80,9 +92,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
     syncClient.loginEvents.listen((event) {
       if (event == SyncLoginEvent.loggedIn) print('Logged in successfully');
     });
-
-    ProxyService.api.migrateToSync();
-    // }
   }
 
   ///FIXMEsocket has some issue now so stoping it now
@@ -1128,7 +1137,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       );
       return syncFromJson(response.body);
     } else {
-      throw Exception('HTTP Error ${response.statusCode}');
+      throw InternalServerError(term: 'HTTP Error ${response.statusCode}');
     }
   }
 
@@ -1678,7 +1687,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final response =
         await client.get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
     List<BusinessSync> businesses = [];
-    if (response.statusCode != 200) {
+    if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     }
     final box = store.box<BusinessSync>();

@@ -13,3 +13,11 @@ class SessionException implements Exception {
 
   SessionException({required this.term});
 }
+
+class InternalServerError implements Exception {
+  String term;
+
+  String errMsg() => 'SessionException: $term';
+
+  InternalServerError({required this.term});
+}
