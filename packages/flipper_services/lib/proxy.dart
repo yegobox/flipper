@@ -12,7 +12,6 @@ import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/firestore_api.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
-// import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/login_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';

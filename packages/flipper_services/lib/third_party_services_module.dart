@@ -1,5 +1,3 @@
-// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-// import 'dart:typed_data';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -12,9 +10,7 @@ import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/login_service.dart';
-// import 'package:flipper_services/login_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
-// import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/analytic_service.dart';
 import 'package:flipper_services/remote_config_service.dart';
@@ -23,12 +19,9 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
-// import 'package:flutter_luban/flutter_luban.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/models.dart';
-// import 'LiteApi.dart';
-// import 'package:file_picker/file_picker.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -45,19 +38,9 @@ import 'local_notification_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-// import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
-
-// import 'package:flipper_models/models/models.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
-// UniversalPlatform.platform;
-
-enum ApiProvider {
-  Fake,
-  Rest,
-  Lite,
-}
 final String platform = (!isWindows) ? 'mobile' : 'windows';
 
 @module

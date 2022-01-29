@@ -14,27 +14,27 @@ on:
     # - 'v*'
 
 jobs:
-  # testing:
-  #   name: Unit Testing
-  #   # needs: [integrationTest]
-  #   runs-on: windows-latest
-  # steps:
-  #   - uses: actions/checkout@v1
-  #   - uses: actions/setup-java@v1
-  #     with:
-  #       java-version: "8.x"
-  #   - uses: subosito/flutter-action@master
-  #     with:
-  #       # flutter-version: '1.22.3'
-  #       channel: "stable"
-  #   # pause test on server for now
-  #   - run: git submodule update --init
-  #   - run: flutter pub get
-  #   # - run: ./install.sh
-  #   - run: flutter test
+  testing:
+    name: Unit Testing
+    # needs: [integrationTest]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "8.x"
+      - uses: subosito/flutter-action@master
+        with:
+          # flutter-version: '1.22.3'
+          channel: "stable"
+      # pause test on server for now
+      - run: git submodule update --init
+      - run: flutter pub get
+      # - run: ./install.sh
+      - run: flutter test
   fastlane-deploy:
     name: "Google Deploy"
-    # needs: [testing]
+    needs: [testing]
     runs-on: ubuntu-18.04
     steps:
       # Set up Flutter.
