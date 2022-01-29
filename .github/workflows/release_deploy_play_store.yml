@@ -62,7 +62,7 @@ jobs:
           working-directory: android
       - name: Google Service JSON
         run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          cat "$GOOGLE_SERVICE_JSON" > app/google-services.json
       - name: Configure Keystore
         run: |
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks

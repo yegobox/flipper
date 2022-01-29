@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       # Set up Flutter.
-      - name: Clone Flutter repository with master channel
+      - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@master
         with:
           channel: stable
