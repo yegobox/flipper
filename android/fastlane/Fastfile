@@ -16,7 +16,7 @@
 default_platform(:android)
 
 platform :android do
-  # FIXMEthis when I get time.
+  # FIXMEthis when I get time. https://github.com/tianhaoz95/fastlane-plugin-flutter_version/issues/71
   # desc "Runs all the tests"
   # lane :test do
   #   gradle(task: "test")
@@ -26,7 +26,7 @@ platform :android do
   lane :beta do
     sh "flutter build appbundle"
     upload_to_play_store(
-      track: 'internal',
+      track: 'android test',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       )
