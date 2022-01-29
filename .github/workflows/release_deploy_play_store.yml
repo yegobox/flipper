@@ -62,8 +62,7 @@ jobs:
           working-directory: android
       - name: Configure Keystore
         run: |
-          touch app/google-services.json
-          cat "$GOOGLE_SERVICE_JSON" >> app/google-services.json
+          cat "$GOOGLE_SERVICE_JSON" 
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
           echo "storeFile=key.jks" >> key.properties
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
