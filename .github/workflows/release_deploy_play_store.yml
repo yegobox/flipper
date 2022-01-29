@@ -62,6 +62,7 @@ jobs:
           working-directory: android
       - name: Google Service JSON
         run: |
+          touch app/google-services.json
           cat "$GOOGLE_SERVICE_JSON" > app/google-services.json
       - name: Configure Keystore
         run: |
