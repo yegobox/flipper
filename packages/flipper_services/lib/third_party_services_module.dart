@@ -1,8 +1,6 @@
 // import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 // import 'dart:typed_data';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/sync.dart';
@@ -18,7 +16,6 @@ import 'package:flipper_services/login_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 // import 'package:flipper_services/pdf_api.dart';
 import 'package:flipper_services/product_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytic_service.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
@@ -26,19 +23,15 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/share_implementation.dart';
 import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 // import 'package:flutter_luban/flutter_luban.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_routing/routes.router.dart';
 // import 'LiteApi.dart';
 // import 'package:file_picker/file_picker.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
-import 'abstractions/platform.dart';
 import 'abstractions/remote.dart';
 import 'abstractions/share.dart';
 import 'abstractions/storage.dart';
@@ -334,4 +327,3 @@ class WindowsLocationService implements FlipperLocation {
     return false; //so we can return default.
   }
 }
-

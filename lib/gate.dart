@@ -419,10 +419,6 @@ class _GateState extends State<Gate> {
               locale: model.languageService
                   .locale, //french == rwanda language in our app
               themeMode: model.settingService.themeMode.value,
-              localeResolutionCallback: (locale, supportedLocales) {
-                // deviceLocale = locale!;
-                return const Locale('en');
-              },
               navigatorKey: StackedService.navigatorKey,
               onGenerateRoute: StackedRouter().onGenerateRoute,
             ),

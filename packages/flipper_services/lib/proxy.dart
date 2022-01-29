@@ -1,6 +1,5 @@
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
-import 'package:flipper_services/abstractions/platform.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/abstractions/sync.dart';
@@ -46,7 +45,7 @@ final AnalyticService _analytic = locator<AnalyticService>();
 final ProductService _productService = locator<ProductService>();
 final KeyPadService _keypad = locator<KeyPadService>();
 final LanguageService _locale = locator<LanguageService>();
-// LanguageService
+// RemoteService
 final Remote _remoteConfig = locator<Remote>();
 final Country _country = locator<Country>();
 final SettingsService _settings = locator<SettingsService>();

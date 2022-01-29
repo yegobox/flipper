@@ -32,7 +32,7 @@ jobs:
         run: git submodule update --init
       - run: flutter pub get
 
-      - run: flutter build -v web --release
+      - run: flutter build  web --release
 
       - run: firebase deploy --only hosting
         env:
