@@ -661,8 +661,8 @@ class MockRemote extends _i1.Mock implements _i33.Remote {
       (super.noSuchMethod(Invocation.method(#isSubmitDeviceTokenEnabled, []),
           returnValue: false) as bool);
   @override
-  bool scann_selling() =>
-      (super.noSuchMethod(Invocation.method(#scann_selling, []),
+  bool scannSelling() =>
+      (super.noSuchMethod(Invocation.method(#scannSelling, []),
           returnValue: false) as bool);
   @override
   void config() => super.noSuchMethod(Invocation.method(#config, []),
@@ -702,6 +702,10 @@ class MockRemote extends _i1.Mock implements _i33.Remote {
   @override
   bool isSyncAvailable() =>
       (super.noSuchMethod(Invocation.method(#isSyncAvailable, []),
+          returnValue: false) as bool);
+  @override
+  bool isGoogleLoginAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isGoogleLoginAvailable, []),
           returnValue: false) as bool);
 }
 
@@ -1124,6 +1128,10 @@ class MockLocalStorage extends _i1.Mock implements _i40.LocalStorage {
   bool write({String? key, dynamic value}) => (super.noSuchMethod(
       Invocation.method(#write, [], {#key: key, #value: value}),
       returnValue: false) as bool);
+  @override
+  bool getNeedAccountLinkWithPhone() =>
+      (super.noSuchMethod(Invocation.method(#getNeedAccountLinkWithPhone, []),
+          returnValue: false) as bool);
 }
 
 /// A class which mocks [AppService].
