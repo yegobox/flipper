@@ -36,11 +36,9 @@ import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_map/flipper_map.dart';
 import 'package:flipper_map/subcategory.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked/stacked_annotations.dart';
 
 import 'finance_app.dart';
 
