@@ -16,7 +16,7 @@ jobs:
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@master
         with:
-          channel: master
+          channel: stable
       - run: flutter doctor -v
 
       - name: Install web dependencies
