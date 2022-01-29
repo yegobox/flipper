@@ -60,12 +60,9 @@ jobs:
           ruby-version: "2.6"
           bundler-cache: true
           working-directory: android
-      - name: Google Service JSON
-        run: |
-          touch android/app/google-services.json
-          cat "$GOOGLE_SERVICE_JSON" >> app/google-services.json
       - name: Configure Keystore
         run: |
+          cat "$GOOGLE_SERVICE_JSON" >> app/google-services.json
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
           echo "storeFile=key.jks" >> key.properties
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
