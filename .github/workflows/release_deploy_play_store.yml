@@ -30,7 +30,7 @@ jobs:
       # pause test on server for now
       - run: git submodule update --init
       - run: flutter pub get
-      - run: ./install.sh
+      # - run: ./install.sh
       - run: flutter test
   fastlane-deploy:
     name: "Google Deploy"
