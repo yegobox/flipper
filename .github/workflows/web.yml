@@ -28,6 +28,8 @@ jobs:
       # Checkout flipper code and get packages.
       - name: Checkout flipper code
         uses: actions/checkout@v2
+      - name: submodule init
+        run: git submodule update --init
       - run: flutter pub get
 
       - run: flutter build -v web --release

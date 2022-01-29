@@ -48,7 +48,7 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.124.0+111101024/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.125.0+111101025/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - run: flutter pub get
@@ -64,6 +64,7 @@ jobs:
       - name: Configure Keystore
         run: |
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "$GOOGLE_SERVICE_JSON" | base64 --decode > app/google-services.json
           echo "storeFile=key.jks" >> key.properties
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
