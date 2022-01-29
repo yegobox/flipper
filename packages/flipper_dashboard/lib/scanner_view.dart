@@ -206,7 +206,7 @@ class _ScannViewState extends State<ScannView> {
         return;
       }
       showSimpleNotification(
-        Text(FLocalization.of(context).productNotFound),
+        const Text("Product not found"),
         background: Colors.green,
         position: NotificationPosition.bottom,
       );

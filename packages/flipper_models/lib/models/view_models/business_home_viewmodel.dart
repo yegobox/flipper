@@ -22,13 +22,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   final settingService = locator<SettingsService>();
   final languageService = locator<LanguageService>();
-  bool _updateStarted = false;
-  Setting? _setting = null;
+  final bool _updateStarted = false;
+  Setting? _setting;
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
-  String? defaultLanguage = null;
+  String? defaultLanguage;
 
-  Locale? klocale = null;
+  Locale? klocale;
 
   Locale? get locale => klocale;
 
@@ -76,7 +76,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   get quantity => keypad.quantity;
 
-  StockSync? _currentItemStock = null;
+  StockSync? _currentItemStock;
   get currentItemStock => _currentItemStock;
 
   List<VariantSync> _variants = [];

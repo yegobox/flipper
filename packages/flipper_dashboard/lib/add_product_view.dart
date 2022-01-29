@@ -168,7 +168,7 @@ class _AddProductViewState extends State<AddProductView> {
                     width: double.infinity,
                   ),
                   model.product == null
-                      ? SizedBox.shrink()
+                      ? const SizedBox.shrink()
                       : SectionSelectUnit(
                           product: model.product,
                           type: 'product',
@@ -179,7 +179,7 @@ class _AddProductViewState extends State<AddProductView> {
                     controller: retailPriceController,
                     onModelUpdate: (value) {
                       String trimed = value.trim();
-                      if (trimed.length > 0) {
+                      if (trimed.isNotEmpty) {
                         model.isPriceSet(true);
                         model.updateRegularVariant(
                             retailPrice: double.parse(value));

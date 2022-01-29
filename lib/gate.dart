@@ -1,5 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'package:flipper/flipper_options.dart';
+// import 'package:flipper/flipper_options.dart';
 import 'package:flutterfire_ui/i10n.dart';
 import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -413,16 +413,16 @@ class _GateState extends State<Gate> {
                 GlobalWidgetsLocalizations.delegate,
               ],
               supportedLocales: const [
-                Locale('en', ''),
-                Locale('es', ''),
+                Locale('en', 'US'), // English
+                Locale('es', 'ES'), // Spanish
               ],
-              // locale: model.languageService
-              //     .locale, //french == rwanda language in our app
-              // // themeMode: model.settingService.themeMode.value,
-              // localeResolutionCallback: (locale, supportedLocales) {
-              //   deviceLocale = locale!;
-              //   return locale;
-              // },
+              locale: model.languageService
+                  .locale, //french == rwanda language in our app
+              themeMode: model.settingService.themeMode.value,
+              localeResolutionCallback: (locale, supportedLocales) {
+                // deviceLocale = locale!;
+                return const Locale('en');
+              },
               navigatorKey: StackedService.navigatorKey,
               onGenerateRoute: StackedRouter().onGenerateRoute,
             ),

@@ -12,7 +12,7 @@ class RetailPrice extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
         child: TextFormField(
           controller: controller,

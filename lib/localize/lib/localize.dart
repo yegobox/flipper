@@ -179,36 +179,46 @@ class FLocalization {
   static List<String> languages() => _productName.keys.toList();
 
   String get supplyPrice => _supplyPrice[locale.languageCode]!['supplyPrice']!;
+
   String get currentSale => _currentSale[locale.languageCode]!['currentSale']!;
+
   String get currentStock =>
       _currentStock[locale.languageCode]!['currentStock']!;
+
   String get addProduct => _addProduct[locale.languageCode]!['addProduct']!;
+
   String get tickets => _ticket[locale.languageCode]!['tickets']!;
+
   String get charge => _charge[locale.languageCode]!['charge']!;
+
   String get flipperSetting =>
       _flipperSetting[locale.languageCode]!['flipperSetting']!;
+
   String get options => _options[locale.languageCode]!['options']!;
+
   String get saveTicket => _saveTicket[locale.languageCode]!['saveTicket']!;
-  String get productNotFound =>
-      _productNotFound[locale.languageCode]!['productNotFound']!;
+
+  // String get productNotFound =>
+  //     _productNotFound[locale.languageCode]!['productNotFound']!;
+
   String get noPayable => _noPayable[locale.languageCode]!['noPayable']!;
+
   String get delete => _delete[locale.languageCode]!['delete']!;
+
   String get addTomenu => _addTomenu[locale.languageCode]!['addTomenu']!;
+
   String get edit => _edit[locale.languageCode]!['edit']!;
+
   String get addWorkSpace =>
       _addWorkSpace[locale.languageCode]!['addWorkSpace']!;
+
   String get addMembers => _addMembers[locale.languageCode]!['addMembers']!;
-  String get retailPrice {
-    return _retailPrice[locale.languageCode]!['save']!;
-  }
 
-  String get save {
-    return _save[locale.languageCode]!['save']!;
-  }
+  String get retailPrice => _retailPrice[locale.languageCode]!['retailPrice']!;
 
-  String get productName {
-    return _productName[locale.languageCode]!['productName']!;
-  }
+  String get save => _save[locale.languageCode]!['save']!;
+
+  String get productName => _productName[locale.languageCode]!['productName']!;
 }
 
 class FlipperLocalizationsDelegate
