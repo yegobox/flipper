@@ -64,7 +64,7 @@ jobs:
       - name: Configure Keystore
         run: |
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "$GOOGLE_SERVICE_JSON" | base64 --decode > app/google-services.json
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
           echo "storeFile=key.jks" >> key.properties
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
