@@ -48,10 +48,23 @@ final providerConfigs = [
   // ),
 ];
 
-class LoginView extends StatelessWidget {
+class LoginView extends StatefulWidget {
+  const LoginView({Key? key}) : super(key: key);
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
   final log = getLogger('LoginView');
 
-  LoginView({Key? key}) : super(key: key);
+  @override
+  void initState() {
+    ProxyService.remoteConfig.config();
+    ProxyService.remoteConfig.setDefault();
+    ProxyService.remoteConfig.fetch();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

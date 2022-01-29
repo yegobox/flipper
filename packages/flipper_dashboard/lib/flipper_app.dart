@@ -54,8 +54,8 @@ class _FlipperAppState extends State<FlipperApp> {
     ProxyService.loginService.connect();
     ProxyService.dynamicLink.handleDynamicLink();
     ProxyService.notification.listen();
-    ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.config();
+    ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
     //connect to anyy available printer
     // ProxyService.printer.blueTooths();

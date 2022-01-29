@@ -1,10 +1,9 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
-
 import 'abstractions/remote.dart';
 
 class RemoteConfigService implements Remote {
-  RemoteConfig remoteConfig = RemoteConfig.instance;
+  FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
 
   @override
   void setDefault() {
@@ -37,7 +36,7 @@ class RemoteConfigService implements Remote {
   void fetch() async {
     await remoteConfig.setConfigSettings(RemoteConfigSettings(
       fetchTimeout: const Duration(seconds: 10),
-      minimumFetchInterval: const Duration(minutes: 10),
+      minimumFetchInterval: const Duration(seconds: 10),
     ));
     await remoteConfig.fetchAndActivate();
   }

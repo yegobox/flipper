@@ -136,7 +136,7 @@ dependencies:
   objectbox_sync_flutter_libs: any
   dio: ^4.0.0
   file_picker: ^4.2.7
-  firebase_remote_config: ^0.10.0+2
+  firebase_remote_config: ^2.0.0
   open_file: ^3.2.1
   firebase_performance: "^0.7.1+1"
   share_plus: ^2.1.4

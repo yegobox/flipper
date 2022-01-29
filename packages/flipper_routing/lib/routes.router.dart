@@ -36,6 +36,7 @@ import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_map/flipper_map.dart';
 import 'package:flipper_map/subcategory.dart';
 import 'package:flipper_models/models/models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:stacked/stacked.dart';
@@ -144,8 +145,14 @@ class StackedRouter extends RouterBase {
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
   final _pagesMap = <Type, StackedRouteFactory>{
     StartUpView: (data) {
+      var args = data.getArgs<StartUpViewArguments>(
+        orElse: () => StartUpViewArguments(),
+      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const StartUpView(),
+        builder: (context) => StartUpView(
+          key: args.key,
+          invokeLogin: args.invokeLogin,
+        ),
         settings: data,
       );
     },
@@ -194,11 +201,8 @@ class StackedRouter extends RouterBase {
       );
     },
     LoginView: (data) {
-      var args = data.getArgs<LoginViewArguments>(
-        orElse: () => LoginViewArguments(),
-      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => LoginView(key: args.key),
+        builder: (context) => const LoginView(),
         settings: data,
       );
     },
@@ -416,6 +420,13 @@ class StackedRouter extends RouterBase {
 /// Arguments holder classes
 /// *************************************************************************
 
+/// StartUpView arguments holder class
+class StartUpViewArguments {
+  final Key? key;
+  final bool? invokeLogin;
+  StartUpViewArguments({this.key, this.invokeLogin});
+}
+
 /// OmniConversation arguments holder class
 class OmniConversationArguments {
   final Key? key;
@@ -435,12 +446,6 @@ class SignUpFormViewArguments {
   final Key? key;
   final String countryNm;
   SignUpFormViewArguments({this.key, required this.countryNm});
-}
-
-/// LoginView arguments holder class
-class LoginViewArguments {
-  final Key? key;
-  LoginViewArguments({this.key});
 }
 
 /// AddProductView arguments holder class
