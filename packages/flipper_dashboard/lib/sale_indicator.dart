@@ -2,13 +2,11 @@ import 'package:localize/localize.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'add_product_buttons.dart';
 import 'hero_dialog_route.dart';
 
@@ -64,15 +62,15 @@ class SaleIndicator extends StatelessWidget {
                 ],
               ),
             ),
-      Spacer(),
-      if (isAndroid || isIos && ProxyService.remoteConfig.isChatAvailable())
+      const Spacer(),
+      if (ProxyService.remoteConfig.isChatAvailable())
         GestureDetector(
           onTap: () {
             goToFlipperChat();
           },
-          child: Icon(
+          child: const Icon(
             Ionicons.chatbox_sharp,
-            color: const Color(0xffffffff),
+            color: Color(0xffffffff),
           ),
         ),
       Container(
@@ -90,9 +88,9 @@ class SaleIndicator extends StatelessWidget {
             ),
           );
         },
-        child: Icon(
+        child: const Icon(
           CupertinoIcons.add,
-          color: const Color(0xffffffff),
+          color: Color(0xffffffff),
         ),
       )
     ]);
