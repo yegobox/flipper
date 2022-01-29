@@ -27,6 +27,8 @@ jobs:
       # Checkout gallery code and get packages.
       - name: Checkout flipper code
         uses: actions/checkout@v2
+      - name: Update version in YAML
+        run: sed -i 's/99.99.99+99/1.124.0+111101024/g' pubspec.yaml
       - run: flutter pub get
 
       # Setup Ruby, Bundler, and Gemfile dependencies
