@@ -22,11 +22,11 @@ platform :android do
   #   gradle(task: "test")
   # end
 
-  desc "Submit a new internal build to Google Play"
+  desc "Submit a new beta build to Google Play"
   lane :beta do
     sh "flutter build appbundle"
     upload_to_play_store(
-      track: 'internal',
+      track: 'beta',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       )
