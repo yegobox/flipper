@@ -9,8 +9,8 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-const String NameValueKey = 'name';
-const String TypeValueKey = 'type';
+const nameValueKey = 'name';
+const typeValueKey = 'type';
 
 mixin $SignUpFormView on StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -29,8 +29,8 @@ mixin $SignUpFormView on StatelessWidget {
   void _updateFormData(FormViewModel model) => model.setData(
         model.formValueMap
           ..addAll({
-            NameValueKey: nameController.text,
-            TypeValueKey: typeController.text,
+            nameValueKey: nameController.text,
+            typeValueKey: typeController.text,
           }),
       );
 
@@ -44,11 +44,11 @@ mixin $SignUpFormView on StatelessWidget {
 }
 
 extension ValueProperties on FormViewModel {
-  String? get nameValue => this.formValueMap[NameValueKey];
-  String? get typeValue => this.formValueMap[TypeValueKey];
+  String? get nameValue => this.formValueMap[nameValueKey];
+  String? get typeValue => this.formValueMap[typeValueKey];
 
-  bool get hasName => this.formValueMap.containsKey(NameValueKey);
-  bool get hasType => this.formValueMap.containsKey(TypeValueKey);
+  bool get hasName => this.formValueMap.containsKey(nameValueKey);
+  bool get hasType => this.formValueMap.containsKey(typeValueKey);
 }
 
 extension Methods on FormViewModel {}

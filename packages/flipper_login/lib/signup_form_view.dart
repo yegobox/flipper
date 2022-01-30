@@ -110,10 +110,12 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
       viewModelBuilder: () => SignupViewModel(),
       builder: (context, model, child) {
         /// for debugging purpose add this here to refer to when debugging in prod
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: const Duration(minutes: 1),
-          content: Text(ProxyService.box.getUserId() ?? ''),
-        ));
+        SchedulerBinding.instance?.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(minutes: 1),
+            content: Text(ProxyService.box.getUserId() ?? ''),
+          ));
+        });
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
               signupViewModel: model, country: countryNm),

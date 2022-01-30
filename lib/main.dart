@@ -28,6 +28,7 @@ class FlipperHttpOverrides extends HttpOverrides {
     return super.createHttpClient(context)
       // If there is a bad certificate callback, override it if the host is part of
       // your server URL
+
       ..badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
     // ..badCertificateCallback = (X509Certificate cert, String host, int port) {

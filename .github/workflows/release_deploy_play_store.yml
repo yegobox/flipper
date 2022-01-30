@@ -48,7 +48,7 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.32.0+111101032/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.33.0+111101033/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - run: flutter pub get

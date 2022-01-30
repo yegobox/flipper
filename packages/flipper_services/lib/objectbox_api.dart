@@ -88,7 +88,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     syncClient.requestUpdates(subscribeForFuturePushes: true);
 
     /// set sync to manual for now until futher notice!
-    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.autoNoPushes);
+    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
 
     syncClient.start();
     syncClient.loginEvents.listen((event) {
@@ -381,7 +381,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       final variantId = box.put(variation);
       final stockId = DateTime.now().millisecondsSinceEpoch;
       String? userId = ProxyService.box.read(key: 'userId');
-      final stock = new StockSync(
+      final stock = StockSync(
         id: stockId,
         fvariantId: variantId,
         lowStock: 0.0,
@@ -1715,9 +1715,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final localBusinessBox = store.box<LBusiness>();
     BusinessSync? business =
         syncBusinessBox.get(sbusinessFromJson(response.body).id);
+    localBusinessBox.put(lbusinessFromJson(response.body), mode: PutMode.put);
     if (business == null) {
       syncBusinessBox.put(sbusinessFromJson(response.body), mode: PutMode.put);
-      localBusinessBox.put(lbusinessFromJson(response.body), mode: PutMode.put);
+
       return store
           .box<BusinessSync>()
           .getAll()
