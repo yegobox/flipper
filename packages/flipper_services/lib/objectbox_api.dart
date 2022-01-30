@@ -68,11 +68,32 @@ class ObjectBoxApi extends MobileUpload implements Api {
       // this is to say that we are on a device mobile then where all subs are activated
       if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
         sync();
+      } else {
+        partial();
       }
     } else {
       // on desktop sync should be activated by default.
       sync();
     }
+  }
+
+  static void partial() {
+    SyncClient syncClient = Sync.client(
+      store,
+      'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic
+      SyncCredentials.sharedSecretString("!@2022aurora"),
+    );
+
+    /// if a user is paying then use this config or otherwise
+    syncClient.requestUpdates(subscribeForFuturePushes: true);
+
+    /// set sync to manual for now until futher notice!
+    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.autoNoPushes);
+
+    syncClient.start();
+    syncClient.loginEvents.listen((event) {
+      if (event == SyncLoginEvent.loggedIn) print('Logged in successfully');
+    });
   }
 
   static void sync() {
