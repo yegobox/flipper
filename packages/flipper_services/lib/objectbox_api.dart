@@ -1711,10 +1711,18 @@ class ObjectBoxApi extends MobileUpload implements Api {
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     }
-    final box = store.box<BusinessSync>();
-    BusinessSync? business = box.get(sbusinessFromJson(response.body).id);
+    final syncBusinessBox = store.box<BusinessSync>();
+    final localBusinessBox = store.box<LBusiness>();
+    BusinessSync? business =
+        syncBusinessBox.get(sbusinessFromJson(response.body).id);
     if (business == null) {
-      box.put(sbusinessFromJson(response.body), mode: PutMode.put);
+      syncBusinessBox.put(sbusinessFromJson(response.body), mode: PutMode.put);
+      localBusinessBox.put(lbusinessFromJson(response.body), mode: PutMode.put);
+      return store
+          .box<BusinessSync>()
+          .getAll()
+          .where((business) => business.userId == userId)
+          .toList();
     }
 
     businesses.add(sbusinessFromJson(response.body));
@@ -1729,12 +1737,48 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .getAll()
         .where((business) => business.userId == userId)
         .toList();
+    businesses = syncLocalWithSyncedModel(businesses, userId);
 
     if (businesses.isEmpty) {
       return await getOnlineBusiness(userId: userId);
     } else {
       return businesses;
     }
+  }
+
+  List<BusinessSync> syncLocalWithSyncedModel(
+      List<BusinessSync> businesses, String userId) {
+    if (businesses.isEmpty) {
+      List<LBusiness> lbusinesses = store
+          .box<LBusiness>()
+          .getAll()
+          .where((business) => business.userId == userId)
+          .toList();
+      if (lbusinesses.isNotEmpty) {
+        final syncBusinessBox = store.box<BusinessSync>();
+        for (LBusiness business in lbusinesses) {
+          syncBusinessBox.put(
+            BusinessSync(
+              id: business.id,
+              name: business.name,
+              userId: business.userId,
+              chatUid: business.chatUid,
+              country: business.country,
+              latitude: business.latitude,
+              longitude: business.longitude,
+              type: business.type,
+            ),
+            mode: PutMode.put,
+          );
+        }
+      }
+    }
+    businesses = store
+        .box<BusinessSync>()
+        .getAll()
+        .where((business) => business.userId == userId)
+        .toList();
+    return businesses;
   }
 
   @override

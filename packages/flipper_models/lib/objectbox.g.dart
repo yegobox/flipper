@@ -16,6 +16,7 @@ import 'models/io/color.dart';
 import 'models/io/customer.dart';
 import 'models/io/discount.dart';
 import 'models/io/feature.dart';
+import 'models/io/l_business.dart';
 import 'models/io/menu.dart';
 import 'models/io/menu_item.dart';
 import 'models/io/messages/custom_message.dart';
@@ -2049,6 +2050,180 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(48, 8654482986159253756),
+      name: 'LBusiness',
+      lastPropertyId: const IdUid(33, 5402108017330869479),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 3911213592945332302),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 2195006233250422721),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 4439278621119853043),
+            name: 'currency',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 6304082739913078865),
+            name: 'fcategoryId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 3534129228855788877),
+            name: 'latitude',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(6, 1608930801519839145),
+            name: 'longitude',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(7, 7347366030671555406),
+            name: 'userId',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 5465249788337181628),
+            name: 'typeId',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 4343522118805466792),
+            name: 'timeZone',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(10, 1222005177525822390),
+            name: 'table',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(11, 697448456905800750),
+            name: 'country',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(12, 501337757150593801),
+            name: 'businessUrl',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(13, 873574853745524931),
+            name: 'hexColor',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(14, 5328075321812506301),
+            name: 'imageUrl',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(15, 6471746150643461705),
+            name: 'type',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(16, 3595471863048365531),
+            name: 'active',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(17, 8914086069017997731),
+            name: 'chatUid',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(18, 2488557187195823909),
+            name: 'metadata',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(19, 9015810834277483540),
+            name: 'role',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(20, 3125304198240443192),
+            name: 'lastSeen',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(21, 4845809189596213854),
+            name: 'firstName',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(22, 7141473511764441643),
+            name: 'lastName',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(23, 2519515487811476357),
+            name: 'createdAt',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(24, 6479434183096614290),
+            name: 'deviceToken',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(25, 3131175018758169107),
+            name: 'backUpEnabled',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(26, 2430949622882620683),
+            name: 'subscriptionPlan',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(27, 1202051085384122644),
+            name: 'nextBillingDate',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(28, 9085428043623232806),
+            name: 'previousBillingDate',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(29, 1698062677694290215),
+            name: 'isLastSubscriptionPaymentSucceeded',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(30, 1112807510268745830),
+            name: 'backupFileId',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(31, 4757501259969230719),
+            name: 'email',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(32, 310642560658050102),
+            name: 'lastDbBackup',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(33, 5402108017330869479),
+            name: 'fullName',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -2072,7 +2247,7 @@ Store openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(47, 6429820227051649226),
+      lastEntityId: const IdUid(48, 8654482986159253756),
       lastIndexId: const IdUid(21, 6996790652084639492),
       lastRelationId: const IdUid(1, 7692477632100059163),
       lastSequenceId: const IdUid(0, 0),
@@ -4242,6 +4417,171 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0));
 
           return object;
+        }),
+    LBusiness: EntityDefinition<LBusiness>(
+        model: _entities[36],
+        toOneRelations: (LBusiness object) => [],
+        toManyRelations: (LBusiness object) => {},
+        getId: (LBusiness object) => object.id,
+        setId: (LBusiness object, int id) {
+          object.id = id;
+        },
+        objectToFB: (LBusiness object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          final currencyOffset = object.currency == null
+              ? null
+              : fbb.writeString(object.currency!);
+          final latitudeOffset = fbb.writeString(object.latitude);
+          final longitudeOffset = fbb.writeString(object.longitude);
+          final userIdOffset =
+              object.userId == null ? null : fbb.writeString(object.userId!);
+          final typeIdOffset =
+              object.typeId == null ? null : fbb.writeString(object.typeId!);
+          final timeZoneOffset = object.timeZone == null
+              ? null
+              : fbb.writeString(object.timeZone!);
+          final tableOffset =
+              object.table == null ? null : fbb.writeString(object.table!);
+          final countryOffset = fbb.writeString(object.country);
+          final businessUrlOffset = object.businessUrl == null
+              ? null
+              : fbb.writeString(object.businessUrl!);
+          final hexColorOffset = object.hexColor == null
+              ? null
+              : fbb.writeString(object.hexColor!);
+          final imageUrlOffset = object.imageUrl == null
+              ? null
+              : fbb.writeString(object.imageUrl!);
+          final typeOffset = fbb.writeString(object.type);
+          final chatUidOffset =
+              object.chatUid == null ? null : fbb.writeString(object.chatUid!);
+          final metadataOffset = object.metadata == null
+              ? null
+              : fbb.writeString(object.metadata!);
+          final roleOffset =
+              object.role == null ? null : fbb.writeString(object.role!);
+          final firstNameOffset = object.firstName == null
+              ? null
+              : fbb.writeString(object.firstName!);
+          final lastNameOffset = object.lastName == null
+              ? null
+              : fbb.writeString(object.lastName!);
+          final createdAtOffset = object.createdAt == null
+              ? null
+              : fbb.writeString(object.createdAt!);
+          final deviceTokenOffset = object.deviceToken == null
+              ? null
+              : fbb.writeString(object.deviceToken!);
+          final subscriptionPlanOffset = object.subscriptionPlan == null
+              ? null
+              : fbb.writeString(object.subscriptionPlan!);
+          final nextBillingDateOffset = object.nextBillingDate == null
+              ? null
+              : fbb.writeString(object.nextBillingDate!);
+          final previousBillingDateOffset = object.previousBillingDate == null
+              ? null
+              : fbb.writeString(object.previousBillingDate!);
+          final backupFileIdOffset = object.backupFileId == null
+              ? null
+              : fbb.writeString(object.backupFileId!);
+          final emailOffset =
+              object.email == null ? null : fbb.writeString(object.email!);
+          final lastDbBackupOffset = object.lastDbBackup == null
+              ? null
+              : fbb.writeString(object.lastDbBackup!);
+          final fullNameOffset = object.fullName == null
+              ? null
+              : fbb.writeString(object.fullName!);
+          fbb.startTable(34);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addOffset(2, currencyOffset);
+          fbb.addInt64(3, object.fcategoryId);
+          fbb.addOffset(4, latitudeOffset);
+          fbb.addOffset(5, longitudeOffset);
+          fbb.addOffset(6, userIdOffset);
+          fbb.addOffset(7, typeIdOffset);
+          fbb.addOffset(8, timeZoneOffset);
+          fbb.addOffset(9, tableOffset);
+          fbb.addOffset(10, countryOffset);
+          fbb.addOffset(11, businessUrlOffset);
+          fbb.addOffset(12, hexColorOffset);
+          fbb.addOffset(13, imageUrlOffset);
+          fbb.addOffset(14, typeOffset);
+          fbb.addBool(15, object.active);
+          fbb.addOffset(16, chatUidOffset);
+          fbb.addOffset(17, metadataOffset);
+          fbb.addOffset(18, roleOffset);
+          fbb.addInt64(19, object.lastSeen);
+          fbb.addOffset(20, firstNameOffset);
+          fbb.addOffset(21, lastNameOffset);
+          fbb.addOffset(22, createdAtOffset);
+          fbb.addOffset(23, deviceTokenOffset);
+          fbb.addBool(24, object.backUpEnabled);
+          fbb.addOffset(25, subscriptionPlanOffset);
+          fbb.addOffset(26, nextBillingDateOffset);
+          fbb.addOffset(27, previousBillingDateOffset);
+          fbb.addBool(28, object.isLastSubscriptionPaymentSucceeded);
+          fbb.addOffset(29, backupFileIdOffset);
+          fbb.addOffset(30, emailOffset);
+          fbb.addOffset(31, lastDbBackupOffset);
+          fbb.addOffset(32, fullNameOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = LBusiness(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              name:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              currency: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 8),
+              fcategoryId: const fb.Int64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 10),
+              latitude:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
+              longitude:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
+              userId: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 16),
+              typeId: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 18),
+              timeZone: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 20),
+              table: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 22),
+              country:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
+              businessUrl: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 26),
+              hexColor: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 28),
+              imageUrl: const fb.StringReader()
+                  .vTableGetNullable(buffer, rootOffset, 30),
+              type: const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
+              active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
+              metadata: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
+              lastSeen: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 42),
+              firstName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44),
+              lastName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46),
+              deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 50),
+              chatUid: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 36),
+              backUpEnabled: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 52),
+              subscriptionPlan: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 54),
+              nextBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 56),
+              previousBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 58),
+              isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
+              backupFileId: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 62),
+              email: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 64),
+              lastDbBackup: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 66),
+              fullName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 68),
+              role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
+            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
+
+          return object;
         })
   };
 
@@ -5622,4 +5962,139 @@ class Points_ {
   /// see [Points.userId]
   static final userId =
       QueryIntegerProperty<Points>(_entities[35].properties[2]);
+}
+
+/// [LBusiness] entity fields to define ObjectBox queries.
+class LBusiness_ {
+  /// see [LBusiness.id]
+  static final id =
+      QueryIntegerProperty<LBusiness>(_entities[36].properties[0]);
+
+  /// see [LBusiness.name]
+  static final name =
+      QueryStringProperty<LBusiness>(_entities[36].properties[1]);
+
+  /// see [LBusiness.currency]
+  static final currency =
+      QueryStringProperty<LBusiness>(_entities[36].properties[2]);
+
+  /// see [LBusiness.fcategoryId]
+  static final fcategoryId =
+      QueryIntegerProperty<LBusiness>(_entities[36].properties[3]);
+
+  /// see [LBusiness.latitude]
+  static final latitude =
+      QueryStringProperty<LBusiness>(_entities[36].properties[4]);
+
+  /// see [LBusiness.longitude]
+  static final longitude =
+      QueryStringProperty<LBusiness>(_entities[36].properties[5]);
+
+  /// see [LBusiness.userId]
+  static final userId =
+      QueryStringProperty<LBusiness>(_entities[36].properties[6]);
+
+  /// see [LBusiness.typeId]
+  static final typeId =
+      QueryStringProperty<LBusiness>(_entities[36].properties[7]);
+
+  /// see [LBusiness.timeZone]
+  static final timeZone =
+      QueryStringProperty<LBusiness>(_entities[36].properties[8]);
+
+  /// see [LBusiness.table]
+  static final table =
+      QueryStringProperty<LBusiness>(_entities[36].properties[9]);
+
+  /// see [LBusiness.country]
+  static final country =
+      QueryStringProperty<LBusiness>(_entities[36].properties[10]);
+
+  /// see [LBusiness.businessUrl]
+  static final businessUrl =
+      QueryStringProperty<LBusiness>(_entities[36].properties[11]);
+
+  /// see [LBusiness.hexColor]
+  static final hexColor =
+      QueryStringProperty<LBusiness>(_entities[36].properties[12]);
+
+  /// see [LBusiness.imageUrl]
+  static final imageUrl =
+      QueryStringProperty<LBusiness>(_entities[36].properties[13]);
+
+  /// see [LBusiness.type]
+  static final type =
+      QueryStringProperty<LBusiness>(_entities[36].properties[14]);
+
+  /// see [LBusiness.active]
+  static final active =
+      QueryBooleanProperty<LBusiness>(_entities[36].properties[15]);
+
+  /// see [LBusiness.chatUid]
+  static final chatUid =
+      QueryStringProperty<LBusiness>(_entities[36].properties[16]);
+
+  /// see [LBusiness.metadata]
+  static final metadata =
+      QueryStringProperty<LBusiness>(_entities[36].properties[17]);
+
+  /// see [LBusiness.role]
+  static final role =
+      QueryStringProperty<LBusiness>(_entities[36].properties[18]);
+
+  /// see [LBusiness.lastSeen]
+  static final lastSeen =
+      QueryIntegerProperty<LBusiness>(_entities[36].properties[19]);
+
+  /// see [LBusiness.firstName]
+  static final firstName =
+      QueryStringProperty<LBusiness>(_entities[36].properties[20]);
+
+  /// see [LBusiness.lastName]
+  static final lastName =
+      QueryStringProperty<LBusiness>(_entities[36].properties[21]);
+
+  /// see [LBusiness.createdAt]
+  static final createdAt =
+      QueryStringProperty<LBusiness>(_entities[36].properties[22]);
+
+  /// see [LBusiness.deviceToken]
+  static final deviceToken =
+      QueryStringProperty<LBusiness>(_entities[36].properties[23]);
+
+  /// see [LBusiness.backUpEnabled]
+  static final backUpEnabled =
+      QueryBooleanProperty<LBusiness>(_entities[36].properties[24]);
+
+  /// see [LBusiness.subscriptionPlan]
+  static final subscriptionPlan =
+      QueryStringProperty<LBusiness>(_entities[36].properties[25]);
+
+  /// see [LBusiness.nextBillingDate]
+  static final nextBillingDate =
+      QueryStringProperty<LBusiness>(_entities[36].properties[26]);
+
+  /// see [LBusiness.previousBillingDate]
+  static final previousBillingDate =
+      QueryStringProperty<LBusiness>(_entities[36].properties[27]);
+
+  /// see [LBusiness.isLastSubscriptionPaymentSucceeded]
+  static final isLastSubscriptionPaymentSucceeded =
+      QueryBooleanProperty<LBusiness>(_entities[36].properties[28]);
+
+  /// see [LBusiness.backupFileId]
+  static final backupFileId =
+      QueryStringProperty<LBusiness>(_entities[36].properties[29]);
+
+  /// see [LBusiness.email]
+  static final email =
+      QueryStringProperty<LBusiness>(_entities[36].properties[30]);
+
+  /// see [LBusiness.lastDbBackup]
+  static final lastDbBackup =
+      QueryStringProperty<LBusiness>(_entities[36].properties[31]);
+
+  /// see [LBusiness.fullName]
+  static final fullName =
+      QueryStringProperty<LBusiness>(_entities[36].properties[32]);
 }

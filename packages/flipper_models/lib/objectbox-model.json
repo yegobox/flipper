@@ -2028,9 +2028,183 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "48:8654482986159253756",
+      "lastPropertyId": "33:5402108017330869479",
+      "name": "LBusiness",
+      "properties": [
+        {
+          "id": "1:3911213592945332302",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:2195006233250422721",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:4439278621119853043",
+          "name": "currency",
+          "type": 9
+        },
+        {
+          "id": "4:6304082739913078865",
+          "name": "fcategoryId",
+          "type": 6
+        },
+        {
+          "id": "5:3534129228855788877",
+          "name": "latitude",
+          "type": 9
+        },
+        {
+          "id": "6:1608930801519839145",
+          "name": "longitude",
+          "type": 9
+        },
+        {
+          "id": "7:7347366030671555406",
+          "name": "userId",
+          "type": 9
+        },
+        {
+          "id": "8:5465249788337181628",
+          "name": "typeId",
+          "type": 9
+        },
+        {
+          "id": "9:4343522118805466792",
+          "name": "timeZone",
+          "type": 9
+        },
+        {
+          "id": "10:1222005177525822390",
+          "name": "table",
+          "type": 9
+        },
+        {
+          "id": "11:697448456905800750",
+          "name": "country",
+          "type": 9
+        },
+        {
+          "id": "12:501337757150593801",
+          "name": "businessUrl",
+          "type": 9
+        },
+        {
+          "id": "13:873574853745524931",
+          "name": "hexColor",
+          "type": 9
+        },
+        {
+          "id": "14:5328075321812506301",
+          "name": "imageUrl",
+          "type": 9
+        },
+        {
+          "id": "15:6471746150643461705",
+          "name": "type",
+          "type": 9
+        },
+        {
+          "id": "16:3595471863048365531",
+          "name": "active",
+          "type": 1
+        },
+        {
+          "id": "17:8914086069017997731",
+          "name": "chatUid",
+          "type": 9
+        },
+        {
+          "id": "18:2488557187195823909",
+          "name": "metadata",
+          "type": 9
+        },
+        {
+          "id": "19:9015810834277483540",
+          "name": "role",
+          "type": 9
+        },
+        {
+          "id": "20:3125304198240443192",
+          "name": "lastSeen",
+          "type": 6
+        },
+        {
+          "id": "21:4845809189596213854",
+          "name": "firstName",
+          "type": 9
+        },
+        {
+          "id": "22:7141473511764441643",
+          "name": "lastName",
+          "type": 9
+        },
+        {
+          "id": "23:2519515487811476357",
+          "name": "createdAt",
+          "type": 9
+        },
+        {
+          "id": "24:6479434183096614290",
+          "name": "deviceToken",
+          "type": 9
+        },
+        {
+          "id": "25:3131175018758169107",
+          "name": "backUpEnabled",
+          "type": 1
+        },
+        {
+          "id": "26:2430949622882620683",
+          "name": "subscriptionPlan",
+          "type": 9
+        },
+        {
+          "id": "27:1202051085384122644",
+          "name": "nextBillingDate",
+          "type": 9
+        },
+        {
+          "id": "28:9085428043623232806",
+          "name": "previousBillingDate",
+          "type": 9
+        },
+        {
+          "id": "29:1698062677694290215",
+          "name": "isLastSubscriptionPaymentSucceeded",
+          "type": 1
+        },
+        {
+          "id": "30:1112807510268745830",
+          "name": "backupFileId",
+          "type": 9
+        },
+        {
+          "id": "31:4757501259969230719",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "32:310642560658050102",
+          "name": "lastDbBackup",
+          "type": 9
+        },
+        {
+          "id": "33:5402108017330869479",
+          "name": "fullName",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "47:6429820227051649226",
+  "lastEntityId": "48:8654482986159253756",
   "lastIndexId": "21:6996790652084639492",
   "lastRelationId": "1:7692477632100059163",
   "lastSequenceId": "0:0",
