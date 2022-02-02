@@ -283,7 +283,6 @@ void registerServices() {
 void unregisterServices() {
   locator.unregister<Api>();
   locator.unregister<Language>();
-  locator.unregister<NavigationService>();
   locator.unregister<SettingsService>();
   locator.unregister<LocalStorage>();
   locator.unregister<LanguageService>();
