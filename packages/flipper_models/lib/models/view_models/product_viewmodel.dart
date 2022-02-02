@@ -114,7 +114,8 @@ class ProductViewModel extends BusinessHomeViewModel {
     final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
     final categoryId = DateTime.now().millisecondsSinceEpoch;
-    final Category category = new Category(
+    if (name == null) return;
+    final Category category = Category(
       id: categoryId,
       active: true,
       table: AppTables.category,

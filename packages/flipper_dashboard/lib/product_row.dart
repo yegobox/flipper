@@ -40,10 +40,10 @@ class ProductRow extends StatelessWidget {
     return Slidable(
       child: GestureDetector(
         onTap: () {
-          GoRouter.of(context).go(Routes.sell + "/${product.id}");
+          GoRouter.of(context).push(Routes.sell, extra: product);
         },
         onLongPress: () {
-          GoRouter.of(context).go(Routes.sell + "/${product.id}");
+          GoRouter.of(context).push(Routes.sell, extra: product);
         },
         child: Column(children: <Widget>[
           ListTile(

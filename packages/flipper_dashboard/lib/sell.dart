@@ -16,27 +16,17 @@ enum Delivery { lafayette, jefferson }
 enum Pickup { lafayette, jefferson }
 
 class Sell extends StatefulWidget {
-  const Sell({Key? key, required this.productId}) : super(key: key);
-  final int productId;
+  const Sell({Key? key, required this.product}) : super(key: key);
+  final ProductSync product;
 
   @override
   State<Sell> createState() => _SellState();
 }
 
 class _SellState extends State<Sell> {
-  ProductSync? _product;
-  Future<ProductSync?> loadProduct() async {
-    ProductSync? product =
-        await ProxyService.api.getProduct(id: widget.productId);
-    setState(() {
-      _product = product;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    loadProduct();
   }
 
   final ForHere forHere = ForHere.lafayette;
@@ -54,138 +44,136 @@ class _SellState extends State<Sell> {
 
   String buildTitle(BusinessHomeViewModel model) {
     if (model.amountTotal.toString() == 'null') {
-      return _product!.name;
+      return widget.product.name;
     }
     if (model.amountTotal == 0) {
       return '';
     }
-    return _product!.name + ' Frw' + model.amountTotal.toInt().toString();
+    return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
   Widget Quantity(
       {required BusinessHomeViewModel model, required BuildContext context}) {
     return SingleChildScrollView(
-      child: Container(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
-          child: Column(
-            children: [
-              Divider(
-                color: Colors.grey[400],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      'QUANTITY',
-                      style: GoogleFonts.lato(
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 10.sp,
-                          color: Colors.grey[900],
-                        ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
+        child: Column(
+          children: [
+            Divider(
+              color: Colors.grey[400],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'QUANTITY',
+                    style: GoogleFonts.lato(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10.sp,
+                        color: Colors.grey[900],
                       ),
                     ),
                   ),
-                  const Expanded(flex: 2, child: Text('')),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    child: model.quantity <= 1
-                        ? IconButton(
-                            icon: Icon(
-                              AntDesign.minus,
-                              color: Colors.grey,
-                              size: 25.sp,
-                            ),
-                            onPressed: () {
-                              model.decreaseQty((quantity) {
-                                quantityController.text =
-                                    model.quantity!.toInt().toString();
-                              });
-                            },
-                          )
-                        : IconButton(
-                            icon: Icon(
-                              AntDesign.minus,
-                              color: Color(0xC9000000),
-                              size: 25.sp,
-                            ),
-                            onPressed: () {
-                              model.decreaseQty((quantity) {
-                                quantityController.text =
-                                    model.quantity!.toInt().toString();
-                              });
-                            },
+                ),
+                const Expanded(flex: 2, child: Text('')),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  child: model.quantity <= 1
+                      ? IconButton(
+                          icon: Icon(
+                            AntDesign.minus,
+                            color: Colors.grey,
+                            size: 25.sp,
                           ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 50.h,
-                    color: Colors.grey[400],
-                  ),
-                  Expanded(
-                      flex: 2,
-                      child: Container(
-                        margin: const EdgeInsets.only(left: 50, right: 50),
-                        child: TextFormField(
-                          controller: quantityController,
-                          onChanged: (quantity) {
-                            if (!quantity.isEmpty) {
-                              model.customQtyIncrease(int.parse(quantity));
-                            }
-                          },
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .copyWith(canvasColor: Colors.grey[600])
-                                .canvasColor,
-                          ),
-                          key: Key(model.quantity.toInt().toString()),
-                          // initialValue: model.quantity?.toInt().toString(),
-                          textAlign: TextAlign.center,
-                          cursorColor: Theme.of(context)
-                              .copyWith(canvasColor: const Color(0x3B000000))
-                              .canvasColor,
-                        ),
-                      )),
-                  Container(
-                    width: 1.w,
-                    height: 50.h,
-                    color: Colors.grey[400],
-                  ),
-                  Container(
-                    child: Container(
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.add,
-                          color: Color(0xC9000000),
-                          size: 25,
-                        ),
-                        onPressed: () {
-                          model.increaseQty((quantity) {
-                            setState(() {
+                          onPressed: () {
+                            model.decreaseQty((quantity) {
                               quantityController.text =
                                   model.quantity!.toInt().toString();
                             });
-                          });
+                          },
+                        )
+                      : IconButton(
+                          icon: Icon(
+                            AntDesign.minus,
+                            color: Color(0xC9000000),
+                            size: 25.sp,
+                          ),
+                          onPressed: () {
+                            model.decreaseQty((quantity) {
+                              quantityController.text =
+                                  model.quantity!.toInt().toString();
+                            });
+                          },
+                        ),
+                ),
+                Container(
+                  width: 1,
+                  height: 50.h,
+                  color: Colors.grey[400],
+                ),
+                Expanded(
+                    flex: 2,
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 50, right: 50),
+                      child: TextFormField(
+                        controller: quantityController,
+                        onChanged: (quantity) {
+                          if (!quantity.isEmpty) {
+                            model.customQtyIncrease(int.parse(quantity));
+                          }
                         },
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .copyWith(canvasColor: Colors.grey[600])
+                              .canvasColor,
+                        ),
+                        key: Key(model.quantity.toInt().toString()),
+                        // initialValue: model.quantity?.toInt().toString(),
+                        textAlign: TextAlign.center,
+                        cursorColor: Theme.of(context)
+                            .copyWith(canvasColor: const Color(0x3B000000))
+                            .canvasColor,
                       ),
+                    )),
+                Container(
+                  width: 1.w,
+                  height: 50.h,
+                  color: Colors.grey[400],
+                ),
+                Container(
+                  child: Container(
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.add,
+                        color: Color(0xC9000000),
+                        size: 25,
+                      ),
+                      onPressed: () {
+                        model.increaseQty((quantity) {
+                          setState(() {
+                            quantityController.text =
+                                model.quantity!.toInt().toString();
+                          });
+                        });
+                      },
                     ),
                   ),
-                ],
-              ),
-              Divider(
-                color: Colors.grey[400],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            Divider(
+              color: Colors.grey[400],
+            ),
+          ],
         ),
       ),
     );
@@ -236,7 +224,7 @@ class _SellState extends State<Sell> {
                                     ),
                                   ),
                                 )
-                              : SizedBox.shrink();
+                              : const SizedBox.shrink();
                         }),
                     Row(children: [
                       Text(
@@ -281,7 +269,7 @@ class _SellState extends State<Sell> {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: -1);
-        await model.getVariants(productId: _product!.id);
+        await model.getVariants(productId: widget.product.id);
       },
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {
@@ -303,7 +291,7 @@ class _SellState extends State<Sell> {
                 amount: model.amountTotal,
               );
               if (!saved) {
-                showSimpleNotification(Text('No item selected'),
+                showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
               GoRouter.of(context).pop();
@@ -312,65 +300,63 @@ class _SellState extends State<Sell> {
             multi: 1,
             bottomSpacer: 49.w,
           ),
-          body: Container(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
-              child: CustomScrollView(slivers: [
-                SliverList(
-                  delegate: SliverChildListDelegate([
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              _product!.name,
-                              style: GoogleFonts.rubik(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14.sp,
-                                    color: Colors.grey[800]),
-                              ),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
+            child: CustomScrollView(slivers: [
+              SliverList(
+                delegate: SliverChildListDelegate([
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            widget.product.name,
+                            style: GoogleFonts.rubik(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.sp,
+                                  color: Colors.grey[800]),
                             ),
-                            SizedBox(
-                              height: 4.h,
-                            ),
-                            Text(
-                              '  CHOOSE ONE',
-                              style: GoogleFonts.rubik(
-                                textStyle: TextStyle(
-                                    fontSize: 11.0, color: Colors.grey[700]),
-                              ),
-                            )
-                          ],
-                        ),
-                        Container(
-                          height: 410.h,
-                          child: ListView(
-                            physics: const BouncingScrollPhysics(
-                              parent: AlwaysScrollableScrollPhysics(),
-                            ),
-                            shrinkWrap: true,
-                            children: Variants(model: model),
                           ),
+                          SizedBox(
+                            height: 4.h,
+                          ),
+                          Text(
+                            '  CHOOSE ONE',
+                            style: GoogleFonts.rubik(
+                              textStyle: TextStyle(
+                                  fontSize: 11.0, color: Colors.grey[700]),
+                            ),
+                          )
+                        ],
+                      ),
+                      Container(
+                        height: 410.h,
+                        child: ListView(
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                          shrinkWrap: true,
+                          children: Variants(model: model),
                         ),
-                      ],
-                    )
-                  ]),
-                ),
-                // endloop  == start/and discounts
-                // Quantity(context: context, model: model),
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: double.infinity,
-                      child: Quantity(context: context, model: model),
-                    ),
+                      ),
+                    ],
+                  )
+                ]),
+              ),
+              // endloop  == start/and discounts
+              // Quantity(context: context, model: model),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: double.infinity,
+                    child: Quantity(context: context, model: model),
                   ),
-                )
-              ]),
-            ),
+                ),
+              )
+            ]),
           ),
         );
       },

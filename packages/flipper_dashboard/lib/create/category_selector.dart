@@ -41,7 +41,7 @@ class CategorySelector extends StatelessWidget {
           width: double.infinity,
           child: GestureDetector(
             onTap: () {
-              GoRouter.of(context).go(Routes.categories, extra: categories);
+              GoRouter.of(context).push(Routes.categories, extra: categories);
             },
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),

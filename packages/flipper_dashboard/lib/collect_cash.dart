@@ -193,13 +193,6 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     model.collectCashPayment(
                                         payableAmount: totalOrderAmount);
                                     _btnController.success();
-
-                                    // ProxyService.nav.navigateTo(
-                                    //   Routes.afterSale,
-                                    //   arguments: AfterSaleArguments(
-                                    //     totalOrderAmount: totalOrderAmount,
-                                    //   ),
-                                    // );
                                   }
                                 } else {
                                   _btnController.stop();
@@ -224,6 +217,7 @@ class _CollectCashViewState extends State<CollectCashView> {
         },
         onModelReady: (model) {
           // set the OrderId in object box for later use.
+          // FIXMEuse pub nub to listen on completed actions
           ProxyService.box.write(key: 'orderId', value: model.kOrder!.id);
           Stream<String> stream = streamController.stream;
           subscription = stream.listen((event) {
@@ -232,7 +226,8 @@ class _CollectCashViewState extends State<CollectCashView> {
               _btnController.success();
               double totalOrderAmount =
                   model.kOrder!.orderItems.fold(0, (a, b) => a + b.price);
-              GoRouter.of(context).go(Routes.afterSale + "/$totalOrderAmount");
+              GoRouter.of(context)
+                  .push(Routes.afterSale + "/$totalOrderAmount");
             } else {
               _btnController.error();
             }

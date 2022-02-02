@@ -21,8 +21,7 @@ Widget header({required String title, required BuildContext context}) {
         leading: const Icon(Icons.arrow_back_ios),
         title: Text(title),
         onTap: () {
-          //navigation back
-          GoRouter.of(context).pop();
+          Navigator.maybePop(context);
         },
       ),
       decoration: const BoxDecoration(
@@ -37,7 +36,9 @@ Widget header({required String title, required BuildContext context}) {
 }
 
 Widget trailingWidget(bool checked) {
-  return (checked) ? Icon(Icons.check, color: Colors.blue) : Icon(null);
+  return (checked)
+      ? const Icon(Icons.check, color: Colors.blue)
+      : const Icon(null);
 }
 
 void inviteMembers({required BuildContext context}) {
@@ -141,9 +142,9 @@ void preferences(
         },
       ),
       ListTile(
-        leading: Icon(Ionicons.keypad),
-        title: Text('Reports'),
-        trailing: Icon(Icons.arrow_forward_ios),
+        leading: const Icon(Ionicons.keypad),
+        title: const Text('Reports'),
+        trailing: const Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
             header: header(title: 'Reports', context: context),
@@ -191,9 +192,9 @@ void preferences(
       ),
       if (ProxyService.remoteConfig.isBackupAvailable())
         ListTile(
-          leading: Icon(Ionicons.sync),
-          title: Text('BackUps'),
-          trailing: Icon(Icons.arrow_forward_ios),
+          leading: const Icon(Ionicons.sync),
+          title: const Text('BackUps'),
+          trailing: const Icon(Icons.arrow_forward_ios),
           onTap: () {
             bottomSheetBuilder(
               context: context,
@@ -201,21 +202,21 @@ void preferences(
               body: Column(
                 children: [
                   ListTile(
-                    leading: Icon(Ionicons.cloud_download),
-                    title: Text('Restore Data'),
-                    trailing: Icon(Ionicons.happy),
+                    leading: const Icon(Ionicons.cloud_download),
+                    title: const Text('Restore Data'),
+                    trailing: const Icon(Ionicons.happy),
                     onTap: () {
                       model.restoreBackUp((callback) {
                         if (callback == 1) {
                           showSimpleNotification(
-                            Text('Data restored'),
+                            const Text('Data restored'),
                             background: Colors.green,
                             position: NotificationPosition.bottom,
                           );
                         }
                         if (callback == 2) {
                           showSimpleNotification(
-                            Text('Error Restoring backup'),
+                            const Text('Error Restoring backup'),
                             background: Colors.red,
                             position: NotificationPosition.bottom,
                           );
@@ -224,14 +225,14 @@ void preferences(
                     },
                   ),
                   ListTile(
-                    leading: Icon(Ionicons.cloud_upload),
-                    title: Text('Backup now'),
-                    trailing: Icon(Ionicons.file_tray),
+                    leading: const Icon(Ionicons.cloud_upload),
+                    title: const Text('Backup now'),
+                    trailing: const Icon(Ionicons.file_tray),
                     onTap: () {
                       model.backUpNow((message) {
                         if (message == 1) {
                           showSimpleNotification(
-                            Text('Backup created'),
+                            const Text('Backup created'),
                             background: Colors.green,
                             position: NotificationPosition.bottom,
                           );
@@ -245,17 +246,17 @@ void preferences(
           },
         ),
       ListTile(
-        leading: Icon(Ionicons.analytics),
-        title: Text('Analytics'),
-        trailing: Icon(Icons.arrow_forward_ios),
+        leading: const Icon(Ionicons.analytics),
+        title: const Text('Analytics'),
+        trailing: const Icon(Icons.arrow_forward_ios),
         onTap: () {
           GoRouter.of(context).go(Routes.analytics);
         },
       ),
       ListTile(
-        leading: Icon(Ionicons.sync),
-        title: Text('Sync'),
-        trailing: Icon(Icons.arrow_forward_ios),
+        leading: const Icon(Ionicons.sync),
+        title: const Text('Sync'),
+        trailing: const Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
             header: header(title: 'Sync', context: context),
@@ -269,17 +270,7 @@ void preferences(
                     SettingsTile.switchTile(
                       title: 'Enable Sync',
                       switchValue: model.getIsSyncSubscribed,
-                      onToggle: (bool value) {
-                        /// work on this use right func and in callback
-                        /// we decide if we show the form to enable the sync again.
-                        // model.enableDailyReport((message) {
-                        //   bottomSheetBuilder(
-                        //     context: context,
-                        //     body: EnableSyncWidget(),
-                        //     header: header(title: 'Enable Sync'),
-                        //   );
-                        // });
-                      },
+                      onToggle: (bool value) {},
                     ),
                   ],
                 );
@@ -289,11 +280,11 @@ void preferences(
         },
       ),
       ListTile(
-        leading: Icon(
+        leading: const Icon(
           Icons.center_focus_weak,
         ),
-        title: Text('QR Code'),
-        trailing: Icon(Icons.arrow_forward_ios),
+        title: const Text('QR Code'),
+        trailing: const Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
             header: header(title: 'Qr Mode', context: context),
@@ -313,7 +304,7 @@ void preferences(
                         model.enableAttendance((message) {
                           if (message == 1) {
                             showSimpleNotification(
-                              Text('Added email is not gmail'),
+                              const Text('Added email is not gmail'),
                               background: Colors.red,
                               position: NotificationPosition.bottom,
                             );
@@ -331,18 +322,16 @@ void preferences(
                       },
                     ),
                     model.kSetting.isAttendanceEnabled
-                        ? Container(
-                            child: QrImage(
-                              data: model.business.name +
-                                  '-' +
-                                  model.business.id.toString() +
-                                  '-' +
-                                  model.business.userId.toString(),
-                              version: QrVersions.auto,
-                              size: 200.0,
-                            ),
+                        ? QrImage(
+                            data: model.business.name +
+                                '-' +
+                                model.business.id.toString() +
+                                '-' +
+                                model.business.userId.toString(),
+                            version: QrVersions.auto,
+                            size: 200.0,
                           )
-                        : SizedBox.shrink(),
+                        : const SizedBox.shrink(),
                   ],
                 );
               },
@@ -381,9 +370,9 @@ void addMemberBottomSheet({
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               title: Row(children: const [Text('Invite')]),
-              trailing: Text('Send Request'),
+              trailing: const Text('Send Request'),
             ),
-            Container(
+            SizedBox(
               height: 200,
               child: Padding(
                 padding: const EdgeInsets.only(right: 18.0),
@@ -413,15 +402,15 @@ void addWorkSpace({required BuildContext context}) {
           return Column(children: [
             if (ProxyService.remoteConfig.isAccessiblityFeatureAvailable())
               ListTile(
-                leading: Icon(Ionicons.language),
-                title: Text('Language'),
-                trailing: Icon(Icons.arrow_forward_ios),
+                leading: const Icon(Ionicons.language),
+                title: const Text('Language'),
+                trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {},
               ),
             ListTile(
-              leading: Icon(Ionicons.keypad),
-              title: Text('Enable report'),
-              trailing: Icon(Icons.arrow_forward_ios),
+              leading: const Icon(Ionicons.keypad),
+              title: const Text('Enable report'),
+              trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
                 print('here');
               },

@@ -34,7 +34,7 @@ class Payments extends StatelessWidget {
                 multi: 3,
                 bottomSpacer: 52,
               ),
-              body: Container(
+              body: SizedBox(
                 width: double.infinity,
                 child: Stack(
                   children: [
@@ -50,7 +50,7 @@ class Payments extends StatelessWidget {
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),
                                 )
-                              : Text('0.00'),
+                              : const Text('0.00'),
                           const SizedBox(height: 40),
                           const Text(
                             'Select Payment type Bellow',
@@ -68,7 +68,7 @@ class Payments extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              GoRouter.of(context).go(Routes.collect + "/cash");
+                              GoRouter.of(context).push(Routes.collect + "/cash");
                             },
                             child: const ListTile(
                               leading: Text(
@@ -91,7 +91,7 @@ class Payments extends StatelessWidget {
                               ? GestureDetector(
                                   onTap: () {
                                     GoRouter.of(context)
-                                        .go(Routes.collect + "/spenn");
+                                        .push(Routes.collect + "/spenn");
                                   },
                                   child: const ListTile(
                                     leading: Text(

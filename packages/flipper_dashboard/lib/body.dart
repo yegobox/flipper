@@ -35,7 +35,7 @@ class _BodyWidgetState extends State<BodyWidget> {
           payable: PayableView(
             onClick: () {
               if (widget.model.kOrder != null) {
-                GoRouter.of(context).go(Routes.pay);
+                GoRouter.of(context).push(Routes.pay);
               } else {
                 showSimpleNotification(
                   Text(FLocalization.of(context).noPayable),

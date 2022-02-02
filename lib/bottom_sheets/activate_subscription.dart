@@ -26,7 +26,7 @@ activateSubscription({
                 alignment: AlignmentDirectional.topCenter,
                 duration: const Duration(seconds: 2),
                 curve: Curves.elasticOut,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(18.0),

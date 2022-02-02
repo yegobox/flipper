@@ -550,7 +550,7 @@ class BuildProductsView extends StatelessWidget {
               name: product.name,
               imageUrl: product.imageUrl,
               edit: (productId) {
-                GoRouter.of(context).go(Routes.product + "/$productId");
+                GoRouter.of(context).push(Routes.product + "/$productId");
               },
               addToMenu: (productId) {
                 model.addToMenu(productId: productId);

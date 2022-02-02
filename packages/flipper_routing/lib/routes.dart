@@ -7,6 +7,9 @@ import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
+import 'package:flipper_dashboard/hero_dialog_route.dart';
+import 'package:flipper_dashboard/add_product_buttons.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -41,6 +44,13 @@ final router = GoRouter(
     GoRoute(
       path: '/boot',
       name: 'boot',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const StartUpView(),
+      ),
+    ),
+    GoRoute(
+      path: '/',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: const StartUpView(),
@@ -97,6 +107,16 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/product/:id',
+      name: 'editProduct',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: AddProductView(
+          productId: int.parse(state.params['id']!),
+        ),
+      ),
+    ),
+    GoRoute(
       path: '/discount',
       name: 'discount',
       pageBuilder: (context, state) => MaterialPage(
@@ -128,7 +148,7 @@ final router = GoRouter(
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: ReceiveStock(
-          variantId: int.parse(state.params['fid']!),
+          variantId: int.parse(state.params['id']!),
         ),
       ),
     ),
@@ -169,12 +189,12 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/sell/:id',
+      path: '/sell',
       name: 'sell',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: Sell(
-          productId: int.parse(state.params['id']!),
+          product: state.extra! as ProductSync,
         ),
       ),
     ),

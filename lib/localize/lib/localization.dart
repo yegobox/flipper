@@ -1,17 +1,14 @@
 import 'dart:io';
 
-// import 'package:file_picker/file_picker.dart';
 import 'package:flipper_dashboard/loader.dart';
 import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 import 'package:flipper_services/drive_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart'; // Add this line.
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:go_router/go_router.dart';
 import 'localize.dart';
 
 bottomSheetBuilder({
@@ -153,7 +150,7 @@ class FlipperBottomSheet {
                                     showSimpleNotification(
                                         const Text('Order Restored!'),
                                         background: Colors.green);
-                                    GoRouter.of(context).pop();
+                                    Navigator.maybePop(context);
                                   },
                                 ),
                                 dense: true,
@@ -233,7 +230,7 @@ class FlipperBottomSheet {
                               const Text('Note added!'),
                               background: Colors.green,
                             );
-                            GoRouter.of(context).pop();
+                            Navigator.maybePop(context);
                           }
                         },
                       );

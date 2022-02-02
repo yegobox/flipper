@@ -8,7 +8,6 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'add_product_buttons.dart';
-import 'hero_dialog_route.dart';
 import 'package:go_router/go_router.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
@@ -79,13 +78,10 @@ class SaleIndicator extends StatelessWidget {
       ),
       InkWell(
         onTap: () {
-          Navigator.of(context).push(
-            HeroDialogRoute(
-              builder: (context) {
-                return const OptionModal(
-                  child: AddProductButtons(),
-                );
-              },
+          showDialog(
+            context: context,
+            builder: (context) => const OptionModal(
+              child: AddProductButtons(),
             ),
           );
         },
@@ -108,6 +104,6 @@ class SaleIndicator extends StatelessWidget {
     //patch a business to add a chat uid
     // ProxyService.firestore.addContact(business: business);
     // ProxyService.nav.navigateTo(Routes.chat);
-    GoRouter.of(context).go(Routes.chat);
+    GoRouter.of(context).push(Routes.chat);
   }
 }

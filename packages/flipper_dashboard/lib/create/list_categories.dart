@@ -47,10 +47,10 @@ class ListCategories extends StatelessWidget {
           ),
         );
       }
-      list.add(Center(
-        child: Container(
+      list.add(const Center(
+        child: SizedBox(
           width: double.infinity,
-          child: const CenterDivider(
+          child: CenterDivider(
             width: double.infinity,
           ),
         ),
@@ -84,7 +84,7 @@ class ListCategories extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    GoRouter.of(context).go(Routes.category);
+                    GoRouter.of(context).push(Routes.category);
                   },
                   child: ListTile(
                     title: const Text('Create Category ',

@@ -26,7 +26,7 @@ class SectionSelectUnit extends StatelessWidget {
         width: double.infinity,
         child: GestureDetector(
           onTap: () {
-            GoRouter.of(context).go(Routes.units + "/$type");
+            GoRouter.of(context).push(Routes.units + "/$type");
           },
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.4),

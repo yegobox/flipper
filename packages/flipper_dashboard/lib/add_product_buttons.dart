@@ -17,21 +17,21 @@ class AddProductButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(left: 18.w, right: 18.w),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
         child: Form(
           child: Column(
             // mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
                   height: 40.h,
                   child: BoxButton(
                     onTap: () {
-                      GoRouter.of(context).go(Routes.product);
+                      GoRouter.of(context).push(Routes.product);
                     },
                     title: 'Add Product',
                   ),
@@ -62,7 +62,7 @@ class AddProductButtons extends StatelessWidget {
                   height: 40.h,
                   child: BoxButton.outline(
                     onTap: () {
-                      GoRouter.of(context).pop();
+                      Navigator.maybePop(context);
                     },
                     title: 'Dismiss',
                   ),

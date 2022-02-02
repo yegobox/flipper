@@ -470,7 +470,7 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                 onClick: () {
                   if (widget.model.countedOrderItems > 0) {
                     // ProxyService.nav.navigateTo(Routes.summary);
-                    GoRouter.of(context).go(Routes.summary);
+                    GoRouter.of(context).push(Routes.summary);
                   }
                 },
                 onLogout: () async {
@@ -986,15 +986,7 @@ class _UserProfileState extends State<_UserProfile> {
                     child: Row(
                       children: <Widget>[
                         const Spacer(),
-                        // TextButton(
-                        //   onPressed: () {},
-                        //   child: Column(
-                        //     children: <Widget>[
-                        //       const Icon(Icons.person),
-                        //       Text('Profile', style: textTheme.overline),
-                        //     ],
-                        //   ),
-                        // ),
+                       
                         const SizedBox(width: 10),
                         TextButton(
                           onPressed: () async {

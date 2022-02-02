@@ -158,9 +158,9 @@ class _AddProductViewState extends State<AddProductView> {
                   verticalSpaceSmall,
                   Padding(
                     padding: EdgeInsets.only(left: 18.w, right: 18.w),
-                    child: Container(
+                    child: const SizedBox(
                       width: double.infinity,
-                      child: const Text(
+                      child: Text(
                         'PRICE AND INVENTORY',
                       ),
                     ),
