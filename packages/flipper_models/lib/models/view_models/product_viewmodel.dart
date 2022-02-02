@@ -1,7 +1,8 @@
 library flipper_models;
 
 import 'package:flipper_models/models/models.dart';
-
+import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 
@@ -282,13 +283,9 @@ class ProductViewModel extends BusinessHomeViewModel {
     return result;
   }
 
-  void navigateAddVariation({required int productId}) {
-    ProxyService.nav.navigateTo(
-      Routes.variation,
-      arguments: AddVariationArguments(
-        productId: productId,
-      ),
-    );
+  void navigateAddVariation(
+      {required int productId, required BuildContext context}) {
+    GoRouter.of(context).go(Routes.sell + "/$productId");
   }
 
   /// When called should check the related product's variant and set the retail and or supply price

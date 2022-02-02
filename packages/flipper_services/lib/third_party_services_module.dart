@@ -20,7 +20,6 @@ import 'package:flipper_services/share_implementation.dart';
 import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/models/models.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
@@ -105,9 +104,7 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   Remote get remote {
     late Remote remote;
-    if (UniversalPlatform.isAndroid ||
-        UniversalPlatform.isWeb ||
-        UniversalPlatform.isMacOS) {
+    if (UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
       remote = RemoteConfigService();
     } else {
       remote = RemoteConfigWindows();
@@ -226,8 +223,8 @@ abstract class ThirdPartyServicesModule {
     return syncApi;
   }
 
-  @lazySingleton
-  NavigationService get nav;
+  // @lazySingleton
+  // NavigationService get nav;
   @lazySingleton
   LocalStorage get box {
     LocalStorage box;

@@ -32,7 +32,6 @@ import 'package:flipper_services/locator.dart';
   MockSpec<AppService>(returnNullOnMissingStub: true),
   MockSpec<FlipperLocation>(returnNullOnMissingStub: true),
   MockSpec<BillingService>(returnNullOnMissingStub: true),
-  MockSpec<NavigationService>(returnNullOnMissingStub: true),
 ])
 Api getAndRegisterApi() {
   _removeRegistrationIfExists<Api>();
@@ -195,13 +194,6 @@ MockFirebaseMessaging getFirebaseMessaging() {
   return service;
 }
 
-NavigationService getAndRegisterNavigationService() {
-  _removeRegistrationIfExists<NavigationService>();
-  final service = MockNavigationService();
-  locator.registerSingleton<NavigationService>(service);
-  return service;
-}
-
 MockFlipperLocation getAndRegisterLocationService() {
   _removeRegistrationIfExists<FlipperLocation>();
   final service = MockFlipperLocation();
@@ -275,7 +267,6 @@ MockLocalStorage getAndRegisterLocalStorage() {
 void registerServices() {
   getAndRegisterApi();
   getAndRegisterLocationService();
-  getAndRegisterNavigationService();
   getAndRegisterSettingsService();
   getAndRegisterLocalStorage();
   getAndRegisterAppService();

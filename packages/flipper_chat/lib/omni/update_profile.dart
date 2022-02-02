@@ -6,6 +6,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_models/models/models.dart';
+import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -169,7 +170,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                                 if (_formKey.currentState!.validate()) {
                                   int businessId =
                                       ProxyService.box.read(key: 'businessId');
-                                  Profile profile = new Profile(
+                                  Profile profile = Profile(
                                     businessId: businessId,
                                     nationalId: _id.value.text,
                                     email: emailController.value.text,
@@ -184,17 +185,16 @@ class _UpdateProfileState extends State<UpdateProfile> {
                                   );
                                   await model.updateProfile(profile: profile);
                                   showSimpleNotification(
-                                    Text('Profile updated'),
+                                    const Text('Profile updated'),
                                     background: Colors.green,
                                     position: NotificationPosition.bottom,
                                   );
-                                  ProxyService.nav.back();
+                                  GoRouter.of(context).pop();
                                 }
                               },
                             )
-                          : Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, right: 8.0),
+                          : const Padding(
+                              padding: EdgeInsets.only(left: 8.0, right: 8.0),
                               child: SizedBox(
                                 width: double.infinity,
                                 height: 60,

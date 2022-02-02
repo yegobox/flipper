@@ -2,7 +2,6 @@ library flipper_routing;
 
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
-import 'package:flipper_chat/omni/omni_conversation.dart';
 import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
@@ -26,47 +25,261 @@ import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
 import 'package:flipper_login/signup_form_view.dart';
-import 'package:flipper_map/flipper_map.dart';
 import 'package:flipper_routing/finance_app.dart';
-
+import 'package:flipper_models/models/models.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:flipper_login/login.dart';
-
 import 'package:stacked_services/stacked_services.dart';
 
-@StackedApp(
+import 'routes.router.dart';
+
+final router = GoRouter(
+  initialLocation: Routes.boot,
   routes: [
-    MaterialRoute(page: StartUpView, initial: true, name: 'initial'),
-    MaterialRoute(page: OmniChat, name: 'chat', path: 'omni'),
-    MaterialRoute(page: OmniConversation, name: 'convo', path: '/convo'),
-    MaterialRoute(page: OmniContacts, name: 'contacts', path: '/contacts'),
-    MaterialRoute(page: SignUpFormView, name: 'signup'),
-    MaterialRoute(page: FlipperApp, name: 'home'),
-    MaterialRoute(page: LoginView, name: 'login', path: '/login'),
-    MaterialRoute(page: AddProductView, name: 'product'),
-    MaterialRoute(page: AddDiscount, name: 'discount'),
-    MaterialRoute(page: ListCategories, name: 'categories'),
-    MaterialRoute(page: ColorTile, name: 'colors'),
-    MaterialRoute(page: ReceiveStock, name: 'stock'),
-    MaterialRoute(page: AddCategory, name: 'category'),
-    MaterialRoute(page: AddVariation, name: 'variation'),
-    MaterialRoute(page: ListUnits, name: 'units'),
-    MaterialRoute(page: OrderSummary, name: 'summary'),
-    MaterialRoute(page: Sell, name: 'sell'),
-    MaterialRoute(page: Payments, name: 'pay'),
-    MaterialRoute(page: CollectCashView, name: 'collect'),
-    MaterialRoute(page: AfterSale, name: 'afterSale'),
-    MaterialRoute(page: SettingsScreen, name: 'settings'),
-    MaterialRoute(page: Analytics, name: 'analytics'),
-    MaterialRoute(page: ScannView, name: 'qrview'),
-    MaterialRoute(page: SwitchBranchView, name: 'switchBranch'),
-    MaterialRoute(page: OrderView, name: 'order'),
-    MaterialRoute(
-        page: InAppBrowser, name: 'inappBrowser', fullscreenDialog: true),
-    MaterialRoute(page: MapView, name: 'map'),
-    MaterialRoute(page: Customers, name: 'customers'),
-    MaterialRoute(page: FinanceApp, name: 'finance'),
+    GoRoute(
+      path: '/boot',
+      name: 'boot',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const StartUpView(),
+      ),
+    ),
+    GoRoute(
+      path: '/omni',
+      name: 'chat',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const OmniChat(),
+      ),
+    ),
+    GoRoute(
+      path: '/contacts',
+      name: 'contacts',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const OmniContacts(),
+      ),
+    ),
+    GoRoute(
+      path: '/signup/:country',
+      name: 'signup',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: SignUpFormView(
+          countryNm: state.params['country']!,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/home',
+      name: 'home',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const FlipperApp(),
+      ),
+    ),
+    GoRoute(
+      path: '/login',
+      name: 'login',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const LoginView(),
+      ),
+    ),
+    GoRoute(
+      path: '/product',
+      name: 'product',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const AddProductView(),
+      ),
+    ),
+    GoRoute(
+      path: '/discount',
+      name: 'discount',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: AddDiscount(),
+      ),
+    ),
+    GoRoute(
+      path: '/categories',
+      name: 'categories',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ListCategories(
+          categories: state.extra! as List<Category>,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/colors',
+      name: 'colors',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ColorTile(),
+      ),
+    ),
+    GoRoute(
+      path: '/stock/:id',
+      name: 'stock',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ReceiveStock(
+          variantId: int.parse(state.params['fid']!),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/variation/:productId',
+      name: 'variation',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: AddVariation(
+          productId: int.parse(state.params['productId']!),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/category',
+      name: 'category',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: AddCategory(),
+      ),
+    ),
+    GoRoute(
+      path: '/units/:type',
+      name: 'units',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ListUnits(
+          type: state.params['type']!,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/summary',
+      name: 'summary',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: OrderSummary(),
+      ),
+    ),
+    GoRoute(
+      path: '/sell/:id',
+      name: 'sell',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: Sell(
+          productId: int.parse(state.params['id']!),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/pay',
+      name: 'pay',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: Payments(),
+      ),
+    ),
+    GoRoute(
+      path: '/collect/:paymentType',
+      name: 'collect',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: CollectCashView(
+          paymentType: state.params['paymentType']!,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/afterSale/:total',
+      name: 'afterSale',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: AfterSale(
+          totalOrderAmount: double.parse(state.params['total']!),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/settings',
+      name: 'settings',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: SettingsScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/switchBranch',
+      name: 'switchBranch',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: SwitchBranchView(),
+      ),
+    ),
+    GoRoute(
+      path: "${Routes.analytics}",
+      name: 'analytics',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: Analytics(),
+      ),
+    ),
+    GoRoute(
+      path: "/qrview/:intent",
+      name: 'qrview',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ScannView(
+          intent: state.params['intent']!,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/order',
+      name: 'order',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: OrderView(),
+      ),
+    ),
+    GoRoute(
+      path: '/browse',
+      name: 'browse',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const InAppBrowser(),
+      ),
+    ),
+    GoRoute(
+      path: '/customers/:orderId',
+      name: 'customers',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: Customers(
+          orderId: int.parse(state.params['orderId']!),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/finance',
+      name: 'finance',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const FinanceApp(),
+      ),
+    ),
   ],
+);
+
+// leave stacked for logging purposes
+@StackedApp(
+  routes: [],
   dependencies: [
     LazySingleton(classType: NavigationService),
   ],
@@ -80,7 +293,7 @@ class AppSetup {
 // flutter packages pub run build_runner build --delete-conflicting-outputs
 //  firebase deploy --only hosting
 //  firebase deploy --only functions
-// // flutter build web
+// // flutter build web --release
 // NOTE:TODO: when rebuilding login_popup_view remember to add library flipper_login; in generated file
 // firebase install https://firebase.flutter.dev/docs/installation/android/
 // flutter create --template=package hello
@@ -99,7 +312,7 @@ class AppSetup {
 //TODO: The nex things in consumer app!
 // https://github.com/JoshuaR503/Stock-Market-App
 // https://www.youtube.com/watch?v=IbJt7tr8kL0
-// https://developers.amadeus.com/self-service/category/air/api-doc/flight-offers-search/api-reference 
+// https://developers.amadeus.com/self-service/category/air/api-doc/flight-offers-search/api-reference
 // https://github.com/amadeus4dev/amadeus-java
 // TODO: Qr code.!
 // https://www.youtube.com/watch?v=hHehIGfX_yU
@@ -124,24 +337,22 @@ class AppSetup {
 
 // on DeleteOfOrderItem call another func to update tickets this can be refreshing tickets..
 // version.(1)
-// TODO: implement geofancing of businesses and customers 
+// TODO: implement geofancing of businesses and customers
 // https://pub.dev/packages/geofence_service (if I am near a shop in 100 metters to receive advert of business willing to offer me deal)
 // a user will set the price he is willing to pay and item then he get adverts related to the settings.
-
 
 // masterting analytics
 // https://medium.com/flutterdevs/firebase-analytics-2044e865efc4
 
 // test pin:085214
 
-
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/system_time_check.git open-sources/system_time_check
+// git submodule add https://github.com/yegobox/twitther_oath.git open-sources/twitther_oath
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%
 // This will not restart the server.!
-// docker-compose up -d --no-deps --build app-server  
+// docker-compose up -d --no-deps --build app-server
 
 // TODO:when want to calculate distance between points
 // https://flutteragency.com/total-distance-from-latlng-list-in-flutter/
@@ -190,7 +401,7 @@ class AppSetup {
 // TODOuse backdrop the front will show the tickets instead of using the bottom sheet.
 // https://pub.dev/packages/backdrop
 // Integrate local report as option
-  // https://pub.dev/packages/excel
+// https://pub.dev/packages/excel
 
 // dart define in case we need to use it.
 // https://itnext.io/flutter-1-17-no-more-flavors-no-more-ios-schemas-command-argument-that-solves-everything-8b145ed4285d

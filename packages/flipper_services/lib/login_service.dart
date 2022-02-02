@@ -1,14 +1,15 @@
 // Import all PubNub objects into your namespace
 // import 'package:pubnub/core.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flutter/cupertino.dart';
 // Or import PubNub into a named namespace
 import 'package:pubnub/pubnub.dart';
 // To parse this JSON data, do
-//
 //     final loginData = loginDataFromMap(jsonString);
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
@@ -65,7 +66,7 @@ class LoginService {
     channel.publish(loginDetails);
   }
 
-  void subscribe({required String channel}) {
+  void subscribe({required String channel, required BuildContext context}) {
     Subscription subscription = pubnub.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       LoginData loginData = LoginData.fromMap(envelope.payload);
@@ -83,7 +84,8 @@ class LoginService {
         await ProxyService.api.login(
           userPhone: loginData.phone,
         );
-        ProxyService.nav.navigateTo(Routes.initial);
+        // ProxyService.nav.navigateTo(Routes.initial);
+        GoRouter.of(context).go(Routes.boot);
       }
     });
   }

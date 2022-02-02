@@ -2,11 +2,11 @@ library flipper_login;
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -83,7 +83,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                       background: Colors.green,
                                       position: NotificationPosition.bottom,
                                     );
-                                    ProxyService.nav.back();
+                                    GoRouter.of(context).pop();
                                   }
                                 }
                               },

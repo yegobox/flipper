@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
 class ColorAndImagePlaceHolder extends StatelessWidget {
   const ColorAndImagePlaceHolder(
@@ -22,7 +23,8 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ProxyService.nav.navigateTo(Routes.colors);
+        // ProxyService.nav.navigateTo(Routes.colors);
+        GoRouter.of(context).go(Routes.colors);
       },
       child: FutureBuilder<ProductSync?>(
         future: getProduct(),

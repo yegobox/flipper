@@ -56,7 +56,6 @@ void main() async {
   setupLocator();
   await initDb();
 
-  ProxyService.notification.initialize();
   await ThemeManager.initialise();
 
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';

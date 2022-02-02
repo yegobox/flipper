@@ -1,8 +1,8 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/models.dart';
+import 'package:go_router/go_router.dart';
 
 class AddCategory extends StatelessWidget {
   AddCategory({Key? key}) : super(key: key);
@@ -14,7 +14,7 @@ class AddCategory extends StatelessWidget {
           appBar: CustomAppBar(
             onPop: () async {
               model.createCategory();
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             title: 'Create Category',
             icon: Icons.keyboard_backspace,

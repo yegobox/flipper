@@ -4,10 +4,12 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/models/models.dart';
 
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -63,6 +65,7 @@ class SignupViewModel extends FormViewModel {
     }
   }
 
+  BuildContext? context;
   Future<void> signup() async {
     registerStart = true;
     notifyListeners();
@@ -83,7 +86,7 @@ class SignupViewModel extends FormViewModel {
       'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.read(key: 'userId'),
       'type': businessType,
-      'referredBy': referralCode == null ? 'Organic' : referralCode,
+      'referredBy': referralCode ?? 'Organic',
       'fullName': kFullName,
       'country': kCountry
     });
@@ -127,7 +130,7 @@ class SignupViewModel extends FormViewModel {
         '#a29bfe'
       ];
 
-      final PColor color = new PColor(
+      final PColor color = PColor(
         id: DateTime.now().millisecondsSinceEpoch,
         colors: colors,
         table: AppTables.color,
@@ -140,7 +143,7 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.api
           .create<PColor>(data: color.toJson(), endPoint: 'color');
       //now create default units for this branch
-      final units = new Unit(
+      final units = Unit(
         name: 'sample',
         value: 'kg',
         active: false,
@@ -155,7 +158,8 @@ class SignupViewModel extends FormViewModel {
       //now create a default custom product
       await ProxyService.api.createProduct(product: customProductMock);
 
-      ProxyService.nav.navigateTo(Routes.home);
+      // ProxyService.nav.navigateTo(Routes.home);
+      GoRouter.of(context!).go(Routes.home);
     }
   }
 

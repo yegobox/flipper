@@ -9,6 +9,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -88,7 +89,7 @@ class _AddCustomerState extends State<AddCustomer> {
                             verticalSpaceSmall,
                             BoxInputField(
                               controller: _phoneController,
-                              leading: Icon(Icons.phone),
+                              leading: const Icon(Icons.phone),
                               placeholder: 'Phone Number',
                               validatorFunc: (value) {
                                 if (value!.isEmpty) {
@@ -130,8 +131,7 @@ class _AddCustomerState extends State<AddCustomer> {
                                         name: _nameController.text,
                                         orderId: widget.orderId);
 
-                                    ProxyService.nav.popUntil(
-                                        ModalRoute.withName(Routes.afterSale));
+                                    GoRouter.of(context).go(Routes.afterSale);
 
                                     /// this update a model when the Order has the customerId in it then will show related data accordingly!
                                     model.getOrderById();

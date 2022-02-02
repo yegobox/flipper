@@ -14,6 +14,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
+import 'package:go_router/go_router.dart';
 
 // import './view_models/business.dart';
 class BusinessHomeViewModel extends ReactiveViewModel {
@@ -449,7 +450,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   /// if deleting OrderItem leaves order with no OrderItem
   /// this function also delete the order
-  Future<bool> deleteOrderItem({required int id}) async {
+  Future<bool> deleteOrderItem(
+      {required int id, required BuildContext context}) async {
     await ProxyService.api.delete(id: id, endPoint: 'orderItem');
 
     await currentOrder();
@@ -458,7 +460,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     /// if there is no orderItem left in the order then navigate back
     if (keypad.order!.orderItems.isEmpty) {
-      ProxyService.nav.back();
+      GoRouter.of(context).pop();
     }
 
     return true;

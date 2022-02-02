@@ -12,19 +12,20 @@ import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:go_router/go_router.dart';
 
-Widget header({required String title}) {
+Widget header({required String title, required BuildContext context}) {
   return Material(
     child: Container(
       child: ListTile(
-        leading: Icon(Icons.arrow_back_ios),
+        leading: const Icon(Icons.arrow_back_ios),
         title: Text(title),
         onTap: () {
           //navigation back
-          ProxyService.nav.back();
+          GoRouter.of(context).pop();
         },
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(18.0),
@@ -58,9 +59,9 @@ void inviteMembers({required BuildContext context}) {
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                   title: Row(children: const [Text('Invite')]),
-                  trailing: Text('Send Request'),
+                  trailing: const Text('Send Request'),
                 ),
-                Container(
+                SizedBox(
                   height: 200,
                   child: Padding(
                     padding: const EdgeInsets.all(18.0),
@@ -82,23 +83,23 @@ void inviteMembers({required BuildContext context}) {
 void preferences(
     {required BuildContext context, required BusinessHomeViewModel model}) {
   bottomSheetBuilder(
-    header: header(title: 'Preferences'),
+    header: header(title: 'Preferences', context: context),
     context: context,
     body: Column(children: [
       if (ProxyService.remoteConfig.isAccessiblityFeatureAvailable())
-        ListTile(
+        const ListTile(
           leading: Icon(Ionicons.search),
           title: Text('Accessibility'),
           trailing: Icon(Icons.arrow_forward_ios),
         ),
       ListTile(
-        leading: Icon(Ionicons.language),
-        title: Text('Language'),
-        trailing: Icon(Icons.arrow_forward_ios),
+        leading: const Icon(Ionicons.language),
+        title: const Text('Language'),
+        trailing: const Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
             context: context,
-            header: header(title: 'Language'),
+            header: header(title: 'Language', context: context),
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
               onModelReady: (model) {
@@ -145,7 +146,7 @@ void preferences(
         trailing: Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
-            header: header(title: 'Reports'),
+            header: header(title: 'Reports', context: context),
             context: context,
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
@@ -164,7 +165,7 @@ void preferences(
                         model.enableDailyReport((message) {
                           if (message == 1) {
                             showSimpleNotification(
-                              Text('Added email is not gmail'),
+                              const Text('Added email is not gmail'),
                               background: Colors.red,
                               position: NotificationPosition.bottom,
                             );
@@ -174,7 +175,8 @@ void preferences(
                             bottomSheetBuilder(
                               context: context,
                               body: UpdateEmailSetting(),
-                              header: header(title: 'Add Email'),
+                              header:
+                                  header(title: 'Add Email', context: context),
                             );
                           }
                         });
@@ -195,7 +197,7 @@ void preferences(
           onTap: () {
             bottomSheetBuilder(
               context: context,
-              header: header(title: 'Add Backup'),
+              header: header(title: 'Add Backup', context: context),
               body: Column(
                 children: [
                   ListTile(
@@ -247,7 +249,7 @@ void preferences(
         title: Text('Analytics'),
         trailing: Icon(Icons.arrow_forward_ios),
         onTap: () {
-          ProxyService.nav.navigateTo(Routes.analytics);
+          GoRouter.of(context).go(Routes.analytics);
         },
       ),
       ListTile(
@@ -256,7 +258,7 @@ void preferences(
         trailing: Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
-            header: header(title: 'Sync'),
+            header: header(title: 'Sync', context: context),
             context: context,
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
@@ -294,7 +296,7 @@ void preferences(
         trailing: Icon(Icons.arrow_forward_ios),
         onTap: () {
           bottomSheetBuilder(
-            header: header(title: 'Qr Mode'),
+            header: header(title: 'Qr Mode', context: context),
             context: context,
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
@@ -321,7 +323,8 @@ void preferences(
                             bottomSheetBuilder(
                               context: context,
                               body: UpdateEmailSetting(),
-                              header: header(title: 'Add Email'),
+                              header:
+                                  header(title: 'Add Email', context: context),
                             );
                           }
                         });
@@ -364,7 +367,8 @@ void addMemberBottomSheet({
   required List<Widget> children,
 }) {
   bottomSheetBuilder(
-    header: header(title: FLocalization.of(context).addMembers),
+    header:
+        header(title: FLocalization.of(context).addMembers, context: context),
     context: context,
     body: ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
@@ -400,7 +404,8 @@ void addMemberBottomSheet({
 
 void addWorkSpace({required BuildContext context}) {
   bottomSheetBuilder(
-    header: header(title: FLocalization.of(context).addWorkSpace),
+    header:
+        header(title: FLocalization.of(context).addWorkSpace, context: context),
     context: context,
     body: ViewModelBuilder<SettingViewModel>.reactive(
         viewModelBuilder: () => SettingViewModel(),

@@ -13,11 +13,13 @@ import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:go_router/go_router.dart';
 
-final socketUrl = 'https://apihub.yegobox.com/ws-message';
+const socketUrl = 'https://apihub.yegobox.com/ws-message';
 
 class CollectCashView extends StatefulWidget {
-  CollectCashView({Key? key, required this.paymentType}) : super(key: key);
+  const CollectCashView({Key? key, required this.paymentType})
+      : super(key: key);
   final String paymentType;
 
   @override
@@ -82,14 +84,14 @@ class _CollectCashViewState extends State<CollectCashView> {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 title: '',
                 icon: Icons.close,
                 multi: 3,
                 bottomSpacer: 52,
               ),
-              body: Container(
+              body: SizedBox(
                 width: double.infinity,
                 child: Stack(
                   children: [
@@ -103,7 +105,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                 ? Padding(
                                     padding: const EdgeInsets.only(
                                         left: 18, right: 18),
-                                    child: Container(
+                                    child: SizedBox(
                                       width: double.infinity,
                                       child: TextFormField(
                                         keyboardType: TextInputType.number,
@@ -134,7 +136,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                             Padding(
                               padding:
                                   const EdgeInsets.only(left: 18, right: 18),
-                              child: Container(
+                              child: SizedBox(
                                 width: double.infinity,
                                 child: TextFormField(
                                   keyboardType: TextInputType.number,
@@ -192,12 +194,12 @@ class _CollectCashViewState extends State<CollectCashView> {
                                         payableAmount: totalOrderAmount);
                                     _btnController.success();
 
-                                    ProxyService.nav.navigateTo(
-                                      Routes.afterSale,
-                                      arguments: AfterSaleArguments(
-                                        totalOrderAmount: totalOrderAmount,
-                                      ),
-                                    );
+                                    // ProxyService.nav.navigateTo(
+                                    //   Routes.afterSale,
+                                    //   arguments: AfterSaleArguments(
+                                    //     totalOrderAmount: totalOrderAmount,
+                                    //   ),
+                                    // );
                                   }
                                 } else {
                                   _btnController.stop();
@@ -230,9 +232,7 @@ class _CollectCashViewState extends State<CollectCashView> {
               _btnController.success();
               double totalOrderAmount =
                   model.kOrder!.orderItems.fold(0, (a, b) => a + b.price);
-              ProxyService.nav.navigateTo(Routes.afterSale,
-                  arguments:
-                      AfterSaleArguments(totalOrderAmount: totalOrderAmount));
+              GoRouter.of(context).go(Routes.afterSale + "/$totalOrderAmount");
             } else {
               _btnController.error();
             }

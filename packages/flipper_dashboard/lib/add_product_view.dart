@@ -20,6 +20,7 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class AddProductView extends StatefulWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
@@ -98,7 +99,7 @@ class _AddProductViewState extends State<AddProductView> {
             appBar: CustomAppBar(
               onPop: () async {
                 await model.loadProducts();
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               title: 'Create Product',
               disableButton: model.lock,
@@ -107,7 +108,7 @@ class _AddProductViewState extends State<AddProductView> {
                 await model.addProduct(
                     mproduct: model.product.toJson(), name: productName.text);
                 await model.loadProducts();
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               rightActionButtonName: 'Save',
               icon: Icons.close,
@@ -120,7 +121,7 @@ class _AddProductViewState extends State<AddProductView> {
                 Column(children: <Widget>[
                   verticalSpaceSmall,
                   model.product == null
-                      ? SizedBox.shrink()
+                      ? const SizedBox.shrink()
                       : ColorAndImagePlaceHolder(
                           currentColor: model.currentColor,
                           product: model.product,
@@ -128,7 +129,7 @@ class _AddProductViewState extends State<AddProductView> {
                   const Text('Product'),
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
-                    child: Container(
+                    child: SizedBox(
                       width: double.infinity,
                       child: TextFormField(
                         style: Theme.of(context).textTheme.bodyText1!.copyWith(
@@ -221,7 +222,7 @@ class _AddProductViewState extends State<AddProductView> {
                   verticalSpaceSmall,
                   verticalSpaceSmall,
                   model.variants == null
-                      ? SizedBox.shrink()
+                      ? const SizedBox.shrink()
                       : Padding(
                           padding: const EdgeInsets.only(left: 18, right: 18),
                           child: VariationList(
@@ -237,11 +238,11 @@ class _AddProductViewState extends State<AddProductView> {
                     child: SizedBox(
                       height: 50,
                       width: double.infinity,
-                      child: OutlineButton(
+                      child: TextButton(
                         child: const Text('Add Variation'),
                         onPressed: () {
                           model.navigateAddVariation(
-                              productId: model.product.id);
+                              context: context, productId: model.product.id);
                         },
                       ),
                     ),
@@ -260,16 +261,13 @@ class _AddProductViewState extends State<AddProductView> {
                         ),
                         child: GestureDetector(
                           onTap: () {
-                            ProxyService.nav.navigateTo(
-                              Routes.qrview,
-                              arguments:
-                                  ScannViewArguments(intent: 'addBarCode'),
-                            );
+                            GoRouter.of(context)
+                                .go(Routes.qrview + "/addBarCode");
                           },
                           child: BoxInputField(
                             enabled: false,
                             controller: barCode,
-                            trailing: Icon(
+                            trailing: const Icon(
                               Icons.center_focus_weak,
                               color: primary,
                             ),

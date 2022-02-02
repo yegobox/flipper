@@ -16,7 +16,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:go_router/go_router.dart';
 import 'omni/calls_page.dart';
 import 'omni/orders_page.dart';
 import 'omni/update_profile.dart';
@@ -49,8 +49,8 @@ class _OmniChatState extends State<OmniChat> {
         if (profile == null) {
           bottomSheetBuilderProfile(
             context: context,
-            body: <Widget>[UpdateProfile()],
-            header: header(title: 'Update Profile'),
+            body: <Widget>[const UpdateProfile()],
+            header: header(title: 'Update Profile', context: context),
           );
         }
       });
@@ -221,9 +221,8 @@ class _OmniChatState extends State<OmniChat> {
                                               key: pageKey,
                                               value: 'business',
                                             );
-                                            ProxyService.nav.navigateTo(
-                                              Routes.home,
-                                            );
+                                            GoRouter.of(context)
+                                                .pushNamed(Routes.home);
                                           },
                                           icon: Icons.update_outlined,
                                           size: 70,

@@ -1,14 +1,12 @@
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_routing/routes.router.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import '../helpers/test_helpers.dart';
 // import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 // import 'api_test.dart';
 
 StartUpViewModel _getModel() => StartUpViewModel();
-final BusinessSync businessMockData = new BusinessSync(
+final BusinessSync businessMockData = BusinessSync(
   id: 1,
   name: 'name',
   latitude: '1',
@@ -28,8 +26,6 @@ void main() {
       // final api = getAndRegisterApi(businesses: c);
 
       // final appService = getAndRegisterAppService(hasLoggedInUser: true);
-
-      // final navigationService = getAndRegisterNavigationService();
 
       // final model = _getModel();
 
@@ -52,8 +48,6 @@ void main() {
     test('When user not logged in should take user to login', () async {
       // FiXMEthis test is failing
       // final appService = getAndRegisterAppService(hasLoggedInUser: false);
-
-      // final navigationService = getAndRegisterNavigationService();
 
       // final model = _getModel();
 

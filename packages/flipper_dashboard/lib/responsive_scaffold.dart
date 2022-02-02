@@ -6,6 +6,7 @@ import './universal/maybe_tooltip.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'about.dart';
+import 'package:go_router/go_router.dart';
 
 class MenuConfig {
   static String share = 'Share';
@@ -468,12 +469,14 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                 counts: widget.model.countedOrderItems,
                 onClick: () {
                   if (widget.model.countedOrderItems > 0) {
-                    ProxyService.nav.navigateTo(Routes.summary);
+                    // ProxyService.nav.navigateTo(Routes.summary);
+                    GoRouter.of(context).go(Routes.summary);
                   }
                 },
                 onLogout: () async {
                   await ProxyService.api.logOut();
-                  ProxyService.nav.navigateTo(Routes.initial);
+
+                  // ProxyService.nav.navigateTo(Routes.initial);
                 },
               ),
 
@@ -996,9 +999,7 @@ class _UserProfileState extends State<_UserProfile> {
                         TextButton(
                           onPressed: () async {
                             await ProxyService.api.logOut();
-                            ProxyService.nav.navigateTo(
-                              Routes.initial,
-                            );
+                            GoRouter.of(context).go(Routes.boot);
                           },
                           child: Column(
                             children: <Widget>[

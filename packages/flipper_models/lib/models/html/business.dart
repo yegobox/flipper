@@ -25,7 +25,6 @@ String businessToJson(List<BusinessSync> data) =>
 /// again becase a business if found in a mix of being a business
 /// and a contact at the same time i.e. a person then it make sense to add bellow fields too!
 /// All possible roles user can have.
-enum Role { admin, agent, moderator, user }
 
 class BusinessSync {
   BusinessSync(

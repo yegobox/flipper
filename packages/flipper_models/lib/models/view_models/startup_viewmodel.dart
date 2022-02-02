@@ -7,20 +7,22 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:go_router/go_router.dart';
 
 final isWeb = UniversalPlatform.isWeb;
 
 class StartUpViewModel extends BaseViewModel {
-  final _navigationService = locator<NavigationService>();
   final appService = locator<AppService>();
   bool isBusinessSet = false;
   final log = getLogger('StartUpViewModel');
 
-  Future<void> runStartupLogic({bool? invokeLogin}) async {
+  Future<void> runStartupLogic(
+      {bool? invokeLogin, required BuildContext context}) async {
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
     }
@@ -43,7 +45,7 @@ class StartUpViewModel extends BaseViewModel {
           );
         } catch (e) {
           if (e is InternalServerError) {
-            _navigationService.replaceWith(Routes.login);
+            GoRouter.of(context).go(Routes.login);
           }
         }
       }
@@ -72,11 +74,14 @@ class StartUpViewModel extends BaseViewModel {
             BusinessSync business = await ProxyService.api
                 .getBusinessFromOnlineGivenId(
                     id: tenant.branches[0].fbusinessId!);
-            navigateToDashboard(business: business, branch: tenant.branches[0]);
+            navigateToDashboard(
+                business: business,
+                branch: tenant.branches[0],
+                context: context);
             return;
           } else if (tenant.branches.length > 1) {
             /// TODOwhen we support multiple branches we need to add this logic
-            ProxyService.nav.navigateTo(Routes.switchBranch);
+            GoRouter.of(context).go(Routes.switchBranch);
           }
         }
 
@@ -87,8 +92,8 @@ class StartUpViewModel extends BaseViewModel {
         /// in local storage.
         /// first get the location
         String? countryName = await ProxyService.country.getCountryName();
-        _navigationService.replaceWith(Routes.signup,
-            arguments: SignUpFormViewArguments(countryNm: countryName!));
+        GoRouter.of(context).go(Routes.signup + "/$countryName");
+
         return;
       }
 
@@ -104,12 +109,12 @@ class StartUpViewModel extends BaseViewModel {
       /// follow algorithm there
       try {
         BusinessSync business = ProxyService.api.getBusiness();
-        navigateToDashboard(business: business);
+        navigateToDashboard(business: business, context: context);
       } catch (e) {
         log.e(e);
       }
     } else {
-      _navigationService.replaceWith(Routes.login);
+      GoRouter.of(context).pushNamed('login');
     }
   }
 
@@ -129,7 +134,9 @@ class StartUpViewModel extends BaseViewModel {
   }
 
   void navigateToDashboard(
-      {required BusinessSync business, BranchSync? branch}) {
+      {required BusinessSync business,
+      BranchSync? branch,
+      required BuildContext context}) {
     if (branch != null) {
       ProxyService.box.write(key: 'branchId', value: branch.id);
     }
@@ -146,10 +153,12 @@ class StartUpViewModel extends BaseViewModel {
     switch (ProxyService.box.read(key: pageKey)) {
       case 'social':
         //_navigationService.replaceWith(Routes.chat);
-        _navigationService.replaceWith(Routes.home);
+        // _navigationService.replaceWith(Routes.home);
+        GoRouter.of(context).pushNamed('home');
         break;
       default:
-        _navigationService.replaceWith(Routes.home);
+        // _navigationService.replaceWith(Routes.home);
+        GoRouter.of(context).pushNamed('home');
     }
   }
 

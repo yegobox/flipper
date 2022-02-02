@@ -1,7 +1,7 @@
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
+import 'package:go_router/go_router.dart';
 
 class SectionSelectUnit extends StatelessWidget {
   const SectionSelectUnit({Key? key, required this.product, required this.type})
@@ -9,7 +9,7 @@ class SectionSelectUnit extends StatelessWidget {
   final ProductSync product;
   final String type;
   Text unitSelector(ProductSync units) {
-    late Text text = Text('Select Unit');
+    late Text text = const Text('Select Unit');
 
     if (product.unit != '') {
       text = Text(product.unit);
@@ -22,12 +22,11 @@ class SectionSelectUnit extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
         child: GestureDetector(
           onTap: () {
-            ProxyService.nav.navigateTo(Routes.units,
-                arguments: ListUnitsArguments(type: type));
+            GoRouter.of(context).go(Routes.units + "/$type");
           },
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.4),

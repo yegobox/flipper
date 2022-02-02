@@ -14,8 +14,6 @@ class LoginViewModel extends FormViewModel {
   bool loginStart = false;
   bool otpStart = false;
 
-  void navigateBack() => ProxyService.nav.back();
-
   String? phoneNumber;
   void setPhoneNumber({required String phone}) {
     phoneNumber = phone;

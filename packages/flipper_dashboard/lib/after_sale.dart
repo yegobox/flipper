@@ -10,6 +10,7 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale({Key? key, required this.totalOrderAmount}) : super(key: key);
@@ -42,7 +43,7 @@ class _AfterSaleState extends State<AfterSale> {
                 onPop: () {
                   // refresh orders
                   model.currentOrder();
-                  ProxyService.nav.popUntil(ModalRoute.withName(Routes.home));
+                  GoRouter.of(context).pushNamed(Routes.home);
                 },
                 title: '',
                 closeButton: CLOSEBUTTON.BUTTON,
@@ -51,8 +52,8 @@ class _AfterSaleState extends State<AfterSale> {
                 onPressedCallback: () async {
                   await model.getOrderById();
                   log.i(model.kOrder!.id);
-                  ProxyService.nav.navigateTo(Routes.customers,
-                      arguments: CustomersArguments(orderId: model.kOrder!.id));
+                  GoRouter.of(context)
+                      .go(Routes.customers + '/' + model.kOrder!.id.toString());
                 },
                 leftActionButtonName:
                     model.kOrder != null && model.kOrder!.customerId != null
@@ -63,7 +64,7 @@ class _AfterSaleState extends State<AfterSale> {
                 multi: 3,
                 bottomSpacer: 52,
               ),
-              body: Container(
+              body: SizedBox(
                 width: double.infinity,
                 child: Stack(
                   alignment: Alignment.center,
@@ -114,7 +115,7 @@ class _AfterSaleState extends State<AfterSale> {
                                           ? Padding(
                                               padding: EdgeInsets.only(
                                                   left: 18.w, right: 18.w),
-                                              child: Container(
+                                              child: SizedBox(
                                                 width: double.infinity,
                                                 child: BoxButton.outline(
                                                   title: 'Email',
@@ -122,21 +123,20 @@ class _AfterSaleState extends State<AfterSale> {
                                                 ),
                                               ),
                                             )
-                                          : SizedBox.shrink(),
+                                          : const SizedBox.shrink(),
                                       SizedBox(height: 20.h),
                                       Padding(
                                         padding: EdgeInsets.only(
                                             left: 18.w, right: 18.w),
-                                        child: Container(
+                                        child: SizedBox(
                                           width: double.infinity,
                                           child: BoxButton.outline(
                                             title: 'No Receipt',
                                             onTap: () {
                                               // refresh orders
                                               model.currentOrder();
-                                              ProxyService.nav.popUntil(
-                                                  ModalRoute.withName(
-                                                      Routes.home));
+                                              GoRouter.of(context)
+                                                  .pushNamed(Routes.home);
                                             },
                                           ),
                                         ),
@@ -155,7 +155,7 @@ class _AfterSaleState extends State<AfterSale> {
                                           ? Padding(
                                               padding: EdgeInsets.only(
                                                   left: 18.w, right: 18.w),
-                                              child: Container(
+                                              child: SizedBox(
                                                 width: double.infinity,
                                                 child: BoxButton.outline(
                                                   title: 'Email(' +
@@ -165,21 +165,20 @@ class _AfterSaleState extends State<AfterSale> {
                                                 ),
                                               ),
                                             )
-                                          : SizedBox.shrink(),
+                                          : const SizedBox.shrink(),
                                       SizedBox(height: 2.h),
                                       Padding(
                                         padding: EdgeInsets.only(
                                             left: 18.w, right: 18.w),
-                                        child: Container(
+                                        child: SizedBox(
                                           width: double.infinity,
                                           child: BoxButton.outline(
                                             title: 'No Receipt',
                                             onTap: () {
                                               // refresh orders
                                               model.currentOrder();
-                                              ProxyService.nav.popUntil(
-                                                  ModalRoute.withName(
-                                                      Routes.home));
+                                              GoRouter.of(context)
+                                                  .pushNamed(Routes.home);
                                             },
                                           ),
                                         ),
@@ -192,12 +191,12 @@ class _AfterSaleState extends State<AfterSale> {
                         bottom: 0,
                         // center:
                         child: Row(
-                          children: [
-                            const IconButton(
+                          children: const [
+                            IconButton(
                               icon: FaIcon(FontAwesomeIcons.globe),
                               onPressed: null,
                             ),
-                            const Text('English')
+                            Text('English')
                           ],
                         ))
                   ],

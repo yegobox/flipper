@@ -4,7 +4,7 @@ import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
 import 'package:flipper_login/update_printer_settings.dart';
 import 'languages_screen.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'setting_view_model.dart';
@@ -28,12 +28,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             title: 'Flipper Settings',
             showActionButton: false,
             onPressedCallback: () async {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             icon: Icons.close,
             multi: 3,

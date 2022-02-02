@@ -4,7 +4,7 @@ import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 
 class OrderSummary extends StatelessWidget {
   final display = createDisplay(
@@ -12,10 +12,11 @@ class OrderSummary extends StatelessWidget {
     decimal: 0,
   );
   OrderSummary({Key? key}) : super(key: key);
-  List<Widget> buildItems({required BusinessHomeViewModel model}) {
+  List<Widget> buildItems(
+      {required BusinessHomeViewModel model, required BuildContext context}) {
     final List<Widget> list = [];
     if (model.kOrder == null) {
-      list.add(Center(child: Text('There is no current order')));
+      list.add(const Center(child: Text('There is no current order')));
       return list;
     }
     for (OrderItemSync item in model.kOrder!.orderItems) {
@@ -28,7 +29,7 @@ class OrderSummary extends StatelessWidget {
               color: Colors.red,
               icon: Icons.delete,
               onTap: () {
-                model.deleteOrderItem(id: item.id);
+                model.deleteOrderItem(id: item.id, context: context);
               },
             )
           ],
@@ -76,7 +77,7 @@ class OrderSummary extends StatelessWidget {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               title: 'Summary',
               icon: Icons.close,
@@ -85,6 +86,7 @@ class OrderSummary extends StatelessWidget {
             ),
             body: ListView(
               children: buildItems(
+                context: context,
                 model: model,
               ),
             ),
@@ -93,7 +95,7 @@ class OrderSummary extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             title: 'Total: Frw' + display(model.totalPayable).toString(),
             icon: Icons.close,
@@ -103,6 +105,7 @@ class OrderSummary extends StatelessWidget {
           body: ListView(
             children: [
               ...buildItems(
+                context: context,
                 model: model,
               ),
               if (model.totalDiscount > 0)
@@ -113,9 +116,9 @@ class OrderSummary extends StatelessWidget {
                     '- RWF ' + display(model.totalDiscount).toString(),
                     style: const TextStyle(color: Colors.black),
                   ),
-                  leading: Text(
+                  leading: const Text(
                     'Discounts',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,
                     ),
                   ),

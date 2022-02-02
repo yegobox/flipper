@@ -1,19 +1,18 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import 'package:flipper_chat/omni/omni_conversation.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 
 abstract class LNotification {
-  void initialize();
+  void initialize(BuildContext context);
   void display(RemoteMessage message);
   Future<void> saveTokenToDatabase(String token);
-  void listen();
+  void listen(BuildContext context);
   void onDidReceiveLocalNotification(
       int id, String title, String body, Map<String, String> payload);
 }
@@ -25,7 +24,7 @@ class UnSupportedLocalNotification implements LNotification {
   }
 
   @override
-  void initialize() {
+  void initialize(BuildContext context) {
     // TODO: implement initialize
   }
 
@@ -36,7 +35,7 @@ class UnSupportedLocalNotification implements LNotification {
   }
 
   @override
-  void listen() {
+  void listen(BuildContext context) {
     // TODO: implement listen
   }
 
@@ -52,7 +51,7 @@ class LocalNotificationService implements LNotification {
       FlutterLocalNotificationsPlugin();
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final log = getLogger('LocalNotificationService');
-  final NotificationDetails notificationDetails = NotificationDetails(
+  final NotificationDetails notificationDetails = const NotificationDetails(
       android: AndroidNotificationDetails(
     "flipper",
     "channel",
@@ -82,7 +81,7 @@ class LocalNotificationService implements LNotification {
   }
 
   @override
-  Future<void> initialize() async {
+  Future<void> initialize(BuildContext context) async {
     // get permission
     // getting permission on android does not matter!
     await messaging.requestPermission(
@@ -95,7 +94,7 @@ class LocalNotificationService implements LNotification {
       sound: true,
     );
 
-    final InitializationSettings initializationSettings =
+    const InitializationSettings initializationSettings =
         InitializationSettings(
       android: AndroidInitializationSettings("@mipmap/ic_launcher"),
     );
@@ -107,7 +106,7 @@ class LocalNotificationService implements LNotification {
         final List<String> split = id.split('_');
         final String action = split[0];
         final String Id = split[1];
-        await navigationLogic(action, Id);
+        await navigationLogic(action, Id, context);
       }
     });
 
@@ -135,12 +134,13 @@ class LocalNotificationService implements LNotification {
     }
   }
 
-  Future<void> navigationLogic(String action, String Id) async {
+  Future<void> navigationLogic(
+      String action, String Id, BuildContext context) async {
     switch (action) {
       case 'chat':
         types.Room? room = await FirebaseChatCore.instance.roomFromId(Id);
-        ProxyService.nav
-            .navigateTo(Routes.convo, arguments: OmniConversation(room: room!));
+        GoRouter.of(context).go(Routes.convo + '/' + room!.id);
+
         break;
       case 'order':
         //TODOnavigate to chat with this message of requesting order being last message
@@ -149,7 +149,9 @@ class LocalNotificationService implements LNotification {
         // once the order is comfired, navigate to chat where the order is sent in form of message
         // taping to the message should take you back to the order page for more details, this is special message!
 
-        ProxyService.nav.navigateTo(Routes.order);
+        // ProxyService.nav.navigateTo(Routes.order);
+        GoRouter.of(context).go(Routes.order);
+
         break;
       default:
     }
@@ -159,7 +161,7 @@ class LocalNotificationService implements LNotification {
   Future<void> saveTokenToDatabase(String token) async {}
 
   @override
-  void listen() {
+  void listen(BuildContext context) {
     if (!isWindows) {
       ///gives you the message on which user taps
       ///and it opened the app from terminated state
@@ -184,7 +186,7 @@ class LocalNotificationService implements LNotification {
         final List<String> split = id.split('_');
         final String action = split[0];
         final String Id = split[1];
-        await navigationLogic(action, Id);
+        await navigationLogic(action, Id, context);
       });
     }
   }

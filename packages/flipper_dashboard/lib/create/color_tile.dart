@@ -3,10 +3,10 @@ import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:go_router/go_router.dart';
 
 class ColorTile extends StatelessWidget {
   ColorTile({Key? key}) : super(key: key);
@@ -17,7 +17,7 @@ class ColorTile extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             title: 'Edit product Tile',
             icon: Icons.keyboard_backspace,

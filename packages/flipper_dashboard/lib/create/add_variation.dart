@@ -7,12 +7,12 @@ import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
-  AddVariation({Key? key, required this.productId}) : super(key: key);
+  const AddVariation({Key? key, required this.productId}) : super(key: key);
   final int productId;
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -41,7 +41,7 @@ class _AddVariationState extends State<AddVariation> {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               title: 'Add Variation',
               showActionButton: true,
@@ -73,7 +73,7 @@ class _AddVariationState extends State<AddVariation> {
                       supplyPrice: double.parse(costController.text));
                   model.productService
                       .variantsProduct(productId: model.product.id);
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 }
               },
               icon: Icons.close,

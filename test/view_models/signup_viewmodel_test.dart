@@ -13,7 +13,7 @@ void main() {
     tearDown(() => unregisterServices());
     test('signup with a new user', () async {
       final model = _getModel();
-      final navigationService = getAndRegisterNavigationService();
+
       getAndRegisterLocalStorage();
 
       // Random _rnd = Random();

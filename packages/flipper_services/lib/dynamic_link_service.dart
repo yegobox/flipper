@@ -2,10 +2,12 @@ library flipper_services;
 
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/cupertino.dart';
 import 'abstractions/dynamic_link.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
+import 'package:go_router/go_router.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
   @override
@@ -14,30 +16,30 @@ class UnSupportedDynamicLink implements DynamicLink {
   }
 
   @override
-  Future handleDynamicLink() async {}
+  Future handleDynamicLink(BuildContext context) async {}
 }
 
 class DynamicLinkService implements DynamicLink {
   final log = getLogger('DynamicLinkService');
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
   @override
-  Future handleDynamicLink() async {
+  Future handleDynamicLink(BuildContext context) async {
     // if the app is opened with the link
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
     if (data != null) {
-      _handleDnamicLink(data);
+      _handleDnamicLink(data, context);
     }
 
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      _handleDnamicLink(dynamicLinkData);
+      _handleDnamicLink(dynamicLinkData, context);
     }).onError((error) {
       // Handle errors
     });
   }
 
-  void _handleDnamicLink(PendingDynamicLinkData? data) {
+  void _handleDnamicLink(PendingDynamicLinkData? data, BuildContext context) {
     if (data == null) return;
     final Uri deepLink = data.link;
 
@@ -50,7 +52,7 @@ class DynamicLinkService implements DynamicLink {
       }
       //save the code in localstorage to be used later
       ProxyService.box.write(key: 'referralCode', value: code.toString());
-      ProxyService.nav.navigateTo(Routes.initial);
+      GoRouter.of(context).go(Routes.boot);
     }
   }
 

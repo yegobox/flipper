@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:go_router/go_router.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 final isIos = UniversalPlatform.isIOS;
@@ -30,7 +31,7 @@ class AddProductButtons extends StatelessWidget {
                   height: 40.h,
                   child: BoxButton(
                     onTap: () {
-                      ProxyService.nav.navigateTo(Routes.product);
+                      GoRouter.of(context).go(Routes.product);
                     },
                     title: 'Add Product',
                   ),
@@ -40,28 +41,28 @@ class AddProductButtons extends StatelessWidget {
                   isAndroid ||
                   kDebugMode && ProxyService.remoteConfig.isDiscountAvailable())
                 Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   child: Container(
                     color: Colors.white70,
                     width: double.infinity,
                     height: 40.h,
                     child: BoxButton(
                       onTap: () {
-                        ProxyService.nav.navigateTo(Routes.discount);
+                        GoRouter.of(context).go(Routes.discount);
                       },
                       title: 'Add Discount',
                     ),
                   ),
                 ),
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
                   height: 40.h,
                   child: BoxButton.outline(
                     onTap: () {
-                      ProxyService.nav.back();
+                      GoRouter.of(context).pop();
                     },
                     title: 'Dismiss',
                   ),

@@ -2,8 +2,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
-
-import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 
 class ReceiveStock extends StatefulWidget {
   ReceiveStock({Key? key, required this.variantId}) : super(key: key);
@@ -29,14 +28,14 @@ class _ReceiveStockState extends State<ReceiveStock> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             disableButton: false,
             title: 'Receive stock',
             onPressedCallback: () {
               if (_formKey.currentState!.validate()) {
                 model.updateStock(variantId: widget.variantId);
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               }
             },
             showActionButton: true,

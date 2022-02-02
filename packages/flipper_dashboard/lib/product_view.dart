@@ -12,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -400,7 +401,8 @@ class _onCreate extends State<ProductView> {
                   !isMacOs)
                 GestureDetector(
                   onTap: () {
-                    ProxyService.nav.navigateTo(Routes.qrview);
+                    // ProxyService.nav.navigateTo(Routes.qrview);
+                    GoRouter.of(context).go(Routes.qrview);
                   },
                   child: const CircleAvatar(
                     backgroundColor: Colors.transparent,
@@ -517,12 +519,12 @@ class BuildProductsView extends StatelessWidget {
                 model.deleteDiscount(id: id);
               },
               edit: (discount) {
-                ProxyService.nav.navigateTo(
-                  Routes.discount,
-                  arguments: AddDiscountArguments(
-                    discount: discount,
-                  ),
-                );
+                // ProxyService.nav.navigateTo(
+                //   Routes.discount,
+                //   arguments: AddDiscountArguments(
+                //     discount: discount,
+                //   ),
+                // );
               },
               applyDiscount: (discount) async {
                 await model.applyDiscount(discount: discount);
@@ -548,12 +550,7 @@ class BuildProductsView extends StatelessWidget {
               name: product.name,
               imageUrl: product.imageUrl,
               edit: (productId) {
-                ProxyService.nav.navigateTo(
-                  Routes.product,
-                  arguments: AddProductViewArguments(
-                    productId: productId,
-                  ),
-                );
+                GoRouter.of(context).go(Routes.product + "/$productId");
               },
               addToMenu: (productId) {
                 model.addToMenu(productId: productId);

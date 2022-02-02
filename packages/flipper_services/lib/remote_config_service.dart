@@ -298,6 +298,6 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isGoogleLoginAvailable() {
-    return false;
+    return true;
   }
 }

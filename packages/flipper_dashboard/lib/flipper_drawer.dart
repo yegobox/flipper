@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_models/models/models.dart';
-
+import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 
 class FlipperDrawer extends StatefulWidget {
-  FlipperDrawer(
+  const FlipperDrawer(
       {Key? key,
       required this.preferenceController,
       required this.inviteController,
@@ -45,7 +45,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
     final Color _circleColor =
         Theme.of(context).copyWith(canvasColor: Colors.cyan).canvasColor;
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
       ),
       child: Stack(
@@ -80,7 +80,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                           context: context,
                           builder: (context) {
                             return Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                   left: 10, right: 10, bottom: 20),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
@@ -93,7 +93,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                       height: 200,
                                       width: double.infinity,
                                       color: Colors.white.withOpacity(0.8),
-                                      padding: EdgeInsets.all(20),
+                                      padding: const EdgeInsets.all(20),
                                       child: Column(
                                         children: [
                                           Container(
@@ -130,11 +130,11 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                                   onTap: () async {
                                                     await ProxyService.api
                                                         .logOut();
-                                                    ProxyService.nav.navigateTo(
-                                                      Routes.initial,
-                                                    );
+                                                    GoRouter.of(context)
+                                                        .go(Routes.boot);
                                                   },
-                                                  child: BoxButton.outline(
+                                                  child:
+                                                      const BoxButton.outline(
                                                     onTap: null,
                                                     borderRadius: 2,
                                                     title: 'Log out',
@@ -185,11 +185,12 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                 ListTile(
                   contentPadding: const EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
                   title: const Text('help'),
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.help,
                   ),
                   onTap: () async {
-                    ProxyService.nav.navigateTo(Routes.inappBrowser);
+                    // ProxyService.nav.navigateTo(Routes.inappBrowser);
+                    GoRouter.of(context).go(Routes.inappBrowser);
                   },
                 ),
               ],

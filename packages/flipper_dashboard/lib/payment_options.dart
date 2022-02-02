@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
 import 'package:flipper_models/models/models.dart';
+import 'package:go_router/go_router.dart';
 
 class Payments extends StatelessWidget {
   Payments({Key? key}) : super(key: key);
@@ -22,10 +23,10 @@ class Payments extends StatelessWidget {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 onPressedCallback: () {
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 title: '',
                 rightActionButtonName: 'Split payment',
@@ -67,12 +68,7 @@ class Payments extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              ProxyService.nav.navigateTo(
-                                Routes.collect,
-                                arguments: CollectCashViewArguments(
-                                  paymentType: 'cash',
-                                ),
-                              );
+                              GoRouter.of(context).go(Routes.collect + "/cash");
                             },
                             child: const ListTile(
                               leading: Text(
@@ -94,12 +90,8 @@ class Payments extends StatelessWidget {
                                   kDebugMode
                               ? GestureDetector(
                                   onTap: () {
-                                    ProxyService.nav.navigateTo(
-                                      Routes.collect,
-                                      arguments: CollectCashViewArguments(
-                                        paymentType: 'spenn',
-                                      ),
-                                    );
+                                    GoRouter.of(context)
+                                        .go(Routes.collect + "/spenn");
                                   },
                                   child: const ListTile(
                                     leading: Text(
@@ -117,7 +109,7 @@ class Payments extends StatelessWidget {
                                     ),
                                   ),
                                 )
-                              : SizedBox.shrink(),
+                              : const SizedBox.shrink(),
                         ],
                       ),
                     )

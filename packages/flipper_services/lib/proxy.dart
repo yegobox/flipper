@@ -33,7 +33,6 @@ final isWindows = UniversalPlatform.isWindows;
 final Api _apiService = locator<Api>();
 final DynamicLink _dynamicLink = locator<DynamicLink>();
 final Shareble _share = locator<Shareble>();
-final NavigationService _nav = locator<NavigationService>();
 // final LoginStandard _auth = locator<LoginStandard>();
 final FlipperLocation _location = locator<FlipperLocation>();
 // final DB<Business> _db = locator<DB<Business>>();
@@ -70,7 +69,7 @@ abstract class ProxyService {
   static Crash get crash => _crash;
   static Shareble get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
-  static NavigationService get nav => _nav;
+  // static NavigationService get nav => _nav;
   static FlipperLocation get location => _location;
   static LocalStorage get box => _box;
   // static LoginStandard get auth => _auth;

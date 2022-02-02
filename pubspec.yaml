@@ -79,8 +79,6 @@ dependencies:
     path: "packages/flipper_login"
   flipper_models:
     path: "packages/flipper_models"
-  flipper_view_models:
-    path: "packages/flipper_view_models"
   flipper_services:
     path: "packages/flipper_services"
   money_formatter:

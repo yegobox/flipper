@@ -9,6 +9,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
+import 'package:go_router/go_router.dart';
 
 class Customers extends StatelessWidget {
   Customers({Key? key, required this.orderId}) : super(key: key);
@@ -24,12 +25,12 @@ class Customers extends StatelessWidget {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 title: 'Add Customer to Sale',
                 showActionButton: false,
                 onPressedCallback: () async {
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 icon: Icons.close,
                 multi: 3,
@@ -70,9 +71,8 @@ class Customers extends StatelessWidget {
 
                                       /// this update a model when the Order has the customerId in it then will show related data accordingly!
                                       model.getOrderById();
-                                      ProxyService.nav.popUntil(
-                                          ModalRoute.withName(
-                                              Routes.afterSale));
+                                      GoRouter.of(context)
+                                          .pushNamed(Routes.afterSale);
                                     },
                                     onLongPress: () {},
                                     child: Column(children: <Widget>[

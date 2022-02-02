@@ -9,6 +9,7 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:go_router/go_router.dart';
 
 class BodyWidget extends StatefulWidget {
   const BodyWidget(
@@ -34,7 +35,7 @@ class _BodyWidgetState extends State<BodyWidget> {
           payable: PayableView(
             onClick: () {
               if (widget.model.kOrder != null) {
-                ProxyService.nav.navigateTo(Routes.pay);
+                GoRouter.of(context).go(Routes.pay);
               } else {
                 showSimpleNotification(
                   Text(FLocalization.of(context).noPayable),

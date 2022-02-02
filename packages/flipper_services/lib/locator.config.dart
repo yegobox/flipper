@@ -6,19 +6,18 @@
 
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
-import 'package:stacked_services/stacked_services.dart' as _i20;
 
 import 'abstractions/analytic.dart' as _i3;
 import 'abstractions/api.dart' as _i5;
 import 'abstractions/dynamic_link.dart' as _i11;
 import 'abstractions/location.dart' as _i13;
-import 'abstractions/printer.dart' as _i21;
-import 'abstractions/remote.dart' as _i23;
-import 'abstractions/share.dart' as _i26;
+import 'abstractions/printer.dart' as _i20;
+import 'abstractions/remote.dart' as _i22;
+import 'abstractions/share.dart' as _i25;
 import 'abstractions/storage.dart' as _i18;
-import 'abstractions/sync.dart' as _i27;
-import 'abstractions/system_time.dart' as _i28;
-import 'abstractions/upload.dart' as _i29;
+import 'abstractions/sync.dart' as _i26;
+import 'abstractions/system_time.dart' as _i27;
+import 'abstractions/upload.dart' as _i28;
 import 'analytic_service.dart' as _i4;
 import 'app_service.dart' as _i6;
 import 'billing_service.dart' as _i7;
@@ -27,15 +26,15 @@ import 'cron_service.dart' as _i10;
 import 'FirebaseCrashlyticService.dart' as _i9;
 import 'firestore_api.dart' as _i12;
 import 'force_data_service.dart' as _i14;
-import 'in_app_review.dart' as _i24;
+import 'in_app_review.dart' as _i23;
 import 'keypad_service.dart' as _i15;
 import 'language_service.dart' as _i17;
 import 'local_notification_service.dart' as _i16;
 import 'login_service.dart' as _i19;
-import 'product_service.dart' as _i22;
-import 'setting_service.dart' as _i25;
+import 'product_service.dart' as _i21;
+import 'setting_service.dart' as _i24;
 import 'third_party_services_module.dart'
-    as _i30; // ignore_for_file: unnecessary_lambdas
+    as _i29; // ignore_for_file: unnecessary_lambdas
 
 // ignore_for_file: lines_longer_than_80_chars
 /// initializes the registration of provided dependencies inside of [GetIt]
@@ -68,23 +67,22 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i18.LocalStorage>(() => thirdPartyServicesModule.box);
   gh.lazySingleton<_i19.LoginService>(
       () => thirdPartyServicesModule.loginService);
-  gh.lazySingleton<_i20.NavigationService>(() => thirdPartyServicesModule.nav);
-  gh.lazySingleton<_i21.Printer>(() => thirdPartyServicesModule.printService);
-  gh.lazySingleton<_i22.ProductService>(
+  gh.lazySingleton<_i20.Printer>(() => thirdPartyServicesModule.printService);
+  gh.lazySingleton<_i21.ProductService>(
       () => thirdPartyServicesModule.productService);
-  gh.lazySingleton<_i23.Remote>(() => thirdPartyServicesModule.remote);
-  gh.lazySingleton<_i24.Review>(() => thirdPartyServicesModule.review);
-  gh.lazySingleton<_i25.SettingsService>(
+  gh.lazySingleton<_i22.Remote>(() => thirdPartyServicesModule.remote);
+  gh.lazySingleton<_i23.Review>(() => thirdPartyServicesModule.review);
+  gh.lazySingleton<_i24.SettingsService>(
       () => thirdPartyServicesModule.settings);
-  gh.lazySingleton<_i26.Shareble>(() => thirdPartyServicesModule.share);
-  gh.lazySingleton<_i27.SyncApiInterface>(
+  gh.lazySingleton<_i25.Shareble>(() => thirdPartyServicesModule.share);
+  gh.lazySingleton<_i26.SyncApiInterface>(
       () => thirdPartyServicesModule.syncApi);
-  gh.lazySingleton<_i28.SystemTime>(() => thirdPartyServicesModule.systemTime);
-  gh.lazySingleton<_i29.UploadT>(() => thirdPartyServicesModule.upload);
+  gh.lazySingleton<_i27.SystemTime>(() => thirdPartyServicesModule.systemTime);
+  gh.lazySingleton<_i28.UploadT>(() => thirdPartyServicesModule.upload);
   return get;
 }
 
-class _$ThirdPartyServicesModule extends _i30.ThirdPartyServicesModule {
+class _$ThirdPartyServicesModule extends _i29.ThirdPartyServicesModule {
   @override
   _i4.AnalyticService get analytic => _i4.AnalyticService();
   @override
@@ -102,9 +100,7 @@ class _$ThirdPartyServicesModule extends _i30.ThirdPartyServicesModule {
   @override
   _i19.LoginService get loginService => _i19.LoginService();
   @override
-  _i20.NavigationService get nav => _i20.NavigationService();
+  _i21.ProductService get productService => _i21.ProductService();
   @override
-  _i22.ProductService get productService => _i22.ProductService();
-  @override
-  _i25.SettingsService get settings => _i25.SettingsService();
+  _i24.SettingsService get settings => _i24.SettingsService();
 }

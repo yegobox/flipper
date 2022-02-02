@@ -94,6 +94,7 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SignupViewModel>.reactive(
       onModelReady: (model) {
+        model.context = context;
         listenToFormUpdated(model);
         model.registerLocation();
         SchedulerBinding.instance?.addPostFrameCallback((_) {

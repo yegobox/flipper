@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:go_router/go_router.dart';
 
 class LanguagesScreen extends StatefulWidget {
   @override
@@ -27,12 +28,12 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               title: 'Languages',
               showActionButton: false,
               onPressedCallback: () async {
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               icon: Icons.close,
               multi: 3,

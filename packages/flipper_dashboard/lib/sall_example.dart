@@ -7,6 +7,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:easy_debounce/easy_debounce.dart';
+import 'package:go_router/go_router.dart';
 
 enum ForHere { lafayette, jefferson }
 enum ToGo { lafayette, jefferson }
@@ -600,7 +601,7 @@ class Sell extends StatelessWidget {
               backgroundColor: Colors.white,
               appBar: CustomAppBar(
                 onPop: () {
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 title: buildTitle(model),
                 rightActionButtonName: 'Save',
@@ -611,7 +612,7 @@ class Sell extends StatelessWidget {
                     variationId: model.checked,
                     amount: model.amountTotal,
                   );
-                  ProxyService.nav.back();
+                  GoRouter.of(context).pop();
                 },
                 // actionButtonName: 'Add',
                 icon: Icons.close,

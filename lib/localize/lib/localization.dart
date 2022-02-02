@@ -11,7 +11,7 @@ import 'package:overlay_support/overlay_support.dart'; // Add this line.
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:go_router/go_router.dart';
 import 'localize.dart';
 
 bottomSheetBuilder({
@@ -153,7 +153,7 @@ class FlipperBottomSheet {
                                     showSimpleNotification(
                                         const Text('Order Restored!'),
                                         background: Colors.green);
-                                    ProxyService.nav.back();
+                                    GoRouter.of(context).pop();
                                   },
                                 ),
                                 dense: true,
@@ -233,7 +233,7 @@ class FlipperBottomSheet {
                               const Text('Note added!'),
                               background: Colors.green,
                             );
-                            ProxyService.nav.back();
+                            GoRouter.of(context).pop();
                           }
                         },
                       );

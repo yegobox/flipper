@@ -5,11 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:localize/localize.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'dart:io';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:go_router/go_router.dart';
 
 class ScannView extends StatefulWidget {
   const ScannView({Key? key, this.intent = 'selling'}) : super(key: key);
@@ -55,8 +56,8 @@ class _ScannViewState extends State<ScannView> {
                 right: MediaQuery.of(context).size.width / 2 - 20,
                 child: IconButton(
                   iconSize: 40,
-                  onPressed: () => ProxyService.nav.back(),
-                  icon: CircleAvatar(
+                  onPressed: () => GoRouter.of(context).pop(),
+                  icon: const CircleAvatar(
                     child: Icon(
                       Icons.close,
                       // size: 40,
@@ -182,7 +183,7 @@ class _ScannViewState extends State<ScannView> {
                 background: Colors.green,
                 position: NotificationPosition.bottom,
               );
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             }
           }
 
@@ -194,15 +195,15 @@ class _ScannViewState extends State<ScannView> {
 
   void navigate(String? code, BusinessHomeViewModel model) async {
     if (widget.intent == addBarCode) {
-      ProxyService.nav.back();
+      GoRouter.of(context).pop();
       return;
     }
     if (widget.intent == selling) {
       ProductSync? product =
           await model.productService.getProductByBarCode(code: code);
       if (product != null) {
-        ProxyService.nav.navigateTo(Routes.sell,
-            arguments: SellArguments(product: product));
+        GoRouter.of(context).go(Routes.sell + "/${product.id}");
+
         return;
       }
       showSimpleNotification(
@@ -210,7 +211,7 @@ class _ScannViewState extends State<ScannView> {
         background: Colors.green,
         position: NotificationPosition.bottom,
       );
-      ProxyService.nav.back();
+      GoRouter.of(context).pop();
       return;
     }
     if (widget.intent == attendance) {

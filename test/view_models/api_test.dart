@@ -48,7 +48,7 @@ void main() {
 //       List<Business> c = [];
 //       final api = getAndRegisterApi(businesses: c);
 //       final appService = getAndRegisterAppService(hasLoggedInUser: true);
-//       final navigationService = getAndRegisterNavigationService();
+//       
 //       final model = _getModel();
 //       appService.isLoggedIn();
 //       model.runStartupLogic();

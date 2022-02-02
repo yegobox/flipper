@@ -52,8 +52,7 @@ class _FlipperAppState extends State<FlipperApp> {
     _sideOpenController = ValueNotifier<bool>(false);
 
     ProxyService.loginService.connect();
-    ProxyService.dynamicLink.handleDynamicLink();
-    ProxyService.notification.listen();
+
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
@@ -98,8 +97,8 @@ class _FlipperAppState extends State<FlipperApp> {
         if (profile == null && today % 2 == 0) {
           bottomSheetBuilderProfile(
             context: context,
-            body: <Widget>[UpdateProfile()],
-            header: header(title: 'Update Profile'),
+            body: <Widget>[const UpdateProfile()],
+            header: header(title: 'Update Profile', context: context),
           );
         }
         // if to day is monday or wednesday and other odd days
@@ -107,7 +106,7 @@ class _FlipperAppState extends State<FlipperApp> {
           activateSubscription(
             context: context,
             body: <Widget>[SubscriptionWidget()],
-            header: header(title: 'Activate flipper pro'),
+            header: header(title: 'Activate flipper pro', context: context),
           );
         }
       });
@@ -142,6 +141,11 @@ class _FlipperAppState extends State<FlipperApp> {
 
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
+      onModelReady: (model) {
+        ProxyService.notification.initialize(context);
+        ProxyService.notification.listen(context);
+        ProxyService.dynamicLink.handleDynamicLink(context);
+      },
       builder: (context, model, child) {
         return WillPopScope(
           onWillPop: _onWillPop,

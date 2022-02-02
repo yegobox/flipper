@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'add_product_buttons.dart';
 import 'hero_dialog_route.dart';
+import 'package:go_router/go_router.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 final isIos = UniversalPlatform.isIOS;
@@ -66,7 +67,7 @@ class SaleIndicator extends StatelessWidget {
       if (ProxyService.remoteConfig.isChatAvailable())
         GestureDetector(
           onTap: () {
-            goToFlipperChat();
+            goToFlipperChat(context);
           },
           child: const Icon(
             Ionicons.chatbox_sharp,
@@ -98,7 +99,7 @@ class SaleIndicator extends StatelessWidget {
 
   ///  navigate to flipper chat, make sure
   /// no await method is run inside as it can cause delay in the app while navigating
-  void goToFlipperChat() async {
+  void goToFlipperChat(BuildContext context) async {
     ProxyService.box.write(key: pageKey, value: 'social');
     //first register the user in firestore db
     //get the current firebase user
@@ -106,6 +107,7 @@ class SaleIndicator extends StatelessWidget {
     // Business business = await ProxyService.api.getBusinessById(id: businessId);
     //patch a business to add a chat uid
     // ProxyService.firestore.addContact(business: business);
-    ProxyService.nav.navigateTo(Routes.chat);
+    // ProxyService.nav.navigateTo(Routes.chat);
+    GoRouter.of(context).go(Routes.chat);
   }
 }

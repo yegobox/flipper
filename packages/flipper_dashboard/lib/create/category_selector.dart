@@ -1,7 +1,7 @@
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/routes.router.dart';
 
 class CategorySelector extends StatelessWidget {
   const CategorySelector({Key? key, required this.categories})
@@ -37,16 +37,11 @@ class CategorySelector extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),
       child: SingleChildScrollView(
-        child: Container(
+        child: SizedBox(
           width: double.infinity,
           child: GestureDetector(
             onTap: () {
-              ProxyService.nav.navigateTo(
-                Routes.categories,
-                arguments: ListCategoriesArguments(
-                  categories: categories,
-                ),
-              );
+              GoRouter.of(context).go(Routes.categories, extra: categories);
             },
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),

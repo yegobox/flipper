@@ -14,7 +14,7 @@ void main() {
     test('test adding variant ...', () async {
       final model = _getModel();
 
-      model.navigateAddVariation(productId: 2);
+      // model.navigateAddVariation(productId: 2);
 
       model.setUnit(unit: 'kg');
 

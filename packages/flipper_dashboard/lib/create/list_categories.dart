@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
 import 'divider.dart';
+import 'package:go_router/go_router.dart';
 
 class ListCategories extends StatelessWidget {
   const ListCategories({Key? key, required this.categories}) : super(key: key);
@@ -66,7 +67,7 @@ class ListCategories extends StatelessWidget {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               showActionButton: false,
               title: 'Category',
@@ -76,21 +77,21 @@ class ListCategories extends StatelessWidget {
             ),
             body: ListView(
               children: <Widget>[
-                Center(
+                const Center(
                   child: CenterDivider(
                     width: double.infinity,
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-                    ProxyService.nav.navigateTo(Routes.category);
+                    GoRouter.of(context).go(Routes.category);
                   },
                   child: ListTile(
                     title: const Text('Create Category ',
                         style: TextStyle(color: Colors.black)),
                     trailing: Wrap(
-                      children: <Widget>[
-                        const Icon(Icons.arrow_forward_ios),
+                      children: const <Widget>[
+                        Icon(Icons.arrow_forward_ios),
                       ],
                     ),
                   ),

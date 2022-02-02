@@ -30,7 +30,7 @@ class _OmnConversationsState extends State<OmnConversations> {
   @override
   void initState() {
     initializeFlutterFire();
-    ProxyService.notification.initialize();
+    // ProxyService.notification.initialize();
     super.initState();
   }
 

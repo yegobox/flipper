@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatAppBar(this.title, {Key? key, this.btnBack = true})
@@ -29,12 +30,9 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           /// make appointment, or check in/out.
           title: InkWell(
             onTap: () {
-              ProxyService.nav.navigateTo(
-                Routes.qrview,
-                arguments: ScannViewArguments(intent: 'attendance'),
-              );
+              GoRouter.of(context).go(Routes.signup + "/attendance");
             },
-            child: CircleAvatar(
+            child: const CircleAvatar(
               backgroundColor: Colors.transparent,
               child: Icon(
                 Icons.center_focus_weak,
@@ -49,7 +47,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 getThemeManager(context).toggleDarkLightTheme();
               },
-              child: CircleAvatar(
+              child: const CircleAvatar(
                 backgroundColor: Colors.transparent,
                 child: Icon(
                   CupertinoIcons.moon_fill,
@@ -60,9 +58,9 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             IconButton(
               onPressed: () {
-                ProxyService.nav.navigateTo(Routes.contacts);
+                GoRouter.of(context).go(Routes.contacts);
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.edit,
                 color: primary,
               ),

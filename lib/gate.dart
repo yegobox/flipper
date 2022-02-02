@@ -1,4 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flipper_routing/routes.dart';
 // import 'package:flipper/flipper_options.dart';
 import 'package:flutterfire_ui/i10n.dart';
 import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
@@ -275,153 +276,152 @@ class _GateState extends State<Gate> {
             designSize: const Size(360, 690),
             minTextAdapt: true,
             splitScreenMode: true,
-            builder: () => MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: 'flipper',
-              // Define the light theme for the app, based on defined colors and
-              // properties above.
-              theme: FlexThemeData.light(
-                // Want to use a built in scheme? Don't assign any value to colors.
-                // We just use the _useScheme bool toggle here from above, only for easy
-                // switching via code params so you can try options handily.
-                colors: _useScheme ? null : _schemeLight,
-                scheme: _scheme,
-                swapColors:
-                    _swapColors, // If true, swap primary and secondaries.
-                // For an optional white look set lightIsWhite to true.
-                // This is the counterpart to darkIsTrueBlack mode in dark theme mode,
-                // which is much more useful than this feature.
-                lightIsWhite: false,
+            builder: () => MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                title: 'flipper',
+                // Define the light theme for the app, based on defined colors and
+                // properties above.
+                theme: FlexThemeData.light(
+                  // Want to use a built in scheme? Don't assign any value to colors.
+                  // We just use the _useScheme bool toggle here from above, only for easy
+                  // switching via code params so you can try options handily.
+                  colors: _useScheme ? null : _schemeLight,
+                  scheme: _scheme,
+                  swapColors:
+                      _swapColors, // If true, swap primary and secondaries.
+                  // For an optional white look set lightIsWhite to true.
+                  // This is the counterpart to darkIsTrueBlack mode in dark theme mode,
+                  // which is much more useful than this feature.
+                  lightIsWhite: false,
 
-                // If you provide a color value to a direct color property, the color
-                // value will override anything specified via the other properties.
-                // The priority from lowest to highest order is:
-                // 1. scheme 2. colors 3. Individual color values. Normally you would
-                // make a custom scheme using the colors property, but if you want to
-                // override just one or two colors in a pre-existing scheme, this can
-                // be handy way to do it. Uncomment a color property below on
-                // the light theme to try it:
+                  // If you provide a color value to a direct color property, the color
+                  // value will override anything specified via the other properties.
+                  // The priority from lowest to highest order is:
+                  // 1. scheme 2. colors 3. Individual color values. Normally you would
+                  // make a custom scheme using the colors property, but if you want to
+                  // override just one or two colors in a pre-existing scheme, this can
+                  // be handy way to do it. Uncomment a color property below on
+                  // the light theme to try it:
 
-                // primary: FlexColor.indigo.light.primary,
-                // primaryVariant: FlexColor.greenLightPrimaryVariant,
-                // secondary: FlexColor.indigo.light.secondary,
-                // secondaryVariant: FlexColor.indigo.light.secondaryVariant,
-                // surface: FlexColor.lightSurface,
-                // background: FlexColor.lightBackground,
-                // error: FlexColor.materialLightErrorHc,
-                // scaffoldBackground: FlexColor.lightScaffoldBackground,
-                // dialogBackground: FlexColor.lightSurface,
-                // appBarBackground: FlexColor.barossaLightPrimary,
+                  // primary: FlexColor.indigo.light.primary,
+                  // primaryVariant: FlexColor.greenLightPrimaryVariant,
+                  // secondary: FlexColor.indigo.light.secondary,
+                  // secondaryVariant: FlexColor.indigo.light.secondaryVariant,
+                  // surface: FlexColor.lightSurface,
+                  // background: FlexColor.lightBackground,
+                  // error: FlexColor.materialLightErrorHc,
+                  // scaffoldBackground: FlexColor.lightScaffoldBackground,
+                  // dialogBackground: FlexColor.lightSurface,
+                  // appBarBackground: FlexColor.barossaLightPrimary,
 
-                // The default style of AppBar in Flutter SDK light mode uses scheme
-                // primary color as its background color. The appBarStyle
-                // FlexAppBarStyle.primary, results in this too, and is the default in
-                // light mode. You can also choose other themed styles. Like
-                // FlexAppBarStyle.background, that gets active color blend from used
-                // surfaceMode or surfaceStyle, depending on which one is being used.
-                // You may often want a different style on the app bar in dark and
-                // light theme mode, therefore it was not set via a shared value
-                // above in this template.
-                appBarStyle: FlexAppBarStyle.primary,
-                appBarElevation: _appBarElevation,
-                appBarOpacity: _appBarOpacity,
-                transparentStatusBar: _transparentStatusBar,
-                tabBarStyle: _tabBarForAppBar,
-                surfaceMode: _surfaceMode,
-                blendLevel: _blendLevel,
-                tooltipsMatchBackground: _tooltipsMatchBackground,
-                // You can try another font too, not set by default in the demo.
-                // Prefer using fully defined TextThemes when using fonts, rather than
-                // just setting the fontFamily name, even with GoogleFonts. For
-                // quick tests this is fine too, but if the same font style is good
-                // as it is, for all the styles in the TextTheme just the fontFamily
-                // works well too.
-                // fontFamily: _fontFamily,
-                textTheme: _textTheme,
-                primaryTextTheme: _textTheme,
-                useSubThemes: _useSubThemes,
-                subThemesData: _subThemesData,
-                visualDensity: _visualDensity,
-                platform: _platform,
-              ),
-              // Define the corresponding dark theme for the app.
-              darkTheme: FlexThemeData.dark(
-                // If you want to base the dark scheme on your light colors,
-                // you can also compute it from the light theme's FlexSchemeColors.
-                // Here you can do so by setting _computeDarkTheme above to true.
-                // The FlexSchemeColors class has a toDark() method that can convert
-                // a color scheme designed for a light theme, to corresponding colors
-                // suitable for a dark theme. For the built in themes there is no
-                // need to do so, they all have hand tuned dark scheme colors.
-                // Regardless, below we anyway demonstrate how you can do that too.
-                //
-                // Normally you would not do things like this logic, this is just here
-                // so you can toggle the two booleans earlier above to try the options.
-                colors: (_useScheme && _computeDarkTheme)
-                    // If we use predefined schemes and want to compute a dark
-                    // theme from its light colors, we can grab the light scheme colors
-                    // for _schemes from the FlexColor.schemes map and use toDark(),
-                    // that takes a white blend saturation %, where 0 is same colors as
-                    // the input light scheme colors, and 100% makes it white.
-                    ? FlexColor.schemes[_scheme]!.light.toDark(_toDarkLevel)
-                    // If we use a predefined scheme, then pass, null so we get
-                    // selected _scheme via the scheme property.
-                    : _useScheme
-                        ? null
-                        // If we compute a scheme from our custom data, then use the
-                        // toDark() method on our custom light FlexSchemeColor data.
-                        : _computeDarkTheme
-                            ? _schemeLight.toDark(_toDarkLevel)
-                            // And finally, use the defined custom dark colors.
-                            : _schemeDark,
-                // To use a built-in scheme based on enum, don't assign colors above.
-                scheme: _scheme,
-                swapColors: _swapColors,
-                // For an optional ink black dark mode, set darkIsTrueBlack to true.
-                darkIsTrueBlack: false,
+                  // The default style of AppBar in Flutter SDK light mode uses scheme
+                  // primary color as its background color. The appBarStyle
+                  // FlexAppBarStyle.primary, results in this too, and is the default in
+                  // light mode. You can also choose other themed styles. Like
+                  // FlexAppBarStyle.background, that gets active color blend from used
+                  // surfaceMode or surfaceStyle, depending on which one is being used.
+                  // You may often want a different style on the app bar in dark and
+                  // light theme mode, therefore it was not set via a shared value
+                  // above in this template.
+                  appBarStyle: FlexAppBarStyle.primary,
+                  appBarElevation: _appBarElevation,
+                  appBarOpacity: _appBarOpacity,
+                  transparentStatusBar: _transparentStatusBar,
+                  tabBarStyle: _tabBarForAppBar,
+                  surfaceMode: _surfaceMode,
+                  blendLevel: _blendLevel,
+                  tooltipsMatchBackground: _tooltipsMatchBackground,
+                  // You can try another font too, not set by default in the demo.
+                  // Prefer using fully defined TextThemes when using fonts, rather than
+                  // just setting the fontFamily name, even with GoogleFonts. For
+                  // quick tests this is fine too, but if the same font style is good
+                  // as it is, for all the styles in the TextTheme just the fontFamily
+                  // works well too.
+                  // fontFamily: _fontFamily,
+                  textTheme: _textTheme,
+                  primaryTextTheme: _textTheme,
+                  useSubThemes: _useSubThemes,
+                  subThemesData: _subThemesData,
+                  visualDensity: _visualDensity,
+                  platform: _platform,
+                ),
+                // Define the corresponding dark theme for the app.
+                darkTheme: FlexThemeData.dark(
+                  // If you want to base the dark scheme on your light colors,
+                  // you can also compute it from the light theme's FlexSchemeColors.
+                  // Here you can do so by setting _computeDarkTheme above to true.
+                  // The FlexSchemeColors class has a toDark() method that can convert
+                  // a color scheme designed for a light theme, to corresponding colors
+                  // suitable for a dark theme. For the built in themes there is no
+                  // need to do so, they all have hand tuned dark scheme colors.
+                  // Regardless, below we anyway demonstrate how you can do that too.
+                  //
+                  // Normally you would not do things like this logic, this is just here
+                  // so you can toggle the two booleans earlier above to try the options.
+                  colors: (_useScheme && _computeDarkTheme)
+                      // If we use predefined schemes and want to compute a dark
+                      // theme from its light colors, we can grab the light scheme colors
+                      // for _schemes from the FlexColor.schemes map and use toDark(),
+                      // that takes a white blend saturation %, where 0 is same colors as
+                      // the input light scheme colors, and 100% makes it white.
+                      ? FlexColor.schemes[_scheme]!.light.toDark(_toDarkLevel)
+                      // If we use a predefined scheme, then pass, null so we get
+                      // selected _scheme via the scheme property.
+                      : _useScheme
+                          ? null
+                          // If we compute a scheme from our custom data, then use the
+                          // toDark() method on our custom light FlexSchemeColor data.
+                          : _computeDarkTheme
+                              ? _schemeLight.toDark(_toDarkLevel)
+                              // And finally, use the defined custom dark colors.
+                              : _schemeDark,
+                  // To use a built-in scheme based on enum, don't assign colors above.
+                  scheme: _scheme,
+                  swapColors: _swapColors,
+                  // For an optional ink black dark mode, set darkIsTrueBlack to true.
+                  darkIsTrueBlack: false,
 
-                // The SDK default style of the AppBar in dark mode uses a fixed dark
-                // background color, defined via colorScheme.surface color. The
-                // appBarStyle FlexAppBarStyle.material results in the same color value.
-                // It is also the default if you do not define the style.
-                // You can also use other themed styles. Here we use background, that
-                // also gets active color blend from used SurfaceMode or SurfaceStyle.
-                // You may often want a different style on the AppBar in dark and light
-                // theme mode, therefore it was not set via a shared value value
-                // above in this template.
-                appBarStyle: FlexAppBarStyle.background,
-                appBarElevation: _appBarElevation,
-                appBarOpacity: _appBarOpacity,
-                transparentStatusBar: _transparentStatusBar,
-                tabBarStyle: _tabBarForAppBar,
-                surfaceMode: _surfaceMode,
-                blendLevel: _blendLevel,
-                tooltipsMatchBackground: _tooltipsMatchBackground,
-                // fontFamily: _fontFamily,
-                textTheme: _textTheme,
-                primaryTextTheme: _textTheme,
-                useSubThemes: _useSubThemes,
-                subThemesData: _subThemesData,
-                visualDensity: _visualDensity,
-                platform: _platform,
-              ),
-              localizationsDelegates: [
-                FlutterFireUILocalizations.withDefaultOverrides(
-                    const LabelOverrides()),
-                const FlipperLocalizationsDelegate(),
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en', 'US'), // English
-                Locale('es', 'ES'), // Spanish
-              ],
-              locale: model.languageService
-                  .locale, //french == rwanda language in our app
-              themeMode: model.settingService.themeMode.value,
-              navigatorKey: StackedService.navigatorKey,
-              onGenerateRoute: StackedRouter().onGenerateRoute,
-            ),
+                  // The SDK default style of the AppBar in dark mode uses a fixed dark
+                  // background color, defined via colorScheme.surface color. The
+                  // appBarStyle FlexAppBarStyle.material results in the same color value.
+                  // It is also the default if you do not define the style.
+                  // You can also use other themed styles. Here we use background, that
+                  // also gets active color blend from used SurfaceMode or SurfaceStyle.
+                  // You may often want a different style on the AppBar in dark and light
+                  // theme mode, therefore it was not set via a shared value value
+                  // above in this template.
+                  appBarStyle: FlexAppBarStyle.background,
+                  appBarElevation: _appBarElevation,
+                  appBarOpacity: _appBarOpacity,
+                  transparentStatusBar: _transparentStatusBar,
+                  tabBarStyle: _tabBarForAppBar,
+                  surfaceMode: _surfaceMode,
+                  blendLevel: _blendLevel,
+                  tooltipsMatchBackground: _tooltipsMatchBackground,
+                  // fontFamily: _fontFamily,
+                  textTheme: _textTheme,
+                  primaryTextTheme: _textTheme,
+                  useSubThemes: _useSubThemes,
+                  subThemesData: _subThemesData,
+                  visualDensity: _visualDensity,
+                  platform: _platform,
+                ),
+                localizationsDelegates: [
+                  FlutterFireUILocalizations.withDefaultOverrides(
+                      const LabelOverrides()),
+                  const FlipperLocalizationsDelegate(),
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                ],
+                supportedLocales: const [
+                  Locale('en', 'US'), // English
+                  Locale('es', 'ES'), // Spanish
+                ],
+                locale: model.languageService
+                    .locale, //french == rwanda language in our app
+                themeMode: model.settingService.themeMode.value,
+                routeInformationParser: router.routeInformationParser,
+                routerDelegate: router.routerDelegate),
           ),
         );
       },

@@ -6,7 +6,7 @@ import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:overlay_support/overlay_support.dart';
 
@@ -16,14 +16,29 @@ enum Delivery { lafayette, jefferson }
 enum Pickup { lafayette, jefferson }
 
 class Sell extends StatefulWidget {
-  Sell({Key? key, required this.product}) : super(key: key);
-  final ProductSync product;
+  const Sell({Key? key, required this.productId}) : super(key: key);
+  final int productId;
 
   @override
   State<Sell> createState() => _SellState();
 }
 
 class _SellState extends State<Sell> {
+  ProductSync? _product;
+  Future<ProductSync?> loadProduct() async {
+    ProductSync? product =
+        await ProxyService.api.getProduct(id: widget.productId);
+    setState(() {
+      _product = product;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadProduct();
+  }
+
   final ForHere forHere = ForHere.lafayette;
 
   final ToGo toGo = ToGo.lafayette;
@@ -39,12 +54,12 @@ class _SellState extends State<Sell> {
 
   String buildTitle(BusinessHomeViewModel model) {
     if (model.amountTotal.toString() == 'null') {
-      return widget.product.name;
+      return _product!.name;
     }
     if (model.amountTotal == 0) {
       return '';
     }
-    return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
+    return _product!.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
   Widget Quantity(
@@ -266,7 +281,7 @@ class _SellState extends State<Sell> {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: -1);
-        await model.getVariants(productId: widget.product.id);
+        await model.getVariants(productId: _product!.id);
       },
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {
@@ -274,7 +289,7 @@ class _SellState extends State<Sell> {
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
             onPop: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             title: buildTitle(model),
             rightActionButtonName: 'Save',
@@ -291,7 +306,7 @@ class _SellState extends State<Sell> {
                 showSimpleNotification(Text('No item selected'),
                     background: Colors.red);
               }
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             icon: Icons.close,
             multi: 1,
@@ -308,7 +323,7 @@ class _SellState extends State<Sell> {
                         Row(
                           children: [
                             Text(
-                              widget.product.name,
+                              _product!.name,
                               style: GoogleFonts.rubik(
                                 textStyle: TextStyle(
                                     fontWeight: FontWeight.w500,

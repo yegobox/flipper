@@ -8,6 +8,7 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
 class ProductRow extends StatelessWidget {
   const ProductRow(
@@ -39,12 +40,10 @@ class ProductRow extends StatelessWidget {
     return Slidable(
       child: GestureDetector(
         onTap: () {
-          ProxyService.nav.navigateTo(Routes.sell,
-              arguments: SellArguments(product: product));
+          GoRouter.of(context).go(Routes.sell + "/${product.id}");
         },
         onLongPress: () {
-          ProxyService.nav.navigateTo(Routes.sell,
-              arguments: SellArguments(product: product));
+          GoRouter.of(context).go(Routes.sell + "/${product.id}");
         },
         child: Column(children: <Widget>[
           ListTile(
@@ -71,8 +70,9 @@ class ProductRow extends StatelessWidget {
                           ),
                         ),
                         placeholder: (context, url) =>
-                            CircularProgressIndicator(),
-                        errorWidget: (context, url, error) => Icon(Icons.error),
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       )),
             title: Text(
               name,
@@ -136,7 +136,7 @@ class ProductRow extends StatelessWidget {
           },
         ),
       ],
-      actionPane: SlidableDrawerActionPane(),
+      actionPane: const SlidableDrawerActionPane(),
     );
   }
 }

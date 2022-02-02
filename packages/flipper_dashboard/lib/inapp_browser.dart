@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 
 class InAppBrowser extends StatefulWidget {
   const InAppBrowser({Key? key}) : super(key: key);
@@ -60,7 +61,7 @@ class _InAppBrowserState extends State<InAppBrowser> {
           padding: const EdgeInsets.only(top: 18.0, left: 0),
           child: TextButton(
               onPressed: () {
-                ProxyService.nav.back();
+                GoRouter.of(context).pop();
               },
               child: Text('Done')),
         ),

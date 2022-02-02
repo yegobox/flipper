@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_view_models/login_viewmodel.dart';
+import 'package:flipper_models/models/view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 
 class DesktopLoginView extends StatefulWidget {
@@ -29,8 +29,9 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
       onModelReady: (model) {
         if (loginCode != null) {
           ProxyService.loginService.connect();
+
           ProxyService.loginService
-              .subscribe(channel: loginCode!.split('-')[1]);
+              .subscribe(channel: loginCode!.split('-')[1], context: context);
         }
       },
       builder: (context, model, child) {

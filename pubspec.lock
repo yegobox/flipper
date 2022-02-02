@@ -934,13 +934,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  flipper_view_models:
-    dependency: "direct main"
-    description:
-      path: "packages/flipper_view_models"
-      relative: true
-    source: path
-    version: "0.0.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -1393,6 +1386,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
+  go_router:
+    dependency: transitive
+    description:
+      name: go_router
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.1"
   google_fonts:
     dependency: "direct main"
     description:
@@ -1979,6 +1979,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  path_to_regexp:
+    dependency: transitive
+    description:
+      name: path_to_regexp
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0"
   pedantic:
     dependency: transitive
     description:

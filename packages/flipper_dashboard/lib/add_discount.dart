@@ -5,6 +5,7 @@ import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:go_router/go_router.dart';
 
 class AddDiscount extends StatefulWidget {
   AddDiscount({Key? key, this.discount}) : super(key: key);
@@ -61,12 +62,12 @@ class _AddDiscountState extends State<AddDiscount> {
                             id: widget.discount!.id,
                           );
                         }
-                        ProxyService.nav.back();
+                        GoRouter.of(context).pop();
                       }
                     },
                   ),
                 ),
-                middle: Text('Create Discount'),
+                middle: const Text('Create Discount'),
               ),
               child: ListView(
                 children: <Widget>[
@@ -74,7 +75,7 @@ class _AddDiscountState extends State<AddDiscount> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        ColorAndImagePlaceHolder(
+                        const ColorAndImagePlaceHolder(
                           currentColor: '#ee5253',
                           product: null,
                         ),

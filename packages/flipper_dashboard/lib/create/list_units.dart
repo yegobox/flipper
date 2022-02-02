@@ -2,8 +2,8 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/models.dart';
+import 'package:go_router/go_router.dart';
 
 class ListUnits extends StatelessWidget {
   const ListUnits({Key? key, required this.type}) : super(key: key);
@@ -45,13 +45,13 @@ class ListUnits extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             title: 'Unit Type',
             showActionButton: false,
             disableButton: false,
             onPressedCallback: () {
-              ProxyService.nav.back();
+              GoRouter.of(context).pop();
             },
             icon: Icons.close,
             multi: 3,

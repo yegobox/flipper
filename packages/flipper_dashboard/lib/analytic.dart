@@ -7,7 +7,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
-
+import 'package:go_router/go_router.dart';
 import 'analytics/lineF.dart';
 
 class Analytics extends StatelessWidget {
@@ -20,7 +20,7 @@ class Analytics extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         onPop: () async {
-          ProxyService.nav.back();
+          GoRouter.of(context).pop();
         },
         title: 'Analytics',
         disableButton: false,
