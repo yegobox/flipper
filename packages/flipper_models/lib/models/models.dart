@@ -138,6 +138,9 @@ export 'package:flipper_models/models/html/voucher.dart'
 export 'package:flipper_models/models/io/voucher_mock.dart'
     if (dart.library.html) 'package:flipper_models/models/io/voucher_mock.dart';
 
+export 'package:flipper_models/models/io/payment.dart'
+    if (dart.library.html) 'package:flipper_models/models/html/payment.dart';
+
 export 'exceptions.dart';
 // 
 // export 'package:flipper_models/models/view_models/analytic_viewmodel.dart';

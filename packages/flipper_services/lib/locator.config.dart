@@ -10,11 +10,11 @@ import 'package:injectable/injectable.dart' as _i2;
 import 'abstractions/analytic.dart' as _i3;
 import 'abstractions/api.dart' as _i5;
 import 'abstractions/dynamic_link.dart' as _i11;
-import 'abstractions/location.dart' as _i13;
+import 'abstractions/location.dart' as _i14;
 import 'abstractions/printer.dart' as _i20;
 import 'abstractions/remote.dart' as _i22;
 import 'abstractions/share.dart' as _i25;
-import 'abstractions/storage.dart' as _i18;
+import 'abstractions/storage.dart' as _i19;
 import 'abstractions/sync.dart' as _i26;
 import 'abstractions/system_time.dart' as _i27;
 import 'abstractions/upload.dart' as _i28;
@@ -23,14 +23,14 @@ import 'app_service.dart' as _i6;
 import 'billing_service.dart' as _i7;
 import 'country_service.dart' as _i8;
 import 'cron_service.dart' as _i10;
+import 'event_service.dart' as _i12;
 import 'FirebaseCrashlyticService.dart' as _i9;
-import 'firestore_api.dart' as _i12;
-import 'force_data_service.dart' as _i14;
+import 'firestore_api.dart' as _i13;
+import 'force_data_service.dart' as _i15;
 import 'in_app_review.dart' as _i23;
-import 'keypad_service.dart' as _i15;
-import 'language_service.dart' as _i17;
-import 'local_notification_service.dart' as _i16;
-import 'login_service.dart' as _i19;
+import 'keypad_service.dart' as _i16;
+import 'language_service.dart' as _i18;
+import 'local_notification_service.dart' as _i17;
 import 'product_service.dart' as _i21;
 import 'setting_service.dart' as _i24;
 import 'third_party_services_module.dart'
@@ -53,20 +53,20 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i10.CronService>(() => thirdPartyServicesModule.cron);
   gh.lazySingleton<_i11.DynamicLink>(
       () => thirdPartyServicesModule.dynamicLink);
-  gh.lazySingleton<_i12.Firestore>(() => thirdPartyServicesModule.firestore);
-  gh.lazySingleton<_i13.FlipperLocation>(
-      () => thirdPartyServicesModule.location);
-  gh.lazySingleton<_i14.ForceDataEntryService>(
-      () => thirdPartyServicesModule.forcedataEntry);
-  gh.lazySingleton<_i15.KeyPadService>(
-      () => thirdPartyServicesModule.keypadService);
-  gh.lazySingleton<_i16.LNotification>(
-      () => thirdPartyServicesModule.notification);
-  gh.lazySingleton<_i17.LanguageService>(
-      () => thirdPartyServicesModule.languageService);
-  gh.lazySingleton<_i18.LocalStorage>(() => thirdPartyServicesModule.box);
-  gh.lazySingleton<_i19.LoginService>(
+  gh.lazySingleton<_i12.EventService>(
       () => thirdPartyServicesModule.loginService);
+  gh.lazySingleton<_i13.Firestore>(() => thirdPartyServicesModule.firestore);
+  gh.lazySingleton<_i14.FlipperLocation>(
+      () => thirdPartyServicesModule.location);
+  gh.lazySingleton<_i15.ForceDataEntryService>(
+      () => thirdPartyServicesModule.forcedataEntry);
+  gh.lazySingleton<_i16.KeyPadService>(
+      () => thirdPartyServicesModule.keypadService);
+  gh.lazySingleton<_i17.LNotification>(
+      () => thirdPartyServicesModule.notification);
+  gh.lazySingleton<_i18.LanguageService>(
+      () => thirdPartyServicesModule.languageService);
+  gh.lazySingleton<_i19.LocalStorage>(() => thirdPartyServicesModule.box);
   gh.lazySingleton<_i20.Printer>(() => thirdPartyServicesModule.printService);
   gh.lazySingleton<_i21.ProductService>(
       () => thirdPartyServicesModule.productService);
@@ -92,13 +92,13 @@ class _$ThirdPartyServicesModule extends _i29.ThirdPartyServicesModule {
   @override
   _i10.CronService get cron => _i10.CronService();
   @override
-  _i14.ForceDataEntryService get forcedataEntry => _i14.ForceDataEntryService();
+  _i12.EventService get loginService => _i12.EventService();
   @override
-  _i15.KeyPadService get keypadService => _i15.KeyPadService();
+  _i15.ForceDataEntryService get forcedataEntry => _i15.ForceDataEntryService();
   @override
-  _i17.LanguageService get languageService => _i17.LanguageService();
+  _i16.KeyPadService get keypadService => _i16.KeyPadService();
   @override
-  _i19.LoginService get loginService => _i19.LoginService();
+  _i18.LanguageService get languageService => _i18.LanguageService();
   @override
   _i21.ProductService get productService => _i21.ProductService();
   @override

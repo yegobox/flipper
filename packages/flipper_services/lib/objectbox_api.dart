@@ -764,23 +764,26 @@ class ObjectBoxApi extends MobileUpload implements Api {
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
     String businessName = getBusiness().name;
+    var request =
+        http.Request('POST', Uri.parse('https://flipper.yegobox.com/pay'));
+    request.bodyFields = {
+      'amount': amount.toString(),
+      'userId': userId,
+      'RequestGuid': '00HK-KLJS',
+      'paymentType': 'SPENN',
+      'itemName': ' N/A',
+      'note': ' N/A',
+      'createdAt': DateTime.now().toIso8601String(),
+      'phoneNumber': '+25' + phoneNumber,
+      'message': 'Pay ' + businessName,
+    };
+    request.headers.addAll(headers);
 
-    final response = await client.post(Uri.parse("$flipperApi/pay"),
-        body: {
-          // add the business owner phone number
-          'userPhone': ProxyService.box.read(key: 'userPhone'),
-          'amount': amount.toString(),
-          'message': 'Pay ' + businessName,
-          'phoneNumber': '+25' + phoneNumber,
-          'paymentType': 'SPENN',
-          'itemName': '', //TODOget this item name from the item being sold
-          'note': '', //TODOget this note from the item being sold
-          'uid': userId,
-          'userId': userId
-        },
-        headers: headers);
+    http.StreamedResponse response = await request.send();
 
-    return spennFromJson(response.body);
+    String body = await response.stream.bytesToString();
+
+    return spennFromJson(body);
   }
 
   @override

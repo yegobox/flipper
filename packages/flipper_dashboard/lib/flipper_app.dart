@@ -51,7 +51,7 @@ class _FlipperAppState extends State<FlipperApp> {
   void initState() {
     _sideOpenController = ValueNotifier<bool>(false);
 
-    ProxyService.loginService.connect();
+    ProxyService.event.connect();
 
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();

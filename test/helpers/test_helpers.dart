@@ -14,7 +14,6 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stacked_services/stacked_services.dart';
 import '../view_models/startup_viewmodel_test.dart';
 import 'test_helpers.mocks.dart';
 import 'package:flipper_services/locator.dart';

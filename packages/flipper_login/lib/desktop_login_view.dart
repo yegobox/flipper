@@ -28,10 +28,10 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
       viewModelBuilder: () => LoginViewModel(),
       onModelReady: (model) {
         if (loginCode != null) {
-          ProxyService.loginService.connect();
+          ProxyService.event.connect();
 
-          ProxyService.loginService
-              .subscribe(channel: loginCode!.split('-')[1], context: context);
+          ProxyService.event
+              .subscribeLoginEvent(channel: loginCode!.split('-')[1], context: context);
         }
       },
       builder: (context, model, child) {

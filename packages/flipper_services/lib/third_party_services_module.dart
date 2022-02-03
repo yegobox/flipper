@@ -9,7 +9,7 @@ import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/language_service.dart';
-import 'package:flipper_services/login_service.dart';
+import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/analytic_service.dart';
@@ -242,7 +242,7 @@ abstract class ThirdPartyServicesModule {
   AppService get appService;
 
   @lazySingleton
-  LoginService get loginService;
+  EventService get loginService;
 
   @lazySingleton
   AnalyticService get analytic;

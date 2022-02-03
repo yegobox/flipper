@@ -3,7 +3,7 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/cupertino.dart';
 // Or import PubNub into a named namespace
-import 'package:pubnub/pubnub.dart';
+import 'package:pubnub/pubnub.dart' as nub;
 // To parse this JSON data, do
 //     final loginData = loginDataFromMap(jsonString);
 import 'package:flipper_services/proxy.dart';
@@ -49,25 +49,30 @@ class LoginData {
       };
 }
 
-class LoginService {
+class EventService {
   final log = getLogger('LoginService');
-  late PubNub pubnub;
-  final keySet = Keyset(
-    subscribeKey: 'sub-c-9d0df480-67d5-11ec-a4f8-fa616d2d2ecf',
-    publishKey: 'pub-c-ca33a9a4-b6c5-42fc-9edc-f15947d3178b',
-    uuid: const UUID('5d012092-29c4-45fc-a37b-5776e64d4355'),
+  late nub.PubNub pubnub;
+  final keySet = nub.Keyset(
+    subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',
+    publishKey: 'pub-c-763b84f1-f366-4f07-b9db-3f626069e71c',
+    uuid: const nub.UUID('5d012092-29c4-45fc-a37b-5776e64d4355'),
   );
-  void connect() {
-    pubnub = PubNub(defaultKeyset: keySet);
+  nub.PubNub connect() {
+    pubnub = nub.PubNub(defaultKeyset: keySet);
+    return pubnub;
   }
 
   void publish({required Map loginDetails}) {
-    final Channel channel = pubnub.channel(loginDetails['channel']);
+    final nub.Channel channel = pubnub.channel(loginDetails['channel']);
     channel.publish(loginDetails);
   }
 
-  void subscribe({required String channel, required BuildContext context}) {
-    Subscription subscription = pubnub.subscribe(channels: {channel});
+  void subscribePaymentEvent(
+      {required String channel, required BuildContext context}) {}
+
+  void subscribeLoginEvent(
+      {required String channel, required BuildContext context}) {
+    nub.Subscription subscription = pubnub.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       LoginData loginData = LoginData.fromMap(envelope.payload);
       // save login keys for logged in user
@@ -76,7 +81,6 @@ class LoginService {
 
       /// login anonymous user so we know this desktop! come online.
       if (auth.currentUser != null) {
-        // log.d(loginData.toMap());
         ProxyService.box.write(key: 'businessId', value: loginData.businessId);
         ProxyService.box.write(key: 'branchId', value: loginData.branchId);
         ProxyService.box.write(key: 'userId', value: loginData.userId);

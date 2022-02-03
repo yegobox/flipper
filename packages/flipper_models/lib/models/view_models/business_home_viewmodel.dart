@@ -243,19 +243,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       }
 
       /// if variation given given exist in the orderItems then we update the order with new count
-      List<OrderFSync> exist_orders =
+      List<OrderFSync> existOrders =
           await ProxyService.api.orders(branchId: branchId);
-      if (exist_orders.isNotEmpty) {
+      if (existOrders.isNotEmpty) {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem
-        for (OrderItemSync item in exist_orders[0].orderItems) {
+        for (OrderItemSync item in existOrders[0].orderItems) {
           if (item.fvariantId == variationId) {
             Map data = {
               'count': item.count + quantity.toDouble(),
               'price': (item.count + quantity.toDouble()) *
                   (amountTotal / quantity.toDouble()),
               'fvariantId': variationId,
-              'id': exist_orders[0].id,
+              'id': existOrders[0].id,
               'name': name,
               'createdAt': item.createdAt,
               'updatedAt': item.updatedAt,
@@ -269,7 +269,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         /// existOrderItem will return null which will go to adding item api.
         OrderItemSync? existOrderItem = ProxyService.api
             .getOrderItemByVariantId(
-                variantId: variationId, orderId: exist_orders[0].id);
+                variantId: variationId, orderId: existOrders[0].id);
         // log.w(exist_orders.length);
         if (existOrderItem == null) {
           Map data = {
@@ -278,12 +278,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
                 (quantity.toDouble()) * (amountTotal / quantity.toDouble()),
             'fvariantId': variationId,
             'name': name,
-            'forderId': exist_orders[0].id,
+            'forderId': existOrders[0].id,
             'createdAt': DateTime.now().toString(),
             'updatedAt': DateTime.now().toString(),
             'remainingStock': stock.currentStock.toInt() - quantity,
           };
-          ProxyService.api.addOrderItem(order: exist_orders[0], data: data);
+          ProxyService.api.addOrderItem(order: existOrders[0], data: data);
         }
       } else {
         await ProxyService.api.createOrder(
@@ -396,8 +396,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void saveTicket(Function callBack) async {
     //get the current order
     if (kOrder == null) return;
-    OrderFSync? Korder = await ProxyService.api.getOrderById(id: kOrder!.id);
-    Map map = Korder.toJson();
+    OrderFSync? _order = await ProxyService.api.getOrderById(id: kOrder!.id);
+    Map map = _order.toJson();
     map['status'] = parkedStatus;
     if (map['note'] == null || map['note'] == '') {
       callBack('error');
@@ -410,8 +410,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future resumeOrder({required int ticketId}) async {
-    OrderFSync? Korder = await ProxyService.api.getOrderById(id: ticketId);
-    Map map = Korder.toJson();
+    OrderFSync? _order = await ProxyService.api.getOrderById(id: ticketId);
+    Map map = _order.toJson();
     map['status'] = pendingStatus;
     await ProxyService.api.update(data: map, endPoint: 'order');
     await keypad.getTickets();
@@ -472,7 +472,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      BusinessSync business = await ProxyService.api.getBusiness();
+      BusinessSync business = ProxyService.api.getBusiness();
       final drive = GoogleDrive();
       if (business.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);

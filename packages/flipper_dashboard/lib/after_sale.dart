@@ -43,7 +43,7 @@ class _AfterSaleState extends State<AfterSale> {
                 onPop: () {
                   // refresh orders
                   model.currentOrder();
-                  GoRouter.of(context).pushNamed(Routes.home);
+                  GoRouter.of(context).pop();
                 },
                 title: '',
                 closeButton: CLOSEBUTTON.BUTTON,

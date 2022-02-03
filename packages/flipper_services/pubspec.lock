@@ -892,13 +892,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  flipper_view_models:
-    dependency: transitive
-    description:
-      path: "../flipper_view_models"
-      relative: true
-    source: path
-    version: "0.0.1"
   flutter:
     dependency: "direct main"
     description: flutter

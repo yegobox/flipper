@@ -33,24 +33,28 @@ class SpennpaymentStatus {
 
 class Spenn {
   Spenn({
-    required this.id,
-    required this.requestId,
-    required this.status,
+    this.id,
+    this.requestId,
+    this.status,
+    this.userId,
   });
 
-  String id;
-  String requestId;
-  String status;
+  String? id;
+  String? requestId;
+  String? status;
+  String? userId;
 
   factory Spenn.fromJson(Map<String, dynamic> json) => Spenn(
         id: json['\u0024id'],
         requestId: json['requestId'],
         status: json['status'],
+        userId: json['userId'],
       );
 
   Map<String, dynamic> toJson() => {
         '\u0024id': id,
         'requestId': requestId,
         'status': status,
+        'userId': userId,
       };
 }

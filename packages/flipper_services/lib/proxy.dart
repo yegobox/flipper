@@ -12,10 +12,9 @@ import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/firestore_api.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
-import 'package:flipper_services/login_service.dart';
+import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/analytic_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'abstractions/api.dart';
@@ -60,12 +59,12 @@ final Firestore _firestore = locator<Firestore>();
 final Review _review = locator<Review>();
 final SyncApiInterface _syncApi = locator<SyncApiInterface>();
 final SystemTime _systemTime = locator<SystemTime>();
-final LoginService _loginService = locator<LoginService>();
+final EventService _event = locator<EventService>();
 final BillingService _billingService = locator<BillingService>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
-  static LoginService get loginService => _loginService;
+  static EventService get event => _event;
   static Crash get crash => _crash;
   static Shareble get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;

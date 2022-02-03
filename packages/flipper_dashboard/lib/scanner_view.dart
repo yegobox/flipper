@@ -140,7 +140,7 @@ class _ScannViewState extends State<ScannView> {
         int businessId = ProxyService.box.read(key: 'businessId');
         int branchId = ProxyService.box.read(key: 'branchId');
         String phone = ProxyService.box.read(key: 'userPhone');
-        ProxyService.loginService.publish(loginDetails: {
+        ProxyService.event.publish(loginDetails: {
           // this avoid users to log in to unintended device!
           'channel': split[1],
           'userId': userId,

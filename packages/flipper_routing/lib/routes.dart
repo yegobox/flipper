@@ -7,9 +7,6 @@ import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
-import 'package:flipper_dashboard/hero_dialog_route.dart';
-import 'package:flipper_dashboard/add_product_buttons.dart';
-import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/create/add_category.dart';
 import 'package:flipper_dashboard/create/add_variation.dart';
 import 'package:flipper_dashboard/create/color_tile.dart';
@@ -217,8 +214,8 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/afterSale/:total',
-      name: 'afterSale',
+      path: '/sale/:total',
+      name: 'sale',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: AfterSale(
@@ -243,7 +240,7 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: "${Routes.analytics}",
+      path: Routes.analytics,
       name: 'analytics',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
