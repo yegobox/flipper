@@ -22,6 +22,8 @@ dependencies:
   mime: ^1.0.1
   open_file: ^3.2.1
   feather_icons: ^1.1.0-nullsafety.0
+  flutter_datetime_picker: ^1.5.1
+  qr_flutter: ^4.0.0
   flex_color_scheme: ^4.2.0
   image_picker: ^0.8.0+4
   firebase_storage: ^10.2.5
