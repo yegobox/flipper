@@ -70,9 +70,6 @@ dependencies:
   adaptive_breakpoints: ^0.1.0
 
   # TODO: start moving some packages into differed dependencies see gallery for case study!
-  # custom packages locally built
-  flutter_country_picker:
-    path: "open-sources/flutter_country_picker"
   flipper_dashboard:
     path: "packages/flipper_dashboard"
   flipper_login:

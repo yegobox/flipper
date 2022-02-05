@@ -31,7 +31,7 @@ dependencies:
   flipper:
     path: "../.."
 
-  provider: ^5.0.0
+  # provider: ^5.0.0
   # fl_chart: ^0.36.1
   google_fonts: ^2.1.0
   table_calendar: ^3.0.3
