@@ -12,8 +12,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flipper:
-    path: "../.."
+  #flipper:
 dev_dependencies:
   flutter_test:
     sdk: flutter

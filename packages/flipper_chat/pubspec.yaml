@@ -14,8 +14,7 @@ dependencies:
   line_icons: 2.0.1
   animate_do: 2.0.0
   bubble: 1.2.1
-  flipper:
-    path: "../.."
+  #flipper:
 
 dev_dependencies:
   flutter_test:
