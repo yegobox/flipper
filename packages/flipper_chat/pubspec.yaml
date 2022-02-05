@@ -1,7 +1,6 @@
 name: flipper_chat
 description: A new Flutter package project.
 version: 0.0.1
-# homepage:
 repository: https://github.com/yegobox/packages
 
 environment:
