@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 
+//
 HeaderBuilder headerImage(String assetName) {
   return (context, constraints, _) {
     return Padding(
