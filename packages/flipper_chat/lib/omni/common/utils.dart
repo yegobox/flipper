@@ -43,7 +43,6 @@ class Utils {
     return ListTile(
       title: Text(model.name),
       onTap: () {
-        LogUtil.e("onItemClick : $model");
         Utils.showSnackBar(context, 'onItemClick : ${model.name}');
       },
     );
@@ -118,7 +117,6 @@ class Utils {
       ),
       title: Text(model.name),
       onTap: () {
-        LogUtil.e("onItemClick : $model");
         Utils.showSnackBar(context, 'onItemClick : ${model.name}');
       },
     );

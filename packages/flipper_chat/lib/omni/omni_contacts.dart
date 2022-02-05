@@ -5,7 +5,6 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:azlistview/azlistview.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:go_router/go_router.dart';
