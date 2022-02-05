@@ -21,6 +21,9 @@ dependencies:
   stacked_themes:
   mime: ^1.0.1
   open_file: ^3.2.1
+  ant_icons: ^2.0.0-nullsafety.0
+  rounded_loading_button: ^2.0.4
+  pubnub: ^4.1.0
   feather_icons: ^1.1.0-nullsafety.0
   flutter_datetime_picker: ^1.5.1
   qr_flutter: ^4.0.0
