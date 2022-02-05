@@ -1,8 +1,5 @@
 name: flipper
-description: A new Flutter project.
-
-# The following line prevents the package from being accidentally published to
-# pub.dev using `pub publish`. This is preferred for private packages.
+description: A super app for africans
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
@@ -17,6 +14,9 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: 99.99.99+99
 
+# The packages below are just refrences for what packages being used
+# so not referenced in the app! check each package for more real package used
+#  in the specific package.
 environment:
   sdk: ">=2.12.0 <3.0.0"
   # flutter: ">=1.17.0"
@@ -27,11 +27,7 @@ dependencies:
     sdk: flutter
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
-
-  # TODO: start moving some packages into differed dependencies see gallery for case study!
-
   flutter_datetime_picker: ^1.5.1
-
   google_fonts: ^2.1.0
   font_awesome_flutter: ^9.0.0
   flutter_text_drawable: ^1.0.0
@@ -68,9 +64,6 @@ dependencies:
   ant_icons: ^2.0.0-nullsafety.0
   fl_chart: ^0.40.0
   azlistview: ^2.0.0-nullsafety.0
-  common_utils:
-    git:
-      url: https://github.com/jinfagang/common_utils
   random_string:
   upgrader: ^3.5.1
   flutter_svg:
@@ -154,17 +147,6 @@ msix_config:
   architecture: x64
   # capabilities: "internetClient,location,microphone,webcam"
   store: false
-
-#TODO:learn more... ::flipper::
-# https://www.codestories.gr/index.php/2019/03/17/generate-a-pfx-certificate-using-the-windows-certificate-store/
-# https://www.codestories.gr/index.php/2019/03/22/generate-a-pfx-certificate-using-openssl/
-# https://docs.microsoft.com/en-us/dotnet/framework/tools/signtool-exe
-# https://docs.microsoft.com/en-us/windows/msix/package/create-app-package-with-makeappx-tool
-# https://github.com/YehudaKremer/msix/issues/19
-# Final (https://sahajrana.medium.com/how-to-generate-a-pfx-certificate-for-flutter-windows-msix-lib-a860cdcebb8)
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:

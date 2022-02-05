@@ -1,8 +1,6 @@
 name: flipper_dashboard
 description: flipper models scaffold.
 version: 0.0.1
-# author:
-# homepage:
 publish_to: "none"
 repository: https://github.com/yegobox/packages
 
@@ -18,11 +16,7 @@ dependencies:
   flipper_models:
   flipper:
   flipper_routing:
-  # flipper_services:
-  # flipper_dashboard:
-  # flutter_chat_types:
   flutter_chat_ui:
-  # flutter_firebase_chat_core:
   timeago:
   stacked_themes:
   mime: ^1.0.1
