@@ -1,6 +1,6 @@
 name: flipper
 repository: https://github.com/FirebaseExtended/flutterfire
-
+# able to bootstrap
 packages:
   - packages/**
   - open-sources/**
