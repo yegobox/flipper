@@ -5,11 +5,11 @@ import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:overlay_support/overlay_support.dart'; // Add this line.
+import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'localize.dart';
+import 'package:localize/localize.dart';
 
 bottomSheetBuilder({
   required BuildContext context,
@@ -32,7 +32,6 @@ bottomSheetBuilder({
             ),
             child: SizedBox(
               height: MediaQuery.of(context).size.height - 120,
-              //  height: MediaQuery.of(context).size.height * 0.8,
               child: AnimatedContainer(
                 alignment: AlignmentDirectional.topCenter,
                 duration: const Duration(seconds: 2),

@@ -12,13 +12,13 @@ class SettingViewModel extends ReactiveViewModel {
   final kSetting = locator<SettingsService>();
   final languageService = locator<LanguageService>();
   bool _updateStarted = false;
-  Setting? _setting = null;
+  Setting? _setting;
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
   final log = getLogger('SettingViewModel');
-  String? defaultLanguage = null;
+  String? defaultLanguage;
 
-  Locale? klocale = null;
+  Locale? klocale;
 
   Locale? get locale => klocale;
 
@@ -52,12 +52,12 @@ class SettingViewModel extends ReactiveViewModel {
 
   Future<Profile?> updateProfile({required Profile profile}) async {
     _updateStarted = true;
-    return await ProxyService.api.updateProfile(profile: profile);
+    return ProxyService.api.updateProfile(profile: profile);
   }
 
   loadUserSettings() async {
     String userId = ProxyService.box.read(key: 'userId');
-    _setting = await ProxyService.api.getSetting(userId: int.parse(userId));
+    _setting = ProxyService.api.getSetting(userId: int.parse(userId));
     notifyListeners();
   }
 
@@ -68,7 +68,12 @@ class SettingViewModel extends ReactiveViewModel {
   bool get getIsSyncSubscribed => isSubscribedOnSync();
 
   bool isSubscribedOnSync() {
-    int businessId = int.parse(ProxyService.box.read(key: 'businessId'));
+    int businessId = 0;
+    if (ProxyService.box.read(key: 'businessId').runtimeType is int) {
+      businessId = ProxyService.box.read(key: 'businessId');
+    } else if (ProxyService.box.read(key: 'businessId').runtimeType is String) {
+      businessId = int.parse(ProxyService.box.read(key: 'businessId'));
+    }
     return ProxyService.api
         .isSubscribed(feature: 'sync', businessId: businessId);
   }
@@ -110,7 +115,7 @@ class SettingViewModel extends ReactiveViewModel {
   /// the backend is built in a way to reshare the report to the user's email.
   void enableDailyReport(Function callback) async {
     kSetting.toggleDailyReportSetting();
-    if (kSetting.settings != null && kSetting.settings!.email.length > 0) {
+    if (kSetting.settings != null && kSetting.settings!.email.isNotEmpty) {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$")
           .hasMatch(kSetting.settings!.email)) {
         callback(1);
@@ -140,7 +145,7 @@ class SettingViewModel extends ReactiveViewModel {
 
   void enableAttendance(Function callback) {
     kSetting.toggleAttendanceSetting();
-    if (kSetting.settings != null && kSetting.settings!.email.length > 0) {
+    if (kSetting.settings != null && kSetting.settings!.email.isNotEmpty) {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$")
           .hasMatch(kSetting.settings!.email)) {
         callback(1);

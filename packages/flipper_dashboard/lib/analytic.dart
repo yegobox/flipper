@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:go_router/go_router.dart';
 import 'analytics/lineF.dart';
 
+// ignore: use_key_in_widget_constructors
 class Analytics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,5 @@
 import 'package:localize/localize.dart';
-import 'package:localize/localization.dart';
+import 'package:flipper/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -105,7 +105,6 @@ void preferences(
               viewModelBuilder: () => SettingViewModel(),
               onModelReady: (model) {
                 model.getSetting();
-                // log.i(model.getSetting());
               },
               builder: (context, model, child) {
                 return Column(
@@ -250,7 +249,7 @@ void preferences(
         title: const Text('Analytics'),
         trailing: const Icon(Icons.arrow_forward_ios),
         onTap: () {
-          GoRouter.of(context).go(Routes.analytics);
+          GoRouter.of(context).push(Routes.analytics);
         },
       ),
       ListTile(
