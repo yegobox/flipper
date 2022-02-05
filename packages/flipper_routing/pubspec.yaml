@@ -21,6 +21,11 @@ dev_dependencies:
   injectable_generator:
   stacked_generator:
   flutter_lints:
+  flipper_chat:
+  flipper_dashboard:
+  flipper_login:
+  flipper_models:
+  stacked_services:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

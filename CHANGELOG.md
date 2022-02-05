@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+- [`flipper_models` - `v0.0.1+1`](#flipper_models---v0011)
+
+---
+
+#### `flipper_models` - `v0.0.1+1`
+
+ - **FIX**: :when user is first time should go signup.
+
+
+## 2022-02-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+- There are no breaking changes in this release.
+
+Packages with other changes:
+
 - [`flipper_services` - `v0.0.1+1`](#flipper_services---v0011)
 
 Packages with dependency updates only:
