@@ -10,7 +10,6 @@ String? getServerAddress({String? address}) {
   if (sanitized.isEmpty) return null;
 
   Uri? uri = Uri.tryParse(serverAddress);
-  print("uri: $uri");
   if (uri?.scheme.isEmpty ?? true) {
     if (serverAddress.contains("ngrok.io")) {
       serverAddress = "https://$serverAddress";

@@ -478,3 +478,5 @@ class AppSetup {
 // lib\main.dart:1
 // Shrinking has been disabled for this build due to deferred components. Shrinking is not available for multi-apk applications. This limitation is expected to be removed when Gradle plugin 4.2+ is available in Flutter.
 // openssl base64 -in key.jks -out ke
+
+// git push --follow-tags

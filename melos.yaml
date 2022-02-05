@@ -4,6 +4,7 @@ repository: https://github.com/FirebaseExtended/flutterfire
 packages:
   - packages/**
   - open-sources/**
+  - lib/localize/**
 ignore:
   - "*web*"
   - "*odm*"

@@ -9,7 +9,6 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:go_router/go_router.dart';
