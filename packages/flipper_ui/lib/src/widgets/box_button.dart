@@ -5,7 +5,7 @@ import 'package:loading/indicator/ball_pulse_indicator.dart';
 import 'package:loading/loading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 // import 'package:flipper_services/constants.dart';
-import 'package:flipper_dashboard/loader.dart';
+import './utils.dart';
 
 class BoxButton extends StatelessWidget {
   final String title;

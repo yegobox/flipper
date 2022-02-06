@@ -19,7 +19,6 @@ dev_dependencies:
   flipper_models:
   flipper_login:
   flipper_services:
-  flipper_ui:
   flipper_routing:
   loading:
   overlay_support:

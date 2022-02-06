@@ -1,9 +1,8 @@
 name: flipper_ui
-description: A new Flutter package project.
+description: >
+  A new Flutter package project.
 version: 0.0.1
-# author:
 repository: https://github.com/yegobox/packages
-# homepage:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -12,7 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  #flipper:
+  loading:
+  flutter_screenutil:
+  # flipper:
 dev_dependencies:
   flutter_test:
     sdk: flutter
