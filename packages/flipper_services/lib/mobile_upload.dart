@@ -13,7 +13,6 @@ import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 
 class HttpUpload implements UploadT {
-  final _picker = ImagePicker();
   final log = getLogger('HttpUpload');
   @override
   Future browsePictureFromGallery(
