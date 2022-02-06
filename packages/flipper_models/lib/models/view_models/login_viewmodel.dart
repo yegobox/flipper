@@ -1,4 +1,3 @@
-import 'package:country_code_picker/country_code.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -20,7 +19,7 @@ class LoginViewModel extends FormViewModel {
   }
 
   String dialCode = '+250';
-  void setCountryIso({CountryCode? iso}) {
+  void setCountryIso({dynamic iso}) {
     dialCode = (iso != null ? iso.dialCode : '+250')!;
   }
 

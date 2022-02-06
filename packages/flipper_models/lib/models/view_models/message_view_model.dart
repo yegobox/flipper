@@ -82,7 +82,7 @@ class MessageViewModel extends BusinessHomeViewModel {
 
   void _handleList(List<Contact> list) {
     dataList.clear();
-    if (ObjectUtil.isEmpty(list)) {
+    if (list.isEmpty) {
       return;
     }
     dataList.addAll(list);
@@ -102,7 +102,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   }
 
   void search(String text) {
-    if (ObjectUtil.isEmpty(text)) {
+    if (text.isEmpty) {
       _handleList(originList);
     } else {
       List<Contact> list = originList.where((v) {

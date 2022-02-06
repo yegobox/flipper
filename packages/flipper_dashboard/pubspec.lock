@@ -15,6 +15,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "21.0.0"
+  adaptive_breakpoints:
+    dependency: transitive
+    description:
+      name: adaptive_breakpoints
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1"
   analyzer:
     dependency: transitive
     description:
@@ -22,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.0"
+  animations:
+    dependency: transitive
+    description:
+      name: animations
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.2"
   ant_icons:
     dependency: "direct main"
     description:
@@ -537,6 +551,13 @@ packages:
     dependency: "direct overridden"
     description:
       path: "../flipper_chat"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_finance:
+    dependency: "direct overridden"
+    description:
+      path: "../flipper_finance"
       relative: true
     source: path
     version: "0.0.1"

@@ -8,6 +8,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  adaptive_breakpoints:
+    dependency: transitive
+    description:
+      name: adaptive_breakpoints
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1"
+  animations:
+    dependency: transitive
+    description:
+      name: animations
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.2"
   ant_icons:
     dependency: transitive
     description:
@@ -418,6 +432,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../flipper_dashboard"
+      relative: true
+    source: path
+    version: "0.0.1"
+  flipper_finance:
+    dependency: "direct overridden"
+    description:
+      path: "../flipper_finance"
       relative: true
     source: path
     version: "0.0.1"
