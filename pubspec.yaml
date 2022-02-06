@@ -43,11 +43,11 @@ dev_dependencies:
   objectbox_generator: any
   matcher: ^0.12.10
   msix: ^2.6.6
-# flutter_icons:
-#   android: "launcher_icon"
-#   ios: true
-#   remove_alpha_ios: true
-#   image_path: "assets/icon/icon.png"
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon/icon.png"
 # msix_config:
 #   display_name: yegobox/flipper
 #   publisher_display_name: yegobox ltd
@@ -61,22 +61,22 @@ dev_dependencies:
 #   architecture: x64
 #   store: false
 
-# flutter:
-#   # deferred-components:
-#   #   - name: finance
-#   #     libraries:
-#   #       # Only one library from the loading unit is necessary.
-#   #       - package:flipper_finance/app.dart
-#   uses-material-design: true
-#   assets:
-#     - assets/fliper-logo.png
-#     - assets/
-#     - assets/images/
-#     - assets/icons/
-#     - vendor/
-#   fonts:
-#     - family: TwitterIcon
-#       fonts:
-#         - asset: assets/fonts/icons.ttf
-# generate: true
+flutter:
+  # deferred-components:
+  #   - name: finance
+  #     libraries:
+  #       # Only one library from the loading unit is necessary.
+  #       - package:flipper_finance/app.dart
+  uses-material-design: true
+  assets:
+    - assets/fliper-logo.png
+    - assets/
+    - assets/images/
+    - assets/icons/
+    - vendor/
+  fonts:
+    - family: TwitterIcon
+      fonts:
+        - asset: assets/fonts/icons.ttf
+generate: true
 # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
