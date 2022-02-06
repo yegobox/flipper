@@ -48,18 +48,19 @@ flutter_icons:
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/icon.png"
-# msix_config:
-#   display_name: yegobox/flipper
-#   publisher_display_name: yegobox ltd
-#   identity_name: yegobox.yegoboxflipper
-#   msix_version: 1.26.0.0
-#   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
-#   logo_path: .\assets\icon\icon.png
-#   start_menu_icon_path: .\assets\icon\icon.png
-#   tile_icon_path: .\assets\icon\icon.png
-#   icons_background_color: #ffffff
-#   architecture: x64
-#   store: false
+msix_config:
+  display_name: yegobox/flipper
+  publisher_display_name: yegobox ltd
+  identity_name: yegobox.yegoboxflipper
+  msix_version: 1.26.0.0
+  publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
+  # TODO: un comment this when building for windows as melos is complaining when un commented
+  # logo_path: .\assets\icon\icon.png
+  # start_menu_icon_path: .\assets\icon\icon.png
+  # tile_icon_path: .\assets\icon\icon.png
+  icons_background_color: #ffffff
+  architecture: x64
+  store: false
 
 flutter:
   # deferred-components:
