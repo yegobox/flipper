@@ -1,12 +1,9 @@
-import 'package:flipper/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper/bottom_sheets/link_phone.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
-import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

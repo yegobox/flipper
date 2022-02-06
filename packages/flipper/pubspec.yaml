@@ -15,6 +15,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.0
+  flipper_dashboard:
+  flipper_models:
+  flipper_login:
+  flipper_services:
+  flipper_ui:
+  flipper_routing:
+  loading:
+  overlay_support:
+  flutter_screenutil:
+  localize:
+  universal_platform: ^1.0.0+1
+  animations: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

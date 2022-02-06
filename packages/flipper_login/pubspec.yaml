@@ -1,7 +1,7 @@
 name: flipper_login
-description: flipper models scaffold.
+description: >
+  flipper models scaffold.
 version: 0.0.1
-# author:
 repository: https://github.com/yegobox/packages
 
 publish_to: "none"
@@ -12,7 +12,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  #flipper:
+  flipper:
+  flutterfire_ui: ^0.3.1
+  flutter_form_bloc: ^0.29.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
