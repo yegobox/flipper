@@ -11,7 +11,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  #flipper:
+  flipper:
+  stacked:
+  firebase_remote_config: ^2.0.0
+  flutter_secure_storage: ^5.0.2
+  share_plus: ^2.1.4
+  system_time_check: ^1.0.0
+  in_app_review:
+  firebase_messaging: ^11.2.3
+  flutter_local_notifications: ^6.0.0
+  get_storage:
 dev_dependencies:
   flutter_test:
     sdk: flutter
