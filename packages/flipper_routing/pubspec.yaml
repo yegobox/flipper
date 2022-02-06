@@ -28,6 +28,7 @@ dev_dependencies:
   stacked_services:
   flipper:
   flipper_finance:
+  logger:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
