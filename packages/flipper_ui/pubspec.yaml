@@ -13,9 +13,3 @@ dependencies:
     sdk: flutter
   loading:
   flutter_screenutil:
-  # flipper:
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-flutter:

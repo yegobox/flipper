@@ -1,7 +1,7 @@
 name: flipper
-description: A super app for africans
+description: >
+  A super app for africans
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
@@ -22,17 +22,8 @@ environment:
   # flutter: ">=1.17.0"
 
 dependencies:
-  country_code_picker: ^2.0.1
-  flutter_localizations:
-    sdk: flutter
-  firebase_analytics: ^8.0.3
-  path_provider: ^2.0.7
   objectbox: ^1.3.0
   objectbox_sync_flutter_libs: any
-  connectivity_plus: "^1.1.0"
-  firebase_storage: ^10.2.5
-  googleapis: ^5.0.1
-  googleapis_auth: ^1.3.0
 
 dev_dependencies:
   flutter_test:
@@ -52,41 +43,40 @@ dev_dependencies:
   objectbox_generator: any
   matcher: ^0.12.10
   msix: ^2.6.6
+# flutter_icons:
+#   android: "launcher_icon"
+#   ios: true
+#   remove_alpha_ios: true
+#   image_path: "assets/icon/icon.png"
+# msix_config:
+#   display_name: yegobox/flipper
+#   publisher_display_name: yegobox ltd
+#   identity_name: yegobox.yegoboxflipper
+#   msix_version: 1.26.0.0
+#   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
+#   logo_path: .\assets\icon\icon.png
+#   start_menu_icon_path: .\assets\icon\icon.png
+#   tile_icon_path: .\assets\icon\icon.png
+#   icons_background_color: #ffffff
+#   architecture: x64
+#   store: false
 
-flutter_icons:
-  android: "launcher_icon"
-  ios: true
-  remove_alpha_ios: true
-  image_path: "assets/icon/icon.png"
-msix_config:
-  display_name: yegobox/flipper
-  publisher_display_name: yegobox ltd
-  identity_name: yegobox.yegoboxflipper
-  msix_version: 1.26.0.0
-  publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
-  logo_path: .\assets\icon\icon.png
-  start_menu_icon_path: .\assets\icon\icon.png
-  tile_icon_path: .\assets\icon\icon.png
-  icons_background_color: #ffffff
-  architecture: x64
-  store: false
-
-flutter:
-  # deferred-components:
-  #   - name: finance
-  #     libraries:
-  #       # Only one library from the loading unit is necessary.
-  #       - package:flipper_finance/app.dart
-  uses-material-design: true
-  assets:
-    - assets/fliper-logo.png
-    - assets/
-    - assets/images/
-    - assets/icons/
-    - vendor/
-  fonts:
-    - family: TwitterIcon
-      fonts:
-        - asset: assets/fonts/icons.ttf
-  # generate: true
-  # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
+# flutter:
+#   # deferred-components:
+#   #   - name: finance
+#   #     libraries:
+#   #       # Only one library from the loading unit is necessary.
+#   #       - package:flipper_finance/app.dart
+#   uses-material-design: true
+#   assets:
+#     - assets/fliper-logo.png
+#     - assets/
+#     - assets/images/
+#     - assets/icons/
+#     - vendor/
+#   fonts:
+#     - family: TwitterIcon
+#       fonts:
+#         - asset: assets/fonts/icons.ttf
+# generate: true
+# https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)

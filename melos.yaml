@@ -1,10 +1,13 @@
 name: flipper
-repository: https://github.com/FirebaseExtended/flutterfire
+repository: https://github.com/yegobox/flipper
 # able to bootstrap
 packages:
+  # e.g. including the workspace root as a package
+  - "*"
   - packages/**
   - open-sources/**
   - lib/localize/**
+
 ignore:
   - "*web*"
   - "*odm*"
