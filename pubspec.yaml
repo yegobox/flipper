@@ -108,6 +108,9 @@ dependencies:
   firebase_database: ^9.0.4
   firebase_dynamic_links: ^4.0.3
   flutterfire_ui: 0.3.1
+  stacked_themes: ^0.3.8+1
+  # flipper_services:
+  get_storage:
 
 dev_dependencies:
   flutter_test:
