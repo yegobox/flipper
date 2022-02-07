@@ -54,3 +54,19 @@ dependencies:
   url_launcher: ^6.0.18
   google_fonts: ^2.1.0
   number_display: ^3.0.0
+  firebase_auth_desktop: ^0.1.1-dev.0
+  firebase_core: ^1.9.0
+  firebase_core_desktop: ^0.1.1-dev.0
+flutter:
+  uses-material-design: true
+  assets:
+    - ../../assets/fliper-logo.png
+    - ../../assets/
+    - ../../assets/images/
+    - ../../assets/icons/
+    - ../../vendor/
+  fonts:
+    - family: TwitterIcon
+      fonts:
+        - asset: ../../assets/fonts/icons.ttf
+generate: true

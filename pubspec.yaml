@@ -38,6 +38,9 @@ dependencies:
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
   sentry_flutter: ^6.3.0
+  firebase_auth_desktop: ^0.1.1-dev.0
+  firebase_core: ^1.9.0
+  firebase_core_desktop: ^0.1.1-dev.0
 
 dev_dependencies:
   flutter_test:

@@ -38,3 +38,16 @@ dependencies:
   flutter_slidable: ^0.6.0
   http: ^0.13.4
   path_provider: ^2.0.8
+flutter:
+  uses-material-design: true
+  assets:
+    - ../../assets/fliper-logo.png
+    - ../../assets/
+    - ../../assets/images/
+    - ../../assets/icons/
+    - ../../vendor/
+  fonts:
+    - family: TwitterIcon
+      fonts:
+        - asset: ../../assets/fonts/icons.ttf
+generate: true
