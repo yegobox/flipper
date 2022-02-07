@@ -701,6 +701,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flipper_loading:
+    dependency: "direct overridden"
+    description:
+      path: "packages/flipper_loading"
+      relative: true
+    source: path
+    version: "2.0.0"
   flipper_login:
     dependency: "direct main"
     description:
@@ -1357,10 +1364,10 @@ packages:
   loading:
     dependency: "direct main"
     description:
-      path: "packages/loading"
-      relative: true
-    source: path
-    version: "2.0.0"
+      name: loading
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   localize:
     dependency: "direct main"
     description:
