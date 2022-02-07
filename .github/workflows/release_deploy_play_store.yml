@@ -48,11 +48,12 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/1.38.0+111101038/g' pubspec.yaml
+        run: sed -i 's/99.99.99+99/1.39.0+111101039/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
-      - run: flutter pub get
-
+      - run: dart pub global activate melos
+      - name: "Run Melos bootstrap"
+        run: melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
