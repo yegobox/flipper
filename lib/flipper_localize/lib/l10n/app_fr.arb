@@ -1,0 +1,74 @@
+{
+    "save": "Bika",
+    "@save": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "retailPrice": "Igiciro",
+    "@retailPrice": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "supplyPrice": "Ikiranguzo",
+    "@supplyPrice": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "currentSale": "Igurishwa ryubu",
+    "@currentSale": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "addProduct": "Ongeramo ibicuruzwa",
+    "@addProduct": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "tickets": "Amatike",
+    "@tickets": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "charge": "kwishyuza",
+    "@charge": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "productName": "Izina ryigicuruzwa",
+    "@productName": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "flipperSetting": "Igenamiterere",
+    "@flipperSetting": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "options": "Amahitamo",
+    "@options": {
+        "description": "Amahitamo"
+    },
+    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
+    "@saveTicket": {
+        "description": "Amahitamo"
+    },
+    "productNotFound": "Igicuruzwa ntikibonetse",
+    "@productNotFound": {
+        "description": "Igicuruzwa ntikibonetse"
+    },
+    "noPayable": "Ntabyo kwishyuzwa bihari",
+    "@noPayable": {
+        "description": "Ntabyo kwishyuzwa bihari"
+    },
+    "delete": "Siba",
+    "@delete": {
+        "description": "Siba"
+    },
+    "addTomenu": "Menu",
+    "@addTomenu": {
+        "description": "Ongeraho kuri menu"
+    },
+    "edit": "Edit",
+    "@edit": {
+        "description": "Ongeraho kuri menu"
+    },
+    "addWorkSpace": "Add WorkSpace",
+    "@addWorkSpace": {
+        "description": "Add WorkSpace"
+    },
+    "addMembers": "Add Members",
+    "@addMembers": {
+        "description": "Add Members"
+    }
+}
