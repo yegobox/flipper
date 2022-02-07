@@ -6,7 +6,7 @@ import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_localize/localize.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 

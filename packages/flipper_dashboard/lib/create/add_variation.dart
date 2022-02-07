@@ -1,5 +1,5 @@
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_localize/localize.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';

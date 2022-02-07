@@ -714,7 +714,7 @@ packages:
       path: "lib/flipper_localize"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.4"
   flipper_login:
     dependency: "direct main"
     description:
@@ -749,7 +749,7 @@ packages:
       path: "packages/flipper_ui"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "1.0.3"
   flutter:
     dependency: transitive
     description: flutter

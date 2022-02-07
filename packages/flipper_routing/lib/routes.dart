@@ -480,3 +480,5 @@ class AppSetup {
 // openssl base64 -in key.jks -out ke
 
 // git push --follow-tags
+// Print package
+// https://github.com/thon-ju/bluetooth_print

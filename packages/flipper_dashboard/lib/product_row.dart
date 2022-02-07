@@ -1,6 +1,6 @@
 import 'package:flipper/helpers/utils.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_localize/localize.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';

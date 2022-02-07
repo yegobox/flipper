@@ -1,4 +1,4 @@
-import 'package:flipper_localize/localize.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:flutter/material.dart';
