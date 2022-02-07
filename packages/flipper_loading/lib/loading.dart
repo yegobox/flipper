@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:loading/indicator.dart';
-import 'package:loading/indicator/ball_scale_indicator.dart';
+import 'package:flipper_loading/indicator.dart';
+import 'package:flipper_loading/indicator/ball_scale_indicator.dart';
 
 class Loading extends StatefulWidget {
   Indicator? indicator;
   double size;
   Color color;
 
-  Loading({this.indicator,  this.size = 50.0, this.color = Colors.white}) {
+  Loading({this.indicator, this.size = 50.0, this.color = Colors.white}) {
     if (indicator == null) {
       indicator = BallScaleIndicator();
     } else {

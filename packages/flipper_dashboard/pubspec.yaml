@@ -1,6 +1,6 @@
 name: flipper_dashboard
 description: flipper models scaffold.
-version: 0.0.1
+version: 0.0.1-dev.1
 publish_to: "none"
 repository: https://github.com/yegobox/packages
 
@@ -10,15 +10,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flipper_ui:
-  get:
-  localize:
-  flipper_models:
-  flipper:
-  flipper_routing:
-  flutter_chat_ui:
-  timeago:
-  stacked_themes:
+  flipper_ui: ^0.0.1
+  get: ^4.6.1
+  localize: ^0.0.1
+  flipper_models: ^0.0.1
+  flipper: ^99.99.99+99
+  flipper_routing: ^0.0.1
+  flutter_chat_ui: ^1.5.5
+  timeago: ^3.2.1
+  stacked_themes: ^0.3.8+1
   mime: ^1.0.1
   open_file: ^3.2.1
   ant_icons: ^2.0.0-nullsafety.0
@@ -41,7 +41,7 @@ dependencies:
       ref: master
   qr_code_scanner: ^0.6.1
   cached_network_image: ^3.1.0+1
-  flutter_slidable: ^0.6.0
+  flutter_slidable: ^1.2.0
   flutter_text_drawable: ^1.0.0
   font_awesome_flutter: ^9.0.0
   upgrader: ^3.5.1

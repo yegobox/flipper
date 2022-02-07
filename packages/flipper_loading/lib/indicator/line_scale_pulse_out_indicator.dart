@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:loading/indicator.dart';
+import 'package:flipper_loading/indicator.dart';
 
-class LineScalePartyIndicator extends Indicator {
-  var scaleDoubles = [1.0, 1.0, 1.0, 1.0];
-  var durations = [630, 215, 505, 365];
+class LineScalePulseOutIndicator extends Indicator {
+  var scaleYDoubles = [1.0, 1.0, 1.0, 1.0, 1.0];
 
   @override
   paint(Canvas canvas, Paint? paint, Size size) {
-    var translateX = size.width / 9;
+    var translateX = size.width / 11;
     var translateY = size.height / 2;
-
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
       canvas.save();
       canvas.translate((2 + i * 2) * translateX - translateX / 2, translateY);
-      canvas.scale(scaleDoubles[i], scaleDoubles[i]);
+      canvas.scale(1.0, scaleYDoubles[i]);
       var rectF = RRect.fromLTRBR(-translateX / 2, -size.height / 2.5,
           translateX / 2, size.height / 2.5, Radius.circular(5));
       canvas.drawRRect(rectF, paint!);
@@ -24,12 +22,12 @@ class LineScalePartyIndicator extends Indicator {
   @override
   List<AnimationController> animation() {
     List<AnimationController> controllers = [];
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
       var sizeController = new AnimationController(
-          duration: Duration(milliseconds: durations[i]), vsync: context);
-      var alphaTween = new Tween(begin: 1.0, end: 0.4).animate(sizeController);
+          duration: Duration(milliseconds: 500), vsync: context);
+      var alphaTween = new Tween(begin: 1.0, end: 0.3).animate(sizeController);
       sizeController.addListener(() {
-        scaleDoubles[i] = alphaTween.value;
+        scaleYDoubles[i] = alphaTween.value;
         postInvalidate();
       });
       controllers.add(sizeController);
@@ -39,7 +37,7 @@ class LineScalePartyIndicator extends Indicator {
 
   @override
   startAnims(List<AnimationController> controllers) {
-    var delays = [770, 290, 280, 740];
+    var delays = [500, 250, 0, 250, 500];
     for (var i = 0; i < controllers.length; i++) {
       Future.delayed(Duration(milliseconds: delays[i]), () {
         if (context.mounted) controllers[i].repeat(reverse: true);

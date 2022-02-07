@@ -567,14 +567,14 @@ packages:
       path: "../flipper_chat"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_dashboard:
     dependency: "direct overridden"
     description:
       path: "../flipper_dashboard"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_finance:
     dependency: "direct overridden"
     description:
@@ -582,13 +582,20 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flipper_loading:
+    dependency: "direct overridden"
+    description:
+      path: "../flipper_loading"
+      relative: true
+    source: path
+    version: "2.0.0"
   flipper_models:
     dependency: "direct overridden"
     description:
       path: "../flipper_models"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_routing:
     dependency: "direct overridden"
     description:
@@ -602,7 +609,7 @@ packages:
       path: "../flipper_services"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_ui:
     dependency: "direct overridden"
     description:
@@ -845,7 +852,7 @@ packages:
       name: flutter_slidable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "1.2.0"
   flutter_statusbarcolor_ns:
     dependency: transitive
     description:
@@ -1146,12 +1153,12 @@ packages:
     source: hosted
     version: "1.0.1"
   loading:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../loading"
-      relative: true
-    source: path
-    version: "2.0.0"
+      name: loading
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   localize:
     dependency: "direct overridden"
     description:

@@ -11,5 +11,5 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  loading:
-  flutter_screenutil:
+  flipper_loading: ^2.0.0
+  flutter_screenutil: ^5.1.0

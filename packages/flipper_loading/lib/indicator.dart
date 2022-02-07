@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:loading/loading.dart';
+import 'package:flipper_loading/loading.dart';
 
 abstract class Indicator {
   late LoadingState context;

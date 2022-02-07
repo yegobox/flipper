@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:loading/indicator.dart';
+import 'package:flipper_loading/indicator.dart';
 
 class LineScaleIndicator extends Indicator {
   var scaleYDoubles = [1.0, 1.0, 1.0, 1.0, 1.0];

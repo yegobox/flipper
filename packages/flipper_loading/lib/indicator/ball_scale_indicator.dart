@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:loading/indicator.dart';
+import 'package:flipper_loading/indicator.dart';
 
 class BallScaleIndicator extends Indicator {
   int mAlpha = 0;

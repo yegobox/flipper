@@ -1,6 +1,6 @@
 name: flipper_chat
 description: A new Flutter package project.
-version: 0.0.1
+version: 0.0.1-dev.1
 repository: https://github.com/yegobox/packages
 
 environment:
@@ -10,15 +10,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flipper:
-  flipper_routing:
-  flipper_services:
-  flipper_dashboard:
-  flutter_chat_types:
-  flutter_chat_ui:
-  flutter_firebase_chat_core:
-  timeago:
-  stacked_themes:
+  flipper: ^99.99.99+99
+  flipper_routing: ^0.0.1
+  flipper_services: ^0.0.1
+  flipper_dashboard: ^0.0.1
+  flutter_chat_types: ^0.0.1
+  flutter_chat_ui: ^1.5.0
+  flutter_firebase_chat_core: ^1.5.0
+  timeago: ^3.2.1
+  stacked_themes: ^0.3.8+1
   mime: ^1.0.1
   open_file: ^3.2.1
   image_picker: ^0.8.0+4
@@ -27,3 +27,14 @@ dependencies:
   go_router: ^3.0.1
   stacked: ^2.2.8
   azlistview: ^2.0.0-nullsafety.0
+  flipper_models: ^0.0.1-dev.1
+  ionicons: ^0.1.2
+  flipper_ui: ^0.0.1
+  universal_platform: ^1.0.0+1
+  overlay_support: ^1.2.1
+  flutter_svg: ^1.0.3
+  firebase_auth: ^3.3.5
+  flutter_text_drawable: ^1.0.0
+  flutter_slidable: ^1.2.0
+  http: ^0.13.4
+  path_provider: ^2.0.8
