@@ -852,7 +852,7 @@ packages:
       name: flutter_slidable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "0.6.0"
   flutter_statusbarcolor_ns:
     dependency: transitive
     description:
