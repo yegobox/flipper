@@ -6,7 +6,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -121,13 +121,12 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
             final formBloc = context.read<AsyncFieldValidationFormBloc>();
             return Scaffold(
               body: Padding(
-                padding: const EdgeInsets.all(0.0)
-                    .copyWith(top: ScreenUtil().setHeight(80), bottom: 0),
+                padding: const EdgeInsets.all(0.0).copyWith(top: 80, bottom: 0),
                 child: Form(
                   key: _formKey,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: ScreenUtil().setWidth(20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
                     ),
                     child: Column(
                       children: [
@@ -197,16 +196,17 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                         ),
                         !model.registerStart
                             ? Padding(
-                                padding: EdgeInsets.only(left: 0.w, right: 0.w),
+                                padding:
+                                    const EdgeInsets.only(left: 0, right: 0),
                                 child: BoxButton(
                                   onTap: formBloc.submit,
                                   title: 'Register',
                                 ),
                               )
-                            : Padding(
-                                key: const Key('busyButon'),
-                                padding: EdgeInsets.only(left: 0.w, right: 0.w),
-                                child: const SizedBox(
+                            : const Padding(
+                                key: Key('busyButon'),
+                                padding: EdgeInsets.only(left: 0, right: 0),
+                                child: SizedBox(
                                   width: double.infinity,
                                   height: 60,
                                   child: BoxButton(

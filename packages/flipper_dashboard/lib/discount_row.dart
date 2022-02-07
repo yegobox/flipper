@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flipper_services/constants.dart';
 
 class DiscountRow extends StatelessWidget {
@@ -39,10 +39,10 @@ class DiscountRow extends StatelessWidget {
         onLongPress: () {},
         child: Column(children: <Widget>[
           ListTile(
-            contentPadding: EdgeInsets.fromLTRB(0, 0, 15.w, 0),
+            contentPadding: EdgeInsets.fromLTRB(0, 0, 15, 0),
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
-              width: 58.w,
+              width: 58,
               child: CircleAvatar(
                 child: Container(
                   height: 10,
@@ -60,7 +60,7 @@ class DiscountRow extends StatelessWidget {
             trailing: Text(discount.amount.toString() + 'RWF off'),
           ),
           Container(
-            height: 0.5.h,
+            height: 0.5,
             color: Colors.black26,
           ),
         ]),

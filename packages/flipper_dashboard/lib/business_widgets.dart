@@ -2,7 +2,6 @@ import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BusinessSettingButton extends StatelessWidget {
   const BusinessSettingButton({Key? key, this.image, required this.onPressed})
@@ -171,7 +170,7 @@ class _Style {
   static const double flipperButtonWidth = 44.0;
   static const double fourthSectionHeight = 180.0;
   static const double itemHeight = 52.0;
-  static double padding = 8.w;
+  static double padding = 8;
   static const double separatorHeight = 2.0;
   static const double separatorWidth = 48.0;
   static const double thirdSectionHeight = 60.0;

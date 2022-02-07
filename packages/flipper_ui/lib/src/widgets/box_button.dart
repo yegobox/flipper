@@ -3,7 +3,6 @@ import 'package:flipper_ui/src/shared/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
 import 'package:flipper_loading/loading.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import './utils.dart';
 
 class BoxButton extends StatelessWidget {
@@ -42,7 +41,7 @@ class BoxButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 350),
         width: double.infinity,
-        height: 48.h,
+        height: 48,
         alignment: Alignment.center,
         decoration: !outline
             ? BoxDecoration(
@@ -62,11 +61,11 @@ class BoxButton extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (leading != null) leading!,
-                  if (leading != null) SizedBox(width: 5.w),
+                  if (leading != null) SizedBox(width: 5),
                   Text(
                     title,
                     style: bodyStyle.copyWith(
-                      // fontSize: 18.sp,
+                      // fontSize: 18,
                       // fontWeight: !outline ? FontWeight.bold : FontWeight.w400,
                       color: !outline ? Colors.white : kcPrimaryColor,
                     ),

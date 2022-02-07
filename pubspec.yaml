@@ -33,7 +33,6 @@ dependencies:
   flipper_routing: ^0.0.1+1
   loading:
   overlay_support:
-  flutter_screenutil:
   flipper_localize: ^0.0.2
   universal_platform: ^1.0.0+1
   animations: ^2.0.0

@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,7 +15,7 @@ class AddProductButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: 18.w, right: 18.w),
+      padding: const EdgeInsets.only(left: 18, right: 18),
       child: SizedBox(
         width: double.infinity,
         child: Form(
@@ -28,7 +27,7 @@ class AddProductButtons extends StatelessWidget {
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
-                  height: 40.h,
+                  height: 40,
                   child: BoxButton(
                     onTap: () {
                       GoRouter.of(context).push(Routes.product);
@@ -45,7 +44,7 @@ class AddProductButtons extends StatelessWidget {
                   child: Container(
                     color: Colors.white70,
                     width: double.infinity,
-                    height: 40.h,
+                    height: 40,
                     child: BoxButton(
                       onTap: () {
                         GoRouter.of(context).go(Routes.discount);
@@ -59,7 +58,7 @@ class AddProductButtons extends StatelessWidget {
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
-                  height: 40.h,
+                  height: 40,
                   child: BoxButton.outline(
                     onTap: () {
                       Navigator.maybePop(context);

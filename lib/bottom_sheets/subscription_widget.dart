@@ -8,15 +8,15 @@ import 'package:flipper_dashboard/setting_view_model.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class SubscriptionWidget extends StatefulWidget {
-  SubscriptionWidget({Key? key}) : super(key: key);
+  const SubscriptionWidget({Key? key}) : super(key: key);
 
   @override
   _SubscriptionWidgetState createState() => _SubscriptionWidgetState();
 }
 
 class _SubscriptionWidgetState extends State<SubscriptionWidget> {
-  TextEditingController _phoneNumber = TextEditingController();
-  static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final TextEditingController _phoneNumber = TextEditingController();
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: BoxInputField(
-                  leading: Icon(Icons.monetization_on_sharp),
+                  leading: const Icon(Icons.monetization_on_sharp),
                   validatorFunc: (name) {
                     // validate if is a gmail email regex
                     if (name.isEmpty) {
@@ -74,7 +74,8 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                                           'Success',
                                           'Your flipper pro has been activated');
                                       // wait 5 seconds and pop navigation
-                                      Future.delayed(Duration(seconds: 5), () {
+                                      Future.delayed(const Duration(seconds: 5),
+                                          () {
                                         Navigator.pop(context);
                                       });
                                     } else {

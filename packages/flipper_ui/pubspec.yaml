@@ -12,4 +12,3 @@ dependencies:
   flutter:
     sdk: flutter
   flipper_loading: ^2.0.0
-  flutter_screenutil: ^5.1.0

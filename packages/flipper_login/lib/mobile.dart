@@ -3,7 +3,7 @@ library flipper_login;
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_login/signup_login_buttons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flipper_services/proxy.dart';
 
 class MobileLogin extends StatefulWidget {
@@ -41,15 +41,15 @@ class _MobileLoginState extends State<MobileLogin> {
           Container(
             color: AppColors.mainColor,
             width: double.infinity,
-            height: 400.h,
+            height: 400,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Image.asset(
                   'assets/fliper-logo.png',
-                  width: 80.w,
-                  height: 80.h,
+                  width: 80,
+                  height: 80,
                 ),
                 const SizedBox(
                   height: 3,
@@ -57,15 +57,15 @@ class _MobileLoginState extends State<MobileLogin> {
                 Text(
                   'Flipper',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 26.sp, color: Colors.white),
+                  style: TextStyle(fontSize: 26, color: Colors.white),
                 ),
                 SizedBox(
-                  height: 10.h,
+                  height: 10,
                 ),
                 Text(
                   'Interact and grow your bussiness',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18.sp, color: Colors.white),
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ],
             ),
@@ -74,7 +74,7 @@ class _MobileLoginState extends State<MobileLogin> {
             height: 10,
           ),
           Padding(
-            padding: EdgeInsets.all(8.0.w),
+            padding: EdgeInsets.all(8.0),
             child: Theme(
               data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
               child: SignUpLoginButton(

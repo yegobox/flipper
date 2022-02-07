@@ -1,6 +1,5 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class KeyPadHead extends StatelessWidget {
   KeyPadHead(
@@ -35,11 +34,11 @@ class KeyPadHead extends StatelessWidget {
                 },
                 child: IgnorePointer(
                   child: Container(
-                    padding: EdgeInsets.only(
-                      right: 10.w,
-                      top: 30.h,
-                      left: 10.w,
-                      bottom: 15.h,
+                    padding:const EdgeInsets.only(
+                      right: 10,
+                      top: 30,
+                      left: 10,
+                      bottom: 15,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -6,7 +6,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flipper_localize/flipper_localize.dart';
@@ -80,7 +79,7 @@ class FlipperBottomSheet {
             child: Column(children: <Widget>[
               Padding(
                 key: const Key('EnableBackup'),
-                padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 10.h),
+                padding: const EdgeInsets.only(left: 18, right: 18, top: 10),
                 child: BoxButton(
                   title: 'Add Backup',
                   onTap: () async {

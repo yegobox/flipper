@@ -48,7 +48,7 @@ dependencies:
   universal_platform: ^1.0.0+1
   ionicons: ^0.1.2
   overlay_support: ^1.2.1
-  flutter_screenutil: ^5.1.0
+
   flutter_settings_ui: ^2.0.1
   flutter_inappwebview: ^5.3.2
   url_launcher: ^6.0.18

@@ -2,7 +2,7 @@ import 'package:flipper_models/models/view_models/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:overlay_support/overlay_support.dart';
 
 class SignUpLoginButton extends StatefulWidget {
@@ -46,12 +46,12 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         return Container(
-          margin: EdgeInsets.only(top: 50.h),
+          margin: EdgeInsets.only(top: 50),
           child: Column(
             children: <Widget>[
               Padding(
                 key: Key('createAccountButton'),
-                padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 0.h),
+                padding: EdgeInsets.only(left: 18, right: 18, top: 0),
                 child: BoxButton(
                   title: 'Create Account',
                   onTap: () {
@@ -67,15 +67,15 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.only(left: 18.w, right: 18.w, top: 20.h),
+                padding: EdgeInsets.only(left: 18, right: 18, top: 20),
                 decoration:
                     BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
                 child: SizedBox(
                     width: double.infinity,
-                    height: 50.h,
+                    height: 50,
                     child: SizedBox(
                       width: double.infinity,
-                      height: 50.h,
+                      height: 50,
                       child: BoxButton.outline(
                         title: 'SIGN IN',
                         onTap: () {

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
@@ -47,10 +47,10 @@ class ProductRow extends StatelessWidget {
         },
         child: Column(children: <Widget>[
           ListTile(
-            contentPadding: EdgeInsets.fromLTRB(0, 0, 15.w, 0),
+            contentPadding: EdgeInsets.fromLTRB(0, 0, 15, 0),
             leading: SizedBox(
                 height: MediaQuery.of(context).size.height,
-                width: 58.w,
+                width: 58,
                 child: !hasImage
                     ? TextDrawable(
                         backgroundColor: HexColor(color),
@@ -94,7 +94,7 @@ class ProductRow extends StatelessWidget {
                       ),
           ),
           Container(
-            height: 0.5.h,
+            height: 0.5,
             color: Colors.black26,
           ),
         ]),

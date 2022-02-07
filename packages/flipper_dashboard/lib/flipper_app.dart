@@ -105,7 +105,7 @@ class _FlipperAppState extends State<FlipperApp> {
         if (today % 2 == 1 && !ProxyService.billing.activeSubscription()) {
           activateSubscription(
             context: context,
-            body: <Widget>[SubscriptionWidget()],
+            body: <Widget>[const SubscriptionWidget()],
             header: header(title: 'Activate flipper pro', context: context),
           );
         }

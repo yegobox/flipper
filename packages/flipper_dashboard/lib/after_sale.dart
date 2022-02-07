@@ -9,7 +9,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:go_router/go_router.dart';
 
 class AfterSale extends StatefulWidget {
@@ -72,22 +72,22 @@ class _AfterSaleState extends State<AfterSale> {
                     Center(
                       child: Column(
                         children: [
-                          SizedBox(height: 40.h),
+                          const SizedBox(height: 40),
                           Text(
                             'FRw' +
                                 display(model.keypad.cashReceived -
                                         widget.totalOrderAmount)
                                     .toString() +
                                 ' Change',
-                            style: TextStyle(
-                                fontSize: 20.sp, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 10.h),
+                          const SizedBox(height: 10),
                           Text(
                             'Out of FRw ' +
                                 model.keypad.cashReceived.toStringAsFixed(0),
-                            style: TextStyle(
-                              fontSize: 18.sp,
+                            style: const TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -113,8 +113,8 @@ class _AfterSaleState extends State<AfterSale> {
                                                   .isEmailReceiptAvailable() ||
                                               kDebugMode
                                           ? Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: 18.w, right: 18.w),
+                                              padding: const EdgeInsets.only(
+                                                  left: 18, right: 18),
                                               child: SizedBox(
                                                 width: double.infinity,
                                                 child: BoxButton.outline(
@@ -124,10 +124,10 @@ class _AfterSaleState extends State<AfterSale> {
                                               ),
                                             )
                                           : const SizedBox.shrink(),
-                                      SizedBox(height: 20.h),
+                                      const SizedBox(height: 20),
                                       Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 18.w, right: 18.w),
+                                        padding: const EdgeInsets.only(
+                                            left: 18, right: 18),
                                         child: SizedBox(
                                           width: double.infinity,
                                           child: BoxButton.outline(
@@ -153,8 +153,8 @@ class _AfterSaleState extends State<AfterSale> {
                                                   .isEmailReceiptAvailable() ||
                                               kDebugMode
                                           ? Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: 18.w, right: 18.w),
+                                              padding: const EdgeInsets.only(
+                                                  left: 18, right: 18),
                                               child: SizedBox(
                                                 width: double.infinity,
                                                 child: BoxButton.outline(
@@ -166,10 +166,10 @@ class _AfterSaleState extends State<AfterSale> {
                                               ),
                                             )
                                           : const SizedBox.shrink(),
-                                      SizedBox(height: 2.h),
+                                      const SizedBox(height: 2),
                                       Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 18.w, right: 18.w),
+                                        padding: const EdgeInsets.only(
+                                            left: 18, right: 18),
                                         child: SizedBox(
                                           width: double.infinity,
                                           child: BoxButton.outline(

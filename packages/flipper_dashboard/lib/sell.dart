@@ -6,7 +6,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:overlay_support/overlay_support.dart';
 
 enum ForHere { lafayette, jefferson }
@@ -72,7 +72,7 @@ class _SellState extends State<Sell> {
                     style: GoogleFonts.lato(
                       textStyle: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 10.sp,
+                        fontSize: 10,
                         color: Colors.grey[900],
                       ),
                     ),
@@ -91,7 +91,7 @@ class _SellState extends State<Sell> {
                           icon: Icon(
                             AntDesign.minus,
                             color: Colors.grey,
-                            size: 25.sp,
+                            size: 25,
                           ),
                           onPressed: () {
                             model.decreaseQty((quantity) {
@@ -104,7 +104,7 @@ class _SellState extends State<Sell> {
                           icon: Icon(
                             AntDesign.minus,
                             color: Color(0xC9000000),
-                            size: 25.sp,
+                            size: 25,
                           ),
                           onPressed: () {
                             model.decreaseQty((quantity) {
@@ -116,7 +116,7 @@ class _SellState extends State<Sell> {
                 ),
                 Container(
                   width: 1,
-                  height: 50.h,
+                  height: 50,
                   color: Colors.grey[400],
                 ),
                 Expanded(
@@ -144,8 +144,8 @@ class _SellState extends State<Sell> {
                       ),
                     )),
                 Container(
-                  width: 1.w,
-                  height: 50.h,
+                  width: 1,
+                  height: 50,
                   color: Colors.grey[400],
                 ),
                 Container(
@@ -194,7 +194,7 @@ class _SellState extends State<Sell> {
             model.toggleCheckbox(variantId: variant.id);
           },
           child: Padding(
-            padding: EdgeInsets.only(left: 2.w, right: 2.0, top: 4.w),
+            padding: EdgeInsets.only(left: 2, right: 2.0, top: 4),
             child: Column(
               children: [
                 Divider(
@@ -218,7 +218,7 @@ class _SellState extends State<Sell> {
                                     style: GoogleFonts.lato(
                                       textStyle: TextStyle(
                                           fontWeight: FontWeight.w700,
-                                          fontSize: 13.sp,
+                                          fontSize: 13,
                                           color: Colors.grey[900]),
                                     ),
                                   ),
@@ -231,7 +231,7 @@ class _SellState extends State<Sell> {
                         style: GoogleFonts.lato(
                           textStyle: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 12.sp,
+                              fontSize: 12,
                               color: Colors.grey[500]),
                         ),
                       ),
@@ -297,7 +297,7 @@ class _SellState extends State<Sell> {
             },
             icon: Icons.close,
             multi: 1,
-            bottomSpacer: 49.w,
+            bottomSpacer: 49,
           ),
           body: Padding(
             padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
@@ -313,12 +313,12 @@ class _SellState extends State<Sell> {
                             style: GoogleFonts.rubik(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.w500,
-                                  fontSize: 14.sp,
+                                  fontSize: 14,
                                   color: Colors.grey[800]),
                             ),
                           ),
                           SizedBox(
-                            height: 4.h,
+                            height: 4,
                           ),
                           Text(
                             '  CHOOSE ONE',
@@ -330,7 +330,7 @@ class _SellState extends State<Sell> {
                         ],
                       ),
                       Container(
-                        height: 410.h,
+                        height: 410,
                         child: ListView(
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),

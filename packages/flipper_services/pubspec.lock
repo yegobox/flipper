@@ -804,13 +804,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
-  flutter_screenutil:
-    dependency: transitive
-    description:
-      name: flutter_screenutil
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.1.1"
   flutter_secure_storage:
     dependency: "direct main"
     description:

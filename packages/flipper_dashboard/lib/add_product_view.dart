@@ -18,7 +18,6 @@ import 'create/variation_list.dart';
 import 'customappbar.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
@@ -156,9 +155,9 @@ class _AddProductViewState extends State<AddProductView> {
                   ),
                   CategorySelector(categories: model.categories),
                   verticalSpaceSmall,
-                  Padding(
-                    padding: EdgeInsets.only(left: 18.w, right: 18.w),
-                    child: const SizedBox(
+                  const Padding(
+                    padding: EdgeInsets.only(left: 18, right: 18),
+                    child: SizedBox(
                       width: double.infinity,
                       child: Text(
                         'PRICE AND INVENTORY',
