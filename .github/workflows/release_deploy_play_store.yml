@@ -29,7 +29,9 @@ jobs:
           channel: "stable"
       # pause test on server for now
       - run: git submodule update --init
-      - run: flutter pub get
+      - run: dart pub global activate melos
+      - name: "Run Melos bootstrap"
+        run: melos bootstrap
       # - run: ./install.sh
       - run: flutter test
   fastlane-deploy:
