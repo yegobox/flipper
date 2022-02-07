@@ -1,4 +1,4 @@
-import 'package:localize/localize.dart';
+import 'package:flipper_localize/localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:ionicons/ionicons.dart';

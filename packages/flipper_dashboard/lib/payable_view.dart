@@ -1,5 +1,5 @@
 // import 'package:flipper_models/view_models/pos_viewmodel.dart';
-import 'package:localize/localize.dart';
+import 'package:flipper_localize/localize.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
 // import 'package:flutter_screenutil/flutter_screenutil.dart';

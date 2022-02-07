@@ -9,7 +9,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:localize/localize.dart';
+import 'package:flipper_localize/localize.dart';
 
 bottomSheetBuilder({
   required BuildContext context,

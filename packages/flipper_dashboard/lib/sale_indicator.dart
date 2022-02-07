@@ -1,4 +1,4 @@
-import 'package:localize/localize.dart';
+import 'package:flipper_localize/localize.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

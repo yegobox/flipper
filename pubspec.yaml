@@ -34,7 +34,7 @@ dependencies:
   loading:
   overlay_support:
   flutter_screenutil:
-  localize:
+  flipper_localize: ^0.0.2
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
   sentry_flutter: ^6.2.2

@@ -708,6 +708,13 @@ packages:
       relative: true
     source: path
     version: "2.0.0"
+  flipper_localize:
+    dependency: "direct main"
+    description:
+      path: "lib/flipper_localize"
+      relative: true
+    source: path
+    version: "0.0.2"
   flipper_login:
     dependency: "direct main"
     description:
@@ -742,7 +749,7 @@ packages:
       path: "packages/flipper_ui"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.2"
   flutter:
     dependency: transitive
     description: flutter
@@ -1368,13 +1375,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
-  localize:
-    dependency: "direct main"
-    description:
-      path: "lib/localize"
-      relative: true
-    source: path
-    version: "0.0.1"
   location:
     dependency: transitive
     description:

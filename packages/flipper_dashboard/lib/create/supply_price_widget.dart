@@ -1,7 +1,7 @@
 import 'package:flipper/helpers/utils.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
-import 'package:localize/localize.dart';
+import 'package:flipper_localize/localize.dart';
 
 class SupplyPrice extends StatelessWidget {
   const SupplyPrice(

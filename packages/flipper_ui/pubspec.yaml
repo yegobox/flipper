@@ -1,7 +1,7 @@
 name: flipper_ui
 description: >
   A new Flutter package project.
-version: 0.0.1
+version: 0.0.2
 repository: https://github.com/yegobox/packages
 
 environment:
