@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:loading/indicator.dart';
 import 'package:loading/indicator/ball_scale_indicator.dart';
 

@@ -19,8 +19,9 @@ jobs:
           # flutter-version: '1.22.3'
           channel: "stable"
       - run: git submodule update --init
-      - name: "Run flutter pub get"
-        run: flutter pub get
+      - run: dart pub global activate melos
+      - name: "Run Melos bootstrap"
+        run: melos bootstrap
       - name: "Build Web App"
         run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0

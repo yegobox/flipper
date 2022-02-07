@@ -3,6 +3,11 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  flutter_secure_storage_windows
+  geolocator_windows
+  objectbox_sync_flutter_libs
+  sentry_flutter
+  url_launcher_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

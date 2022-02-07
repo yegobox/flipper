@@ -34,3 +34,4 @@ dependencies:
   location: ^4.3.0
   flutter_luban: ^0.1.13
   flutter_uploader: ^3.0.0-beta.3
+  injectable: ^1.5.3
