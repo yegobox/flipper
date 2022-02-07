@@ -5,7 +5,7 @@ publish_to: "none"
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.16.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -57,7 +57,11 @@ dependencies:
   firebase_auth_desktop: ^0.1.1-dev.0
   firebase_core: ^1.9.0
   firebase_core_desktop: ^0.1.1-dev.0
+  cupertino_icons: ^1.0.4
 flutter:
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
   uses-material-design: true
   assets:
     - ../../assets/fliper-logo.png
