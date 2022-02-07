@@ -23,7 +23,7 @@ environment:
 
 dependencies:
   objectbox: ^1.3.0
-  objectbox_sync_flutter_libs: any
+  objectbox_sync_flutter_libs: ^1.3.0
   flutter_lints: ^1.0.0
   flipper_dashboard:
   flipper_ui: ^0.0.1

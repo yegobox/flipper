@@ -142,7 +142,7 @@ packages:
     source: hosted
     version: "1.1.0"
   cloud_firestore:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cloud_firestore
       url: "https://pub.dartlang.org"
@@ -359,7 +359,7 @@ packages:
     source: hosted
     version: "0.3.0+1"
   firebase_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_auth
       url: "https://pub.dartlang.org"
@@ -457,7 +457,7 @@ packages:
     source: hosted
     version: "0.2.0+5"
   firebase_dynamic_links:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_dynamic_links
       url: "https://pub.dartlang.org"
@@ -567,14 +567,14 @@ packages:
       path: "../flipper_chat"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_dashboard:
     dependency: "direct overridden"
     description:
       path: "../flipper_dashboard"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_finance:
     dependency: "direct overridden"
     description:
@@ -597,14 +597,14 @@ packages:
     source: path
     version: "0.0.1"
   flipper_models:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_models"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_routing:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_routing"
       relative: true
@@ -644,7 +644,7 @@ packages:
     source: hosted
     version: "3.3.0"
   flutter_chat_types:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../open-sources/flutter_chat_types"
       relative: true
@@ -686,7 +686,7 @@ packages:
     source: hosted
     version: "2.6.0+2"
   flutter_firebase_chat_core:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../open-sources/flutter_firebase_chat_core"
       relative: true
@@ -852,7 +852,7 @@ packages:
       name: flutter_slidable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "1.2.0"
   flutter_statusbarcolor_ns:
     dependency: transitive
     description:
@@ -971,7 +971,7 @@ packages:
     source: hosted
     version: "4.6.1"
   get_it:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: get_it
       url: "https://pub.dartlang.org"
@@ -985,7 +985,7 @@ packages:
     source: hosted
     version: "2.0.3"
   go_router:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: go_router
       url: "https://pub.dartlang.org"
@@ -999,7 +999,7 @@ packages:
     source: hosted
     version: "2.3.1"
   google_sign_in:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: google_sign_in
       url: "https://pub.dartlang.org"
@@ -1020,14 +1020,14 @@ packages:
     source: hosted
     version: "0.10.0+4"
   googleapis:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: googleapis
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.1"
   googleapis_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: googleapis_auth
       url: "https://pub.dartlang.org"
@@ -1048,7 +1048,7 @@ packages:
     source: hosted
     version: "0.15.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -1069,7 +1069,7 @@ packages:
     source: hosted
     version: "3.1.1"
   image_picker:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image_picker
       url: "https://pub.dartlang.org"
@@ -1111,7 +1111,7 @@ packages:
     source: hosted
     version: "1.5.3"
   intl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: intl
       url: "https://pub.dartlang.org"
@@ -1328,7 +1328,7 @@ packages:
     source: hosted
     version: "1.0.4"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       url: "https://pub.dartlang.org"
@@ -1349,7 +1349,7 @@ packages:
     source: hosted
     version: "1.0.0"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       url: "https://pub.dartlang.org"
@@ -1468,7 +1468,7 @@ packages:
     source: hosted
     version: "6.0.2"
   pubnub:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pubnub
       url: "https://pub.dartlang.org"
@@ -1697,7 +1697,7 @@ packages:
     source: hosted
     version: "2.2.8"
   stacked_services:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stacked_services
       url: "https://pub.dartlang.org"
@@ -1739,7 +1739,7 @@ packages:
     source: hosted
     version: "1.2.0"
   timeago:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: timeago
       url: "https://pub.dartlang.org"
@@ -1774,7 +1774,7 @@ packages:
     source: hosted
     version: "2.0.4"
   universal_platform:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: universal_platform
       url: "https://pub.dartlang.org"
@@ -1844,7 +1844,7 @@ packages:
     source: hosted
     version: "2.0.2"
   uuid:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: uuid
       url: "https://pub.dartlang.org"

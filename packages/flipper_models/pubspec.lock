@@ -58,7 +58,7 @@ packages:
     source: hosted
     version: "2.8.2"
   azlistview:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: azlistview
       url: "https://pub.dartlang.org"
@@ -79,7 +79,7 @@ packages:
     source: hosted
     version: "0.0.6"
   built_collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: built_collection
       url: "https://pub.dartlang.org"
@@ -562,19 +562,19 @@ packages:
     source: path
     version: "99.99.99+99"
   flipper_chat:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_chat"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_dashboard:
     dependency: "direct overridden"
     description:
       path: "../flipper_dashboard"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_finance:
     dependency: "direct overridden"
     description:
@@ -609,7 +609,7 @@ packages:
       path: "../flipper_services"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_ui:
     dependency: "direct overridden"
     description:
@@ -644,7 +644,7 @@ packages:
     source: hosted
     version: "3.3.0"
   flutter_chat_types:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../open-sources/flutter_chat_types"
       relative: true
@@ -852,7 +852,7 @@ packages:
       name: flutter_slidable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "1.2.0"
   flutter_statusbarcolor_ns:
     dependency: transitive
     description:
@@ -1517,7 +1517,7 @@ packages:
     source: hosted
     version: "0.27.3"
   scrollable_positioned_list:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: scrollable_positioned_list
       url: "https://pub.dartlang.org"
@@ -1844,7 +1844,7 @@ packages:
     source: hosted
     version: "2.0.2"
   uuid:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: uuid
       url: "https://pub.dartlang.org"

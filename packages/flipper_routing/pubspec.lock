@@ -567,14 +567,14 @@ packages:
       path: "../flipper_chat"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_dashboard:
     dependency: "direct main"
     description:
       path: "../flipper_dashboard"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_finance:
     dependency: "direct main"
     description:
@@ -602,14 +602,14 @@ packages:
       path: "../flipper_models"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_services:
     dependency: "direct overridden"
     description:
       path: "../flipper_services"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_ui:
     dependency: "direct overridden"
     description:
@@ -852,7 +852,7 @@ packages:
       name: flutter_slidable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "1.2.0"
   flutter_statusbarcolor_ns:
     dependency: transitive
     description:
@@ -1690,7 +1690,7 @@ packages:
     source: hosted
     version: "1.10.0"
   stacked:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stacked
       url: "https://pub.dartlang.org"

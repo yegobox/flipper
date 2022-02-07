@@ -359,7 +359,7 @@ packages:
     source: hosted
     version: "0.3.0+1"
   firebase_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_auth
       url: "https://pub.dartlang.org"
@@ -567,7 +567,7 @@ packages:
       path: "../flipper_dashboard"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.1-dev.1"
   flipper_finance:
     dependency: "direct overridden"
     description:
@@ -590,12 +590,12 @@ packages:
     source: path
     version: "0.0.1"
   flipper_models:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_models"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_routing:
     dependency: "direct main"
     description:
@@ -609,9 +609,9 @@ packages:
       path: "../flipper_services"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.1"
   flipper_ui:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_ui"
       relative: true
@@ -847,12 +847,12 @@ packages:
     source: hosted
     version: "2.0.1"
   flutter_slidable:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_slidable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "1.2.0"
   flutter_statusbarcolor_ns:
     dependency: transitive
     description:
@@ -861,14 +861,14 @@ packages:
     source: hosted
     version: "0.4.0"
   flutter_svg:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_svg
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.3"
   flutter_text_drawable:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_text_drawable
       url: "https://pub.dartlang.org"
@@ -1048,7 +1048,7 @@ packages:
     source: hosted
     version: "0.15.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -1118,7 +1118,7 @@ packages:
     source: hosted
     version: "0.17.0"
   ionicons:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: ionicons
       url: "https://pub.dartlang.org"
@@ -1279,7 +1279,7 @@ packages:
     source: hosted
     version: "2.0.0"
   overlay_support:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: overlay_support
       url: "https://pub.dartlang.org"
@@ -1349,7 +1349,7 @@ packages:
     source: hosted
     version: "1.0.0"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       url: "https://pub.dartlang.org"
@@ -1774,7 +1774,7 @@ packages:
     source: hosted
     version: "2.0.4"
   universal_platform:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: universal_platform
       url: "https://pub.dartlang.org"
