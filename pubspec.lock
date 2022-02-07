@@ -499,7 +499,7 @@ packages:
     source: hosted
     version: "0.1.1-dev.2"
   firebase_auth_desktop:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_auth_desktop
       url: "https://pub.dartlang.org"
@@ -520,7 +520,7 @@ packages:
     source: hosted
     version: "3.3.7"
   firebase_core:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_core
       url: "https://pub.dartlang.org"
@@ -533,6 +533,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1-dev.2"
+  firebase_core_desktop:
+    dependency: "direct main"
+    description:
+      name: firebase_core_desktop
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1-dev.3"
   firebase_core_platform_interface:
     dependency: transitive
     description:
