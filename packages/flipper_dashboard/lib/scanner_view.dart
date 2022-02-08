@@ -10,7 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'dart:io';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:go_router/go_router.dart';
+// import 'package:go_router/go_router.dart';
 
 class ScannView extends StatefulWidget {
   const ScannView({Key? key, this.intent = 'selling'}) : super(key: key);
@@ -113,7 +113,7 @@ class _ScannViewState extends State<ScannView> {
         _onQRViewCreated(controller, model);
       },
       overlay: QrScannerOverlayShape(
-          borderColor: Color(0xFF375778),
+          borderColor: const Color(0xFF375778),
           borderRadius: 10,
           borderLength: 30,
           borderWidth: 10,
@@ -126,12 +126,12 @@ class _ScannViewState extends State<ScannView> {
     log.i('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('no Permission')),
+        const SnackBar(content: Text('no Permission')),
       );
     }
   }
 
-  void QrLogin({required String? result}) {
+  void scanToLogin({required String? result}) {
     if (result != null && result.contains('-')) {
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
@@ -172,14 +172,14 @@ class _ScannViewState extends State<ScannView> {
           }
           // split result on - if first part is login then
           // it is a login request
-          QrLogin(result: scanData.code);
+          scanToLogin(result: scanData.code);
           if (widget.intent == attendance) {
             // pull my bio data and asign them to the scan business.
             bool isCheckInDone =
                 await ProxyService.api.checkIn(checkInCode: scanData.code);
             if (isCheckInDone) {
               showSimpleNotification(
-                Text('Check In Successful'),
+                const Text('Check In Successful'),
                 background: Colors.green,
                 position: NotificationPosition.bottom,
               );

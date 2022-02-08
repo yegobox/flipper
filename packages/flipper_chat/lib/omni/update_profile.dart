@@ -6,7 +6,6 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -19,14 +18,14 @@ class UpdateProfile extends StatefulWidget {
 
 class _UpdateProfileState extends State<UpdateProfile> {
   TextEditingController emailController = TextEditingController();
-  TextEditingController _name = TextEditingController();
-  TextEditingController _id = TextEditingController();
-  TextEditingController _vacinnationCode = TextEditingController();
-  TextEditingController _phoneNumber = TextEditingController();
-  TextEditingController _livingAt = TextEditingController();
-  TextEditingController _cell = TextEditingController();
-  TextEditingController _district = TextEditingController();
-  static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final TextEditingController _name = TextEditingController();
+  final TextEditingController _id = TextEditingController();
+  final TextEditingController _vacinnationCode = TextEditingController();
+  final TextEditingController _phoneNumber = TextEditingController();
+  final TextEditingController _livingAt = TextEditingController();
+  final TextEditingController _cell = TextEditingController();
+  final TextEditingController _district = TextEditingController();
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +65,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: BoxInputField(
-                  leading: Icon(Icons.phone),
+                  leading: const Icon(Icons.phone),
                   validatorFunc: (name) {
                     // validate if is a gmail email regex
                     if (name.isEmpty) {
@@ -80,7 +79,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: BoxInputField(
-                  leading: Icon(Icons.email),
+                  leading: const Icon(Icons.email),
                   validatorFunc: (email) {
                     // validate if is a gmail email regex
                     if (!RegExp(
@@ -189,7 +188,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
                                     background: Colors.green,
                                     position: NotificationPosition.bottom,
                                   );
-                                  GoRouter.of(context).pop();
+                                  Navigator.maybePop(context);
                                 }
                               },
                             )

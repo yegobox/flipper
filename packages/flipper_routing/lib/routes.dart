@@ -248,8 +248,8 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: "/qrview/:intent",
-      name: 'qrview',
+      path: "/scann/:intent",
+      name: 'scann',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: ScannView(

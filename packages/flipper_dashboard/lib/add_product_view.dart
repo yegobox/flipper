@@ -261,7 +261,7 @@ class _AddProductViewState extends State<AddProductView> {
                         child: GestureDetector(
                           onTap: () {
                             GoRouter.of(context)
-                                .go(Routes.qrview + "/addBarCode");
+                                .go(Routes.scann + "/addBarCode");
                           },
                           child: BoxInputField(
                             enabled: false,

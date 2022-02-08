@@ -30,7 +30,7 @@ class Routes {
   static const String afterSale = '/sale';
   static const String settings = '/settings';
   static const String analytics = '/analytics';
-  static const String qrview = '/qrview';
+  static const String scann = '/scann';
   static const String switchBranch = '/switchBranch';
   static const String order = '/order';
   static const String inappBrowser = '/browse';
@@ -60,7 +60,7 @@ class Routes {
     afterSale,
     settings,
     analytics,
-    qrview,
+    scann,
     switchBranch,
     order,
     inappBrowser,

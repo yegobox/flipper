@@ -991,7 +991,7 @@ class _UserProfileState extends State<_UserProfile> {
                         TextButton(
                           onPressed: () async {
                             await ProxyService.api.logOut();
-                            GoRouter.of(context).go(Routes.boot);
+                            GoRouter.of(context).push(Routes.boot);
                           },
                           child: Column(
                             children: <Widget>[
