@@ -1,3 +1,7 @@
+## 0.0.1-dev.6
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.5
 ## 0.0.1-dev.4
 ## 0.0.1-dev.3

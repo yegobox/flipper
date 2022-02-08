@@ -1,6 +1,6 @@
 name: flipper_dashboard
 description: flipper models scaffold.
-version: 0.0.1-dev.4
+version: 0.0.1-dev.5
 # publish_to: "none"
 repository: https://github.com/yegobox/packages
 
@@ -13,9 +13,9 @@ dependencies:
   flipper_ui: ^1.0.3
   get: ^4.6.1
   flipper_localize: ^0.0.2
-  flipper_models: ^0.0.1-dev.3
-  flipper_rw: ^1.0.1-dev.2
-  flipper_routing: ^0.0.1-dev.2
+  flipper_models: ^0.0.1-dev.4
+  flipper_rw: ^1.0.1-dev.3
+  flipper_routing: ^0.0.1-dev.3
   flutter_chat_ui: ^1.5.5
   timeago: ^3.2.1
   stacked_themes: ^0.3.8+1
@@ -54,11 +54,11 @@ dependencies:
   firebase_core: ^1.9.0
   firebase_core_desktop: ^0.1.1-dev.0
   cupertino_icons: ^1.0.4
-  flipper_services: ^0.0.1-dev.5
+  flipper_services: ^0.0.1-dev.6
   flutter_vector_icons: ^1.0.0
-  flipper_chat: ^0.0.1-dev.4
+  flipper_chat: ^0.0.1-dev.5
   uuid: ^3.0.5
-  flipper_login: ^0.0.1-dev.4-dev.2
+  flipper_login: ^0.0.1-dev.5
   intl: ^0.17.0
 flutter:
   # The following line ensures that the Material Icons font is
