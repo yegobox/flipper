@@ -57,7 +57,7 @@ jobs:
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/config.dart
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
         env:
           INDEX: ${{ secrets.INDEX }}
