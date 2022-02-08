@@ -675,21 +675,22 @@ class _AppMenuState extends State<_AppMenu> {
                             model: widget.model,
                           ),
                           // Add all the menu items.
-                          _MenuItem(
-                            width: size.maxWidth,
-                            menuWidth: widget.maxWidth,
-                            onTap: () {
-                              setState(() {
-                                selectedItem = 6;
-                              });
-                              widget.onSelect?.call(MenuConfig.reset);
-                            },
-                            selected: selectedItem == 6,
-                            icon: _usedIcons[6],
-                            label: _usedLabels[6],
-                            showDivider: true,
-                            railWidth: widget.railWidth,
-                          ),
+                          if (ProxyService.remoteConfig.isResetSettingEnabled())
+                            _MenuItem(
+                              width: size.maxWidth,
+                              menuWidth: widget.maxWidth,
+                              onTap: () {
+                                setState(() {
+                                  selectedItem = 6;
+                                });
+                                widget.onSelect?.call(MenuConfig.reset);
+                              },
+                              selected: selectedItem == 6,
+                              icon: _usedIcons[6],
+                              label: "Reset Settings",
+                              showDivider: true,
+                              railWidth: widget.railWidth,
+                            ),
 
                           if (ProxyService.remoteConfig
                               .isAInvitingMembersAvailable())
@@ -986,7 +987,6 @@ class _UserProfileState extends State<_UserProfile> {
                     child: Row(
                       children: <Widget>[
                         const Spacer(),
-                       
                         const SizedBox(width: 10),
                         TextButton(
                           onPressed: () async {

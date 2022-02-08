@@ -21,4 +21,5 @@ abstract class Remote {
   bool isAInvitingMembersAvailable();
   bool isSyncAvailable();
   bool isGoogleLoginAvailable();
+  bool isResetSettingEnabled();
 }

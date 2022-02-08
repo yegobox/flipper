@@ -29,6 +29,7 @@ class RemoteConfigService implements Remote {
       'isSyncAvailable': false,
       'isChatAvailable': false,
       'isGoogleLoginAvailable': true,
+      'isResetSettingEnabled': false,
     });
   }
 
@@ -170,7 +171,7 @@ class RemoteConfigService implements Remote {
   @override
   bool isSyncAvailable() {
     if (kDebugMode) {
-      return true;
+      return false;
     }
     return remoteConfig.getBool('isSyncAvailable');
   }
@@ -181,6 +182,14 @@ class RemoteConfigService implements Remote {
       return true;
     }
     return remoteConfig.getBool('isGoogleLoginAvailable');
+  }
+
+  @override
+  bool isResetSettingEnabled() {
+    if (kDebugMode) {
+      return false;
+    }
+    return remoteConfig.getBool('isResetSettingEnabled');
   }
 }
 
@@ -238,9 +247,9 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isAnalyticFeatureAvailable() {
     if (kDebugMode) {
-      return true;
+      return false;
     }
-    return true;
+    return false;
   }
 
   @override
@@ -299,5 +308,10 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isGoogleLoginAvailable() {
     return true;
+  }
+
+  @override
+  bool isResetSettingEnabled() {
+    return false;
   }
 }
