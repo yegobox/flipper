@@ -47,8 +47,7 @@
       android:name="firebase_performance_logcat_enabled"
       android:value="true" />
       
-    <meta-data android:name="com.google.android.geo.API_KEY"
-               android:value="AIzaSyBq1-prPYQu5MGZerFN2h7OaRYiteSg9e4"/>
+    
 
     <provider tools:replace="android:exported" android:name="com.bluechilli.flutteruploader.FlutterUploaderInitializer" android:authorities="${applicationId}.flutter-upload-init" android:exported="true">
       <!-- changes this number to configure the maximum number of concurrent tasks -->

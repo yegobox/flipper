@@ -1,6 +1,6 @@
-import 'package:flipper/bottom_sheets/bottom_sheet_builder.dart';
-import 'package:flipper/bottom_sheets/activate_subscription.dart';
-import 'package:flipper/bottom_sheets/subscription_widget.dart';
+import 'package:flipper_rw/bottom_sheets/bottom_sheet_builder.dart';
+import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
+import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
 import 'package:flipper_dashboard/app_data.dart';
 import 'package:flipper_dashboard/body.dart' show BodyWidget;
 import 'package:flipper_dashboard/bottom_sheet.dart';

@@ -1,10 +1,9 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:easy_debounce/easy_debounce.dart';
 import 'package:go_router/go_router.dart';

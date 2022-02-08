@@ -211,9 +211,9 @@ class _OmniConversationState extends State<OmniConversation> {
             ),
             // Icon(Icons.attach_file,
             //     size: 30.0, color: Theme.of(context).hintColor),
-            SizedBox(width: 8.0),
+            const SizedBox(width: 8.0),
             Icon(Icons.send, size: 30.0, color: Theme.of(context).hintColor),
-            SizedBox(width: 8.0),
+            const SizedBox(width: 8.0),
           ],
         ),
       ),
@@ -222,7 +222,7 @@ class _OmniConversationState extends State<OmniConversation> {
     return ViewModelBuilder<MessageViewModel>.reactive(
       builder: (context, model, child) {
         return Scaffold(
-          appBar: ChatAppBar(
+          appBar: const ChatAppBar(
             'Flipper',
           ),
           body: StreamBuilder<types.Room>(
@@ -243,7 +243,8 @@ class _OmniConversationState extends State<OmniConversation> {
                         showUserAvatars: false,
                         showUserNames: true,
                         onAttachmentPressed: _handleAtachmentPressed,
-                        onMessageTap: _handleMessageTap,
+                        // TODOfix this later
+                        // onMessageTap: _handleMessageTap,
                         onPreviewDataFetched: _handlePreviewDataFetched,
                         onSendPressed: _handleSendPressed,
                         user: types.User(

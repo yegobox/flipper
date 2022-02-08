@@ -1,4 +1,4 @@
-import 'package:flipper/helpers/utils.dart';
+import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';

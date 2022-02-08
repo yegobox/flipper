@@ -1,7 +1,7 @@
 name: flipper_dashboard
 description: flipper models scaffold.
-version: 0.0.1-dev.1
-publish_to: "none"
+version: 0.0.1-dev.4
+# publish_to: "none"
 repository: https://github.com/yegobox/packages
 
 environment:
@@ -13,9 +13,9 @@ dependencies:
   flipper_ui: ^1.0.3
   get: ^4.6.1
   flipper_localize: ^0.0.2
-  flipper_models: ^0.0.1-dev.2
-  flipper: ^99.99.99+99
-  flipper_routing: ^0.0.1+1
+  flipper_models: ^0.0.1-dev.3
+  flipper_rw: ^1.0.1-dev.2
+  flipper_routing: ^0.0.1-dev.2
   flutter_chat_ui: ^1.5.5
   timeago: ^3.2.1
   stacked_themes: ^0.3.8+1
@@ -35,10 +35,6 @@ dependencies:
   go_router: ^3.0.1
   stacked: ^2.2.8
   azlistview: ^2.0.0-nullsafety.0
-  flutter_icons:
-    git:
-      url: https://github.com/adarsh-technocrat/flutter-icons
-      ref: master
   qr_code_scanner: ^0.6.1
   cached_network_image: ^3.1.0+1
   flutter_slidable: ^0.6.0
@@ -58,6 +54,12 @@ dependencies:
   firebase_core: ^1.9.0
   firebase_core_desktop: ^0.1.1-dev.0
   cupertino_icons: ^1.0.4
+  flipper_services: ^0.0.1-dev.5
+  flutter_vector_icons: ^1.0.0
+  flipper_chat: ^0.0.1-dev.4
+  uuid: ^3.0.5
+  flipper_login: ^0.0.1-dev.4-dev.2
+  intl: ^0.17.0
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -68,7 +70,7 @@ flutter:
     - ../../assets/
     - ../../assets/images/
     - ../../assets/icons/
-    - ../../vendor/
+
   fonts:
     - family: TwitterIcon
       fonts:

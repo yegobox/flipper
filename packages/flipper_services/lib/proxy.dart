@@ -55,7 +55,7 @@ final Analytic _analytics = locator<Analytic>();
 final ForceDataEntryService _forceDataEntry = locator<ForceDataEntryService>();
 final Crash _crash = locator<Crash>();
 final LNotification _notification = locator<LNotification>();
-final Firestore _firestore = locator<Firestore>();
+final FlipperFirestore _firestore = locator<FlipperFirestore>();
 final Review _review = locator<Review>();
 final SyncApiInterface _syncApi = locator<SyncApiInterface>();
 final SystemTime _systemTime = locator<SystemTime>();
@@ -87,7 +87,7 @@ abstract class ProxyService {
   static Printer get printer => _printService;
   static ForceDataEntryService get forceDateEntry => _forceDataEntry;
   static LNotification get notification => _notification;
-  static Firestore get firestore => _firestore;
+  static FlipperFirestore get firestore => _firestore;
   static Review get review => _review;
   static AnalyticService get analytic => _analytic;
   static SyncApiInterface get syncApi => _syncApi;

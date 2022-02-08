@@ -266,7 +266,7 @@ packages:
       name: diffutil_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0+1"
+    version: "3.0.0"
   dio:
     dependency: transitive
     description:
@@ -366,7 +366,7 @@ packages:
     source: hosted
     version: "0.3.0+1"
   firebase_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_auth
       url: "https://pub.dartlang.org"
@@ -568,27 +568,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.0"
-  flipper:
-    dependency: "direct main"
-    description:
-      path: "../.."
-      relative: true
-    source: path
-    version: "99.99.99+99"
   flipper_chat:
     dependency: "direct overridden"
     description:
       path: "../flipper_chat"
       relative: true
     source: path
-    version: "0.0.1-dev.2"
+    version: "0.0.1-dev.4"
   flipper_dashboard:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_dashboard"
       relative: true
     source: path
-    version: "0.0.1-dev.1"
+    version: "0.0.1-dev.4"
   flipper_finance:
     dependency: "direct overridden"
     description:
@@ -611,28 +604,35 @@ packages:
     source: path
     version: "0.0.4"
   flipper_models:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_models"
       relative: true
     source: path
-    version: "0.0.1-dev.2"
+    version: "0.0.1-dev.3"
   flipper_routing:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_routing"
       relative: true
     source: path
-    version: "0.0.1+1"
+    version: "0.0.1-dev.2"
+  flipper_rw:
+    dependency: "direct main"
+    description:
+      path: "../.."
+      relative: true
+    source: path
+    version: "1.0.1-dev.2"
   flipper_services:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_services"
       relative: true
     source: path
-    version: "0.0.1-dev.2"
+    version: "0.0.1-dev.5"
   flipper_ui:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_ui"
       relative: true
@@ -677,7 +677,7 @@ packages:
       path: "../../open-sources/flutter_chat_ui"
       relative: true
     source: path
-    version: "1.5.0"
+    version: "1.5.6"
   flutter_datetime_picker:
     dependency: transitive
     description:
@@ -720,15 +720,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.29.3"
-  flutter_icons:
-    dependency: transitive
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "0831af6f0f239d20fb9578612d7a893e2a53d044"
-      url: "https://github.com/adarsh-technocrat/flutter-icons"
-    source: git
-    version: "1.1.1-nullsafety.0"
   flutter_inappwebview:
     dependency: transitive
     description:
@@ -854,7 +845,7 @@ packages:
     source: hosted
     version: "1.1.2"
   flutter_settings_ui:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_settings_ui
       url: "https://pub.dartlang.org"
@@ -895,6 +886,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0-beta.3"
+  flutter_vector_icons:
+    dependency: transitive
+    description:
+      name: flutter_vector_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -999,14 +997,14 @@ packages:
     source: hosted
     version: "2.0.3"
   go_router:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: go_router
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
   google_fonts:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: google_fonts
       url: "https://pub.dartlang.org"
@@ -1286,7 +1284,7 @@ packages:
     source: hosted
     version: "2.0.0"
   overlay_support:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: overlay_support
       url: "https://pub.dartlang.org"
@@ -1496,7 +1494,7 @@ packages:
     source: hosted
     version: "0.6.1"
   qr_flutter:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: qr_flutter
       url: "https://pub.dartlang.org"
@@ -1697,7 +1695,7 @@ packages:
     source: hosted
     version: "1.10.0"
   stacked:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stacked
       url: "https://pub.dartlang.org"
@@ -1781,7 +1779,7 @@ packages:
     source: hosted
     version: "2.0.4"
   universal_platform:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: universal_platform
       url: "https://pub.dartlang.org"

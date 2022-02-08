@@ -1,9 +1,5 @@
-// import 'package:customer/app/app.logger.dart';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/proxy.dart';
 import 'exceptions/firestore_api_exception.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -11,7 +7,7 @@ import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flipper_models/models/models.dart';
 
 // https://medium.com/firebase-tips-tricks/how-to-use-cloud-firestore-in-flutter-9ea80593ca40
-abstract class Firestore {
+abstract class FlipperFirestore {
   Future<void> createUser({required dynamic user, required String token});
   Future<void> getUser({required String userId});
   Future<void> saveTokenToDatabase({String? token, Map? business});
@@ -26,7 +22,7 @@ abstract class Firestore {
   void pushStock({required int branchId, required List<StockSync> products});
 }
 
-class UnSupportedFirestoreApi implements Firestore {
+class UnSupportedFirestoreApi implements FlipperFirestore {
   @override
   Future<void> createUser({required user, required String token}) async {
     // TODO: implement createUser
@@ -86,7 +82,7 @@ class UnSupportedFirestoreApi implements Firestore {
   }
 }
 
-class FirestoreApi implements Firestore {
+class FirestoreApi implements FlipperFirestore {
   final log = getLogger('FirestoreApi');
 
   final CollectionReference usersCollection =

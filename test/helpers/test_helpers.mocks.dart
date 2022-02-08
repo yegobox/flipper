@@ -11,7 +11,7 @@ import 'package:firebase_messaging_platform_interface/src/notification_settings.
     as _i12;
 import 'package:firebase_messaging_platform_interface/src/remote_message.dart'
     as _i35;
-import 'package:flipper/stack.dart' as _i14;
+import 'package:flipper_rw/stack.dart' as _i14;
 import 'package:flipper_models/models/html/voucher.dart' as _i23;
 import 'package:flipper_models/models/io/branch.dart' as _i18;
 import 'package:flipper_models/models/io/business.dart' as _i7;

@@ -45,3 +45,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# should be exluded as it contain a google API KEY.
+index.html
+
+# file containg sensitive information
+config.dart
+firebase_options.dart
+runner/**
+runner
+# windows

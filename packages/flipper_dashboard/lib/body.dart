@@ -1,5 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper/bottom_sheets/general_bottom_sheet.dart';
+import 'package:flipper_rw/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/keypad_head_view.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/payable_view.dart';

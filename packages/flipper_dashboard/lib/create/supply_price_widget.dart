@@ -1,4 +1,4 @@
-import 'package:flipper/helpers/utils.dart';
+import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_gen/gen_l10n/flipper_localizations.dart'; // Add this line.
 import 'package:flipper_localize/flipper_localize.dart';

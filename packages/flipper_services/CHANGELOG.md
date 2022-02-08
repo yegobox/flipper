@@ -1,3 +1,6 @@
+## 0.0.1-dev.5
+## 0.0.1-dev.4
+## 0.0.1-dev.3
 ## 0.0.1-dev.2
 
  - **FIX**: :firebase_messaging fixed to work no matter what. ([f724c900](https://github.com/yegobox/flipper/commit/f724c900a590081442fb2eef35b25d7842a4be29))

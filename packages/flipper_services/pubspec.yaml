@@ -1,6 +1,6 @@
 name: flipper_services
 description: flipper models scaffold.
-version: 0.0.1-dev.2
+version: 0.0.1-dev.5
 
 # publish_to: "none"
 repository: https://github.com/yegobox/packages
@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flipper: ^99.99.99+99
+  flipper_rw: ^1.0.1-dev.2
   stacked: ^2.2.8
   firebase_remote_config: ^2.0.0
   flutter_secure_storage: ^5.0.2
@@ -22,8 +22,8 @@ dependencies:
   flutter_local_notifications: ^6.0.0
   get_storage: ^2.0.3
   image: ^3.0.2
-  flipper_routing: ^0.0.1+1
-  flipper_models: ^0.0.1-dev.2
+  flipper_routing: ^0.0.1-dev.2
+  flipper_models: ^0.0.1-dev.3
   firebase_auth: ^3.3.5
   esc_pos_utils_plus: ^2.0.1+3
   bluetooth_thermal_printer: ^0.0.6

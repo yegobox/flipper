@@ -113,8 +113,8 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  Firestore get firestore {
-    late Firestore firestore;
+  FlipperFirestore get firestore {
+    late FlipperFirestore firestore;
     if (UniversalPlatform.isIOS ||
         UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS) {

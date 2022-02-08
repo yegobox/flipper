@@ -55,7 +55,8 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
       () => thirdPartyServicesModule.dynamicLink);
   gh.lazySingleton<_i12.EventService>(
       () => thirdPartyServicesModule.loginService);
-  gh.lazySingleton<_i13.Firestore>(() => thirdPartyServicesModule.firestore);
+  gh.lazySingleton<_i13.FlipperFirestore>(
+      () => thirdPartyServicesModule.firestore);
   gh.lazySingleton<_i14.FlipperLocation>(
       () => thirdPartyServicesModule.location);
   gh.lazySingleton<_i15.ForceDataEntryService>(

@@ -1,4 +1,4 @@
-import 'package:flipper/stack.dart';
+import 'package:flipper_rw/stack.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';

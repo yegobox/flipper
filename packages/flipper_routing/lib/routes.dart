@@ -480,5 +480,7 @@ class AppSetup {
 // openssl base64 -in key.jks -out ke
 
 // git push --follow-tags
-// Print package
+// Bluetooth print
 // https://github.com/thon-ju/bluetooth_print
+// wifi printer
+// https://pub.dev/packages/esc_pos_printer

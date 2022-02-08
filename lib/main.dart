@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper/gate.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_themes/stacked_themes.dart';
 import 'package:flipper_services/locator.dart';
