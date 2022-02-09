@@ -1,17 +1,11 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
-// **************************************************************************
-// StackedRouterGenerator
-// **************************************************************************
-
-// ignore_for_file: public_member_api_docs
 
 class Routes {
   static const String boot = '/boot';
   static const String chat = '/omni';
   static const String convo = '/convo';
   static const String contacts = '/contacts';
-  static const String signup = '/sign';
+  static const String sign = '/login';
+  static const String signup = '/signup';
   static const String home = '/home';
   static const String login = '/login';
   static const String product = '/product';
@@ -37,35 +31,4 @@ class Routes {
   static const String map = '/map-view';
   static const String customers = '/customers';
   static const String finance = '/finance';
-  static const all = <String>{
-    boot,
-    chat,
-    convo,
-    contacts,
-    signup,
-    home,
-    login,
-    product,
-    discount,
-    categories,
-    colors,
-    stock,
-    category,
-    variation,
-    units,
-    summary,
-    sell,
-    pay,
-    collect,
-    afterSale,
-    settings,
-    analytics,
-    scann,
-    switchBranch,
-    order,
-    inappBrowser,
-    map,
-    customers,
-    finance,
-  };
 }

@@ -4,8 +4,8 @@ abstract class Api<T> {
   Future<List<ProductSync>> products({required int branchId});
   Future<int> signup({required Map business});
   Future<SyncF> login({required String userPhone});
-  Future<List<BusinessSync>> getOnlineBusiness({required String userId});
-  Future<List<BusinessSync>> getLocalOrOnlineBusiness({required String userId});
+  Future<List<Business>> getOnlineBusiness({required String userId});
+  Future<List<Business>> getLocalOrOnlineBusiness({required String userId});
   Future<List<BranchSync>> branches({required int businessId});
   Future<List<BranchSync>> getLocalBranches({required int businessId});
   List<StockSync> stocks({required int productId});
@@ -77,13 +77,13 @@ abstract class Api<T> {
   /// we only care about name, this deliver from our core mission that
   /// we want to make communication easy for business and users i.e customers
   ///
-  Stream<List<BusinessSync>> users();
+  Stream<List<Business>> users();
   //the method is not different from users, but users is for streaming users being added
   //to connected devices, while this method is for getting all users using List<Business>
-  Stream<List<BusinessSync>> contacts();
-  Future<List<BusinessSync>> getContacts();
+  Stream<List<Business>> contacts();
+  Future<List<Business>> getContacts();
 
-  BusinessSync getBusiness();
+  Business getBusiness();
   CustomerSync? addCustomer({required Map customer, required int orderId});
   Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<CustomerSync?> getCustomer({required String key});
@@ -94,7 +94,7 @@ abstract class Api<T> {
   Future<List<OrderFSync>> getOrderByStatus({required String status});
   Future<int> sendReport({required List<OrderItemSync> orderItems});
   Future<void> createGoogleSheetDoc({required String email});
-  BusinessSync getBusinessById({required int id});
+  Business getBusinessById({required int id});
   OrderItemSync? getOrderItemByVariantId(
       {required int variantId, required int orderId});
   //abstract method to update business
@@ -125,7 +125,7 @@ abstract class Api<T> {
   Future<int> userNameAvailable({required String name});
 
   TenantSync? isTenant({required String phoneNumber});
-  Future<BusinessSync> getBusinessFromOnlineGivenId({required int id});
+  Future<Business> getBusinessFromOnlineGivenId({required int id});
 
   /// sync related methods
   // Future<void> addAllVariants({required List<VariantSync> variants});

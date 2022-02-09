@@ -82,14 +82,14 @@ msix_config:
   display_name: flipperApp
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.28.0.0
+  msix_version: 1.30.0.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon/icon.png"
   start_menu_icon_path: "/assets/icon/icon.png"
   tile_icon_path: "./assets/icon/icon.png"
   icons_background_color: #ffffff
   architecture: x64
-  store: true
+  store: false
 
 flutter:
   # deferred-components:

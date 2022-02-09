@@ -93,7 +93,7 @@ class SignupViewModel extends FormViewModel {
     if (okStatus == 200) {
       final String userId = ProxyService.box.getUserId()!;
       //get businesses's id then look for related branch [0] create the default category
-      List<BusinessSync> businesses =
+      List<Business> businesses =
           await ProxyService.api.getOnlineBusiness(userId: userId);
       if (businesses.isEmpty) return;
       ProxyService.box.write(key: 'businessId', value: businesses[0].id);

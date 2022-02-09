@@ -32,7 +32,7 @@ class StartUpViewModel extends BaseViewModel {
     // ProxyService.box.write(key: 'chatUid', value: "300");
     // await ProxyService.api.login(userPhone: '+250783054874');
     // fake login
-    List<BusinessSync> businesses = [];
+    List<Business> businesses = [];
     try {
       businesses = await appInit();
     } catch (e) {
@@ -70,7 +70,7 @@ class StartUpViewModel extends BaseViewModel {
             tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
           /// if we only have one branch no need to switch from branches go straight to business.
           if (tenant.branches.length == 1) {
-            BusinessSync business = await ProxyService.api
+            Business business = await ProxyService.api
                 .getBusinessFromOnlineGivenId(
                     id: tenant.branches[0].fbusinessId!);
             navigateToDashboard(
@@ -107,7 +107,7 @@ class StartUpViewModel extends BaseViewModel {
       /// but backing up the database will be suggested,
       /// follow algorithm there
       try {
-        BusinessSync business = ProxyService.api.getBusiness();
+        Business business = ProxyService.api.getBusiness();
         navigateToDashboard(business: business, context: context);
       } catch (e) {
         log.e(e);
@@ -133,7 +133,7 @@ class StartUpViewModel extends BaseViewModel {
   }
 
   void navigateToDashboard(
-      {required BusinessSync business,
+      {required Business business,
       BranchSync? branch,
       required BuildContext context}) {
     if (branch != null) {
@@ -162,8 +162,8 @@ class StartUpViewModel extends BaseViewModel {
   }
 
   /// get IDS to use along the way in the app
-  Future<List<BusinessSync>> appInit() async {
-    List<BusinessSync> businesses = [];
+  Future<List<Business>> appInit() async {
+    List<Business> businesses = [];
 
     String userId = ProxyService.box.read(key: 'userId');
 

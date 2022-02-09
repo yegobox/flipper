@@ -30,7 +30,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           /// make appointment, or check in/out.
           title: InkWell(
             onTap: () {
-              GoRouter.of(context).go(Routes.signup + "/attendance");
+              GoRouter.of(context).go(Routes.sign + "/attendance");
             },
             child: const CircleAvatar(
               backgroundColor: Colors.transparent,

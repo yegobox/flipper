@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,23 +35,24 @@ class RallyApp extends StatelessWidget {
       restorationScopeId: 'rally_app',
       title: 'Rally',
       debugShowCheckedModeBanner: false,
-      theme: _buildRallyTheme().copyWith(
-        platform: GalleryOptions.of(context)!.platform,
-        pageTransitionsTheme: PageTransitionsTheme(
-          builders: {
-            for (var type in TargetPlatform.values)
-              type: sharedZAxisTransitionBuilder,
-          },
-        ),
-      ),
+      // theme: _buildRallyTheme().copyWith(
+      //   platform: GalleryOptions.of(context)!.platform,
+      //   pageTransitionsTheme: PageTransitionsTheme(
+      //     builders: {
+      //       for (var type in TargetPlatform.values)
+      //         type: sharedZAxisTransitionBuilder,
+      //     },
+      //   ),
+      // ),
       // localizationsDelegates: GalleryLocalizations.localizationsDelegates,
       // supportedLocales: GalleryLocalizations.supportedLocales,
-      locale: GalleryOptions.of(context)!.locale,
+      //locale: GalleryOptions.of(context)!.locale,
       initialRoute: loginRoute,
-      routes: <String, WidgetBuilder>{
-        homeRoute: (context) => const HomePage(),
-        loginRoute: (context) => const LoginPage(),
-      },
+      home: const HomePage(),
+      // routes: <String, WidgetBuilder>{
+      //   homeRoute: (context) => const HomePage(),
+      //   loginRoute: (context) => const LoginPage(),
+      // },
     );
   }
 

@@ -1,6 +1,9 @@
 export 'package:flipper_models/models/io/business.dart'
     if (dart.library.html) 'package:flipper_models/models/html/business.dart';
 
+export 'package:flipper_models/models/io/business_local.dart'
+    if (dart.library.html) 'package:flipper_models/models/html/business_local.dart';
+
 /// a model used to store business data in a model that has no sync
 /// as sync delay login and when no internet it assume no business is local
 export 'package:flipper_models/models/io/l_business.dart'

@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -201,8 +199,7 @@ class _ModelBindingScope extends InheritedWidget {
     Key? key,
     required this.modelBindingState,
     required Widget child,
-  })  : assert(modelBindingState != null),
-        super(key: key, child: child);
+  }) : super(key: key, child: child);
 
   final _ModelBindingState modelBindingState;
 
@@ -215,8 +212,7 @@ class ModelBinding extends StatefulWidget {
     Key? key,
     this.initialModel = const GalleryOptions(),
     this.child,
-  })  : assert(initialModel != null),
-        super(key: key);
+  }) : super(key: key);
 
   final GalleryOptions initialModel;
   final Widget? child;

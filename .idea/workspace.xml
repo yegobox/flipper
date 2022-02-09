@@ -61,29 +61,41 @@
   <component name="ChangeListManager">
     <list default="true" id="130b61e7-9be8-4adb-878b-9d0f09c30571" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/open-sources/system_time_check" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/system_time_check" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/open-sources/system_time_check/example/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/system_time_check/example/android/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/collect_cash.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/collect_cash.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/flipper_app.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/flipper_app.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/scanner_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/scanner_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/business_home_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/business_home_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/login_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/event_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/helpers/test_helpers.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/helpers/test_helpers.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.packages" beforeDir="false" afterPath="$PROJECT_DIR$/.packages" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/lib/omni/widgets/chat_app_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/lib/omni/widgets/chat_app_bar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_finance/finance_demo/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_finance/finance_demo/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_finance/finance_demo/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_finance/finance_demo/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_finance/finance_demo/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_finance/finance_demo/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_finance/lib/app.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_finance/lib/app.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_finance/lib/gallery_options.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_finance/lib/gallery_options.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_finance/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_finance/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_login/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_routing/lib/routes.router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_routing/lib/routes.router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_routing/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_routing/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[VirtualDevicePath@C:\Users\Sone\.android\avd\Pixel_4_API_24.avd]" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="24aQboTy90mfsydjgfQbQe4pkee" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="abbreviatePackageNames" value="true" />
     <option name="autoscrollFromSource" value="true" />
@@ -101,6 +113,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
+  <component name="RunManager" selected="Flutter.Flutter Run -&gt; 'finance_demo'" />
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -122,11 +135,12 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1643867068945">
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1644430646974">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1643867068945" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1644430646974" />
   </component>
 </project>

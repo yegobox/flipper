@@ -52,5 +52,5 @@ index.html
 config.dart
 firebase_options.dart
 runner/**
-runner
+# runner
 # windows

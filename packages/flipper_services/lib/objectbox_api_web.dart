@@ -106,7 +106,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Stream<List<BusinessSync>> contacts() {
+  Stream<List<Business>> contacts() {
     // TODO: implement contacts
     throw UnimplementedError();
   }
@@ -178,19 +178,19 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  BusinessSync getBusiness() {
+  Business getBusiness() {
     // TODO: implement getBusiness
     throw UnimplementedError();
   }
 
   @override
-  BusinessSync getBusinessById({required int id}) {
+  Business getBusinessById({required int id}) {
     // TODO: implement getBusinessById
     throw UnimplementedError();
   }
 
   @override
-  Future<BusinessSync> getBusinessFromOnlineGivenId({required int id}) {
+  Future<Business> getBusinessFromOnlineGivenId({required int id}) {
     // TODO: implement getBusinessFromOnlineGivenId
     throw UnimplementedError();
   }
@@ -202,7 +202,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<BusinessSync>> getContacts() {
+  Future<List<Business>> getContacts() {
     // TODO: implement getContacts
     throw UnimplementedError();
   }
@@ -244,14 +244,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<BusinessSync>> getLocalOrOnlineBusiness(
-      {required String userId}) {
+  Future<List<Business>> getLocalOrOnlineBusiness({required String userId}) {
     // TODO: implement getLocalOrOnlineBusiness
     throw UnimplementedError();
   }
 
   @override
-  Future<List<BusinessSync>> getOnlineBusiness({required String userId}) {
+  Future<List<Business>> getOnlineBusiness({required String userId}) {
     // TODO: implement getOnlineBusiness
     throw UnimplementedError();
   }
@@ -496,7 +495,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Stream<List<BusinessSync>> users() {
+  Stream<List<Business>> users() {
     // TODO: implement users
     throw UnimplementedError();
   }

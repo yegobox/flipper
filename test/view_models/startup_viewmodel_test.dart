@@ -6,7 +6,7 @@ import '../helpers/test_helpers.dart';
 // import 'api_test.dart';
 
 StartUpViewModel _getModel() => StartUpViewModel();
-final BusinessSync businessMockData = BusinessSync(
+final Business businessMockData = Business(
   id: 1,
   name: 'name',
   latitude: '1',
@@ -21,7 +21,7 @@ void main() {
     setUp(() => registerServices());
     tearDown(() => unregisterServices());
     test('When user logged in and synced should land on dashboard', () async {
-      List<BusinessSync> c = [];
+      List<Business> c = [];
 
       // final api = getAndRegisterApi(businesses: c);
 

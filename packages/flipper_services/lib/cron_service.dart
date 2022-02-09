@@ -57,8 +57,8 @@ class CronService {
   // then we will customize invoice to match with actual data.
   schedule() async {
     //save the device token to firestore if it is not already there
-    BusinessSync? business = await ProxyService.api.getBusiness();
-    String? token = null;
+    Business? business = ProxyService.api.getBusiness();
+    String? token;
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
       log.e("DeviceToken:" + token!);
@@ -80,7 +80,7 @@ class CronService {
 
     /// backup the user db every day
     cron.schedule(Schedule.parse('0 0 * * *'), () async {
-      BusinessSync business = await ProxyService.api.getBusiness();
+      Business business = await ProxyService.api.getBusiness();
       if (business.backUpEnabled!) {
         final drive = GoogleDrive();
         drive.backUpNow();

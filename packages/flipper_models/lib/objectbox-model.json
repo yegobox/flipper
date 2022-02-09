@@ -2202,9 +2202,183 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "49:4976542386476964811",
+      "lastPropertyId": "33:1921809575032829780",
+      "name": "Business",
+      "properties": [
+        {
+          "id": "1:1759964787407750870",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:5564492222605178616",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:2267976432090914515",
+          "name": "currency",
+          "type": 9
+        },
+        {
+          "id": "4:8724642696616249735",
+          "name": "fcategoryId",
+          "type": 6
+        },
+        {
+          "id": "5:5185989940119164256",
+          "name": "latitude",
+          "type": 9
+        },
+        {
+          "id": "6:5876344926930125719",
+          "name": "longitude",
+          "type": 9
+        },
+        {
+          "id": "7:16253955610471777",
+          "name": "userId",
+          "type": 9
+        },
+        {
+          "id": "8:2531413554089505023",
+          "name": "typeId",
+          "type": 9
+        },
+        {
+          "id": "9:92123286440301202",
+          "name": "timeZone",
+          "type": 9
+        },
+        {
+          "id": "10:8285102473407574826",
+          "name": "table",
+          "type": 9
+        },
+        {
+          "id": "11:1784999234661923466",
+          "name": "country",
+          "type": 9
+        },
+        {
+          "id": "12:7753544643183983162",
+          "name": "businessUrl",
+          "type": 9
+        },
+        {
+          "id": "13:4032498812055567885",
+          "name": "hexColor",
+          "type": 9
+        },
+        {
+          "id": "14:2431136986473505791",
+          "name": "imageUrl",
+          "type": 9
+        },
+        {
+          "id": "15:4643253685456310041",
+          "name": "type",
+          "type": 9
+        },
+        {
+          "id": "16:637931131765438133",
+          "name": "active",
+          "type": 1
+        },
+        {
+          "id": "17:7513061245949029220",
+          "name": "chatUid",
+          "type": 9
+        },
+        {
+          "id": "18:1756074057301147503",
+          "name": "metadata",
+          "type": 9
+        },
+        {
+          "id": "19:1511416033079570461",
+          "name": "role",
+          "type": 9
+        },
+        {
+          "id": "20:6303462952762576628",
+          "name": "lastSeen",
+          "type": 6
+        },
+        {
+          "id": "21:8414874480683734429",
+          "name": "firstName",
+          "type": 9
+        },
+        {
+          "id": "22:6558603487087443327",
+          "name": "lastName",
+          "type": 9
+        },
+        {
+          "id": "23:4609176252226445130",
+          "name": "createdAt",
+          "type": 9
+        },
+        {
+          "id": "24:4830219573872130855",
+          "name": "deviceToken",
+          "type": 9
+        },
+        {
+          "id": "25:6294989804561457619",
+          "name": "backUpEnabled",
+          "type": 1
+        },
+        {
+          "id": "26:8818135308793748732",
+          "name": "subscriptionPlan",
+          "type": 9
+        },
+        {
+          "id": "27:578904890996656547",
+          "name": "nextBillingDate",
+          "type": 9
+        },
+        {
+          "id": "28:5272471846787855660",
+          "name": "previousBillingDate",
+          "type": 9
+        },
+        {
+          "id": "29:2456657848264381081",
+          "name": "isLastSubscriptionPaymentSucceeded",
+          "type": 1
+        },
+        {
+          "id": "30:1953082099136233703",
+          "name": "backupFileId",
+          "type": 9
+        },
+        {
+          "id": "31:8780723947089655244",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "32:3775237738128354942",
+          "name": "lastDbBackup",
+          "type": 9
+        },
+        {
+          "id": "33:1921809575032829780",
+          "name": "fullName",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "48:8654482986159253756",
+  "lastEntityId": "49:4976542386476964811",
   "lastIndexId": "21:6996790652084639492",
   "lastRelationId": "1:7692477632100059163",
   "lastSequenceId": "0:0",

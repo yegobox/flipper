@@ -32,7 +32,7 @@ class SettingViewModel extends ReactiveViewModel {
     return ProxyService.box.read(key: 'defaultLanguage');
   }
 
-  BusinessSync get business => ProxyService.api
+  Business get business => ProxyService.api
       .getBusinessById(id: ProxyService.box.read(key: 'businessId'));
 
   void setLanguage(String lang) {
@@ -123,7 +123,7 @@ class SettingViewModel extends ReactiveViewModel {
         await ProxyService.api
             .createGoogleSheetDoc(email: kSetting.settings!.email);
 
-        BusinessSync business = ProxyService.api.getBusiness();
+        Business business = ProxyService.api.getBusiness();
         business.email = kSetting.settings!.email;
         await ProxyService.api.updateBusiness(
           id: business.id,
@@ -151,7 +151,7 @@ class SettingViewModel extends ReactiveViewModel {
         callback(1);
       } else {
         /// the
-        BusinessSync business = ProxyService.api.getBusiness();
+        Business business = ProxyService.api.getBusiness();
         ProxyService.api.enableAttendance(
             businessId: business.id, email: kSetting.settings!.email);
       }

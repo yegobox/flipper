@@ -19,7 +19,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   List<String> chat_data = [];
 
   final log = getLogger('MessageViewModel');
-  BusinessSync? user = null;
+  Business? user = null;
   void messages() {
     // ProxyService.api.conversationStreamList();
   }
@@ -53,7 +53,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   final appService = locator<AppService>();
   List<Contact> dataList = [];
   final ItemScrollController itemScrollController = ItemScrollController();
-  BusinessSync? business = null;
+  Business? business = null;
   void loadContacts() async {
     // int id = ProxyService.box.read(key: 'businessId');
     // business = ProxyService.api.getBusinessById(id: id);
@@ -61,7 +61,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     // Stream<List<Business>> contacts =
     //     ProxyService.api.contacts().asBroadcastStream();
 
-    Stream<List<BusinessSync>> contacts = ProxyService.firestore.contacts();
+    Stream<List<Business>> contacts = ProxyService.firestore.contacts();
 
     contacts.listen((event) {
       originList = event.map((v) {
@@ -145,7 +145,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     required int conversationId,
   }) async {
     int senderId = ProxyService.box.read(key: 'businessId');
-    BusinessSync business = ProxyService.api.getBusinessById(id: senderId);
+    Business business = ProxyService.api.getBusinessById(id: senderId);
 
     Map<String, dynamic> author = types.User(
       id: senderId.toString(),
