@@ -3,8 +3,6 @@ import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'close_button.dart';
 import 'package:feather_icons/feather_icons.dart';
-
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
@@ -23,8 +21,7 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // ProxyService.nav.navigateTo(Routes.colors);
-        GoRouter.of(context).go(Routes.colors);
+        GoRouter.of(context).push(Routes.colors);
       },
       child: FutureBuilder<ProductSync?>(
         future: getProduct(),
@@ -37,8 +34,8 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
               color: HexColor('#cccccc'),
               child: Stack(
                 fit: StackFit.expand,
-                children: <Widget>[
-                  const Positioned(
+                children: const <Widget>[
+                  Positioned(
                     left: 31,
                     top: 40,
                     child: RotationTransition(

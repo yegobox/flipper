@@ -7,9 +7,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_ui/google_ui.dart';
 
 class ColorTile extends StatelessWidget {
-  ColorTile({Key? key}) : super(key: key);
+  const ColorTile({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -37,7 +38,7 @@ class ColorTile extends StatelessWidget {
                       onTap: () {},
                       child: Column(
                         children: [
-                          Container(
+                          SizedBox(
                             width: 80,
                             height: 80,
                             child: Theme(
@@ -54,9 +55,7 @@ class ColorTile extends StatelessWidget {
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: HexColor(
-                                            model.currentColor == null
-                                                ? '#0984e3'
-                                                : model.currentColor),
+                                            model.currentColor ?? '#0984e3'),
                                         focusedBorder: const OutlineInputBorder(
                                           borderSide:
                                               BorderSide(color: Colors.white),
@@ -80,9 +79,9 @@ class ColorTile extends StatelessWidget {
                                         ),
                                       ),
                                       placeholder: (context, url) =>
-                                          CircularProgressIndicator(),
+                                          const CircularProgressIndicator(),
                                       errorWidget: (context, url, error) =>
-                                          Icon(Icons.error),
+                                          const Icon(Icons.error),
                                     ),
                             ),
                           ),
@@ -96,7 +95,7 @@ class ColorTile extends StatelessWidget {
               const ListDivider(
                 height: 10,
               ),
-              Align(
+              const Align(
                 alignment: Alignment.topCenter,
                 child: Text('CHOOSE LABEL COLOR'),
               ),
@@ -112,7 +111,7 @@ class ColorTile extends StatelessWidget {
               const ListDivider(
                 height: 10,
               ),
-              Align(
+              const Align(
                 alignment: Alignment.topCenter,
                 child: Text('PHOTO LABEL'),
               ),
@@ -128,9 +127,9 @@ class ColorTile extends StatelessWidget {
                     SizedBox(
                       height: 50,
                       width: 140,
-                      child: OutlineButton(
+                      child: GOutlinedButton(
+                        'Choose Photo',
                         color: HexColor('#ecf0f1'),
-                        child: const Text('Choose Photo'),
                         onPressed: () async {
                           model.browsePictureFromGallery(
                               productId: model.product.id,
@@ -146,22 +145,22 @@ class ColorTile extends StatelessWidget {
                     SizedBox(
                       height: 50,
                       width: 140,
-                      child: OutlineButton(
+                      child: GOutlinedButton(
+                        'Take Photo',
                         color: HexColor('#ecf0f1'),
-                        child: const Text('Take Photo'),
                         onPressed: () {
                           model.takePicture(
-                              productId: model.product.id,
-                              callBack: (int res) {
-                                // show error if any
-                                if (res == 500) {
-                                  showSimpleNotification(
-                                    Text('Error try again'),
-                                    background: Colors.red,
-                                    position: NotificationPosition.bottom,
-                                  );
-                                }
-                              });
+                            productId: model.product.id,
+                            callBack: (int res) {
+                              if (res == 500) {
+                                showSimpleNotification(
+                                  const Text('Error try again'),
+                                  background: Colors.red,
+                                  position: NotificationPosition.bottom,
+                                );
+                              }
+                            },
+                          );
                         },
                       ),
                     )
@@ -196,7 +195,7 @@ class ColorTile extends StatelessWidget {
                     ),
                   ),
                   color: HexColor(colors[i].name!),
-                  child: Text(''),
+                  child: const Text(''),
                   onPressed: () {
                     //reset all other color to not selected
                     model.switchColor(color: colors[i]);
