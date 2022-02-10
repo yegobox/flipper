@@ -54,6 +54,8 @@ dependencies:
   logger: ^1.1.0
   firebase_crashlytics: ^2.5.0
   path: ^1.8.0
+  flutter_riverpod: ^0.14.0+3
+  google_ui: ^2.7.0
 
 dev_dependencies:
   flutter_test:
@@ -104,8 +106,16 @@ flutter:
     - assets/images/
     - assets/icons/
   fonts:
-    - family: TwitterIcon
+    - family: Poppins
       fonts:
-        - asset: assets/fonts/icons.ttf
+        - asset: assets/fonts/Poppins/Poppins-Light.ttf
+        - asset: assets/fonts/Poppins/Poppins-LightItalic.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins/Poppins-Italic.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+        - asset: assets/fonts/Poppins/Poppins-MediumItalic.ttf
+          weight: 500
 generate: true
 # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)

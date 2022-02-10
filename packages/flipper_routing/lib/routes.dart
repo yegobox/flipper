@@ -4,6 +4,7 @@ import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
+import 'package:flipper_dashboard/no_net.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
 import 'package:flipper_dashboard/collect_cash.dart';
@@ -289,6 +290,14 @@ final router = GoRouter(
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: const FinanceApp(),
+      ),
+    ),
+    GoRoute(
+      path: '/nonetwork',
+      name: 'nonetwork',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: NoNet(),
       ),
     ),
   ],

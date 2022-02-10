@@ -12,6 +12,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:go_router/go_router.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 final isWeb = UniversalPlatform.isWeb;
 
@@ -113,7 +114,14 @@ class StartUpViewModel extends BaseViewModel {
         log.e(e);
       }
     } else {
-      GoRouter.of(context).pushNamed('login');
+      ConnectivityResult connectivityResult =
+          await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        GoRouter.of(context).pushNamed('login');
+      } else {
+        GoRouter.of(context).pushNamed('nonetwork');
+      }
     }
   }
 

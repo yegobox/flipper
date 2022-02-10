@@ -40,7 +40,15 @@ flutter:
     - ../../assets/icons/
 
   fonts:
-    - family: TwitterIcon
+    - family: Poppins
       fonts:
-        - asset: ../../assets/fonts/icons.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-Light.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-LightItalic.ttf
+          weight: 300
+        - asset: ../../assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-Italic.ttf
+          weight: 400
+        - asset: ../../assets/fonts/Poppins/Poppins-Medium.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-MediumItalic.ttf
+          weight: 500
 generate: true
