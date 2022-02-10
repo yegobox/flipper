@@ -1,10 +1,10 @@
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_ui/google_ui.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 final isIos = UniversalPlatform.isIOS;
@@ -28,11 +28,11 @@ class AddProductButtons extends StatelessWidget {
                   color: Colors.white70,
                   width: double.infinity,
                   height: 40,
-                  child: BoxButton(
-                    onTap: () {
+                  child: GElevatedButton(
+                    'Add Product',
+                    onPressed: () {
                       GoRouter.of(context).push(Routes.product);
                     },
-                    title: 'Add Product',
                   ),
                 ),
               ),
@@ -45,11 +45,11 @@ class AddProductButtons extends StatelessWidget {
                     color: Colors.white70,
                     width: double.infinity,
                     height: 40,
-                    child: BoxButton(
-                      onTap: () {
+                    child: GElevatedButton(
+                      'Add Discount',
+                      onPressed: () {
                         GoRouter.of(context).go(Routes.discount);
                       },
-                      title: 'Add Discount',
                     ),
                   ),
                 ),
@@ -59,11 +59,11 @@ class AddProductButtons extends StatelessWidget {
                   color: Colors.white70,
                   width: double.infinity,
                   height: 40,
-                  child: BoxButton.outline(
-                    onTap: () {
+                  child: GOutlinedButton(
+                    'Dismiss',
+                    onPressed: () {
                       Navigator.maybePop(context);
                     },
-                    title: 'Dismiss',
                   ),
                 ),
               )

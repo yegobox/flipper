@@ -33,7 +33,7 @@ class SaleIndicator extends StatelessWidget {
               'No Sale',
               style: Theme.of(context).textTheme.headline4!.copyWith(
                     fontSize: 16,
-                    color: const Color(0xffffffff),
+                    color: Colors.black,
                     fontWeight: FontWeight.w600,
                   ),
             )
@@ -47,7 +47,7 @@ class SaleIndicator extends StatelessWidget {
                     FLocalization.of(context).currentSale,
                     style: Theme.of(context).textTheme.headline4!.copyWith(
                           fontSize: 16,
-                          color: const Color(0xffffffff),
+                          color: Colors.black,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -55,7 +55,7 @@ class SaleIndicator extends StatelessWidget {
                     '(' + counts.toString() + ')',
                     style: Theme.of(context).textTheme.headline4!.copyWith(
                           fontSize: 16,
-                          color: const Color(0xffffffff),
+                          color: Colors.black,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -70,7 +70,7 @@ class SaleIndicator extends StatelessWidget {
           },
           child: const Icon(
             Ionicons.chatbox_sharp,
-            color: Color(0xffffffff),
+            color: Colors.black,
           ),
         ),
       Container(
@@ -87,7 +87,7 @@ class SaleIndicator extends StatelessWidget {
         },
         child: const Icon(
           CupertinoIcons.add,
-          color: Color(0xffffffff),
+          color: Colors.black,
         ),
       )
     ]);

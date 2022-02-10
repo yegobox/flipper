@@ -15,7 +15,7 @@ class OptionModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(30.0),
         child: Hero(
           tag: addProductHero,
           createRectTween: (begin, end) {

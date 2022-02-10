@@ -2,8 +2,13 @@ import 'package:flipper_data_table/data/users.dart';
 import 'package:flipper_data_table/model/user.dart';
 import 'package:flipper_data_table/widget/scrollable_widget.dart';
 import 'package:flutter/material.dart';
+// import 'package:fluent_ui/fluent_ui.dart' as FluentUI;
+
+const double splitButtonHeight = 25.0;
 
 class SortablePage extends StatefulWidget {
+  const SortablePage({Key? key}) : super(key: key);
+
   @override
   _SortablePageState createState() => _SortablePageState();
 }
@@ -17,7 +22,7 @@ class _SortablePageState extends State<SortablePage> {
   void initState() {
     super.initState();
 
-    this.users = List.of(allUsers);
+    users = List.of(allUsers);
   }
 
   @override
@@ -27,8 +32,8 @@ class _SortablePageState extends State<SortablePage> {
 
   Widget buildDataTable() {
     final columns = ['First Name', 'Last Name', 'Age'];
-    return Container(
-      width: MediaQuery.of(context).size.width,
+    return SizedBox(
+      height: MediaQuery.of(context).size.width,
       child: DataTable(
         sortAscending: isAscending,
         sortColumnIndex: sortColumnIndex,
@@ -67,8 +72,8 @@ class _SortablePageState extends State<SortablePage> {
     }
 
     setState(() {
-      this.sortColumnIndex = columnIndex;
-      this.isAscending = ascending;
+      sortColumnIndex = columnIndex;
+      isAscending = ascending;
     });
   }
 

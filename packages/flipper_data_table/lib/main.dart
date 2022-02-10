@@ -1,5 +1,5 @@
 import 'package:flipper_data_table/page/sortable_page.dart';
-// import 'package:flipper_data_table/widget/tabbar_widget.dart';
+import 'package:flipper_data_table/widget/tabbar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,7 +26,6 @@ class MyApp extends StatelessWidget {
         theme: GThemeGenerator.generate(),
         darkTheme: GThemeGenerator.generateDark(),
         title: title,
-        // theme: ThemeData(primarySwatch: Colors.deepOrange),
         home: const MainPage(),
       );
 }
@@ -40,17 +39,17 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   @override
-  // Widget build(BuildContext context) => TabBarWidget(
-  //       title: MyApp.title,
-  //       tabs: const [
-  //         Tab(icon: Icon(Icons.sort_by_alpha), text: 'Report'),
-  //       ],
-  //       children: [
-  //         SortablePage(),
-  //       ],
-  //     );
+  Widget build(BuildContext context) => TabBarWidget(
+        title: MyApp.title,
+        tabs: const [
+          Tab(icon: Icon(Icons.sort_by_alpha), text: 'Report'),
+        ],
+        children: [
+          SortablePage(),
+        ],
+      );
 
-  Widget build(BuildContext context) => SortablePage();
+  // Widget build(BuildContext context) => SortablePage();
   // Widget build(BuildContext context) => GErrorMessage(
   //       icon: const Icon(Icons.wifi_off_outlined),
   //       title: "No internet",
