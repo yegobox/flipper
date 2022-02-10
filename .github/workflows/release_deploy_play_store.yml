@@ -50,7 +50,7 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/1.0.1-dev.3/1.48.0+111101048/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.49.0+111101049/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - run: dart pub global activate melos
