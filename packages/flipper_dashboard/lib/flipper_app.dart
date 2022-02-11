@@ -208,6 +208,10 @@ class _FlipperAppState extends State<FlipperApp> {
                     label: 'KeyPad',
                   ),
                   BottomNavigationBarItem(
+                    icon: Icon(Icons.analytics),
+                    label: 'Analytics',
+                  ),
+                  BottomNavigationBarItem(
                     icon: Icon(Icons.store),
                     label: 'Store',
                   ),

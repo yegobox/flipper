@@ -64,6 +64,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  fluent_ui:
+    dependency: transitive
+    description:
+      name: fluent_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.8.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -151,6 +158,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   riverpod:
     dependency: transitive
     description:
@@ -158,6 +172,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.14.0+3"
+  scroll_pos:
+    dependency: transitive
+    description:
+      name: scroll_pos
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   simple_animations:
     dependency: transitive
     description:
@@ -263,4 +284,4 @@ packages:
     version: "2.1.1"
 sdks:
   dart: ">=2.16.0 <3.0.0"
-  flutter: ">=1.17.0"
+  flutter: ">=2.8.0"

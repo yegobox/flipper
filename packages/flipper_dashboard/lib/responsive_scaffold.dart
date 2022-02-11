@@ -366,7 +366,7 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
   // Controls if the menu is expanded, when it can be.
   bool isMenuExpanded = true;
   // Controls if the rail is closed when it can be.
-  bool isMenuClosed = false;
+  bool isMenuClosed = true;
   // Menu completed closing.
   bool menuDoneClosing = false;
 
