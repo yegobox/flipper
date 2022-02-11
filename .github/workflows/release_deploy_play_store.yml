@@ -37,6 +37,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     needs: [testing]
+
     runs-on: ubuntu-18.04
     steps:
       # Set up Flutter.
@@ -50,7 +51,7 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/1.0.1-dev.3/1.51.0+111101051/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.52.0+111101052/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - run: dart pub global activate melos

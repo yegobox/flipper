@@ -31,89 +31,91 @@ class BodyWidget extends StatefulWidget {
 class _BodyWidgetState extends State<BodyWidget> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        KeyPadHead(
-          tab: widget.model.tab,
-          payable: PayableView(
-            onClick: () {
-              if (widget.model.kOrder != null) {
-                GoRouter.of(context).push(Routes.pay);
-              } else {
-                showSimpleNotification(
-                  Text(FLocalization.of(context).noPayable),
-                  background: Colors.green,
-                  position: NotificationPosition.bottom,
-                );
-              }
-            },
-            tickets: widget.model.tickets.isEmpty
-                ? 0
-                : widget.model.tickets.length.toDouble(),
-            orders: widget.model.kOrder != null
-                ? widget.model.kOrder!.orderItems.length
-                : 0,
-            duePay: widget.model.kOrder != null
-                ? widget.model.totalPayable.toDouble()
-                : 0.00,
-            ticketHandler: () async {
-              await widget.model.keypad.getTickets();
-              await widget.model.keypad
-                  .getOrder(branchId: ProxyService.box.read(key: 'branchId'));
-              if (widget.model.kOrder == null &&
-                  widget.model.tickets.isNotEmpty) {
-                //then we know we need to resume.
-                //TODOfix this on desktop is not showing.
-                FlipperBottomSheet.showTicketsToSaleBottomSheet(
-                  model: widget.model,
-                  context: context,
-                );
-              }
-              widget.model.saveTicket((handle) {
-                if (handle == 'error') {
-                  FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                    model: widget.model,
-                    context: context,
-                  );
-                } else if (handle == 'saved') {
+    return SafeArea(
+      child: Column(
+        children: [
+          KeyPadHead(
+            tab: widget.model.tab,
+            payable: PayableView(
+              onClick: () {
+                if (widget.model.kOrder != null) {
+                  GoRouter.of(context).push(Routes.pay);
+                } else {
                   showSimpleNotification(
-                    Text('Ticket $handle'),
+                    Text(FLocalization.of(context).noPayable),
                     background: Colors.green,
                     position: NotificationPosition.bottom,
                   );
                 }
-              });
+              },
+              tickets: widget.model.tickets.isEmpty
+                  ? 0
+                  : widget.model.tickets.length.toDouble(),
+              orders: widget.model.kOrder != null
+                  ? widget.model.kOrder!.orderItems.length
+                  : 0,
+              duePay: widget.model.kOrder != null
+                  ? widget.model.totalPayable.toDouble()
+                  : 0.00,
+              ticketHandler: () async {
+                await widget.model.keypad.getTickets();
+                await widget.model.keypad
+                    .getOrder(branchId: ProxyService.box.read(key: 'branchId'));
+                if (widget.model.kOrder == null &&
+                    widget.model.tickets.isNotEmpty) {
+                  //then we know we need to resume.
+                  //TODOfix this on desktop is not showing.
+                  FlipperBottomSheet.showTicketsToSaleBottomSheet(
+                    model: widget.model,
+                    context: context,
+                  );
+                }
+                widget.model.saveTicket((handle) {
+                  if (handle == 'error') {
+                    FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                      model: widget.model,
+                      context: context,
+                    );
+                  } else if (handle == 'saved') {
+                    showSimpleNotification(
+                      Text('Ticket $handle'),
+                      background: Colors.green,
+                      position: NotificationPosition.bottom,
+                    );
+                  }
+                });
+              },
+            ),
+            onClick: () {
+              FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                model: widget.model,
+                context: context,
+              );
             },
+            controller: widget.controller,
+            amount: double.parse(widget.model.key),
           ),
-          onClick: () {
-            FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-              model: widget.model,
-              context: context,
-            );
-          },
-          controller: widget.controller,
-          amount: double.parse(widget.model.key),
-        ),
-        if (widget.model.tab == 0) KeyPadView(model: widget.model),
-        if (widget.model.tab == 1)
-          widget.model.orderItems.isEmpty
-              ? GErrorMessage(
-                  icon: const Icon(Icons.error),
-                  title: "No Data for report",
-                  subtitle: "You don't have data to build your report",
-                  onPressed: () {},
-                )
-              : Flexible(
-                  child: ScrollableWidget(
-                    child: SortablePage(
-                      columns: const ['Item', 'price', 'Stock', 'Discount'],
-                      data: widget.model.orderItems,
+          if (widget.model.tab == 0) KeyPadView(model: widget.model),
+          if (widget.model.tab == 1)
+            widget.model.orderItems.isEmpty
+                ? GErrorMessage(
+                    icon: const Icon(Icons.error),
+                    title: "No Data for report",
+                    subtitle: "You don't have data to build your report",
+                    onPressed: () {},
+                  )
+                : Flexible(
+                    child: ScrollableWidget(
+                      child: SortablePage(
+                        columns: const ['Item', 'price', 'Stock', 'Discount'],
+                        data: widget.model.orderItems,
+                      ),
                     ),
-                  ),
-                )
-        else if (widget.model.tab == 2)
-          const Flexible(child: ProductView(userId: '1', items: true))
-      ],
+                  )
+          else if (widget.model.tab == 2)
+            const Flexible(child: ProductView(userId: '1', items: true))
+        ],
+      ),
     );
   }
 }
