@@ -1,9 +1,10 @@
+// ignore_for_file: constant_identifier_names
+
 library customappbar;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:google_ui/google_ui.dart';
 import 'flipper_ui.dart';
 
 enum CLOSEBUTTON { ICON, BUTTON }
@@ -63,7 +64,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: true,
-      child: Container(
+      child: SizedBox(
         height: _bottomSpacer,
         child: Column(
           children: <Widget>[

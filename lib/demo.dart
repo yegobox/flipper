@@ -3,9 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ui/google_ui.dart';
 
-import 'custom_tab.dart';
-import 'data/report_mock.dart';
-import 'page/sortable_page.dart';
+import 'package:flipper_data_table/data/report_mock.dart';
+import 'package:flipper_data_table/page/sortable_page.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();

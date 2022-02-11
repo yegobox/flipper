@@ -497,3 +497,11 @@ class AppSetup {
 //  build better docs:
 // https://docs.page/homepage
 // https://github.com/csells/go_router/issues/356#event-6045944024
+
+// publishing package thought git action
+// https://birju.dev/posts/publish-your-flutter-package-using-github-actions/
+
+// Next blog post
+// https://birju.dev/posts/burying-the-hatchet-of-build-runner-once-and-for-all/
+
+// flutter run -t lib/demo.dart (run demo when we need to!)

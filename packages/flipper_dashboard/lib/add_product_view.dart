@@ -1,5 +1,3 @@
-import 'package:flipper_rw/helpers/utils.dart';
-import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
@@ -20,6 +18,7 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_ui/google_ui.dart';
 
 class AddProductView extends StatefulWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
@@ -130,26 +129,12 @@ class _AddProductViewState extends State<AddProductView> {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
                       width: double.infinity,
-                      child: TextFormField(
-                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                              color: Colors.black,
-                            ),
+                      child: GTextFormField(
                         controller: productName,
                         onChanged: (value) {
                           /// for locking on unlocking the save button
                           model.setName(name: value);
                         },
-                        decoration: InputDecoration(
-                          hintText: FLocalization.of(context).productName,
-                          fillColor: Theme.of(context)
-                              .copyWith(canvasColor: Colors.white)
-                              .canvasColor,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: HexColor('#D0D7E3')),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -199,23 +184,26 @@ class _AddProductViewState extends State<AddProductView> {
                   verticalSpaceSmall,
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
-                    child: BoxButton.outline(
-                      onTap: () {
-                        DatePicker.showPicker(context, showTitleActions: true,
-                            onChanged: (date) {
-                          log.i('change $date in time zone ' +
-                              date.timeZoneOffset.inHours.toString());
-                        }, onConfirm: (date) {
-                          model.updateExpiryDate(date);
-                        }, locale: LocaleType.en);
-                      },
-                      title: (model.product == null ||
-                              (model.product != null &&
-                                  model.product.expiryDate == null))
-                          ? 'Expiry Date'
-                          : 'Expires at ' +
-                              formatter.format(
-                                  DateTime.parse(model.product.expiryDate)),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: GOutlinedButton(
+                        (model.product == null ||
+                                (model.product != null &&
+                                    model.product.expiryDate == null))
+                            ? 'Expiry Date'
+                            : 'Expires at ' +
+                                formatter.format(
+                                    DateTime.parse(model.product.expiryDate)),
+                        onPressed: () {
+                          DatePicker.showPicker(context, showTitleActions: true,
+                              onChanged: (date) {
+                            log.i('change $date in time zone ' +
+                                date.timeZoneOffset.inHours.toString());
+                          }, onConfirm: (date) {
+                            model.updateExpiryDate(date);
+                          }, locale: LocaleType.en);
+                        },
+                      ),
                     ),
                   ),
                   verticalSpaceSmall,

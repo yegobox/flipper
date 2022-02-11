@@ -491,6 +491,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
+  List<OrderItemSync> orderItems = [];
+
+  void loadReport() async {
+    List<OrderFSync> completedOrders =
+        await ProxyService.api.getOrderByStatus(status: completeStatus);
+    for (OrderFSync completedOrder in completedOrders) {
+      orderItems.addAll(completedOrder.orderItems);
+    }
+    notifyListeners();
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
       [keypad, _app, productService, settingService, languageService];

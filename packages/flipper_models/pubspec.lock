@@ -247,7 +247,7 @@ packages:
     source: hosted
     version: "1.15.0"
   connectivity_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: connectivity_plus
       url: "https://pub.dartlang.org"
@@ -721,7 +721,7 @@ packages:
       path: "../flipper_data_table"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "1.0.0-dev.2"
   flipper_finance:
     dependency: "direct overridden"
     description:

@@ -129,7 +129,7 @@ class ColorTile extends StatelessWidget {
                       width: 140,
                       child: GOutlinedButton(
                         'Choose Photo',
-                        color: HexColor('#ecf0f1'),
+                        color: Colors.black,
                         onPressed: () async {
                           model.browsePictureFromGallery(
                               productId: model.product.id,
@@ -147,7 +147,7 @@ class ColorTile extends StatelessWidget {
                       width: 140,
                       child: GOutlinedButton(
                         'Take Photo',
-                        color: HexColor('#ecf0f1'),
+                        color: Colors.black,
                         onPressed: () {
                           model.takePicture(
                             productId: model.product.id,

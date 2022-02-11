@@ -56,6 +56,7 @@ dependencies:
   path: ^1.8.0
   flutter_riverpod: ^0.14.0+3
   google_ui: ^2.7.0
+  flipper_data_table: 1.0.0-dev.2
 
 dev_dependencies:
   flutter_test:

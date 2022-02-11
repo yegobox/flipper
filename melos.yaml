@@ -24,6 +24,8 @@ command:
     workspaceChangelog: true
 
 scripts:
+  flipper:
+    run: melos exec --scope="*flipper_data_table*" -- flutter packages pub publish -f
   # postbootstrap: cp -rf .dart_tool/flutter_gen/gen_l10n lib/localize/lib
   lint:all:
     run: melos run analyze && melos run format

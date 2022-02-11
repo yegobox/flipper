@@ -145,6 +145,8 @@ class _FlipperAppState extends State<FlipperApp> {
         ProxyService.notification.initialize(context);
         ProxyService.notification.listen(context);
         ProxyService.dynamicLink.handleDynamicLink(context);
+        // load data for report
+        model.loadReport();
       },
       builder: (context, model, child) {
         return WillPopScope(

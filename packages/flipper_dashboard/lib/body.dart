@@ -12,7 +12,7 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_data_table/page/sortable_page.dart';
-import 'package:flipper_data_table/data/report_mock.dart';
+import 'package:google_ui/google_ui.dart';
 
 class BodyWidget extends StatefulWidget {
   const BodyWidget(
@@ -96,21 +96,21 @@ class _BodyWidgetState extends State<BodyWidget> {
         ),
         if (widget.model.tab == 0) KeyPadView(model: widget.model),
         if (widget.model.tab == 1)
-          Flexible(
-            child: ScrollableWidget(
-              child: SortablePage(
-                columns: const [
-                  'Item',
-                  'price',
-                  'Discount',
-                  'Stock',
-                  'Payment',
-                  'Date'
-                ],
-                data: List.of(reports),
-              ),
-            ),
-          )
+          widget.model.orderItems.isEmpty
+              ? GErrorMessage(
+                  icon: const Icon(Icons.error),
+                  title: "No Data for report",
+                  subtitle: "You don't have data to build your report",
+                  onPressed: () {},
+                )
+              : Flexible(
+                  child: ScrollableWidget(
+                    child: SortablePage(
+                      columns: const ['Item', 'price', 'Stock', 'Discount'],
+                      data: widget.model.orderItems,
+                    ),
+                  ),
+                )
         else if (widget.model.tab == 2)
           const Flexible(child: ProductView(userId: '1', items: true))
       ],

@@ -29,10 +29,12 @@ class _SortablePageState extends State<SortablePage> {
     return SizedBox(
       height: MediaQuery.of(context).size.width,
       child: DataTable(
+        horizontalMargin: 5,
         sortAscending: isAscending,
         sortColumnIndex: sortColumnIndex,
         columns: getColumns(widget.columns),
         rows: getRows(widget.data),
+        columnSpacing: 30,
       ),
     );
   }
@@ -51,10 +53,8 @@ class _SortablePageState extends State<SortablePage> {
         final cells = [
           user.name,
           user.price,
-          user.discount,
           user.remainingStock,
-          user.type,
-          user.createdAt
+          user.discount ?? 0,
         ];
 
         return DataRow(
@@ -67,14 +67,17 @@ class _SortablePageState extends State<SortablePage> {
 
   void onSort(int columnIndex, bool ascending) {
     if (columnIndex == 0) {
-      widget.data.sort(
-          (user1, user2) => compareString(ascending, user1.name, user2.name));
+      widget.data.sort((report1, report2) =>
+          compareString(ascending, report1.name, report2.name));
     } else if (columnIndex == 1) {
-      widget.data.sort((user1, user2) => compareString(
-          ascending, user1.price.toString(), user2.price.toString()));
+      widget.data.sort((report1, report2) => compareString(
+          ascending, report1.price.toString(), report2.price.toString()));
     } else if (columnIndex == 2) {
-      widget.data.sort((user1, user2) =>
-          compareString(ascending, '${user1.discount}', '${user2.discount}'));
+      widget.data.sort((report1, report2) => compareString(
+          ascending, '${report1.remainingStock}', '${report2.remainingStock}'));
+    } else if (columnIndex == 3) {
+      widget.data.sort((report, report2) => compareString(
+          ascending, '${report.discount}', '${report2.discount}'));
     }
 
     setState(() {
